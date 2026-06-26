@@ -1,4 +1,5 @@
 import { dateTimeFormat } from '@grafana/data';
+import { SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import { ValueFormatter } from 'echarts/style';
 import { ColorIndicator, ColorPlacement, VizTooltipItem } from 'grafana/VizTooltip';
 
@@ -12,12 +13,26 @@ export type EChartsTooltipTrigger = 'axis' | 'item';
 export type TooltipKind = 'timeseries' | 'pie' | 'radar';
 
 /**
+ * Identifies the ECharts data point a tooltip row was built from, so the panel
+ * can resolve the originating Grafana field (for data links) on pin. `seriesIndex`
+ * is the index into the ECharts `series` array; `dataIndex` is the row within it.
+ */
+export interface TooltipItemRef {
+  seriesIndex: number;
+  dataIndex: number;
+}
+
+/**
  * Content for the Grafana tooltip, split into the bold header row (the hovered
  * x value / category) and the per-series rows beneath it.
+ *
+ * `refs` are the (deduped) data points the rows came from; they are not rendered
+ * but let the panel look up data links/actions for the pinned tooltip.
  */
 export interface TooltipModel {
   header: VizTooltipItem;
   items: VizTooltipItem[];
+  refs: TooltipItemRef[];
 }
 
 /** Everything the mappers need beyond the raw ECharts hover params. */
@@ -27,6 +42,24 @@ export interface TooltipBuildContext {
   timeZone: string;
   /** Radar indicator (axis) names, in option order, to label each value row. */
   radarIndicators: string[];
+  /** Sort order applied to multi-series (axis) rows by numeric value. */
+  sort: SortOrder;
+  /** When true, multi-series rows with a value of exactly 0 are dropped. */
+  hideZeros: boolean;
+}
+
+/**
+ * Pick the ECharts tooltip trigger for the active series kind and tooltip mode.
+ *
+ * Cartesian time series default to `axis` (all series at the hovered x), but
+ * "Single" mode narrows that to `item` (just the hovered point). Pie/radar are
+ * always hovered per item, so the mode does not change their trigger.
+ */
+export function tooltipTriggerForMode(kind: TooltipKind, mode: TooltipDisplayMode): EChartsTooltipTrigger {
+  if (kind === 'timeseries') {
+    return mode === TooltipDisplayMode.Single ? 'item' : 'axis';
+  }
+  return 'item';
 }
 
 /**
@@ -52,8 +85,14 @@ export interface EChartsTooltipParam {
  *
  * The `formatter` is intentionally omitted here: it closes over React state and
  * is supplied by the panel via the tooltip hook.
+ *
+ * When `mode` is "None" the tooltip is disabled entirely (no box, no crosshair).
  */
-export function getTooltipOption(trigger: EChartsTooltipTrigger) {
+export function getTooltipOption(trigger: EChartsTooltipTrigger, mode?: TooltipDisplayMode) {
+  if (mode === TooltipDisplayMode.None) {
+    return { show: false };
+  }
+
   return {
     show: true,
     trigger,
@@ -67,6 +106,56 @@ export function getTooltipOption(trigger: EChartsTooltipTrigger) {
     // Keep the crosshair line for axis-triggered (time series) charts.
     axisPointer: { type: 'line' as const },
   };
+}
+
+/** Viewport-relative cursor anchor (clientX/clientY). */
+export interface TooltipAnchor {
+  x: number;
+  y: number;
+}
+
+/** Measured tooltip box size in pixels. */
+export interface TooltipSize {
+  width: number;
+  height: number;
+}
+
+/** Gap (px) between the cursor and the tooltip box, and from the viewport edge. */
+const TOOLTIP_CURSOR_OFFSET = 12;
+const TOOLTIP_VIEWPORT_MARGIN = 8;
+
+/**
+ * Position the tooltip box relative to the cursor, mirroring Core Grafana's
+ * uPlot tooltip: by default it sits to the bottom-left of the cursor. It flips
+ * to the right when it would overflow the left edge and above when it would
+ * overflow the bottom, then clamps so it never leaves the viewport.
+ *
+ * Pure and viewport-injectable so it can be unit tested without a DOM.
+ */
+export function computeTooltipPosition(
+  anchor: TooltipAnchor,
+  size: TooltipSize,
+  viewport: TooltipSize
+): { left: number; top: number } {
+  // Default: bottom-left of the cursor (box's top-right corner near the cursor).
+  let left = anchor.x - size.width - TOOLTIP_CURSOR_OFFSET;
+  let top = anchor.y + TOOLTIP_CURSOR_OFFSET;
+
+  // Flip to the right of the cursor if the box would overflow the left edge.
+  if (left < TOOLTIP_VIEWPORT_MARGIN) {
+    left = anchor.x + TOOLTIP_CURSOR_OFFSET;
+  }
+
+  // Flip above the cursor if the box would overflow the bottom edge.
+  if (top + size.height > viewport.height - TOOLTIP_VIEWPORT_MARGIN) {
+    top = anchor.y - size.height - TOOLTIP_CURSOR_OFFSET;
+  }
+
+  // Final clamp so the box stays fully within the viewport.
+  left = Math.max(TOOLTIP_VIEWPORT_MARGIN, Math.min(left, viewport.width - size.width - TOOLTIP_VIEWPORT_MARGIN));
+  top = Math.max(TOOLTIP_VIEWPORT_MARGIN, Math.min(top, viewport.height - size.height - TOOLTIP_VIEWPORT_MARGIN));
+
+  return { left, top };
 }
 
 function toColor(color: unknown): string | undefined {
@@ -101,7 +190,9 @@ function tupleTime(value: unknown): number | null {
 function buildTimeSeriesModel(
   params: EChartsTooltipParam[],
   valueFormatter: ValueFormatter,
-  timeZone: string
+  timeZone: string,
+  sort: SortOrder,
+  hideZeros: boolean
 ): TooltipModel | null {
   if (params.length === 0) {
     return null;
@@ -115,15 +206,31 @@ function buildTimeSeriesModel(
     value: time != null ? dateTimeFormat(time, { timeZone }) : (first.axisValueLabel ?? ''),
   };
 
-  const items: VizTooltipItem[] = params.map((param) => ({
-    label: param.seriesName ?? '',
-    value: valueFormatter(tupleValue(param.value)),
-    color: toColor(param.color),
-    colorIndicator: ColorIndicator.series,
-    colorPlacement: ColorPlacement.first,
-  }));
+  // Build row + ref together so any reordering/filtering keeps them in lockstep.
+  let entries = params.map((param) => {
+    const numeric = tupleValue(param.value);
+    const item: VizTooltipItem = {
+      label: param.seriesName ?? '',
+      value: valueFormatter(numeric),
+      color: toColor(param.color),
+      colorIndicator: ColorIndicator.series,
+      colorPlacement: ColorPlacement.first,
+      numeric: numeric ?? undefined,
+    };
+    const ref: TooltipItemRef = { seriesIndex: param.seriesIndex ?? -1, dataIndex: param.dataIndex };
+    return { item, ref };
+  });
 
-  return { header, items };
+  if (hideZeros) {
+    entries = entries.filter((entry) => entry.item.numeric !== 0);
+  }
+
+  if (sort !== SortOrder.None) {
+    const direction = sort === SortOrder.Ascending ? 1 : -1;
+    entries.sort((a, b) => ((a.item.numeric ?? -Infinity) - (b.item.numeric ?? -Infinity)) * direction);
+  }
+
+  return { header, items: entries.map((entry) => entry.item), refs: entries.map((entry) => entry.ref) };
 }
 
 /**
@@ -145,6 +252,7 @@ function buildPieModel(param: EChartsTooltipParam, valueFormatter: ValueFormatte
         colorPlacement: ColorPlacement.first,
       },
     ],
+    refs: [{ seriesIndex: param.seriesIndex ?? 0, dataIndex: param.dataIndex }],
   };
 }
 
@@ -169,7 +277,13 @@ function buildRadarModel(
     colorPlacement: ColorPlacement.first,
   }));
 
-  return { header: { label: '', value: param.name }, items };
+  // A radar polygon maps to a single Grafana field; the row index is not
+  // meaningful per indicator, so links resolve at the field level (row 0).
+  return {
+    header: { label: '', value: param.name },
+    items,
+    refs: [{ seriesIndex: param.seriesIndex ?? 0, dataIndex: param.dataIndex }],
+  };
 }
 
 /**
@@ -182,7 +296,13 @@ export function buildTooltipModel(
   ctx: TooltipBuildContext
 ): TooltipModel | null {
   if (ctx.kind === 'timeseries') {
-    return buildTimeSeriesModel(Array.isArray(params) ? params : [params], ctx.valueFormatter, ctx.timeZone);
+    return buildTimeSeriesModel(
+      Array.isArray(params) ? params : [params],
+      ctx.valueFormatter,
+      ctx.timeZone,
+      ctx.sort,
+      ctx.hideZeros
+    );
   }
 
   const param = Array.isArray(params) ? params[0] : params;

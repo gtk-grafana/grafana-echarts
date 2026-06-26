@@ -4,6 +4,7 @@
 // kept identical to ease that swap.
 // @todo switch to the official @grafana/ui export once it lands.
 export { VizTooltipContent } from './VizTooltipContent';
+export { VizTooltipFooter } from './VizTooltipFooter';
 export { VizTooltipHeader } from './VizTooltipHeader';
 export { VizTooltipRow } from './VizTooltipRow';
 export { VizTooltipColorIndicator, ColorIndicatorPosition } from './VizTooltipColorIndicator';

@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
-import { Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
+import { Field, FieldType, GrafanaTheme2, LinkModel, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import { LegendPlacement } from '@grafana/schema';
+import { LegendPlacement, SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import { useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 
@@ -14,13 +14,13 @@ import { getCartesianGrid, getLegendOption, isTableLegend } from 'echarts/option
 import { buildPieLegendItems, buildRadarLegendItems, buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
 import { pieDefaultOptions } from 'echarts/options/pie';
 import { radarDefaultOptions } from 'echarts/options/radar';
-import { TooltipKind } from 'echarts/options/tooltip';
+import { getTooltipOption, TooltipItemRef, TooltipKind, tooltipTriggerForMode } from 'echarts/options/tooltip';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 import { cartesianTimeSeriesTypes, pieSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
 import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
-import { useGrafanaEChartsTooltip } from './EChartsTooltip';
+import { TooltipLinkResolver, useGrafanaEChartsTooltip } from './EChartsTooltip';
 import { LegendTable } from './LegendTable';
 
 interface Props extends PanelProps<PanelOptions> {}
@@ -74,6 +74,32 @@ const getRepresentativeFormatter = (
   }
 
   return getValueFormatter(numericField, theme, timeZone);
+};
+
+/**
+ * Resolve and de-duplicate the data links for a set of (field, row) points. A
+ * field only exposes `getLinks` after Grafana has applied field overrides (which
+ * it does before the panel renders), so it is treated as optional here.
+ */
+const collectDataLinks = (points: Array<{ field?: Field; rowIndex: number }>): Array<LinkModel<Field>> => {
+  const links: Array<LinkModel<Field>> = [];
+  const seen = new Set<string>();
+
+  for (const { field, rowIndex } of points) {
+    if (!field?.getLinks) {
+      continue;
+    }
+    for (const link of field.getLinks({ valueRowIndex: rowIndex })) {
+      const key = `${link.title}|${link.href}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      links.push(link);
+    }
+  }
+
+  return links;
 };
 
 const getStyles = (theme: GrafanaTheme2, height: number, width: number, placement: LegendPlacement) => {
@@ -135,6 +161,12 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       ? 'pie'
       : 'timeseries';
 
+  const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
+  const tooltipSort = options.tooltip?.sort ?? SortOrder.None;
+  const tooltipHideZeros = options.tooltip?.hideZeros ?? false;
+  const tooltipMaxWidth = options.tooltip?.maxWidth;
+  const tooltipMaxHeight = options.tooltip?.maxHeight;
+
   // Radar value rows are labelled by indicator (axis) name; resolve them up front
   // so the tooltip formatter can map each value to its axis.
   const radarIndicators = useMemo(() => {
@@ -145,11 +177,58 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     return radar ? radar.indicator.map((indicator) => indicator.name) : [];
   }, [seriesType, data.series, theme]);
 
-  const { formatter: tooltipFormatter, portal: tooltipPortal } = useGrafanaEChartsTooltip({
+  // Map a hovered ECharts point (seriesIndex/dataIndex) back to the originating
+  // Grafana field so the pinned tooltip can render its data links. The lookup is
+  // built to match the order each converter emits series in.
+  const resolveLinks: TooltipLinkResolver = useMemo(() => {
+    if (tooltipKind === 'timeseries') {
+      // Flatten frames -> numeric fields exactly as timeSeriesToEChartsOption does
+      // (skipping frames without a time field), so seriesIndex lines up.
+      const fields: Field[] = [];
+      for (const frame of data.series) {
+        if (!frame.fields.some((field) => field.type === FieldType.time)) {
+          continue;
+        }
+        for (const field of frame.fields) {
+          if (field.type === FieldType.number) {
+            fields.push(field);
+          }
+        }
+      }
+      return (refs: TooltipItemRef[]) =>
+        collectDataLinks(refs.map((ref) => ({ field: fields[ref.seriesIndex], rowIndex: ref.dataIndex })));
+    }
+
+    // Pie/radar share the categorical frame (first frame with a numeric field).
+    const frame = data.series.find((candidate) => candidate.fields.some((field) => field.type === FieldType.number));
+    const numericFields = frame ? frame.fields.filter((field) => field.type === FieldType.number) : [];
+
+    if (tooltipKind === 'pie') {
+      const valueField = numericFields[0];
+      return (refs: TooltipItemRef[]) =>
+        collectDataLinks(refs.map((ref) => ({ field: valueField, rowIndex: ref.dataIndex })));
+    }
+
+    // Radar: dataIndex selects the polygon (a numeric field); a single row is not
+    // meaningful per polygon, so links resolve at the field level (row 0).
+    return (refs: TooltipItemRef[]) =>
+      collectDataLinks(refs.map((ref) => ({ field: numericFields[ref.dataIndex], rowIndex: 0 })));
+  }, [tooltipKind, data.series]);
+
+  const {
+    formatter: tooltipFormatter,
+    portal: tooltipPortal,
+    attach: tooltipAttach,
+  } = useGrafanaEChartsTooltip({
     kind: tooltipKind,
     valueFormatter: formatValue,
     timeZone,
     radarIndicators,
+    sort: tooltipSort,
+    hideZeros: tooltipHideZeros,
+    maxWidth: tooltipMaxWidth,
+    maxHeight: tooltipMaxHeight,
+    resolveLinks,
   });
 
   useLayoutEffect(() => {
@@ -158,8 +237,15 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       debug('Panel::useLayoutEffect::Failed to init panel', LOG_LEVELS.error);
       return;
     }
-    panelRef.current = init(panelDOMRef.current);
-  }, []);
+    const chart = init(panelDOMRef.current);
+    panelRef.current = chart;
+    // Track the cursor, clear on leave, and pin on click for the React tooltip.
+    const detachTooltip = tooltipAttach(chart, panelDOMRef.current);
+    return () => {
+      detachTooltip();
+      chart.dispose();
+    };
+  }, [tooltipAttach]);
 
   // useSetOptions
   useEffect(() => {
@@ -171,6 +257,13 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     panelRef.current.clear();
 
     const valueFormatter = (value: unknown) => formatValue(typeof value === 'number' ? value : null);
+
+    // Tooltip mode picks the ECharts trigger (and disables it entirely for
+    // "Hidden"); the formatter bridges hover content to the React tooltip.
+    const tooltipOption = {
+      ...getTooltipOption(tooltipTriggerForMode(tooltipKind, tooltipMode), tooltipMode),
+      formatter: tooltipFormatter,
+    };
 
     // @todo look into adding "auto" series type inferred from data frame
     // @todo look into setting series type using field overrides
@@ -189,7 +282,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       // @todo fix types and remove assertions
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
-        tooltip: { ...(cartesianTimeDefaultOptions.tooltip as object), formatter: tooltipFormatter },
+        tooltip: tooltipOption,
         legend: tableLegend ? { show: false } : getLegendOption(options.legend, theme),
         grid: getCartesianGrid(tableLegend ? undefined : options.legend),
         xAxis: { ...(cartesianTimeDefaultOptions.xAxis as object), ...axisStyle },
@@ -217,7 +310,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const echartOption: ECBasicOption = {
         ...radarDefaultOptions,
-        tooltip: { ...(radarDefaultOptions.tooltip as object), formatter: tooltipFormatter },
+        tooltip: tooltipOption,
         legend: tableLegend
           ? { show: false }
           : getLegendOption(options.legend, theme, radar.data.map((polygon) => polygon.name)),
@@ -240,7 +333,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const echartOption: ECBasicOption = {
         ...pieDefaultOptions,
-        tooltip: { ...(pieDefaultOptions.tooltip as object), formatter: tooltipFormatter },
+        tooltip: tooltipOption,
         legend: tableLegend
           ? { show: false }
           : getLegendOption(options.legend, theme, slices.map((slice) => slice.name)),
@@ -253,7 +346,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     } else {
       debug(`Unsupported series type: ${seriesType}`, LOG_LEVELS.error);
     }
-  }, [seriesType, data, theme, timeZone, options.legend, tableLegend, formatValue, tooltipFormatter]);
+  }, [seriesType, data, theme, timeZone, options.legend, tableLegend, formatValue, tooltipFormatter, tooltipKind, tooltipMode]);
 
   // useSetPanel: keep the ECharts canvas sized to the chart box (which shrinks
   // when the DOM legend table reserves space).

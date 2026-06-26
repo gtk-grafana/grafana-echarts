@@ -1,5 +1,6 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
+import { SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import {
   seriesCategoryName,
@@ -60,6 +61,15 @@ export const plugin = new PanelPlugin<PanelOptions>(Panel)
     // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,
     // Width, Limit, Values), registered in their own category.
     commonOptionsBuilder.addLegendOptions(builder);
+
+    // Standard Core Grafana "Tooltip" options (Tooltip mode, Values sort order,
+    // Hide zeros, Max width, Max height), registered in their own category.
+    // `setProximity = false`: "Hover proximity" is omitted because ECharts owns
+    // hit-testing and has no clean equivalent. Passing `hideZeros` in the
+    // defaults surfaces the "Hide zeros" switch (it is gated on being defined).
+    commonOptionsBuilder.addTooltipOptions(builder, false, false, {
+      tooltip: { mode: TooltipDisplayMode.Single, sort: SortOrder.None, hideZeros: false },
+    });
 
     return builder;
   });
