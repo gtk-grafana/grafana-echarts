@@ -5,10 +5,12 @@ import { useStyles2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 
 import { EChartsType, init } from 'echarts';
+import { radarToEChartsOption } from 'echarts/converters/radar';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import { cartesianTimeDefaultOptions } from 'echarts/options/cartesian';
+import { radarDefaultOptions } from 'echarts/options/radar';
 import { ECBasicOption } from 'echarts/types/dist/shared';
-import { cartesianTimeSeriesTypes, seriesTypePath } from 'editor/series';
+import { cartesianTimeSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { PanelOptions } from 'types';
 
@@ -66,6 +68,26 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       };
 
       debug('Panel::setCartesianOption', LOG_LEVELS.debug, echartOption);
+
+      panelRef.current.setOption(echartOption);
+    } else if (radarSeriesTypes.includes(seriesType)) {
+      // Radar uses its own coordinate system: the converter yields the axes
+      // (indicator) and polygons (series data) separately, which we merge into
+      // the static radar base option.
+      const radar = radarToEChartsOption(data.series);
+
+      if (!radar) {
+        debug('Panel::useEffect::useSetOptions::No usable radar data', LOG_LEVELS.error);
+        return;
+      }
+
+      const echartOption: ECBasicOption = {
+        ...radarDefaultOptions,
+        radar: { indicator: radar.indicator },
+        series: [{ type: 'radar', data: radar.data }],
+      };
+
+      debug('Panel::setRadarOption', LOG_LEVELS.debug, echartOption);
 
       panelRef.current.setOption(echartOption);
     } else {

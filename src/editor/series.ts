@@ -49,4 +49,10 @@ export const seriesTypePath = 'seriesType';
  */
 export const cartesianTimeSeriesTypes: SeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
 
-export const supportedSeriesTypes = [...cartesianTimeSeriesTypes];
+/**
+ * Radar types, which use a radar coordinate system (indicators + polygons)
+ * rather than the cartesian time/value grid. See echarts/converters/radar.ts.
+ */
+export const radarSeriesTypes: SeriesType[] = ['radar'];
+
+export const supportedSeriesTypes = [...cartesianTimeSeriesTypes, ...radarSeriesTypes];

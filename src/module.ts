@@ -33,7 +33,7 @@ export const plugin = new PanelPlugin<PanelOptions>(Panel).setPanelOptions((buil
         settings: {
           options: seriesTypeOptions.map((opt: SelectableValue<SeriesType>) => ({
             ...opt,
-            // Temporary 
+            // Temporary
             isDisabled: !supportedSeriesTypes.includes(opt.value as SeriesType),
           })),
         },
