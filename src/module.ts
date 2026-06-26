@@ -1,9 +1,9 @@
 import { PanelPlugin } from '@grafana/data';
 import { seriesCategoryName, seriesTypeDefault, seriesTypeName, seriesTypeOptions, seriesTypePath } from 'editor/series';
-import { SimplePanel } from './components/SimplePanel';
+import { Panel } from './components/Panel';
 import { PanelOptions } from './types';
 
-export const plugin = new PanelPlugin<PanelOptions>(SimplePanel).setPanelOptions((builder) => {
+export const plugin = new PanelPlugin<PanelOptions>(Panel).setPanelOptions((builder) => {
   return (
     builder
       .addTextInput({
