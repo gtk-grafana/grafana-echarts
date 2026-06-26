@@ -1,4 +1,5 @@
 import { GrafanaTheme2 } from '@grafana/data';
+import { getTooltipOption } from 'echarts/options/tooltip';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 
 /** Matches Core Grafana's uPlot axis font size (UPLOT_AXIS_FONT_SIZE). */
@@ -48,10 +49,9 @@ export const cartesianTimeDefaultOptions: ECBasicOption = {
   },
 
   // https://echarts.apache.org/en/option.html#tooltip
-  tooltip: {
-    show: true,
-    trigger: 'axis',
-  },
+  // Transparent box that keeps ECharts' axis pointer + positioning while the
+  // Grafana React tooltip (see EChartsTooltip) renders the content.
+  tooltip: getTooltipOption('axis'),
 
   // https://echarts.apache.org/en/option.html#xAxis
   xAxis: {

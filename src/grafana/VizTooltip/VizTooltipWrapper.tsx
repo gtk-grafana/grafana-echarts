@@ -1,0 +1,30 @@
+// COPIED FROM core Grafana (packages/grafana-ui/src/components/VizTooltip).
+// These modern unified tooltip pieces are not yet exported from @grafana/ui.
+// Replace this folder with the official export when available; the props/API are
+// kept identical to ease that swap.
+// @todo switch to the official @grafana/ui export once it lands.
+//
+// Adaptations from core: `useStyles2` is imported from the public `@grafana/ui`
+// entry, `clsx` is replaced by `@emotion/css`'s `cx`, and the
+// `@grafana/e2e-selectors` data-testid is dropped (not a plugin dependency).
+import { css, cx } from '@emotion/css';
+import React, { type HTMLAttributes } from 'react';
+
+import { type GrafanaTheme2 } from '@grafana/data';
+import { useStyles2 } from '@grafana/ui';
+
+export interface Props extends HTMLAttributes<HTMLDivElement> {
+  children?: React.ReactNode;
+}
+
+export const VizTooltipWrapper = ({ children, className }: Props) => {
+  const styles = useStyles2(getStyles);
+  return <div className={cx(styles, className)}>{children}</div>;
+};
+
+const getStyles = (theme: GrafanaTheme2) =>
+  css({
+    display: 'flex',
+    flexDirection: 'column',
+    fontSize: theme.typography.bodySmall.fontSize,
+  });

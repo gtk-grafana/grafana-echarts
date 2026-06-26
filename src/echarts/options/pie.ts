@@ -1,3 +1,4 @@
+import { getTooltipOption } from 'echarts/options/tooltip';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 
 /**
@@ -14,10 +15,9 @@ export const pieDefaultOptions: ECBasicOption = {
   animationDuration: 300,
 
   // https://echarts.apache.org/en/option.html#tooltip
-  tooltip: {
-    show: true,
-    trigger: 'item',
-  },
+  // Transparent box; the Grafana React tooltip (see EChartsTooltip) renders the
+  // content for the hovered slice.
+  tooltip: getTooltipOption('item'),
 
   // https://echarts.apache.org/en/option.html#legend
   legend: {},

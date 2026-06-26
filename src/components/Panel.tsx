@@ -14,11 +14,13 @@ import { getCartesianGrid, getLegendOption, isTableLegend } from 'echarts/option
 import { buildPieLegendItems, buildRadarLegendItems, buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
 import { pieDefaultOptions } from 'echarts/options/pie';
 import { radarDefaultOptions } from 'echarts/options/radar';
+import { TooltipKind } from 'echarts/options/tooltip';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 import { cartesianTimeSeriesTypes, pieSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
 import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
+import { useGrafanaEChartsTooltip } from './EChartsTooltip';
 import { LegendTable } from './LegendTable';
 
 interface Props extends PanelProps<PanelOptions> {}
@@ -120,6 +122,36 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     return buildTimeSeriesLegendItems(data.series, theme, calcs, timeZone);
   }, [tableLegend, seriesType, data.series, theme, options.legend?.calcs, timeZone]);
 
+  // Representative formatter (Unit/Decimals/Mappings) shared by the value axis
+  // and the Grafana tooltip so rendered values match the rest of Grafana.
+  const formatValue = useMemo(
+    () => getRepresentativeFormatter(data.series, theme, timeZone),
+    [data.series, theme, timeZone]
+  );
+
+  const tooltipKind: TooltipKind = radarSeriesTypes.includes(seriesType)
+    ? 'radar'
+    : pieSeriesTypes.includes(seriesType)
+      ? 'pie'
+      : 'timeseries';
+
+  // Radar value rows are labelled by indicator (axis) name; resolve them up front
+  // so the tooltip formatter can map each value to its axis.
+  const radarIndicators = useMemo(() => {
+    if (!radarSeriesTypes.includes(seriesType)) {
+      return [];
+    }
+    const radar = radarToEChartsOption(data.series, theme);
+    return radar ? radar.indicator.map((indicator) => indicator.name) : [];
+  }, [seriesType, data.series, theme]);
+
+  const { formatter: tooltipFormatter, portal: tooltipPortal } = useGrafanaEChartsTooltip({
+    kind: tooltipKind,
+    valueFormatter: formatValue,
+    timeZone,
+    radarIndicators,
+  });
+
   useLayoutEffect(() => {
     debug('Panel::useLayoutEffect');
     if (!panelDOMRef.current) {
@@ -138,7 +170,6 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
     panelRef.current.clear();
 
-    const formatValue = getRepresentativeFormatter(data.series, theme, timeZone);
     const valueFormatter = (value: unknown) => formatValue(typeof value === 'number' ? value : null);
 
     // @todo look into adding "auto" series type inferred from data frame
@@ -158,7 +189,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       // @todo fix types and remove assertions
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
-        tooltip: { ...(cartesianTimeDefaultOptions.tooltip as object), valueFormatter },
+        tooltip: { ...(cartesianTimeDefaultOptions.tooltip as object), formatter: tooltipFormatter },
         legend: tableLegend ? { show: false } : getLegendOption(options.legend, theme),
         grid: getCartesianGrid(tableLegend ? undefined : options.legend),
         xAxis: { ...(cartesianTimeDefaultOptions.xAxis as object), ...axisStyle },
@@ -186,7 +217,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const echartOption: ECBasicOption = {
         ...radarDefaultOptions,
-        tooltip: { valueFormatter },
+        tooltip: { ...(radarDefaultOptions.tooltip as object), formatter: tooltipFormatter },
         legend: tableLegend
           ? { show: false }
           : getLegendOption(options.legend, theme, radar.data.map((polygon) => polygon.name)),
@@ -209,7 +240,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const echartOption: ECBasicOption = {
         ...pieDefaultOptions,
-        tooltip: { valueFormatter },
+        tooltip: { ...(pieDefaultOptions.tooltip as object), formatter: tooltipFormatter },
         legend: tableLegend
           ? { show: false }
           : getLegendOption(options.legend, theme, slices.map((slice) => slice.name)),
@@ -222,7 +253,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     } else {
       debug(`Unsupported series type: ${seriesType}`, LOG_LEVELS.error);
     }
-  }, [seriesType, data, theme, timeZone, options.legend, tableLegend]);
+  }, [seriesType, data, theme, timeZone, options.legend, tableLegend, formatValue, tooltipFormatter]);
 
   // useSetPanel: keep the ECharts canvas sized to the chart box (which shrinks
   // when the DOM legend table reserves space).
@@ -245,6 +276,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   return (
     <div className={styles.wrapper}>
       <div ref={panelDOMRef} className={styles.panelContainer} style={{ width: chartWidth, height: chartHeight }}></div>
+      {tooltipPortal}
       {tableLegend && (
         <LegendTable
           items={legendItems}
