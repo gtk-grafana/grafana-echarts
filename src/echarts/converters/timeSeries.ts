@@ -1,4 +1,5 @@
-import { DataFrame, FieldType, getFieldDisplayName } from '@grafana/data';
+import { DataFrame, FieldType, getFieldDisplayName, GrafanaTheme2 } from '@grafana/data';
+import { getSeriesColor } from 'echarts/style';
 import { SeriesType } from 'editor/types';
 
 /**
@@ -8,11 +9,16 @@ import { SeriesType } from 'editor/types';
  * non-aligned time fields (the Multi format) render correctly alongside frames
  * that share a single time field (the Wide format). ECharts aligns points by
  * timestamp on a `time` xAxis, so both layouts flow through the same path.
+ *
+ * `itemStyle`/`lineStyle` carry the color resolved from the field's standard
+ * Color scheme config so symbols/bars and lines all match Grafana.
  */
 interface EChartsTimeSeries {
   name: string;
   type: SeriesType;
   data: Array<[number, number | null]>;
+  itemStyle: { color: string };
+  lineStyle: { color: string };
 }
 
 /**
@@ -27,7 +33,11 @@ interface EChartsTimeSeries {
  * Returns `null` when no usable (time + numeric) series can be derived, so the
  * caller can fall back to a no-data view.
  */
-export function timeSeriesToEChartsOption(series: DataFrame[], seriesType: SeriesType): EChartsTimeSeries[] | null {
+export function timeSeriesToEChartsOption(
+  series: DataFrame[],
+  seriesType: SeriesType,
+  theme: GrafanaTheme2
+): EChartsTimeSeries[] | null {
   const echartsSeries: EChartsTimeSeries[] = [];
 
   for (const frame of series) {
@@ -40,10 +50,13 @@ export function timeSeriesToEChartsOption(series: DataFrame[], seriesType: Serie
     const valueFields = frame.fields.filter((field) => field.type === FieldType.number);
 
     for (const valueField of valueFields) {
+      const color = getSeriesColor(valueField, theme);
       echartsSeries.push({
         name: getFieldDisplayName(valueField, frame, series),
         type: seriesType,
         data: timeField.values.map((time, i) => [time, valueField.values[i] ?? null]),
+        itemStyle: { color },
+        lineStyle: { color },
       });
     }
   }

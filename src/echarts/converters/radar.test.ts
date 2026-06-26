@@ -1,5 +1,7 @@
-import { DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { radarToEChartsOption } from 'echarts/converters/radar';
+
+const theme = createTheme();
 
 const tableFrame = (): DataFrame =>
   toDataFrame({
@@ -13,19 +15,26 @@ const tableFrame = (): DataFrame =>
 describe('radarToEChartsOption', () => {
   describe('rows = indicators, numeric fields = polygons', () => {
     it('maps string field rows to indicators and each numeric field to a polygon', () => {
-      const result = radarToEChartsOption([tableFrame()]);
+      const result = radarToEChartsOption([tableFrame()], theme);
 
       expect(result).not.toBeNull();
       expect(result!.indicator.map((i) => i.name)).toEqual(['Sales', 'Admin', 'IT']);
 
-      expect(result!.data).toEqual([
+      expect(result!.data).toMatchObject([
         { name: 'Budget', value: [43, 10, 30] },
         { name: 'Actual', value: [50, 14, 28] },
       ]);
     });
 
+    it('colors each polygon from its field color', () => {
+      const result = radarToEChartsOption([tableFrame()], theme);
+
+      expect(result!.data[0].itemStyle.color).toEqual(expect.any(String));
+      expect(result!.data[1].itemStyle.color).toEqual(expect.any(String));
+    });
+
     it('computes per-indicator max as the largest polygon value on each axis', () => {
-      const result = radarToEChartsOption([tableFrame()]);
+      const result = radarToEChartsOption([tableFrame()], theme);
 
       // Sales: max(43, 50) = 50; Admin: max(10, 14) = 14; IT: max(30, 28) = 30
       expect(result!.indicator).toEqual([
@@ -42,10 +51,10 @@ describe('radarToEChartsOption', () => {
         fields: [{ name: 'Budget', type: FieldType.number, values: [1, 2], config: { displayName: 'Budget' } }],
       });
 
-      const result = radarToEChartsOption([frame]);
+      const result = radarToEChartsOption([frame], theme);
 
       expect(result!.indicator.map((i) => i.name)).toEqual(['0', '1']);
-      expect(result!.data).toEqual([{ name: 'Budget', value: [1, 2] }]);
+      expect(result!.data).toMatchObject([{ name: 'Budget', value: [1, 2] }]);
     });
 
     it('uses the first frame that has a numeric field', () => {
@@ -53,7 +62,7 @@ describe('radarToEChartsOption', () => {
         fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],
       });
 
-      const result = radarToEChartsOption([noNumeric, tableFrame()]);
+      const result = radarToEChartsOption([noNumeric, tableFrame()], theme);
 
       expect(result!.indicator.map((i) => i.name)).toEqual(['Sales', 'Admin', 'IT']);
     });
@@ -73,9 +82,9 @@ describe('radarToEChartsOption', () => {
         ],
       });
 
-      const result = radarToEChartsOption([frame]);
+      const result = radarToEChartsOption([frame], theme);
 
-      expect(result!.data).toEqual([{ name: 'v', value: [0, null, 30, null] }]);
+      expect(result!.data).toMatchObject([{ name: 'v', value: [0, null, 30, null] }]);
       expect(result!.indicator).toEqual([
         { name: 'a', max: 0 },
         { name: 'b' },
@@ -87,7 +96,7 @@ describe('radarToEChartsOption', () => {
 
   describe('no usable data', () => {
     it('returns null for an empty frame list', () => {
-      expect(radarToEChartsOption([])).toBeNull();
+      expect(radarToEChartsOption([], theme)).toBeNull();
     });
 
     it('returns null when no frame has a numeric field', () => {
@@ -95,7 +104,7 @@ describe('radarToEChartsOption', () => {
         fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],
       });
 
-      expect(radarToEChartsOption([frame])).toBeNull();
+      expect(radarToEChartsOption([frame], theme)).toBeNull();
     });
   });
 });

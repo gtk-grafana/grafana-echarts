@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
-import { GrafanaTheme2, PanelProps } from '@grafana/data';
+import { Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import { useStyles2 } from '@grafana/ui';
+import { useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 
 import { EChartsType, init } from 'echarts';
@@ -11,12 +11,38 @@ import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import { cartesianTimeDefaultOptions } from 'echarts/options/cartesian';
 import { pieDefaultOptions } from 'echarts/options/pie';
 import { radarDefaultOptions } from 'echarts/options/radar';
+import { getValueFormatter, ValueFormatter } from 'echarts/style';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 import { cartesianTimeSeriesTypes, pieSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { PanelOptions } from 'types';
 
 interface Props extends PanelProps<PanelOptions> {}
+
+/**
+ * Build a representative value formatter from the first numeric field across all
+ * frames, so tooltips and value axes honor the standard Unit/Decimals/Mappings
+ * field config. Falls back to identity (String) when no numeric field exists.
+ */
+const getRepresentativeFormatter = (
+  series: PanelProps<PanelOptions>['data']['series'],
+  theme: GrafanaTheme2,
+  timeZone: string
+): ValueFormatter => {
+  let numericField: Field | undefined;
+  for (const frame of series) {
+    numericField = frame.fields.find((field) => field.type === FieldType.number);
+    if (numericField) {
+      break;
+    }
+  }
+
+  if (!numericField) {
+    return (value) => String(value ?? '');
+  }
+
+  return getValueFormatter(numericField, theme, timeZone);
+};
 
 const getStyles = (theme: GrafanaTheme2, height: number, width: number) => {
   return {
@@ -30,8 +56,9 @@ const getStyles = (theme: GrafanaTheme2, height: number, width: number) => {
   };
 };
 
-export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id }) => {
+export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone }) => {
   const styles = useStyles2(getStyles, height, width);
+  const theme = useTheme2();
   const panelDOMRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
@@ -54,10 +81,13 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
     panelRef.current.clear();
 
+    const formatValue = getRepresentativeFormatter(data.series, theme, timeZone);
+    const valueFormatter = (value: unknown) => formatValue(typeof value === 'number' ? value : null);
+
     // @todo look into adding "auto" series type inferred from data frame
     // @todo look into setting series type using field overrides
     if (cartesianTimeSeriesTypes.includes(seriesType)) {
-      const series = timeSeriesToEChartsOption(data.series, seriesType);
+      const series = timeSeriesToEChartsOption(data.series, seriesType, theme);
 
       if (!series) {
         debug('Panel::useEffect::useSetOptions::No usable time series in data', LOG_LEVELS.error);
@@ -66,6 +96,8 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
+        tooltip: { ...(cartesianTimeDefaultOptions.tooltip as object), valueFormatter },
+        yAxis: { ...(cartesianTimeDefaultOptions.yAxis as object), axisLabel: { formatter: valueFormatter } },
         series,
       };
 
@@ -76,7 +108,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       // Radar uses its own coordinate system: the converter yields the axes
       // (indicator) and polygons (series data) separately, which we merge into
       // the static radar base option.
-      const radar = radarToEChartsOption(data.series);
+      const radar = radarToEChartsOption(data.series, theme);
 
       if (!radar) {
         debug('Panel::useEffect::useSetOptions::No usable radar data', LOG_LEVELS.error);
@@ -85,6 +117,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const echartOption: ECBasicOption = {
         ...radarDefaultOptions,
+        tooltip: { valueFormatter },
         radar: { indicator: radar.indicator },
         series: [{ type: seriesType, data: radar.data }],
       };
@@ -95,7 +128,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     } else if (pieSeriesTypes.includes(seriesType)) {
       // Pie has no axes: the converter yields slices (one per category) which we
       // drop into a single pie series on top of the static pie base option.
-      const slices = pieToEChartsOption(data.series);
+      const slices = pieToEChartsOption(data.series, theme);
 
       if (!slices) {
         debug('Panel::useEffect::useSetOptions::No usable pie data', LOG_LEVELS.error);
@@ -104,6 +137,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const echartOption: ECBasicOption = {
         ...pieDefaultOptions,
+        tooltip: { valueFormatter },
         series: [{ type: seriesType, data: slices }],
       };
 
@@ -113,7 +147,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     } else {
       debug(`Unsupported series type: ${seriesType}`, LOG_LEVELS.error);
     }
-  }, [seriesType, data]);
+  }, [seriesType, data, theme, timeZone]);
 
   // useSetPanel
   useEffect(() => {

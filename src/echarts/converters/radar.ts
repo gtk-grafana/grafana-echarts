@@ -1,4 +1,4 @@
-import { DataFrame } from '@grafana/data';
+import { DataFrame, GrafanaTheme2 } from '@grafana/data';
 import { frameToCategorical } from 'echarts/converters/categorical';
 
 /**
@@ -21,11 +21,15 @@ export interface RadarIndicator {
  * `value` is positional: `value[i]` corresponds to `indicator[i]`. A `null`
  * entry leaves a gap on that axis rather than plotting a zero.
  *
+ * `itemStyle.color` is resolved from the field's standard Color scheme config so
+ * each polygon matches Grafana.
+ *
  * See https://echarts.apache.org/en/option.html#series-radar.data
  */
 export interface RadarPolygon {
   name: string;
   value: Array<number | null>;
+  itemStyle: { color: string };
 }
 
 /**
@@ -56,8 +60,8 @@ export interface RadarData {
  *
  * Returns `null` when no usable categorical data can be derived.
  */
-export function radarToEChartsOption(series: DataFrame[]): RadarData | null {
-  const categorical = frameToCategorical(series);
+export function radarToEChartsOption(series: DataFrame[], theme: GrafanaTheme2): RadarData | null {
+  const categorical = frameToCategorical(series, theme);
 
   if (!categorical) {
     return null;
@@ -68,6 +72,7 @@ export function radarToEChartsOption(series: DataFrame[]): RadarData | null {
   const data: RadarPolygon[] = polygonSeries.map((polygon) => ({
     name: polygon.name,
     value: polygon.values,
+    itemStyle: { color: polygon.color },
   }));
 
   const indicator: RadarIndicator[] = categories.map((name, row) => {

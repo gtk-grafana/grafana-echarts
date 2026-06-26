@@ -1,14 +1,19 @@
-import { DataFrame, Field, FieldType, getFieldDisplayName } from '@grafana/data';
+import { DataFrame, Field, FieldType, getFieldDisplayName, GrafanaTheme2 } from '@grafana/data';
+import { getSeriesColor } from 'echarts/style';
 
 /**
  * One numeric series projected over the shared category axis.
  *
  * `values` is positional: `values[i]` belongs to `categories[i]`. Missing cells
  * are `null` (a gap) rather than `0`.
+ *
+ * `color` is resolved from the field's standard Color scheme config so each
+ * series matches Grafana.
  */
 export interface CategoricalSeries {
   name: string;
   values: Array<number | null>;
+  color: string;
 }
 
 /**
@@ -50,7 +55,7 @@ export interface CategoricalData {
  *
  * @todo should be able to select the string field instead of using the first
  */
-export function frameToCategorical(series: DataFrame[]): CategoricalData | null {
+export function frameToCategorical(series: DataFrame[], theme: GrafanaTheme2): CategoricalData | null {
   const frame = series.find((candidate) => candidate.fields.some((field) => field.type === FieldType.number));
 
   if (!frame) {
@@ -69,6 +74,7 @@ export function frameToCategorical(series: DataFrame[]): CategoricalData | null 
     name: getFieldDisplayName(field, frame, series),
     // `?? null` coerces missing/undefined cells to a gap while preserving 0.
     values: Array.from({ length: rowCount }, (_, row) => field.values[row] ?? null),
+    color: getSeriesColor(field, theme),
   }));
 
   return { categories, series: categoricalSeries };

@@ -1,5 +1,7 @@
-import { DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
+
+const theme = createTheme();
 
 const wideFrame = (): DataFrame =>
   toDataFrame({
@@ -21,12 +23,12 @@ const multiFrame = (name: string, times: number[], values: Array<number | null>)
 describe('timeSeriesToEChartsOption', () => {
   describe('Wide format (one frame, shared time field, many value fields)', () => {
     it('returns one series per numeric field sharing the time field', () => {
-      const result = timeSeriesToEChartsOption([wideFrame()], 'line');
+      const result = timeSeriesToEChartsOption([wideFrame()], 'line', theme);
 
       expect(result).not.toBeNull();
       expect(result).toHaveLength(2);
 
-      expect(result![0]).toEqual({
+      expect(result![0]).toMatchObject({
         name: 'cpu',
         type: 'line',
         data: [
@@ -35,7 +37,7 @@ describe('timeSeriesToEChartsOption', () => {
           [3, 30],
         ],
       });
-      expect(result![1]).toEqual({
+      expect(result![1]).toMatchObject({
         name: 'mem',
         type: 'line',
         data: [
@@ -44,6 +46,13 @@ describe('timeSeriesToEChartsOption', () => {
           [3, 60],
         ],
       });
+    });
+
+    it('resolves a color for each series, shared between symbol and line', () => {
+      const result = timeSeriesToEChartsOption([wideFrame()], 'line', theme);
+
+      expect(result![0].itemStyle.color).toEqual(expect.any(String));
+      expect(result![0].itemStyle.color).toBe(result![0].lineStyle.color);
     });
   });
 
@@ -54,7 +63,7 @@ describe('timeSeriesToEChartsOption', () => {
         multiFrame('b', [5, 6, 9], [60, 80, 90]),
       ];
 
-      const result = timeSeriesToEChartsOption(frames, 'line');
+      const result = timeSeriesToEChartsOption(frames, 'line', theme);
 
       expect(result).not.toBeNull();
       expect(result).toHaveLength(2);
@@ -80,7 +89,7 @@ describe('timeSeriesToEChartsOption', () => {
     it('coerces null/undefined values to null but preserves zero', () => {
       const frame = multiFrame('a', [1, 2, 3, 4], [0, null, 30, undefined as unknown as number]);
 
-      const result = timeSeriesToEChartsOption([frame], 'line');
+      const result = timeSeriesToEChartsOption([frame], 'line', theme);
 
       expect(result![0].data).toEqual([
         [1, 0],
@@ -95,7 +104,7 @@ describe('timeSeriesToEChartsOption', () => {
     it.each(['line', 'bar', 'scatter', 'effectScatter'] as const)(
       'propagates the requested series type "%s" to every series',
       (seriesType) => {
-        const result = timeSeriesToEChartsOption([wideFrame()], seriesType);
+        const result = timeSeriesToEChartsOption([wideFrame()], seriesType, theme);
 
         expect(result!.every((series) => series.type === seriesType)).toBe(true);
       }
@@ -104,7 +113,7 @@ describe('timeSeriesToEChartsOption', () => {
 
   describe('frames that cannot produce time series', () => {
     it('returns null for an empty frame list', () => {
-      expect(timeSeriesToEChartsOption([], 'line')).toBeNull();
+      expect(timeSeriesToEChartsOption([], 'line', theme)).toBeNull();
     });
 
     it('returns null when no frame has a time field', () => {
@@ -115,7 +124,7 @@ describe('timeSeriesToEChartsOption', () => {
         ],
       });
 
-      expect(timeSeriesToEChartsOption([frame], 'line')).toBeNull();
+      expect(timeSeriesToEChartsOption([frame], 'line', theme)).toBeNull();
     });
 
     it('returns null when a timed frame has no numeric field', () => {
@@ -126,7 +135,7 @@ describe('timeSeriesToEChartsOption', () => {
         ],
       });
 
-      expect(timeSeriesToEChartsOption([frame], 'line')).toBeNull();
+      expect(timeSeriesToEChartsOption([frame], 'line', theme)).toBeNull();
     });
 
     it('skips frames without a time field but keeps valid ones', () => {
@@ -135,7 +144,7 @@ describe('timeSeriesToEChartsOption', () => {
         fields: [{ name: 'cpu', type: FieldType.number, values: [1, 2] }],
       });
 
-      const result = timeSeriesToEChartsOption([invalid, valid], 'line');
+      const result = timeSeriesToEChartsOption([invalid, valid], 'line', theme);
 
       expect(result).toHaveLength(1);
       expect(result![0].name).toBe('a');

@@ -1,5 +1,7 @@
-import { DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { pieToEChartsOption } from 'echarts/converters/pie';
+
+const theme = createTheme();
 
 const tableFrame = (): DataFrame =>
   toDataFrame({
@@ -12,17 +14,25 @@ const tableFrame = (): DataFrame =>
 
 describe('pieToEChartsOption', () => {
   it('builds one slice per category from the first numeric field', () => {
-    const result = pieToEChartsOption([tableFrame()]);
+    const result = pieToEChartsOption([tableFrame()], theme);
 
-    expect(result).toEqual([
+    expect(result).toMatchObject([
       { name: 'Sales', value: 43 },
       { name: 'Admin', value: 10 },
       { name: 'IT', value: 30 },
     ]);
   });
 
+  it('colors slices by category from the classic palette', () => {
+    const result = pieToEChartsOption([tableFrame()], theme);
+
+    expect(result![0].itemStyle.color).toEqual(expect.any(String));
+    // Adjacent slices get distinct palette colors.
+    expect(result![0].itemStyle.color).not.toBe(result![1].itemStyle.color);
+  });
+
   it('ignores additional numeric fields beyond the first', () => {
-    const result = pieToEChartsOption([tableFrame()]);
+    const result = pieToEChartsOption([tableFrame()], theme);
 
     // 'Actual' values (50, 14, 28) must not appear; only 'Budget' is used.
     expect(result!.map((slice) => slice.value)).toEqual([43, 10, 30]);
@@ -33,7 +43,7 @@ describe('pieToEChartsOption', () => {
       fields: [{ name: 'v', type: FieldType.number, values: [5, 6], config: { displayName: 'v' } }],
     });
 
-    expect(pieToEChartsOption([frame])).toEqual([
+    expect(pieToEChartsOption([frame], theme)).toMatchObject([
       { name: '0', value: 5 },
       { name: '1', value: 6 },
     ]);
@@ -47,7 +57,7 @@ describe('pieToEChartsOption', () => {
       ],
     });
 
-    expect(pieToEChartsOption([frame])).toEqual([
+    expect(pieToEChartsOption([frame], theme)).toMatchObject([
       { name: 'a', value: 0 },
       { name: 'b', value: null },
       { name: 'c', value: null },
@@ -55,11 +65,11 @@ describe('pieToEChartsOption', () => {
   });
 
   it('returns null when there is no usable data', () => {
-    expect(pieToEChartsOption([])).toBeNull();
+    expect(pieToEChartsOption([], theme)).toBeNull();
 
     const noNumeric = toDataFrame({
       fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],
     });
-    expect(pieToEChartsOption([noNumeric])).toBeNull();
+    expect(pieToEChartsOption([noNumeric], theme)).toBeNull();
   });
 });

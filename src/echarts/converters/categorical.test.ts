@@ -1,5 +1,7 @@
-import { DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { frameToCategorical } from 'echarts/converters/categorical';
+
+const theme = createTheme();
 
 const tableFrame = (): DataFrame =>
   toDataFrame({
@@ -12,14 +14,21 @@ const tableFrame = (): DataFrame =>
 
 describe('frameToCategorical', () => {
   it('derives categories from the string field and one series per numeric field', () => {
-    const result = frameToCategorical([tableFrame()]);
+    const result = frameToCategorical([tableFrame()], theme);
 
     expect(result).not.toBeNull();
     expect(result!.categories).toEqual(['Sales', 'Admin', 'IT']);
-    expect(result!.series).toEqual([
+    expect(result!.series).toMatchObject([
       { name: 'Budget', values: [43, 10, 30] },
       { name: 'Actual', values: [50, 14, 28] },
     ]);
+  });
+
+  it('resolves a color for each numeric series', () => {
+    const result = frameToCategorical([tableFrame()], theme);
+
+    expect(result!.series[0].color).toEqual(expect.any(String));
+    expect(result!.series[1].color).toEqual(expect.any(String));
   });
 
   it('falls back to row indices when there is no string field', () => {
@@ -27,10 +36,10 @@ describe('frameToCategorical', () => {
       fields: [{ name: 'v', type: FieldType.number, values: [1, 2], config: { displayName: 'v' } }],
     });
 
-    const result = frameToCategorical([frame]);
+    const result = frameToCategorical([frame], theme);
 
     expect(result!.categories).toEqual(['0', '1']);
-    expect(result!.series).toEqual([{ name: 'v', values: [1, 2] }]);
+    expect(result!.series).toMatchObject([{ name: 'v', values: [1, 2] }]);
   });
 
   it('uses the first frame that has a numeric field', () => {
@@ -38,7 +47,7 @@ describe('frameToCategorical', () => {
       fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],
     });
 
-    const result = frameToCategorical([noNumeric, tableFrame()]);
+    const result = frameToCategorical([noNumeric, tableFrame()], theme);
 
     expect(result!.categories).toEqual(['Sales', 'Admin', 'IT']);
   });
@@ -56,13 +65,13 @@ describe('frameToCategorical', () => {
       ],
     });
 
-    const result = frameToCategorical([frame]);
+    const result = frameToCategorical([frame], theme);
 
-    expect(result!.series).toEqual([{ name: 'v', values: [0, null, 30, null] }]);
+    expect(result!.series).toMatchObject([{ name: 'v', values: [0, null, 30, null] }]);
   });
 
   it('returns null for an empty frame list', () => {
-    expect(frameToCategorical([])).toBeNull();
+    expect(frameToCategorical([], theme)).toBeNull();
   });
 
   it('returns null when no frame has a numeric field', () => {
@@ -70,6 +79,6 @@ describe('frameToCategorical', () => {
       fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],
     });
 
-    expect(frameToCategorical([frame])).toBeNull();
+    expect(frameToCategorical([frame], theme)).toBeNull();
   });
 });
