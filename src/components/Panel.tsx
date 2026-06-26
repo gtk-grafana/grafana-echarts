@@ -14,7 +14,7 @@ import { getCartesianGrid, getLegendOption, isTableLegend } from 'echarts/option
 import { buildPieLegendItems, buildRadarLegendItems, buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
 import { pieDefaultOptions } from 'echarts/options/pie';
 import { radarDefaultOptions } from 'echarts/options/radar';
-import { getTooltipOption, TooltipItemRef, TooltipKind, tooltipTriggerForMode } from 'echarts/options/tooltip';
+import { getCrosshairAxisPointer, getTooltipOption, TooltipItemRef, TooltipKind, tooltipTriggerForMode } from 'echarts/options/tooltip';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 import { cartesianTimeSeriesTypes, pieSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
@@ -283,6 +283,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
         tooltip: tooltipOption,
+        // Top-level axis pointer so the crosshair tracks the cursor in every
+        // tooltip mode (e.g. "Single" uses an item trigger that wouldn't drive
+        // the tooltip's own axis pointer). Suppressed when tooltips are hidden.
+        axisPointer: tooltipMode === TooltipDisplayMode.None ? { show: false } : getCrosshairAxisPointer(),
         legend: tableLegend ? { show: false } : getLegendOption(options.legend, theme),
         grid: getCartesianGrid(tableLegend ? undefined : options.legend),
         xAxis: { ...(cartesianTimeDefaultOptions.xAxis as object), ...axisStyle },

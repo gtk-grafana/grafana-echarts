@@ -79,6 +79,31 @@ export interface EChartsTooltipParam {
 }
 
 /**
+ * Crosshair line color used by Core Grafana's uPlot panels. Taken from
+ * `@grafana/ui`'s `themes/GlobalStyles/uPlot.ts` (`.u-cursor-x`/`.u-cursor-y`),
+ * which draws `1px dashed rgba(120, 120, 130, 0.5)` and is the same in both the
+ * light and dark themes.
+ */
+const CROSSHAIR_COLOR = 'rgba(120, 120, 130, 0.5)';
+
+/**
+ * ECharts `axisPointer` styled to match Core Grafana's uPlot cursor crosshair:
+ * a thin dashed line on both axes (`type: 'cross'`) and no axis value-label
+ * boxes, so the cartesian charts get the same hover affordance as native panels.
+ */
+export function getCrosshairAxisPointer() {
+  const lineStyle = { color: CROSSHAIR_COLOR, width: 1, type: 'dashed' as const };
+  return {
+    show: true,
+    type: 'cross' as const,
+    lineStyle,
+    crossStyle: lineStyle,
+    // uPlot draws plain dashed lines; suppress ECharts' default value-label boxes.
+    label: { show: false },
+  };
+}
+
+/**
  * Static ECharts `tooltip` config that keeps ECharts' hover/axis-pointer
  * machinery and positioning but renders an empty, fully transparent box, so the
  * Grafana React tooltip (portaled into that box) is the only thing visible.
@@ -103,8 +128,9 @@ export function getTooltipOption(trigger: EChartsTooltipTrigger, mode?: TooltipD
     borderWidth: 0,
     padding: 0,
     extraCssText: 'box-shadow: none;',
-    // Keep the crosshair line for axis-triggered (time series) charts.
-    axisPointer: { type: 'line' as const },
+    // Crosshair on cursor position for axis-triggered (time series) charts,
+    // styled to match Core Grafana's uPlot cursor.
+    axisPointer: getCrosshairAxisPointer(),
   };
 }
 
