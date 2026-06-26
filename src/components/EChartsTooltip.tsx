@@ -1,5 +1,14 @@
 import { css } from '@emotion/css';
-import { Field, GrafanaTheme2, LinkModel } from '@grafana/data';
+import {
+  DashboardCursorSync,
+  DataHoverClearEvent,
+  DataHoverEvent,
+  DataHoverPayload,
+  EventBus,
+  Field,
+  GrafanaTheme2,
+  LinkModel,
+} from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
 import { IconButton, Portal, useStyles2 } from '@grafana/ui';
 import { EChartsType } from 'echarts';
@@ -14,6 +23,13 @@ import {
   TooltipModel,
 } from 'echarts/options/tooltip';
 import { ValueFormatter } from 'echarts/style';
+import {
+  getHoverTime,
+  HOVER_THROTTLE_MS,
+  shouldApplyCrosshair,
+  shouldShowSyncedTooltip,
+  throttle,
+} from 'echarts/sync';
 import { VizTooltipContent, VizTooltipFooter, VizTooltipHeader, VizTooltipWrapper } from 'grafana/VizTooltip';
 import React, { CSSProperties, ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
@@ -172,6 +188,15 @@ interface UseGrafanaEChartsTooltipArgs {
   maxHeight?: number;
   /** Resolves data links for the pinned tooltip from its hovered points. */
   resolveLinks: TooltipLinkResolver;
+  /**
+   * Panel-scoped event bus used to share the hovered position across panels
+   * (shared crosshair / tooltip). When omitted, cursor sync is disabled.
+   */
+  eventBus?: EventBus;
+  /** Reads the dashboard's current cursor sync mode ("Graph tooltip" setting). */
+  getCursorSync?: () => DashboardCursorSync;
+  /** Cursor sync only applies to cartesian time series; false disables it. */
+  syncEnabled?: boolean;
 }
 
 interface GrafanaEChartsTooltip {
@@ -195,6 +220,160 @@ interface PinnedState {
   anchor: TooltipAnchor;
 }
 
+/** Live cursor-sync config, kept in a ref so the attached listeners stay stable. */
+interface CursorSyncConfig {
+  eventBus?: EventBus;
+  getMode: () => DashboardCursorSync;
+  enabled: boolean;
+}
+
+/** Refs/callbacks the cursor-sync listeners share with the tooltip hook. */
+interface CursorSyncContext {
+  syncRef: { current: CursorSyncConfig };
+  externalRef: { current: { active: boolean; mode: DashboardCursorSync } };
+  localHoverRef: { current: boolean };
+  pinnedRef: { current: boolean };
+  coordsRef: { current: TooltipAnchor };
+  clearHoverModel: () => void;
+}
+
+/** Minimal shape of the zrender mouse event fields we read. */
+interface ZrMouseEvent {
+  offsetX: number;
+  offsetY: number;
+}
+
+/**
+ * Wire up shared crosshair / tooltip sync for a cartesian chart, mirroring Core
+ * Grafana's uPlot `EventBusPlugin`:
+ *
+ * - Publish (throttled) the hovered time on the panel event bus while the cursor
+ *   is over the plot, and a clear event on leave. A single payload/event object
+ *   is reused per move to avoid allocations on a busy dashboard.
+ * - On hovers from other panels, move this chart's crosshair to the same time
+ *   via `showTip` (only the line in Crosshair mode; line + tooltip box in
+ *   Tooltip mode), and clear it via `hideTip`.
+ *
+ * Events are untagged so native uPlot panels (which ignore "uplot"-tagged
+ * events) react to them, and incoming events are filtered by `origin` to ignore
+ * this panel's own broadcasts. Returns a cleanup that detaches everything.
+ */
+function attachCursorSync(chart: EChartsType, container: HTMLElement, ctx: CursorSyncContext): () => void {
+  const { syncRef, externalRef, localHoverRef, pinnedRef, coordsRef, clearHoverModel } = ctx;
+  const zr = chart.getZr();
+
+  // Reused across moves to avoid per-frame allocations (see EventBusPlugin).
+  const point: DataHoverPayload['point'] = { time: null };
+  const hoverEvent = new DataHoverEvent({ point });
+  const clearEvent = new DataHoverClearEvent();
+  const publishHover = throttle(() => syncRef.current.eventBus?.publish(hoverEvent), HOVER_THROTTLE_MS);
+  const publishClear = throttle(() => syncRef.current.eventBus?.publish(clearEvent), HOVER_THROTTLE_MS);
+
+  const onZrMove = (event: ZrMouseEvent) => {
+    localHoverRef.current = true;
+    // Local interaction always wins over an externally-driven crosshair.
+    externalRef.current.active = false;
+    const { enabled, getMode } = syncRef.current;
+    if (!enabled || getMode() === DashboardCursorSync.Off) {
+      return;
+    }
+    const { offsetX, offsetY } = event;
+    // Outside the plot area behaves like a leave so other panels clear too.
+    if (!chart.containPixel({ gridIndex: 0 }, [offsetX, offsetY])) {
+      publishClear.run();
+      return;
+    }
+    const time = chart.convertFromPixel({ xAxisIndex: 0 }, offsetX);
+    if (typeof time !== 'number' || !Number.isFinite(time)) {
+      return;
+    }
+    point.time = time;
+    publishHover.run();
+  };
+
+  const onZrOut = () => {
+    localHoverRef.current = false;
+    const { enabled, getMode } = syncRef.current;
+    if (enabled && getMode() !== DashboardCursorSync.Off) {
+      publishClear.run();
+    }
+  };
+
+  zr.on('mousemove', onZrMove);
+  zr.on('globalout', onZrOut);
+
+  const clearExternal = () => {
+    if (!externalRef.current.active) {
+      return;
+    }
+    externalRef.current = { active: false, mode: DashboardCursorSync.Off };
+    chart.dispatchAction({ type: 'hideTip' });
+    if (!pinnedRef.current) {
+      clearHoverModel();
+    }
+  };
+
+  const applyExternalHover = (payload?: DataHoverPayload) => {
+    const { enabled, getMode } = syncRef.current;
+    // The panel under the cursor owns the crosshair; ignore echoes while local.
+    if (!enabled || localHoverRef.current) {
+      return;
+    }
+    const mode = getMode();
+    if (!shouldApplyCrosshair(mode)) {
+      return;
+    }
+    const time = getHoverTime(payload);
+    if (time == null) {
+      clearExternal();
+      return;
+    }
+    const x = chart.convertToPixel({ xAxisIndex: 0 }, time);
+    if (typeof x !== 'number' || !Number.isFinite(x)) {
+      // Hovered time is outside this panel's range; show nothing.
+      clearExternal();
+      return;
+    }
+    const y = chart.getHeight() / 2;
+    externalRef.current = { active: true, mode };
+    // Tooltip mode needs a screen anchor for the React box; the formatter (run
+    // synchronously by showTip) reads coordsRef. Crosshair mode draws only the line.
+    if (shouldShowSyncedTooltip(mode)) {
+      const rect = container.getBoundingClientRect();
+      coordsRef.current = { x: rect.left + x, y: rect.top + y };
+    }
+    chart.dispatchAction({ type: 'showTip', x, y });
+  };
+
+  const eventBus = syncRef.current.eventBus;
+  const subscriptions = eventBus
+    ? [
+        eventBus.getStream(DataHoverEvent).subscribe({
+          next: (event) => {
+            if (event.origin !== eventBus) {
+              applyExternalHover(event.payload);
+            }
+          },
+        }),
+        eventBus.getStream(DataHoverClearEvent).subscribe({
+          next: (event) => {
+            if (event.origin !== eventBus && !localHoverRef.current) {
+              clearExternal();
+            }
+          },
+        }),
+      ]
+    : [];
+
+  return () => {
+    zr.off('mousemove', onZrMove);
+    zr.off('globalout', onZrOut);
+    publishHover.cancel();
+    publishClear.cancel();
+    subscriptions.forEach((subscription) => subscription.unsubscribe());
+  };
+}
+
 /**
  * Bridge ECharts' native tooltip to a Grafana-styled React tooltip rendered in a
  * portal. ECharts keeps doing hit-testing and axis-pointer drawing; we capture
@@ -211,6 +390,9 @@ export function useGrafanaEChartsTooltip({
   maxWidth,
   maxHeight,
   resolveLinks,
+  eventBus,
+  getCursorSync,
+  syncEnabled,
 }: UseGrafanaEChartsTooltipArgs): GrafanaEChartsTooltip {
   const [hoverModel, setHoverModel] = useState<TooltipModel | null>(null);
   const [position, setPosition] = useState<TooltipAnchor | null>(null);
@@ -223,6 +405,29 @@ export function useGrafanaEChartsTooltip({
   const hoverModelRef = useRef<TooltipModel | null>(null);
   const coordsRef = useRef<TooltipAnchor>({ x: 0, y: 0 });
 
+  // Cursor-sync state, read by the (stable) attached listeners. `external`
+  // tracks a hover driven by another panel; `localHover` is set while the
+  // pointer is over this panel (so it ignores incoming events and drives them).
+  const externalRef = useRef<{ active: boolean; mode: DashboardCursorSync }>({
+    active: false,
+    mode: DashboardCursorSync.Off,
+  });
+  const localHoverRef = useRef(false);
+  const syncRef = useRef<CursorSyncConfig>({
+    eventBus: undefined,
+    getMode: () => DashboardCursorSync.Off,
+    enabled: false,
+  });
+
+  // A layout effect (not a passive one) so the config is populated before the
+  // panel's own layout effect attaches the listeners on first mount. Because the
+  // hook runs before that effect is registered, this layout effect runs first.
+  useLayoutEffect(() => {
+    syncRef.current.eventBus = eventBus;
+    syncRef.current.getMode = getCursorSync ?? (() => DashboardCursorSync.Off);
+    syncRef.current.enabled = syncEnabled === true && eventBus != null;
+  }, [eventBus, getCursorSync, syncEnabled]);
+
   useEffect(() => {
     ctxRef.current = { kind, valueFormatter, timeZone, radarIndicators, sort, hideZeros };
   }, [kind, valueFormatter, timeZone, radarIndicators, sort, hideZeros]);
@@ -234,10 +439,20 @@ export function useGrafanaEChartsTooltip({
     const model = buildTooltipModel(params, ctxRef.current);
     hoverModelRef.current = model;
     // While pinned, the frozen tooltip wins; just keep the ref fresh.
-    if (!pinnedRef.current) {
-      setHoverModel(model);
-      setPosition({ ...coordsRef.current });
+    if (pinnedRef.current) {
+      return '';
     }
+    // A hover synced from another panel: in Crosshair mode draw only the line
+    // (ECharts still renders the axis pointer), so suppress the React box.
+    const external = externalRef.current;
+    if (external.active && !shouldShowSyncedTooltip(external.mode)) {
+      setHoverModel(null);
+      return '';
+    }
+    // Local hover, or a synced Tooltip-mode hover whose anchor was set to the
+    // remote point's screen position below.
+    setHoverModel(model);
+    setPosition({ ...coordsRef.current });
     return '';
   }, []);
 
@@ -270,10 +485,23 @@ export function useGrafanaEChartsTooltip({
     container.addEventListener('mouseleave', onMouseLeave);
     zr.on('click', onClick);
 
+    const detachSync = attachCursorSync(chart, container, {
+      syncRef,
+      externalRef,
+      localHoverRef,
+      pinnedRef,
+      coordsRef,
+      clearHoverModel: () => {
+        hoverModelRef.current = null;
+        setHoverModel(null);
+      },
+    });
+
     return () => {
       container.removeEventListener('mousemove', onMouseMove);
       container.removeEventListener('mouseleave', onMouseLeave);
       zr.off('click', onClick);
+      detachSync();
     };
   }, []);
 

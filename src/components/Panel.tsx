@@ -2,7 +2,7 @@ import { css } from '@emotion/css';
 import { Field, FieldType, GrafanaTheme2, LinkModel, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { LegendPlacement, SortOrder, TooltipDisplayMode } from '@grafana/schema';
-import { useStyles2, useTheme2 } from '@grafana/ui';
+import { useStyles2, useTheme2, usePanelContext } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 
 import { EChartsType, init } from 'echarts';
@@ -115,8 +115,11 @@ const getStyles = (theme: GrafanaTheme2, height: number, width: number, placemen
   };
 };
 
-export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone }) => {
+export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone, eventBus }) => {
   const theme = useTheme2();
+  // `sync` reports the dashboard's "Graph tooltip" mode; the event bus carries
+  // hover events to/from other panels (shared crosshair / tooltip).
+  const { sync } = usePanelContext();
   const panelDOMRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
@@ -229,6 +232,11 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     maxWidth: tooltipMaxWidth,
     maxHeight: tooltipMaxHeight,
     resolveLinks,
+    eventBus,
+    getCursorSync: sync,
+    // Shared crosshair/tooltip only applies to cartesian time series (the only
+    // kind with a time axis to map a hovered timestamp onto).
+    syncEnabled: tooltipKind === 'timeseries',
   });
 
   useLayoutEffect(() => {
