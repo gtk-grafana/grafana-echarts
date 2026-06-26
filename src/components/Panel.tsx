@@ -66,6 +66,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
           return;
         }
 
+        const timeDimension = timeAxis.name;
+        const valueDimensions = numericAxes.map((field) => field.name);
+
         // setLineOption
         const echartOption: ECBasicOption = {
           animationDuration: 300,
@@ -83,12 +86,26 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
             trigger: 'axis',
           },
 
+          // https://echarts.apache.org/en/tutorial.html#dataset
+          dataset: {
+            dimensions: [timeDimension, ...valueDimensions],
+            source: {
+              [timeDimension]: Array.from({ length: frame.length }, (_, i) => timeAxis.values[i]),
+              ...Object.fromEntries(
+                numericAxes.map((field) => [
+                  field.name,
+                  Array.from({ length: frame.length }, (_, i) => field.values[i]),
+                ])
+              ),
+            },
+          },
+
           // https://echarts.apache.org/en/option.html#xAxis
           xAxis: {
             // https://echarts.apache.org/en/option.html#xAxis.type
             type: 'time',
             // https://echarts.apache.org/en/option.html#xAxis.name
-            name: timeAxis.name,
+            name: timeDimension,
             // https://echarts.apache.org/en/option.html#xAxis.tooltip
             tooltip: {
               show: true,
@@ -105,10 +122,11 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
           // https://echarts.apache.org/en/option.html#series
           series: numericAxes.map((field) => ({
             name: field.name,
-            // Time axes require [timestamp, value] pairs in series data
-            // @todo how to not copy x-axis data for every y?
-            data: Array.from({ length: frame.length }, (_, i) => [timeAxis.values[i], field.values[i]]),
             type: seriesType,
+            encode: {
+              x: timeDimension,
+              y: field.name,
+            },
           })),
         };
 
