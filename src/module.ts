@@ -1,12 +1,13 @@
-import { PanelPlugin } from '@grafana/data';
+import { PanelPlugin, SelectableValue } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
 import {
   seriesCategoryName,
   seriesTypeDefault,
   seriesTypeName,
   seriesTypeOptions,
-  seriesTypePath,
+  seriesTypePath, supportedSeriesTypes,
 } from 'editor/series';
+import { SeriesType } from 'editor/types';
 import { Panel } from './components/Panel';
 import { PanelOptions } from './types';
 
@@ -30,7 +31,11 @@ export const plugin = new PanelPlugin<PanelOptions>(Panel).setPanelOptions((buil
         name: seriesTypeName,
         defaultValue: seriesTypeDefault,
         settings: {
-          options: seriesTypeOptions,
+          options: seriesTypeOptions.map((opt: SelectableValue<SeriesType>) => ({
+            ...opt,
+            // Temporary 
+            isDisabled: !supportedSeriesTypes.includes(opt.value as SeriesType),
+          })),
         },
         category: [seriesCategoryName],
       })

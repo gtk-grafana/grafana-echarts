@@ -6,9 +6,9 @@ import { debug, LOG_LEVELS } from 'development';
 
 import { EChartsType, init } from 'echarts';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
-import { lineDefaultOptions } from 'echarts/options/line';
+import { cartesianTimeDefaultOptions } from 'echarts/options/cartesian';
 import { ECBasicOption } from 'echarts/types/dist/shared';
-import { seriesTypePath } from 'editor/series';
+import { cartesianTimeSeriesTypes, seriesTypePath } from 'editor/series';
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { PanelOptions } from 'types';
 
@@ -52,7 +52,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
     // @todo look into adding "auto" series type inferred from data frame
     // @todo look into setting series type using field overrides
-    if (seriesType === 'line') {
+    if (cartesianTimeSeriesTypes.includes(seriesType)) {
       const series = timeSeriesToEChartsOption(data.series, seriesType);
 
       if (!series) {
@@ -61,11 +61,11 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       }
 
       const echartOption: ECBasicOption = {
-        ...lineDefaultOptions,
+        ...cartesianTimeDefaultOptions,
         series,
       };
 
-      debug('Panel::setLineOption', LOG_LEVELS.debug, echartOption);
+      debug('Panel::setCartesianOption', LOG_LEVELS.debug, echartOption);
 
       panelRef.current.setOption(echartOption);
     } else {

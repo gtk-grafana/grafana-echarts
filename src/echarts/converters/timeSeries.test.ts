@@ -92,11 +92,14 @@ describe('timeSeriesToEChartsOption', () => {
   });
 
   describe('series type', () => {
-    it('propagates the requested series type to every series', () => {
-      const result = timeSeriesToEChartsOption([wideFrame()], 'bar');
+    it.each(['line', 'bar', 'scatter', 'effectScatter'] as const)(
+      'propagates the requested series type "%s" to every series',
+      (seriesType) => {
+        const result = timeSeriesToEChartsOption([wideFrame()], seriesType);
 
-      expect(result!.every((series) => series.type === 'bar')).toBe(true);
-    });
+        expect(result!.every((series) => series.type === seriesType)).toBe(true);
+      }
+    );
   });
 
   describe('frames that cannot produce time series', () => {

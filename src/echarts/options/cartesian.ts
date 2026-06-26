@@ -1,6 +1,11 @@
 import { ECBasicOption } from 'echarts/types/dist/shared';
 
-export const lineDefaultOptions: ECBasicOption = {
+/**
+ * Shared base option for cartesian time series charts (line, bar, scatter,
+ * effectScatter). Pairs a `time` xAxis with a `value` yAxis so the converter's
+ * `[time, value]` series data renders directly.
+ */
+export const cartesianTimeDefaultOptions: ECBasicOption = {
   animationDuration: 300,
 
   // https://echarts.apache.org/en/option.html#grid
