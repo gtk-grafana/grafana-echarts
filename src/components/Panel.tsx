@@ -11,7 +11,7 @@ import { pieToEChartsOption } from 'echarts/converters/pie';
 import { radarToEChartsOption } from 'echarts/converters/radar';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import { cartesianTimeDefaultOptions, getCartesianAxisStyle } from 'echarts/options/cartesian';
-import { getHeatmapSeries, getHeatmapVisualMap, HEATMAP_VISUALMAP_WIDTH } from 'echarts/options/heatmap';
+import { getHeatmapBucketAxis, getHeatmapSeries, getHeatmapVisualMap, HEATMAP_VISUALMAP_WIDTH } from 'echarts/options/heatmap';
 import { getCartesianGrid, getLegendOption, isTableLegend } from 'echarts/options/legend';
 import { buildPieLegendItems, buildRadarLegendItems, buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
 import { pieDefaultOptions } from 'echarts/options/pie';
@@ -19,7 +19,7 @@ import { radarDefaultOptions } from 'echarts/options/radar';
 import { getCrosshairAxisPointer, getTooltipOption, TooltipItemRef, TooltipKind, tooltipTriggerForMode } from 'echarts/options/tooltip';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
 import { ECBasicOption } from 'echarts/types/dist/shared';
-import { cartesianTimeSeriesTypes, pieSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
+import { cartesianTimeSeriesTypes, frameHasCartesianOverride, pieSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
 import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
 import { TooltipLinkResolver, useGrafanaEChartsTooltip } from './EChartsTooltip';
@@ -142,6 +142,33 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const cartesianFrames = useMemo(() => data.series.filter((frame) => !isHeatmapFrame(frame)), [data.series]);
   const hasHeatmap = forceHeatmap || heatmapFrames.length > 0;
 
+  // When forcing heatmap, a frame whose value fields are overridden to a
+  // cartesian series type (line/bar/scatter) is split out as an overlay instead
+  // of being folded into the heatmap, so a metric line can sit on top of the
+  // cells. The remaining frames feed the heatmap layer (no `meta.type` needed
+  // since the panel type forces it).
+  const overlayFrames = useMemo(() => {
+    if (forceHeatmap) {
+      return data.series.filter(frameHasCartesianOverride);
+    }
+    return cartesianFrames;
+  }, [forceHeatmap, data.series, cartesianFrames]);
+  const heatmapSourceFrames = useMemo(() => {
+    if (forceHeatmap) {
+      return data.series.filter((frame) => !frameHasCartesianOverride(frame));
+    }
+    return heatmapFrames;
+  }, [forceHeatmap, data.series, heatmapFrames]);
+
+  // The composed heatmap model (cells + bucket axis metadata). Computed here so
+  // the tooltip (X axis time vs numeric) and the render effect share one result.
+  const heatmap = useMemo(() => {
+    if (!hasHeatmap) {
+      return null;
+    }
+    return frameToHeatmap(heatmapSourceFrames, data.series);
+  }, [hasHeatmap, heatmapSourceFrames, data.series]);
+
   const placement: LegendPlacement = options.legend?.placement === 'right' ? 'right' : 'bottom';
   // ECharts can't draw the table legend itself, so any supported series type in
   // table mode renders the custom DOM legend instead of the native (list) one.
@@ -256,6 +283,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     radarIndicators,
     sort: tooltipSort,
     hideZeros: tooltipHideZeros,
+    // The heatmap's X field type decides whether the tooltip header is a date or
+    // a numeric bucket range. Non-heatmap kinds ignore this flag.
+    xIsTime: heatmap ? heatmap.xIsTime : true,
     maxWidth: tooltipMaxWidth,
     maxHeight: tooltipMaxHeight,
     resolveLinks,
@@ -306,14 +336,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     // whenever a heatmap frame is present or the panel default is cartesian.
     if (hasHeatmap || cartesianTimeSeriesTypes.includes(seriesType)) {
       // The overlay default applies to non-heatmap frames; pie/radar defaults
-      // are meaningless on a time grid, so coerce them to `line`.
+      // are meaningless on a time grid, so coerce them to `line`. Frames split
+      // out as overlays (see `overlayFrames`) carry their own per-field override.
       const overlayType = cartesianTimeSeriesTypes.includes(seriesType) ? seriesType : 'line';
-      // When forcing heatmap, every frame feeds the heatmap layer and nothing is
-      // overlaid; otherwise only tagged frames feed it and the rest overlay.
-      const overlayFrames = forceHeatmap ? [] : cartesianFrames;
-      const heatmapSourceFrames = forceHeatmap ? data.series : heatmapFrames;
       const cartSeries = timeSeriesToEChartsOption(overlayFrames, overlayType, theme) ?? [];
-      const heatmap = hasHeatmap ? frameToHeatmap(heatmapSourceFrames, data.series) : null;
 
       if (cartSeries.length === 0 && !heatmap) {
         debug('Panel::useEffect::useSetOptions::No usable cartesian/heatmap data', LOG_LEVELS.error);
@@ -339,6 +365,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
         ...axisStyle,
         axisLabel: { ...axisStyle.axisLabel, formatter: valueFormatter },
       };
+      // Bucketed tick/label/grid-line placement so the Y axis reads as discrete
+      // buckets (le bounds or ordinal row names) instead of a numeric scale.
+      const bucketAxisExtra = heatmap ? getHeatmapBucketAxis(heatmap) : {};
       const yAxis = heatmap
         ? [
             // Bucket (Y) axis for the heatmap cells.
@@ -347,6 +376,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
               ...axisStyle,
               min: heatmap.yMin,
               max: heatmap.yMax,
+              ...bucketAxisExtra,
+              axisLabel: { ...axisStyle.axisLabel, ...((bucketAxisExtra.axisLabel as object) ?? {}) },
+              axisTick: { ...axisStyle.axisTick, ...((bucketAxisExtra.axisTick as object) ?? {}) },
+              splitLine: { ...axisStyle.splitLine, ...((bucketAxisExtra.splitLine as object) ?? {}) },
             },
             // Metric axis for the cartesian overlay, on the right.
             { ...overlayValueAxis, position: 'right' },
@@ -360,6 +393,16 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
         ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH }
         : baseGrid;
 
+      // The dataplane heatmap X field may be numeric rather than time. A
+      // cartesian overlay is always time-based, so it forces a time axis;
+      // otherwise the heatmap's own X field type decides time vs value.
+      const xAxisIsTime = cartSeries.length > 0 || (heatmap ? heatmap.xIsTime : true);
+      const xAxis = {
+        ...(cartesianTimeDefaultOptions.xAxis as object),
+        ...axisStyle,
+        ...(xAxisIsTime ? {} : { type: 'value' as const }),
+      };
+
       // @todo fix types and remove assertions
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
@@ -372,7 +415,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
           ? { show: false }
           : getLegendOption(options.legend, theme, heatmap ? cartSeries.map((s) => s.name) : undefined),
         grid,
-        xAxis: { ...(cartesianTimeDefaultOptions.xAxis as object), ...axisStyle },
+        xAxis,
         yAxis,
         series,
         ...(heatmap ? { visualMap: getHeatmapVisualMap(heatmap, theme, 0, options.heatmapColorScheme) } : {}),
@@ -433,10 +476,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   }, [
     seriesType,
     data,
-    cartesianFrames,
-    heatmapFrames,
+    overlayFrames,
+    heatmap,
     hasHeatmap,
-    forceHeatmap,
     theme,
     timeZone,
     options.legend,

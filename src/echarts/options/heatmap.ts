@@ -1,6 +1,52 @@
 import { GrafanaTheme2 } from '@grafana/data';
 import { graphic } from 'echarts';
-import { HeatmapCell, HeatmapData } from 'echarts/converters/heatmap';
+import { formatBucketBound, HeatmapCell, HeatmapData } from 'echarts/converters/heatmap';
+
+/**
+ * Custom tick/label/grid-line placement for the heatmap bucket (Y) axis so the
+ * axis reads as discrete buckets rather than an evenly-spaced numeric scale.
+ *
+ * ECharts auto-picks "nice" numeric ticks on a value axis (e.g. 0, 5, 10, ...),
+ * which land between bucket bounds. Instead we pin:
+ * - split lines to every bucket boundary (so each row is fenced off), and
+ * - labels to each bucket's upper edge (`le`/numeric bounds) or midpoint
+ *   (ordinal rows labelled by name), formatted from the bucket's own label.
+ *
+ * Uses ECharts `customValues` (value-axis support added in 5.5), so it requires
+ * ECharts >= 5.5 (the plugin ships 6.x).
+ */
+export function getHeatmapBucketAxis(data: HeatmapData): Record<string, unknown> {
+  const buckets = data.yBuckets;
+  if (buckets.length === 0) {
+    return {};
+  }
+
+  const boundaries = Array.from(new Set(buckets.flatMap((bucket) => [bucket.start, bucket.end])))
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => a - b);
+
+  const labelByValue = new Map<number, string>();
+  if (data.yLabelPlacement === 'center') {
+    for (const bucket of buckets) {
+      labelByValue.set((bucket.start + bucket.end) / 2, bucket.label);
+    }
+  } else {
+    // Label the bottom edge of the first bucket too, so the axis isn't missing
+    // its lower bound (e.g. the leading "0" of a Prometheus histogram).
+    labelByValue.set(buckets[0].start, formatBucketBound(buckets[0].start));
+    for (const bucket of buckets) {
+      labelByValue.set(bucket.end, bucket.label);
+    }
+  }
+
+  const labelValues = Array.from(labelByValue.keys()).sort((a, b) => a - b);
+
+  return {
+    axisLabel: { customValues: labelValues, formatter: (value: number) => labelByValue.get(Number(value)) ?? '' },
+    axisTick: { customValues: labelValues },
+    splitLine: { customValues: boundaries },
+  };
+}
 
 /** Built-in color gradients offered for the heatmap cell layer. */
 export type HeatmapColorScheme = 'spectral' | 'blues' | 'turbo' | 'magma';

@@ -59,6 +59,41 @@ describe('frameToHeatmap - heatmap-rows', () => {
     expect(result!.yMax).toBe(30);
   });
 
+  it('flags a time X field as a time axis', () => {
+    const result = frameToHeatmap([rowsFrame()]);
+    expect(result!.xIsTime).toBe(true);
+  });
+
+  it('derives bound-placed bucket labels from le labels', () => {
+    const result = frameToHeatmap([rowsFrame()]);
+    expect(result!.yLabelPlacement).toBe('bound');
+    expect(result!.yBuckets).toEqual([
+      { start: 0, end: 10, label: '10' },
+      { start: 10, end: 20, label: '20' },
+      { start: 20, end: 30, label: '+Inf' },
+    ]);
+  });
+
+  it('uses the first field as the X axis even when it is numeric (no time field)', () => {
+    const frame = toDataFrame({
+      meta: { type: DataFrameType.HeatmapRows },
+      fields: [
+        { name: 'x', type: FieldType.number, values: [1, 2] },
+        { name: 'b1', type: FieldType.number, values: [5, 6], labels: { le: '10' } },
+        { name: 'b2', type: FieldType.number, values: [7, 8], labels: { le: '20' } },
+      ],
+    });
+
+    const result = frameToHeatmap([frame]);
+    expect(result).not.toBeNull();
+    // 2 buckets x 2 X values; the numeric X field is not treated as a bucket row.
+    expect(result!.cells).toHaveLength(4);
+    expect(findCell(result!.cells, 1, 0)).toMatchObject({ xStart: 1, xEnd: 2, yStart: 0, yEnd: 10, value: 5 });
+    expect(findCell(result!.cells, 2, 10)).toMatchObject({ xStart: 2, xEnd: 3, yStart: 10, yEnd: 20, value: 8 });
+    // A numeric X field drives a value axis, not a time axis.
+    expect(result!.xIsTime).toBe(false);
+  });
+
   it('falls back to unit-height index buckets when no le labels exist', () => {
     const frame = toDataFrame({
       meta: { type: DataFrameType.HeatmapRows },
@@ -72,6 +107,12 @@ describe('frameToHeatmap - heatmap-rows', () => {
     const result = frameToHeatmap([frame]);
     expect(findCell(result!.cells, 1, 0)).toMatchObject({ yStart: 0, yEnd: 1, value: 3 });
     expect(findCell(result!.cells, 1, 1)).toMatchObject({ yStart: 1, yEnd: 2, value: 4 });
+    // No le labels: rows are ordinal, labelled by field name at their center.
+    expect(result!.yLabelPlacement).toBe('center');
+    expect(result!.yBuckets).toEqual([
+      { start: 0, end: 1, label: 'a' },
+      { start: 1, end: 2, label: 'b' },
+    ]);
   });
 });
 
@@ -92,6 +133,14 @@ describe('frameToHeatmap - heatmap-cells', () => {
     expect(result!.cells).toHaveLength(2);
     expect(result!.cells[0]).toMatchObject({ xStart: 1000, xEnd: 2000, yStart: 0, yEnd: 10, value: 3 });
     expect(result!.cells[1]).toMatchObject({ xStart: 2000, xEnd: 3000, yStart: 10, yEnd: 20, value: 7 });
+    // xMin/xMax are time fields, so the axis is time-based.
+    expect(result!.xIsTime).toBe(true);
+    // Cell bounds give bound-placed bucket labels (the upper edge per row).
+    expect(result!.yLabelPlacement).toBe('bound');
+    expect(result!.yBuckets).toEqual([
+      { start: 0, end: 10, label: '10' },
+      { start: 10, end: 20, label: '20' },
+    ]);
   });
 
   it('infers cell size from center x/y values when only centers are present', () => {
@@ -107,6 +156,8 @@ describe('frameToHeatmap - heatmap-cells', () => {
     const result = frameToHeatmap([frame]);
     // x step = 10 -> +/- 5; y step = 1 -> +/- 0.5
     expect(result!.cells[0]).toMatchObject({ xStart: 5, xEnd: 15, yStart: 0.5, yEnd: 1.5, value: 5 });
+    // The center `x` field is numeric, so the axis is a value axis.
+    expect(result!.xIsTime).toBe(false);
   });
 });
 

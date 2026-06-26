@@ -19,6 +19,17 @@ export interface HeatmapCell {
 }
 
 /**
+ * A Y-axis bucket (heatmap row), with its bounds in data space and the label to
+ * show for it. For Prometheus-style histograms the label is the `le` upper
+ * bound; for plain wide series reused as rows it is the field display name.
+ */
+export interface HeatmapBucket {
+  start: number;
+  end: number;
+  label: string;
+}
+
+/**
  * The chart-agnostic heatmap model: the cells plus the value and Y (bucket)
  * ranges needed to configure the visualMap and the bucket axis.
  */
@@ -30,6 +41,38 @@ export interface HeatmapData {
   /** Min/max of the bucket (Y) bounds, for the heatmap value axis. */
   yMin: number;
   yMax: number;
+  /**
+   * Whether the X axis is time-based. The dataplane heatmap X field may be time
+   * or numeric, so the caller uses this to pick a `time` vs `value` x-axis. True
+   * only when every contributing frame's X field is a time field.
+   */
+  xIsTime: boolean;
+  /** The distinct Y buckets (rows), ordered by their lower bound. */
+  yBuckets: HeatmapBucket[];
+  /**
+   * How to place the Y bucket labels. `bound` labels each bucket at its upper
+   * edge (Prometheus `le` histograms / numeric cell bounds); `center` labels
+   * each bucket at its midpoint (ordinal rows labelled by field name).
+   */
+  yLabelPlacement: 'bound' | 'center';
+}
+
+/** Cells plus the bucket metadata derived from a single heatmap frame. */
+interface FrameHeatmap {
+  cells: HeatmapCell[];
+  buckets: HeatmapBucket[];
+  /** True for numeric/`le` bounds, false for ordinal (field-name) rows. */
+  labelsAtBounds: boolean;
+}
+
+const EMPTY_FRAME_HEATMAP: FrameHeatmap = { cells: [], buckets: [], labelsAtBounds: true };
+
+/** Format a numeric bucket bound compactly (integers bare, others 3 sig figs). */
+export function formatBucketBound(value: number): string {
+  if (!Number.isFinite(value)) {
+    return value > 0 ? '+Inf' : '-Inf';
+  }
+  return Number.isInteger(value) ? String(value) : String(Number(value.toPrecision(3)));
 }
 
 /**
@@ -60,28 +103,52 @@ function fieldByName(frame: DataFrame, name: string): Field | undefined {
 }
 
 /**
- * Heatmap-rows: the first time field is the X axis and every numeric field is a
- * bucket row. The bucket's upper bound comes from its `le` label (Prometheus
- * histogram convention); the lower bound is the previous row's upper bound. When
- * no `le` labels exist (e.g. a plain wide time series reused as heatmap-rows),
- * rows fall back to unit-height buckets indexed by field order.
- *
- * X cells span `[t, t + step)` where `step` is the smallest gap between
- * timestamps (the last column reuses the prior step).
+ * Whether the frame's X axis is time-based. Mirrors the X-field resolution used
+ * by the cell builders: positional first field for heatmap-rows, and the
+ * `xMin`/`xMax`/`x` (or first time field) for heatmap-cells.
  */
-function rowsToCells(frame: DataFrame, series: DataFrame[]): HeatmapCell[] {
-  const timeField = frame.fields.find((field) => field.type === FieldType.time);
-  if (!timeField) {
-    return [];
+function frameXIsTime(frame: DataFrame): boolean {
+  if (frame.meta?.type === 'heatmap-cells') {
+    const xField =
+      fieldByName(frame, 'xMin') ??
+      fieldByName(frame, 'xMax') ??
+      fieldByName(frame, 'x') ??
+      frame.fields.find((field) => field.type === FieldType.time);
+    return xField?.type === FieldType.time;
+  }
+  return frame.fields[0]?.type === FieldType.time;
+}
+
+/**
+ * Heatmap-rows: the first field is the X axis and every *remaining* numeric
+ * field is a bucket row. Per the dataplane spec the X field is not required to
+ * be time — it may be numeric — so the X axis is taken positionally (the first
+ * field) rather than by type, matching core Grafana (`heatmap.fields[0]`). See
+ * https://grafana.com/developers/dataplane/heatmap
+ *
+ * The bucket's upper bound comes from its `le` label (Prometheus histogram
+ * convention); the lower bound is the previous row's upper bound. When no `le`
+ * labels exist (e.g. a plain wide time series reused as heatmap-rows), rows fall
+ * back to unit-height buckets indexed by field order.
+ *
+ * X cells span `[x, x + step)` where `step` is the smallest gap between X values
+ * (the last column reuses the prior step).
+ */
+function rowsToCells(frame: DataFrame, series: DataFrame[]): FrameHeatmap {
+  const xField = frame.fields[0];
+  if (!xField || (xField.type !== FieldType.time && xField.type !== FieldType.number)) {
+    return EMPTY_FRAME_HEATMAP;
   }
 
-  const numericFields = frame.fields.filter((field) => field.type === FieldType.number);
+  // Every numeric field after the X field is a bucket row. The X field is taken
+  // positionally, so a numeric X field is never also treated as a row.
+  const numericFields = frame.fields.filter((field, index) => index > 0 && field.type === FieldType.number);
   if (numericFields.length === 0) {
-    return [];
+    return EMPTY_FRAME_HEATMAP;
   }
 
-  const times = timeField.values as number[];
-  const xStep = minPositiveStep(times);
+  const xs = xField.values as number[];
+  const xStep = minPositiveStep(xs);
 
   // Order rows by their numeric `le` upper bound when present so stacked bucket
   // bounds are contiguous; otherwise keep field order.
@@ -98,11 +165,13 @@ function rowsToCells(frame: DataFrame, series: DataFrame[]): HeatmapCell[] {
   const rows = numericFields.map((field, index) => ({
     field,
     name: getFieldDisplayName(field, frame, series),
+    le: field.labels?.le,
     upper: hasLe ? parseLe(field, index + 1) : index + 1,
   }));
   rows.sort((a, b) => a.upper - b.upper);
 
   const cells: HeatmapCell[] = [];
+  const buckets: HeatmapBucket[] = [];
   for (let r = 0; r < rows.length; r++) {
     const { field, upper } = rows[r];
     const yStart = r === 0 ? 0 : rows[r - 1].upper;
@@ -111,11 +180,15 @@ function rowsToCells(frame: DataFrame, series: DataFrame[]): HeatmapCell[] {
     const prevHeight = r === 0 ? 1 : rows[r - 1].upper - (r === 1 ? 0 : rows[r - 2].upper);
     const yEnd = Number.isFinite(upper) ? upper : yStart + prevHeight;
 
-    for (let i = 0; i < times.length; i++) {
+    // With `le` labels the bucket label is the upper bound (the original `le`
+    // string preserves "+Inf"); otherwise it is the field display name.
+    buckets.push({ start: yStart, end: yEnd, label: hasLe ? (rows[r].le ?? formatBucketBound(upper)) : rows[r].name });
+
+    for (let i = 0; i < xs.length; i++) {
       const value = field.values[i];
       cells.push({
-        xStart: times[i],
-        xEnd: times[i] + xStep,
+        xStart: xs[i],
+        xEnd: xs[i] + xStep,
         yStart,
         yEnd,
         value: typeof value === 'number' ? value : null,
@@ -123,7 +196,7 @@ function rowsToCells(frame: DataFrame, series: DataFrame[]): HeatmapCell[] {
     }
   }
 
-  return cells;
+  return { cells, buckets, labelsAtBounds: hasLe };
 }
 
 /**
@@ -132,7 +205,7 @@ function rowsToCells(frame: DataFrame, series: DataFrame[]): HeatmapCell[] {
  * Y bounds come from `yMin`/`yMax` or the center `y` field +/- half its step.
  * The first value field that isn't an axis-bound field is the displayed value.
  */
-function cellsToCells(frame: DataFrame): HeatmapCell[] {
+function cellsToCells(frame: DataFrame): FrameHeatmap {
   const xMin = fieldByName(frame, 'xMin');
   const xMax = fieldByName(frame, 'xMax');
   const xCenter = fieldByName(frame, 'x') ?? frame.fields.find((field) => field.type === FieldType.time);
@@ -148,7 +221,7 @@ function cellsToCells(frame: DataFrame): HeatmapCell[] {
   );
 
   if (!valueField) {
-    return [];
+    return EMPTY_FRAME_HEATMAP;
   }
 
   const rowCount = frame.length;
@@ -156,6 +229,9 @@ function cellsToCells(frame: DataFrame): HeatmapCell[] {
   const yStep = yCenter ? minPositiveStep(yCenter.values as number[]) : 1;
 
   const cells: HeatmapCell[] = [];
+  // Distinct Y bucket bounds (cells repeat the same row across X), keyed to
+  // dedupe so the bucket axis gets one label per row.
+  const bucketByKey = new Map<string, HeatmapBucket>();
   for (let i = 0; i < rowCount; i++) {
     const xs = xMin ? Number(xMin.values[i]) : xCenter ? Number(xCenter.values[i]) - xStep / 2 : i;
     const xe = xMax ? Number(xMax.values[i]) : xCenter ? Number(xCenter.values[i]) + xStep / 2 : i + 1;
@@ -170,9 +246,14 @@ function cellsToCells(frame: DataFrame): HeatmapCell[] {
       yEnd: ye,
       value: typeof value === 'number' ? value : null,
     });
+
+    const key = `${ys}:${ye}`;
+    if (!bucketByKey.has(key)) {
+      bucketByKey.set(key, { start: ys, end: ye, label: formatBucketBound(ye) });
+    }
   }
 
-  return cells;
+  return { cells, buckets: Array.from(bucketByKey.values()), labelsAtBounds: true };
 }
 
 /**
@@ -185,19 +266,41 @@ function cellsToCells(frame: DataFrame): HeatmapCell[] {
  */
 export function frameToHeatmap(frames: DataFrame[], series: DataFrame[] = frames): HeatmapData | null {
   const cells: HeatmapCell[] = [];
+  const bucketByKey = new Map<string, HeatmapBucket>();
+  // X axis is time only when every frame that actually contributes cells uses a
+  // time X field; a single numeric-X frame drops the whole layer to a value axis.
+  let xIsTime = true;
+  // Bucket labels sit at their bounds unless every contributing frame is ordinal
+  // (plain rows labelled by field name), in which case they sit at the center.
+  let labelsAtBounds = true;
 
   for (const frame of frames) {
-    if (frame.meta?.type === 'heatmap-cells') {
-      cells.push(...cellsToCells(frame));
-    } else {
-      // heatmap-rows (and timeseries-wide reused as rows).
-      cells.push(...rowsToCells(frame, series));
+    const frameHeatmap =
+      frame.meta?.type === 'heatmap-cells'
+        ? cellsToCells(frame)
+        : // heatmap-rows (and timeseries-wide reused as rows).
+          rowsToCells(frame, series);
+
+    if (frameHeatmap.cells.length === 0) {
+      continue;
+    }
+
+    cells.push(...frameHeatmap.cells);
+    xIsTime = xIsTime && frameXIsTime(frame);
+    labelsAtBounds = labelsAtBounds && frameHeatmap.labelsAtBounds;
+    for (const bucket of frameHeatmap.buckets) {
+      const key = `${bucket.start}:${bucket.end}`;
+      if (!bucketByKey.has(key)) {
+        bucketByKey.set(key, bucket);
+      }
     }
   }
 
   if (cells.length === 0) {
     return null;
   }
+
+  const yBuckets = Array.from(bucketByKey.values()).sort((a, b) => a.start - b.start);
 
   let valueMin = Infinity;
   let valueMax = -Infinity;
@@ -226,5 +329,14 @@ export function frameToHeatmap(frames: DataFrame[], series: DataFrame[] = frames
     yMax = 1;
   }
 
-  return { cells, valueMin, valueMax, yMin, yMax };
+  return {
+    cells,
+    valueMin,
+    valueMax,
+    yMin,
+    yMax,
+    xIsTime,
+    yBuckets,
+    yLabelPlacement: labelsAtBounds ? 'bound' : 'center',
+  };
 }

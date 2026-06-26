@@ -182,6 +182,8 @@ interface UseGrafanaEChartsTooltipArgs {
   sort: SortOrder;
   /** Drop multi-series rows with a value of exactly 0. */
   hideZeros: boolean;
+  /** Whether the heatmap X axis is time-based (header date vs numeric range). */
+  xIsTime: boolean;
   /** Tooltip box max width (px); falls back to the default when unset. */
   maxWidth?: number;
   /** Scrollable content max height (px); content is not scrollable when unset. */
@@ -387,6 +389,7 @@ export function useGrafanaEChartsTooltip({
   radarIndicators,
   sort,
   hideZeros,
+  xIsTime,
   maxWidth,
   maxHeight,
   resolveLinks,
@@ -400,7 +403,7 @@ export function useGrafanaEChartsTooltip({
 
   // The formatter/listeners are stable (baked into the ECharts option / attached
   // once), so the latest values they need are read from refs synced in effects.
-  const ctxRef = useRef<TooltipBuildContext>({ kind, valueFormatter, timeZone, radarIndicators, sort, hideZeros });
+  const ctxRef = useRef<TooltipBuildContext>({ kind, valueFormatter, timeZone, radarIndicators, sort, hideZeros, xIsTime });
   const pinnedRef = useRef(false);
   const hoverModelRef = useRef<TooltipModel | null>(null);
   const coordsRef = useRef<TooltipAnchor>({ x: 0, y: 0 });
@@ -429,8 +432,8 @@ export function useGrafanaEChartsTooltip({
   }, [eventBus, getCursorSync, syncEnabled]);
 
   useEffect(() => {
-    ctxRef.current = { kind, valueFormatter, timeZone, radarIndicators, sort, hideZeros };
-  }, [kind, valueFormatter, timeZone, radarIndicators, sort, hideZeros]);
+    ctxRef.current = { kind, valueFormatter, timeZone, radarIndicators, sort, hideZeros, xIsTime };
+  }, [kind, valueFormatter, timeZone, radarIndicators, sort, hideZeros, xIsTime]);
   useEffect(() => {
     pinnedRef.current = pinned != null;
   }, [pinned]);

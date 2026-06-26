@@ -18,6 +18,7 @@ const ctx = (overrides: Partial<TooltipBuildContext> = {}): TooltipBuildContext 
   radarIndicators: [],
   sort: SortOrder.None,
   hideZeros: false,
+  xIsTime: true,
   ...overrides,
 });
 
@@ -173,6 +174,29 @@ describe('buildTooltipModel - radar (item trigger)', () => {
     const param: EChartsTooltipParam = { name: 'Polygon', value: [9], dataIndex: 0 };
     const model = buildTooltipModel(param, ctx({ kind: 'radar', radarIndicators: [] }))!;
     expect(model.items[0].label).toBe('#0');
+  });
+});
+
+describe('buildTooltipModel - heatmap (item trigger)', () => {
+  // Cell tuple: [xStart, yStart, xEnd, yEnd, value].
+  const cell: EChartsTooltipParam = {
+    name: 'Heatmap',
+    color: '#cccccc',
+    value: [1000, 10, 2000, 20, 7],
+    dataIndex: 3,
+    seriesIndex: 0,
+  };
+
+  it('shows the cell time as the header for a time X axis', () => {
+    const model = buildTooltipModel(cell, ctx({ kind: 'heatmap', xIsTime: true }))!;
+    expect(model.header.value).toContain('1970-01-01');
+    expect(model.items[0]).toMatchObject({ label: '10 - 20', value: '7', colorIndicator: ColorIndicator.value });
+  });
+
+  it('shows the numeric X bucket range as the header for a non-time X axis', () => {
+    const model = buildTooltipModel(cell, ctx({ kind: 'heatmap', xIsTime: false }))!;
+    expect(model.header.value).toBe('1000 - 2000');
+    expect(model.items[0].value).toBe('7');
   });
 });
 

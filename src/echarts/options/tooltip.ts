@@ -46,6 +46,12 @@ export interface TooltipBuildContext {
   sort: SortOrder;
   /** When true, multi-series rows with a value of exactly 0 are dropped. */
   hideZeros: boolean;
+  /**
+   * Whether the heatmap X axis is time-based. When false the heatmap tooltip
+   * header shows the numeric X bucket range instead of a (meaningless) date.
+   * Only consulted for the `heatmap` kind.
+   */
+  xIsTime: boolean;
 }
 
 /**
@@ -323,23 +329,32 @@ function formatBucketBound(value: number): string {
 
 /**
  * Heatmap tooltip. The custom cell layer hovers yield a `[xStart, yStart, xEnd,
- * yEnd, value]` tuple: the header is the cell's time, and the row shows the
- * bucket range and its value. Overlay cartesian points (a `[time, value]`
- * tuple) fall back to a single time-series-style row so a line/bar drawn over
- * the heatmap still gets a tooltip.
+ * yEnd, value]` tuple: the header is the cell's time (or X bucket range for a
+ * numeric X axis), and the row shows the bucket range and its value. Overlay
+ * cartesian points (a `[time, value]` tuple) fall back to a single
+ * time-series-style row so a line/bar drawn over the heatmap still gets a
+ * tooltip.
  */
 function buildHeatmapModel(
   param: EChartsTooltipParam,
   valueFormatter: ValueFormatter,
-  timeZone: string
+  timeZone: string,
+  xIsTime: boolean
 ): TooltipModel | null {
   const value = param.value;
 
   if (Array.isArray(value) && value.length >= 5) {
-    const [xStart, yStart, , yEnd, cellValue] = value as Array<number | null>;
-    const time = toNumber(xStart);
+    const [xStart, yStart, xEnd, yEnd, cellValue] = value as Array<number | null>;
+    const xs = toNumber(xStart);
+    const xe = toNumber(xEnd);
+    let headerValue = '';
+    if (xIsTime) {
+      headerValue = xs != null ? dateTimeFormat(xs, { timeZone }) : '';
+    } else if (xs != null) {
+      headerValue = xe != null ? `${formatBucketBound(xs)} - ${formatBucketBound(xe)}` : formatBucketBound(xs);
+    }
     return {
-      header: { label: '', value: time != null ? dateTimeFormat(time, { timeZone }) : '' },
+      header: { label: '', value: headerValue },
       items: [
         {
           label: `${formatBucketBound(Number(yStart))} - ${formatBucketBound(Number(yEnd))}`,
@@ -397,7 +412,7 @@ export function buildTooltipModel(
   }
 
   if (ctx.kind === 'heatmap') {
-    return buildHeatmapModel(param, ctx.valueFormatter, ctx.timeZone);
+    return buildHeatmapModel(param, ctx.valueFormatter, ctx.timeZone, ctx.xIsTime);
   }
 
   if (ctx.kind === 'pie') {

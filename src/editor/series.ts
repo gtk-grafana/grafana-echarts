@@ -1,5 +1,5 @@
-import { DataFrameType, SelectableValue } from '@grafana/data';
-import { SeriesType } from 'editor/types';
+import { DataFrame, DataFrameType, FieldType, SelectableValue } from '@grafana/data';
+import { EChartsFieldConfig, SeriesType } from 'editor/types';
 
 /**
  * Series editor options
@@ -48,6 +48,26 @@ export const seriesTypePath = 'seriesType';
  * non-cartesian types (e.g. pie, gauge, radar) need different data shaping.
  */
 export const cartesianTimeSeriesTypes: SeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
+
+/**
+ * Whether a frame has at least one numeric value field whose custom field
+ * config overrides the series type to a cartesian type (line/bar/scatter).
+ *
+ * When the panel is forced to `heatmap`, such a frame is drawn as a cartesian
+ * overlay on top of the heatmap (e.g. a metric line over the cells) instead of
+ * being folded into the heatmap layer. A frame is treated as an overlay if
+ * *any* of its value fields is overridden, since a `byFrameRefID` override
+ * applies the same series type to every field in the frame.
+ */
+export function frameHasCartesianOverride(frame: DataFrame): boolean {
+  return frame.fields.some((field) => {
+    if (field.type !== FieldType.number) {
+      return false;
+    }
+    const override = (field.config.custom as EChartsFieldConfig | undefined)?.seriesType;
+    return override != null && cartesianTimeSeriesTypes.includes(override);
+  });
+}
 
 /**
  * Radar types, which use a radar coordinate system (indicators + polygons)
