@@ -1,7 +1,6 @@
-type SeriesSize = 'sm' | 'md' | 'lg';
+import { seriesTypePath } from 'editor/series';
+import { SeriesType } from 'editor/types';
 
-export interface SimpleOptions {
-  text: string;
-  showSeriesCount: boolean;
-  seriesCountSize: SeriesSize;
+export interface PanelOptions {
+  [seriesTypePath]: SeriesType;
 }

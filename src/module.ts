@@ -1,40 +1,27 @@
 import { PanelPlugin } from '@grafana/data';
-import { SimpleOptions } from './types';
+import { seriesCategoryName, seriesTypeDefault, seriesTypeName, seriesTypeOptions, seriesTypePath } from 'editor/series';
 import { SimplePanel } from './components/SimplePanel';
+import { PanelOptions } from './types';
 
-export const plugin = new PanelPlugin<SimpleOptions>(SimplePanel).setPanelOptions((builder) => {
-  return builder
-    .addTextInput({
-      path: 'text',
-      name: 'Simple text option',
-      description: 'Description of panel option',
-      defaultValue: 'Default value of text input option',
-    })
-    .addBooleanSwitch({
-      path: 'showSeriesCount',
-      name: 'Show series counter',
-      defaultValue: false,
-    })
-    .addRadio({
-      path: 'seriesCountSize',
-      defaultValue: 'sm',
-      name: 'Series counter size',
-      settings: {
-        options: [
-          {
-            value: 'sm',
-            label: 'Small',
-          },
-          {
-            value: 'md',
-            label: 'Medium',
-          },
-          {
-            value: 'lg',
-            label: 'Large',
-          },
-        ],
-      },
-      showIf: (config) => config.showSeriesCount,
-    });
+export const plugin = new PanelPlugin<PanelOptions>(SimplePanel).setPanelOptions((builder) => {
+  return (
+    builder
+      .addTextInput({
+        path: 'text',
+        name: 'Simple text option',
+        description: 'Description of panel option',
+        defaultValue: 'Default value of text input option',
+      })
+
+      // Series options
+      .addSelect({
+        path: seriesTypePath,
+        name: seriesTypeName,
+        defaultValue: seriesTypeDefault,
+        settings: {
+          options: seriesTypeOptions,
+        },
+        category: [seriesCategoryName],
+      })
+  );
 });
