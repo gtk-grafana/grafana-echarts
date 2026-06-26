@@ -5,4 +5,27 @@ process.env.TZ = 'UTC';
 module.exports = {
   // Jest configuration provided by Grafana scaffolding
   ...require('./.config/jest.config'),
+  transform: {
+    '^.+\\.(t|j)sx?$': [
+      '@swc/jest',
+      {
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+            tsx: true,
+            decorators: false,
+            dynamicImport: true,
+          },
+          transform: {
+            hidden: {
+              jest: true,
+            },
+          },
+        },
+        module: {
+          type: 'commonjs',
+        },
+      },
+    ],
+  },
 };
