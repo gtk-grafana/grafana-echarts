@@ -1,5 +1,6 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
+import { commonOptionsBuilder } from '@grafana/ui';
 import {
   seriesCategoryName,
   seriesTypeDefault,
@@ -33,28 +34,32 @@ export const plugin = new PanelPlugin<PanelOptions>(Panel)
     },
   })
   .setPanelOptions((builder) => {
-    return (
-      builder
-        .addTextInput({
-          path: 'text',
-          name: 'Simple text option',
-          description: 'Description of panel option',
-          defaultValue: 'Default value of text input option',
-        })
+    builder
+      .addTextInput({
+        path: 'text',
+        name: 'Simple text option',
+        description: 'Description of panel option',
+        defaultValue: 'Default value of text input option',
+      })
 
-        // Series options
-        .addSelect({
-          path: seriesTypePath,
-          name: seriesTypeName,
-          defaultValue: seriesTypeDefault,
-          settings: {
-            options: seriesTypeOptions.map((opt: SelectableValue<SeriesType>) => ({
-              ...opt,
-              // Temporary
-              isDisabled: !supportedSeriesTypes.includes(opt.value as SeriesType),
-            })),
-          },
-          category: [seriesCategoryName],
-        })
-    );
+      // Series options
+      .addSelect({
+        path: seriesTypePath,
+        name: seriesTypeName,
+        defaultValue: seriesTypeDefault,
+        settings: {
+          options: seriesTypeOptions.map((opt: SelectableValue<SeriesType>) => ({
+            ...opt,
+            // Temporary
+            isDisabled: !supportedSeriesTypes.includes(opt.value as SeriesType),
+          })),
+        },
+        category: [seriesCategoryName],
+      });
+
+    // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,
+    // Width, Limit, Values), registered in their own category.
+    commonOptionsBuilder.addLegendOptions(builder);
+
+    return builder;
   });

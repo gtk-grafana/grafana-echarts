@@ -9,6 +9,7 @@ import { pieToEChartsOption } from 'echarts/converters/pie';
 import { radarToEChartsOption } from 'echarts/converters/radar';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import { cartesianTimeDefaultOptions, getCartesianAxisStyle } from 'echarts/options/cartesian';
+import { getCartesianGrid, getLegendOption } from 'echarts/options/legend';
 import { pieDefaultOptions } from 'echarts/options/pie';
 import { radarDefaultOptions } from 'echarts/options/radar';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
@@ -96,9 +97,12 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const axisStyle = getCartesianAxisStyle(theme);
 
+      // @todo fix types and remove assertions
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
         tooltip: { ...(cartesianTimeDefaultOptions.tooltip as object), valueFormatter },
+        legend: getLegendOption(options.legend, theme),
+        grid: getCartesianGrid(options.legend),
         xAxis: { ...(cartesianTimeDefaultOptions.xAxis as object), ...axisStyle },
         yAxis: {
           ...(cartesianTimeDefaultOptions.yAxis as object),
@@ -125,6 +129,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       const echartOption: ECBasicOption = {
         ...radarDefaultOptions,
         tooltip: { valueFormatter },
+        legend: getLegendOption(options.legend, theme, radar.data.map((polygon) => polygon.name)),
         radar: { indicator: radar.indicator },
         series: [{ type: seriesType, data: radar.data }],
       };
@@ -145,6 +150,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       const echartOption: ECBasicOption = {
         ...pieDefaultOptions,
         tooltip: { valueFormatter },
+        legend: getLegendOption(options.legend, theme, slices.map((slice) => slice.name)),
         series: [{ type: seriesType, data: slices }],
       };
 
@@ -154,7 +160,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     } else {
       debug(`Unsupported series type: ${seriesType}`, LOG_LEVELS.error);
     }
-  }, [seriesType, data, theme, timeZone]);
+  }, [seriesType, data, theme, timeZone, options.legend]);
 
   // useSetPanel
   useEffect(() => {
