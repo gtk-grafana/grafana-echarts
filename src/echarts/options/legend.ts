@@ -33,6 +33,15 @@ export function isLegendVisible(legend?: VizLegendOptions): boolean {
 }
 
 /**
+ * Whether the legend should render as a table (per-series calc columns) rather
+ * than ECharts' native list. ECharts can't draw the table itself, so the panel
+ * renders a custom DOM legend (see `components/LegendTable.tsx`) in this case.
+ */
+export function isTableLegend(legend?: VizLegendOptions): boolean {
+  return isLegendVisible(legend) && legend?.displayMode === LegendDisplayMode.Table;
+}
+
+/**
  * Build the ECharts `legend` config from Core Grafana's `VizLegendOptions`,
  * styled to match Grafana (theme text color/font) and positioned per the
  * `placement` option.
@@ -41,9 +50,10 @@ export function isLegendVisible(legend?: VizLegendOptions): boolean {
  * charts carry a single series whose `data[].name` entries are the legend items
  * rather than one series per name (the cartesian case ECharts derives on its own).
  *
- * Note: ECharts' native legend renders as a list. The `table` display mode and
- * per-series `calcs` values are not represented (they fall back to the list);
- * full table parity would require a custom DOM legend.
+ * Note: ECharts' native legend only renders a list. The `table` display mode
+ * (with per-series `calcs` columns) is handled separately by a custom DOM
+ * legend (see `components/LegendTable.tsx`); callers should suppress this native
+ * legend when `isTableLegend` is true to avoid drawing two legends.
  */
 export function getLegendOption(
   legend: VizLegendOptions | undefined,
@@ -74,7 +84,7 @@ export function getLegendOption(
     return { ...base, orient: 'vertical', right: 8, top: 'middle' };
   }
 
-  return { ...base, orient: 'horizontal', bottom: 0, left: 'center' };
+  return { ...base, orient: 'horizontal', bottom: 0, left: 'left' };
 }
 
 /**

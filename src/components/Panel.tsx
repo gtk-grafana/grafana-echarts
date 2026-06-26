@@ -1,6 +1,7 @@
 import { css } from '@emotion/css';
 import { Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
+import { LegendPlacement } from '@grafana/schema';
 import { useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 
@@ -9,16 +10,44 @@ import { pieToEChartsOption } from 'echarts/converters/pie';
 import { radarToEChartsOption } from 'echarts/converters/radar';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import { cartesianTimeDefaultOptions, getCartesianAxisStyle } from 'echarts/options/cartesian';
-import { getCartesianGrid, getLegendOption } from 'echarts/options/legend';
+import { getCartesianGrid, getLegendOption, isTableLegend } from 'echarts/options/legend';
+import { buildPieLegendItems, buildRadarLegendItems, buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
 import { pieDefaultOptions } from 'echarts/options/pie';
 import { radarDefaultOptions } from 'echarts/options/radar';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 import { cartesianTimeSeriesTypes, pieSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
+import { LegendTable } from './LegendTable';
 
 interface Props extends PanelProps<PanelOptions> {}
+
+/** Default reserved size for the PoC DOM legend table when none is configured. */
+const DEFAULT_LEGEND_WIDTH = 240;
+const MIN_LEGEND_HEIGHT = 80;
+const MAX_LEGEND_HEIGHT = 200;
+
+/**
+ * Split the panel box between the chart and the custom DOM legend table.
+ *
+ * A right-placed table takes a fixed-width column (capped at half the panel);
+ * a bottom-placed table takes a fraction of the height. When the table legend
+ * is inactive the chart fills the whole panel.
+ */
+const getLayout = (width: number, height: number, placement: LegendPlacement, tableLegend: boolean) => {
+  if (!tableLegend) {
+    return { chartWidth: width, chartHeight: height, legendWidth: width, legendHeight: 0 };
+  }
+
+  if (placement === 'right') {
+    const legendWidth = Math.min(DEFAULT_LEGEND_WIDTH, Math.floor(width / 2));
+    return { chartWidth: width - legendWidth, chartHeight: height, legendWidth, legendHeight: height };
+  }
+
+  const legendHeight = Math.min(Math.max(Math.round(height * 0.35), MIN_LEGEND_HEIGHT), MAX_LEGEND_HEIGHT);
+  return { chartWidth: width, chartHeight: height - legendHeight, legendWidth: width, legendHeight };
+};
 
 /**
  * Build a representative value formatter from the first numeric field across all
@@ -45,24 +74,51 @@ const getRepresentativeFormatter = (
   return getValueFormatter(numericField, theme, timeZone);
 };
 
-const getStyles = (theme: GrafanaTheme2, height: number, width: number) => {
+const getStyles = (theme: GrafanaTheme2, height: number, width: number, placement: LegendPlacement) => {
   return {
-    wrapper: css`
-      position: relative;
-    `,
-    panelContainer: css({
+    wrapper: css({
+      position: 'relative',
+      display: 'flex',
+      flexDirection: placement === 'right' ? 'row' : 'column',
       height,
       width,
     }),
+    panelContainer: css({}),
   };
 };
 
 export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone }) => {
-  const styles = useStyles2(getStyles, height, width);
   const theme = useTheme2();
   const panelDOMRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
+
+  const placement: LegendPlacement = options.legend?.placement === 'right' ? 'right' : 'bottom';
+  // ECharts can't draw the table legend itself, so any supported series type in
+  // table mode renders the custom DOM legend instead of the native (list) one.
+  const tableLegend =
+    isTableLegend(options.legend) &&
+    (cartesianTimeSeriesTypes.includes(seriesType) ||
+      radarSeriesTypes.includes(seriesType) ||
+      pieSeriesTypes.includes(seriesType));
+  const { chartWidth, chartHeight, legendWidth, legendHeight } = getLayout(width, height, placement, tableLegend);
+
+  const styles = useStyles2(getStyles, height, width, placement);
+
+  const legendItems = useMemo(() => {
+    if (!tableLegend) {
+      return [];
+    }
+
+    const calcs = options.legend?.calcs ?? [];
+    if (radarSeriesTypes.includes(seriesType)) {
+      return buildRadarLegendItems(data.series, theme, calcs, timeZone);
+    }
+    if (pieSeriesTypes.includes(seriesType)) {
+      return buildPieLegendItems(data.series, theme, calcs, timeZone);
+    }
+    return buildTimeSeriesLegendItems(data.series, theme, calcs, timeZone);
+  }, [tableLegend, seriesType, data.series, theme, options.legend?.calcs, timeZone]);
 
   useLayoutEffect(() => {
     debug('Panel::useLayoutEffect');
@@ -97,12 +153,14 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
       const axisStyle = getCartesianAxisStyle(theme);
 
+      // In table mode the DOM legend (LegendTable) handles the legend, so the
+      // native ECharts legend is suppressed and the grid uses default insets.
       // @todo fix types and remove assertions
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
         tooltip: { ...(cartesianTimeDefaultOptions.tooltip as object), valueFormatter },
-        legend: getLegendOption(options.legend, theme),
-        grid: getCartesianGrid(options.legend),
+        legend: tableLegend ? { show: false } : getLegendOption(options.legend, theme),
+        grid: getCartesianGrid(tableLegend ? undefined : options.legend),
         xAxis: { ...(cartesianTimeDefaultOptions.xAxis as object), ...axisStyle },
         yAxis: {
           ...(cartesianTimeDefaultOptions.yAxis as object),
@@ -129,7 +187,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       const echartOption: ECBasicOption = {
         ...radarDefaultOptions,
         tooltip: { valueFormatter },
-        legend: getLegendOption(options.legend, theme, radar.data.map((polygon) => polygon.name)),
+        legend: tableLegend
+          ? { show: false }
+          : getLegendOption(options.legend, theme, radar.data.map((polygon) => polygon.name)),
         radar: { indicator: radar.indicator },
         series: [{ type: seriesType, data: radar.data }],
       };
@@ -150,7 +210,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       const echartOption: ECBasicOption = {
         ...pieDefaultOptions,
         tooltip: { valueFormatter },
-        legend: getLegendOption(options.legend, theme, slices.map((slice) => slice.name)),
+        legend: tableLegend
+          ? { show: false }
+          : getLegendOption(options.legend, theme, slices.map((slice) => slice.name)),
         series: [{ type: seriesType, data: slices }],
       };
 
@@ -160,9 +222,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     } else {
       debug(`Unsupported series type: ${seriesType}`, LOG_LEVELS.error);
     }
-  }, [seriesType, data, theme, timeZone, options.legend]);
+  }, [seriesType, data, theme, timeZone, options.legend, tableLegend]);
 
-  // useSetPanel
+  // useSetPanel: keep the ECharts canvas sized to the chart box (which shrinks
+  // when the DOM legend table reserves space).
   useEffect(() => {
     if (!panelRef.current) {
       debug('Panel::useEffect::useSetPanel::No panelRef');
@@ -170,8 +233,8 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     }
 
     debug('Panel::useEffect::useSetPanel::resize()');
-    panelRef.current.resize();
-  }, [height, width]);
+    panelRef.current.resize({ width: chartWidth, height: chartHeight });
+  }, [chartWidth, chartHeight]);
 
   if (data.series.length === 0) {
     debug('Panel::Render::NoData');
@@ -181,7 +244,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   debug('Panel::Render::Main');
   return (
     <div className={styles.wrapper}>
-      <div ref={panelDOMRef} className={styles.panelContainer}></div>
+      <div ref={panelDOMRef} className={styles.panelContainer} style={{ width: chartWidth, height: chartHeight }}></div>
+      {tableLegend && (
+        <LegendTable items={legendItems} placement={placement} width={legendWidth} height={legendHeight} />
+      )}
     </div>
   );
 };
