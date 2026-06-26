@@ -6,10 +6,12 @@ import { useStyles2, useTheme2, usePanelContext } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 
 import { EChartsType, init } from 'echarts';
+import { frameToHeatmap, isHeatmapFrame } from 'echarts/converters/heatmap';
 import { pieToEChartsOption } from 'echarts/converters/pie';
 import { radarToEChartsOption } from 'echarts/converters/radar';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import { cartesianTimeDefaultOptions, getCartesianAxisStyle } from 'echarts/options/cartesian';
+import { getHeatmapSeries, getHeatmapVisualMap, HEATMAP_VISUALMAP_WIDTH } from 'echarts/options/heatmap';
 import { getCartesianGrid, getLegendOption, isTableLegend } from 'echarts/options/legend';
 import { buildPieLegendItems, buildRadarLegendItems, buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
 import { pieDefaultOptions } from 'echarts/options/pie';
@@ -24,6 +26,9 @@ import { TooltipLinkResolver, useGrafanaEChartsTooltip } from './EChartsTooltip'
 import { LegendTable } from './LegendTable';
 
 interface Props extends PanelProps<PanelOptions> {}
+
+/** Stable "no data links" resolver (heatmap cells have no per-cell links). */
+const NO_LINKS: TooltipLinkResolver = () => [];
 
 /** Default reserved size for the PoC DOM legend table when none is configured. */
 const DEFAULT_LEGEND_WIDTH = 240;
@@ -124,10 +129,25 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const panelRef = useRef<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
 
+  // Grafana heatmap frames (heatmap-rows/heatmap-cells) are rendered as a
+  // custom-series cell layer; any remaining frames are overlaid as cartesian
+  // series on the same grid. This composite path is independent of the panel's
+  // single `seriesType` (which only chooses the cartesian overlay default).
+  //
+  // Selecting the `heatmap` type additionally *forces* every numeric frame to
+  // render as a heatmap (each numeric field becomes a bucket row), even when the
+  // frame isn't tagged as a heatmap.
+  const forceHeatmap = seriesType === 'heatmap';
+  const heatmapFrames = useMemo(() => data.series.filter(isHeatmapFrame), [data.series]);
+  const cartesianFrames = useMemo(() => data.series.filter((frame) => !isHeatmapFrame(frame)), [data.series]);
+  const hasHeatmap = forceHeatmap || heatmapFrames.length > 0;
+
   const placement: LegendPlacement = options.legend?.placement === 'right' ? 'right' : 'bottom';
   // ECharts can't draw the table legend itself, so any supported series type in
   // table mode renders the custom DOM legend instead of the native (list) one.
+  // The composite heatmap mode uses the native list legend only.
   const tableLegend =
+    !hasHeatmap &&
     isTableLegend(options.legend) &&
     (cartesianTimeSeriesTypes.includes(seriesType) ||
       radarSeriesTypes.includes(seriesType) ||
@@ -158,11 +178,13 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     [data.series, theme, timeZone]
   );
 
-  const tooltipKind: TooltipKind = radarSeriesTypes.includes(seriesType)
-    ? 'radar'
-    : pieSeriesTypes.includes(seriesType)
-      ? 'pie'
-      : 'timeseries';
+  const tooltipKind: TooltipKind = hasHeatmap
+    ? 'heatmap'
+    : radarSeriesTypes.includes(seriesType)
+      ? 'radar'
+      : pieSeriesTypes.includes(seriesType)
+        ? 'pie'
+        : 'timeseries';
 
   const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
   const tooltipSort = options.tooltip?.sort ?? SortOrder.None;
@@ -184,6 +206,11 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   // Grafana field so the pinned tooltip can render its data links. The lookup is
   // built to match the order each converter emits series in.
   const resolveLinks: TooltipLinkResolver = useMemo(() => {
+    // The heatmap cell layer has no per-cell Grafana field links to resolve.
+    if (tooltipKind === 'heatmap') {
+      return NO_LINKS;
+    }
+
     if (tooltipKind === 'timeseries') {
       // Flatten frames -> numeric fields exactly as timeSeriesToEChartsOption does
       // (skipping frames without a time field), so seriesIndex lines up.
@@ -274,19 +301,65 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     };
 
     // @todo look into adding "auto" series type inferred from data frame
-    // @todo look into setting series type using field overrides
-    if (cartesianTimeSeriesTypes.includes(seriesType)) {
-      const series = timeSeriesToEChartsOption(data.series, seriesType, theme);
+    // Composite cartesian mode: an optional heatmap cell layer plus per-field
+    // cartesian series (line/bar/scatter, resolved from field overrides). Runs
+    // whenever a heatmap frame is present or the panel default is cartesian.
+    if (hasHeatmap || cartesianTimeSeriesTypes.includes(seriesType)) {
+      // The overlay default applies to non-heatmap frames; pie/radar defaults
+      // are meaningless on a time grid, so coerce them to `line`.
+      const overlayType = cartesianTimeSeriesTypes.includes(seriesType) ? seriesType : 'line';
+      // When forcing heatmap, every frame feeds the heatmap layer and nothing is
+      // overlaid; otherwise only tagged frames feed it and the rest overlay.
+      const overlayFrames = forceHeatmap ? [] : cartesianFrames;
+      const heatmapSourceFrames = forceHeatmap ? data.series : heatmapFrames;
+      const cartSeries = timeSeriesToEChartsOption(overlayFrames, overlayType, theme) ?? [];
+      const heatmap = hasHeatmap ? frameToHeatmap(heatmapSourceFrames, data.series) : null;
 
-      if (!series) {
-        debug('Panel::useEffect::useSetOptions::No usable time series in data', LOG_LEVELS.error);
+      if (cartSeries.length === 0 && !heatmap) {
+        debug('Panel::useEffect::useSetOptions::No usable cartesian/heatmap data', LOG_LEVELS.error);
         return;
       }
 
       const axisStyle = getCartesianAxisStyle(theme);
 
-      // In table mode the DOM legend (LegendTable) handles the legend, so the
-      // native ECharts legend is suppressed and the grid uses default insets.
+      // Heatmap occupies series index 0 (so visualMap can target it); cartesian
+      // series follow and use the right-side value axis when a heatmap is shown,
+      // so the bucket scale and the metric scale don't fight.
+      const overlayYAxisIndex = heatmap ? 1 : 0;
+      const series: unknown[] = [];
+      if (heatmap) {
+        series.push(getHeatmapSeries(heatmap, 0));
+      }
+      for (const cartesian of cartSeries) {
+        series.push({ ...cartesian, yAxisIndex: overlayYAxisIndex });
+      }
+
+      const overlayValueAxis = {
+        ...(cartesianTimeDefaultOptions.yAxis as object),
+        ...axisStyle,
+        axisLabel: { ...axisStyle.axisLabel, formatter: valueFormatter },
+      };
+      const yAxis = heatmap
+        ? [
+            // Bucket (Y) axis for the heatmap cells.
+            {
+              ...(cartesianTimeDefaultOptions.yAxis as object),
+              ...axisStyle,
+              min: heatmap.yMin,
+              max: heatmap.yMax,
+            },
+            // Metric axis for the cartesian overlay, on the right.
+            { ...overlayValueAxis, position: 'right' },
+          ]
+        : overlayValueAxis;
+
+      // Reserve room on the right for the vertical color scale when a heatmap is
+      // present so the cells don't render under it.
+      const baseGrid = getCartesianGrid(tableLegend ? undefined : options.legend) as Record<string, unknown>;
+      const grid = heatmap
+        ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH }
+        : baseGrid;
+
       // @todo fix types and remove assertions
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
@@ -295,15 +368,14 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
         // tooltip mode (e.g. "Single" uses an item trigger that wouldn't drive
         // the tooltip's own axis pointer). Suppressed when tooltips are hidden.
         axisPointer: tooltipMode === TooltipDisplayMode.None ? { show: false } : getCrosshairAxisPointer(),
-        legend: tableLegend ? { show: false } : getLegendOption(options.legend, theme),
-        grid: getCartesianGrid(tableLegend ? undefined : options.legend),
+        legend: tableLegend
+          ? { show: false }
+          : getLegendOption(options.legend, theme, heatmap ? cartSeries.map((s) => s.name) : undefined),
+        grid,
         xAxis: { ...(cartesianTimeDefaultOptions.xAxis as object), ...axisStyle },
-        yAxis: {
-          ...(cartesianTimeDefaultOptions.yAxis as object),
-          ...axisStyle,
-          axisLabel: { ...axisStyle.axisLabel, formatter: valueFormatter },
-        },
+        yAxis,
         series,
+        ...(heatmap ? { visualMap: getHeatmapVisualMap(heatmap, theme, 0, options.heatmapColorScheme) } : {}),
       };
 
       debug('Panel::setCartesianOption', LOG_LEVELS.debug, echartOption);
@@ -358,7 +430,23 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     } else {
       debug(`Unsupported series type: ${seriesType}`, LOG_LEVELS.error);
     }
-  }, [seriesType, data, theme, timeZone, options.legend, tableLegend, formatValue, tooltipFormatter, tooltipKind, tooltipMode]);
+  }, [
+    seriesType,
+    data,
+    cartesianFrames,
+    heatmapFrames,
+    hasHeatmap,
+    forceHeatmap,
+    theme,
+    timeZone,
+    options.legend,
+    options.heatmapColorScheme,
+    tableLegend,
+    formatValue,
+    tooltipFormatter,
+    tooltipKind,
+    tooltipMode,
+  ]);
 
   // useSetPanel: keep the ECharts canvas sized to the chart box (which shrinks
   // when the DOM legend table reserves space).

@@ -1,6 +1,21 @@
-import { DataFrame, FieldType, getFieldDisplayName, GrafanaTheme2 } from '@grafana/data';
+import { DataFrame, Field, FieldType, getFieldDisplayName, GrafanaTheme2 } from '@grafana/data';
 import { getSeriesColor } from 'echarts/style';
-import { SeriesType } from 'editor/types';
+import { cartesianTimeSeriesTypes } from 'editor/series';
+import { EChartsFieldConfig, SeriesType } from 'editor/types';
+
+/**
+ * Resolve the series type for a single value field: the field's custom config
+ * override (set via a Grafana field override) wins when it is a cartesian type,
+ * otherwise the panel-level default applies. This is what lets one panel mix
+ * e.g. a `line` over `bar` columns.
+ */
+function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesType {
+  const override = (field.config.custom as EChartsFieldConfig | undefined)?.seriesType;
+  if (override && cartesianTimeSeriesTypes.includes(override)) {
+    return override;
+  }
+  return defaultType;
+}
 
 /**
  * A single ECharts series built from a Grafana value field.
@@ -30,7 +45,11 @@ interface EChartsTimeSeries {
  *
  * See https://grafana.com/developers/dataplane/timeseries
  *
- * Returns `null` when no usable (time + numeric) series can be derived, so the
+ * `seriesType` is the panel-level default; each value field may override it via
+ * its custom field config (see `resolveFieldSeriesType`), so a single panel can
+ * mix cartesian types (e.g. a `line` over `bar` columns) on the shared grid.
+ *
+ * Returns `null` when no usable (numeric) series can be derived, so the
  * caller can fall back to a no-data view.
  */
 export function timeSeriesToEChartsOption(
@@ -41,19 +60,27 @@ export function timeSeriesToEChartsOption(
   const echartsSeries: EChartsTimeSeries[] = [];
 
   for (const frame of series) {
-    const timeField = frame.fields.find((field) => field.type === FieldType.time);
+    let timeField = frame.fields.find((field) => field.type === FieldType.time);
     if (!timeField) {
-      // A frame without a time field cannot contribute time series.
+      timeField = frame.fields.find((f) => f.type === FieldType.number);
+    }
+
+    // @todo fix awkward hacky
+    if (!timeField) {
+      // A heatmap frame without a number field cannot contribute time series.
       continue;
     }
 
-    const valueFields = frame.fields.filter((field) => field.type === FieldType.number);
+    // @todo fix awkward hacky
+    const valueFields = frame.fields.filter(
+      (field) => field.type === FieldType.number && field.name !== timeField?.name
+    );
 
     for (const valueField of valueFields) {
       const color = getSeriesColor(valueField, theme);
       echartsSeries.push({
         name: getFieldDisplayName(valueField, frame, series),
-        type: seriesType,
+        type: resolveFieldSeriesType(valueField, seriesType),
         data: timeField.values.map((time, i) => [time, valueField.values[i] ?? null]),
         itemStyle: { color },
         lineStyle: { color },

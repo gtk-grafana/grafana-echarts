@@ -111,6 +111,37 @@ describe('timeSeriesToEChartsOption', () => {
     );
   });
 
+  describe('per-field series type override', () => {
+    it('uses a field custom.seriesType override over the panel default', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1, 2] },
+          { name: 'requests', type: FieldType.number, values: [10, 20], config: { custom: { seriesType: 'bar' } } },
+          { name: 'latency', type: FieldType.number, values: [1, 2] },
+        ],
+      });
+
+      const result = timeSeriesToEChartsOption([frame], 'line', theme);
+
+      // Overridden field becomes a bar; the other keeps the panel default line.
+      expect(result![0]).toMatchObject({ name: 'requests', type: 'bar' });
+      expect(result![1]).toMatchObject({ name: 'latency', type: 'line' });
+    });
+
+    it('ignores a non-cartesian override and falls back to the default', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1, 2] },
+          { name: 'cpu', type: FieldType.number, values: [10, 20], config: { custom: { seriesType: 'pie' } } },
+        ],
+      });
+
+      const result = timeSeriesToEChartsOption([frame], 'line', theme);
+
+      expect(result![0].type).toBe('line');
+    });
+  });
+
   describe('frames that cannot produce time series', () => {
     it('returns null for an empty frame list', () => {
       expect(timeSeriesToEChartsOption([], 'line', theme)).toBeNull();

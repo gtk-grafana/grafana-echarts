@@ -10,7 +10,7 @@ import { ColorIndicator, ColorPlacement, VizTooltipItem } from 'grafana/VizToolt
 export type EChartsTooltipTrigger = 'axis' | 'item';
 
 /** Series families with distinct hover-data shapes, used to pick a mapper. */
-export type TooltipKind = 'timeseries' | 'pie' | 'radar';
+export type TooltipKind = 'timeseries' | 'pie' | 'radar' | 'heatmap';
 
 /**
  * Identifies the ECharts data point a tooltip row was built from, so the panel
@@ -59,6 +59,7 @@ export function tooltipTriggerForMode(kind: TooltipKind, mode: TooltipDisplayMod
   if (kind === 'timeseries') {
     return mode === TooltipDisplayMode.Single ? 'item' : 'axis';
   }
+  // Heatmap cells (and pie/radar) are hovered per item.
   return 'item';
 }
 
@@ -312,6 +313,65 @@ function buildRadarModel(
   };
 }
 
+/** Format a bucket bound compactly (integers stay bare, others get 3 sig figs). */
+function formatBucketBound(value: number): string {
+  if (!Number.isFinite(value)) {
+    return '∞';
+  }
+  return Number.isInteger(value) ? String(value) : String(Number(value.toPrecision(3)));
+}
+
+/**
+ * Heatmap tooltip. The custom cell layer hovers yield a `[xStart, yStart, xEnd,
+ * yEnd, value]` tuple: the header is the cell's time, and the row shows the
+ * bucket range and its value. Overlay cartesian points (a `[time, value]`
+ * tuple) fall back to a single time-series-style row so a line/bar drawn over
+ * the heatmap still gets a tooltip.
+ */
+function buildHeatmapModel(
+  param: EChartsTooltipParam,
+  valueFormatter: ValueFormatter,
+  timeZone: string
+): TooltipModel | null {
+  const value = param.value;
+
+  if (Array.isArray(value) && value.length >= 5) {
+    const [xStart, yStart, , yEnd, cellValue] = value as Array<number | null>;
+    const time = toNumber(xStart);
+    return {
+      header: { label: '', value: time != null ? dateTimeFormat(time, { timeZone }) : '' },
+      items: [
+        {
+          label: `${formatBucketBound(Number(yStart))} - ${formatBucketBound(Number(yEnd))}`,
+          value: valueFormatter(toNumber(cellValue)),
+          color: toColor(param.color),
+          colorIndicator: ColorIndicator.value,
+          colorPlacement: ColorPlacement.first,
+        },
+      ],
+      refs: [{ seriesIndex: param.seriesIndex ?? 0, dataIndex: param.dataIndex }],
+    };
+  }
+
+  // Overlay cartesian point over the heatmap.
+  const time = tupleTime(value);
+  const numeric = tupleValue(value);
+  return {
+    header: { label: '', value: time != null ? dateTimeFormat(time, { timeZone }) : '' },
+    items: [
+      {
+        label: param.seriesName ?? '',
+        value: valueFormatter(numeric),
+        color: toColor(param.color),
+        colorIndicator: ColorIndicator.series,
+        colorPlacement: ColorPlacement.first,
+        numeric: numeric ?? undefined,
+      },
+    ],
+    refs: [{ seriesIndex: param.seriesIndex ?? -1, dataIndex: param.dataIndex }],
+  };
+}
+
 /**
  * Map ECharts hover params (single object or per-series array) to the Grafana
  * tooltip content for the active series kind. Returns `null` when there's
@@ -334,6 +394,10 @@ export function buildTooltipModel(
   const param = Array.isArray(params) ? params[0] : params;
   if (!param) {
     return null;
+  }
+
+  if (ctx.kind === 'heatmap') {
+    return buildHeatmapModel(param, ctx.valueFormatter, ctx.timeZone);
   }
 
   if (ctx.kind === 'pie') {

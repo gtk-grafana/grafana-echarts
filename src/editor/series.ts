@@ -1,4 +1,4 @@
-import { SelectableValue } from '@grafana/data';
+import { DataFrameType, SelectableValue } from '@grafana/data';
 import { SeriesType } from 'editor/types';
 
 /**
@@ -61,4 +61,36 @@ export const radarSeriesTypes: SeriesType[] = ['radar'];
  */
 export const pieSeriesTypes: SeriesType[] = ['pie'];
 
-export const supportedSeriesTypes = [...cartesianTimeSeriesTypes, ...radarSeriesTypes, ...pieSeriesTypes];
+/**
+ * Heatmap types. Selecting this panel-level type forces every numeric frame to
+ * render as a heatmap (each numeric field becomes a bucket row), even when the
+ * frame isn't tagged as a heatmap. Frames already tagged via `meta.type` render
+ * as a heatmap regardless of the selected type. See echarts/converters/heatmap.ts.
+ */
+export const heatmapSeriesTypes: SeriesType[] = ['heatmap'];
+
+export const supportedSeriesTypes = [
+  ...cartesianTimeSeriesTypes,
+  ...radarSeriesTypes,
+  ...pieSeriesTypes,
+  ...heatmapSeriesTypes,
+];
+
+/**
+ * Series types offered as a per-field override (custom field config). Only
+ * cartesian types are listed: they compose on the shared time/value grid, so a
+ * field can be drawn as a `bar` while others stay `line`. Non-cartesian types
+ * (pie/radar) use other coordinate systems and cannot be overlaid, and heatmap
+ * is detected from the frame type rather than chosen per field.
+ */
+export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cartesianTimeSeriesTypes.map((type) => ({
+  value: type,
+  label: type,
+}));
+
+/**
+ * Grafana dataplane frame types that carry a heatmap. A frame tagged with one
+ * of these (`frame.meta.type`) is rendered as the custom-series heatmap cell
+ * layer rather than as cartesian series. See echarts/converters/heatmap.ts.
+ */
+export const heatmapFrameTypes: string[] = [DataFrameType.HeatmapRows, DataFrameType.HeatmapCells];
