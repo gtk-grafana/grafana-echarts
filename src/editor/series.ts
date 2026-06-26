@@ -55,4 +55,10 @@ export const cartesianTimeSeriesTypes: SeriesType[] = ['line', 'bar', 'scatter',
  */
 export const radarSeriesTypes: SeriesType[] = ['radar'];
 
-export const supportedSeriesTypes = [...cartesianTimeSeriesTypes, ...radarSeriesTypes];
+/**
+ * Pie (and pie-like) types built from the categorical model: each category is a
+ * slice valued by the first numeric field. See echarts/converters/pie.ts.
+ */
+export const pieSeriesTypes: SeriesType[] = ['pie'];
+
+export const supportedSeriesTypes = [...cartesianTimeSeriesTypes, ...radarSeriesTypes, ...pieSeriesTypes];

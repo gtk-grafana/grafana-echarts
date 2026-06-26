@@ -5,12 +5,14 @@ import { useStyles2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 
 import { EChartsType, init } from 'echarts';
+import { pieToEChartsOption } from 'echarts/converters/pie';
 import { radarToEChartsOption } from 'echarts/converters/radar';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import { cartesianTimeDefaultOptions } from 'echarts/options/cartesian';
+import { pieDefaultOptions } from 'echarts/options/pie';
 import { radarDefaultOptions } from 'echarts/options/radar';
 import { ECBasicOption } from 'echarts/types/dist/shared';
-import { cartesianTimeSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
+import { cartesianTimeSeriesTypes, pieSeriesTypes, radarSeriesTypes, seriesTypePath } from 'editor/series';
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { PanelOptions } from 'types';
 
@@ -84,10 +86,28 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       const echartOption: ECBasicOption = {
         ...radarDefaultOptions,
         radar: { indicator: radar.indicator },
-        series: [{ type: 'radar', data: radar.data }],
+        series: [{ type: seriesType, data: radar.data }],
       };
 
       debug('Panel::setRadarOption', LOG_LEVELS.debug, echartOption);
+
+      panelRef.current.setOption(echartOption);
+    } else if (pieSeriesTypes.includes(seriesType)) {
+      // Pie has no axes: the converter yields slices (one per category) which we
+      // drop into a single pie series on top of the static pie base option.
+      const slices = pieToEChartsOption(data.series);
+
+      if (!slices) {
+        debug('Panel::useEffect::useSetOptions::No usable pie data', LOG_LEVELS.error);
+        return;
+      }
+
+      const echartOption: ECBasicOption = {
+        ...pieDefaultOptions,
+        series: [{ type: seriesType, data: slices }],
+      };
+
+      debug('Panel::setPieOption', LOG_LEVELS.debug, echartOption);
 
       panelRef.current.setOption(echartOption);
     } else {
