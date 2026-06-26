@@ -54,11 +54,17 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     if (seriesType === 'line') {
       // @todo convert to for
       data.series.forEach((frame) => {
-        const timeAxes = frame.fields.filter((field) => field.type === FieldType.time);
+        const timeAxis = frame.fields.find((field) => field.type === FieldType.time);
         const numericAxes = frame.fields.filter((field) => field.type === FieldType.number);
 
-        console.log('timeAxes', timeAxes);
-        console.log('numericAxes', numericAxes);
+        if(!timeAxis){
+          console.error('Line graph requires 1 numeric time axis')
+          return;
+        }
+        if(numericAxes.length < 1){
+          console.error('Line graph requires 1 numeric time axis');
+          return;
+        }
 
         // setLineOption
         const echartOption: ECBasicOption = {
@@ -74,21 +80,15 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
           tooltip: {
             show: true,
+            trigger: 'axis',
           },
 
           // https://echarts.apache.org/en/option.html#xAxis
           xAxis: {
             // https://echarts.apache.org/en/option.html#xAxis.type
             type: 'time',
-            // https://echarts.apache.org/en/option.html#xAxis.boundaryGap
-            // boundaryGap: true,
-            // https://echarts.apache.org/en/option.html#xAxis.data
-            data: {
-              // @todo add tests for multiple xAxis
-              value: timeAxes.map((field) => field.values),
-            },
             // https://echarts.apache.org/en/option.html#xAxis.name
-            name: timeAxes[0].name,
+            name: timeAxis.name,
             // https://echarts.apache.org/en/option.html#xAxis.tooltip
             tooltip: {
               show: true,
@@ -104,7 +104,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
           // https://echarts.apache.org/en/option.html#series
           series: numericAxes.map((field) => ({
-            data: field.values,
+            name: field.name,
+            // Time axes require [timestamp, value] pairs in series data
+            // @todo how to not copy x-axis data for every y?
+            data: Array.from({ length: frame.length }, (_, i) => [timeAxis.values[i], field.values[i]]),
             type: seriesType,
           })),
         };
