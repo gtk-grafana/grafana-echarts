@@ -21,5 +21,7 @@ export const radarDefaultOptions: ECBasicOption = {
   },
 
   // https://echarts.apache.org/en/option.html#legend
-  legend: {},
+  legend: {
+
+  },
 };

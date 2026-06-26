@@ -8,7 +8,7 @@ import { EChartsType, init } from 'echarts';
 import { pieToEChartsOption } from 'echarts/converters/pie';
 import { radarToEChartsOption } from 'echarts/converters/radar';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
-import { cartesianTimeDefaultOptions } from 'echarts/options/cartesian';
+import { cartesianTimeDefaultOptions, getCartesianAxisStyle } from 'echarts/options/cartesian';
 import { pieDefaultOptions } from 'echarts/options/pie';
 import { radarDefaultOptions } from 'echarts/options/radar';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
@@ -94,10 +94,17 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
         return;
       }
 
+      const axisStyle = getCartesianAxisStyle(theme);
+
       const echartOption: ECBasicOption = {
         ...cartesianTimeDefaultOptions,
         tooltip: { ...(cartesianTimeDefaultOptions.tooltip as object), valueFormatter },
-        yAxis: { ...(cartesianTimeDefaultOptions.yAxis as object), axisLabel: { formatter: valueFormatter } },
+        xAxis: { ...(cartesianTimeDefaultOptions.xAxis as object), ...axisStyle },
+        yAxis: {
+          ...(cartesianTimeDefaultOptions.yAxis as object),
+          ...axisStyle,
+          axisLabel: { ...axisStyle.axisLabel, formatter: valueFormatter },
+        },
         series,
       };
 
