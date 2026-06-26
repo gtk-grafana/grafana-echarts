@@ -54,6 +54,8 @@ export function isTableLegend(legend?: VizLegendOptions): boolean {
  * (with per-series `calcs` columns) is handled separately by a custom DOM
  * legend (see `components/LegendTable.tsx`); callers should suppress this native
  * legend when `isTableLegend` is true to avoid drawing two legends.
+ *
+ * @todo expose legend or add custom support for reducers & legend limits
  */
 export function getLegendOption(
   legend: VizLegendOptions | undefined,

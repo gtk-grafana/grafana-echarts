@@ -10,6 +10,12 @@ interface Props {
   /** Reserved box the table renders into (scrolls when it overflows). */
   width: number;
   height: number;
+  /**
+   * Max rows to show before collapsing behind a "show all" toggle (Core's
+   * `legend.limit`). `VizLegend` applies this after sorting, so it acts as a
+   * top-N when a calc column is sorted. `0`/undefined means show everything.
+   */
+  limit?: number;
 }
 
 const getStyles = (theme: GrafanaTheme2, width: number, height: number) => ({
@@ -19,6 +25,10 @@ const getStyles = (theme: GrafanaTheme2, width: number, height: number) => ({
     overflow: 'auto',
     // Match Grafana's gap between the viz and its legend.
     padding: theme.spacing(0.5, 1, 0, 1),
+    display: 'flex',
+    flex: '1 1 0%',
+    flexDirection: 'column',
+    scrollbarWidth: 'thin'
   }),
 });
 
@@ -30,7 +40,7 @@ const getStyles = (theme: GrafanaTheme2, width: number, height: number) => ({
  * Sort state is kept locally so clicking a calc column header reorders the rows,
  * matching the time series panel's legend behavior.
  */
-export const LegendTable: React.FC<Props> = ({ items, placement, width, height }) => {
+export const LegendTable: React.FC<Props> = ({ items, placement, width, height, limit }) => {
   const styles = useStyles2(getStyles, width, height);
   const [sortKey, setSortKey] = useState<string | undefined>(undefined);
   const [sortDesc, setSortDesc] = useState(false);
@@ -62,6 +72,7 @@ export const LegendTable: React.FC<Props> = ({ items, placement, width, height }
         sortDesc={sortDesc}
         isSortable={true}
         onToggleSort={onToggleSort}
+        limit={limit}
         readonly={true}
       />
     </div>

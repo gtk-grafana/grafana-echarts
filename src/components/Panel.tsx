@@ -246,7 +246,13 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     <div className={styles.wrapper}>
       <div ref={panelDOMRef} className={styles.panelContainer} style={{ width: chartWidth, height: chartHeight }}></div>
       {tableLegend && (
-        <LegendTable items={legendItems} placement={placement} width={legendWidth} height={legendHeight} />
+        <LegendTable
+          items={legendItems}
+          placement={placement}
+          width={legendWidth}
+          height={legendHeight}
+          limit={options.legend?.limit}
+        />
       )}
     </div>
   );
