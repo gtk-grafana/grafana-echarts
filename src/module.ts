@@ -8,8 +8,9 @@ import {
   seriesTypeDefault,
   seriesTypeName,
   seriesTypeOptions,
-  seriesTypePath, supportedSeriesTypes,
+  seriesTypePath,
 } from 'editor/series';
+import { supportedChartSeriesTypes } from 'echarts/charts/registry';
 import { EChartsFieldConfig, SeriesType } from 'editor/types';
 import { heatmapColorSchemeDefault, HeatmapColorScheme } from 'echarts/options/heatmap';
 import { Panel } from './components/Panel';
@@ -77,7 +78,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
           options: seriesTypeOptions.map((opt: SelectableValue<SeriesType>) => ({
             ...opt,
             // Temporary
-            isDisabled: !supportedSeriesTypes.includes(opt.value as SeriesType),
+            isDisabled: !supportedChartSeriesTypes.includes(opt.value as SeriesType),
           })),
         },
         category: [seriesCategoryName],

@@ -18,10 +18,10 @@ import {
   EChartsTooltipParam,
   TooltipAnchor,
   TooltipBuildContext,
-  TooltipItemRef,
   TooltipKind,
   TooltipModel,
-} from 'echarts/options/tooltip';
+} from 'echarts/tooltip';
+import { TooltipLinkResolver } from 'echarts/data/links';
 import { ValueFormatter } from 'echarts/style';
 import {
   getHoverTime,
@@ -32,9 +32,6 @@ import {
 } from 'echarts/sync';
 import { VizTooltipContent, VizTooltipFooter, VizTooltipHeader, VizTooltipWrapper } from 'grafana/VizTooltip';
 import React, { CSSProperties, ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-
-/** Resolves the data links for a set of hovered points (used when pinned). */
-export type TooltipLinkResolver = (refs: TooltipItemRef[]) => Array<LinkModel<Field>>;
 
 const DEFAULT_MAX_WIDTH = 420;
 

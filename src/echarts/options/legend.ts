@@ -1,8 +1,6 @@
 import { GrafanaTheme2 } from '@grafana/data';
 import { LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
-
-/** Matches Core Grafana's legend text size. */
-const LEGEND_FONT_SIZE = 12;
+import { LEGEND_FONT_SIZE, getThemeTextStyle } from 'echarts/options/base';
 
 /** Subset of the ECharts `legend` option this plugin sets. */
 export interface EChartsLegendOption {
@@ -75,8 +73,7 @@ export function getLegendOption(
     itemWidth: 12,
     itemHeight: 12,
     textStyle: {
-      color: theme.colors.text.primary,
-      fontFamily: theme.typography.fontFamily,
+      ...getThemeTextStyle(theme),
       fontSize: LEGEND_FONT_SIZE,
     },
     ...(names ? { data: names } : {}),

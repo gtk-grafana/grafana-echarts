@@ -1,4 +1,5 @@
 import { DataFrame, Field, FieldType, getFieldDisplayName } from '@grafana/data';
+import { formatBucketBound } from 'echarts/format';
 import { heatmapFrameTypes } from 'editor/series';
 
 /**
@@ -67,13 +68,7 @@ interface FrameHeatmap {
 
 const EMPTY_FRAME_HEATMAP: FrameHeatmap = { cells: [], buckets: [], labelsAtBounds: true };
 
-/** Format a numeric bucket bound compactly (integers bare, others 3 sig figs). */
-export function formatBucketBound(value: number): string {
-  if (!Number.isFinite(value)) {
-    return value > 0 ? '+Inf' : '-Inf';
-  }
-  return Number.isInteger(value) ? String(value) : String(Number(value.toPrecision(3)));
-}
+export { formatBucketBound } from 'echarts/format';
 
 /**
  * Whether a frame is a Grafana heatmap frame (heatmap-rows or heatmap-cells),

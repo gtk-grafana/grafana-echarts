@@ -1,25 +1,17 @@
 import { GrafanaTheme2 } from '@grafana/data';
-import { getTooltipOption } from 'echarts/options/tooltip';
+import { AXIS_FONT_SIZE, createBaseOptions } from 'echarts/options/base';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 
-/** Matches Core Grafana's uPlot axis font size (UPLOT_AXIS_FONT_SIZE). */
-const AXIS_FONT_SIZE = 12;
+/** uPlot-style grid line color for cartesian axes. */
+export function getUPlotGridColor(theme: GrafanaTheme2): string {
+  return theme.isDark ? 'rgba(240, 250, 255, 0.09)' : 'rgba(0, 10, 23, 0.09)';
+}
 
 /**
- * Axis + grid styling that mirrors Core Grafana's uPlot time series panels, so
- * the cartesian ECharts charts feel native alongside built-in visualizations.
- *
- * Values are taken from `@grafana/ui`'s `UPlotAxisBuilder`:
- * - Grid/tick lines use a faint theme-aware color.
- * - Tick labels use `theme.colors.text.primary` at 12px in the theme font.
- * - No axis baseline (uPlot hides the axis border by default).
- *
- * Returned shape is shared by both the x (time) and y (value) axes; ECharts
- * draws horizontal grid lines from the y axis and vertical ones from the x axis,
- * matching uPlot which shows both.
+ * Axis + grid styling that mirrors Core Grafana's uPlot time series panels.
  */
 export function getCartesianAxisStyle(theme: GrafanaTheme2) {
-  const gridColor = theme.isDark ? 'rgba(240, 250, 255, 0.09)' : 'rgba(0, 10, 23, 0.09)';
+  const gridColor = getUPlotGridColor(theme);
 
   return {
     axisLine: { show: false },
@@ -33,36 +25,44 @@ export function getCartesianAxisStyle(theme: GrafanaTheme2) {
   };
 }
 
+type AxisStyle = ReturnType<typeof getCartesianAxisStyle>;
+
+/** Merge base axis config with theme styling and optional extras. */
+export function mergeAxisStyle(
+  baseAxis: Record<string, unknown>,
+  axisStyle: AxisStyle,
+  extras?: Record<string, unknown>,
+  valueFormatter?: (value: unknown) => string
+) {
+  const extraAxisLabel = (extras?.axisLabel ?? {}) as Record<string, unknown>;
+  const extraAxisTick = (extras?.axisTick ?? {}) as Record<string, unknown>;
+  const extraSplitLine = (extras?.splitLine ?? {}) as Record<string, unknown>;
+
+  return {
+    ...baseAxis,
+    ...axisStyle,
+    ...extras,
+    axisLabel: {
+      ...axisStyle.axisLabel,
+      ...extraAxisLabel,
+      ...(valueFormatter ? { formatter: valueFormatter } : {}),
+    },
+    axisTick: { ...axisStyle.axisTick, ...extraAxisTick },
+    splitLine: { ...axisStyle.splitLine, ...extraSplitLine },
+  };
+}
+
 /**
- * Shared base option for cartesian time series charts (line, bar, scatter,
- * effectScatter). Pairs a `time` xAxis with a `value` yAxis so the converter's
- * `[time, value]` series data renders directly.
+ * Shared base option for cartesian time series charts (line, bar, scatter).
+ * Tooltip and grid are merged at render time.
  */
 export const cartesianTimeDefaultOptions: ECBasicOption = {
-  animationDuration: 300,
-
-  // https://echarts.apache.org/en/option.html#grid
-  grid: {
-    top: 'top',
-    left: 'left',
-    bottom: '5%',
-  },
-
-  // https://echarts.apache.org/en/option.html#tooltip
-  // Transparent box that keeps ECharts' axis pointer + positioning while the
-  // Grafana React tooltip (see EChartsTooltip) renders the content.
-  tooltip: getTooltipOption('axis'),
-
-  // https://echarts.apache.org/en/option.html#xAxis
+  ...createBaseOptions(),
   xAxis: {
     type: 'time',
-    tooltip: {
-      show: true,
-    },
+    tooltip: { show: true },
     alignTicks: true,
   },
-
-  // https://echarts.apache.org/en/option.html#yAxis
   yAxis: {
     type: 'value',
   },

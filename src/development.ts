@@ -1,27 +1,26 @@
-// todo pull from env variable || build arg
-export const CONSOLE_OUTPUT = true;
+/** Dev-only logging gated by build environment. */
+export const CONSOLE_OUTPUT = process.env.NODE_ENV !== 'production';
+
 export enum LOG_LEVELS {
   debug,
   info,
   warn,
   error,
 }
-export const LOG_LEVEL = LOG_LEVELS.debug;
+
+export const LOG_LEVEL = LOG_LEVELS.warn;
 
 export const debug = (msg: string, level = LOG_LEVELS.info, data?: unknown) => {
-  if (CONSOLE_OUTPUT){
-    if (level === LOG_LEVELS.debug) {
-      // eslint-ignore (no-console)
-      console.debug(msg, data);
-    }
-    if (level === LOG_LEVELS.info) {
-      console.log(msg, data);
-    }
-    if (level === LOG_LEVELS.warn) {
-      console.warn(msg, data);
-    }
-    if (level === LOG_LEVELS.error) {
-      console.error(msg, data);
-    }
+  if (!CONSOLE_OUTPUT || level < LOG_LEVEL) {
+    return;
+  }
+  if (level === LOG_LEVELS.debug) {
+    console.log(msg, data);
+  } else if (level === LOG_LEVELS.info) {
+    console.log(msg, data);
+  } else if (level === LOG_LEVELS.warn) {
+    console.warn(msg, data);
+  } else if (level === LOG_LEVELS.error) {
+    console.error(msg, data);
   }
 };

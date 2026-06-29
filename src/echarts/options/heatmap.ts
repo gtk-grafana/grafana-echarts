@@ -1,6 +1,7 @@
 import { GrafanaTheme2 } from '@grafana/data';
 import { graphic } from 'echarts';
 import { formatBucketBound, HeatmapCell, HeatmapData } from 'echarts/converters/heatmap';
+import { getThemeTextStyle } from 'echarts/options/base';
 
 /**
  * Custom tick/label/grid-line placement for the heatmap bucket (Y) axis so the
@@ -181,6 +182,6 @@ export function getHeatmapVisualMap(
     itemWidth: 12,
     itemHeight: 120,
     inRange: { color: getHeatmapColors(scheme) },
-    textStyle: { color: theme.colors.text.primary, fontFamily: theme.typography.fontFamily },
+    textStyle: { ...getThemeTextStyle(theme) },
   };
 }

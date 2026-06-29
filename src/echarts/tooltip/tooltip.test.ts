@@ -7,7 +7,7 @@ import {
   getTooltipOption,
   TooltipBuildContext,
   tooltipTriggerForMode,
-} from 'echarts/options/tooltip';
+} from 'echarts/tooltip';
 
 const valueFormatter = (value: number | null) => (value == null ? 'null' : `${value}`);
 

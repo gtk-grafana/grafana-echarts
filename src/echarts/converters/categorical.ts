@@ -1,5 +1,5 @@
-import { DataFrame, Field, FieldType, getFieldDisplayName, GrafanaTheme2 } from '@grafana/data';
-import { getSeriesColor } from 'echarts/style';
+import { DataFrame, GrafanaTheme2 } from '@grafana/data';
+import { findCategoricalFrame, mapNumericFields, resolveCategories } from 'echarts/converters/frames';
 
 /**
  * One numeric series projected over the shared category axis.
@@ -56,26 +56,20 @@ export interface CategoricalData {
  * @todo should be able to select the string field instead of using the first
  */
 export function frameToCategorical(series: DataFrame[], theme: GrafanaTheme2): CategoricalData | null {
-  const frame = series.find((candidate) => candidate.fields.some((field) => field.type === FieldType.number));
+  const frame = findCategoricalFrame(series);
 
   if (!frame) {
     return null;
   }
 
-  const numericFields = frame.fields.filter((field) => field.type === FieldType.number);
-  const categoryField = frame.fields.find((field) => field.type === FieldType.string);
-
-  const rowCount = frame.length;
-  const categories: string[] = Array.from({ length: rowCount }, (_, row) =>
-    categoryField ? String(categoryField.values[row] ?? row) : String(row)
+  const categories = resolveCategories(frame);
+  const categoricalSeries: CategoricalSeries[] = mapNumericFields(frame, series, theme).map(
+    ({ field, name, color }) => ({
+      name,
+      values: Array.from({ length: frame.length }, (_, row) => field.values[row] ?? null),
+      color,
+    })
   );
-
-  const categoricalSeries: CategoricalSeries[] = numericFields.map((field: Field) => ({
-    name: getFieldDisplayName(field, frame, series),
-    // `?? null` coerces missing/undefined cells to a gap while preserving 0.
-    values: Array.from({ length: rowCount }, (_, row) => field.values[row] ?? null),
-    color: getSeriesColor(field, theme),
-  }));
 
   return { categories, series: categoricalSeries };
 }
