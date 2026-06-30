@@ -80,7 +80,7 @@ function buildTimeSeriesModel(
 
 function buildPieModel(param: EChartsTooltipParam, valueFormatter: ValueFormatter): TooltipModel {
   const value = valueFormatter(toNumber(param.value));
-  const percent = typeof param.percent === 'number' ? ` (${param.percent}%)` : '';
+  const percent = param.percent !== undefined ? ` (${param.percent}%)` : '';
 
   return {
     header: { label: '', value: param.name },

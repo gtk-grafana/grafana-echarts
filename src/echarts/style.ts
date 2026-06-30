@@ -7,6 +7,7 @@ import {
 } from '@grafana/data';
 
 /**
+ * @todo replace with ValueFromatter from @grafana/data
  * Formats a numeric value the way Grafana would for the given field, honoring
  * the standard Unit, Decimals, No value, and Value mappings field config.
  */

@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 import { DataFrame, Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import { LegendDisplayMode, LegendPlacement, SortOrder, TooltipDisplayMode, VizLegendOptions } from '@grafana/schema';
+import { LegendDisplayMode, LegendPlacement, SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import {
   PanelContextProvider,
   SeriesVisibilityChangeMode,
@@ -9,10 +9,10 @@ import {
   useStyles2,
   useTheme2,
 } from '@grafana/ui';
-import { getPanelLayout } from 'components/layout';
 import { EChartsType, init } from 'echarts';
 import { resolveChartModule } from 'echarts/charts/registry';
 import { ChartContext } from 'echarts/charts/types';
+import { getPanelLayout } from 'echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'echarts/options/legend';
 import { getCrosshairAxisPointer, getTooltipOption, tooltipTriggerForMode } from 'echarts/tooltip';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
