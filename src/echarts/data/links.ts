@@ -5,26 +5,22 @@ import { collectTimeSeriesFields, findCategoricalFrame } from 'echarts/converter
 /** Resolves data links for hovered tooltip points (used when pinned). */
 export type TooltipLinkResolver = (refs: TooltipItemRef[]) => Array<LinkModel<Field>>;
 
-/** Stable resolver that returns no data links (heatmap cells have no per-cell links). */
+/** Stable resolver that returns no data links */
+// @todo fix heatmap tooltip links and delete this
 export const NO_LINKS = (): Array<LinkModel<Field>> => [];
 
 /**
- * Resolve and de-duplicate data links for a set of (field, row) points.
+ * Resolve data links for a set of (field, row) points.
  */
 export function collectDataLinks(points: Array<{ field?: Field; rowIndex: number }>): Array<LinkModel<Field>> {
   const links: Array<LinkModel<Field>> = [];
-  const seen = new Set<string>();
 
   for (const { field, rowIndex } of points) {
     if (!field?.getLinks) {
       continue;
     }
     for (const link of field.getLinks({ valueRowIndex: rowIndex })) {
-      const key = `${link.title}|${link.href}`;
-      if (seen.has(key)) {
-        continue;
-      }
-      seen.add(key);
+
       links.push(link);
     }
   }
@@ -34,32 +30,26 @@ export function collectDataLinks(points: Array<{ field?: Field; rowIndex: number
 
 export function resolveTimeSeriesLinks(series: Field[]) {
   return (refs: TooltipItemRef[]) =>
-    collectDataLinks(refs.map((ref) => ({ field: series[ref.seriesIndex], rowIndex: ref.dataIndex })));
+    collectDataLinks(refs.map((ref) => ({ field: series[ref.seriesIndex], rowIndex: ref.rowIndex })));
 }
 
-export function resolvePieLinks(series: DataFrame[]) {
-  const frame = findCategoricalFrame(series);
-  const valueField = frame?.fields.find((field) => field.type === FieldType.number);
-  return (refs: TooltipItemRef[]) =>
-    collectDataLinks(refs.map((ref) => ({ field: valueField, rowIndex: ref.dataIndex })));
-}
-
-export function resolveRadarLinks(series: DataFrame[]) {
+export function resolveCategoricalLinks(series: DataFrame[]) {
   const frame = findCategoricalFrame(series);
   const numericFields = frame ? frame.fields.filter((field) => field.type === FieldType.number) : [];
   return (refs: TooltipItemRef[]) =>
-    collectDataLinks(refs.map((ref) => ({ field: numericFields[ref.dataIndex], rowIndex: 0 })));
+    collectDataLinks(refs.map((ref) => ({ field: numericFields[ref.rowIndex], rowIndex: ref.rowIndex })));
 }
 
-export function resolveLinksFromFrames(frames: DataFrame[], kind: 'timeseries' | 'pie' | 'radar' | 'heatmap') {
+export function resolveLinksFromFrames(frames: DataFrame[], kind: 'cartesian' | 'pie' | 'radar' | 'heatmap') {
   if (kind === 'heatmap') {
-    return NO_LINKS;
-  }
-  if (kind === 'timeseries') {
     return resolveTimeSeriesLinks(collectTimeSeriesFields(frames));
   }
-  if (kind === 'pie') {
-    return resolvePieLinks(frames);
+  if (kind === 'cartesian') {
+    return resolveTimeSeriesLinks(collectTimeSeriesFields(frames));
   }
-  return resolveRadarLinks(frames);
+  if (kind === 'radar' || kind === 'pie') {
+    return resolveCategoricalLinks(frames);
+  }
+
+  throw new Error('link format not implemented!')
 }

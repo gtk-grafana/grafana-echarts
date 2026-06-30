@@ -59,8 +59,8 @@ describe('tooltipTriggerForMode', () => {
 
 describe('buildTooltipModel - time series (axis trigger)', () => {
   const params: EChartsTooltipParam[] = [
-    { seriesName: 'A', name: 'A', color: '#ff0000', value: [1000, 10], dataIndex: 0, seriesIndex: 0 },
-    { seriesName: 'B', name: 'B', color: '#00ff00', value: [1000, 20], dataIndex: 0, seriesIndex: 1 },
+    { seriesName: 'A', name: 'A', color: '#ff0000', value: [1000, 10], rowIndex: 0, seriesIndex: 0 },
+    { seriesName: 'B', name: 'B', color: '#00ff00', value: [1000, 20], rowIndex: 0, seriesIndex: 1 },
   ];
 
   it('maps each series to a row with its color, name, and formatted value', () => {
@@ -75,8 +75,8 @@ describe('buildTooltipModel - time series (axis trigger)', () => {
   it('carries the originating series/row refs for link resolution', () => {
     const model = buildTooltipModel(params, ctx())!;
     expect(model.refs).toEqual([
-      { seriesIndex: 0, dataIndex: 0 },
-      { seriesIndex: 1, dataIndex: 0 },
+      { seriesIndex: 0, rowIndex: 0 },
+      { seriesIndex: 1, rowIndex: 0 },
     ]);
   });
 
@@ -88,19 +88,19 @@ describe('buildTooltipModel - time series (axis trigger)', () => {
     expect(descending.items.map((item) => item.value)).toEqual(['20', '10']);
     // Refs follow the rows so links still resolve to the right field.
     expect(descending.refs).toEqual([
-      { seriesIndex: 1, dataIndex: 0 },
-      { seriesIndex: 0, dataIndex: 0 },
+      { seriesIndex: 1, rowIndex: 0 },
+      { seriesIndex: 0, rowIndex: 0 },
     ]);
   });
 
   it('drops rows whose value is exactly zero when hideZeros is set', () => {
     const withZero: EChartsTooltipParam[] = [
-      { seriesName: 'A', name: 'A', value: [1000, 0], dataIndex: 0, seriesIndex: 0 },
-      { seriesName: 'B', name: 'B', value: [1000, 20], dataIndex: 0, seriesIndex: 1 },
+      { seriesName: 'A', name: 'A', value: [1000, 0], rowIndex: 0, seriesIndex: 0 },
+      { seriesName: 'B', name: 'B', value: [1000, 20], rowIndex: 0, seriesIndex: 1 },
     ];
     const model = buildTooltipModel(withZero, ctx({ hideZeros: true }))!;
     expect(model.items.map((item) => item.label)).toEqual(['B']);
-    expect(model.refs).toEqual([{ seriesIndex: 1, dataIndex: 0 }]);
+    expect(model.refs).toEqual([{ seriesIndex: 1, rowIndex: 0 }]);
   });
 
   it('uses the hovered timestamp (tuple x) as the header value', () => {
@@ -112,7 +112,7 @@ describe('buildTooltipModel - time series (axis trigger)', () => {
 
   it('falls back to axisValueLabel when the value is not a tuple', () => {
     const model = buildTooltipModel(
-      [{ seriesName: 'A', name: 'A', value: 5, axisValueLabel: 'bucket-1', dataIndex: 0 }],
+      [{ seriesName: 'A', name: 'A', value: 5, axisValueLabel: 'bucket-1', rowIndex: 0 }],
       ctx()
     )!;
     expect(model.header.value).toBe('bucket-1');
@@ -132,7 +132,7 @@ describe('buildTooltipModel - pie (item trigger)', () => {
       color: '#abcdef',
       value: 42,
       percent: 30,
-      dataIndex: 0,
+      rowIndex: 0,
     };
 
     const model = buildTooltipModel(param, ctx({ kind: 'pie' }))!;
@@ -156,7 +156,7 @@ describe('buildTooltipModel - radar (item trigger)', () => {
       name: 'Polygon',
       color: '#123456',
       value: [1, 2, 3],
-      dataIndex: 0,
+      rowIndex: 0,
     };
 
     const model = buildTooltipModel(param, ctx({ kind: 'radar', radarIndicators: ['CPU', 'Mem', 'Disk'] }))!;
@@ -171,7 +171,7 @@ describe('buildTooltipModel - radar (item trigger)', () => {
   });
 
   it('falls back to a positional label when an indicator name is missing', () => {
-    const param: EChartsTooltipParam = { name: 'Polygon', value: [9], dataIndex: 0 };
+    const param: EChartsTooltipParam = { name: 'Polygon', value: [9], rowIndex: 0 };
     const model = buildTooltipModel(param, ctx({ kind: 'radar', radarIndicators: [] }))!;
     expect(model.items[0].label).toBe('#0');
   });
@@ -183,7 +183,7 @@ describe('buildTooltipModel - heatmap (item trigger)', () => {
     name: 'Heatmap',
     color: '#cccccc',
     value: [1000, 10, 2000, 20, 7],
-    dataIndex: 3,
+    rowIndex: 3,
     seriesIndex: 0,
   };
 

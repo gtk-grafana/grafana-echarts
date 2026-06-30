@@ -21,7 +21,7 @@ export type EChartsTooltipTrigger = 'axis' | 'item';
  */
 export interface TooltipItemRef {
   seriesIndex: number;
-  dataIndex: number;
+  rowIndex: number;
 }
 
 /** Content for the Grafana tooltip: header row plus per-series rows. */
@@ -56,7 +56,7 @@ export interface EChartsTooltipParam {
    */
   value: EChartsDataValue | EChartsDataValue[];
   percent?: number;
-  dataIndex: number;
+  rowIndex: number;
   seriesIndex?: number;
   // @todo unify types
   axisValue?: number | string;

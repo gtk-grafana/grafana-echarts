@@ -48,7 +48,7 @@ export const cartesianChartModule: ChartModule = {
   },
 
   resolveLinks(ctx) {
-    return resolveLinksFromFrames(ctx.frames, 'timeseries');
+    return resolveLinksFromFrames(ctx.frames, 'cartesian');
   },
 
   getTooltipExtras(): TooltipExtras {

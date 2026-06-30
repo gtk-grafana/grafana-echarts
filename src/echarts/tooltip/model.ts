@@ -62,7 +62,7 @@ function buildTimeSeriesModel(
       colorPlacement: ColorPlacement.first,
       numeric: numeric ?? undefined,
     };
-    const ref: TooltipItemRef = { seriesIndex: param.seriesIndex ?? -1, dataIndex: param.dataIndex };
+    const ref: TooltipItemRef = { seriesIndex: param.seriesIndex ?? -1, rowIndex: param.rowIndex };
     return { item, ref };
   });
 
@@ -93,7 +93,7 @@ function buildPieModel(param: EChartsTooltipParam, valueFormatter: ValueFormatte
         colorPlacement: ColorPlacement.first,
       },
     ],
-    refs: [{ seriesIndex: param.seriesIndex ?? 0, dataIndex: param.dataIndex }],
+    refs: [{ seriesIndex: param.seriesIndex ?? 0, rowIndex: param.rowIndex }],
   };
 }
 
@@ -116,7 +116,7 @@ function buildRadarModel(
   return {
     header: { label: '', value: param.name },
     items,
-    refs: [{ seriesIndex: param.seriesIndex ?? 0, dataIndex: param.dataIndex }],
+    refs: [{ seriesIndex: param.seriesIndex ?? 0, rowIndex: param.rowIndex }],
   };
 }
 
@@ -148,7 +148,7 @@ function buildHeatmapModel(
           colorPlacement: ColorPlacement.first,
         },
       ],
-      refs: [{ seriesIndex: param.seriesIndex ?? 0, dataIndex: param.dataIndex }],
+      refs: [{ seriesIndex: param.seriesIndex ?? 0, rowIndex: param.rowIndex }],
     };
   }
 
@@ -166,7 +166,7 @@ function buildHeatmapModel(
         numeric: numeric ?? undefined,
       },
     ],
-    refs: [{ seriesIndex: param.seriesIndex ?? -1, dataIndex: param.dataIndex }],
+    refs: [{ seriesIndex: param.seriesIndex ?? -1, rowIndex: param.rowIndex }],
   };
 }
 

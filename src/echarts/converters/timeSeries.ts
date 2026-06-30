@@ -15,10 +15,13 @@ function resolveFieldSeriesType(field: import('@grafana/data').Field, defaultTyp
   return defaultType;
 }
 
+
+type XAxisValue = number;
+type YAxisValue = number | null;
 interface EChartsTimeSeries {
   name: string;
   type: SeriesType;
-  data: Array<[number, number | null]>;
+  data: Array<[XAxisValue, YAxisValue]>;
   itemStyle: { color: string };
   lineStyle: { color: string };
 }

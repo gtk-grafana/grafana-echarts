@@ -75,12 +75,14 @@ export function forEachTimeSeriesField(
   series: DataFrame[],
   callback: (ref: TimeSeriesFieldRef) => void
 ): void {
+  // @todo convert to for loop
   series.forEach((frame, frameIndex) => {
     const timeField = resolveTimeField(frame);
     if (!timeField) {
       return;
     }
 
+    // @todo convert to for loop
     frame.fields.forEach((field, fieldIndex) => {
       if (field.type !== FieldType.number || field.name === timeField.name) {
         return;
