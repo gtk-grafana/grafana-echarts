@@ -36,7 +36,7 @@ export const heatmapChartModule: ChartModule = {
   tooltipKind: 'heatmap',
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { domLegend }) {
+  buildOption(ctx, { isGrafanaLegend }) {
     const { theme, options, seriesType, formatValue } = ctx;
     const { overlayFrames, heatmap } = splitFrames(ctx);
 
@@ -78,7 +78,7 @@ export const heatmapChartModule: ChartModule = {
         ]
       : overlayValueAxis;
 
-    const baseGrid = getCartesianGrid(domLegend ? undefined : options.legend);
+    const baseGrid = getCartesianGrid(isGrafanaLegend ? undefined : options.legend);
     const grid = heatmap
       ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH }
       : baseGrid;

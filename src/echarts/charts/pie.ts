@@ -9,7 +9,7 @@ export const pieChartModule: ChartModule = {
   tooltipKind: 'pie',
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { domLegend }) {
+  buildOption(ctx, { isGrafanaLegend }) {
     const { frames, theme, options, seriesType } = ctx;
     const slices = pieToEChartsOption(frames, theme);
 
@@ -19,7 +19,7 @@ export const pieChartModule: ChartModule = {
 
     return {
       ...pieDefaultOptions,
-      legend: domLegend
+      legend: isGrafanaLegend
         ? { show: false }
         : getLegendOption(options.legend, theme, slices.map((slice) => slice.name)),
       series: [{ type: seriesType, data: slices }],

@@ -13,7 +13,7 @@ export const cartesianChartModule: ChartModule = {
   tooltipKind: 'timeseries',
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { domLegend }) {
+  buildOption(ctx, { isGrafanaLegend }) {
     const { frames, theme, options, seriesType, formatValue } = ctx;
     const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme);
 
@@ -35,8 +35,8 @@ export const cartesianChartModule: ChartModule = {
 
     return {
       ...cartesianTimeDefaultOptions,
-      legend: domLegend ? { show: false } : getLegendOption(options.legend, theme),
-      grid: getCartesianGrid(domLegend ? undefined : options.legend),
+      legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
+      grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
       xAxis,
       yAxis,
       series: cartSeries,

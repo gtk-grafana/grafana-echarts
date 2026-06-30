@@ -9,7 +9,7 @@ export const radarChartModule: ChartModule = {
   tooltipKind: 'radar',
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { domLegend }) {
+  buildOption(ctx, { isGrafanaLegend }) {
     const { frames, theme, options, seriesType } = ctx;
     const radar = radarToEChartsOption(frames, theme);
 
@@ -19,7 +19,7 @@ export const radarChartModule: ChartModule = {
 
     return {
       ...radarDefaultOptions,
-      legend: domLegend
+      legend: isGrafanaLegend
         ? { show: false }
         : getLegendOption(options.legend, theme, radar.data.map((polygon) => polygon.name)),
       radar: { indicator: radar.indicator },

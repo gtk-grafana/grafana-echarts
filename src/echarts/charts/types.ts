@@ -21,7 +21,7 @@ export interface ChartContext {
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
   /** True when the panel renders a Grafana DOM legend instead of ECharts' native legend. */
-  domLegend: boolean;
+  isGrafanaLegend: boolean;
 }
 
 /** Tooltip extras computed from chart data (radar indicators, heatmap X axis type). */

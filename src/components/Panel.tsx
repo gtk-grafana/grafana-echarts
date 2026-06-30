@@ -197,7 +197,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       formatter: tooltipFormatter,
     };
 
-    const echartOption = chartModule.buildOption(chartContext, { domLegend });
+    const echartOption = chartModule.buildOption(chartContext, { isGrafanaLegend: domLegend });
 
     if (!echartOption) {
       return;
