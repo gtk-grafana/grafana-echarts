@@ -5,15 +5,15 @@ import {
   getCartesianAxisStyle,
   mergeAxisStyle,
 } from 'echarts/options/cartesian';
-import { getCartesianGrid, getLegendOption } from 'echarts/options/legend';
+import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'echarts/options/legend';
 import { buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
 import { ChartModule, TooltipExtras } from './types';
 
 export const cartesianChartModule: ChartModule = {
   tooltipKind: 'timeseries',
-  supportsTableLegend: true,
+  legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { tableLegend }) {
+  buildOption(ctx, { domLegend }) {
     const { frames, theme, options, seriesType, formatValue } = ctx;
     const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme);
 
@@ -35,10 +35,8 @@ export const cartesianChartModule: ChartModule = {
 
     return {
       ...cartesianTimeDefaultOptions,
-      legend: tableLegend
-        ? { show: false }
-        : getLegendOption(options.legend, theme),
-      grid: getCartesianGrid(tableLegend ? undefined : options.legend),
+      legend: domLegend ? { show: false } : getLegendOption(options.legend, theme),
+      grid: getCartesianGrid(domLegend ? undefined : options.legend),
       xAxis,
       yAxis,
       series: cartSeries,

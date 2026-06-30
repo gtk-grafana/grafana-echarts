@@ -1,6 +1,8 @@
 import { createTheme } from '@grafana/data';
 import { LegendDisplayMode, LegendPlacement, VizLegendOptions } from '@grafana/schema';
-import { getCartesianGrid, getLegendOption, isLegendVisible } from 'echarts/options/legend';
+import { DEFAULT_CHART_LEGEND, getCartesianGrid, getLegendOption, isLegendVisible, resolveLegendOptions } from 'echarts/options/legend';
+import { cartesianChartModule } from 'echarts/charts/cartesian';
+import { PanelOptions } from 'types';
 
 const theme = createTheme();
 
@@ -13,14 +15,43 @@ const legend = (overrides: Partial<VizLegendOptions> = {}): VizLegendOptions => 
 });
 
 describe('isLegendVisible', () => {
-  it('is false when undefined, hidden, or showLegend is false', () => {
+  it('is false when undefined, hidden, showLegend is false, or isVisible is false', () => {
     expect(isLegendVisible(undefined)).toBe(false);
     expect(isLegendVisible(legend({ showLegend: false }))).toBe(false);
     expect(isLegendVisible(legend({ displayMode: LegendDisplayMode.Hidden }))).toBe(false);
+    expect(isLegendVisible(legend({ isVisible: false }))).toBe(false);
   });
 
   it('is true for a visible list legend', () => {
     expect(isLegendVisible(legend())).toBe(true);
+  });
+});
+
+describe('resolveLegendOptions', () => {
+  it('merges module defaults with user options, user wins', () => {
+    const options = {
+      legend: { placement: 'right' as const, width: 300 },
+    } as PanelOptions;
+
+    const resolved = resolveLegendOptions(cartesianChartModule, options);
+
+    expect(resolved.placement).toBe('right');
+    expect(resolved.width).toBe(300);
+    expect(resolved.displayMode).toBe(DEFAULT_CHART_LEGEND.displayMode);
+  });
+
+  it('uses module calcs when user omits them', () => {
+    const module = { ...cartesianChartModule, legend: { ...DEFAULT_CHART_LEGEND, calcs: ['lastNotNull'] } };
+    const options = { legend: { placement: 'bottom' as const } } as PanelOptions;
+
+    expect(resolveLegendOptions(module, options).calcs).toEqual(['lastNotNull']);
+  });
+
+  it('prefers user calcs over module defaults', () => {
+    const module = { ...cartesianChartModule, legend: { ...DEFAULT_CHART_LEGEND, calcs: ['lastNotNull'] } };
+    const options = { legend: { calcs: ['mean'], placement: 'bottom' as const } } as PanelOptions;
+
+    expect(resolveLegendOptions(module, options).calcs).toEqual(['mean']);
   });
 });
 

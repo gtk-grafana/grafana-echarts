@@ -1,3 +1,4 @@
+import { VizLegendOptions } from '@grafana/schema';
 import { VizLegendItem } from '@grafana/ui';
 import { TooltipLinkResolver } from 'echarts/data/links';
 import { ValueFormatter } from 'echarts/style';
@@ -19,7 +20,8 @@ export interface ChartContext {
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
-  tableLegend: boolean;
+  /** True when the panel renders a Grafana DOM legend instead of ECharts' native legend. */
+  domLegend: boolean;
 }
 
 /** Tooltip extras computed from chart data (radar indicators, heatmap X axis type). */
@@ -32,7 +34,8 @@ export interface TooltipExtras {
 /** Self-contained chart family: option building, legend, links, and tooltip metadata. */
 export interface ChartModule {
   tooltipKind: TooltipKind;
-  supportsTableLegend?: boolean;
+  /** Per-chart default legend options; merged under the user's `options.legend`. */
+  legend: VizLegendOptions;
   buildOption(ctx: ChartContext, base: BaseOptionParts): ECBasicOption | null;
   buildLegendItems?(ctx: ChartContext, calcs: string[]): VizLegendItem[];
   resolveLinks?(ctx: ChartContext): TooltipLinkResolver;

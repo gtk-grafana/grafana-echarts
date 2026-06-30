@@ -1,37 +1,52 @@
 import { css } from '@emotion/css';
 import { Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import { LegendPlacement, SortOrder, TooltipDisplayMode } from '@grafana/schema';
-import { useStyles2, useTheme2, usePanelContext } from '@grafana/ui';
+import { LegendDisplayMode, LegendPlacement, SortOrder, TooltipDisplayMode, VizLegendOptions } from '@grafana/schema';
+import {
+  PanelContextProvider,
+  SeriesVisibilityChangeMode,
+  usePanelContext,
+  useStyles2,
+  useTheme2,
+} from '@grafana/ui';
 import { EChartsType, init } from 'echarts';
 import { resolveChartModule } from 'echarts/charts/registry';
 import { ChartContext } from 'echarts/charts/types';
-import { isTableLegend } from 'echarts/options/legend';
+import { isLegendVisible, resolveLegendOptions } from 'echarts/options/legend';
 import { getCrosshairAxisPointer, getTooltipOption, tooltipTriggerForMode } from 'echarts/tooltip';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
 import { seriesTypePath } from 'editor/series';
-import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
 import { useGrafanaEChartsTooltip } from './EChartsTooltip';
-import { LegendTable } from './LegendTable';
+import { Legend } from './Legend';
 
 interface Props extends PanelProps<PanelOptions> {}
 
 const DEFAULT_LEGEND_WIDTH = 240;
-const MIN_LEGEND_HEIGHT = 80;
-const MAX_LEGEND_HEIGHT = 200;
+const MIN_TABLE_LEGEND_HEIGHT = 80;
+const MAX_TABLE_LEGEND_HEIGHT = 200;
+const MIN_LIST_LEGEND_HEIGHT = 32;
+const MAX_LIST_LEGEND_HEIGHT = 80;
 
-const getLayout = (width: number, height: number, placement: LegendPlacement, tableLegend: boolean) => {
-  if (!tableLegend) {
+const getLayout = (width: number, height: number, legend: VizLegendOptions, domLegend: boolean) => {
+  if (!domLegend) {
     return { chartWidth: width, chartHeight: height, legendWidth: width, legendHeight: 0 };
   }
 
-  if (placement === 'right') {
-    const legendWidth = Math.min(DEFAULT_LEGEND_WIDTH, Math.floor(width / 2));
+  if (legend.placement === 'right') {
+    const legendWidth =
+      legend.width && legend.width > 0
+        ? Math.min(legend.width, Math.floor(width / 2))
+        : Math.min(DEFAULT_LEGEND_WIDTH, Math.floor(width / 2));
     return { chartWidth: width - legendWidth, chartHeight: height, legendWidth, legendHeight: height };
   }
 
-  const legendHeight = Math.min(Math.max(Math.round(height * 0.35), MIN_LEGEND_HEIGHT), MAX_LEGEND_HEIGHT);
+  const isTable = legend.displayMode === LegendDisplayMode.Table;
+  const legendHeight = isTable
+    ? Math.min(Math.max(Math.round(height * 0.35), MIN_TABLE_LEGEND_HEIGHT), MAX_TABLE_LEGEND_HEIGHT)
+    : Math.min(Math.max(Math.round(height * 0.2), MIN_LIST_LEGEND_HEIGHT), MAX_LIST_LEGEND_HEIGHT);
+
   return { chartWidth: width, chartHeight: height - legendHeight, legendWidth: width, legendHeight };
 };
 
@@ -70,7 +85,8 @@ const getStyles = (theme: GrafanaTheme2, height: number, width: number, placemen
 
 export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone, eventBus }) => {
   const theme = useTheme2();
-  const { sync } = usePanelContext();
+  const panelContext = usePanelContext();
+  const { sync } = panelContext;
   const panelDOMRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
@@ -78,6 +94,15 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const chartModule = useMemo(
     () => resolveChartModule(seriesType, data.series),
     [seriesType, data.series]
+  );
+
+  const resolvedLegend = useMemo(
+    () => (chartModule ? resolveLegendOptions(chartModule, options) : undefined),
+    [chartModule, options]
+  );
+
+  const domLegend = Boolean(
+    resolvedLegend && isLegendVisible(resolvedLegend) && chartModule?.buildLegendItems
   );
 
   const formatValue = useMemo(
@@ -97,19 +122,21 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     [data.series, theme, timeZone, options, seriesType, formatValue]
   );
 
-  const placement: LegendPlacement = options.legend?.placement === 'right' ? 'right' : 'bottom';
-  const tableLegend = Boolean(
-    chartModule?.supportsTableLegend && isTableLegend(options.legend)
+  const placement: LegendPlacement = resolvedLegend?.placement === 'right' ? 'right' : 'bottom';
+  const { chartWidth, chartHeight, legendWidth, legendHeight } = getLayout(
+    width,
+    height,
+    resolvedLegend ?? { showLegend: false, displayMode: LegendDisplayMode.Hidden, placement: 'bottom', calcs: [] },
+    domLegend
   );
-  const { chartWidth, chartHeight, legendWidth, legendHeight } = getLayout(width, height, placement, tableLegend);
   const styles = useStyles2(getStyles, height, width, placement);
 
   const legendItems = useMemo(() => {
-    if (!tableLegend || !chartModule?.buildLegendItems) {
+    if (!domLegend || !chartModule?.buildLegendItems || !resolvedLegend) {
       return [];
     }
-    return chartModule.buildLegendItems(chartContext, options.legend?.calcs ?? []);
-  }, [tableLegend, chartModule, chartContext, options.legend?.calcs]);
+    return chartModule.buildLegendItems(chartContext, resolvedLegend.calcs ?? []);
+  }, [domLegend, chartModule, chartContext, resolvedLegend]);
 
   const tooltipKind = chartModule?.tooltipKind ?? 'timeseries';
   const tooltipExtras = useMemo(
@@ -148,11 +175,31 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     syncEnabled: tooltipExtras.syncEnabled,
   });
 
+  const onSeriesColorChange = useCallback((_label: string, _color: string) => {
+    // @todo requires fieldConfig override write-back (PanelContext not available to community panels)
+  }, []);
+
+  const onToggleSeriesVisibility = useCallback(
+    (_label: string | string[] | null, _mode: SeriesVisibilityChangeMode) => {
+      // @todo requires series visibility state
+    },
+    []
+  );
+
+  const legendContextValue = useMemo(
+    () => ({
+      ...panelContext,
+      eventBus,
+      onSeriesColorChange,
+      onToggleSeriesVisibility,
+    }),
+    [panelContext, eventBus, onSeriesColorChange, onToggleSeriesVisibility]
+  );
+
   useLayoutEffect(() => {
     if (!panelDOMRef.current) {
       return;
     }
-
 
     const chart = init(panelDOMRef.current);
     panelRef.current = chart;
@@ -175,7 +222,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       formatter: tooltipFormatter,
     };
 
-    const echartOption = chartModule.buildOption(chartContext, { tableLegend });
+    const echartOption = chartModule.buildOption(chartContext, { domLegend });
 
     if (!echartOption) {
       return;
@@ -193,14 +240,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       tooltip: tooltipOption,
       ...(axisPointer ? { axisPointer } : {}),
     });
-  }, [
-    chartModule,
-    chartContext,
-    tableLegend,
-    tooltipFormatter,
-    tooltipKind,
-    tooltipMode,
-  ]);
+  }, [chartModule, chartContext, domLegend, tooltipFormatter, tooltipKind, tooltipMode]);
 
   useEffect(() => {
     if (!panelRef.current) {
@@ -217,14 +257,15 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     <div className={styles.wrapper}>
       <div ref={panelDOMRef} className={styles.panelContainer} style={{ width: chartWidth, height: chartHeight }}></div>
       {tooltipPortal}
-      {tableLegend && (
-        <LegendTable
-          items={legendItems}
-          placement={placement}
-          width={legendWidth}
-          height={legendHeight}
-          limit={options.legend?.limit}
-        />
+      {domLegend && resolvedLegend && (
+        <PanelContextProvider value={legendContextValue}>
+          <Legend
+            items={legendItems}
+            legend={resolvedLegend}
+            width={legendWidth}
+            height={legendHeight}
+          />
+        </PanelContextProvider>
       )}
     </div>
   );

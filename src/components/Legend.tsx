@@ -1,21 +1,15 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { LegendDisplayMode, LegendPlacement } from '@grafana/schema';
+import { LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
 import { useStyles2, VizLegend, VizLegendItem } from '@grafana/ui';
 import React, { useState } from 'react';
 
 interface Props {
   items: VizLegendItem[];
-  placement: LegendPlacement;
-  /** Reserved box the table renders into (scrolls when it overflows). */
+  legend: VizLegendOptions;
+  /** Reserved box the legend renders into (scrolls when it overflows). */
   width: number;
   height: number;
-  /**
-   * Max rows to show before collapsing behind a "show all" toggle (Core's
-   * `legend.limit`). `VizLegend` applies this after sorting, so it acts as a
-   * top-N when a calc column is sorted. `0`/undefined means show everything.
-   */
-  limit?: number;
 }
 
 const getStyles = (theme: GrafanaTheme2, width: number, height: number) => ({
@@ -28,22 +22,21 @@ const getStyles = (theme: GrafanaTheme2, width: number, height: number) => ({
     display: 'flex',
     flex: '1 1 0%',
     flexDirection: 'column',
-    scrollbarWidth: 'thin'
+    scrollbarWidth: 'thin',
   }),
 });
 
 /**
- * PoC custom DOM legend: ECharts' native legend only renders a list, so the
- * `table` display mode (with per-series calc columns) is delegated to Core
- * Grafana's `VizLegend`, rendered as a sibling DOM element next to the chart.
+ * Grafana DOM legend rendered as a sibling element next to the chart.
+ * Delegates to Core Grafana's `VizLegend` for list and table display modes.
  *
  * Sort state is kept locally so clicking a calc column header reorders the rows,
  * matching the time series panel's legend behavior.
  */
-export const LegendTable: React.FC<Props> = ({ items, placement, width, height, limit }) => {
+export const Legend: React.FC<Props> = ({ items, legend, width, height }) => {
   const styles = useStyles2(getStyles, width, height);
-  const [sortKey, setSortKey] = useState<string | undefined>(undefined);
-  const [sortDesc, setSortDesc] = useState(false);
+  const [sortKey, setSortKey] = useState<string | undefined>(legend.sortBy);
+  const [sortDesc, setSortDesc] = useState(legend.sortDesc ?? false);
 
   const onToggleSort = (key: string) => {
     if (sortKey !== key) {
@@ -62,18 +55,20 @@ export const LegendTable: React.FC<Props> = ({ items, placement, width, height, 
     setSortDesc(false);
   };
 
+  const displayMode = legend.displayMode ?? LegendDisplayMode.List;
+  const isTable = displayMode === LegendDisplayMode.Table;
+
   return (
     <div className={styles.container}>
       <VizLegend
-        displayMode={LegendDisplayMode.Table}
-        placement={placement}
+        displayMode={displayMode}
+        placement={legend.placement}
         items={items}
         sortBy={sortKey}
         sortDesc={sortDesc}
-        isSortable={true}
+        isSortable={isTable}
         onToggleSort={onToggleSort}
-        limit={limit}
-        readonly={true}
+        limit={legend.limit}
       />
     </div>
   );

@@ -13,7 +13,7 @@ import {
   getHeatmapVisualMap,
   HEATMAP_VISUALMAP_WIDTH,
 } from 'echarts/options/heatmap';
-import { getCartesianGrid, getLegendOption } from 'echarts/options/legend';
+import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'echarts/options/legend';
 import { ChartContext, ChartModule } from './types';
 
 function splitFrames(ctx: ChartContext) {
@@ -34,9 +34,9 @@ function splitFrames(ctx: ChartContext) {
 
 export const heatmapChartModule: ChartModule = {
   tooltipKind: 'heatmap',
-  supportsTableLegend: false,
+  legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { tableLegend }) {
+  buildOption(ctx, { domLegend }) {
     const { theme, options, seriesType, formatValue } = ctx;
     const { overlayFrames, heatmap } = splitFrames(ctx);
 
@@ -78,7 +78,7 @@ export const heatmapChartModule: ChartModule = {
         ]
       : overlayValueAxis;
 
-    const baseGrid = getCartesianGrid(tableLegend ? undefined : options.legend);
+    const baseGrid = getCartesianGrid(domLegend ? undefined : options.legend);
     const grid = heatmap
       ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH }
       : baseGrid;

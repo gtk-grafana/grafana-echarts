@@ -1,6 +1,8 @@
 import { GrafanaTheme2 } from '@grafana/data';
-import { LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
+import { defaultVizLegendOptions, LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
+import { ChartModule } from 'echarts/charts/types';
 import { LEGEND_FONT_SIZE, getThemeTextStyle } from 'echarts/options/base';
+import { PanelOptions } from 'types';
 
 /** Subset of the ECharts `legend` option this plugin sets. */
 export interface EChartsLegendOption {
@@ -18,22 +20,45 @@ export interface EChartsLegendOption {
   data?: string[];
 }
 
+/** Baseline legend defaults shared by chart modules. */
+export const DEFAULT_CHART_LEGEND: VizLegendOptions = {
+  ...defaultVizLegendOptions,
+  showLegend: true,
+  displayMode: LegendDisplayMode.List,
+  placement: 'bottom',
+  calcs: [],
+};
+
+/**
+ * Merge per-chart defaults with the user's panel legend options (user wins).
+ */
+export function resolveLegendOptions(module: ChartModule, options: PanelOptions): VizLegendOptions {
+  return {
+    ...module.legend,
+    ...options.legend,
+    calcs: options.legend?.calcs ?? module.legend.calcs,
+  };
+}
+
 /**
  * Whether the legend should be rendered at all, mirroring Core Grafana: a
- * legend is hidden when `showLegend` is false or the display mode is `hidden`.
+ * legend is hidden when `showLegend` is false, `isVisible` is false, or the
+ * display mode is `hidden`.
  */
 export function isLegendVisible(legend?: VizLegendOptions): boolean {
   if (!legend) {
     return false;
   }
 
-  return legend.showLegend !== false && legend.displayMode !== LegendDisplayMode.Hidden;
+  return (
+    legend.showLegend !== false &&
+    legend.isVisible !== false &&
+    legend.displayMode !== LegendDisplayMode.Hidden
+  );
 }
 
 /**
- * Whether the legend should render as a table (per-series calc columns) rather
- * than ECharts' native list. ECharts can't draw the table itself, so the panel
- * renders a custom DOM legend (see `components/LegendTable.tsx`) in this case.
+ * Whether the legend display mode is table (per-series calc columns).
  */
 export function isTableLegend(legend?: VizLegendOptions): boolean {
   return isLegendVisible(legend) && legend?.displayMode === LegendDisplayMode.Table;
@@ -48,12 +73,10 @@ export function isTableLegend(legend?: VizLegendOptions): boolean {
  * charts carry a single series whose `data[].name` entries are the legend items
  * rather than one series per name (the cartesian case ECharts derives on its own).
  *
- * Note: ECharts' native legend only renders a list. The `table` display mode
- * (with per-series `calcs` columns) is handled separately by a custom DOM
- * legend (see `components/LegendTable.tsx`); callers should suppress this native
- * legend when `isTableLegend` is true to avoid drawing two legends.
- *
- * @todo expose legend or add custom support for reducers & legend limits
+ * Note: ECharts' native legend only renders a list. List and table display modes
+ * for cartesian/pie/radar are handled by Grafana's `VizLegend` DOM component
+ * (see `components/Legend.tsx`); callers should suppress this native legend when
+ * `domLegend` is true to avoid drawing two legends.
  */
 export function getLegendOption(
   legend: VizLegendOptions | undefined,

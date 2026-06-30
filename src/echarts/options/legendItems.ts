@@ -43,8 +43,10 @@ export function buildTimeSeriesLegendItems(
   const items: VizLegendItem[] = [];
 
   forEachTimeSeriesField(series, ({ frame, frameIndex, field, fieldIndex }) => {
+    const label = getFieldDisplayName(field, frame, series);
     items.push({
-      label: getFieldDisplayName(field, frame, series),
+      label,
+      fieldName: label,
       color: getSeriesColor(field, theme),
       yAxis: 1,
       getItemKey: () => `${frameIndex}-${fieldIndex}`,
@@ -74,6 +76,7 @@ export function buildRadarLegendItems(
 
     items.push({
       label: getFieldDisplayName(field, frame, series),
+      fieldName: getFieldDisplayName(field, frame, series),
       color: getSeriesColor(field, theme),
       yAxis: 1,
       getItemKey: () => `polygon-${fieldIndex}`,
@@ -108,6 +111,7 @@ export function buildPieLegendItems(
 
     items.push({
       label: categories[row] ?? String(row),
+      fieldName: categories[row] ?? String(row),
       color: getPaletteColorByIndex(row, theme),
       yAxis: 1,
       getItemKey: () => `slice-${row}`,

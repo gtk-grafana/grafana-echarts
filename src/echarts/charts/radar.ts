@@ -1,15 +1,15 @@
 import { resolveLinksFromFrames } from 'echarts/data/links';
 import { radarToEChartsOption } from 'echarts/converters/radar';
-import { getLegendOption } from 'echarts/options/legend';
+import { getLegendOption, DEFAULT_CHART_LEGEND } from 'echarts/options/legend';
 import { buildRadarLegendItems } from 'echarts/options/legendItems';
 import { radarDefaultOptions } from 'echarts/options/radar';
 import { ChartModule } from './types';
 
 export const radarChartModule: ChartModule = {
   tooltipKind: 'radar',
-  supportsTableLegend: true,
+  legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { tableLegend }) {
+  buildOption(ctx, { domLegend }) {
     const { frames, theme, options, seriesType } = ctx;
     const radar = radarToEChartsOption(frames, theme);
 
@@ -19,7 +19,7 @@ export const radarChartModule: ChartModule = {
 
     return {
       ...radarDefaultOptions,
-      legend: tableLegend
+      legend: domLegend
         ? { show: false }
         : getLegendOption(options.legend, theme, radar.data.map((polygon) => polygon.name)),
       radar: { indicator: radar.indicator },

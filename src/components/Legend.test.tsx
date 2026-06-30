@@ -1,14 +1,23 @@
+import { LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
 import { VizLegendItem } from '@grafana/ui';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { LegendTable } from './LegendTable';
+import { Legend } from './Legend';
+
+const legend = (overrides: Partial<VizLegendOptions> = {}): VizLegendOptions => ({
+  showLegend: true,
+  displayMode: LegendDisplayMode.Table,
+  placement: 'bottom',
+  calcs: [],
+  ...overrides,
+});
 
 const items = (labels: string[]): VizLegendItem[] =>
   labels.map((label) => ({ label, color: '#000', yAxis: 1, getItemKey: () => label }));
 
-describe('LegendTable limit', () => {
+describe('Legend limit', () => {
   it('shows all rows when no limit is set', () => {
-    render(<LegendTable items={items(['a', 'b', 'c'])} placement="bottom" width={400} height={120} />);
+    render(<Legend items={items(['a', 'b', 'c'])} legend={legend()} width={400} height={120} />);
 
     expect(screen.getByText('a')).toBeInTheDocument();
     expect(screen.getByText('b')).toBeInTheDocument();
@@ -16,7 +25,9 @@ describe('LegendTable limit', () => {
   });
 
   it('collapses to the first N rows and reveals the rest via the "show all" toggle', () => {
-    render(<LegendTable items={items(['a', 'b', 'c', 'd', 'e'])} placement="bottom" width={400} height={120} limit={2} />);
+    render(
+      <Legend items={items(['a', 'b', 'c', 'd', 'e'])} legend={legend({ limit: 2 })} width={400} height={120} />
+    );
 
     expect(screen.getByText('a')).toBeInTheDocument();
     expect(screen.getByText('b')).toBeInTheDocument();
@@ -27,5 +38,21 @@ describe('LegendTable limit', () => {
 
     expect(screen.getByText('c')).toBeInTheDocument();
     expect(screen.getByText('e')).toBeInTheDocument();
+  });
+});
+
+describe('Legend list mode', () => {
+  it('renders items in list display mode', () => {
+    render(
+      <Legend
+        items={items(['series-a', 'series-b'])}
+        legend={legend({ displayMode: LegendDisplayMode.List })}
+        width={400}
+        height={48}
+      />
+    );
+
+    expect(screen.getByText('series-a')).toBeInTheDocument();
+    expect(screen.getByText('series-b')).toBeInTheDocument();
   });
 });

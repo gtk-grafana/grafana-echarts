@@ -1,15 +1,15 @@
 import { resolveLinksFromFrames } from 'echarts/data/links';
 import { pieToEChartsOption } from 'echarts/converters/pie';
-import { getLegendOption } from 'echarts/options/legend';
+import { getLegendOption, DEFAULT_CHART_LEGEND } from 'echarts/options/legend';
 import { buildPieLegendItems } from 'echarts/options/legendItems';
 import { pieDefaultOptions } from 'echarts/options/pie';
 import { ChartModule, TooltipExtras } from './types';
 
 export const pieChartModule: ChartModule = {
   tooltipKind: 'pie',
-  supportsTableLegend: true,
+  legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { tableLegend }) {
+  buildOption(ctx, { domLegend }) {
     const { frames, theme, options, seriesType } = ctx;
     const slices = pieToEChartsOption(frames, theme);
 
@@ -19,7 +19,7 @@ export const pieChartModule: ChartModule = {
 
     return {
       ...pieDefaultOptions,
-      legend: tableLegend
+      legend: domLegend
         ? { show: false }
         : getLegendOption(options.legend, theme, slices.map((slice) => slice.name)),
       series: [{ type: seriesType, data: slices }],
