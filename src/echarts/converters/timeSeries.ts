@@ -16,11 +16,19 @@ function resolveFieldSeriesType(field: import('@grafana/data').Field, defaultTyp
 }
 
 
+/** X of each cartesian `[x, y]` data item: epoch ms timestamp. */
 type XAxisValue = number;
+/** Y of each cartesian `[x, y]` data item; `null` renders a gap rather than a zero. */
 type YAxisValue = number | null;
 interface EChartsTimeSeries {
   name: string;
   type: SeriesType;
+  /**
+   * Data items as `[time, value]` tuples (x = epoch ms, y = number | null).
+   * ECharts echoes the same tuple back as the tooltip hover param's `value`,
+   * where it is normalized into a `TimeSeriesPoint` (see echarts/tooltip).
+   * See https://echarts.apache.org/en/option.html#series-line.data
+   */
   data: Array<[XAxisValue, YAxisValue]>;
   itemStyle: { color: string };
   lineStyle: { color: string };

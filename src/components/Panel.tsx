@@ -76,7 +76,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     [chartModule, options]
   );
 
-  const domLegend = Boolean(
+  const isVizLegend = Boolean(
     resolvedLegend && isLegendVisible(resolvedLegend) && chartModule?.buildLegendItems
   );
 
@@ -102,16 +102,16 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     width,
     height,
     resolvedLegend ?? { showLegend: false, displayMode: LegendDisplayMode.Hidden, placement: 'bottom', calcs: [] },
-    domLegend
+    isVizLegend
   );
   const styles = useStyles2(getStyles, height, width, placement);
 
   const legendItems = useMemo(() => {
-    if (!domLegend || !chartModule?.buildLegendItems || !resolvedLegend) {
+    if (!isVizLegend || !chartModule?.buildLegendItems || !resolvedLegend) {
       return [];
     }
     return chartModule.buildLegendItems(chartContext, resolvedLegend.calcs ?? []);
-  }, [domLegend, chartModule, chartContext, resolvedLegend]);
+  }, [isVizLegend, chartModule, chartContext, resolvedLegend]);
 
   const tooltipKind = chartModule?.tooltipKind ?? 'timeseries';
   const tooltipExtras = useMemo(
@@ -197,7 +197,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       formatter: tooltipFormatter,
     };
 
-    const echartOption = chartModule.buildOption(chartContext, { isGrafanaLegend: domLegend });
+    const echartOption = chartModule.buildOption(chartContext, { isGrafanaLegend: isVizLegend });
 
     if (!echartOption) {
       return;
@@ -215,7 +215,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       tooltip: tooltipOption,
       ...(axisPointer ? { axisPointer } : {}),
     });
-  }, [chartModule, chartContext, domLegend, tooltipFormatter, tooltipKind, tooltipMode]);
+  }, [chartModule, chartContext, isVizLegend, tooltipFormatter, tooltipKind, tooltipMode]);
 
   useEffect(() => {
     if (!panelRef.current) {
@@ -232,7 +232,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     <div className={styles.wrapper}>
       <div ref={panelDOMRef} className={styles.panelContainer} style={{ width: chartWidth, height: chartHeight }}></div>
       {tooltipPortal}
-      {domLegend && resolvedLegend && (
+      {isVizLegend && resolvedLegend && (
         <PanelContextProvider value={legendContextValue}>
           <Legend
             items={legendItems}

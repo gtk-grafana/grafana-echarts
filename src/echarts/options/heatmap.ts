@@ -89,8 +89,10 @@ export const HEATMAP_VALUE_DIM = 4;
 
 /**
  * Encode cells as `[xStart, yStart, xEnd, yEnd, value]` tuples. The custom
- * series `renderItem` reads the two corners to size each rect; the value dim is
- * what the visualMap maps to a color.
+ * series `renderItem` reads the two corners to size each rect; the value dim
+ * ({@link HEATMAP_VALUE_DIM}) is what the visualMap maps to a color. ECharts
+ * passes this same tuple back as the tooltip hover param's `value`.
+ * See https://echarts.apache.org/en/option.html#series-custom.data
  */
 export function encodeHeatmapData(cells: HeatmapCell[]): Array<Array<number | null>> {
   return cells.map((cell) => [cell.xStart, cell.yStart, cell.xEnd, cell.yEnd, cell.value]);
@@ -148,6 +150,9 @@ export function getHeatmapSeries(data: HeatmapData, yAxisIndex = 0) {
     coordinateSystem: 'cartesian2d',
     yAxisIndex,
     renderItem: heatmapRenderItem,
+    // Map tuple dims to axes: x spans dims [0, 2] (xStart..xEnd), y spans [1, 3]
+    // (yStart..yEnd), and the tooltip reads the value dim.
+    // See https://echarts.apache.org/en/option.html#series-custom.encode
     encode: { x: [0, 2], y: [1, 3], tooltip: [HEATMAP_VALUE_DIM] },
     data: encodeHeatmapData(data.cells),
     // Exclude from the toggle legend; the cell layer isn't a togglable series.
