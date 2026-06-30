@@ -127,7 +127,6 @@ function buildHeatmapModel(
   xIsTime: boolean
 ): TooltipModel | null {
   const value = param.value;
-
   if (Array.isArray(value) && value.length >= 5) {
     const [xStart, yStart, xEnd, yEnd, cellValue] = value as Array<number | null>;
     const xs = toNumber(xStart);

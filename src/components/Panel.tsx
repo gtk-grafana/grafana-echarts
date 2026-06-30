@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
+import { DataFrame, Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { LegendDisplayMode, LegendPlacement, SortOrder, TooltipDisplayMode, VizLegendOptions } from '@grafana/schema';
 import {
@@ -9,6 +9,7 @@ import {
   useStyles2,
   useTheme2,
 } from '@grafana/ui';
+import { getPanelLayout } from 'components/layout';
 import { EChartsType, init } from 'echarts';
 import { resolveChartModule } from 'echarts/charts/registry';
 import { ChartContext } from 'echarts/charts/types';
@@ -23,35 +24,9 @@ import { Legend } from './Legend';
 
 interface Props extends PanelProps<PanelOptions> {}
 
-const DEFAULT_LEGEND_WIDTH = 240;
-const MIN_TABLE_LEGEND_HEIGHT = 80;
-const MAX_TABLE_LEGEND_HEIGHT = 200;
-const MIN_LIST_LEGEND_HEIGHT = 32;
-const MAX_LIST_LEGEND_HEIGHT = 80;
-
-const getLayout = (width: number, height: number, legend: VizLegendOptions, domLegend: boolean) => {
-  if (!domLegend) {
-    return { chartWidth: width, chartHeight: height, legendWidth: width, legendHeight: 0 };
-  }
-
-  if (legend.placement === 'right') {
-    const legendWidth =
-      legend.width && legend.width > 0
-        ? Math.min(legend.width, Math.floor(width / 2))
-        : Math.min(DEFAULT_LEGEND_WIDTH, Math.floor(width / 2));
-    return { chartWidth: width - legendWidth, chartHeight: height, legendWidth, legendHeight: height };
-  }
-
-  const isTable = legend.displayMode === LegendDisplayMode.Table;
-  const legendHeight = isTable
-    ? Math.min(Math.max(Math.round(height * 0.35), MIN_TABLE_LEGEND_HEIGHT), MAX_TABLE_LEGEND_HEIGHT)
-    : Math.min(Math.max(Math.round(height * 0.2), MIN_LIST_LEGEND_HEIGHT), MAX_LIST_LEGEND_HEIGHT);
-
-  return { chartWidth: width, chartHeight: height - legendHeight, legendWidth: width, legendHeight };
-};
 
 const getRepresentativeFormatter = (
-  series: PanelProps<PanelOptions>['data']['series'],
+  series: DataFrame[],
   theme: GrafanaTheme2,
   timeZone: string
 ): ValueFormatter => {
@@ -123,7 +98,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   );
 
   const placement: LegendPlacement = resolvedLegend?.placement === 'right' ? 'right' : 'bottom';
-  const { chartWidth, chartHeight, legendWidth, legendHeight } = getLayout(
+  const { chartWidth, chartHeight, legendWidth, legendHeight } = getPanelLayout(
     width,
     height,
     resolvedLegend ?? { showLegend: false, displayMode: LegendDisplayMode.Hidden, placement: 'bottom', calcs: [] },
