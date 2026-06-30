@@ -26,6 +26,10 @@ function tupleValue(value: unknown): number | null {
   return toNumber(value);
 }
 
+/**
+ * @todo remove all tuples, use structured object types instead
+ * @param value
+ */
 function tupleTime(value: unknown): number | null {
   if (Array.isArray(value)) {
     return toNumber(value[0]);
