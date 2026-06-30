@@ -16,10 +16,10 @@ export function tooltipTriggerForMode(kind: TooltipKind, mode: TooltipDisplayMod
 
 /** ECharts axisPointer styled to match Core Grafana's uPlot cursor crosshair. */
 export function getCrosshairAxisPointer() {
-  const lineStyle = { color: CROSSHAIR_COLOR, width: 1, type: 'dashed' as const };
+  const lineStyle = { color: CROSSHAIR_COLOR, width: 1, type: 'dashed' };
   return {
     show: true,
-    type: 'cross' as const,
+    type: 'cross',
     lineStyle,
     crossStyle: lineStyle,
     label: { show: false },

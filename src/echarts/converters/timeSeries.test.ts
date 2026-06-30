@@ -1,5 +1,6 @@
 import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
+import { SeriesType } from 'editor/types';
 
 const theme = createTheme();
 
@@ -101,7 +102,7 @@ describe('timeSeriesToEChartsOption', () => {
   });
 
   describe('series type', () => {
-    it.each(['line', 'bar', 'scatter', 'effectScatter'] as const)(
+    it.each(['line', 'bar', 'scatter', 'effectScatter'] as SeriesType[])(
       'propagates the requested series type "%s" to every series',
       (seriesType) => {
         const result = timeSeriesToEChartsOption([wideFrame()], seriesType, theme);

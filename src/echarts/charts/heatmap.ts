@@ -74,7 +74,7 @@ export const heatmapChartModule: ChartModule = {
             axisStyle,
             { min: heatmap.yMin, max: heatmap.yMax, ...bucketAxisExtra }
           ),
-          { ...overlayValueAxis, position: 'right' as const },
+          { ...overlayValueAxis, position: 'right' },
         ]
       : overlayValueAxis;
 
@@ -85,7 +85,7 @@ export const heatmapChartModule: ChartModule = {
 
     const xAxisIsTime = cartSeries.length > 0 || (heatmap ? heatmap.xIsTime : true);
     const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis as Record<string, unknown>, axisStyle, {
-      ...(xAxisIsTime ? {} : { type: 'value' as const }),
+      ...(xAxisIsTime ? {} : { type: 'value' }),
     });
 
     return {

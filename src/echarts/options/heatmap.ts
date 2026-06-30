@@ -144,8 +144,8 @@ export function heatmapRenderItem(params: any, api: any) {
 export function getHeatmapSeries(data: HeatmapData, yAxisIndex = 0) {
   return {
     name: 'Heatmap',
-    type: 'custom' as const,
-    coordinateSystem: 'cartesian2d' as const,
+    type: 'custom',
+    coordinateSystem: 'cartesian2d',
     yAxisIndex,
     renderItem: heatmapRenderItem,
     encode: { x: [0, 2], y: [1, 3], tooltip: [HEATMAP_VALUE_DIM] },
@@ -170,15 +170,15 @@ export function getHeatmapVisualMap(
   scheme?: HeatmapColorScheme
 ) {
   return {
-    type: 'continuous' as const,
+    type: 'continuous',
     min: data.valueMin,
     max: data.valueMax === data.valueMin ? data.valueMin + 1 : data.valueMax,
     dimension: HEATMAP_VALUE_DIM,
     seriesIndex,
     calculable: true,
-    orient: 'vertical' as const,
+    orient: 'vertical',
     right: 8,
-    top: 'middle' as const,
+    top: 'middle',
     itemWidth: 12,
     itemHeight: 120,
     inRange: { color: getHeatmapColors(scheme) },

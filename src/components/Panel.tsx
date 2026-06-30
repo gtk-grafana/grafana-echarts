@@ -152,6 +152,8 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     if (!panelDOMRef.current) {
       return;
     }
+
+
     const chart = init(panelDOMRef.current);
     panelRef.current = chart;
     const detachTooltip = tooltipAttach(chart, panelDOMRef.current);
