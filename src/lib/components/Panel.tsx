@@ -1,6 +1,3 @@
-// Redirect shared async-chunk loading to the app plugin's base URL. Side-effect
-// import; must run before the dynamic import() of ECharts below.
-import 'lib/publicPath';
 import { css } from '@emotion/css';
 import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
@@ -8,7 +5,7 @@ import { LegendDisplayMode, type LegendPlacement, TooltipDisplayMode } from '@gr
 import { PanelContextProvider, type SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 import { seriesTypePath } from 'editor/constants';
-import { type EChartsType } from 'lib/echarts/echarts';
+import { init, type EChartsType } from 'lib/echarts/echarts';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
@@ -60,8 +57,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const theme = useTheme2();
   const panelContext = usePanelContext();
   const panelDOMRef = useRef<HTMLDivElement>(null);
-  // ECharts is loaded lazily (dynamic import below), so the chart instance lives
-  // in state: dependent effects re-run once it resolves.
+  // The chart instance is created on mount (see the layout effect below) and
+  // held in state so the option/resize effects re-run once it exists.
+  // @todo this will duplicate the chart state in memory, try to find a way to get this working with references instead
   const [chart, setChart] = useState<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
 
@@ -136,24 +134,14 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       return;
     }
 
-    let instance: EChartsType | null = null;
-    let disposed = false;
-
-    // Load ECharts on demand so its (~0.6MB) bundle is emitted as a single
-    // shared async chunk across the nested panels instead of being duplicated
-    // into every panel entry. See lib/echarts/echarts.ts.
-    void import('lib/echarts/echarts').then(({ init }) => {
-      if (disposed) {
-        return;
-      }
-      instance = init(dom);
-      setChart(instance);
-    });
+    // ECharts is imported statically here, but this whole component is loaded
+    // via React.lazy (see lib/components/LazyPanel), so its (~0.6MB) bundle is
+    // still emitted as shared async chunks rather than every panel's entry.
+    const instance = init(dom);
+    setChart(instance);
 
     return () => {
-      disposed = true;
-      instance?.dispose();
-      instance = null;
+      instance.dispose();
       setChart(null);
     };
   }, []);

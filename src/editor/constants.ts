@@ -11,3 +11,7 @@ export const seriesTypeDefault: SeriesType = 'line';
  * non-cartesian types (e.g. pie, gauge, radar) need different data shaping.
  */
 export const cartesianTimeSeriesTypes: SeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
+/**
+ * Series editor options
+ */
+export const seriesCategoryName = 'Series';

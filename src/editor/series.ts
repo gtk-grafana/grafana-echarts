@@ -2,15 +2,6 @@ import { type DataFrame, DataFrameType, FieldType, type SelectableValue } from '
 import { cartesianTimeSeriesTypes } from 'editor/constants';
 import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
 
-/**
- * Series editor options
- */
-export const seriesCategoryName = 'Series';
-
-/**
- * Series Type - tells echarts how to render each series
- * https://echarts.apache.org/en/option.html#series
- */
 // export const seriesTypeOptions: Array<SelectableValue<SeriesType>> = [
 //   { value: 'line', label: 'line' },
 //   { value: 'bar', label: 'bar' },

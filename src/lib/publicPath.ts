@@ -10,8 +10,9 @@
 // So we rewrite the runtime publicPath from the nested panel's dir to the app's
 // dir by swapping the trailing plugin-id segment. This keeps the origin/subpath
 // prefix intact (Grafana may run under a sub-path) and lets every nested panel
-// load the single shared chunk. Imported for side effect by the shared Panel,
-// which only the nested panels bundle. Must run before any dynamic import().
+// load the single shared chunk. Imported for side effect by LazyPanel (which
+// each nested panel's entry bundles), so it runs eagerly in the entry chunk
+// before React.lazy fires any dynamic import().
 // https://webpack.js.org/guides/public-path/#on-the-fly
 
 // `grafana-echarts-app` (this repo's app plugin id, see src/plugin.json).

@@ -14,9 +14,11 @@ const config = async (env: Env): Promise<Configuration> => {
   const base = await baseConfig(env);
 
   // De-duplicate the ECharts runtime across the nested panel entries. Each
-  // panel reaches ECharts only through a dynamic import() (see Panel.tsx), so it
-  // lives in async chunks; this cacheGroup collapses the ECharts/zrender modules
-  // shared by those async chunks into a single `echarts` chunk emitted once.
+  // panel registers a React.lazy wrapper (see lib/components/LazyPanel), so the
+  // Panel and its ECharts import only ever live in async chunks; this cacheGroup
+  // collapses the ECharts/zrender modules shared by those async chunks into a
+  // single `echarts` chunk emitted once (the shared Panel code is likewise
+  // de-duplicated by webpack's default async cacheGroup).
   //
   // Only `async` chunks are split: Grafana's plugin loader fetches just each
   // entry `module.js`, and webpack's runtime lazy-loads async chunks via the

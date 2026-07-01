@@ -55,9 +55,10 @@ registerEChartsModules([
   CanvasRenderer,
 ]);
 
-// `init` creates a chart instance bound to a DOM node. This module is loaded
-// via dynamic import() (see Panel.tsx) so the registered ECharts bundle becomes
-// a single shared async chunk across the nested panels rather than being
-// duplicated into each panel's entry.
+// `init` creates a chart instance bound to a DOM node. This module is imported
+// statically by Panel.tsx, which is itself React.lazy-loaded (see
+// lib/components/LazyPanel), so the registered ECharts bundle becomes a shared
+// async chunk across the nested panels rather than being duplicated into each
+// panel's entry.
 export { init } from 'echarts/core';
 export type { EChartsType } from 'echarts/core';

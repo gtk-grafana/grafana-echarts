@@ -1,10 +1,10 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { seriesTypeDefault, seriesTypeName, seriesTypePath } from 'editor/constants';
-import { cartesianOverrideOptions, cartesianSeriesTypeOptions, seriesCategoryName } from 'editor/series';
+import { seriesCategoryName, seriesTypeDefault, seriesTypeName, seriesTypePath } from 'editor/constants';
+import { cartesianOverrideOptions, cartesianSeriesTypeOptions } from 'editor/series';
 import { type EChartsFieldConfig } from 'editor/types';
-import { Panel } from 'lib/components/Panel';
+import { LazyPanel } from 'lib/components/LazyPanel';
 import { heatmapColorSchemeDefault } from 'lib/echarts/options/heatmap';
 import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
@@ -14,7 +14,7 @@ import { cartesianSuggestionsSupplier } from './suggestions';
 // The family is fixed by this nested plugin's identity, so the panel-level
 // picker only offers cartesian render types. Which family fits the data is advertised via the Suggestions
 // supplier below.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
   // Standard field config options (Color scheme, Unit, Decimals, Min, Max,
   // Display name, No value, Thresholds, Value mappings, Data links). Grafana
   // includes the full set by default and applies them to every field in
