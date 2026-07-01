@@ -75,6 +75,35 @@ function formatTooltipValue(
   return eChartValue ? eChartValue.toString() : 'N/A';
 }
 
+/** Gap (px) between the cursor and the tooltip so it never sits under the pointer. */
+const TOOLTIP_CURSOR_GAP = 10;
+
+/**
+ * Position the portaled tooltip next to the cursor, flipping at the chart's
+ * right/bottom edges so it stays inside the view. Returned coords are
+ * chart-local; ECharts transforms them into the `appendTo` container.
+ * See https://echarts.apache.org/en/option.html#tooltip.position
+ */
+const getTooltipPosition: NonNullable<TooltipOption['position']> = (point, _params, _dom, _rect, size) => {
+  const [cursorX, cursorY] = point;
+  const [tooltipWidth, tooltipHeight] = size.contentSize;
+  const [viewWidth, viewHeight] = size.viewSize;
+
+  const x = cursorX + TOOLTIP_CURSOR_GAP + tooltipWidth > viewWidth
+      ? cursorX - tooltipWidth - TOOLTIP_CURSOR_GAP
+      : cursorX + TOOLTIP_CURSOR_GAP;
+  const y = cursorY + TOOLTIP_CURSOR_GAP + tooltipHeight > viewHeight
+      ? cursorY - tooltipHeight - TOOLTIP_CURSOR_GAP
+      : cursorY + TOOLTIP_CURSOR_GAP;
+
+  // Keep the tooltip inside the chart view after flipping (avoids negative coords
+  // when portaled to document.body).
+  return {
+    left: Math.max(0, Math.min(x, viewWidth - tooltipWidth)),
+    top: Math.max(0, Math.min(y, viewHeight - tooltipHeight)),
+  };
+};
+
 /**
  * Native ECharts tooltip config.
  * Translates Grafana theme into supported eCharts styles
@@ -93,11 +122,15 @@ export function getTooltipOption(
   // https://echarts.apache.org/en/option.html#tooltip
   return {
     show: true,
-    // @todo better positioning
     // https://echarts.apache.org/en/option.html#grid.tooltip.position
-    position: 'bottom',
+    position: getTooltipPosition,
     trigger,
     axisPointer: getCrosshairAxisPointer(),
+    // Portal the tooltip out of the panel container.
+    // We use the body instead of the grafana portal container because the zero-height fixed position Grafana portal
+    // doesn't work with the absolutely positioned eCharts tooltip
+    // https://echarts.apache.org/en/option.html#tooltip.appendTo
+    appendTo: document.body,
     // https://echarts.apache.org/en/option.html#grid.tooltip.formatter
     // formatter allows tooltip templates/ custom HTML, requires sanitization!
     // formatter: params => {
