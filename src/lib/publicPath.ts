@@ -15,6 +15,7 @@
 // before React.lazy fires any dynamic import().
 // https://webpack.js.org/guides/public-path/#on-the-fly
 
+// @todo this seems hacky look into this
 // `grafana-echarts-app` (this repo's app plugin id, see src/plugin.json).
 const APP_ID = 'grafana-echarts-app';
 

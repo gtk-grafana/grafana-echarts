@@ -5,16 +5,9 @@ import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/const
 import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
 import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
 import { LazyPanel } from 'lib/components/LazyPanel';
-import { HeatmapColorScheme } from 'lib/echarts/options/types';
+import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
 import { heatmapSuggestionsSupplier } from './suggestions';
 import { type PanelOptions } from 'types';
-
-const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
-  { value: 'spectral', label: 'Spectral' },
-  { value: 'turbo', label: 'Turbo' },
-  { value: 'blues', label: 'Blues' },
-  { value: 'magma', label: 'Magma' },
-];
 
 // Heatmap family panel: renders Grafana heatmap frames as ECharts
 // cells. The family is fixed to `heatmap`; the shared Panel resolves the
