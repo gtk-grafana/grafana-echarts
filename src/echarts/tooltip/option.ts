@@ -3,9 +3,9 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { EChartsAxisType } from 'echarts/axes/converters';
 import { ValueFormatter } from 'echarts/style';
 import { TooltipOption } from 'echarts/types/dist/shared';
-import { OptionDataValue } from 'echarts/types/src/util/types';
 import { convertThemePxToNumeric } from 'grafana/converters/theme';
 import { CrossStyle, EChartsTooltipTrigger } from './eChartsTypes';
+import { buildTooltipContent, formatTooltipValue } from './template';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
 const CROSSHAIR_COLOR = 'rgba(120, 120, 130, 0.5)';
@@ -53,26 +53,6 @@ export function getCrosshairAxisPointer(): TooltipOption['axisPointer'] {
     crossStyle: lineStyle,
     label: { show: false },
   };
-}
-
-/**
- * Format a raw ECharts tooltip value with Grafana's field formatter. ECharts
- * hands `tooltip.valueFormatter` the series' raw data item, which is a bare
- * scalar (pie) or an array whose trailing element is the numeric value we care
- * about (cartesian `[time, value]`, heatmap `[..., value]`).
- * See https://echarts.apache.org/en/option.html#tooltip.valueFormatter
- */
-function formatTooltipValue(
-  eChartValue: OptionDataValue | OptionDataValue[],
-  grafanaFormatValue: ValueFormatter
-): string {
-  const numeric = Array.isArray(eChartValue) ? eChartValue[eChartValue.length - 1] : eChartValue;
-  if (typeof numeric === 'number') {
-    return grafanaFormatValue(numeric);
-  }
-
-  // @todo better defaults
-  return eChartValue ? eChartValue.toString() : 'N/A';
 }
 
 /** Gap (px) between the cursor and the tooltip so it never sits under the pointer. */
@@ -131,15 +111,13 @@ export function getTooltipOption(
     // doesn't work with the absolutely positioned eCharts tooltip
     // https://echarts.apache.org/en/option.html#tooltip.appendTo
     appendTo: document.body,
-    // https://echarts.apache.org/en/option.html#grid.tooltip.formatter
-    // formatter allows tooltip templates/ custom HTML, requires sanitization!
-    // formatter: params => {
-    //   console.log('params', params)
-    //   return ''
-    // },
+    // Custom VizTooltip-style content, built as safe DOM (no innerHTML).
+    // Takes precedence over valueFormatter, which stays as a fallback for the
+    // default template (e.g. per-series tooltips that don't set their own).
+    // https://echarts.apache.org/en/option.html#tooltip.formatter
+    formatter: (params) => buildTooltipContent(params, grafanaValueFormatter, grafanaTheme),
     // Value formatter passes the values from the eCharts data into the grafana formatValue method
-    valueFormatter: (eChartValue: OptionDataValue | OptionDataValue[]) =>
-      formatTooltipValue(eChartValue, grafanaValueFormatter),
+    valueFormatter: (eChartValue) => formatTooltipValue(eChartValue, grafanaValueFormatter),
     // https://echarts.apache.org/en/option.html#grid.tooltip.backgroundColor
     backgroundColor: grafanaTheme.colors.background.elevated,
     //https://echarts.apache.org/en/option.html#tooltip.padding
