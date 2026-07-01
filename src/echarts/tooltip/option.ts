@@ -100,7 +100,10 @@ export function getTooltipOption(
     axisPointer: getCrosshairAxisPointer(),
     // https://echarts.apache.org/en/option.html#grid.tooltip.formatter
     // formatter allows tooltip templates/ custom HTML, requires sanitization!
-    // formatter
+    // formatter: params => {
+    //   console.log('params', params)
+    //   return ''
+    // },
     // Value formatter passes the values from the eCharts data into the grafana formatValue method
     valueFormatter: (eChartValue: OptionDataValue | OptionDataValue[]) =>
       formatTooltipValue(eChartValue, grafanaValueFormatter),
