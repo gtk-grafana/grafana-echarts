@@ -5,7 +5,6 @@ import { pieDefaultOptions } from 'echarts/options/pie';
 import { ChartModule } from './types';
 
 export const pieChartModule: ChartModule = {
-  tooltipKind: 'pie',
   legend: DEFAULT_CHART_LEGEND,
 
   buildOption(ctx, { isGrafanaLegend }) {

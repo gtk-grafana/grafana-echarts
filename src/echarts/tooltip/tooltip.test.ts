@@ -1,18 +1,22 @@
 import { TooltipDisplayMode } from '@grafana/schema';
-import { getTooltipOption, tooltipTriggerForMode } from 'echarts/tooltip';
+import { getTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'echarts/tooltip';
 
 const formatValue = (value: number | null) => (value == null ? 'null' : `${value}`);
 
-describe('tooltipTriggerForMode', () => {
-  it('uses axis for multi and item for single on time series', () => {
-    expect(tooltipTriggerForMode('timeseries', TooltipDisplayMode.Multi)).toBe('axis');
-    expect(tooltipTriggerForMode('timeseries', TooltipDisplayMode.Single)).toBe('item');
+describe('grafanaTooltipModeToEChartsTrigger', () => {
+  it('uses axis for multi and item for single on cartesian (time/value) axes', () => {
+    expect(grafanaTooltipModeToEChartsTrigger('time', TooltipDisplayMode.Multi)).toBe('axis');
+    expect(grafanaTooltipModeToEChartsTrigger('time', TooltipDisplayMode.Single)).toBe('item');
+    expect(grafanaTooltipModeToEChartsTrigger('value', TooltipDisplayMode.Multi)).toBe('axis');
   });
 
-  it('always uses item for pie, radar, and heatmap', () => {
-    expect(tooltipTriggerForMode('pie', TooltipDisplayMode.Multi)).toBe('item');
-    expect(tooltipTriggerForMode('radar', TooltipDisplayMode.Single)).toBe('item');
-    expect(tooltipTriggerForMode('heatmap', TooltipDisplayMode.Multi)).toBe('item');
+  it('always uses item on categorical axes (pie, radar)', () => {
+    expect(grafanaTooltipModeToEChartsTrigger('category', TooltipDisplayMode.Multi)).toBe('item');
+    expect(grafanaTooltipModeToEChartsTrigger('category', TooltipDisplayMode.Single)).toBe('item');
+  });
+
+  it('uses no trigger when the tooltip is hidden', () => {
+    expect(grafanaTooltipModeToEChartsTrigger('time', TooltipDisplayMode.None)).toBe('none');
   });
 });
 

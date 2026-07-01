@@ -5,7 +5,6 @@ import { radarDefaultOptions } from 'echarts/options/radar';
 import { ChartModule } from './types';
 
 export const radarChartModule: ChartModule = {
-  tooltipKind: 'radar',
   legend: DEFAULT_CHART_LEGEND,
 
   buildOption(ctx, { isGrafanaLegend }) {

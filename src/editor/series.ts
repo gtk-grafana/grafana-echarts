@@ -89,13 +89,6 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
  */
 export const heatmapSeriesTypes: SeriesType[] = ['heatmap'];
 
-export const supportedSeriesTypes = [
-  ...cartesianTimeSeriesTypes,
-  ...radarSeriesTypes,
-  ...pieSeriesTypes,
-  ...heatmapSeriesTypes,
-];
-
 /**
  * Series types offered as a per-field override (custom field config). Only
  * cartesian types are listed: they compose on the shared time/value grid, so a

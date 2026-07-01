@@ -1,3 +1,4 @@
+// @todo figure out panel type vs series type
 export type SeriesType =
   | 'line'
   | 'bar'

@@ -1,21 +1,37 @@
 import { TooltipDisplayMode } from '@grafana/schema';
+import { EChartsAxisType } from 'echarts/axes/converters';
 import { ValueFormatter } from 'echarts/style';
-import { EChartsTooltipTrigger, TooltipKind } from './types';
+import { EChartsTooltipTrigger } from './eChartsTypes';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
 const CROSSHAIR_COLOR = 'rgba(120, 120, 130, 0.5)';
 
 /**
- * Pick the ECharts tooltip trigger for the active series kind and tooltip mode.
+ * Pick the ECharts tooltip trigger for the chart's axis type and Grafana tooltip mode.
+ * https://echarts.apache.org/en/option.html#tooltip.trigger
  */
-export function tooltipTriggerForMode(kind: TooltipKind, mode: TooltipDisplayMode): EChartsTooltipTrigger {
-  if (kind === 'timeseries') {
-    return mode === TooltipDisplayMode.Single ? 'item' : 'axis';
+export function grafanaTooltipModeToEChartsTrigger(
+  axisType: EChartsAxisType,
+  mode: TooltipDisplayMode
+): EChartsTooltipTrigger {
+  if (mode === TooltipDisplayMode.None) {
+    return 'none';
   }
-  return 'item';
+
+  // Categorical axes have no shared axis, so only per-item hover works.
+  if (axisType === 'category') {
+    return 'item';
+  }
+
+  // On cartesian axes, "All series" shows every series at the hovered x (axis),
+  // while "Single" shows just the hovered point (item).
+  return mode === TooltipDisplayMode.Multi ? 'axis' : 'item';
 }
 
-/** ECharts axisPointer styled to match Core Grafana's uPlot cursor crosshair. */
+/**
+ *  ECharts axisPointer styled to match Core Grafana's uPlot cursor crosshair.
+ *  https://echarts.apache.org/en/option.html#tooltip.axisPointer
+ */
 export function getCrosshairAxisPointer() {
   const lineStyle = { color: CROSSHAIR_COLOR, width: 1, type: 'dashed' };
   return {
@@ -50,6 +66,7 @@ export function getTooltipOption(trigger: EChartsTooltipTrigger, mode: TooltipDi
     return { show: false };
   }
 
+  // https://echarts.apache.org/en/option.html#tooltip
   return {
     show: true,
     trigger,

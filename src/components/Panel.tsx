@@ -2,20 +2,16 @@ import { css } from '@emotion/css';
 import { DataFrame, Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { LegendDisplayMode, LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
-import {
-  PanelContextProvider,
-  SeriesVisibilityChangeMode,
-  usePanelContext,
-  useStyles2,
-  useTheme2,
-} from '@grafana/ui';
+import { PanelContextProvider, SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
+import { debug, LOG_LEVELS } from 'development';
 import { EChartsType, init } from 'echarts';
+import { panelTypeToAxis } from 'echarts/axes/converters';
 import { resolveChartModule } from 'echarts/charts/registry';
 import { ChartContext } from 'echarts/charts/types';
 import { getPanelLayout } from 'echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'echarts/options/legend';
-import { getCrosshairAxisPointer, getTooltipOption, tooltipTriggerForMode } from 'echarts/tooltip';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
+import { getCrosshairAxisPointer, getTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'echarts/tooltip';
 import { seriesTypePath } from 'editor/series';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
@@ -23,12 +19,7 @@ import { Legend } from './Legend';
 
 interface Props extends PanelProps<PanelOptions> {}
 
-
-const getRepresentativeFormatter = (
-  series: DataFrame[],
-  theme: GrafanaTheme2,
-  timeZone: string
-): ValueFormatter => {
+const getRepresentativeFormatter = (series: DataFrame[], theme: GrafanaTheme2, timeZone: string): ValueFormatter => {
   let numericField: Field | undefined;
   for (const frame of series) {
     numericField = frame.fields.find((field) => field.type === FieldType.number);
@@ -64,19 +55,14 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const panelRef = useRef<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
 
-  const chartModule = useMemo(
-    () => resolveChartModule(seriesType, data.series),
-    [seriesType, data.series]
-  );
+  const chartModule = useMemo(() => resolveChartModule(seriesType, data.series), [seriesType, data.series]);
 
   const resolvedLegend = useMemo(
     () => (chartModule ? resolveLegendOptions(chartModule, options) : undefined),
     [chartModule, options]
   );
 
-  const isVizLegend = Boolean(
-    resolvedLegend && isLegendVisible(resolvedLegend) && chartModule?.buildLegendItems
-  );
+  const isVizLegend = Boolean(resolvedLegend && isLegendVisible(resolvedLegend) && chartModule?.buildLegendItems);
 
   const formatValue = useMemo(
     () => getRepresentativeFormatter(data.series, theme, timeZone),
@@ -111,7 +97,6 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     return chartModule.buildLegendItems(chartContext, resolvedLegend.calcs ?? []);
   }, [isVizLegend, chartModule, chartContext, resolvedLegend]);
 
-  const tooltipKind = chartModule?.tooltipKind ?? 'timeseries';
   const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
 
   const onSeriesColorChange = useCallback((_label: string, _color: string) => {
@@ -154,8 +139,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
     panelRef.current.clear();
 
+    const axisType = panelTypeToAxis(seriesType);
     const tooltipOption = getTooltipOption(
-      tooltipTriggerForMode(tooltipKind, tooltipMode),
+      grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
       tooltipMode,
       formatValue
     );
@@ -163,11 +149,13 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     const echartOption = chartModule.buildOption(chartContext, { isGrafanaLegend: isVizLegend });
 
     if (!echartOption) {
-      return;
+      debug('No echart option', LOG_LEVELS.error, chartContext);
+      throw new Error('No echart option!');
     }
 
+    // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.
     const axisPointer =
-      tooltipKind === 'timeseries' || tooltipKind === 'heatmap'
+      axisType !== 'category'
         ? tooltipMode === TooltipDisplayMode.None
           ? { show: false }
           : getCrosshairAxisPointer()
@@ -178,7 +166,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       tooltip: tooltipOption,
       ...(axisPointer ? { axisPointer } : {}),
     });
-  }, [chartModule, chartContext, isVizLegend, formatValue, tooltipKind, tooltipMode]);
+  }, [chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode]);
 
   useEffect(() => {
     if (!panelRef.current) {
@@ -196,12 +184,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       <div ref={panelDOMRef} className={styles.panelContainer} style={{ width: chartWidth, height: chartHeight }}></div>
       {isVizLegend && resolvedLegend && (
         <PanelContextProvider value={legendContextValue}>
-          <Legend
-            items={legendItems}
-            legend={resolvedLegend}
-            width={legendWidth}
-            height={legendHeight}
-          />
+          <Legend items={legendItems} legend={resolvedLegend} width={legendWidth} height={legendHeight} />
         </PanelContextProvider>
       )}
     </div>

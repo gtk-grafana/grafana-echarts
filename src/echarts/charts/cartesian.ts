@@ -9,7 +9,6 @@ import { buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
 import { ChartModule } from './types';
 
 export const cartesianChartModule: ChartModule = {
-  tooltipKind: 'timeseries',
   legend: DEFAULT_CHART_LEGEND,
 
   buildOption(ctx, { isGrafanaLegend }) {

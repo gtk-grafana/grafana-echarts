@@ -1,7 +1,6 @@
 import { VizLegendOptions } from '@grafana/schema';
 import { VizLegendItem } from '@grafana/ui';
 import { ValueFormatter } from 'echarts/style';
-import { TooltipKind } from 'echarts/tooltip';
 import { ECBasicOption } from 'echarts/types/dist/shared';
 import { SeriesType } from 'editor/types';
 import { DataFrame, GrafanaTheme2 } from '@grafana/data';
@@ -25,8 +24,6 @@ export interface BaseOptionParts {
 
 /** Self-contained chart family: option building, legend, and tooltip metadata. */
 export interface ChartModule {
-  /** Picks the ECharts tooltip trigger for this family (see `tooltipTriggerForMode`). */
-  tooltipKind: TooltipKind;
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
   buildOption(ctx: ChartContext, base: BaseOptionParts): ECBasicOption | null;

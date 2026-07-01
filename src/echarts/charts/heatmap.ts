@@ -32,7 +32,6 @@ function splitFrames(ctx: ChartContext) {
 }
 
 export const heatmapChartModule: ChartModule = {
-  tooltipKind: 'heatmap',
   legend: DEFAULT_CHART_LEGEND,
 
   buildOption(ctx, { isGrafanaLegend }) {
