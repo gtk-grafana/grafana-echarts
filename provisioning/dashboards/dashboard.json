@@ -51,7 +51,7 @@
         }
       ],
       "title": "Sample Panel Title",
-      "type": "grafana-echarts-panel"
+      "type": "grafana-echartscartesian-panel"
     },
     {
       "datasource": {
@@ -82,7 +82,7 @@
         }
       ],
       "title": "Sample Panel Title",
-      "type": "grafana-echarts-panel"
+      "type": "grafana-echartscartesian-panel"
     }
   ],
   "refresh": "",
