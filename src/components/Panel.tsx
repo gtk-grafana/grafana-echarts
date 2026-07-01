@@ -148,7 +148,8 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     const tooltipOption = getTooltipOption(
       grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
       tooltipMode,
-      formatValue
+      formatValue,
+      theme,
     );
 
     const echartOption = chartModule.buildOption(chartContext, { isGrafanaLegend: isVizLegend });
@@ -172,7 +173,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       tooltip: tooltipOption,
       ...(axisPointer ? { axisPointer } : {}),
     });
-  }, [chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode]);
+  }, [chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme]);
 
   useEffect(() => {
     if (!panelRef.current) {

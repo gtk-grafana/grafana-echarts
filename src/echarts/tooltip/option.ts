@@ -1,8 +1,10 @@
+import { GrafanaTheme2 } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { EChartsAxisType } from 'echarts/axes/converters';
 import { ValueFormatter } from 'echarts/style';
 import { TooltipOption } from 'echarts/types/dist/shared';
 import { OptionDataValue } from 'echarts/types/src/util/types';
+import { convertThemePxToNumeric } from 'grafana/converters/theme';
 import { CrossStyle, EChartsTooltipTrigger } from './eChartsTypes';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
@@ -60,9 +62,12 @@ export function getCrosshairAxisPointer(): TooltipOption['axisPointer'] {
  * about (cartesian `[time, value]`, heatmap `[..., value]`).
  * See https://echarts.apache.org/en/option.html#tooltip.valueFormatter
  */
-function formatTooltipValue(eChartValue: OptionDataValue | OptionDataValue[], grafanaFormatValue: ValueFormatter): string {
+function formatTooltipValue(
+  eChartValue: OptionDataValue | OptionDataValue[],
+  grafanaFormatValue: ValueFormatter
+): string {
   const numeric = Array.isArray(eChartValue) ? eChartValue[eChartValue.length - 1] : eChartValue;
-  if(typeof numeric === 'number'){
+  if (typeof numeric === 'number') {
     return grafanaFormatValue(numeric);
   }
 
@@ -71,15 +76,15 @@ function formatTooltipValue(eChartValue: OptionDataValue | OptionDataValue[], gr
 }
 
 /**
- * Native ECharts tooltip config. ECharts renders and positions its own tooltip
- * box; we only pick the trigger, style the crosshair to match Grafana, and route
- * values through Grafana's field formatter so units/decimals match the panel.
+ * Native ECharts tooltip config.
+ * Translates Grafana theme into supported eCharts styles
  * See https://echarts.apache.org/en/option.html#tooltip
  */
 export function getTooltipOption(
   trigger: EChartsTooltipTrigger,
   mode: TooltipDisplayMode,
-  formatValue: ValueFormatter
+  grafanaValueFormatter: ValueFormatter,
+  grafanaTheme: GrafanaTheme2
 ): TooltipOption {
   if (mode === TooltipDisplayMode.None) {
     return { show: false };
@@ -88,8 +93,33 @@ export function getTooltipOption(
   // https://echarts.apache.org/en/option.html#tooltip
   return {
     show: true,
+    // @todo better positioning
+    // https://echarts.apache.org/en/option.html#grid.tooltip.position
+    position: 'bottom',
     trigger,
     axisPointer: getCrosshairAxisPointer(),
-    valueFormatter: (eChartValue: OptionDataValue | OptionDataValue[]) => formatTooltipValue(eChartValue, formatValue),
+    // https://echarts.apache.org/en/option.html#grid.tooltip.formatter
+    // formatter allows tooltip templates/ custom HTML, requires sanitization!
+    // formatter
+    // Value formatter passes the values from the eCharts data into the grafana formatValue method
+    valueFormatter: (eChartValue: OptionDataValue | OptionDataValue[]) =>
+      formatTooltipValue(eChartValue, grafanaValueFormatter),
+    // https://echarts.apache.org/en/option.html#grid.tooltip.backgroundColor
+    backgroundColor: grafanaTheme.colors.background.elevated,
+    //https://echarts.apache.org/en/option.html#tooltip.padding
+    padding: convertThemePxToNumeric(grafanaTheme.spacing(1)),
+    //https://echarts.apache.org/en/option.html#grid.tooltip.textStyle
+    textStyle: {
+      fontSize: grafanaTheme.typography.bodySmall.fontSize,
+      fontFamily: grafanaTheme.typography.fontFamily,
+      color: grafanaTheme.colors.text.primary,
+    },
+    borderColor: grafanaTheme.colors.border.medium,
+    borderRadius: convertThemePxToNumeric(grafanaTheme.shape.radius.default),
+    // @todo get from theme?
+    borderWidth: 1,
+    // CSS for floating layer (e.g. box shadow) rich text so unsanitized strings are vulnerable
+    // https://echarts.apache.org/en/option.html#grid.tooltip.extraCssText
+    extraCssText: `box-shadow: ${grafanaTheme.shadows.z2};`,
   };
 }
