@@ -1,5 +1,5 @@
 import { dateTimeFormat, GrafanaTheme2 } from '@grafana/data';
-import { graphic } from 'echarts';
+import { graphic } from 'lib/echarts/echarts';
 import { formatBucketBound, HeatmapCell, HeatmapData } from 'lib/echarts/converters/heatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
 import { ValueFormatter } from 'lib/echarts/style';

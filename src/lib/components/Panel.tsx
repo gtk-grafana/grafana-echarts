@@ -4,7 +4,7 @@ import { PanelDataErrorView } from '@grafana/runtime';
 import { LegendDisplayMode, LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
 import { PanelContextProvider, SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
-import { EChartsType, init } from 'echarts';
+import { EChartsType, init } from 'lib/echarts/echarts';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { ChartContext } from 'lib/echarts/charts/types';
