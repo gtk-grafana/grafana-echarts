@@ -1,5 +1,5 @@
 import { OptionsWithLegend, TooltipDisplayMode } from '@grafana/schema';
-import { seriesTypePath } from 'editor/series';
+import { seriesTypePath } from 'editor/constants';
 import { SeriesType } from 'editor/types';
 import { HeatmapColorScheme } from 'lib/echarts/options/heatmap';
 

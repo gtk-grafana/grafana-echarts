@@ -1,26 +1,14 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import {
-  cartesianOverrideOptions,
-  cartesianSeriesTypeOptions,
-  seriesCategoryName,
-  seriesTypeDefault,
-  seriesTypeName,
-  seriesTypePath,
-} from 'editor/series';
+import { seriesTypeDefault, seriesTypeName, seriesTypePath } from 'editor/constants';
+import { cartesianOverrideOptions, cartesianSeriesTypeOptions, seriesCategoryName } from 'editor/series';
 import { EChartsFieldConfig } from 'editor/types';
 import { Panel } from 'lib/components/Panel';
-import { HeatmapColorScheme, heatmapColorSchemeDefault } from 'lib/echarts/options/heatmap';
-import { PanelOptions } from 'types';
+import { heatmapColorSchemeDefault } from 'lib/echarts/options/heatmap';
+import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
+import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
-
-const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
-  { value: 'spectral', label: 'Spectral' },
-  { value: 'turbo', label: 'Turbo' },
-  { value: 'blues', label: 'Blues' },
-  { value: 'magma', label: 'Magma' },
-];
 
 // Cartesian family panel: line/bar/scatter on a time/value grid.
 // The family is fixed by this nested plugin's identity, so the panel-level

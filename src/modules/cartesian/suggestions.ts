@@ -5,7 +5,7 @@ import {
   VisualizationSuggestionScore,
   VisualizationSuggestionsSupplier,
 } from '@grafana/data';
-import { seriesTypePath } from 'editor/series';
+import { seriesTypePath } from 'editor/constants';
 import { EChartsFieldConfig } from 'editor/types';
 import { PanelOptions } from 'types';
 

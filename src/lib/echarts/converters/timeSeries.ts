@@ -1,7 +1,7 @@
 import { DataFrame, getFieldDisplayName, GrafanaTheme2 } from '@grafana/data';
+import {cartesianTimeSeriesTypes} from "editor/constants";
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
-import { cartesianTimeSeriesTypes } from 'editor/series';
 import { EChartsFieldConfig, SeriesType } from 'editor/types';
 
 /**

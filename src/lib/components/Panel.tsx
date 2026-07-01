@@ -4,6 +4,7 @@ import { PanelDataErrorView } from '@grafana/runtime';
 import { LegendDisplayMode, LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
 import { PanelContextProvider, SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
+import { seriesTypePath } from 'editor/constants';
 import { EChartsType, init } from 'lib/echarts/echarts';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
@@ -17,7 +18,6 @@ import {
   getTooltipOption,
   grafanaTooltipModeToEChartsTrigger,
 } from 'lib/echarts/tooltip';
-import { seriesTypePath } from 'editor/series';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
 import { Legend } from './Legend';

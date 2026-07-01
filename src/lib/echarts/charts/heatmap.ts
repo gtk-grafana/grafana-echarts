@@ -1,4 +1,5 @@
-import { frameHasCartesianOverride, cartesianTimeSeriesTypes } from 'editor/series';
+import {cartesianTimeSeriesTypes} from "editor/constants";
+import { frameHasCartesianOverride } from 'editor/series';
 import { frameToHeatmap, isHeatmapFrame } from 'lib/echarts/converters/heatmap';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {

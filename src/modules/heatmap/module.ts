@@ -1,7 +1,8 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/series';
+import { seriesTypeName, seriesTypePath } from 'editor/constants';
+import { seriesCategoryName } from 'editor/series';
 import { EChartsFieldConfig, SeriesType } from 'editor/types';
 import { heatmapColorSchemeDefault, HeatmapColorScheme } from 'lib/echarts/options/heatmap';
 import { Panel } from 'lib/components/Panel';

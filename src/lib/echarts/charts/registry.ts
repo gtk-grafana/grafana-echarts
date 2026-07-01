@@ -1,7 +1,7 @@
 import { DataFrame } from '@grafana/data';
+import {cartesianTimeSeriesTypes} from "editor/constants";
 import { isHeatmapFrame } from 'lib/echarts/converters/heatmap';
 import {
-  cartesianTimeSeriesTypes,
   heatmapSeriesTypes,
   pieSeriesTypes,
   radarSeriesTypes,
