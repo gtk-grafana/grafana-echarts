@@ -11,7 +11,12 @@ import { ChartContext } from 'echarts/charts/types';
 import { getPanelLayout } from 'echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'echarts/options/legend';
 import { getValueFormatter, ValueFormatter } from 'echarts/style';
-import { getCrosshairAxisPointer, getTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'echarts/tooltip';
+import {
+  getCrosshairAxisPointer,
+  getNoTooltipOption,
+  getTooltipOption,
+  grafanaTooltipModeToEChartsTrigger,
+} from 'echarts/tooltip';
 import { seriesTypePath } from 'editor/series';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
@@ -154,10 +159,11 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     }
 
     // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.
+    // @todo clean up nested ternary
     const axisPointer =
       axisType !== 'category'
         ? tooltipMode === TooltipDisplayMode.None
-          ? { show: false }
+          ? getNoTooltipOption()
           : getCrosshairAxisPointer()
         : undefined;
 
