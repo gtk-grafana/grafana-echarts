@@ -1,6 +1,6 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
-import { SortOrder, TooltipDisplayMode } from '@grafana/schema';
+import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import {
   cartesianOverrideOptions,
@@ -100,13 +100,22 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
     // Width, Limit, Values), registered in their own category.
     commonOptionsBuilder.addLegendOptions(builder);
 
-    // Standard Core Grafana "Tooltip" options (Tooltip mode, Values sort order,
-    // Hide zeros, Max width, Max height), registered in their own category.
-    // `setProximity = false`: "Hover proximity" is omitted because ECharts owns
-    // hit-testing and has no clean equivalent. Passing `hideZeros` in the
-    // defaults surfaces the "Hide zeros" switch (it is gated on being defined).
-    commonOptionsBuilder.addTooltipOptions(builder, false, false, {
-      tooltip: { mode: TooltipDisplayMode.Single, sort: SortOrder.None, hideZeros: false },
+    // Tooltip mode maps to the ECharts native tooltip trigger (see
+    // `tooltipTriggerForMode`): Single hovers a single item, All shares the x
+    // axis, Hidden disables the tooltip. The richer Core Grafana tooltip options
+    // (sort, hide zeros, size) are omitted because ECharts renders its own box.
+    builder.addRadio({
+      path: 'tooltip.mode',
+      name: 'Tooltip mode',
+      category: ['Tooltip'],
+      defaultValue: TooltipDisplayMode.Single,
+      settings: {
+        options: [
+          { value: TooltipDisplayMode.Single, label: 'Single' },
+          { value: TooltipDisplayMode.Multi, label: 'All' },
+          { value: TooltipDisplayMode.None, label: 'Hidden' },
+        ],
+      },
     });
 
     return builder;

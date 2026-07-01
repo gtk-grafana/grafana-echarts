@@ -1,5 +1,4 @@
 import { frameHasCartesianOverride, cartesianTimeSeriesTypes } from 'editor/series';
-import { NO_LINKS } from 'echarts/data/links';
 import { frameToHeatmap, isHeatmapFrame } from 'echarts/converters/heatmap';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import {
@@ -97,14 +96,5 @@ export const heatmapChartModule: ChartModule = {
       series,
       ...(heatmap ? { visualMap: getHeatmapVisualMap(heatmap, theme, 0, options.heatmapColorScheme) } : {}),
     };
-  },
-
-  resolveLinks() {
-    return NO_LINKS;
-  },
-
-  getTooltipExtras(ctx) {
-    const { heatmap } = splitFrames(ctx);
-    return { radarIndicators: [], xIsTime: heatmap ? heatmap.xIsTime : true, syncEnabled: false };
   },
 };

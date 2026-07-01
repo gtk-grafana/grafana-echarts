@@ -1,4 +1,5 @@
 import { TooltipDisplayMode } from '@grafana/schema';
+import { ValueFormatter } from 'echarts/style';
 import { EChartsTooltipTrigger, TooltipKind } from './types';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
@@ -27,9 +28,24 @@ export function getCrosshairAxisPointer() {
 }
 
 /**
- * Static ECharts tooltip config: transparent box; Grafana React tooltip renders content.
+ * Format a raw ECharts tooltip value with Grafana's field formatter. ECharts
+ * hands `tooltip.valueFormatter` the series' raw data item, which is a bare
+ * scalar (pie) or an array whose trailing element is the numeric value we care
+ * about (cartesian `[time, value]`, heatmap `[..., value]`).
+ * See https://echarts.apache.org/en/option.html#tooltip.valueFormatter
  */
-export function getTooltipOption(trigger: EChartsTooltipTrigger, mode?: TooltipDisplayMode) {
+function formatTooltipValue(value: unknown, formatValue: ValueFormatter): string {
+  const numeric = Array.isArray(value) ? value[value.length - 1] : value;
+  return formatValue(typeof numeric === 'number' ? numeric : null);
+}
+
+/**
+ * Native ECharts tooltip config. ECharts renders and positions its own tooltip
+ * box; we only pick the trigger, style the crosshair to match Grafana, and route
+ * values through Grafana's field formatter so units/decimals match the panel.
+ * See https://echarts.apache.org/en/option.html#tooltip
+ */
+export function getTooltipOption(trigger: EChartsTooltipTrigger, mode: TooltipDisplayMode, formatValue: ValueFormatter) {
   if (mode === TooltipDisplayMode.None) {
     return { show: false };
   }
@@ -37,11 +53,7 @@ export function getTooltipOption(trigger: EChartsTooltipTrigger, mode?: TooltipD
   return {
     show: true,
     trigger,
-    appendToBody: false,
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    padding: 0,
-    extraCssText: 'box-shadow: none;',
     axisPointer: getCrosshairAxisPointer(),
+    valueFormatter: (value: unknown) => formatTooltipValue(value, formatValue),
   };
 }
