@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 import { DataFrame, Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import { LegendDisplayMode, LegendPlacement, SortOrder, TooltipDisplayMode } from '@grafana/schema';
+import { LegendDisplayMode, LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
 import {
   PanelContextProvider,
   SeriesVisibilityChangeMode,
@@ -19,7 +19,6 @@ import { getValueFormatter, ValueFormatter } from 'echarts/style';
 import { seriesTypePath } from 'editor/series';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PanelOptions } from 'types';
-import { useGrafanaEChartsTooltip } from './EChartsTooltip';
 import { Legend } from './Legend';
 
 interface Props extends PanelProps<PanelOptions> {}
@@ -61,7 +60,6 @@ const getStyles = (theme: GrafanaTheme2, height: number, width: number, placemen
 export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone, eventBus }) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
-  const { sync } = panelContext;
   const panelDOMRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
@@ -114,41 +112,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   }, [isVizLegend, chartModule, chartContext, resolvedLegend]);
 
   const tooltipKind = chartModule?.tooltipKind ?? 'timeseries';
-  const tooltipExtras = useMemo(
-    () => chartModule?.getTooltipExtras?.(chartContext) ?? { radarIndicators: [], xIsTime: true, syncEnabled: false },
-    [chartModule, chartContext]
-  );
-
   const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
-  const tooltipSort = options.tooltip?.sort ?? SortOrder.None;
-  const tooltipHideZeros = options.tooltip?.hideZeros ?? false;
-  const tooltipMaxWidth = options.tooltip?.maxWidth;
-  const tooltipMaxHeight = options.tooltip?.maxHeight;
-
-  const resolveLinks = useMemo(
-    () => chartModule?.resolveLinks?.(chartContext) ?? (() => []),
-    [chartModule, chartContext]
-  );
-
-  const {
-    formatter: tooltipFormatter,
-    portal: tooltipPortal,
-    attach: tooltipAttach,
-  } = useGrafanaEChartsTooltip({
-    kind: tooltipKind,
-    valueFormatter: formatValue,
-    timeZone,
-    radarIndicators: tooltipExtras.radarIndicators,
-    sort: tooltipSort,
-    hideZeros: tooltipHideZeros,
-    xIsTime: tooltipExtras.xIsTime,
-    maxWidth: tooltipMaxWidth,
-    maxHeight: tooltipMaxHeight,
-    resolveLinks,
-    eventBus,
-    getCursorSync: sync,
-    syncEnabled: tooltipExtras.syncEnabled,
-  });
 
   const onSeriesColorChange = useCallback((_label: string, _color: string) => {
     // @todo requires fieldConfig override write-back (PanelContext not available to community panels)
@@ -178,12 +142,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
     const chart = init(panelDOMRef.current);
     panelRef.current = chart;
-    const detachTooltip = tooltipAttach(chart, panelDOMRef.current);
     return () => {
-      detachTooltip();
       chart.dispose();
     };
-  }, [tooltipAttach]);
+  }, []);
 
   useEffect(() => {
     if (!panelRef.current || !chartModule) {
@@ -192,10 +154,11 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
 
     panelRef.current.clear();
 
-    const tooltipOption = {
-      ...getTooltipOption(tooltipTriggerForMode(tooltipKind, tooltipMode), tooltipMode),
-      formatter: tooltipFormatter,
-    };
+    const tooltipOption = getTooltipOption(
+      tooltipTriggerForMode(tooltipKind, tooltipMode),
+      tooltipMode,
+      formatValue
+    );
 
     const echartOption = chartModule.buildOption(chartContext, { isGrafanaLegend: isVizLegend });
 
@@ -215,7 +178,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       tooltip: tooltipOption,
       ...(axisPointer ? { axisPointer } : {}),
     });
-  }, [chartModule, chartContext, isVizLegend, tooltipFormatter, tooltipKind, tooltipMode]);
+  }, [chartModule, chartContext, isVizLegend, formatValue, tooltipKind, tooltipMode]);
 
   useEffect(() => {
     if (!panelRef.current) {
@@ -231,7 +194,6 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   return (
     <div className={styles.wrapper}>
       <div ref={panelDOMRef} className={styles.panelContainer} style={{ width: chartWidth, height: chartHeight }}></div>
-      {tooltipPortal}
       {isVizLegend && resolvedLegend && (
         <PanelContextProvider value={legendContextValue}>
           <Legend
