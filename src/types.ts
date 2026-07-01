@@ -1,7 +1,8 @@
 import { type OptionsWithLegend, type TooltipDisplayMode } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
-import { type HeatmapColorScheme } from 'lib/echarts/options/heatmap';
+
+import { HeatmapColorScheme } from 'lib/echarts/options/types';
 
 export type { EChartsFieldConfig } from 'editor/types';
 

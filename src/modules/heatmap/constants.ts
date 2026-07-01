@@ -1,5 +1,6 @@
 import { type SelectableValue } from '@grafana/data';
-import { type HeatmapColorScheme } from 'lib/echarts/options/heatmap';
+
+import { HeatmapColorScheme } from 'lib/echarts/options/types';
 
 export const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
   { value: 'spectral', label: 'Spectral' },

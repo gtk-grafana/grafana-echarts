@@ -7,11 +7,12 @@ import {
   getCartesianAxisStyle,
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
+import { HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
 import {
   getHeatmapBucketAxis,
   getHeatmapSeries,
   getHeatmapVisualMap,
-  HEATMAP_VISUALMAP_WIDTH,
+
 } from 'lib/echarts/options/heatmap';
 import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { type ChartContext, type ChartModule } from './types';

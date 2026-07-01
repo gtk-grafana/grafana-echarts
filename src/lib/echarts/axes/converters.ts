@@ -1,5 +1,4 @@
-import {cartesianTimeSeriesTypes} from "editor/constants";
-import { heatmapSeriesTypes } from 'editor/series';
+import { cartesianTimeSeriesTypes, heatmapSeriesTypes } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 
 /**

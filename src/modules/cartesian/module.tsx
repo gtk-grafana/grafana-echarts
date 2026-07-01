@@ -1,11 +1,17 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { seriesCategoryName, seriesTypeDefault, seriesTypeName, seriesTypePath } from 'editor/constants';
-import { cartesianOverrideOptions, cartesianSeriesTypeOptions } from 'editor/series';
+import {
+  cartesianOverrideOptions,
+  cartesianSeriesTypeOptions,
+  seriesCategoryName,
+  seriesTypeDefault,
+  seriesTypeName,
+  seriesTypePath,
+} from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
-import { heatmapColorSchemeDefault } from 'lib/echarts/options/heatmap';
+import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
 import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';

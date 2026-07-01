@@ -3,8 +3,9 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
-import { heatmapColorSchemeDefault, type HeatmapColorScheme } from 'lib/echarts/options/heatmap';
+import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
 import { LazyPanel } from 'lib/components/LazyPanel';
+import { HeatmapColorScheme } from 'lib/echarts/options/types';
 import { heatmapSuggestionsSupplier } from './suggestions';
 import { type PanelOptions } from 'types';
 
