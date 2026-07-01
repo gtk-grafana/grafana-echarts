@@ -1,50 +1,74 @@
+import { createTheme } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { getTooltipOption, tooltipTriggerForMode } from 'echarts/tooltip';
+import { getTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'echarts/tooltip';
+import { TooltipPositionCallback } from 'echarts/types/dist/shared';
 
+const theme = createTheme();
 const formatValue = (value: number | null) => (value == null ? 'null' : `${value}`);
 
-describe('tooltipTriggerForMode', () => {
-  it('uses axis for multi and item for single on time series', () => {
-    expect(tooltipTriggerForMode('timeseries', TooltipDisplayMode.Multi)).toBe('axis');
-    expect(tooltipTriggerForMode('timeseries', TooltipDisplayMode.Single)).toBe('item');
+function callTooltipPosition(point: [number, number], contentSize: [number, number], viewSize: [number, number]) {
+  const { position } = getTooltipOption('item', TooltipDisplayMode.Single, formatValue, theme);
+  return (position as TooltipPositionCallback)(point, [], null, null, { contentSize, viewSize });
+}
+
+describe('grafanaTooltipModeToEChartsTrigger', () => {
+  it('uses axis for multi and item for single on cartesian (time/value) axes', () => {
+    expect(grafanaTooltipModeToEChartsTrigger('time', TooltipDisplayMode.Multi)).toBe('axis');
+    expect(grafanaTooltipModeToEChartsTrigger('time', TooltipDisplayMode.Single)).toBe('item');
+    expect(grafanaTooltipModeToEChartsTrigger('value', TooltipDisplayMode.Multi)).toBe('axis');
   });
 
-  it('always uses item for pie, radar, and heatmap', () => {
-    expect(tooltipTriggerForMode('pie', TooltipDisplayMode.Multi)).toBe('item');
-    expect(tooltipTriggerForMode('radar', TooltipDisplayMode.Single)).toBe('item');
-    expect(tooltipTriggerForMode('heatmap', TooltipDisplayMode.Multi)).toBe('item');
+  it('always uses item on categorical axes (pie, radar)', () => {
+    expect(grafanaTooltipModeToEChartsTrigger('category', TooltipDisplayMode.Multi)).toBe('item');
+    expect(grafanaTooltipModeToEChartsTrigger('category', TooltipDisplayMode.Single)).toBe('item');
+  });
+
+  it('uses no trigger when the tooltip is hidden', () => {
+    expect(grafanaTooltipModeToEChartsTrigger('time', TooltipDisplayMode.None)).toBe('none');
   });
 });
 
 describe('getTooltipOption', () => {
   it('disables the tooltip entirely in "Hidden" mode', () => {
-    expect(getTooltipOption('axis', TooltipDisplayMode.None, formatValue)).toEqual({ show: false });
-    expect(getTooltipOption('item', TooltipDisplayMode.None, formatValue)).toEqual({ show: false });
+    expect(getTooltipOption('axis', TooltipDisplayMode.None, formatValue, theme)).toEqual({ show: false });
+    expect(getTooltipOption('item', TooltipDisplayMode.None, formatValue, theme)).toEqual({ show: false });
   });
 
   it('produces a native tooltip for the given trigger with a crosshair axis pointer', () => {
-    const option = getTooltipOption('axis', TooltipDisplayMode.Multi, formatValue);
+    const option = getTooltipOption('axis', TooltipDisplayMode.Multi, formatValue, theme);
     expect(option).toMatchObject({ show: true, trigger: 'axis' });
     expect(option).toHaveProperty('axisPointer.type', 'cross');
-    expect(getTooltipOption('item', TooltipDisplayMode.Single, formatValue)).toMatchObject({ trigger: 'item' });
+    expect(getTooltipOption('item', TooltipDisplayMode.Single, formatValue, theme)).toMatchObject({ trigger: 'item' });
   });
 
   it('formats scalar values through the Grafana formatter', () => {
-    const { valueFormatter } = getTooltipOption('item', TooltipDisplayMode.Single, formatValue) as {
+    const { valueFormatter } = getTooltipOption('item', TooltipDisplayMode.Single, formatValue, theme) as {
       valueFormatter: (value: unknown) => string;
     };
     expect(valueFormatter(10)).toBe('10');
-    expect(valueFormatter(null)).toBe('null');
-    expect(valueFormatter('text')).toBe('null');
+    expect(valueFormatter(null)).toBe('N/A');
+    expect(valueFormatter('text')).toBe('text');
   });
 
   it('unwraps the trailing numeric from array data items before formatting', () => {
-    const { valueFormatter } = getTooltipOption('axis', TooltipDisplayMode.Multi, formatValue) as {
+    const { valueFormatter } = getTooltipOption('axis', TooltipDisplayMode.Multi, formatValue, theme) as {
       valueFormatter: (value: unknown) => string;
     };
     // Cartesian [time, value] tuple.
     expect(valueFormatter([1000, 42])).toBe('42');
     // Heatmap [xStart, yStart, xEnd, yEnd, value] tuple.
     expect(valueFormatter([1000, 10, 2000, 20, 7])).toBe('7');
+  });
+
+  it('positions the tooltip beside the cursor with a gap', () => {
+    expect(callTooltipPosition([50, 50], [80, 40], [400, 300])).toEqual({ left: 60, top: 60 });
+  });
+
+  it('flips the tooltip when it would overflow the chart view', () => {
+    expect(callTooltipPosition([350, 250], [80, 40], [400, 300])).toEqual({ left: 260, top: 260 });
+  });
+
+  it('clamps the tooltip inside the chart view after flipping', () => {
+    expect(callTooltipPosition([50, 50], [100, 50], [120, 80])).toEqual({ left: 0, top: 0 });
   });
 });

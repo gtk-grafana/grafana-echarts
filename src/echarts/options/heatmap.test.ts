@@ -1,5 +1,7 @@
+import { createTheme } from '@grafana/data';
 import { HeatmapData } from 'echarts/converters/heatmap';
-import { getHeatmapBucketAxis } from 'echarts/options/heatmap';
+import { buildHeatmapTooltip, getHeatmapBucketAxis } from 'echarts/options/heatmap';
+import { TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 const baseData = (overrides: Partial<HeatmapData>): HeatmapData => ({
   cells: [],
@@ -68,5 +70,71 @@ describe('getHeatmapBucketAxis', () => {
       })
     );
     expect((axis.splitLine as { customValues: number[] }).customValues).toEqual([0]);
+  });
+});
+
+describe('buildHeatmapTooltip', () => {
+  const theme = createTheme();
+  const formatValue = (value: number | null) => (value == null ? 'null' : `${value}`);
+  const ctx = { theme, timeZone: 'utc', formatValue };
+  // Encoded cell tuple: [xStart, yStart, xEnd, yEnd, value].
+  const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as unknown as TopLevelFormatterParams;
+
+  it('formats the x header as time and shows the value and bucket name', () => {
+    const formatter = buildHeatmapTooltip(
+      baseData({
+        xIsTime: true,
+        yBuckets: [
+          { start: 0, end: 10, label: '10' },
+          { start: 10, end: 20, label: '20' },
+        ],
+      }),
+      ctx
+    );
+
+    const el = formatter(asParams([0, 10, 60000, 20, 7]));
+
+    // xStart = 0 -> unix epoch in the forced-UTC test timezone.
+    expect(el.textContent).toContain('1970-01-01 00:00:00');
+    expect(el.textContent).toContain('Value');
+    expect(el.textContent).toContain('7');
+    expect(el.textContent).toContain('Name');
+    // Bucket keyed by yStart:yEnd (10:20).
+    expect(el.textContent).toContain('20');
+  });
+
+  it('formats a numeric x header when the axis is not time', () => {
+    const formatter = buildHeatmapTooltip(
+      baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
+      ctx
+    );
+
+    const el = formatter(asParams([5, 0, 6, 1, 3]));
+
+    expect(el.textContent).toContain('5');
+    expect(el.textContent).toContain('a');
+    expect(el.textContent).toContain('3');
+  });
+
+  it('falls back to the numeric bucket bounds when no label matches', () => {
+    const formatter = buildHeatmapTooltip(
+      baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
+      ctx
+    );
+
+    const el = formatter(asParams([0, 100, 1, 200, 9]));
+
+    expect(el.textContent).toContain('100 - 200');
+  });
+
+  it('renders the Grafana no-value fallback for null cells', () => {
+    const formatter = buildHeatmapTooltip(
+      baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
+      ctx
+    );
+
+    const el = formatter(asParams([0, 0, 1, 1, null]));
+
+    expect(el.textContent).toContain('N/A');
   });
 });
