@@ -51,7 +51,7 @@ export const heatmapChartModule: ChartModule = {
 
     const series: unknown[] = [];
     if (heatmap) {
-      series.push(getHeatmapSeries(heatmap, 0));
+      series.push(getHeatmapSeries(heatmap, { theme, timeZone: ctx.timeZone, formatValue }, 0));
     }
     for (const cartesian of cartSeries) {
       series.push({ ...cartesian, yAxisIndex: overlayYAxisIndex });

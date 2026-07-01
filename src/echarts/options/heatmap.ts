@@ -1,7 +1,10 @@
-import { GrafanaTheme2 } from '@grafana/data';
+import { dateTimeFormat, GrafanaTheme2 } from '@grafana/data';
 import { graphic } from 'echarts';
 import { formatBucketBound, HeatmapCell, HeatmapData } from 'echarts/converters/heatmap';
 import { getThemeTextStyle } from 'echarts/options/base';
+import { ValueFormatter } from 'echarts/style';
+import { buildTooltipShell, formatTooltipValue } from 'echarts/tooltip/template';
+import { CallbackDataParams, TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 /**
  * Custom tick/label/grid-line placement for the heatmap bucket (Y) axis so the
@@ -140,10 +143,63 @@ export function heatmapRenderItem(params: any, api: any) {
   };
 }
 
+/** Theme + formatting context the heatmap tooltip needs to match Grafana. */
+export interface HeatmapTooltipContext {
+  theme: GrafanaTheme2;
+  timeZone: string;
+  formatValue: ValueFormatter;
+}
+
+/**
+ * Per-cell tooltip for the heatmap custom series. Unlike the generic tooltip
+ * (which would show the series name "Heatmap" and the raw cell value), this
+ * matches core Grafana: the X (time/value) in the header, then a "Value" row and
+ * the bucket "Name" row. The bucket label is recovered from the cell's Y bounds
+ * via {@link HeatmapData.yBuckets}, the same labels the bucket axis uses.
+ *
+ * ECharts hands `params.value` back the encoded `[xStart, yStart, xEnd, yEnd,
+ * value]` tuple (item trigger). Returns safe DOM (no innerHTML) via the shared
+ * tooltip shell. See https://echarts.apache.org/en/option.html#series-custom.tooltip
+ */
+export function buildHeatmapTooltip(
+  data: HeatmapData,
+  ctx: HeatmapTooltipContext
+): (params: TopLevelFormatterParams) => HTMLElement {
+  const bucketLabels = new Map<string, string>();
+  for (const bucket of data.yBuckets) {
+    bucketLabels.set(`${bucket.start}:${bucket.end}`, bucket.label);
+  }
+
+  const formatX = (x: number): string => {
+    if (!Number.isFinite(x)) {
+      return String(x);
+    }
+    return data.xIsTime ? dateTimeFormat(x, { timeZone: ctx.timeZone }) : formatBucketBound(x);
+  };
+
+  return (params) => {
+    const param = (Array.isArray(params) ? params[0] : params) as CallbackDataParams | undefined;
+    const tuple = (Array.isArray(param?.value) ? param.value : []) as Array<number | null>;
+    const xStart = Number(tuple[0]);
+    const yStart = Number(tuple[1]);
+    const yEnd = Number(tuple[3]);
+    const value = tuple[HEATMAP_VALUE_DIM] ?? null;
+
+    const bucket =
+      bucketLabels.get(`${yStart}:${yEnd}`) ?? `${formatBucketBound(yStart)} - ${formatBucketBound(yEnd)}`;
+
+    const shell = buildTooltipShell(ctx.theme);
+    shell.appendHeader(formatX(xStart));
+    shell.appendRow({ label: 'Value', value: formatTooltipValue(value, ctx.formatValue) });
+    shell.appendRow({ label: 'Name', value: bucket });
+    return shell.root;
+  };
+}
+
 /**
  * Build the heatmap custom series. `yAxisIndex` defaults to 0 (the bucket axis).
  */
-export function getHeatmapSeries(data: HeatmapData, yAxisIndex = 0) {
+export function getHeatmapSeries(data: HeatmapData, tooltipCtx: HeatmapTooltipContext, yAxisIndex = 0) {
   return {
     name: 'Heatmap',
     type: 'custom',
@@ -157,6 +213,9 @@ export function getHeatmapSeries(data: HeatmapData, yAxisIndex = 0) {
     data: encodeHeatmapData(data.cells),
     // Exclude from the toggle legend; the cell layer isn't a togglable series.
     legendHoverLink: false,
+    // Per-series tooltip so a hovered cell reads like core Grafana's heatmap.
+    // https://echarts.apache.org/en/option.html#series-custom.tooltip
+    tooltip: { formatter: buildHeatmapTooltip(data, tooltipCtx) },
   };
 }
 
