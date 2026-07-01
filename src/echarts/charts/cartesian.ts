@@ -1,4 +1,3 @@
-import { resolveLinksFromFrames } from 'echarts/data/links';
 import { timeSeriesToEChartsOption } from 'echarts/converters/timeSeries';
 import {
   cartesianTimeDefaultOptions,
@@ -7,7 +6,7 @@ import {
 } from 'echarts/options/cartesian';
 import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'echarts/options/legend';
 import { buildTimeSeriesLegendItems } from 'echarts/options/legendItems';
-import { ChartModule, TooltipExtras } from './types';
+import { ChartModule } from './types';
 
 export const cartesianChartModule: ChartModule = {
   tooltipKind: 'timeseries',
@@ -45,13 +44,5 @@ export const cartesianChartModule: ChartModule = {
 
   buildLegendItems(ctx, calcs) {
     return buildTimeSeriesLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone);
-  },
-
-  resolveLinks(ctx) {
-    return resolveLinksFromFrames(ctx.frames, 'cartesian');
-  },
-
-  getTooltipExtras(): TooltipExtras {
-    return { radarIndicators: [], xIsTime: true, syncEnabled: true };
   },
 };

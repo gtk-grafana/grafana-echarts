@@ -1,9 +1,8 @@
-import { resolveLinksFromFrames } from 'echarts/data/links';
 import { pieToEChartsOption } from 'echarts/converters/pie';
 import { getLegendOption, DEFAULT_CHART_LEGEND } from 'echarts/options/legend';
 import { buildPieLegendItems } from 'echarts/options/legendItems';
 import { pieDefaultOptions } from 'echarts/options/pie';
-import { ChartModule, TooltipExtras } from './types';
+import { ChartModule } from './types';
 
 export const pieChartModule: ChartModule = {
   tooltipKind: 'pie',
@@ -28,13 +27,5 @@ export const pieChartModule: ChartModule = {
 
   buildLegendItems(ctx, calcs) {
     return buildPieLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone);
-  },
-
-  resolveLinks(ctx) {
-    return resolveLinksFromFrames(ctx.frames, 'pie');
-  },
-
-  getTooltipExtras(): TooltipExtras {
-    return { radarIndicators: [], xIsTime: true, syncEnabled: false };
   },
 };

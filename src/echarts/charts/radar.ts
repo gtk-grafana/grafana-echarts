@@ -1,4 +1,3 @@
-import { resolveLinksFromFrames } from 'echarts/data/links';
 import { radarToEChartsOption } from 'echarts/converters/radar';
 import { getLegendOption, DEFAULT_CHART_LEGEND } from 'echarts/options/legend';
 import { buildRadarLegendItems } from 'echarts/options/legendItems';
@@ -29,18 +28,5 @@ export const radarChartModule: ChartModule = {
 
   buildLegendItems(ctx, calcs) {
     return buildRadarLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone);
-  },
-
-  resolveLinks(ctx) {
-    return resolveLinksFromFrames(ctx.frames, 'radar');
-  },
-
-  getTooltipExtras(ctx) {
-    const radar = radarToEChartsOption(ctx.frames, ctx.theme);
-    return {
-      radarIndicators: radar ? radar.indicator.map((indicator) => indicator.name) : [],
-      xIsTime: true,
-      syncEnabled: false,
-    };
   },
 };
