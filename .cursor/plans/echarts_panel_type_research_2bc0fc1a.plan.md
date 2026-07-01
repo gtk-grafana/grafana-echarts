@@ -4,10 +4,10 @@ overview: Research mapping of all 23 Apache ECharts series types into logical pa
 todos:
   - id: scaffold-app-plugin
     content: "Convert root to type: app plugin; register four near-term nested panels via includes (cartesian, heatmap, part-to-whole, multivariate)"
-    status: pending
+    status: completed
   - id: extract-shared-lib
     content: Move src/echarts/**, src/grafana/**, src/components/** into a shared library imported by each nested module.ts
-    status: pending
+    status: completed
   - id: suggestions-routing
     content: Add setSuggestionsSupplier per nested panel keyed on PanelDataSummary/dataplane type; retire the flat seriesType dropdown
     status: pending
