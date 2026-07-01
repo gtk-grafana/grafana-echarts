@@ -4,9 +4,10 @@ import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/series';
 import { EChartsFieldConfig, SeriesType } from 'editor/types';
 import { Panel } from 'lib/components/Panel';
+import { partToWholeSuggestionsSupplier } from './suggestions';
 import { PanelOptions } from 'types';
 
-// Part-to-whole family panel (Group 5): pie built from the categorical model
+// Part-to-whole family panel: pie built from the categorical model
 // (one value per category). The family is fixed to `pie`; the shared Panel
 // resolves the pie chart module. funnel/gauge render types are roadmap.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
@@ -52,4 +53,6 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
     });
 
     return builder;
-  });
+  })
+  // Advertise fitness for numeric/instant data
+  .setSuggestionsSupplier(partToWholeSuggestionsSupplier);

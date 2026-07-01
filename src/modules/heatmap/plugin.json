@@ -3,6 +3,7 @@
   "type": "panel",
   "name": "ECharts Heatmap",
   "id": "grafana-echartsheatmap-panel",
+  "suggestions": true,
   "info": {
     "keywords": ["panel", "echarts", "heatmap", "matrix"],
     "description": "Heatmap ECharts panel for Grafana heatmap frames, with optional cartesian overlay.",

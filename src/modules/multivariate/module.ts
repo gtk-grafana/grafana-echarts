@@ -4,9 +4,10 @@ import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/series';
 import { EChartsFieldConfig, SeriesType } from 'editor/types';
 import { Panel } from 'lib/components/Panel';
+import { multivariateSuggestionsSupplier } from './suggestions';
 import { PanelOptions } from 'types';
 
-// Multivariate family panel (Group 6): radar built from the categorical model
+// Multivariate family panel: radar built from the categorical model
 // (categories -> indicators, series -> polygons). The family is fixed to
 // `radar`; the shared Panel resolves the radar chart module. parallel is
 // roadmap.
@@ -53,4 +54,6 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
     });
 
     return builder;
-  });
+  })
+  // Advertise fitness for multi-metric numeric data (opts in via `"suggestions": true`).
+  .setSuggestionsSupplier(multivariateSuggestionsSupplier);

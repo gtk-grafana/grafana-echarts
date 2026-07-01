@@ -90,16 +90,25 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
 export const heatmapSeriesTypes: SeriesType[] = ['heatmap'];
 
 /**
+ * Cartesian render types offered by the cartesian family panel. These are the
+ * in-family render variants (line/bar/scatter/...) selected per panel; the
+ * cross-family "flat" picker that mixed unrelated families is retired in favor
+ * of per-panel Visualization Suggestions (see each module's suggestions.ts).
+ */
+export const cartesianSeriesTypeOptions: Array<SelectableValue<SeriesType>> = cartesianTimeSeriesTypes.map((type) => ({
+  value: type,
+  label: type,
+}));
+
+/**
  * Series types offered as a per-field override (custom field config). Only
  * cartesian types are listed: they compose on the shared time/value grid, so a
  * field can be drawn as a `bar` while others stay `line`. Non-cartesian types
  * (pie/radar) use other coordinate systems and cannot be overlaid, and heatmap
- * is detected from the frame type rather than chosen per field.
+ * is detected from the frame type rather than chosen per field. Same set as the
+ * panel-level render types, reused here for the field override.
  */
-export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cartesianTimeSeriesTypes.map((type) => ({
-  value: type,
-  label: type,
-}));
+export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cartesianSeriesTypeOptions;
 
 /**
  * Grafana dataplane frame types that carry a heatmap. A frame tagged with one
