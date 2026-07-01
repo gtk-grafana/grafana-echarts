@@ -1,4 +1,4 @@
-import { DataFrame, Field, FieldType, getFieldDisplayName } from '@grafana/data';
+import { type DataFrame, type Field, FieldType, getFieldDisplayName } from '@grafana/data';
 import { formatBucketBound } from 'lib/echarts/format';
 import { heatmapFrameTypes } from 'editor/series';
 

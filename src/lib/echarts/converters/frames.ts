@@ -1,9 +1,9 @@
 import {
-  DataFrame,
-  Field,
+  type DataFrame,
+  type Field,
   FieldType,
   getFieldDisplayName,
-  GrafanaTheme2,
+  type GrafanaTheme2,
 } from '@grafana/data';
 import { getSeriesColor } from 'lib/echarts/style';
 

@@ -1,6 +1,6 @@
-import { DataFrameType, VisualizationSuggestionScore, VisualizationSuggestionsSupplier } from '@grafana/data';
-import { EChartsFieldConfig } from 'editor/types';
-import { PanelOptions } from 'types';
+import { DataFrameType, VisualizationSuggestionScore, type VisualizationSuggestionsSupplier } from '@grafana/data';
+import { type EChartsFieldConfig } from 'editor/types';
+import { type PanelOptions } from 'types';
 
 // Visualization Suggestions for the heatmap family. This is where the
 // old "a heatmap frame forces heatmap rendering" rule lives now: when Grafana

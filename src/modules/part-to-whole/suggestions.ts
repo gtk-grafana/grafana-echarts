@@ -2,10 +2,10 @@ import {
   DataFrameType,
   FieldType,
   VisualizationSuggestionScore,
-  VisualizationSuggestionsSupplier,
+  type VisualizationSuggestionsSupplier,
 } from '@grafana/data';
-import { EChartsFieldConfig } from 'editor/types';
-import { PanelOptions } from 'types';
+import { type EChartsFieldConfig } from 'editor/types';
+import { type PanelOptions } from 'types';
 
 // Visualization Suggestions for the part-to-whole family: pie built
 // from one value per category. Numeric (instant) frames are the natural fit.

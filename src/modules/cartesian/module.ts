@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesTypeDefault, seriesTypeName, seriesTypePath } from 'editor/constants';
 import { cartesianOverrideOptions, cartesianSeriesTypeOptions, seriesCategoryName } from 'editor/series';
-import { EChartsFieldConfig } from 'editor/types';
+import { type EChartsFieldConfig } from 'editor/types';
 import { Panel } from 'lib/components/Panel';
 import { heatmapColorSchemeDefault } from 'lib/echarts/options/heatmap';
 import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';

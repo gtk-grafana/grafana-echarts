@@ -1,6 +1,6 @@
-import { FieldType, VisualizationSuggestionScore, VisualizationSuggestionsSupplier } from '@grafana/data';
-import { EChartsFieldConfig } from 'editor/types';
-import { PanelOptions } from 'types';
+import { FieldType, VisualizationSuggestionScore, type VisualizationSuggestionsSupplier } from '@grafana/data';
+import { type EChartsFieldConfig } from 'editor/types';
+import { type PanelOptions } from 'types';
 
 // Visualization Suggestions for the multivariate family: radar built
 // from multiple numeric metrics per entity (categories -> indicators).

@@ -1,6 +1,6 @@
 import {cartesianTimeSeriesTypes} from "editor/constants";
 import { heatmapSeriesTypes } from 'editor/series';
-import { SeriesType } from 'editor/types';
+import { type SeriesType } from 'editor/types';
 
 /**
  * ECharts axis types we map Grafana panel types onto.

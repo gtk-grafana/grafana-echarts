@@ -1,7 +1,7 @@
 import { createTheme } from '@grafana/data';
-import { HeatmapData } from 'lib/echarts/converters/heatmap';
+import { type HeatmapData } from 'lib/echarts/converters/heatmap';
 import { buildHeatmapTooltip, getHeatmapBucketAxis } from 'lib/echarts/options/heatmap';
-import { TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 const baseData = (overrides: Partial<HeatmapData>): HeatmapData => ({
   cells: [],

@@ -1,8 +1,8 @@
 import { createTheme } from '@grafana/data';
-import { LegendDisplayMode, LegendPlacement, VizLegendOptions } from '@grafana/schema';
+import { LegendDisplayMode, type LegendPlacement, type VizLegendOptions } from '@grafana/schema';
 import { DEFAULT_CHART_LEGEND, getCartesianGrid, getLegendOption, isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { cartesianChartModule } from 'lib/echarts/charts/cartesian';
-import { PanelOptions } from 'types';
+import { type PanelOptions } from 'types';
 
 const theme = createTheme();
 

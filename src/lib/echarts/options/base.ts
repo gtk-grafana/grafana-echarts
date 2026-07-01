@@ -1,5 +1,5 @@
-import { GrafanaTheme2 } from '@grafana/data';
-import { ECBasicOption } from 'echarts/types/dist/shared';
+import { type GrafanaTheme2 } from '@grafana/data';
+import { type ECBasicOption } from 'echarts/types/dist/shared';
 
 /** Shared ECharts animation duration (ms). */
 export const ANIMATION_DURATION = 300;

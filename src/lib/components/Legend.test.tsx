@@ -1,5 +1,5 @@
-import { LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
-import { VizLegendItem } from '@grafana/ui';
+import { LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { type VizLegendItem } from '@grafana/ui';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { Legend } from './Legend';

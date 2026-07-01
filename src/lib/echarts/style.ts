@@ -1,9 +1,9 @@
 import {
-  Field,
+  type Field,
   formattedValueToString,
   getDisplayProcessor,
   getFieldSeriesColor,
-  GrafanaTheme2,
+  type GrafanaTheme2,
 } from '@grafana/data';
 
 /**

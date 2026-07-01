@@ -2,7 +2,7 @@ import { pieToEChartsOption } from 'lib/echarts/converters/pie';
 import { getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
 import { pieDefaultOptions } from 'lib/echarts/options/pie';
-import { ChartModule } from './types';
+import { type ChartModule } from './types';
 
 export const pieChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,

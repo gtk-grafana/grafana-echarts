@@ -1,10 +1,10 @@
-import { GrafanaTheme2 } from '@grafana/data';
+import { type GrafanaTheme2 } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { EChartsAxisType } from 'lib/echarts/axes/converters';
-import { ValueFormatter } from 'lib/echarts/style';
-import { TooltipOption } from 'echarts/types/dist/shared';
+import { type EChartsAxisType } from 'lib/echarts/axes/converters';
+import { type ValueFormatter } from 'lib/echarts/style';
+import { type TooltipOption } from 'echarts/types/dist/shared';
 import { convertThemePxToNumeric } from 'lib/grafana/converters/theme';
-import { CrossStyle, EChartsTooltipTrigger } from './eChartsTypes';
+import { type CrossStyle, type EChartsTooltipTrigger } from './eChartsTypes';
 import { buildTooltipContent, formatTooltipValue } from './template';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */

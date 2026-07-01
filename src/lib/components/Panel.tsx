@@ -1,17 +1,17 @@
 import { css } from '@emotion/css';
-import { DataFrame, Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
+import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import { LegendDisplayMode, LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
-import { PanelContextProvider, SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
+import { LegendDisplayMode, type LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
+import { PanelContextProvider, type SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 import { seriesTypePath } from 'editor/constants';
-import { EChartsType, init } from 'lib/echarts/echarts';
+import { type EChartsType, init } from 'lib/echarts/echarts';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
-import { ChartContext } from 'lib/echarts/charts/types';
+import { type ChartContext } from 'lib/echarts/charts/types';
 import { getPanelLayout } from 'lib/echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
-import { getValueFormatter, ValueFormatter } from 'lib/echarts/style';
+import { getValueFormatter, type ValueFormatter } from 'lib/echarts/style';
 import {
   getCrosshairAxisPointer,
   getNoTooltipOption,
@@ -19,7 +19,7 @@ import {
   grafanaTooltipModeToEChartsTrigger,
 } from 'lib/echarts/tooltip';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { PanelOptions } from 'types';
+import { type PanelOptions } from 'types';
 import { Legend } from './Legend';
 
 interface Props extends PanelProps<PanelOptions> {}

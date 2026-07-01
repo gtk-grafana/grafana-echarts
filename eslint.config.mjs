@@ -36,4 +36,14 @@ export default defineConfig([
     ],
   },
   ...baseConfig,
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      // Require type-only imports to be annotated with the `type` keyword.
+      // `inline-type-imports` keeps a single import statement to avoid conflicting
+      // with the `no-duplicate-imports` rule.
+      // https://typescript-eslint.io/rules/consistent-type-imports/
+      '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
+    },
+  },
 ]);

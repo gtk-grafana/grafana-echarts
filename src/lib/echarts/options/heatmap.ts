@@ -1,10 +1,10 @@
-import { dateTimeFormat, GrafanaTheme2 } from '@grafana/data';
+import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
 import { graphic } from 'lib/echarts/echarts';
-import { formatBucketBound, HeatmapCell, HeatmapData } from 'lib/echarts/converters/heatmap';
+import { formatBucketBound, type HeatmapCell, type HeatmapData } from 'lib/echarts/converters/heatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
-import { ValueFormatter } from 'lib/echarts/style';
+import { type ValueFormatter } from 'lib/echarts/style';
 import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
-import { CallbackDataParams, TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 /**
  * Custom tick/label/grid-line placement for the heatmap bucket (Y) axis so the

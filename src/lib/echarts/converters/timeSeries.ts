@@ -1,13 +1,13 @@
-import { DataFrame, getFieldDisplayName, GrafanaTheme2 } from '@grafana/data';
+import { type DataFrame, type Field, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
 import {cartesianTimeSeriesTypes} from "editor/constants";
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
-import { EChartsFieldConfig, SeriesType } from 'editor/types';
+import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
 
 /**
  * Resolve the series type for a single value field: field override wins when cartesian.
  */
-function resolveFieldSeriesType(field: import('@grafana/data').Field, defaultType: SeriesType): SeriesType {
+function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesType {
   const override = (field.config.custom as EChartsFieldConfig | undefined)?.seriesType;
   if (override && cartesianTimeSeriesTypes.includes(override)) {
     return override;

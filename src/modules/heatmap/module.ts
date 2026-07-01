@@ -1,13 +1,13 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesTypeName, seriesTypePath } from 'editor/constants';
 import { seriesCategoryName } from 'editor/series';
-import { EChartsFieldConfig, SeriesType } from 'editor/types';
-import { heatmapColorSchemeDefault, HeatmapColorScheme } from 'lib/echarts/options/heatmap';
+import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
+import { heatmapColorSchemeDefault, type HeatmapColorScheme } from 'lib/echarts/options/heatmap';
 import { Panel } from 'lib/components/Panel';
 import { heatmapSuggestionsSupplier } from './suggestions';
-import { PanelOptions } from 'types';
+import { type PanelOptions } from 'types';
 
 const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
   { value: 'spectral', label: 'Spectral' },

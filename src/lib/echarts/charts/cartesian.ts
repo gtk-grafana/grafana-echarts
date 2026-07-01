@@ -6,7 +6,7 @@ import {
 } from 'lib/echarts/options/cartesian';
 import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { buildTimeSeriesLegendItems } from 'lib/echarts/options/legendItems';
-import { ChartModule } from './types';
+import { type ChartModule } from './types';
 
 export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,

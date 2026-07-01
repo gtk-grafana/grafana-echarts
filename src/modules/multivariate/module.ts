@@ -1,12 +1,12 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesTypeName, seriesTypePath } from 'editor/constants';
 import { seriesCategoryName } from 'editor/series';
-import { EChartsFieldConfig, SeriesType } from 'editor/types';
+import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
 import { Panel } from 'lib/components/Panel';
 import { multivariateSuggestionsSupplier } from './suggestions';
-import { PanelOptions } from 'types';
+import { type PanelOptions } from 'types';
 
 // Multivariate family panel: radar built from the categorical model
 // (categories -> indicators, series -> polygons). The family is fixed to

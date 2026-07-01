@@ -1,12 +1,12 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesTypeName, seriesTypePath } from 'editor/constants';
 import { seriesCategoryName } from 'editor/series';
-import { EChartsFieldConfig, SeriesType } from 'editor/types';
+import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
 import { Panel } from 'lib/components/Panel';
 import { partToWholeSuggestionsSupplier } from './suggestions';
-import { PanelOptions } from 'types';
+import { type PanelOptions } from 'types';
 
 // Part-to-whole family panel: pie built from the categorical model
 // (one value per category). The family is fixed to `pie`; the shared Panel

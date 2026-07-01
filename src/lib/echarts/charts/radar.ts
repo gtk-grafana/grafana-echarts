@@ -2,7 +2,7 @@ import { radarToEChartsOption } from 'lib/echarts/converters/radar';
 import { getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { buildRadarLegendItems } from 'lib/echarts/options/legendItems';
 import { radarDefaultOptions } from 'lib/echarts/options/radar';
-import { ChartModule } from './types';
+import { type ChartModule } from './types';
 
 export const radarChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,

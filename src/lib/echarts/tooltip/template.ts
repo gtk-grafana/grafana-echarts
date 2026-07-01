@@ -1,8 +1,8 @@
 import { css } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
-import { ValueFormatter } from 'lib/echarts/style';
-import { CallbackDataParams, TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { OptionDataValue } from 'echarts/types/src/util/types';
+import { type GrafanaTheme2 } from '@grafana/data';
+import { type ValueFormatter } from 'lib/echarts/style';
+import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type OptionDataValue } from 'echarts/types/src/util/types';
 
 /**
  * Axis-trigger tooltip params carry extra axis fields that ECharts adds at

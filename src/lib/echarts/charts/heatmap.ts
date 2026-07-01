@@ -14,7 +14,7 @@ import {
   HEATMAP_VISUALMAP_WIDTH,
 } from 'lib/echarts/options/heatmap';
 import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
-import { ChartContext, ChartModule } from './types';
+import { type ChartContext, type ChartModule } from './types';
 
 function splitFrames(ctx: ChartContext) {
   const forceHeatmap = ctx.seriesType === 'heatmap';

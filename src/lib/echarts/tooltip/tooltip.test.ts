@@ -1,7 +1,7 @@
 import { createTheme } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { getTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'lib/echarts/tooltip';
-import { TooltipPositionCallback } from 'echarts/types/dist/shared';
+import { type TooltipPositionCallback } from 'echarts/types/dist/shared';
 
 const theme = createTheme();
 const formatValue = (value: number | null) => (value == null ? 'null' : `${value}`);
