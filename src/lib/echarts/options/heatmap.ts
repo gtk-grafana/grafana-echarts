@@ -1,5 +1,4 @@
 import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
-import { graphic } from 'lib/echarts/echarts';
 import { formatBucketBound, type HeatmapCell, type HeatmapData } from 'lib/echarts/converters/heatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
 import { type ValueFormatter } from 'lib/echarts/style';
@@ -101,6 +100,31 @@ export function encodeHeatmapData(cells: HeatmapCell[]): Array<Array<number | nu
   return cells.map((cell) => [cell.xStart, cell.yStart, cell.xEnd, cell.yEnd, cell.value]);
 }
 
+interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Intersect two rectangles, returning undefined when they don't overlap.
+ * Ported from ECharts' `graphic.clipRectByRect` so the heatmap option code has
+ * no ECharts runtime import (letting ECharts load as a shared async chunk).
+ * https://github.com/apache/echarts/blob/master/src/util/graphic.ts
+ */
+function clipRectByRect(target: Rect, clip: Rect): Rect | undefined {
+  const x = Math.max(target.x, clip.x);
+  const x2 = Math.min(target.x + target.width, clip.x + clip.width);
+  const y = Math.max(target.y, clip.y);
+  const y2 = Math.min(target.y + target.height, clip.y + clip.height);
+
+  if (x2 >= x && y2 >= y) {
+    return { x, y, width: x2 - x, height: y2 - y };
+  }
+  return undefined;
+}
+
 /**
  * `renderItem` for the heatmap custom series: convert each cell's two corners to
  * pixels via `api.coord`, draw a rect clipped to the grid, and fill it with the
@@ -125,7 +149,7 @@ export function heatmapRenderItem(params: any, api: any) {
   };
 
   const coordSys = params.coordSys;
-  const shape = graphic.clipRectByRect(rect, {
+  const shape = clipRectByRect(rect, {
     x: coordSys.x,
     y: coordSys.y,
     width: coordSys.width,

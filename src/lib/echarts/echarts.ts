@@ -12,8 +12,9 @@
 // the shared runtime can route any family, so under-registering would break
 // rendering. Narrowing this per panel is a follow-up once the registry dispatch
 // is collapsed.
-// Aliased to avoid the react-hooks lint rule mistaking ECharts' `use()` for the
-// React `use` hook.
+//
+// `use` is aliased to avoid the react-hooks lint rule mistaking ECharts' `use()`
+// for the React `use` hook.
 import { use as registerEChartsModules } from 'echarts/core';
 import {
   BarChart,
@@ -54,7 +55,9 @@ registerEChartsModules([
   CanvasRenderer,
 ]);
 
-// `graphic` exposes zrender helpers (e.g. clipRectByRect) used by the heatmap
-// custom-series renderItem; `init` creates a chart instance.
-export { init, graphic } from 'echarts/core';
+// `init` creates a chart instance bound to a DOM node. This module is loaded
+// via dynamic import() (see Panel.tsx) so the registered ECharts bundle becomes
+// a single shared async chunk across the nested panels rather than being
+// duplicated into each panel's entry.
+export { init } from 'echarts/core';
 export type { EChartsType } from 'echarts/core';

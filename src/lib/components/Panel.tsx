@@ -1,3 +1,6 @@
+// Redirect shared async-chunk loading to the app plugin's base URL. Side-effect
+// import; must run before the dynamic import() of ECharts below.
+import 'lib/publicPath';
 import { css } from '@emotion/css';
 import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
@@ -5,7 +8,7 @@ import { LegendDisplayMode, type LegendPlacement, TooltipDisplayMode } from '@gr
 import { PanelContextProvider, type SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 import { seriesTypePath } from 'editor/constants';
-import { type EChartsType, init } from 'lib/echarts/echarts';
+import { type EChartsType } from 'lib/echarts/echarts';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
@@ -18,7 +21,7 @@ import {
   getTooltipOption,
   grafanaTooltipModeToEChartsTrigger,
 } from 'lib/echarts/tooltip';
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
 import { Legend } from './Legend';
 
@@ -57,7 +60,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const theme = useTheme2();
   const panelContext = usePanelContext();
   const panelDOMRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<EChartsType | null>(null);
+  // ECharts is loaded lazily (dynamic import below), so the chart instance lives
+  // in state: dependent effects re-run once it resolves.
+  const [chart, setChart] = useState<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
 
   const chartModule = useMemo(() => resolveChartModule(seriesType, data.series), [seriesType, data.series]);
@@ -126,23 +131,39 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   );
 
   useLayoutEffect(() => {
-    if (!panelDOMRef.current) {
+    const dom = panelDOMRef.current;
+    if (!dom) {
       return;
     }
 
-    const chart = init(panelDOMRef.current);
-    panelRef.current = chart;
+    let instance: EChartsType | null = null;
+    let disposed = false;
+
+    // Load ECharts on demand so its (~0.6MB) bundle is emitted as a single
+    // shared async chunk across the nested panels instead of being duplicated
+    // into every panel entry. See lib/echarts/echarts.ts.
+    void import('lib/echarts/echarts').then(({ init }) => {
+      if (disposed) {
+        return;
+      }
+      instance = init(dom);
+      setChart(instance);
+    });
+
     return () => {
-      chart.dispose();
+      disposed = true;
+      instance?.dispose();
+      instance = null;
+      setChart(null);
     };
   }, []);
 
   useEffect(() => {
-    if (!panelRef.current || !chartModule) {
+    if (!chart || !chartModule) {
       return;
     }
 
-    panelRef.current.clear();
+    chart.clear();
 
     const axisType = panelTypeToAxis(seriesType);
     const tooltipOption = getTooltipOption(
@@ -168,19 +189,19 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
           : getCrosshairAxisPointer()
         : undefined;
 
-    panelRef.current.setOption({
+    chart.setOption({
       ...echartOption,
       tooltip: tooltipOption,
       ...(axisPointer ? { axisPointer } : {}),
     });
-  }, [chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme]);
+  }, [chart, chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme]);
 
   useEffect(() => {
-    if (!panelRef.current) {
+    if (!chart) {
       return;
     }
-    panelRef.current.resize({ width: chartWidth, height: chartHeight });
-  }, [chartWidth, chartHeight]);
+    chart.resize({ width: chartWidth, height: chartHeight });
+  }, [chart, chartWidth, chartHeight]);
 
   if (data.series.length === 0) {
     return <PanelDataErrorView fieldConfig={fieldConfig} panelId={id} data={data} needsStringField />;
