@@ -20,3 +20,4 @@ export interface PanelOptions extends OptionsWithLegend {
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
 }
+

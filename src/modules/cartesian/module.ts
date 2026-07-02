@@ -3,17 +3,17 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import {
   cartesianOverrideOptions,
+  cartesianSeriesTypeOptions,
   seriesCategoryName,
   seriesTypeDefault,
   seriesTypeName,
-  seriesTypeOptions,
   seriesTypePath,
 } from 'editor/series';
-import { supportedChartSeriesTypes } from 'lib/echarts/charts/registry';
-import { EChartsFieldConfig, SeriesType } from 'editor/types';
-import { heatmapColorSchemeDefault, HeatmapColorScheme } from 'lib/echarts/options/heatmap';
+import { EChartsFieldConfig } from 'editor/types';
 import { Panel } from 'lib/components/Panel';
+import { HeatmapColorScheme, heatmapColorSchemeDefault } from 'lib/echarts/options/heatmap';
 import { PanelOptions } from 'types';
+import { cartesianSuggestionsSupplier } from './suggestions';
 
 const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
   { value: 'spectral', label: 'Spectral' },
@@ -22,11 +22,10 @@ const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
   { value: 'magma', label: 'Magma' },
 ];
 
-// Cartesian family panel (Groups 1-3): line/bar/scatter on a time/value grid.
-// This carries over the original single-panel option builder unchanged so the
-// existing behavior (including the per-field cartesian override) is preserved
-// under the nested plugin id. Family-fixing (retiring the flat series-type
-// dropdown, data-driven routing) is deferred to later meta-plan steps.
+// Cartesian family panel: line/bar/scatter on a time/value grid.
+// The family is fixed by this nested plugin's identity, so the panel-level
+// picker only offers cartesian render types. Which family fits the data is advertised via the Suggestions
+// supplier below.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
   // Standard field config options (Color scheme, Unit, Decimals, Min, Max,
   // Display name, No value, Thresholds, Value mappings, Data links). Grafana
@@ -64,17 +63,14 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
   })
   .setPanelOptions((builder) => {
     builder
-      // Series options
+      // Panel-level render type, scoped to the cartesian family. Fields can
+      // override this individually via the per-field override above.
       .addSelect({
         path: seriesTypePath,
         name: seriesTypeName,
         defaultValue: seriesTypeDefault,
         settings: {
-          options: seriesTypeOptions.map((opt: SelectableValue<SeriesType>) => ({
-            ...opt,
-            // Temporary
-            isDisabled: !supportedChartSeriesTypes.includes(opt.value as SeriesType),
-          })),
+          options: cartesianSeriesTypeOptions,
         },
         category: [seriesCategoryName],
       })
@@ -114,4 +110,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
     });
 
     return builder;
-  });
+  })
+  // Advertise fitness for the current data shape (opts in via
+  // `"suggestions": true` in plugin.json).
+  .setSuggestionsSupplier(cartesianSuggestionsSupplier);

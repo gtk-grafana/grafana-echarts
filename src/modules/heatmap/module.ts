@@ -5,6 +5,7 @@ import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/serie
 import { EChartsFieldConfig, SeriesType } from 'editor/types';
 import { heatmapColorSchemeDefault, HeatmapColorScheme } from 'lib/echarts/options/heatmap';
 import { Panel } from 'lib/components/Panel';
+import { heatmapSuggestionsSupplier } from './suggestions';
 import { PanelOptions } from 'types';
 
 const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
@@ -14,7 +15,7 @@ const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
   { value: 'magma', label: 'Magma' },
 ];
 
-// Heatmap family panel (Group 4): renders Grafana heatmap frames as ECharts
+// Heatmap family panel: renders Grafana heatmap frames as ECharts
 // cells. The family is fixed to `heatmap`; the shared Panel resolves the
 // composite heatmap chart module. Data-driven overlay/suggestions wiring is
 // deferred to later meta-plan steps.
@@ -74,4 +75,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
     });
 
     return builder;
-  });
+  })
+  // Best fit whenever the data is tagged as a Grafana heatmap frame (opts in
+  // via `"suggestions": true` in plugin.json).
+  .setSuggestionsSupplier(heatmapSuggestionsSupplier);
