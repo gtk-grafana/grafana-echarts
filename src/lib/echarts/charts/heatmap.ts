@@ -1,4 +1,5 @@
-import { frameHasCartesianOverride, cartesianTimeSeriesTypes } from 'editor/series';
+import {cartesianTimeSeriesTypes} from "editor/constants";
+import { frameHasCartesianOverride } from 'editor/series';
 import { frameToHeatmap, isHeatmapFrame } from 'lib/echarts/converters/heatmap';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {
@@ -6,14 +7,15 @@ import {
   getCartesianAxisStyle,
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
+import { HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
 import {
   getHeatmapBucketAxis,
   getHeatmapSeries,
   getHeatmapVisualMap,
-  HEATMAP_VISUALMAP_WIDTH,
+
 } from 'lib/echarts/options/heatmap';
 import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
-import { ChartContext, ChartModule } from './types';
+import { type ChartContext, type ChartModule } from './types';
 
 function splitFrames(ctx: ChartContext) {
   const forceHeatmap = ctx.seriesType === 'heatmap';

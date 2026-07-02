@@ -1,10 +1,10 @@
-import { dateTimeFormat, GrafanaTheme2 } from '@grafana/data';
-import { graphic } from 'echarts';
-import { formatBucketBound, HeatmapCell, HeatmapData } from 'lib/echarts/converters/heatmap';
+import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
+import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { formatBucketBound, type HeatmapCell, type HeatmapData } from 'lib/echarts/converters/heatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
-import { ValueFormatter } from 'lib/echarts/style';
+import { COLOR_SCHEMES, HEATMAP_VALUE_DIM, heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
+import { type HeatmapColorScheme, type HeatmapTooltipContext, type Rect } from 'lib/echarts/options/types';
 import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
-import { CallbackDataParams, TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 /**
  * Custom tick/label/grid-line placement for the heatmap bucket (Y) axis so the
@@ -52,43 +52,10 @@ export function getHeatmapBucketAxis(data: HeatmapData): Record<string, unknown>
   };
 }
 
-/** Built-in color gradients offered for the heatmap cell layer. */
-export type HeatmapColorScheme = 'spectral' | 'blues' | 'turbo' | 'magma';
-
-export const heatmapColorSchemeDefault: HeatmapColorScheme = 'spectral';
-
-/**
- * Color stops per scheme, low value -> high value. Kept as static gradients
- * (matching common scientific colormaps) so the layer reads consistently in
- * both themes; the visualMap interpolates between the stops.
- */
-const COLOR_SCHEMES: Record<HeatmapColorScheme, string[]> = {
-  spectral: [
-    '#5e4fa2', '#3288bd', '#66c2a5', '#abdda4', '#e6f598',
-    '#fee08b', '#fdae61', '#f46d43', '#d53e4f', '#9e0142',
-  ],
-  blues: [
-    '#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6',
-    '#4292c6', '#2171b5', '#08519c', '#08306b',
-  ],
-  turbo: [
-    '#30123b', '#4145ab', '#4675ed', '#39a2fc', '#1bcfd4',
-    '#24eca6', '#61fc6c', '#a4fc3b', '#d1e834', '#f3c63a',
-    '#fe9b2d', '#f36315', '#d93806', '#b11901', '#7a0402',
-  ],
-  magma: [
-    '#000004', '#1c1044', '#4f127b', '#812581', '#b5367a',
-    '#e55064', '#fb8761', '#fec287', '#fcfdbf',
-  ],
-};
-
 /** Resolve the gradient color stops for a scheme (falls back to the default). */
 export function getHeatmapColors(scheme?: HeatmapColorScheme): string[] {
   return COLOR_SCHEMES[scheme ?? heatmapColorSchemeDefault] ?? COLOR_SCHEMES[heatmapColorSchemeDefault];
 }
-
-/** Dimension index of the cell value within the encoded heatmap data tuple. */
-export const HEATMAP_VALUE_DIM = 4;
 
 /**
  * Encode cells as `[xStart, yStart, xEnd, yEnd, value]` tuples. The custom
@@ -99,6 +66,24 @@ export const HEATMAP_VALUE_DIM = 4;
  */
 export function encodeHeatmapData(cells: HeatmapCell[]): Array<Array<number | null>> {
   return cells.map((cell) => [cell.xStart, cell.yStart, cell.xEnd, cell.yEnd, cell.value]);
+}
+
+/**
+ * Intersect two rectangles, returning undefined when they don't overlap.
+ * Ported from ECharts' `graphic.clipRectByRect` so the heatmap option code has
+ * no ECharts runtime import (letting ECharts load as a shared async chunk).
+ * https://github.com/apache/echarts/blob/master/src/util/graphic.ts
+ */
+function clipRectByRect(target: Rect, clip: Rect): Rect | undefined {
+  const x = Math.max(target.x, clip.x);
+  const x2 = Math.min(target.x + target.width, clip.x + clip.width);
+  const y = Math.max(target.y, clip.y);
+  const y2 = Math.min(target.y + target.height, clip.y + clip.height);
+
+  if (x2 >= x && y2 >= y) {
+    return { x, y, width: x2 - x, height: y2 - y };
+  }
+  return undefined;
 }
 
 /**
@@ -125,7 +110,7 @@ export function heatmapRenderItem(params: any, api: any) {
   };
 
   const coordSys = params.coordSys;
-  const shape = graphic.clipRectByRect(rect, {
+  const shape = clipRectByRect(rect, {
     x: coordSys.x,
     y: coordSys.y,
     width: coordSys.width,
@@ -141,13 +126,6 @@ export function heatmapRenderItem(params: any, api: any) {
     shape,
     style: api.style({ fill: api.visual('color') }),
   };
-}
-
-/** Theme + formatting context the heatmap tooltip needs to match Grafana. */
-export interface HeatmapTooltipContext {
-  theme: GrafanaTheme2;
-  timeZone: string;
-  formatValue: ValueFormatter;
 }
 
 /**
@@ -218,9 +196,6 @@ export function getHeatmapSeries(data: HeatmapData, tooltipCtx: HeatmapTooltipCo
     tooltip: { formatter: buildHeatmapTooltip(data, tooltipCtx) },
   };
 }
-
-/** Reserved width (px) for the vertical visualMap color scale on the right. */
-export const HEATMAP_VISUALMAP_WIDTH = 60;
 
 /**
  * Continuous visualMap that colors only the heatmap series (by `seriesIndex`).

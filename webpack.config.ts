@@ -8,10 +8,36 @@
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import type { Configuration } from 'webpack';
 
-import baseConfig, { type Env } from './.config/webpack/webpack.config.ts';
+import baseConfig, { type Env } from './/.config/webpack/webpack.config.ts';
 
 const config = async (env: Env): Promise<Configuration> => {
   const base = await baseConfig(env);
+
+  // De-duplicate the ECharts runtime across the nested panel entries. Each
+  // panel registers a React.lazy wrapper (see lib/components/LazyPanel), so the
+  // Panel and its ECharts import only ever live in async chunks; this cacheGroup
+  // collapses the ECharts/zrender modules shared by those async chunks into a
+  // single `echarts` chunk emitted once (the shared Panel code is likewise
+  // de-duplicated by webpack's default async cacheGroup).
+  //
+  // Only `async` chunks are split: Grafana's plugin loader fetches just each
+  // entry `module.js`, and webpack's runtime lazy-loads async chunks via the
+  // dynamic publicPath. Splitting `initial` chunks would instead emit sibling
+  // chunks that Grafana never loads, leaving the panel factory waiting forever.
+  base.optimization = {
+    ...base.optimization,
+    splitChunks: {
+      chunks: 'async',
+      cacheGroups: {
+        echarts: {
+          test: /[\\/]node_modules[\\/](\.pnpm[\\/].*[\\/])?(echarts|zrender)[\\/]/,
+          name: 'echarts',
+          chunks: 'async',
+          enforce: true,
+        },
+      },
+    },
+  };
 
   base.plugins = [
     ...(base.plugins ?? []),

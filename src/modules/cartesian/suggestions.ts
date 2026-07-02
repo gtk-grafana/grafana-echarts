@@ -1,13 +1,13 @@
 import {
   DataFrameType,
   FieldType,
-  VisualizationSuggestion,
+  type VisualizationSuggestion,
   VisualizationSuggestionScore,
-  VisualizationSuggestionsSupplier,
+  type VisualizationSuggestionsSupplier,
 } from '@grafana/data';
-import { seriesTypePath } from 'editor/series';
-import { EChartsFieldConfig } from 'editor/types';
-import { PanelOptions } from 'types';
+import { seriesTypePath } from 'editor/constants';
+import { type EChartsFieldConfig } from 'editor/types';
+import { type PanelOptions } from 'types';
 
 // Visualization Suggestions for the cartesian family (Groups 1-3): line/bar/
 // scatter on a shared time/value grid. Scoring is keyed on the pre-computed

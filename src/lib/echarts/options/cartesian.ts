@@ -1,6 +1,6 @@
-import { GrafanaTheme2 } from '@grafana/data';
+import { type GrafanaTheme2 } from '@grafana/data';
 import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';
-import { ECBasicOption } from 'echarts/types/dist/shared';
+import { type ECBasicOption } from 'echarts/types/dist/shared';
 
 /** uPlot-style grid line color for cartesian axes. */
 export function getUPlotGridColor(theme: GrafanaTheme2): string {

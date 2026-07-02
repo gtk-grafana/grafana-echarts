@@ -1,6 +1,6 @@
-import { DataFrame, Field, FieldType, getFieldDisplayName } from '@grafana/data';
+import { type DataFrame, type Field, FieldType, getFieldDisplayName } from '@grafana/data';
+import { heatmapFrameTypes } from 'editor/constants';
 import { formatBucketBound } from 'lib/echarts/format';
-import { heatmapFrameTypes } from 'editor/series';
 
 /**
  * A single heatmap cell with explicit bounds in data space.

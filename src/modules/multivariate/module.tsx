@@ -1,16 +1,17 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/series';
-import { EChartsFieldConfig, SeriesType } from 'editor/types';
-import { Panel } from 'lib/components/Panel';
-import { partToWholeSuggestionsSupplier } from './suggestions';
-import { PanelOptions } from 'types';
+import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
+import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
+import { LazyPanel } from 'lib/components/LazyPanel';
+import { multivariateSuggestionsSupplier } from './suggestions';
+import { type PanelOptions } from 'types';
 
-// Part-to-whole family panel: pie built from the categorical model
-// (one value per category). The family is fixed to `pie`; the shared Panel
-// resolves the pie chart module. funnel/gauge render types are roadmap.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
+// Multivariate family panel: radar built from the categorical model
+// (categories -> indicators, series -> polygons). The family is fixed to
+// `radar`; the shared Panel resolves the radar chart module. parallel is
+// roadmap.
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
   .useFieldConfig({
     standardOptions: {
       [FieldConfigProperty.Color]: {
@@ -29,9 +30,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
     builder.addSelect({
       path: seriesTypePath,
       name: seriesTypeName,
-      defaultValue: 'pie' as SeriesType,
+      defaultValue: 'radar' as SeriesType,
       settings: {
-        options: [{ value: 'pie', label: 'pie' }] as Array<SelectableValue<SeriesType>>,
+        options: [{ value: 'radar', label: 'radar' }] as Array<SelectableValue<SeriesType>>,
       },
       category: [seriesCategoryName],
     });
@@ -54,5 +55,5 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
 
     return builder;
   })
-  // Advertise fitness for numeric/instant data
-  .setSuggestionsSupplier(partToWholeSuggestionsSupplier);
+  // Advertise fitness for multi-metric numeric data (opts in via `"suggestions": true`).
+  .setSuggestionsSupplier(multivariateSuggestionsSupplier);

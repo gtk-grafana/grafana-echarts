@@ -1,17 +1,12 @@
-import { DataFrame } from '@grafana/data';
+import { type DataFrame } from '@grafana/data';
+import { cartesianTimeSeriesTypes, heatmapSeriesTypes, pieSeriesTypes, radarSeriesTypes } from 'editor/constants';
 import { isHeatmapFrame } from 'lib/echarts/converters/heatmap';
-import {
-  cartesianTimeSeriesTypes,
-  heatmapSeriesTypes,
-  pieSeriesTypes,
-  radarSeriesTypes,
-} from 'editor/series';
-import { SeriesType } from 'editor/types';
+import { type SeriesType } from 'editor/types';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
 import { pieChartModule } from './pie';
 import { radarChartModule } from './radar';
-import { ChartModule } from './types';
+import { type ChartModule } from './types';
 
 const pieModule = pieChartModule;
 const radarModule = radarChartModule;

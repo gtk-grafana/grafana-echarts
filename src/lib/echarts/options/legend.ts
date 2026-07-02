@@ -1,8 +1,8 @@
-import { GrafanaTheme2 } from '@grafana/data';
-import { defaultVizLegendOptions, LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
-import { ChartModule } from 'lib/echarts/charts/types';
+import { type GrafanaTheme2 } from '@grafana/data';
+import { defaultVizLegendOptions, LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { type ChartModule } from 'lib/echarts/charts/types';
 import { LEGEND_FONT_SIZE, getThemeTextStyle } from 'lib/echarts/options/base';
-import { PanelOptions } from 'types';
+import { type PanelOptions } from 'types';
 
 /** Subset of the ECharts `legend` option this plugin sets. */
 export interface EChartsLegendOption {

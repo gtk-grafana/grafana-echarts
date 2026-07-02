@@ -1,25 +1,19 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/series';
-import { EChartsFieldConfig, SeriesType } from 'editor/types';
-import { heatmapColorSchemeDefault, HeatmapColorScheme } from 'lib/echarts/options/heatmap';
-import { Panel } from 'lib/components/Panel';
+import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
+import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
+import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
+import { LazyPanel } from 'lib/components/LazyPanel';
+import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
 import { heatmapSuggestionsSupplier } from './suggestions';
-import { PanelOptions } from 'types';
-
-const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
-  { value: 'spectral', label: 'Spectral' },
-  { value: 'turbo', label: 'Turbo' },
-  { value: 'blues', label: 'Blues' },
-  { value: 'magma', label: 'Magma' },
-];
+import { type PanelOptions } from 'types';
 
 // Heatmap family panel: renders Grafana heatmap frames as ECharts
 // cells. The family is fixed to `heatmap`; the shared Panel resolves the
 // composite heatmap chart module. Data-driven overlay/suggestions wiring is
 // deferred to later meta-plan steps.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
   .useFieldConfig({
     standardOptions: {
       [FieldConfigProperty.Color]: {

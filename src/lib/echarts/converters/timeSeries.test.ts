@@ -1,6 +1,6 @@
-import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
-import { SeriesType } from 'editor/types';
+import { type SeriesType } from 'editor/types';
 
 const theme = createTheme();
 

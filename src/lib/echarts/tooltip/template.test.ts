@@ -1,6 +1,6 @@
 import { createTheme } from '@grafana/data';
 import { buildTooltipContent, formatTooltipValue } from 'lib/echarts/tooltip/template';
-import { TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 const theme = createTheme();
 const formatValue = (value: number | null) => (value == null ? 'null' : `${value}`);

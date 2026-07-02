@@ -1,25 +1,25 @@
 import { css } from '@emotion/css';
-import { DataFrame, Field, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
+import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import { LegendDisplayMode, LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
-import { PanelContextProvider, SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
+import { LegendDisplayMode, type LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
+import { PanelContextProvider, type SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
-import { EChartsType, init } from 'echarts';
+import { seriesTypePath } from 'editor/constants';
+import { init, type EChartsType } from 'lib/echarts/echarts';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
-import { ChartContext } from 'lib/echarts/charts/types';
+import { type ChartContext } from 'lib/echarts/charts/types';
 import { getPanelLayout } from 'lib/echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
-import { getValueFormatter, ValueFormatter } from 'lib/echarts/style';
+import { getValueFormatter, type ValueFormatter } from 'lib/echarts/style';
 import {
   getCrosshairAxisPointer,
   getNoTooltipOption,
   getTooltipOption,
   grafanaTooltipModeToEChartsTrigger,
 } from 'lib/echarts/tooltip';
-import { seriesTypePath } from 'editor/series';
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { PanelOptions } from 'types';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { type PanelOptions } from 'types';
 import { Legend } from './Legend';
 
 interface Props extends PanelProps<PanelOptions> {}
@@ -57,7 +57,9 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const theme = useTheme2();
   const panelContext = usePanelContext();
   const panelDOMRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<EChartsType | null>(null);
+  // The chart instance is created on mount (see the layout effect below) and
+  // held in state so the option/resize effects re-run once it exists.
+  const [chart, setChart] = useState<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
 
   const chartModule = useMemo(() => resolveChartModule(seriesType, data.series), [seriesType, data.series]);
@@ -126,23 +128,27 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   );
 
   useLayoutEffect(() => {
-    if (!panelDOMRef.current) {
+    const dom = panelDOMRef.current;
+    if (!dom) {
       return;
     }
 
-    const chart = init(panelDOMRef.current);
-    panelRef.current = chart;
+    // ECharts is imported statically here, but this whole component is loaded
+    // via React.lazy (see lib/components/LazyPanel), so its (~0.6MB) bundle is
+    // still emitted as shared async chunks rather than every panel's entry.
+    const instance = init(dom);
+    setChart(instance);
+
     return () => {
-      chart.dispose();
+      instance.dispose();
+      setChart(null);
     };
   }, []);
 
   useEffect(() => {
-    if (!panelRef.current || !chartModule) {
+    if (!chart || !chartModule) {
       return;
     }
-
-    panelRef.current.clear();
 
     const axisType = panelTypeToAxis(seriesType);
     const tooltipOption = getTooltipOption(
@@ -168,19 +174,29 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
           : getCrosshairAxisPointer()
         : undefined;
 
-    panelRef.current.setOption({
-      ...echartOption,
-      tooltip: tooltipOption,
-      ...(axisPointer ? { axisPointer } : {}),
-    });
-  }, [chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme]);
+    // `notMerge` replaces the previous option outright (removing any components
+    // the new option omits) instead of merging into it. This effect rebuilds the
+    // whole option on every change and the panel switches across chart families
+    // with different structures (grid/axes, visualMap, radar), so a merge would
+    // leave stale components behind. Replacing in place also keeps the instance
+    // warm for transitions, unlike a full chart.clear() + setOption reset.
+    // https://echarts.apache.org/en/api.html#echartsInstance.setOption
+    chart.setOption(
+      {
+        ...echartOption,
+        tooltip: tooltipOption,
+        ...(axisPointer ? { axisPointer } : {}),
+      },
+      { notMerge: true }
+    );
+  }, [chart, chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme]);
 
   useEffect(() => {
-    if (!panelRef.current) {
+    if (!chart) {
       return;
     }
-    panelRef.current.resize({ width: chartWidth, height: chartHeight });
-  }, [chartWidth, chartHeight]);
+    chart.resize({ width: chartWidth, height: chartHeight });
+  }, [chart, chartWidth, chartHeight]);
 
   if (data.series.length === 0) {
     return <PanelDataErrorView fieldConfig={fieldConfig} panelId={id} data={data} needsStringField />;

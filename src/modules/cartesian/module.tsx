@@ -1,4 +1,4 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import {
@@ -8,25 +8,19 @@ import {
   seriesTypeDefault,
   seriesTypeName,
   seriesTypePath,
-} from 'editor/series';
-import { EChartsFieldConfig } from 'editor/types';
-import { Panel } from 'lib/components/Panel';
-import { HeatmapColorScheme, heatmapColorSchemeDefault } from 'lib/echarts/options/heatmap';
-import { PanelOptions } from 'types';
+} from 'editor/constants';
+import { type EChartsFieldConfig } from 'editor/types';
+import { LazyPanel } from 'lib/components/LazyPanel';
+import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
+import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
+import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
-
-const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
-  { value: 'spectral', label: 'Spectral' },
-  { value: 'turbo', label: 'Turbo' },
-  { value: 'blues', label: 'Blues' },
-  { value: 'magma', label: 'Magma' },
-];
 
 // Cartesian family panel: line/bar/scatter on a time/value grid.
 // The family is fixed by this nested plugin's identity, so the panel-level
 // picker only offers cartesian render types. Which family fits the data is advertised via the Suggestions
 // supplier below.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(Panel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
   // Standard field config options (Color scheme, Unit, Decimals, Min, Max,
   // Display name, No value, Thresholds, Value mappings, Data links). Grafana
   // includes the full set by default and applies them to every field in

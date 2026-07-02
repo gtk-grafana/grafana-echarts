@@ -1,5 +1,5 @@
-import { cartesianTimeSeriesTypes, heatmapSeriesTypes } from 'editor/series';
-import { SeriesType } from 'editor/types';
+import { cartesianTimeSeriesTypes, heatmapSeriesTypes } from 'editor/constants';
+import { type SeriesType } from 'editor/types';
 
 /**
  * ECharts axis types we map Grafana panel types onto.

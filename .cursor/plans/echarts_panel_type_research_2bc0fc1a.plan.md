@@ -11,6 +11,9 @@ todos:
   - id: suggestions-routing
     content: Add setSuggestionsSupplier per nested panel keyed on PanelDataSummary/dataplane type; retire the flat seriesType dropdown
     status: completed
+  - id: todo-1782944252939-qmihy2ieb
+    content: Investigate duplication between bundles
+    status: pending
   - id: preserve-mixing
     content: Keep within-family per-field override in cartesian panel; keep frameHasCartesianOverride overlay only in the composite heatmap panel
     status: pending

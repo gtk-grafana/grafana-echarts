@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
-import { LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
-import { useStyles2, VizLegend, VizLegendItem } from '@grafana/ui';
+import { type GrafanaTheme2 } from '@grafana/data';
+import { LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { useStyles2, VizLegend, type VizLegendItem } from '@grafana/ui';
 import React, { useState } from 'react';
 
 interface Props {

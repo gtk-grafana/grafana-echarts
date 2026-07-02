@@ -1,4 +1,4 @@
-import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 
 const theme = createTheme();

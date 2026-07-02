@@ -1,14 +1,14 @@
 import {
-  DataFrame,
-  Field,
+  type DataFrame,
+  type Field,
   FieldType,
   fieldReducers,
   getDisplayProcessor,
   getFieldDisplayName,
-  GrafanaTheme2,
+  type GrafanaTheme2,
   reduceField,
 } from '@grafana/data';
-import { VizLegendItem } from '@grafana/ui';
+import { type VizLegendItem } from '@grafana/ui';
 import { findCategoricalFrame, forEachTimeSeriesField, resolveCategories } from 'lib/echarts/converters/frames';
 import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
 

@@ -1,5 +1,5 @@
-import { DataFrame, DataFrameType, FieldType, toDataFrame } from '@grafana/data';
-import { frameToHeatmap, HeatmapCell, isHeatmapFrame } from 'lib/echarts/converters/heatmap';
+import { type DataFrame, DataFrameType, FieldType, toDataFrame } from '@grafana/data';
+import { frameToHeatmap, type HeatmapCell, isHeatmapFrame } from 'lib/echarts/converters/heatmap';
 
 const findCell = (cells: HeatmapCell[], xStart: number, yStart: number): HeatmapCell | undefined =>
   cells.find((cell) => cell.xStart === xStart && cell.yStart === yStart);

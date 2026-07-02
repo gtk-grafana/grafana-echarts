@@ -1,4 +1,4 @@
-import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { radarToEChartsOption } from 'lib/echarts/converters/radar';
 
 const theme = createTheme();

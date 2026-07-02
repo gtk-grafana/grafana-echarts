@@ -1,4 +1,4 @@
-import { LegendDisplayMode, VizLegendOptions } from '@grafana/schema';
+import { LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
 
 const DEFAULT_LEGEND_WIDTH = 240;
 const MIN_TABLE_LEGEND_HEIGHT = 80;

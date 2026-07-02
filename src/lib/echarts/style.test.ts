@@ -1,4 +1,4 @@
-import { createTheme, Field, FieldColorModeId, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
+import { createTheme, type Field, FieldColorModeId, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
 import { getPaletteColorByIndex, getSeriesColor, getValueFormatter } from 'lib/echarts/style';
 
 const theme = createTheme();

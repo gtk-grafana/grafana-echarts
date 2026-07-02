@@ -1,4 +1,4 @@
-import { DataFrame, GrafanaTheme2 } from '@grafana/data';
+import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 
 /**

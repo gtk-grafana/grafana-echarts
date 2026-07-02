@@ -1,4 +1,4 @@
-import { createTheme, DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { pieToEChartsOption } from 'lib/echarts/converters/pie';
 
 const theme = createTheme();

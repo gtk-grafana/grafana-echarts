@@ -1,10 +1,10 @@
-import { VizLegendOptions } from '@grafana/schema';
-import { VizLegendItem } from '@grafana/ui';
-import { ValueFormatter } from 'lib/echarts/style';
-import { ECBasicOption } from 'echarts/types/dist/shared';
-import { SeriesType } from 'editor/types';
-import { DataFrame, GrafanaTheme2 } from '@grafana/data';
-import { PanelOptions } from 'types';
+import { type VizLegendOptions } from '@grafana/schema';
+import { type VizLegendItem } from '@grafana/ui';
+import { type ValueFormatter } from 'lib/echarts/style';
+import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { type SeriesType } from 'editor/types';
+import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
 export interface ChartContext {

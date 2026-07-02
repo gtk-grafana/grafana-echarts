@@ -1,5 +1,5 @@
-import { TooltipOption } from 'echarts/types/dist/shared';
-import { LabelOption, LineStyleOption } from 'echarts/types/src/util/types';
+import { type TooltipOption } from 'echarts/types/dist/shared';
+import { type LabelOption, type LineStyleOption } from 'echarts/types/src/util/types';
 
 /**
  * ECharts tooltip trigger: cartesian time series share an x axis; pie/radar hover per item.

@@ -1,4 +1,4 @@
-import { createTheme, DataFrame, Field, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type DataFrame, type Field, FieldType, toDataFrame } from '@grafana/data';
 import {
   buildPieLegendItems,
   buildRadarLegendItems,
