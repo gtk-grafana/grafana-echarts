@@ -216,7 +216,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Time-axis cartesian (Group 1): a wide CSV frame (Time + two numeric series). The Convert field type transformation pins Time to the time type the CSV source cannot express, so both series render on a time x-axis.",
+      "description": "Time-axis cartesian: a wide CSV frame (Time + two numeric series). The Convert field type transformation pins Time to the time type the CSV source cannot express, so both series render on a time x-axis.",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -269,7 +269,7 @@
           }
         }
       ],
-      "title": "Time-series line (Group 1)",
+      "title": "Time-series line",
       "type": "grafana-echartscartesian-panel"
     },
     {
@@ -459,11 +459,11 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
-    "to": "now"
+    "from": "2021-01-01T00:00:00.000Z",
+    "to": "2021-01-01T04:00:00.000Z"
   },
   "timepicker": {},
-  "timezone": "",
+  "timezone": "utc",
   "title": "Provisioned echarts dashboard",
   "uid": "a538aeff-5a8a-42a5-901c-938d896fdd6f",
   "version": 5,

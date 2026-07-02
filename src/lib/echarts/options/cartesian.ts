@@ -1,6 +1,16 @@
-import { type GrafanaTheme2 } from '@grafana/data';
+import { type GrafanaTheme2, type TimeRange } from '@grafana/data';
 import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
+
+/**
+ * Pin an ECharts `time` axis to the dashboard time range so panels with gappy
+ * data still span the full window and line up with sibling panels in the
+ * dashboard. Bounds are epoch milliseconds, which is what a `time` axis expects.
+ * https://echarts.apache.org/en/option.html#xAxis.min
+ */
+export function getTimeAxisBounds(timeRange: TimeRange): { min: number; max: number } {
+  return { min: timeRange.from.valueOf(), max: timeRange.to.valueOf() };
+}
 
 /** uPlot-style grid line color for cartesian axes. */
 export function getUPlotGridColor(theme: GrafanaTheme2): string {

@@ -1,7 +1,14 @@
-import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, dateTime, type DataFrame, FieldType, type TimeRange, toDataFrame } from '@grafana/data';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
 
 const theme = createTheme();
+
+/** Absolute time range from epoch-ms bounds, matching what the panel passes in. */
+const timeRange = (from: number, to: number): TimeRange => ({
+  from: dateTime(from),
+  to: dateTime(to),
+  raw: { from: dateTime(from), to: dateTime(to) },
+});
 
 const ohlcFrame = (fieldNames = ['open', 'high', 'low', 'close']): DataFrame =>
   toDataFrame({
@@ -76,6 +83,20 @@ describe('multiValueCartesianToEChartsOption', () => {
       expect(result!.series[0].data).toEqual([[0, 3, null, null]]);
     });
 
+    it('drops rows outside the dashboard time range when a time field is present', () => {
+      const result = multiValueCartesianToEChartsOption([ohlcFrame()], 'candlestick', theme, timeRange(0, 30_000));
+
+      // Rows are at t=0 and t=60_000; only the first is within [0, 30_000].
+      expect(result!.categories).toEqual([new Date(0).toISOString()]);
+      expect(result!.series[0].data).toEqual([[10, 18, 5, 20]]);
+    });
+
+    it('keeps every row when no time range is supplied', () => {
+      const result = multiValueCartesianToEChartsOption([ohlcFrame()], 'candlestick', theme);
+
+      expect(result!.series[0].data).toHaveLength(2);
+    });
+
     it('returns null when an OHLC field is missing', () => {
       const frame = toDataFrame({
         fields: [
@@ -129,6 +150,13 @@ describe('multiValueCartesianToEChartsOption', () => {
         [1, 3, 5, 7, 9],
         [2, 4, 6, 8, 10],
       ]);
+    });
+
+    it('ignores the time range for a categorical (non-time) frame', () => {
+      const result = multiValueCartesianToEChartsOption([boxFrame()], 'boxplot', theme, timeRange(0, 1));
+
+      expect(result!.categories).toEqual(['a', 'b']);
+      expect(result!.series[0].data).toHaveLength(2);
     });
 
     it('returns null with fewer than five numeric fields', () => {

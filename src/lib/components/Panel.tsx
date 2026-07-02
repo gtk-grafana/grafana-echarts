@@ -54,7 +54,7 @@ const getStyles = (theme: GrafanaTheme2, height: number, width: number, placemen
   };
 };
 
-export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone, eventBus }) => {
+export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone, eventBus, timeRange }) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
   const panelDOMRef = useRef<HTMLDivElement>(null);
@@ -82,11 +82,12 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       frames: data.series,
       theme,
       timeZone,
+      timeRange,
       options,
       seriesType,
       formatValue,
     }),
-    [data.series, theme, timeZone, options, seriesType, formatValue]
+    [data.series, theme, timeZone, timeRange, options, seriesType, formatValue]
   );
 
   const placement: LegendPlacement = resolvedLegend?.placement === 'right' ? 'right' : 'bottom';
