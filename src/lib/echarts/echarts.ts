@@ -43,8 +43,8 @@ registerEChartsModules([
   BarChart,
   ScatterChart,
   EffectScatterChart,
-  CandlestickChart, // multi-value cartesian (Group 3): OHLC
-  BoxplotChart, // multi-value cartesian (Group 3): [min, Q1, median, Q3, max]
+  CandlestickChart, // multi-value cartesian: OHLC
+  BoxplotChart, // multi-value cartesian: [min, Q1, median, Q3, max]
   PieChart,
   RadarChart,
   CustomChart, // heatmap cells are drawn as a custom series

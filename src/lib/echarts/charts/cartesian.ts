@@ -93,7 +93,7 @@ function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBas
 }
 
 /**
- * Multi-value cartesian (Group 3): candlestick/boxplot on a category x-axis.
+ * Multi-value cartesian: candlestick/boxplot on a category x-axis.
  * Each x position carries several aligned dimensions (OHLC or five-number
  * summary) instead of a single y, so the render type also selects the field
  * mapping in the converter.
