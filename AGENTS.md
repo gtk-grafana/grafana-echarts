@@ -14,3 +14,5 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Ask for permission and clarity whenever ambiguities arise. 
 - Keep plans small and focused to the task at hand, do not make changes that were not explicitly requested
 - Add comments to code, but keep them as concise as possible
+- Adhere to data plane frame specifications: https://grafana.com/developers/dataplane/, except when explicitly told not to
+- Create provisioned dashboards for all new panel functionality, prompt the user to check existing dashboards that can be impacted by a change

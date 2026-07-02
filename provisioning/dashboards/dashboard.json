@@ -27,6 +27,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
+      "description": "Empty result: exercises the panel's no-data view.",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -35,22 +36,22 @@
       },
       "id": 1,
       "options": {
-        "seriesCountSize": "sm",
-        "showSeriesCount": false,
-        "text": "Default value of text input option"
+        "seriesType": "line",
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "targets": [
         {
           "datasource": {
             "type": "grafana-testdata-datasource",
-            "uid": "db84e60d-b92a-4089-82cb-34842fb1754b"
+            "uid": "trlxrdZVk"
           },
           "refId": "A",
-          "scenarioId": "raw_frame",
-          "rawFrameContent": "[\n  {\n    \"columns\": [\n      {\n        \"text\": \"Time\",\n        \"type\": \"time\"\n      },\n      {\n        \"text\": \"Label\",\n        \"type\": \"string\"\n      },\n      {\n        \"text\": \"Value\",\n        \"type\": \"number\"\n      }\n    ],\n    \"rows\": [\n      [1609459200000, \"A\", 10],\n      [1609462800000, \"B\", 20],\n      [1609466400000, \"C\", 15],\n      [1609470000000, \"D\", 25],\n      [1609473600000, \"E\", 30]\n    ]\n  },\n{\n    \"columns\": [\n      {\n        \"text\": \"Time\",\n        \"type\": \"time\"\n      },\n      {\n        \"text\": \"Label\",\n        \"type\": \"string\"\n      },\n      {\n        \"text\": \"Value\",\n        \"type\": \"number\"\n      }\n    ],\n    \"rows\": [\n      [1609459200000, \"A\", 40],\n      [1609462800000, \"B\", 50],\n      [1609466400000, \"C\", 45],\n      [1609470000000, \"D\", 55],\n      [1609473600000, \"E\", 60]\n    ]\n  }\n]"
+          "scenarioId": "no_data_points"
         }
       ],
-      "title": "Sample Panel Title",
+      "title": "No data",
       "type": "grafana-echartscartesian-panel"
     },
     {
@@ -58,6 +59,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
+      "description": "Query error: TestData 'Flaky Query' scenario with a 100% error probability, so the query always fails and the panel shows its error state.",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -66,22 +68,259 @@
       },
       "id": 2,
       "options": {
-        "seriesCountSize": "sm",
-        "showSeriesCount": false,
-        "text": "Default value of text input option"
+        "seriesType": "line",
+        "tooltip": {
+          "mode": "single"
+        }
       },
       "targets": [
         {
-          "alias": "",
           "datasource": {
             "type": "grafana-testdata-datasource",
-            "uid": "db84e60d-b92a-4089-82cb-34842fb1754b"
+            "uid": "trlxrdZVk"
           },
           "refId": "A",
-          "scenarioId": "no_data_points"
+          "scenarioId": "flaky_query",
+          "errorProbability": 100,
+          "errorStatusCode": 500,
+          "errorMessage": "Simulated failure (flaky_query at 100% error probability)"
         }
       ],
-      "title": "Sample Panel Title",
+      "title": "Query error (flaky_query @ 100%)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Category-axis cartesian (Group 2): a Numeric frame with a string category field (Department) and two numeric fields renders as a multi-series bar chart on a category x-axis (no time field).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "raw_frame",
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Department\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Budget\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}},{\"name\":\"Actual\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"Sales\",\"Marketing\",\"Engineering\",\"Support\",\"Operations\"],[43,30,60,25,40],[50,45,55,30,35]]}}]"
+        }
+      ],
+      "title": "Category bar — Numeric frame (Budget vs Actual)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Numeric-looking category x-axis: the category field holds numeric-looking labels (years 2007–2011). These are still string categories, not a continuous value axis.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "raw_frame",
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Year\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Revenue\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}},{\"name\":\"Cost\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"2007\",\"2008\",\"2009\",\"2010\",\"2011\"],[120,150,170,140,200],[80,90,110,100,130]]}}]"
+        }
+      ],
+      "title": "Numeric-labeled bar — category x-axis (years)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Time-axis cartesian (Group 1): two time-series frames (time + number fields) render on a time x-axis.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "raw_frame",
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"Series A\",\"fields\":[{\"name\":\"Time\",\"type\":\"time\",\"typeInfo\":{\"frame\":\"time.Time\",\"nullable\":true},\"config\":{}},{\"name\":\"Value\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[1609459200000,1609462800000,1609466400000,1609470000000,1609473600000],[10,20,15,25,30]]}},{\"schema\":{\"refId\":\"A\",\"name\":\"Series B\",\"fields\":[{\"name\":\"Time\",\"type\":\"time\",\"typeInfo\":{\"frame\":\"time.Time\",\"nullable\":true},\"config\":{}},{\"name\":\"Value\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[1609459200000,1609462800000,1609466400000,1609470000000,1609473600000],[40,50,45,55,60]]}}]"
+        }
+      ],
+      "title": "Time-series line (Group 1)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Category-axis cartesian (Group 2) as a line: the same Numeric frame (Department) rendered with a line series type on a category x-axis.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "raw_frame",
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Department\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Budget\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}},{\"name\":\"Actual\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"Sales\",\"Marketing\",\"Engineering\",\"Support\",\"Operations\"],[43,30,60,25,40],[50,45,55,30,35]]}}]"
+        }
+      ],
+      "title": "Category line — Numeric frame (multi-series)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Line chart over numeric-looking category labels (years 2007–2011). Still a category axis; the labels only look numeric.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 16
+      },
+      "id": 7,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "raw_frame",
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Year\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Revenue\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}},{\"name\":\"Cost\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"2007\",\"2008\",\"2009\",\"2010\",\"2011\"],[120,150,170,140,200],[80,90,110,100,130]]}}]"
+        }
+      ],
+      "title": "Numeric-labeled line — category x-axis (years)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Single-series Numeric frame (one string field + one numeric field): each row becomes a category on the x-axis.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 8,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "raw_frame",
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Fruit\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Count\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"Apples\",\"Bananas\",\"Cherries\",\"Dates\",\"Elderberries\"],[120,90,60,30,15]]}}]"
+        }
+      ],
+      "title": "Single-series category bar — Numeric frame",
       "type": "grafana-echartscartesian-panel"
     }
   ],
@@ -99,6 +338,6 @@
   "timezone": "",
   "title": "Provisioned echarts dashboard",
   "uid": "a538aeff-5a8a-42a5-901c-938d896fdd6f",
-  "version": 1,
+  "version": 4,
   "weekStart": ""
 }
