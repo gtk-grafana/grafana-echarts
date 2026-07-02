@@ -1,6 +1,6 @@
 import {cartesianTimeSeriesTypes} from "editor/constants";
 import { frameHasCartesianOverride } from 'editor/series';
-import { frameToHeatmap, isHeatmapFrame } from 'lib/echarts/converters/heatmap';
+import { frameToHeatmap } from 'lib/echarts/converters/heatmap';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {
   cartesianTimeDefaultOptions,
@@ -17,20 +17,21 @@ import {
 import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { type ChartContext, type ChartModule } from './types';
 
+/**
+ * Split the panel's frames into the heatmap cell layer and an optional cartesian
+ * overlay. Only this composite heatmap panel is allowed to mix families, and the
+ * split is driven entirely by the per-field override: a frame whose numeric
+ * field is overridden to a cartesian type (line/bar/scatter) is drawn as an
+ * overlay on top of the cells, while every other frame feeds the heatmap layer.
+ * See `frameHasCartesianOverride`.
+ */
 function splitFrames(ctx: ChartContext) {
-  const forceHeatmap = ctx.seriesType === 'heatmap';
-  const heatmapFrames = ctx.frames.filter(isHeatmapFrame);
-  const cartesianFrames = ctx.frames.filter((frame) => !isHeatmapFrame(frame));
-  const hasHeatmap = forceHeatmap || heatmapFrames.length > 0;
+  const overlayFrames = ctx.frames.filter(frameHasCartesianOverride);
+  const heatmapSourceFrames = ctx.frames.filter((frame) => !frameHasCartesianOverride(frame));
 
-  const overlayFrames = forceHeatmap ? ctx.frames.filter(frameHasCartesianOverride) : cartesianFrames;
-  const heatmapSourceFrames = forceHeatmap
-    ? ctx.frames.filter((frame) => !frameHasCartesianOverride(frame))
-    : heatmapFrames;
+  const heatmap = frameToHeatmap(heatmapSourceFrames, ctx.frames);
 
-  const heatmap = hasHeatmap ? frameToHeatmap(heatmapSourceFrames, ctx.frames) : null;
-
-  return { hasHeatmap, overlayFrames, heatmap };
+  return { overlayFrames, heatmap };
 }
 
 export const heatmapChartModule: ChartModule = {

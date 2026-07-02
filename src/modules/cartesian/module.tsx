@@ -11,8 +11,6 @@ import {
 } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
-import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
-import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
 
@@ -20,6 +18,11 @@ import { cartesianSuggestionsSupplier } from './suggestions';
 // The family is fixed by this nested plugin's identity, so the panel-level
 // picker only offers cartesian render types. Which family fits the data is advertised via the Suggestions
 // supplier below.
+//
+// This panel is cartesian-only: mixing stays within the family via the
+// per-field override below (e.g. one field as `bar`, others as `line`).
+// Cross-family mixing (e.g. heatmap + line) is reserved for the composite
+// heatmap panel, so heatmap frames never route here.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
   // Standard field config options (Color scheme, Unit, Decimals, Min, Max,
   // Display name, No value, Thresholds, Value mappings, Data links). Grafana
@@ -65,18 +68,6 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         defaultValue: seriesTypeDefault,
         settings: {
           options: cartesianSeriesTypeOptions,
-        },
-        category: [seriesCategoryName],
-      })
-
-      // Heatmap color scheme (only applies when a Grafana heatmap frame is
-      // present; the cell layer is colored by this gradient via visualMap).
-      .addSelect({
-        path: 'heatmapColorScheme',
-        name: 'Heatmap color scheme',
-        defaultValue: heatmapColorSchemeDefault,
-        settings: {
-          options: heatmapColorSchemeOptions,
         },
         category: [seriesCategoryName],
       });
