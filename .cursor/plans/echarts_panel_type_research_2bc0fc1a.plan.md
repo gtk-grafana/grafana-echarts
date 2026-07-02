@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: multi-value-cartesian
     content: Add MultiValueCartesian converter for candlestick/boxplot in the cartesian panel (Group 3)
-    status: pending
+    status: completed
   - id: roadmap-remaining
     content: Document Groups 7-11 (hierarchy, graph/flow, geo, stream, custom) as roadmap nested panels; note dataplane gaps
     status: pending

@@ -13,6 +13,14 @@ export const seriesTypeDefault: SeriesType = 'line';
  */
 export const cartesianTimeSeriesTypes: SeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
 /**
+ * Multi-value cartesian types (Group 3): each x position carries several aligned
+ * numeric dimensions (candlestick OHLC, boxplot five-number summary) rather than
+ * the single value of line/bar. They render on a category axis via the
+ * multi-value converter (see echarts/converters/multiValueCartesian.ts) and,
+ * unlike the time series types, are not offered as per-field overrides.
+ */
+export const multiValueCartesianTypes: SeriesType[] = ['candlestick', 'boxplot'];
+/**
  * Series editor options
  */
 export const seriesCategoryName = 'Series';
@@ -35,23 +43,30 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
 export const heatmapSeriesTypes: SeriesType[] = ['heatmap'];
 /**
  * Cartesian render types offered by the cartesian family panel. These are the
- * in-family render variants (line/bar/scatter/...) selected per panel; the
- * cross-family "flat" picker that mixed unrelated families is retired in favor
- * of per-panel Visualization Suggestions (see each module's suggestions.ts).
+ * in-family render variants selected per panel: the single-value time/category
+ * types (line/bar/scatter/...) plus the multi-value types (candlestick/boxplot).
+ * The cross-family "flat" picker that mixed unrelated families is retired in
+ * favor of per-panel Visualization Suggestions (see each module's suggestions.ts).
  */
-export const cartesianSeriesTypeOptions: Array<SelectableValue<SeriesType>> = cartesianTimeSeriesTypes.map((type) => ({
+export const cartesianSeriesTypeOptions: Array<SelectableValue<SeriesType>> = [
+  ...cartesianTimeSeriesTypes,
+  ...multiValueCartesianTypes,
+].map((type) => ({
   value: type,
   label: type,
 }));
 /**
- * Series types offered as a per-field override (custom field config). Only
- * cartesian types are listed: they compose on the shared time/value grid, so a
- * field can be drawn as a `bar` while others stay `line`. Non-cartesian types
- * (pie/radar) use other coordinate systems and cannot be overlaid, and heatmap
- * is detected from the frame type rather than chosen per field. Same set as the
- * panel-level render types, reused here for the field override.
+ * Series types offered as a per-field override (custom field config). Only the
+ * single-value cartesian types are listed: they compose on the shared
+ * time/value grid, so a field can be drawn as a `bar` while others stay `line`.
+ * Multi-value types (candlestick/boxplot) consume several fields at once and
+ * cannot be overlaid per field; non-cartesian types (pie/radar) use other
+ * coordinate systems; and heatmap is detected from the frame type.
  */
-export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cartesianSeriesTypeOptions;
+export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cartesianTimeSeriesTypes.map((type) => ({
+  value: type,
+  label: type,
+}));
 /**
  * Grafana dataplane frame types that carry a heatmap. A frame tagged with one
  * of these (`frame.meta.type`) is rendered as the custom-series heatmap cell

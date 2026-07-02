@@ -18,6 +18,8 @@
 import { use as registerEChartsModules } from 'echarts/core';
 import {
   BarChart,
+  BoxplotChart,
+  CandlestickChart,
   CustomChart,
   EffectScatterChart,
   LineChart,
@@ -41,6 +43,8 @@ registerEChartsModules([
   BarChart,
   ScatterChart,
   EffectScatterChart,
+  CandlestickChart, // multi-value cartesian (Group 3): OHLC
+  BoxplotChart, // multi-value cartesian (Group 3): [min, Q1, median, Q3, max]
   PieChart,
   RadarChart,
   CustomChart, // heatmap cells are drawn as a custom series

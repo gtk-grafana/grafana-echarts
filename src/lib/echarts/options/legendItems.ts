@@ -10,6 +10,10 @@ import {
 } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
 import { findCategoricalFrame, forEachTimeSeriesField, resolveCategories } from 'lib/echarts/converters/frames';
+import {
+  type MultiValueChartType,
+  multiValueCartesianToEChartsOption,
+} from 'lib/echarts/converters/multiValueCartesian';
 import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
 
 /**
@@ -92,6 +96,33 @@ export function buildCategoryCartesianLegendItems(
   });
 
   return items;
+}
+
+/**
+ * Legend items for a multi-value cartesian chart (candlestick/boxplot). The
+ * converter emits a single series per source frame, so this yields one legend
+ * entry mirroring it. Table calc columns are omitted: each item is a
+ * multi-dimensional array (OHLC / five-number summary), so a single reduced
+ * value would be misleading.
+ */
+export function buildMultiValueCartesianLegendItems(
+  series: DataFrame[],
+  theme: GrafanaTheme2,
+  chartType: MultiValueChartType
+): VizLegendItem[] {
+  const data = multiValueCartesianToEChartsOption(series, chartType, theme);
+  if (!data) {
+    return [];
+  }
+
+  return data.series.map((chartSeries, index) => ({
+    label: chartSeries.name,
+    fieldName: chartSeries.name,
+    color: chartSeries.itemStyle.color,
+    yAxis: 1,
+    getItemKey: () => `multiValue-${index}`,
+    getDisplayValues: () => [],
+  }));
 }
 
 export function buildRadarLegendItems(
