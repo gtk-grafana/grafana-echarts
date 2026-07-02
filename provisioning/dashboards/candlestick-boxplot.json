@@ -1,0 +1,356 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Multi-value cartesian (Group 3) candlestick: a wide CSV frame carrying a time field plus the OHLC fields (open/high/low/close). The Convert field type transformation pins the types the CSV source cannot express; the MultiValueCartesian converter maps the OHLC fields by name into ECharts [open, close, low, high] items on a category x-axis. Compare with the native uPlot candlestick panel to the right (same data).",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "candlestick",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "time,open,high,low,close\n2021-07-13T17:00:00Z,10,15,8,12\n2021-07-13T17:10:00Z,12,18,11,17\n2021-07-13T17:20:00Z,17,17,13,14\n2021-07-13T17:30:00Z,14,20,14,19\n2021-07-13T17:40:00Z,19,22,16,16\n2021-07-13T17:50:00Z,16,19,12,13\n2021-07-13T18:00:00Z,13,15,9,10"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "time",
+                "destinationType": "time"
+              },
+              {
+                "targetField": "open",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "high",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "low",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "close",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "ECharts Candlestick — OHLC from CSV content",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Comparison: Grafana's native (uPlot) candlestick panel over the same OHLC CSV content. Grafana's candlestick is built on the time series visualization and auto-maps the open/high/low/close fields by name, so it renders on a time x-axis.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "mode": "candles",
+        "candleStyle": "candles",
+        "colorStrategy": "open-close",
+        "includeAllFields": false,
+        "colors": {
+          "up": "#26A69A",
+          "down": "#EF5350"
+        },
+        "fields": {},
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "time,open,high,low,close\n2021-07-13T17:00:00Z,10,15,8,12\n2021-07-13T17:10:00Z,12,18,11,17\n2021-07-13T17:20:00Z,17,17,13,14\n2021-07-13T17:30:00Z,14,20,14,19\n2021-07-13T17:40:00Z,19,22,16,16\n2021-07-13T17:50:00Z,16,19,12,13\n2021-07-13T18:00:00Z,13,15,9,10"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "time",
+                "destinationType": "time"
+              },
+              {
+                "targetField": "open",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "high",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "low",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "close",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "uPlot Candlestick — OHLC from CSV content (native)",
+      "type": "candlestick"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Candlestick from the TestData 'CSV File' scenario using the bundled ohlc_dogecoin.csv (columns: time, open, high, low, close, volume, sma, bolup, boldn). The MultiValueCartesian converter maps open/high/low/close by name and ignores the extra columns (volume, moving average, Bollinger bands). No transformations are needed because the CSV File scenario already types the fields. Compare with the native uPlot candlestick panel to the right (same data).",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "candlestick",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_file",
+          "csvFileName": "ohlc_dogecoin.csv"
+        }
+      ],
+      "title": "ECharts Candlestick — ohlc_dogecoin.csv (CSV File scenario)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Comparison: Grafana's native (uPlot) candlestick panel over the same ohlc_dogecoin.csv data. It auto-maps open/high/low/close and, with 'Include all fields' off, ignores the extra columns (volume, sma, bollinger) to match the ECharts panel on the left.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 5,
+      "options": {
+        "mode": "candles",
+        "candleStyle": "candles",
+        "colorStrategy": "open-close",
+        "includeAllFields": false,
+        "colors": {
+          "up": "#26A69A",
+          "down": "#EF5350"
+        },
+        "fields": {},
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_file",
+          "csvFileName": "ohlc_dogecoin.csv"
+        }
+      ],
+      "title": "uPlot Candlestick — ohlc_dogecoin.csv (native)",
+      "type": "candlestick"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Multi-value cartesian (Group 3) boxplot: boxplot has no Grafana-native field convention, so this plugin resolves five aligned numeric fields by name (min/q1/median/q3/max) into ECharts [min, Q1, median, Q3, max] items. The Convert field type transformation keeps the Category field a string (category x-axis) and the five summary fields numeric. Grafana has no native uPlot boxplot, so there is no right-hand comparison.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "boxplot",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Category,min,q1,median,q3,max\nMon,2,5,7,9,14\nTue,3,6,8,11,15\nWed,1,4,6,8,12\nThu,4,7,10,13,18\nFri,2,6,9,12,16"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Category",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "min",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "q1",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "median",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "q3",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "max",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "ECharts Boxplot — five-number summary from CSV content",
+      "type": "grafana-echartscartesian-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "candlestick", "boxplot", "group-3"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2021-07-13T17:00:00.000Z",
+    "to": "2021-07-13T18:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Candlestick & Boxplot (Group 3)",
+  "uid": "b7c3d1e2-4f5a-4b6c-8d9e-0a1b2c3d4e5f",
+  "version": 2,
+  "weekStart": ""
+}

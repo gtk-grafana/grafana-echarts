@@ -1,4 +1,10 @@
-import { cartesianTimeSeriesTypes, heatmapSeriesTypes, pieSeriesTypes, radarSeriesTypes } from 'editor/constants';
+import {
+  cartesianTimeSeriesTypes,
+  heatmapSeriesTypes,
+  multiValueCartesianTypes,
+  pieSeriesTypes,
+  radarSeriesTypes,
+} from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
@@ -12,6 +18,7 @@ const radarModule = radarChartModule;
 /** All series types with a registered chart module. */
 export const supportedChartSeriesTypes: SeriesType[] = [
   ...cartesianTimeSeriesTypes,
+  ...multiValueCartesianTypes,
   ...heatmapSeriesTypes,
   ...radarSeriesTypes,
   ...pieSeriesTypes,
@@ -31,7 +38,9 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule | null {
   if (seriesType === 'heatmap') {
     return heatmapChartModule;
   }
-  if (cartesianTimeSeriesTypes.includes(seriesType)) {
+  // Single-value (Groups 1-2) and multi-value (Group 3) cartesian render types
+  // share the cartesian panel; the module picks the build path from the type.
+  if (cartesianTimeSeriesTypes.includes(seriesType) || multiValueCartesianTypes.includes(seriesType)) {
     return cartesianChartModule;
   }
   if (radarSeriesTypes.includes(seriesType)) {
