@@ -13,10 +13,10 @@ todos:
     status: completed
   - id: todo-1782944252939-qmihy2ieb
     content: Investigate duplication between bundles
-    status: pending
+    status: completed
   - id: preserve-mixing
     content: Keep within-family per-field override in cartesian panel; keep frameHasCartesianOverride overlay only in the composite heatmap panel
-    status: pending
+    status: completed
   - id: category-cartesian
     content: Wire CategoricalData → cartesian panel with category x-axis for bar/line from Numeric frames (Group 2)
     status: pending

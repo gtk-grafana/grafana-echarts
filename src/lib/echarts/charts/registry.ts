@@ -1,6 +1,4 @@
-import { type DataFrame } from '@grafana/data';
 import { cartesianTimeSeriesTypes, heatmapSeriesTypes, pieSeriesTypes, radarSeriesTypes } from 'editor/constants';
-import { isHeatmapFrame } from 'lib/echarts/converters/heatmap';
 import { type SeriesType } from 'editor/types';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
@@ -20,14 +18,17 @@ export const supportedChartSeriesTypes: SeriesType[] = [
 ];
 
 /**
- * Resolve the chart module for the active series type and data frames.
- * Heatmap frames (or forced heatmap type) route to the composite heatmap module.
+ * Resolve the chart module for the active series type.
+ *
+ * Each nested panel fixes its own family via `seriesType`, so routing keys off
+ * that identity alone: only the heatmap panel (`seriesType === 'heatmap'`) uses
+ * the composite heatmap module. Heatmap-tagged frames no longer force any panel
+ * into heatmap rendering — that data-driven detection now lives in each panel's
+ * Visualization Suggestions supplier, keeping cross-family mixing (heatmap +
+ * line) contained to the composite heatmap panel that owns both layers.
  */
-export function resolveChartModule(seriesType: SeriesType, frames: DataFrame[]): ChartModule | null {
-  const forceHeatmap = seriesType === 'heatmap';
-  const hasHeatmapFrames = frames.some(isHeatmapFrame);
-
-  if (forceHeatmap || hasHeatmapFrames) {
+export function resolveChartModule(seriesType: SeriesType): ChartModule | null {
+  if (seriesType === 'heatmap') {
     return heatmapChartModule;
   }
   if (cartesianTimeSeriesTypes.includes(seriesType)) {

@@ -1,7 +1,7 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
+import { cartesianOverrideOptions, seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
 import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
 import { LazyPanel } from 'lib/components/LazyPanel';
@@ -11,8 +11,12 @@ import { type PanelOptions } from 'types';
 
 // Heatmap family panel: renders Grafana heatmap frames as ECharts
 // cells. The family is fixed to `heatmap`; the shared Panel resolves the
-// composite heatmap chart module. Data-driven overlay/suggestions wiring is
-// deferred to later meta-plan steps.
+// composite heatmap chart module.
+//
+// This is the one composite panel, so it is the only place cross-family mixing
+// is allowed: a numeric frame whose field is overridden to a cartesian type
+// (line/bar/scatter) via the per-field override below is drawn as a cartesian
+// overlay on top of the heatmap cells (see `frameHasCartesianOverride`).
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
   .useFieldConfig({
     standardOptions: {
@@ -26,6 +30,22 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
           mode: FieldColorModeId.PaletteClassic,
         },
       },
+    },
+    // Per-field series type override, scoped to cartesian types. Overriding a
+    // numeric frame's field to line/bar/scatter promotes it from a heatmap
+    // bucket row to a cartesian overlay drawn over the cells — the sanctioned
+    // cross-family (heatmap + line) mix that only this composite panel owns.
+    useCustomConfig: (builder) => {
+      builder.addSelect({
+        path: 'seriesType',
+        name: 'Series type',
+        description: 'Draw matching fields as a cartesian overlay on the heatmap (cartesian types only).',
+        settings: {
+          options: cartesianOverrideOptions,
+          allowCustomValue: false,
+          isClearable: true,
+        },
+      });
     },
   })
   .setPanelOptions((builder) => {

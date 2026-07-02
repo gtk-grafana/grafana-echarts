@@ -62,7 +62,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const [chart, setChart] = useState<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
 
-  const chartModule = useMemo(() => resolveChartModule(seriesType, data.series), [seriesType, data.series]);
+  const chartModule = useMemo(() => resolveChartModule(seriesType), [seriesType]);
 
   const resolvedLegend = useMemo(
     () => (chartModule ? resolveLegendOptions(chartModule, options) : undefined),
