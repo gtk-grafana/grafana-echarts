@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
-  "type": "app",
-  "name": "ECharts",
-  "id": "grafana-echarts-app",
+  "type": "panel",
+  "name": "ECharts Part to whole",
+  "id": "grafana-echartsparttowhole-panel",
   "info": {
-    "keywords": ["panel"],
-    "description": "",
+    "keywords": ["panel", "echarts", "pie", "part to whole"],
+    "description": "Part-to-whole ECharts panel (pie) built from categorical data.",
     "author": {
       "name": "Grafana"
     },

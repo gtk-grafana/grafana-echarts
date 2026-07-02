@@ -16,7 +16,7 @@ test('should display circle when data is passed to the panel', async ({
 }) => {
   const ds = await readProvisionedDataSource({ fileName: 'datasources.yml' });
   await panelEditPage.datasource.set(ds.name);
-  await panelEditPage.setVisualization('Echarts');
+  await panelEditPage.setVisualization('ECharts Cartesian');
   await expect(page.getByTestId('simple-panel-circle')).toBeVisible();
 });
 

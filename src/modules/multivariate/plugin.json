@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
-  "type": "app",
-  "name": "ECharts",
-  "id": "grafana-echarts-app",
+  "type": "panel",
+  "name": "ECharts Multivariate",
+  "id": "grafana-echartsmultivariate-panel",
   "info": {
-    "keywords": ["panel"],
-    "description": "",
+    "keywords": ["panel", "echarts", "radar", "multivariate"],
+    "description": "Multivariate ECharts panel (radar) built from categorical data.",
     "author": {
       "name": "Grafana"
     },

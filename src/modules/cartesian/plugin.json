@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
-  "type": "app",
-  "name": "ECharts",
-  "id": "grafana-echarts-app",
+  "type": "panel",
+  "name": "ECharts Cartesian",
+  "id": "grafana-echartscartesian-panel",
   "info": {
-    "keywords": ["panel"],
-    "description": "",
+    "keywords": ["panel", "echarts", "cartesian", "time series", "bar", "line"],
+    "description": "Cartesian ECharts panel (line, bar, scatter) on a time/value grid.",
     "author": {
       "name": "Grafana"
     },

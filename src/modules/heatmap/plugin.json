@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
-  "type": "app",
-  "name": "ECharts",
-  "id": "grafana-echarts-app",
+  "type": "panel",
+  "name": "ECharts Heatmap",
+  "id": "grafana-echartsheatmap-panel",
   "info": {
-    "keywords": ["panel"],
-    "description": "",
+    "keywords": ["panel", "echarts", "heatmap", "matrix"],
+    "description": "Heatmap ECharts panel for Grafana heatmap frames, with optional cartesian overlay.",
     "author": {
       "name": "Grafana"
     },
