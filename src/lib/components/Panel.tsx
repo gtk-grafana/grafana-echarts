@@ -8,6 +8,7 @@ import { seriesTypePath } from 'editor/constants';
 import { init, type EChartsType } from 'lib/echarts/echarts';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
+import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { getPanelLayout } from 'lib/echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
@@ -150,7 +151,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       return;
     }
 
-    const axisType = panelTypeToAxis(seriesType);
+    // Axis type is data-driven for the cartesian family: Numeric frames (no time
+    // field) render on a category axis, which changes the tooltip trigger and
+    // drops the time crosshair below.
+    const axisType = panelTypeToAxis(seriesType, framesHaveTimeField(data.series));
     const tooltipOption = getTooltipOption(
       grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
       tooltipMode,
@@ -189,7 +193,7 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       },
       { notMerge: true }
     );
-  }, [chart, chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme]);
+  }, [chart, chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme, data.series]);
 
   useEffect(() => {
     if (!chart) {

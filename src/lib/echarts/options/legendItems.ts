@@ -57,6 +57,43 @@ export function buildTimeSeriesLegendItems(
   return items;
 }
 
+/**
+ * Legend items for a category-axis cartesian chart: one entry per
+ * numeric field in the categorical source frame, mirroring the series the
+ * category converter emits. The time-series builder above cannot be reused
+ * because it keys off a time field, which Numeric (category) frames lack.
+ */
+export function buildCategoryCartesianLegendItems(
+  series: DataFrame[],
+  theme: GrafanaTheme2,
+  calcs: string[],
+  timeZone?: string
+): VizLegendItem[] {
+  const frame = findCategoricalFrame(series);
+  if (!frame) {
+    return [];
+  }
+
+  const items: VizLegendItem[] = [];
+  frame.fields.forEach((field, fieldIndex) => {
+    if (field.type !== FieldType.number) {
+      return;
+    }
+
+    const label = getFieldDisplayName(field, frame, series);
+    items.push({
+      label,
+      fieldName: label,
+      color: getSeriesColor(field, theme),
+      yAxis: 1,
+      getItemKey: () => `series-${fieldIndex}`,
+      getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
+    });
+  });
+
+  return items;
+}
+
 export function buildRadarLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,

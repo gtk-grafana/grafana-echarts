@@ -15,6 +15,21 @@ export function findCategoricalFrame(series: DataFrame[]): DataFrame | undefined
 }
 
 /**
+ * True when any frame carries a genuine time field.
+ *
+ * This is the data-driven signal that separates the two cartesian modes: time
+ * frames render on a `time` x-axis, while Numeric frames without a
+ * time field render on a `category` x-axis. It intentionally ignores
+ * the numeric-field fallback used by `resolveTimeField`, which treats a numeric
+ * column as an X axis for time series and would otherwise mask category data.
+ *
+ * See https://grafana.com/developers/dataplane/
+ */
+export function framesHaveTimeField(series: DataFrame[]): boolean {
+  return series.some((frame) => frame.fields.some((field) => field.type === FieldType.time));
+}
+
+/**
  * Category labels for a frame: string field row values, or row indices as strings.
  */
 export function resolveCategories(frame: DataFrame): string[] {
