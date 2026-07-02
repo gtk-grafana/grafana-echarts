@@ -19,6 +19,13 @@ import {
   getTooltipOption,
   grafanaTooltipModeToEChartsTrigger,
 } from 'lib/echarts/tooltip';
+import {
+  brushEndToTimeRange,
+  CLEAR_TIME_BRUSH_ACTION,
+  DISABLE_TIME_BRUSH_ACTION,
+  ENABLE_TIME_BRUSH_ACTION,
+  getTimeBrushOption,
+} from 'lib/echarts/timeBrush';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
 import { Legend } from './Legend';
@@ -54,7 +61,18 @@ const getStyles = (theme: GrafanaTheme2, height: number, width: number, placemen
   };
 };
 
-export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone, eventBus, timeRange }) => {
+export const Panel: React.FC<Props> = ({
+  options,
+  data,
+  width,
+  height,
+  fieldConfig,
+  id,
+  timeZone,
+  eventBus,
+  timeRange,
+  onChangeTimeRange,
+}) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
   const panelDOMRef = useRef<HTMLDivElement>(null);
@@ -62,6 +80,13 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   // held in state so the option/resize effects re-run once it exists.
   const [chart, setChart] = useState<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
+
+  // Latest time-range setter, read from the brush handler (attached once per
+  // chart instance) so it always calls the current prop without re-binding.
+  const onChangeTimeRangeRef = useRef(onChangeTimeRange);
+  useEffect(() => {
+    onChangeTimeRangeRef.current = onChangeTimeRange;
+  }, [onChangeTimeRange]);
 
   const chartModule = useMemo(() => resolveChartModule(seriesType), [seriesType]);
 
@@ -179,6 +204,10 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
           : getCrosshairAxisPointer()
         : undefined;
 
+    // Drag-to-zoom is only meaningful on a time axis, where the brush selection
+    // maps to an absolute time range the dashboard can adopt.
+    const isTimeAxis = axisType === 'time';
+
     // `notMerge` replaces the previous option outright (removing any components
     // the new option omits) instead of merging into it. This effect rebuilds the
     // whole option on every change and the panel switches across chart families
@@ -191,9 +220,14 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
         ...echartOption,
         tooltip: tooltipOption,
         ...(axisPointer ? { axisPointer } : {}),
+        ...(isTimeAxis ? { brush: getTimeBrushOption(theme) } : {}),
       },
       { notMerge: true }
     );
+
+    // Arm (or clear) the permanent time-span brush cursor after each rebuild;
+    // `notMerge` recreates the brush component, so the cursor must be re-armed.
+    chart.dispatchAction(isTimeAxis ? ENABLE_TIME_BRUSH_ACTION : DISABLE_TIME_BRUSH_ACTION);
   }, [chart, chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme, data.series]);
 
   useEffect(() => {
@@ -202,6 +236,30 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     }
     chart.resize({ width: chartWidth, height: chartHeight });
   }, [chart, chartWidth, chartHeight]);
+
+  // Translate a completed time-axis drag-select into a dashboard time-range
+  // change. Bound once per instance (the option effect (re-)arms the cursor);
+  // the handler reads the latest setter via ref. Grafana then refetches and the
+  // panel re-renders with the new range pinned on the axis.
+  useEffect(() => {
+    if (!chart) {
+      return;
+    }
+
+    const handleBrushEnd = (event: unknown) => {
+      const range = brushEndToTimeRange(event);
+      // Clear the selection highlight so it does not linger through the refetch.
+      chart.dispatchAction(CLEAR_TIME_BRUSH_ACTION);
+      if (range) {
+        onChangeTimeRangeRef.current(range);
+      }
+    };
+
+    chart.on('brushEnd', handleBrushEnd);
+    return () => {
+      chart.off('brushEnd', handleBrushEnd);
+    };
+  }, [chart]);
 
   if (data.series.length === 0) {
     return <PanelDataErrorView fieldConfig={fieldConfig} panelId={id} data={data} needsStringField />;

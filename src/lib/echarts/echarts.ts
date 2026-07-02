@@ -29,6 +29,7 @@ import {
 } from 'echarts/charts';
 import {
   AxisPointerComponent,
+  BrushComponent,
   GridComponent,
   LegendComponent,
   RadarComponent,
@@ -53,6 +54,7 @@ registerEChartsModules([
   TooltipComponent,
   LegendComponent,
   AxisPointerComponent,
+  BrushComponent, // drag-select on the time axis for range zoom
   RadarComponent, // radar coordinate system
   VisualMapContinuousComponent, // heatmap color gradient
   // Renderer
