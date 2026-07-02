@@ -3,7 +3,7 @@ import { type VizLegendItem } from '@grafana/ui';
 import { type ValueFormatter } from 'lib/echarts/style';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type SeriesType } from 'editor/types';
-import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { type DataFrame, type GrafanaTheme2, type TimeRange } from '@grafana/data';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
@@ -11,6 +11,7 @@ export interface ChartContext {
   frames: DataFrame[];
   theme: GrafanaTheme2;
   timeZone: string;
+  timeRange: TimeRange;
   options: PanelOptions;
   seriesType: SeriesType;
   formatValue: ValueFormatter;

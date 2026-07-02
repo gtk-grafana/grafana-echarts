@@ -10,6 +10,7 @@ import {
   cartesianCategoryDefaultOptions,
   cartesianTimeDefaultOptions,
   getCartesianAxisStyle,
+  getTimeAxisBounds,
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
 import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
@@ -26,7 +27,7 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 // time field render on a `category` axis built from the shared categorical
 // model. See the plan's "axis type should follow data" note.
 
-/** Time-axis cartesian (Group 1): `[time, value]` series on a time grid. */
+/** Time-axis cartesian: `[time, value]` series on a time grid. */
 function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
   const { frames, theme, options, seriesType, formatValue } = ctx;
   const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme);
@@ -45,7 +46,13 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
     valueFormatter
   );
 
-  const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis as Record<string, unknown>, axisStyle);
+  // Pin the time axis to the dashboard range so gaps in this panel's data still
+  // align with sibling panels sharing the same range.
+  const xAxis = mergeAxisStyle(
+    cartesianTimeDefaultOptions.xAxis as Record<string, unknown>,
+    axisStyle,
+    getTimeAxisBounds(ctx.timeRange)
+  );
 
   return {
     ...cartesianTimeDefaultOptions,
@@ -99,8 +106,13 @@ function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBas
  * mapping in the converter.
  */
 function buildMultiValueOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
-  const { frames, theme, options, seriesType, formatValue } = ctx;
-  const multiValueData = multiValueCartesianToEChartsOption(frames, seriesType as MultiValueChartType, theme);
+  const { frames, theme, options, seriesType, formatValue, timeRange } = ctx;
+  const multiValueData = multiValueCartesianToEChartsOption(
+    frames,
+    seriesType as MultiValueChartType,
+    theme,
+    timeRange
+  );
 
   if (!multiValueData || multiValueData.series.length === 0) {
     return null;

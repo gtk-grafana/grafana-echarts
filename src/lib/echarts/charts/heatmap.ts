@@ -5,6 +5,7 @@ import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {
   cartesianTimeDefaultOptions,
   getCartesianAxisStyle,
+  getTimeAxisBounds,
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
 import { HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
@@ -86,7 +87,9 @@ export const heatmapChartModule: ChartModule = {
 
     const xAxisIsTime = cartSeries.length > 0 || (heatmap ? heatmap.xIsTime : true);
     const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis as Record<string, unknown>, axisStyle, {
-      ...(xAxisIsTime ? {} : { type: 'value' }),
+      // Pin the time axis to the dashboard range so gappy panels stay aligned;
+      // non-time (value) buckets keep their data-derived extent.
+      ...(xAxisIsTime ? getTimeAxisBounds(ctx.timeRange) : { type: 'value' }),
     });
 
     return {
