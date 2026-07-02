@@ -94,7 +94,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Category-axis cartesian (Group 2): a Numeric frame with a string category field (Department) and two numeric fields renders as a multi-series bar chart on a category x-axis (no time field).",
+      "description": "Category-axis cartesian (Group 2): CSV content provides a string category field (Department) plus two numeric fields; the Convert field type transformation pins the types the CSV source cannot express, and the panel renders a multi-series bar chart on a category x-axis (no time field).",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -121,8 +121,30 @@
             "uid": "trlxrdZVk"
           },
           "refId": "A",
-          "scenarioId": "raw_frame",
-          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Department\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Budget\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}},{\"name\":\"Actual\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"Sales\",\"Marketing\",\"Engineering\",\"Support\",\"Operations\"],[43,30,60,25,40],[50,45,55,30,35]]}}]"
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
         }
       ],
       "title": "Category bar — Numeric frame (Budget vs Actual)",
@@ -133,7 +155,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Numeric-looking category x-axis: the category field holds numeric-looking labels (years 2007–2011). These are still string categories, not a continuous value axis.",
+      "description": "Numeric-looking category x-axis: the Year column holds numeric-looking labels (2007–2011). The CSV source would infer them as numbers, so the Convert field type transformation forces Year back to string to keep a category axis (not a continuous value axis).",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -160,8 +182,30 @@
             "uid": "trlxrdZVk"
           },
           "refId": "A",
-          "scenarioId": "raw_frame",
-          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Year\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Revenue\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}},{\"name\":\"Cost\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"2007\",\"2008\",\"2009\",\"2010\",\"2011\"],[120,150,170,140,200],[80,90,110,100,130]]}}]"
+          "scenarioId": "csv_content",
+          "csvContent": "Year,Revenue,Cost\n2007,120,80\n2008,150,90\n2009,170,110\n2010,140,100\n2011,200,130"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Year",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Revenue",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Cost",
+                "destinationType": "number"
+              }
+            ]
+          }
         }
       ],
       "title": "Numeric-labeled bar — category x-axis (years)",
@@ -172,7 +216,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Time-axis cartesian (Group 1): two time-series frames (time + number fields) render on a time x-axis.",
+      "description": "Time-axis cartesian (Group 1): a wide CSV frame (Time + two numeric series). The Convert field type transformation pins Time to the time type the CSV source cannot express, so both series render on a time x-axis.",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -199,8 +243,30 @@
             "uid": "trlxrdZVk"
           },
           "refId": "A",
-          "scenarioId": "raw_frame",
-          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"Series A\",\"fields\":[{\"name\":\"Time\",\"type\":\"time\",\"typeInfo\":{\"frame\":\"time.Time\",\"nullable\":true},\"config\":{}},{\"name\":\"Value\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[1609459200000,1609462800000,1609466400000,1609470000000,1609473600000],[10,20,15,25,30]]}},{\"schema\":{\"refId\":\"A\",\"name\":\"Series B\",\"fields\":[{\"name\":\"Time\",\"type\":\"time\",\"typeInfo\":{\"frame\":\"time.Time\",\"nullable\":true},\"config\":{}},{\"name\":\"Value\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[1609459200000,1609462800000,1609466400000,1609470000000,1609473600000],[40,50,45,55,60]]}}]"
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B\n2021-01-01T00:00:00Z,10,40\n2021-01-01T01:00:00Z,20,50\n2021-01-01T02:00:00Z,15,45\n2021-01-01T03:00:00Z,25,55\n2021-01-01T04:00:00Z,30,60"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Time",
+                "destinationType": "time"
+              },
+              {
+                "targetField": "Series A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Series B",
+                "destinationType": "number"
+              }
+            ]
+          }
         }
       ],
       "title": "Time-series line (Group 1)",
@@ -211,7 +277,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Category-axis cartesian (Group 2) as a line: the same Numeric frame (Department) rendered with a line series type on a category x-axis.",
+      "description": "Category-axis cartesian (Group 2) as a line: the same CSV Numeric frame (Department) rendered with a line series type. Convert field type keeps Department categorical, so the x-axis stays categorical because there is no time field.",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -238,8 +304,30 @@
             "uid": "trlxrdZVk"
           },
           "refId": "A",
-          "scenarioId": "raw_frame",
-          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Department\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Budget\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}},{\"name\":\"Actual\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"Sales\",\"Marketing\",\"Engineering\",\"Support\",\"Operations\"],[43,30,60,25,40],[50,45,55,30,35]]}}]"
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
         }
       ],
       "title": "Category line — Numeric frame (multi-series)",
@@ -250,7 +338,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Line chart over numeric-looking category labels (years 2007–2011). Still a category axis; the labels only look numeric.",
+      "description": "Line chart over numeric-looking category labels (years 2007–2011). Convert field type forces Year to string, so it stays a category axis; the labels only look numeric.",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -277,8 +365,30 @@
             "uid": "trlxrdZVk"
           },
           "refId": "A",
-          "scenarioId": "raw_frame",
-          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Year\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Revenue\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}},{\"name\":\"Cost\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"2007\",\"2008\",\"2009\",\"2010\",\"2011\"],[120,150,170,140,200],[80,90,110,100,130]]}}]"
+          "scenarioId": "csv_content",
+          "csvContent": "Year,Revenue,Cost\n2007,120,80\n2008,150,90\n2009,170,110\n2010,140,100\n2011,200,130"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Year",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Revenue",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Cost",
+                "destinationType": "number"
+              }
+            ]
+          }
         }
       ],
       "title": "Numeric-labeled line — category x-axis (years)",
@@ -289,7 +399,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Single-series Numeric frame (one string field + one numeric field): each row becomes a category on the x-axis.",
+      "description": "Single-series Numeric frame from CSV (one string field + one numeric field): Convert field type pins Fruit to string and Count to number, so each row becomes a category on the x-axis.",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -316,8 +426,26 @@
             "uid": "trlxrdZVk"
           },
           "refId": "A",
-          "scenarioId": "raw_frame",
-          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"fields\":[{\"name\":\"Fruit\",\"type\":\"string\",\"typeInfo\":{\"frame\":\"string\",\"nullable\":true},\"config\":{}},{\"name\":\"Count\",\"type\":\"number\",\"typeInfo\":{\"frame\":\"int64\",\"nullable\":true},\"config\":{}}]},\"data\":{\"values\":[[\"Apples\",\"Bananas\",\"Cherries\",\"Dates\",\"Elderberries\"],[120,90,60,30,15]]}}]"
+          "scenarioId": "csv_content",
+          "csvContent": "Fruit,Count\nApples,120\nBananas,90\nCherries,60\nDates,30\nElderberries,15"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Fruit",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Count",
+                "destinationType": "number"
+              }
+            ]
+          }
         }
       ],
       "title": "Single-series category bar — Numeric frame",
@@ -338,6 +466,6 @@
   "timezone": "",
   "title": "Provisioned echarts dashboard",
   "uid": "a538aeff-5a8a-42a5-901c-938d896fdd6f",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
