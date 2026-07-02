@@ -59,7 +59,6 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
   const panelDOMRef = useRef<HTMLDivElement>(null);
   // The chart instance is created on mount (see the layout effect below) and
   // held in state so the option/resize effects re-run once it exists.
-  // @todo this will duplicate the chart state in memory, try to find a way to get this working with references instead
   const [chart, setChart] = useState<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
 
@@ -151,8 +150,6 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       return;
     }
 
-    chart.clear();
-
     const axisType = panelTypeToAxis(seriesType);
     const tooltipOption = getTooltipOption(
       grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
@@ -177,11 +174,21 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
           : getCrosshairAxisPointer()
         : undefined;
 
-    chart.setOption({
-      ...echartOption,
-      tooltip: tooltipOption,
-      ...(axisPointer ? { axisPointer } : {}),
-    });
+    // `notMerge` replaces the previous option outright (removing any components
+    // the new option omits) instead of merging into it. This effect rebuilds the
+    // whole option on every change and the panel switches across chart families
+    // with different structures (grid/axes, visualMap, radar), so a merge would
+    // leave stale components behind. Replacing in place also keeps the instance
+    // warm for transitions, unlike a full chart.clear() + setOption reset.
+    // https://echarts.apache.org/en/api.html#echartsInstance.setOption
+    chart.setOption(
+      {
+        ...echartOption,
+        tooltip: tooltipOption,
+        ...(axisPointer ? { axisPointer } : {}),
+      },
+      { notMerge: true }
+    );
   }, [chart, chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme]);
 
   useEffect(() => {
