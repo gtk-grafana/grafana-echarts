@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/series';
 import { EChartsFieldConfig, SeriesType } from 'editor/types';
-import { Panel } from 'components/Panel';
+import { Panel } from 'lib/components/Panel';
 import { PanelOptions } from 'types';
 
 // Multivariate family panel (Group 6): radar built from the categorical model

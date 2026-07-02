@@ -9,10 +9,10 @@ import {
   seriesTypeOptions,
   seriesTypePath,
 } from 'editor/series';
-import { supportedChartSeriesTypes } from 'echarts/charts/registry';
+import { supportedChartSeriesTypes } from 'lib/echarts/charts/registry';
 import { EChartsFieldConfig, SeriesType } from 'editor/types';
-import { heatmapColorSchemeDefault, HeatmapColorScheme } from 'echarts/options/heatmap';
-import { Panel } from 'components/Panel';
+import { heatmapColorSchemeDefault, HeatmapColorScheme } from 'lib/echarts/options/heatmap';
+import { Panel } from 'lib/components/Panel';
 import { PanelOptions } from 'types';
 
 const heatmapColorSchemeOptions: Array<SelectableValue<HeatmapColorScheme>> = [
