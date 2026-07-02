@@ -75,6 +75,11 @@ export const cartesianTimeDefaultOptions: ECBasicOption = {
   },
   yAxis: {
     type: 'value',
+    // `scale: true` lets ECharts auto-fit the axis to the data's min/max (with a
+    // small buffer to nice tick bounds) instead of forcing zero into range,
+    // matching Grafana/uPlot's default numeric y-axis behavior.
+    // https://echarts.apache.org/en/option.html#yAxis.scale
+    scale: true,
   },
 };
 
@@ -92,5 +97,8 @@ export const cartesianCategoryDefaultOptions: ECBasicOption = {
   },
   yAxis: {
     type: 'value',
+    // See cartesianTimeDefaultOptions above: fit to data min/max, don't force zero.
+    // https://echarts.apache.org/en/option.html#yAxis.scale
+    scale: true,
   },
 };
