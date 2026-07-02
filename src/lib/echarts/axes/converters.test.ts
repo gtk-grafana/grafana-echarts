@@ -1,11 +1,21 @@
 import { panelTypeToAxis } from './converters';
 
 describe('panelTypeToAxis', () => {
-  it('maps cartesian and heatmap families to a time axis', () => {
+  it('maps cartesian and heatmap families to a time axis when a time field is present', () => {
     expect(panelTypeToAxis('line')).toBe('time');
     expect(panelTypeToAxis('bar')).toBe('time');
     expect(panelTypeToAxis('scatter')).toBe('time');
     expect(panelTypeToAxis('heatmap')).toBe('time');
+  });
+
+  it('maps the cartesian family to a category axis when no time field is present', () => {
+    expect(panelTypeToAxis('line', false)).toBe('category');
+    expect(panelTypeToAxis('bar', false)).toBe('category');
+    expect(panelTypeToAxis('scatter', false)).toBe('category');
+  });
+
+  it('keeps the heatmap family on a time axis regardless of the time field', () => {
+    expect(panelTypeToAxis('heatmap', false)).toBe('time');
   });
 
   it('maps non-cartesian families to a category axis', () => {

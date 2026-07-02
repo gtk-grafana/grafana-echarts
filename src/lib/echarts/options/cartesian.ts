@@ -67,3 +67,20 @@ export const cartesianTimeDefaultOptions: ECBasicOption = {
     type: 'value',
   },
 };
+
+/**
+ * Shared base option for category-axis cartesian charts (Group 2: category
+ * bar/line built from Numeric frames). Same value y-axis as the time variant,
+ * but the x-axis is `category` and its labels (`data`) are supplied at render
+ * time from the categorical model. Tooltip and grid are merged at render time.
+ * See https://echarts.apache.org/en/option.html#xAxis.type
+ */
+export const cartesianCategoryDefaultOptions: ECBasicOption = {
+  ...createBaseOptions(),
+  xAxis: {
+    type: 'category',
+  },
+  yAxis: {
+    type: 'value',
+  },
+};

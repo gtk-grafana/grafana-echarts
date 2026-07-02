@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: category-cartesian
     content: Wire CategoricalData → cartesian panel with category x-axis for bar/line from Numeric frames (Group 2)
-    status: pending
+    status: completed
   - id: multi-value-cartesian
     content: Add MultiValueCartesian converter for candlestick/boxplot in the cartesian panel (Group 3)
     status: pending
