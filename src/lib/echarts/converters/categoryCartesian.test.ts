@@ -67,6 +67,26 @@ describe('categoryCartesianToEChartsOption', () => {
     expect(result!.categories).toEqual(['0', '1']);
   });
 
+  describe('stacking', () => {
+    it('adds a shared stack group to bar series when stacking is on', () => {
+      const result = categoryCartesianToEChartsOption([tableFrame()], 'bar', theme, true);
+
+      expect(result!.series.every((s) => s.stack === 'total')).toBe(true);
+    });
+
+    it('does not stack bar series when stacking is off', () => {
+      const result = categoryCartesianToEChartsOption([tableFrame()], 'bar', theme, false);
+
+      expect(result!.series.every((s) => s.stack === undefined)).toBe(true);
+    });
+
+    it('never stacks non-bar series even when stacking is on', () => {
+      const result = categoryCartesianToEChartsOption([tableFrame()], 'line', theme, true);
+
+      expect(result!.series.every((s) => s.stack === undefined)).toBe(true);
+    });
+  });
+
   it('returns null when no frame has a numeric field', () => {
     const frame = toDataFrame({
       fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],

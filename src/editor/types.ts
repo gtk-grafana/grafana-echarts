@@ -33,4 +33,7 @@ export type SeriesType =
  */
 export interface EChartsFieldConfig {
   seriesType?: SeriesType;
+  // Per-field override for stacking, honored only when the field renders as
+  // `bar`. Overrides the panel-level `stackSeries` default.
+  stackSeries?: boolean;
 }

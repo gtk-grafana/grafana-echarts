@@ -143,6 +143,58 @@ describe('timeSeriesToEChartsOption', () => {
     });
   });
 
+  describe('stacking', () => {
+    it('adds a shared stack group to bar series when the panel default is on', () => {
+      const result = timeSeriesToEChartsOption([wideFrame()], 'bar', theme, true);
+
+      expect(result!.every((series) => series.stack === 'total')).toBe(true);
+    });
+
+    it('does not stack when the panel default is off', () => {
+      const result = timeSeriesToEChartsOption([wideFrame()], 'bar', theme, false);
+
+      expect(result!.every((series) => series.stack === undefined)).toBe(true);
+    });
+
+    it('never stacks non-bar series even when stacking is on', () => {
+      const result = timeSeriesToEChartsOption([wideFrame()], 'line', theme, true);
+
+      expect(result!.every((series) => series.stack === undefined)).toBe(true);
+    });
+
+    it('lets a per-field stackSeries override win over the panel default', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1, 2] },
+          { name: 'stacked', type: FieldType.number, values: [10, 20], config: { custom: { stackSeries: true } } },
+          { name: 'unstacked', type: FieldType.number, values: [1, 2], config: { custom: { stackSeries: false } } },
+        ],
+      });
+
+      const result = timeSeriesToEChartsOption([frame], 'bar', theme, false);
+
+      expect(result![0]).toMatchObject({ name: 'stacked', stack: 'total' });
+      expect(result![1].stack).toBeUndefined();
+    });
+
+    it('only stacks a field whose type override renders it as bar', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1, 2] },
+          { name: 'asBar', type: FieldType.number, values: [10, 20], config: { custom: { seriesType: 'bar' } } },
+          { name: 'asLine', type: FieldType.number, values: [1, 2], config: { custom: { seriesType: 'line' } } },
+        ],
+      });
+
+      // Panel default is line; only the bar-overridden field stacks.
+      const result = timeSeriesToEChartsOption([frame], 'line', theme, true);
+
+      expect(result![0]).toMatchObject({ name: 'asBar', type: 'bar', stack: 'total' });
+      expect(result![1]).toMatchObject({ name: 'asLine', type: 'line' });
+      expect(result![1].stack).toBeUndefined();
+    });
+  });
+
   describe('frames that cannot produce time series', () => {
     it('returns null for an empty frame list', () => {
       expect(timeSeriesToEChartsOption([], 'line', theme)).toBeNull();

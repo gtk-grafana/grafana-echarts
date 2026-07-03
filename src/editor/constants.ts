@@ -5,6 +5,18 @@ export const seriesTypePath = 'seriesType';
 export const seriesTypeName = 'Type';
 export const seriesTypeDefault: SeriesType = 'line';
 /**
+ * Stack series option: panel option path and per-field custom config key share
+ * the same name. Only meaningful for `bar` series.
+ */
+export const stackSeriesPath = 'stackSeries';
+export const stackSeriesName = 'Stack series';
+/**
+ * Shared ECharts `stack` group id. Series that share the same `stack` string are
+ * stacked together, so all stacked bar series use this single group.
+ * https://echarts.apache.org/en/option.html#series-bar.stack
+ */
+export const STACK_GROUP_ID = 'total';
+/**
  * Cartesian time series types that render on a time/value grid and consume the
  * converter's `[time, value]` output unchanged (one numeric value per point).
  *

@@ -1,5 +1,5 @@
 import { type DataFrame, type Field, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
-import {cartesianTimeSeriesTypes} from "editor/constants";
+import { cartesianTimeSeriesTypes, STACK_GROUP_ID } from 'editor/constants';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
 import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
@@ -13,6 +13,15 @@ function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesTy
     return override;
   }
   return defaultType;
+}
+
+/**
+ * Whether a bar field should stack: field override wins over the panel default.
+ * Only bar series stack, so callers gate on the resolved render type.
+ */
+function resolveFieldStack(field: Field, panelStack: boolean): boolean {
+  const override = (field.config.custom as EChartsFieldConfig | undefined)?.stackSeries;
+  return override ?? panelStack;
 }
 
 
@@ -32,26 +41,39 @@ interface EChartsTimeSeries {
   data: Array<[XAxisValue, YAxisValue]>;
   itemStyle: { color: string };
   lineStyle: { color: string };
+  /**
+   * ECharts stack group id. Bar series sharing the same value are stacked; unset
+   * for unstacked or non-bar series.
+   * https://echarts.apache.org/en/option.html#series-bar.stack
+   */
+  stack?: string;
 }
 
 /**
  * Convert Grafana time series DataFrames into ECharts series data.
+ *
+ * `panelStack` is the panel-level stacking default; a per-field `stackSeries`
+ * override wins. Stacking is applied only to fields that render as `bar`.
  */
 export function timeSeriesToEChartsOption(
   series: DataFrame[],
   seriesType: SeriesType,
-  theme: GrafanaTheme2
+  theme: GrafanaTheme2,
+  panelStack = false
 ): EChartsTimeSeries[] | null {
   const echartsSeries: EChartsTimeSeries[] = [];
 
   forEachTimeSeriesField(series, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
+    const type = resolveFieldSeriesType(field, seriesType);
+    const stacked = type === 'bar' && resolveFieldStack(field, panelStack);
     echartsSeries.push({
       name: getFieldDisplayName(field, frame, series),
-      type: resolveFieldSeriesType(field, seriesType),
+      type,
       data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
       itemStyle: { color },
       lineStyle: { color },
+      ...(stacked ? { stack: STACK_GROUP_ID } : {}),
     });
   });
 

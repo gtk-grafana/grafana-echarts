@@ -1,4 +1,5 @@
 import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { STACK_GROUP_ID } from 'editor/constants';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { type SeriesType } from 'editor/types';
 
@@ -17,6 +18,12 @@ export interface CategoryCartesianSeries {
   data: Array<number | null>;
   itemStyle: { color: string };
   lineStyle: { color: string };
+  /**
+   * ECharts stack group id. Bar series sharing the same value are stacked; unset
+   * for unstacked or non-bar series.
+   * https://echarts.apache.org/en/option.html#series-bar.stack
+   */
+  stack?: string;
 }
 
 /**
@@ -40,8 +47,9 @@ export interface CategoryCartesianData {
  *   the categories.
  *
  * All series share the panel-level `seriesType` (line/bar/...). Per-field render
- * overrides are only wired for the time-axis path today; see
- * echarts/converters/timeSeries.ts.
+ * and stack overrides are only wired for the time-axis path today; here stacking
+ * follows the panel-level `panelStack` flag and applies only when the panel type
+ * is `bar`. See echarts/converters/timeSeries.ts.
  *
  * Inherits the categorical model's trade-offs (single frame, time fields
  * ignored, positional alignment). Returns `null` when no usable categorical data
@@ -50,7 +58,8 @@ export interface CategoryCartesianData {
 export function categoryCartesianToEChartsOption(
   series: DataFrame[],
   seriesType: SeriesType,
-  theme: GrafanaTheme2
+  theme: GrafanaTheme2,
+  panelStack = false
 ): CategoryCartesianData | null {
   const categorical = frameToCategorical(series, theme);
 
@@ -58,12 +67,14 @@ export function categoryCartesianToEChartsOption(
     return null;
   }
 
+  const stacked = seriesType === 'bar' && panelStack;
   const echartsSeries: CategoryCartesianSeries[] = categorical.series.map((field) => ({
     name: field.name,
     type: seriesType,
     data: field.values,
     itemStyle: { color: field.color },
     lineStyle: { color: field.color },
+    ...(stacked ? { stack: STACK_GROUP_ID } : {}),
   }));
 
   return { categories: categorical.categories, series: echartsSeries };

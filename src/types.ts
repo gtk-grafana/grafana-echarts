@@ -20,5 +20,8 @@ export interface PanelOptions extends OptionsWithLegend {
   [seriesTypePath]: SeriesType;
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
+  // Panel-level default for stacking bar series (only meaningful when the panel
+  // series type is `bar`). Per-field overrides win; see EChartsFieldConfig.
+  stackSeries?: boolean;
 }
 
