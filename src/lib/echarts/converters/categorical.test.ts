@@ -31,6 +31,13 @@ describe('frameToCategorical', () => {
     expect(result!.series[1].color).toEqual(expect.any(String));
   });
 
+  it('keeps a reference to the source field for per-field config', () => {
+    const result = frameToCategorical([tableFrame()], theme);
+
+    expect(result!.series[0].field.name).toBe('Budget');
+    expect(result!.series[1].field.name).toBe('Actual');
+  });
+
   it('falls back to row indices when there is no string field', () => {
     const frame = toDataFrame({
       fields: [{ name: 'v', type: FieldType.number, values: [1, 2], config: { displayName: 'v' } }],

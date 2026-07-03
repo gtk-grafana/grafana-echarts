@@ -595,6 +595,93 @@
       ],
       "title": "Stacked time-series bar — per-field override",
       "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Bar rendering options: the Budget vs Actual category bar with panel-level bar styling (rounded corners, fixed width, wider category gap) plus a field override that gives the 'Actual' series its own width and reduced fill opacity.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 11,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "width": 24,
+          "categoryGap": "40%",
+          "borderRadius": 4
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.width",
+                "value": 12
+              },
+              {
+                "id": "custom.bar.opacity",
+                "value": 0.5
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Bar rendering options — panel + per-field override",
+      "type": "grafana-echartscartesian-panel"
     }
   ],
   "refresh": "",
@@ -611,6 +698,6 @@
   "timezone": "utc",
   "title": "Provisioned echarts dashboard",
   "uid": "a538aeff-5a8a-42a5-901c-938d896fdd6f",
-  "version": 6,
+  "version": 7,
   "weekStart": ""
 }

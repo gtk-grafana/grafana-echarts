@@ -17,6 +17,24 @@ export const stackSeriesName = 'Stack series';
  */
 export const STACK_GROUP_ID = 'total';
 /**
+ * Bar-specific option sections. These are flat sibling collapsible sections
+ * (Grafana flattens nested `category` arrays), each conditionally shown only for
+ * the `bar` series type. The override section groups per-field bar overrides.
+ */
+export const barSpacingCategory = 'Bar options - Column spacing';
+export const barSizeCategory = 'Bar options - Size';
+export const barStyleCategory = 'Bar options - Styles';
+export const barOverrideCategory = 'Bar options';
+/**
+ * ECharts `itemStyle.borderType` values offered for bar borders.
+ * https://echarts.apache.org/en/option.html#series-bar.itemStyle.borderType
+ */
+export const barBorderTypeOptions: Array<SelectableValue<'solid' | 'dashed' | 'dotted'>> = [
+  { value: 'solid', label: 'Solid' },
+  { value: 'dashed', label: 'Dashed' },
+  { value: 'dotted', label: 'Dotted' },
+];
+/**
  * Cartesian time series types that render on a time/value grid and consume the
  * converter's `[time, value]` output unchanged (one numeric value per point).
  *

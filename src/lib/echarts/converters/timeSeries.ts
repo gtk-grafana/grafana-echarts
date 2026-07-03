@@ -1,8 +1,9 @@
 import { type DataFrame, type Field, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
 import { cartesianTimeSeriesTypes, STACK_GROUP_ID } from 'editor/constants';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
+import { type BarItemStyle, type BarSeriesExtras, buildBarStyle } from 'lib/echarts/options/barStyle';
 import { getSeriesColor } from 'lib/echarts/style';
-import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
+import { type BarStyleConfig, type EChartsFieldConfig, type SeriesType } from 'editor/types';
 
 /**
  * Resolve the series type for a single value field: field override wins when cartesian.
@@ -29,7 +30,7 @@ function resolveFieldStack(field: Field, panelStack: boolean): boolean {
 type XAxisValue = number;
 /** Y of each cartesian `[x, y]` data item; `null` renders a gap rather than a zero. */
 type YAxisValue = number | null;
-interface EChartsTimeSeries {
+interface EChartsTimeSeries extends Partial<BarSeriesExtras> {
   name: string;
   type: SeriesType;
   /**
@@ -39,7 +40,7 @@ interface EChartsTimeSeries {
    * See https://echarts.apache.org/en/option.html#series-line.data
    */
   data: Array<[XAxisValue, YAxisValue]>;
-  itemStyle: { color: string };
+  itemStyle: BarItemStyle;
   lineStyle: { color: string };
   /**
    * ECharts stack group id. Bar series sharing the same value are stacked; unset
@@ -54,12 +55,15 @@ interface EChartsTimeSeries {
  *
  * `panelStack` is the panel-level stacking default; a per-field `stackSeries`
  * override wins. Stacking is applied only to fields that render as `bar`.
+ * `panelBar` holds the panel-level bar rendering options; a field's `bar`
+ * override wins per property and is applied only to `bar` series.
  */
 export function timeSeriesToEChartsOption(
   series: DataFrame[],
   seriesType: SeriesType,
   theme: GrafanaTheme2,
-  panelStack = false
+  panelStack = false,
+  panelBar?: BarStyleConfig
 ): EChartsTimeSeries[] | null {
   const echartsSeries: EChartsTimeSeries[] = [];
 
@@ -67,13 +71,18 @@ export function timeSeriesToEChartsOption(
     const color = getSeriesColor(field, theme);
     const type = resolveFieldSeriesType(field, seriesType);
     const stacked = type === 'bar' && resolveFieldStack(field, panelStack);
+    const barExtras =
+      type === 'bar'
+        ? buildBarStyle(panelBar, (field.config.custom as EChartsFieldConfig | undefined)?.bar, color, stacked)
+        : undefined;
     echartsSeries.push({
       name: getFieldDisplayName(field, frame, series),
       type,
       data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
-      itemStyle: { color },
+      itemStyle: barExtras?.itemStyle ?? { color },
       lineStyle: { color },
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+      ...(barExtras ? stripItemStyle(barExtras) : {}),
     });
   });
 
@@ -82,4 +91,10 @@ export function timeSeriesToEChartsOption(
   }
 
   return echartsSeries;
+}
+
+/** Bar extras without `itemStyle` (assigned separately so it merges with the color). */
+function stripItemStyle(extras: BarSeriesExtras): Omit<BarSeriesExtras, 'itemStyle'> {
+  const { itemStyle: _itemStyle, ...rest } = extras;
+  return rest;
 }

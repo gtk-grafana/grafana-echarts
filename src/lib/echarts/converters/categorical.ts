@@ -1,4 +1,4 @@
-import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { type DataFrame, type Field, type GrafanaTheme2 } from '@grafana/data';
 import { findCategoricalFrame, mapNumericFields, resolveCategories } from 'lib/echarts/converters/frames';
 
 /**
@@ -9,11 +9,16 @@ import { findCategoricalFrame, mapNumericFields, resolveCategories } from 'lib/e
  *
  * `color` is resolved from the field's standard Color scheme config so each
  * series matches Grafana.
+ *
+ * `field` is the source Grafana field, kept so category-axis converters can read
+ * per-field custom config (e.g. bar rendering overrides). Consumers that only
+ * need display data (pie, radar, legends) can ignore it.
  */
 export interface CategoricalSeries {
   name: string;
   values: Array<number | null>;
   color: string;
+  field: Field;
 }
 
 /**
@@ -68,6 +73,7 @@ export function frameToCategorical(series: DataFrame[], theme: GrafanaTheme2): C
       name,
       values: Array.from({ length: frame.length }, (_, row) => field.values[row] ?? null),
       color,
+      field,
     })
   );
 

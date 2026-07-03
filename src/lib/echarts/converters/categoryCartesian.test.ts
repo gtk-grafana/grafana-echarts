@@ -87,6 +87,39 @@ describe('categoryCartesianToEChartsOption', () => {
     });
   });
 
+  describe('bar rendering options', () => {
+    it('applies panel-level bar props to every bar series', () => {
+      const result = categoryCartesianToEChartsOption([tableFrame()], 'bar', theme, false, {
+        width: 12,
+        borderRadius: 4,
+      });
+
+      expect(result!.series.every((s) => s.barWidth === 12)).toBe(true);
+      expect(result!.series.every((s) => s.itemStyle.borderRadius === 4)).toBe(true);
+    });
+
+    it('honors a per-field bar override on the category path', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'category', type: FieldType.string, values: ['a', 'b'] },
+          { name: 'Budget', type: FieldType.number, values: [1, 2], config: { custom: { bar: { width: 30 } } } },
+          { name: 'Actual', type: FieldType.number, values: [3, 4] },
+        ],
+      });
+
+      const result = categoryCartesianToEChartsOption([frame], 'bar', theme, false, { width: 12 });
+
+      expect(result!.series[0]).toMatchObject({ name: 'Budget', barWidth: 30 });
+      expect(result!.series[1]).toMatchObject({ name: 'Actual', barWidth: 12 });
+    });
+
+    it('does not apply bar props when the panel type is not bar', () => {
+      const result = categoryCartesianToEChartsOption([tableFrame()], 'line', theme, false, { width: 12 });
+
+      expect(result!.series.every((s) => s.barWidth === undefined)).toBe(true);
+    });
+  });
+
   it('returns null when no frame has a numeric field', () => {
     const frame = toDataFrame({
       fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],

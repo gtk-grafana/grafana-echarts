@@ -1,0 +1,1457 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.gap (ECharts barGap): gap between bars of different series within a category. Two unstacked series so the inter-series gap is visible.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "gap": "60%"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.gap (60%)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.categoryGap (ECharts barCategoryGap): gap between categories on the axis.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "categoryGap": "50%"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.categoryGap (50%)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.width (ECharts barWidth): fixed bar width in pixels.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "width": 16
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.width (16px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.maxWidth (ECharts barMaxWidth): caps auto-sized bar width in pixels.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "maxWidth": 20
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.maxWidth (20px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.minHeight (ECharts barMinHeight): lifts tiny values to a minimum pixel height. The 'Tiny' category carries a near-zero value that would otherwise be invisible.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "minHeight": 8
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,1\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.minHeight (8px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.borderWidth (ECharts itemStyle.borderWidth): outlines each bar. Borders use ECharts' default border color.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "borderWidth": 3
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.borderWidth (3px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.borderType (ECharts itemStyle.borderType): dashed borders. Border width is set so the dashed style is visible.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 7,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "borderWidth": 2,
+          "borderType": "dashed"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.borderType (dashed)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.borderRadius (ECharts itemStyle.borderRadius): rounds bar corners.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 8,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "borderRadius": 8
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.borderRadius (8px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.opacity (ECharts itemStyle.opacity): semi-transparent fill.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 9,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "opacity": 0.4
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.opacity (0.4)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.showBackground (ECharts showBackground): draws a track behind each bar using ECharts' default background color.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 10,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "showBackground": true
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.showBackground",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel option bar.backgroundColor (ECharts backgroundStyle.color): colored bar track. Requires showBackground.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      },
+      "id": 11,
+      "options": {
+        "seriesType": "bar",
+        "bar": {
+          "showBackground": true,
+          "backgroundColor": "rgba(255, 179, 71, 0.25)"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Panel — bar.backgroundColor (orange track)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.width: only the 'Actual' series gets a fixed bar width, the 'Budget' series keeps the auto width.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      },
+      "id": 12,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.width",
+                "value": 12
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.width (Actual, 12px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.maxWidth: caps only the 'Actual' series' auto bar width.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 48
+      },
+      "id": 13,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.maxWidth",
+                "value": 10
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.maxWidth (Actual, 10px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.minHeight: lifts only the 'Actual' series' tiny value (Support = 1) to a minimum pixel height.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 48
+      },
+      "id": 14,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.minHeight",
+                "value": 10
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,1\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.minHeight (Actual, 10px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.borderWidth: outlines only the 'Actual' series' bars.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 56
+      },
+      "id": 15,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.borderWidth",
+                "value": 3
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.borderWidth (Actual, 3px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.borderType: dashed border on only the 'Actual' series. Border width is set on the same override so the dashes are visible.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 56
+      },
+      "id": 16,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.borderWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.bar.borderType",
+                "value": "dotted"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.borderType (Actual, dotted)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.borderRadius: rounds only the 'Actual' series' corners.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 64
+      },
+      "id": 17,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.borderRadius",
+                "value": 10
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.borderRadius (Actual, 10px)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.opacity: semi-transparent fill on only the 'Actual' series.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 64
+      },
+      "id": 18,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.opacity",
+                "value": 0.35
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.opacity (Actual, 0.35)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.showBackground: draws a track behind only the 'Actual' series' bars.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 72
+      },
+      "id": 19,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.showBackground",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.showBackground (Actual)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field override custom.bar.backgroundColor: colored track behind only the 'Actual' series' bars. Requires showBackground, also set on the same override.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 72
+      },
+      "id": 20,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.bar.showBackground",
+                "value": true
+              },
+              {
+                "id": "custom.bar.backgroundColor",
+                "value": "rgba(115, 191, 105, 0.25)"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Override — custom.bar.backgroundColor (Actual, green track)",
+      "type": "grafana-echartscartesian-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "bar", "bar-options"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2021-01-01T00:00:00.000Z",
+    "to": "2021-01-01T04:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Bar rendering options",
+  "uid": "c1d2e3f4-1a2b-3c4d-5e6f-7a8b9c0d1e2f",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,7 +1,12 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, FieldType, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import {
+  barBorderTypeOptions,
+  barOverrideCategory,
+  barSizeCategory,
+  barSpacingCategory,
+  barStyleCategory,
   cartesianOverrideOptions,
   cartesianSeriesTypeOptions,
   seriesCategoryName,
@@ -70,6 +75,92 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         defaultValue: false,
         showIf: (config) => config.seriesType === 'bar',
       });
+
+      // Per-field bar rendering overrides. `showIf` can only see this field's
+      // own custom config (not the panel-level series type), so these are shown
+      // unless the field is explicitly overridden to a non-bar type; they only
+      // affect series that actually render as `bar`. `gap`/`categoryGap` are
+      // omitted because they are coordinate-system-global (panel-level only).
+      const showBarOverride = (config: EChartsFieldConfig) =>
+        config.seriesType == null || config.seriesType === 'bar';
+      builder
+        .addNumberInput({
+          path: 'bar.width',
+          name: 'Bar width',
+          description: 'Bar width in pixels.',
+          category: [barOverrideCategory],
+          settings: { placeholder: 'Auto', min: 0 },
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: showBarOverride,
+        })
+        .addNumberInput({
+          path: 'bar.maxWidth',
+          name: 'Bar max width',
+          description: 'Maximum bar width in pixels.',
+          category: [barOverrideCategory],
+          settings: { placeholder: 'Auto', min: 0 },
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: showBarOverride,
+        })
+        .addNumberInput({
+          path: 'bar.minHeight',
+          name: 'Bar min height',
+          description: 'Minimum bar height in pixels.',
+          category: [barOverrideCategory],
+          settings: { placeholder: '0', min: 0 },
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: showBarOverride,
+        })
+        .addNumberInput({
+          path: 'bar.borderWidth',
+          name: 'Border width',
+          description: 'Bar border width in pixels.',
+          category: [barOverrideCategory],
+          settings: { placeholder: '0', min: 0 },
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: showBarOverride,
+        })
+        .addRadio({
+          path: 'bar.borderType',
+          name: 'Border type',
+          category: [barOverrideCategory],
+          settings: { options: barBorderTypeOptions },
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: showBarOverride,
+        })
+        .addNumberInput({
+          path: 'bar.borderRadius',
+          name: 'Border radius',
+          description: 'Bar corner radius in pixels.',
+          category: [barOverrideCategory],
+          settings: { placeholder: '0', min: 0 },
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: showBarOverride,
+        })
+        .addSliderInput({
+          path: 'bar.opacity',
+          name: 'Fill opacity',
+          category: [barOverrideCategory],
+          settings: { min: 0, max: 1, step: 0.05 },
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: showBarOverride,
+        })
+        .addBooleanSwitch({
+          path: 'bar.showBackground',
+          name: 'Show background',
+          description: 'Draw a track behind each bar.',
+          defaultValue: false,
+          category: [barOverrideCategory],
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: showBarOverride,
+        })
+        .addColorPicker({
+          path: 'bar.backgroundColor',
+          name: 'Background color',
+          category: [barOverrideCategory],
+          shouldApply: (field) => field.type === FieldType.number,
+          showIf: (config) => showBarOverride(config) && Boolean(config.bar?.showBackground),
+        });
     },
   })
   .setPanelOptions((builder) => {
@@ -94,6 +185,102 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         defaultValue: false,
         category: [seriesCategoryName],
         showIf: (opts) => opts[seriesTypePath] === 'bar',
+      });
+
+    // Bar-specific rendering options. These live in flat sibling sections
+    // (Grafana flattens nested `category` arrays) that each appear only when the
+    // panel series type is `bar` (a category with no visible options is not
+    // rendered). Per-field overrides for the per-series properties live in the
+    // field config above.
+    const isBar = (opts: PanelOptions) => opts[seriesTypePath] === 'bar';
+    builder
+      // Column spacing (coordinate-system-global; panel-level only).
+      .addTextInput({
+        path: 'bar.gap',
+        name: 'Bar gap',
+        description: 'Gap between bars of different series in a category, e.g. "30%" (negative overlaps).',
+        category: [barSpacingCategory],
+        settings: { placeholder: 'Auto' },
+        // Bars overlap when stacked, so the inter-series gap is meaningless.
+        showIf: (opts) => isBar(opts) && !opts.stackSeries,
+      })
+      .addTextInput({
+        path: 'bar.categoryGap',
+        name: 'Bar category gap',
+        description: 'Gap between categories, e.g. "20%".',
+        category: [barSpacingCategory],
+        settings: { placeholder: 'Auto' },
+        showIf: isBar,
+      })
+      // Bar height & width (per-series; override-capable).
+      .addNumberInput({
+        path: 'bar.width',
+        name: 'Bar width',
+        description: 'Bar width in pixels.',
+        category: [barSizeCategory],
+        settings: { placeholder: 'Auto', min: 0 },
+        showIf: isBar,
+      })
+      .addNumberInput({
+        path: 'bar.maxWidth',
+        name: 'Bar max width',
+        description: 'Maximum bar width in pixels.',
+        category: [barSizeCategory],
+        settings: { placeholder: 'Auto', min: 0 },
+        showIf: isBar,
+      })
+      .addNumberInput({
+        path: 'bar.minHeight',
+        name: 'Bar min height',
+        description: 'Minimum bar height in pixels.',
+        category: [barSizeCategory],
+        settings: { placeholder: '0', min: 0 },
+        showIf: isBar,
+      })
+      // Bar styles (per-series; override-capable).
+      .addNumberInput({
+        path: 'bar.borderWidth',
+        name: 'Border width',
+        description: 'Bar border width in pixels.',
+        category: [barStyleCategory],
+        settings: { placeholder: '0', min: 0 },
+        showIf: isBar,
+      })
+      .addRadio({
+        path: 'bar.borderType',
+        name: 'Border type',
+        category: [barStyleCategory],
+        settings: { options: barBorderTypeOptions },
+        showIf: isBar,
+      })
+      .addNumberInput({
+        path: 'bar.borderRadius',
+        name: 'Border radius',
+        description: 'Bar corner radius in pixels.',
+        category: [barStyleCategory],
+        settings: { placeholder: '0', min: 0 },
+        showIf: isBar,
+      })
+      .addSliderInput({
+        path: 'bar.opacity',
+        name: 'Fill opacity',
+        category: [barStyleCategory],
+        settings: { min: 0, max: 1, step: 0.05 },
+        showIf: isBar,
+      })
+      .addBooleanSwitch({
+        path: 'bar.showBackground',
+        name: 'Show background',
+        description: 'Draw a track behind each bar.',
+        defaultValue: false,
+        category: [barStyleCategory],
+        showIf: isBar,
+      })
+      .addColorPicker({
+        path: 'bar.backgroundColor',
+        name: 'Background color',
+        category: [barStyleCategory],
+        showIf: (opts) => isBar(opts) && Boolean(opts.bar?.showBackground),
       });
 
     // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,

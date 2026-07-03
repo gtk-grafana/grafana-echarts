@@ -195,6 +195,39 @@ describe('timeSeriesToEChartsOption', () => {
     });
   });
 
+  describe('bar rendering options', () => {
+    it('applies panel-level bar props to bar series', () => {
+      const result = timeSeriesToEChartsOption([wideFrame()], 'bar', theme, false, {
+        width: 12,
+        borderRadius: 4,
+      });
+
+      expect(result!.every((s) => s.barWidth === 12)).toBe(true);
+      expect(result!.every((s) => s.itemStyle.borderRadius === 4)).toBe(true);
+    });
+
+    it('does not apply bar props to non-bar series', () => {
+      const result = timeSeriesToEChartsOption([wideFrame()], 'line', theme, false, { width: 12 });
+
+      expect(result!.every((s) => s.barWidth === undefined)).toBe(true);
+    });
+
+    it('lets a per-field bar override win over the panel default', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1, 2] },
+          { name: 'a', type: FieldType.number, values: [10, 20], config: { custom: { bar: { width: 30 } } } },
+          { name: 'b', type: FieldType.number, values: [1, 2] },
+        ],
+      });
+
+      const result = timeSeriesToEChartsOption([frame], 'bar', theme, false, { width: 12 });
+
+      expect(result![0]).toMatchObject({ name: 'a', barWidth: 30 });
+      expect(result![1]).toMatchObject({ name: 'b', barWidth: 12 });
+    });
+  });
+
   describe('frames that cannot produce time series', () => {
     it('returns null for an empty frame list', () => {
       expect(timeSeriesToEChartsOption([], 'line', theme)).toBeNull();

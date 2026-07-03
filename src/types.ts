@@ -1,6 +1,6 @@
 import { type OptionsWithLegend, type TooltipDisplayMode } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
-import { type SeriesType } from 'editor/types';
+import { type BarStyleConfig, type SeriesType } from 'editor/types';
 
 import { HeatmapColorScheme } from 'lib/echarts/options/types';
 
@@ -23,5 +23,8 @@ export interface PanelOptions extends OptionsWithLegend {
   // Panel-level default for stacking bar series (only meaningful when the panel
   // series type is `bar`). Per-field overrides win; see EChartsFieldConfig.
   stackSeries?: boolean;
+  // Panel-level bar rendering options (only meaningful when the panel series
+  // type is `bar`). Per-field overrides win; see EChartsFieldConfig.
+  bar?: BarStyleConfig;
 }
 

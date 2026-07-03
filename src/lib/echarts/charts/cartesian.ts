@@ -30,7 +30,7 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 /** Time-axis cartesian: `[time, value]` series on a time grid. */
 function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
   const { frames, theme, options, seriesType, formatValue } = ctx;
-  const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme, options.stackSeries ?? false);
+  const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme, options.stackSeries ?? false, options.bar);
 
   if (!cartSeries || cartSeries.length === 0) {
     return null;
@@ -67,7 +67,13 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
 /** Category-axis cartesian: plain y-values over a category x-axis. */
 function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
   const { frames, theme, options, seriesType, formatValue } = ctx;
-  const categoryData = categoryCartesianToEChartsOption(frames, seriesType, theme, options.stackSeries ?? false);
+  const categoryData = categoryCartesianToEChartsOption(
+    frames,
+    seriesType,
+    theme,
+    options.stackSeries ?? false,
+    options.bar
+  );
 
   if (!categoryData || categoryData.series.length === 0) {
     return null;
