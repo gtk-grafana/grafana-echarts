@@ -16,14 +16,19 @@ import { seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import React from 'react';
+import { captureLayeredCanvasEventsFromChart } from 'test/canvas';
 import { type PanelOptions } from 'types';
 import { Panel } from './Panel';
 
 // Integration test: render the real <Panel /> (React glue + ECharts init +
 // buildPanelChartOption) into a jest-canvas-mock canvas and snapshot the emitted
-// draw calls. This exercises the full component path. The capture is gated on
-// ECharts' `finished` event, so it reflects the settled post-animation frame
-// (deterministic) rather than a mid-animation one.
+// draw calls. This exercises the full component path.
+//
+// Only the series-layer draw calls are committed; the noisier grid/axis layer is
+// passed as viewer-only context (local jest-canvas-mock-compare payload, kept out
+// of the repo) so the committed snapshot stays small. The layered capture merges
+// the series onto their own zlevel and settles with animation off, so the result
+// is deterministic. See `test/canvas.ts`.
 
 const width = 400;
 const height = 300;
@@ -93,23 +98,17 @@ describe('Panel canvas renders', () => {
         const chart = getInstanceByDom(chartDom);
         expect(chart).toBeDefined();
 
-        // Gate the capture on ECharts' `finished` event, which fires once rendering
-        // AND the entry animation have settled. Since the Panel keeps animation on
-        // (~1s), it is still pending when we attach here, so the event fires after.
-        // https://echarts.apache.org/en/api.html#events.finished
-        let chartAxisReady = false;
+        // Wait for the Panel's initial paint so the chart has rendered its series
+        // and axes at least once before we re-capture them split by layer.
+        // https://echarts.apache.org/en/api.html#events.rendered
         let rendered = false;
-        chart!.on('rendered', () => {
+        chart!.on('finished', () => {
           rendered = true;
         });
-        // chart!.on('')
-
         await waitFor(() => expect(rendered).toEqual(true));
 
-        const ctx = container.querySelector('canvas')!.getContext('2d');
-        expect(ctx).not.toBeNull();
-        expect(removeCanvasTransforms(ctx!.__getEvents())).toMatchCanvasSnapshot([], { width, height });
-
+        const { seriesEvents, axisEvents } = captureLayeredCanvasEventsFromChart(chart!, container);
+        expect(removeCanvasTransforms(seriesEvents)).toMatchCanvasSnapshot(axisEvents, { width, height });
       });
     })
   })

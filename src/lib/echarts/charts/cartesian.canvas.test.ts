@@ -11,7 +11,12 @@ import { type PanelOptions } from 'types';
 // Canvas style-regression tests: build the full panel ECharts option (the same
 // tooltip/axisPointer assembly Panel.tsx feeds to setOption), render it into a
 // jest-canvas-mock canvas, and snapshot the emitted draw calls. A styling change
-// (colors, axis/grid/line styling) shifts the draw calls and fails the snapshot.
+// (colors, series line/bar styling) shifts the draw calls and fails the snapshot.
+//
+// Only the series-layer draw calls are committed to the snapshot; the far noisier
+// grid/axis layer is passed as viewer-only context (rendered in the local
+// jest-canvas-mock-compare payload on failure, kept out of the repo) to keep the
+// committed snapshot small. See `test/canvas.ts` for the zlevel-based split.
 
 const width = 400;
 const height = 300;
@@ -51,8 +56,8 @@ describe('cartesian chart canvas styles', () => {
     const option = buildPanelChartOption(buildContext([frame], 'line'), { isGrafanaLegend: false });
     expect(option).not.toBeNull();
 
-    const events = renderEChartsOptionToCanvasEvents(option!, { width, height });
-    expect(removeCanvasTransforms(events)).toMatchCanvasSnapshot([], { width, height });
+    const { seriesEvents, axisEvents } = renderEChartsOptionToCanvasEvents(option!, { width, height });
+    expect(removeCanvasTransforms(seriesEvents)).toMatchCanvasSnapshot(axisEvents, { width, height });
   });
 
   it('renders a category-axis bar chart', () => {
@@ -67,7 +72,7 @@ describe('cartesian chart canvas styles', () => {
     const option = buildPanelChartOption(buildContext([frame], 'bar'), { isGrafanaLegend: false });
     expect(option).not.toBeNull();
 
-    const events = renderEChartsOptionToCanvasEvents(option!, { width, height });
-    expect(removeCanvasTransforms(events)).toMatchCanvasSnapshot([], { width, height });
+    const { seriesEvents, axisEvents } = renderEChartsOptionToCanvasEvents(option!, { width, height });
+    expect(removeCanvasTransforms(seriesEvents)).toMatchCanvasSnapshot(axisEvents, { width, height });
   });
 });
