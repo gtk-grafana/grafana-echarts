@@ -45,3 +45,6 @@ ci/
 # Editor
 .idea
 .eslintcache
+
+# Ephemeral canvas snapshot compare payloads (jest-canvas-mock-compare)
+/.jest-canvas-mock-compare/

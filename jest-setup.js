@@ -19,4 +19,13 @@ Object.defineProperty(global, 'matchMedia', {
   }),
 });
 
-HTMLCanvasElement.prototype.getContext = () => {};
+// jest-canvas-mock installs a recording 2D canvas context (exposing `__getEvents`),
+// replacing jsdom's unimplemented getContext. This lets ECharts actually draw in
+// tests so canvas snapshot matchers can compare the emitted draw calls.
+// https://github.com/hustcc/jest-canvas-mock
+require('jest-canvas-mock');
+
+// Register the `toMatchCanvasSnapshot` matcher for canvas style-regression tests.
+// https://github.com/grafana/jest-canvas-mock-compare
+const { matchers } = require('jest-canvas-mock-compare');
+expect.extend(matchers);

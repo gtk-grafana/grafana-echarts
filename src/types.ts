@@ -15,10 +15,18 @@ export type { EChartsFieldConfig } from 'editor/types';
  *
  * `heatmapColorScheme` selects the color gradient used for the heatmap cell
  * layer (only relevant when a heatmap frame is present).
+ *
+ * @todo we probably want to build options around echarts API instead of using Grafana's
  */
 export interface PanelOptions extends OptionsWithLegend {
   [seriesTypePath]: SeriesType;
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
+
+  // Not wired up to UI yet
+  animation?: {
+    // https://echarts.apache.org/en/option.html#animation
+    enabled: boolean;
+  };
 }
 

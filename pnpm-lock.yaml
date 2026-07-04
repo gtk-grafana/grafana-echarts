@@ -126,6 +126,12 @@ importers:
       jest:
         specifier: 30.4.2
         version: 30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2))
+      jest-canvas-mock:
+        specifier: 2.5.2
+        version: 2.5.2
+      jest-canvas-mock-compare:
+        specifier: 0.1.0
+        version: 0.1.0(jest-canvas-mock@2.5.2)(jest-snapshot@30.4.1)(jest@30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2)))
       jest-environment-jsdom:
         specifier: 30.4.1
         version: 30.4.1
@@ -2223,6 +2229,9 @@ packages:
   cssfilter@0.0.10:
     resolution: {integrity: sha512-FAaLDaplstoRsDR8XGYH51znUN0UY7nMc6Z9/fvE8EXGwvJE9hu7W2vHwx1+bd6gCYnln9nLbzxFTrcO9YQDZw==}
 
+  cssfontparser@1.2.1:
+    resolution: {integrity: sha512-6tun4LoZnj7VN6YeegOVb67KBX/7JJsqvj+pv3ZA7F878/eN33AbGa5b/S/wXxS/tcp8nc40xRUrsPlxIyNUPg==}
+
   cssstyle@4.6.0:
     resolution: {integrity: sha512-2z+rWdzbbSZv6/rhtvzvqeZQHrBaqgogqt85sqFNbabZOuFbCVFb8kPeEtZjiKkbrm395irpNKiYeFeLiQnFPg==}
     engines: {node: '>=18'}
@@ -3289,6 +3298,17 @@ packages:
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
 
+  jest-canvas-mock-compare@0.1.0:
+    resolution: {integrity: sha512-oxARBLmfkf7YZsCcjL3n9oywwenikaTPh0gxSY/USEZGmI3Aa4RHqW4bBmzfa3FYrzKyBipFDoAqchz5dW641Q==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      jest: '>=29'
+      jest-canvas-mock: '>=2.5'
+      jest-snapshot: '>=29'
+
+  jest-canvas-mock@2.5.2:
+    resolution: {integrity: sha512-vgnpPupjOL6+L5oJXzxTxFrlGEIbHdZqFU+LFNdtLxZ3lRDCl17FlTMM7IatoRQkrcyOTMlDinjUguqmQ6bR2A==}
+
   jest-changed-files@30.4.1:
     resolution: {integrity: sha512-IuctmYrxi21iOSOaIXpJWalHyPAsVv0GeBHKDn8C1CA4W5htHn7INL+wdnL4Bo0+olEndvAFkmb++tIQJG+vvg==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
@@ -3688,6 +3708,9 @@ packages:
 
   monaco-editor@0.34.1:
     resolution: {integrity: sha512-FKc80TyiMaruhJKKPz5SpJPIjL+dflGvz4CpuThaPMc94AyN7SeC9HQ8hrvaxX7EyHdJcUY5i4D0gNyJj1vSZQ==}
+
+  moo-color@1.0.3:
+    resolution: {integrity: sha512-i/+ZKXMDf6aqYtBhuOcej71YSlbjT3wCO/4H1j8rPvxDJEifdwgg5MaFyu6iYAT8GBZJg2z0dkgK4YMzvURALQ==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -7676,6 +7699,8 @@ snapshots:
 
   cssfilter@0.0.10: {}
 
+  cssfontparser@1.2.1: {}
+
   cssstyle@4.6.0:
     dependencies:
       '@asamuzakjp/css-color': 3.2.0
@@ -8918,6 +8943,17 @@ snapshots:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
 
+  jest-canvas-mock-compare@0.1.0(jest-canvas-mock@2.5.2)(jest-snapshot@30.4.1)(jest@30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2))):
+    dependencies:
+      jest: 30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2))
+      jest-canvas-mock: 2.5.2
+      jest-snapshot: 30.4.1
+
+  jest-canvas-mock@2.5.2:
+    dependencies:
+      cssfontparser: 1.2.1
+      moo-color: 1.0.3
+
   jest-changed-files@30.4.1:
     dependencies:
       execa: 5.1.1
@@ -9494,6 +9530,10 @@ snapshots:
   moment@2.30.1: {}
 
   monaco-editor@0.34.1: {}
+
+  moo-color@1.0.3:
+    dependencies:
+      color-name: 1.1.4
 
   ms@2.1.3: {}
 
