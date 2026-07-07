@@ -1,4 +1,6 @@
 // @todo figure out panel type vs series type
+import { GraphFieldConfig } from '@grafana/schema';
+
 export type SeriesType =
   | 'line'
   | 'bar'
@@ -33,4 +35,7 @@ export type SeriesType =
  */
 export interface EChartsFieldConfig {
   seriesType?: SeriesType;
+}
+export interface EChartsGraphFieldConfig extends GraphFieldConfig {
+
 }

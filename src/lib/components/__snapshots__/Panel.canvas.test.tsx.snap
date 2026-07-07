@@ -98,7 +98,7 @@ exports[`Panel canvas renders cartesian time series renders default line chart 1
   },
   {
     "props": {
-      "value": "#808080",
+      "value": "#73bf69",
     },
     "type": "strokeStyle",
   },
@@ -256,7 +256,7 @@ exports[`Panel canvas renders cartesian time series renders default line chart 1
   },
   {
     "props": {
-      "value": "#808080",
+      "value": "#73bf69",
     },
     "type": "strokeStyle",
   },
@@ -747,7 +747,7 @@ exports[`Panel canvas renders cartesian time series renders default line chart 1
   },
   {
     "props": {
-      "value": "#808080",
+      "value": "#73bf69",
     },
     "type": "strokeStyle",
   },
@@ -905,7 +905,7 @@ exports[`Panel canvas renders cartesian time series renders default line chart 1
   },
   {
     "props": {
-      "value": "#808080",
+      "value": "#73bf69",
     },
     "type": "strokeStyle",
   },

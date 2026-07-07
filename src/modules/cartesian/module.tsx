@@ -9,7 +9,7 @@ import {
   seriesTypeName,
   seriesTypePath,
 } from 'editor/constants';
-import { type EChartsFieldConfig } from 'editor/types';
+import { type EChartsGraphFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
@@ -23,7 +23,7 @@ import { cartesianSuggestionsSupplier } from './suggestions';
 // per-field override below (e.g. one field as `bar`, others as `line`).
 // Cross-family mixing (e.g. heatmap + line) is reserved for the composite
 // heatmap panel, so heatmap frames never route here.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(LazyPanel)
   // Standard field config options (Color scheme, Unit, Decimals, Min, Max,
   // Display name, No value, Thresholds, Value mappings, Data links). Grafana
   // includes the full set by default and applies them to every field in
