@@ -17,7 +17,7 @@ import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { getInstanceByDom } from 'lib/echarts/echarts';
 import React from 'react';
 import {
-  CANVAS_LAYER_SELECTOR,
+  DEFAULT_LAYER_SELECTOR,
   readLayeredCanvasEvents,
   removeCanvasClear,
   SERIES_LAYER_SELECTOR,
@@ -129,7 +129,7 @@ describe('Panel canvas renders', () => {
         // get the echarts DOM instance
         const chartInstanceDom = container.querySelector<HTMLDivElement>('[_echarts_instance_]') as HTMLDivElement;
         const seriesDom = container.querySelector<HTMLCanvasElement>(SERIES_LAYER_SELECTOR) as HTMLCanvasElement;
-        const canvasDom = container.querySelector<HTMLCanvasElement>(CANVAS_LAYER_SELECTOR) as HTMLCanvasElement;
+        const canvasDom = container.querySelector<HTMLCanvasElement>(DEFAULT_LAYER_SELECTOR) as HTMLCanvasElement;
         expect(seriesDom).not.toBeNull();
         expect(canvasDom).not.toBeNull();
 
