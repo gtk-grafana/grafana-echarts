@@ -51,8 +51,8 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
   // align with sibling panels sharing the same range.
   const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis, axisStyle, {
     ...getTimeAxisBounds(ctx.timeRange),
-    zlevel: options.zLevel?.axis
-  });
+    zlevel: options.zLevel?.axis,
+  }, formatValue);
 
   return {
     ...cartesianTimeDefaultOptions,

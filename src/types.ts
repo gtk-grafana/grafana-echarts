@@ -1,4 +1,4 @@
-import { type StandardOptionConfig } from '@grafana/data/dist/types/panel/PanelPlugin';
+import { type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type TooltipDisplayMode } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
@@ -40,4 +40,3 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
     legend?: number;
   };
 }
-
