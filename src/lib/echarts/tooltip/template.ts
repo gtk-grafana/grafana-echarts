@@ -23,7 +23,7 @@ export function formatTooltipValue(
 ): string {
   const numeric = Array.isArray(eChartValue) ? eChartValue[eChartValue.length - 1] : eChartValue;
   if (typeof numeric === 'number') {
-    formattedValueToString(grafanaFormatValue(numeric));
+    return formattedValueToString(grafanaFormatValue(numeric));
   }
 
   // @todo better defaults
