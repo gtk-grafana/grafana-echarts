@@ -1,7 +1,6 @@
-import { type GrafanaTheme2 } from '@grafana/data';
+import { type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
-import { type ValueFormatter } from 'lib/echarts/style';
 import { type TooltipOption } from 'echarts/types/dist/shared';
 import { convertThemePxToNumeric } from 'lib/grafana/converters/theme';
 import { type CrossStyle, type EChartsTooltipTrigger } from './eChartsTypes';

@@ -1,8 +1,11 @@
 import { type DataFrame, type Field, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
-import {cartesianTimeSeriesTypes} from "editor/constants";
+import { type ScatterSeriesOption } from 'echarts';
+import { type CandlestickSeriesOption } from 'echarts/types/src/chart/candlestick/CandlestickSeries';
+import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
+import { cartesianTimeSeriesTypes } from 'editor/constants';
+import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
-import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
 
 /**
  * Resolve the series type for a single value field: field override wins when cartesian.
@@ -15,43 +18,32 @@ function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesTy
   return defaultType;
 }
 
-
-/** X of each cartesian `[x, y]` data item: epoch ms timestamp. */
-type XAxisValue = number;
-/** Y of each cartesian `[x, y]` data item; `null` renders a gap rather than a zero. */
-type YAxisValue = number | null;
-interface EChartsTimeSeries {
-  name: string;
-  type: SeriesType;
-  /**
-   * Data items as `[time, value]` tuples (x = epoch ms, y = number | null).
-   * ECharts echoes the same tuple back as the tooltip hover param's `value`,
-   * where it is normalized into a `TimeSeriesPoint` (see echarts/tooltip).
-   * See https://echarts.apache.org/en/option.html#series-line.data
-   */
-  data: Array<[XAxisValue, YAxisValue]>;
-  itemStyle: { color: string };
-  lineStyle: { color: string };
-}
-
 /**
  * Convert Grafana time series DataFrames into ECharts series data.
+ * @todo take context instead of fn params
  */
 export function timeSeriesToEChartsOption(
   series: DataFrame[],
   seriesType: SeriesType,
-  theme: GrafanaTheme2
-): EChartsTimeSeries[] | null {
-  const echartsSeries: EChartsTimeSeries[] = [];
+  theme: GrafanaTheme2,
+  zlevel?: number
+): Array<LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption> | null {
+  const echartsSeries: LineSeriesOption[] = [];
 
   forEachTimeSeriesField(series, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
+
+    const type = resolveFieldSeriesType(field, seriesType);
+
     echartsSeries.push({
       name: getFieldDisplayName(field, frame, series),
-      type: resolveFieldSeriesType(field, seriesType),
+      // @todo fix types
+      // @ts-expect-error
+      type,
       data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
       itemStyle: { color },
       lineStyle: { color },
+      zlevel,
     });
   });
 

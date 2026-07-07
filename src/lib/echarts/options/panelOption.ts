@@ -24,10 +24,10 @@ import {
 export function buildPanelChartOption(
   ctx: ChartContext,
   { isGrafanaLegend }: { isGrafanaLegend: boolean }
-): ECBasicOption | null {
+): ECBasicOption {
   const chartModule = resolveChartModule(ctx.seriesType);
   if (!chartModule) {
-    return null;
+    throw new Error(`Invalid chart module ${chartModule} for ${ctx.seriesType}`)
   }
 
   // Axis type is data-driven for the cartesian family: Numeric frames (no time
@@ -44,7 +44,8 @@ export function buildPanelChartOption(
 
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
   if (!echartOption) {
-    return null;
+    console.error('Invalid chart option', ctx);
+    throw new Error(`Invalid chart option resolved for ${chartModule} for ${ctx.seriesType}`);
   }
 
   // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.

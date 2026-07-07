@@ -1,8 +1,9 @@
+import { type StandardOptionConfig } from '@grafana/data/dist/types/panel/PanelPlugin';
 import { type OptionsWithLegend, type TooltipDisplayMode } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 
-import { HeatmapColorScheme } from 'lib/echarts/options/types';
+import { type HeatmapColorScheme } from 'lib/echarts/options/types';
 
 export type { EChartsFieldConfig } from 'editor/types';
 
@@ -18,7 +19,7 @@ export type { EChartsFieldConfig } from 'editor/types';
  *
  * @todo we probably want to build options around echarts API instead of using Grafana's
  */
-export interface PanelOptions extends OptionsWithLegend {
+export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
   [seriesTypePath]: SeriesType;
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
@@ -27,6 +28,15 @@ export interface PanelOptions extends OptionsWithLegend {
   animation?: {
     // https://echarts.apache.org/en/option.html#animation
     enabled: boolean;
+  };
+
+  // Each element with a defined zLevel is split out into a separate canvas (for performance reasons)
+  zLevel?: {
+    // https://echarts.apache.org/en/option.html#series-line.zlevel
+    series?: number;
+    axis?: number;
+    grid?: number;
+    legend?: number;
   };
 }
 

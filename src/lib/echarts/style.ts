@@ -1,17 +1,10 @@
 import {
   type Field,
-  formattedValueToString,
   getDisplayProcessor,
   getFieldSeriesColor,
   type GrafanaTheme2,
+  type ValueFormatter,
 } from '@grafana/data';
-
-/**
- * @todo replace with ValueFromatter from @grafana/data
- * Formats a numeric value the way Grafana would for the given field, honoring
- * the standard Unit, Decimals, No value, and Value mappings field config.
- */
-export type ValueFormatter = (value: number | null) => string;
 
 /**
  * Resolve the color to use for an entire series/slice from a Grafana field.
@@ -54,5 +47,5 @@ export function getPaletteColorByIndex(index: number, theme: GrafanaTheme2): str
 export function getValueFormatter(field: Field, theme: GrafanaTheme2, timeZone?: string): ValueFormatter {
   const display = field.display ?? getDisplayProcessor({ field, theme, timeZone });
 
-  return (value: number | null) => formattedValueToString(display(value));
+  return (value) => display(value);
 }
