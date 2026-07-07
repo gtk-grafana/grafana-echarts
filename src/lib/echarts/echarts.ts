@@ -35,6 +35,11 @@ import {
   TooltipComponent,
   VisualMapContinuousComponent,
 } from 'echarts/components';
+// In ECharts 6 `grid.containLabel` is a no-op unless this legacy feature is
+// registered; without it axis labels overflow the grid. Registering it restores
+// label-aware grid layout for the cartesian charts.
+// https://echarts.apache.org/handbook/en/basics/release-note/v6-upgrade-guide/#about-grid-containlabel
+import { LegacyGridContainLabel } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
 
 registerEChartsModules([
@@ -55,6 +60,8 @@ registerEChartsModules([
   AxisPointerComponent,
   RadarComponent, // radar coordinate system
   VisualMapContinuousComponent, // heatmap color gradient
+  // Features
+  LegacyGridContainLabel, // makes `grid.containLabel` work in ECharts 6
   // Renderer
   CanvasRenderer,
 ]);
@@ -66,3 +73,8 @@ registerEChartsModules([
 // panel's entry.
 export { init } from 'echarts/core';
 export type { EChartsType } from 'echarts/core';
+
+// Recovers the instance bound to a DOM node by `init`. Used by tests to gate on
+// instance lifecycle events (e.g. 'finished') without threading the instance out
+// of Panel. https://echarts.apache.org/en/api.html#echarts.getInstanceByDom
+export { getInstanceByDom } from 'echarts/core';

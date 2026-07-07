@@ -211,8 +211,7 @@ function cellsToCells(frame: DataFrame): FrameHeatmap {
 
   const axisNames = new Set(['x', 'xMin', 'xMax', 'y', 'yMin', 'yMax']);
   const valueField = frame.fields.find(
-    (field) =>
-      field.type === FieldType.number && !axisNames.has(field.name) && field !== xCenter && field !== yCenter
+    (field) => field.type === FieldType.number && !axisNames.has(field.name) && field !== xCenter && field !== yCenter
   );
 
   if (!valueField) {

@@ -42,10 +42,7 @@ describe('multiValueCartesianToEChartsOption', () => {
     it('labels each item by its timestamp (ISO), one per row', () => {
       const result = multiValueCartesianToEChartsOption([ohlcFrame()], 'candlestick', theme);
 
-      expect(result!.categories).toEqual([
-        new Date(0).toISOString(),
-        new Date(60_000).toISOString(),
-      ]);
+      expect(result!.categories).toEqual([new Date(0).toISOString(), new Date(60_000).toISOString()]);
     });
 
     it('resolves OHLC fields case-insensitively', () => {
@@ -140,11 +137,7 @@ describe('multiValueCartesianToEChartsOption', () => {
     });
 
     it('falls back to the first five numeric fields when names do not match', () => {
-      const result = multiValueCartesianToEChartsOption(
-        [boxFrame(['a', 'b', 'c', 'd', 'e'])],
-        'boxplot',
-        theme
-      );
+      const result = multiValueCartesianToEChartsOption([boxFrame(['a', 'b', 'c', 'd', 'e'])], 'boxplot', theme);
 
       expect(result!.series[0].data).toEqual([
         [1, 3, 5, 7, 9],

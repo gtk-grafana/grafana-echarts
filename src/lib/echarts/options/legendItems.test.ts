@@ -26,9 +26,10 @@ const categoricalFrame = (): DataFrame =>
     ],
   });
 
-const numberField = (values: Array<number | null>): Field => toDataFrame({
-  fields: [{ name: 'value', type: FieldType.number, values }],
-}).fields[0];
+const numberField = (values: Array<number | null>): Field =>
+  toDataFrame({
+    fields: [{ name: 'value', type: FieldType.number, values }],
+  }).fields[0];
 
 describe('getCalcDisplayValues', () => {
   it('returns nothing when no calcs are requested', () => {

@@ -3,7 +3,7 @@ name: ECharts Panel Type Research
 overview: Research mapping of all 23 Apache ECharts series types into logical panel groups by shared data models and coordinate systems, plus an app-plugin design that splits the current single panel into four near-term nested panel plugins (cartesian, heatmap, part-to-whole, multivariate), correlates each group to Grafana dataplane frame types, and lists example data sources per group.
 todos:
   - id: scaffold-app-plugin
-    content: "Convert root to type: app plugin; register four near-term nested panels via includes (cartesian, heatmap, part-to-whole, multivariate)"
+    content: 'Convert root to type: app plugin; register four near-term nested panels via includes (cartesian, heatmap, part-to-whole, multivariate)'
     status: completed
   - id: extract-shared-lib
     content: Move src/echarts/**, src/grafana/**, src/components/** into a shared library imported by each nested module.ts
@@ -37,14 +37,12 @@ isProject: false
 
 The plugin uses `**seriesType**` as the panel-level selector (`[src/editor/types.ts](src/editor/types.ts)`, `[src/editor/series.ts](src/editor/series.ts)`) but routes to **four `ChartModule` implementations** via `[resolveChartModule](src/echarts/charts/registry.ts)`:
 
-
 | Code grouping                            | `SeriesType` values                                  | Data converter                                                                          | Chart module                                              |
 | ---------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | `cartesianTimeSeriesTypes`               | line, bar, scatter, effectScatter                    | `[timeSeriesToEChartsOption](src/echarts/converters/timeSeries.ts)` → `[time, value][]` | `[cartesianChartModule](src/echarts/charts/cartesian.ts)` |
 | `heatmapSeriesTypes` (+ frame detection) | heatmap, or any type when frame is HeatmapRows/Cells | `[frameToHeatmap](src/echarts/converters/heatmap.ts)` → `HeatmapData` cells             | `[heatmapChartModule](src/echarts/charts/heatmap.ts)`     |
 | `radarSeriesTypes`                       | radar                                                | `[frameToCategorical](src/echarts/converters/categorical.ts)` → radar adapter           | `[radarChartModule](src/echarts/charts/radar.ts)`         |
 | `pieSeriesTypes`                         | pie                                                  | `frameToCategorical` → pie adapter                                                      | `[pieChartModule](src/echarts/charts/pie.ts)`             |
-
 
 **7 supported**, **16 disabled** in UI (`[module.ts](src/module.ts)`). Open `@todo`: panel type vs series type (`[src/editor/types.ts:1](src/editor/types.ts)`).
 
@@ -72,8 +70,6 @@ flowchart LR
   PIE --> PM
   TS -.->|overlay on heatmap| HMM
 ```
-
-
 
 ---
 
@@ -117,7 +113,7 @@ Grouping is by **shared intermediate data model** and **shared option/axis patte
 
 **Grafana data model:** needs a new converter — multiple aligned numeric fields per timestamp (or per category), not the single-value `[time, y]` shape. Comment in `[series.ts:47-48](src/editor/series.ts)` calls this out.
 
-**Candlestick reality (important):** Grafana's own candlestick panel is built *on top of the time series visualization*, so a candlestick frame is **structurally a wide time-series frame** (`TimeSeriesWide`/`TimeSeriesMulti`) — one time field plus numeric fields. There is **no distinct dataplane type**. OHLC semantics are applied by **field-name convention** (`open`, `high`, `low`, `close`, `volume`) with a **manual field-mapping fallback** in the panel editor (Open/High/Low/Close selectors), and any extra fields render as ordinary lines/bars (SMA, Bollinger). See the [candlestick data format](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/candlestick/).
+**Candlestick reality (important):** Grafana's own candlestick panel is built _on top of the time series visualization_, so a candlestick frame is **structurally a wide time-series frame** (`TimeSeriesWide`/`TimeSeriesMulti`) — one time field plus numeric fields. There is **no distinct dataplane type**. OHLC semantics are applied by **field-name convention** (`open`, `high`, `low`, `close`, `volume`) with a **manual field-mapping fallback** in the panel editor (Open/High/Low/Close selectors), and any extra fields render as ordinary lines/bars (SMA, Bollinger). See the [candlestick data format](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/candlestick/).
 
 **Detection ambiguity:** because the frame is just a wide time series, a candlestick frame is **indistinguishable from a generic multi-field wide time series** at the dataplane level. The MultiValueCartesian converter therefore recognizes OHLC by **field name / in-panel mapping**, not by frame type — and the render type (candlestick vs plain lines) is an in-panel choice. Boxplot `[min, Q1, median, Q3, max]` has **no Grafana-native field convention**; it stays purely ECharts-side (convention defined by this plugin).
 
@@ -181,7 +177,7 @@ Grouping is by **shared intermediate data model** and **shared option/axis patte
 
 **ECharts:** no external coord sys (self-layout); optional calendar/matrix container.
 
-**Grafana data model:** Grafana's real hierarchy-bearing frame is the **flame-graph nested-set model**, *not* a parent-id tree. A single frame carries required fields `level` (number), `value` (number), `self` (number), `label` (string), and **row order is a significant depth-first traversal** — the tree is reconstructed by walking rows and using `level` as the stack depth (no children array or parent pointer). See the [flame graph data format](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/flame-graph/). This frame is **out of the dataplane contract** and is signaled by `frame.meta.preferredVisualisationType === 'flamegraph'`, not by `frame.meta.type`.
+**Grafana data model:** Grafana's real hierarchy-bearing frame is the **flame-graph nested-set model**, _not_ a parent-id tree. A single frame carries required fields `level` (number), `value` (number), `self` (number), `label` (string), and **row order is a significant depth-first traversal** — the tree is reconstructed by walking rows and using `level` as the stack depth (no children array or parent pointer). See the [flame graph data format](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/flame-graph/). This frame is **out of the dataplane contract** and is signaled by `frame.meta.preferredVisualisationType === 'flamegraph'`, not by `frame.meta.type`.
 
 **Converter:** reconstruct the tree from the `level` ordering, then feed ECharts `treemap`/`sunburst`/`tree` (`value` → node size, `label` → node name), or a `custom` `renderItem` (see Group 11) for a faithful flame-graph layout that also uses `self`.
 
@@ -197,8 +193,8 @@ Grouping is by **shared intermediate data model** and **shared option/axis patte
 
 **Grafana data model:** the concrete Grafana source is the **node-graph** frame pair (also **out of the dataplane contract**), detected via `frame.meta.preferredVisualisationType === 'nodeGraph'` or frames literally named `nodes` and `edges`. Field-name conventions come from `NodeGraphDataFrameFieldNames` in `[packages/grafana-data/src/utils/nodeGraph.ts](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/utils/nodeGraph.ts)`:
 
-- **edges frame** — required `id`, `source`, `target`; optional `mainstat`, `secondarystat`, `thickness`, `color`, `strokedasharray`, `detail__`*, `highlighted` (deprecated).
-- **nodes frame** (optional; stats can be computed from edges) — required `id`; optional `title`, `subtitle`, `mainstat`, `secondarystat`, `arc__`* (color sections summing to 1), `icon`, `color`, `noderadius`, `detail__*`, `fixedx`/`fixedy`, `highlighted`.
+- **edges frame** — required `id`, `source`, `target`; optional `mainstat`, `secondarystat`, `thickness`, `color`, `strokedasharray`, `detail__`\*, `highlighted` (deprecated).
+- **nodes frame** (optional; stats can be computed from edges) — required `id`; optional `title`, `subtitle`, `mainstat`, `secondarystat`, `arc__`_ (color sections summing to 1), `icon`, `color`, `noderadius`, `detail\_\__`, `fixedx`/`fixedy`, `highlighted`.
 
 **ECharts mapping:** this maps cleanly onto the ECharts `graph` series — nodes → `series.data` (`id`/`name`, `value` from `mainstat`, `symbolSize` from `noderadius`), edges → `series.links` (`{ source, target }`, `lineStyle` from `thickness`/`color`/`strokedasharray`). `lines`/`sankey`/`chord` reuse the same node/edge source with different layouts.
 
@@ -242,7 +238,6 @@ Grouping is by **shared intermediate data model** and **shared option/axis patte
 
 These ECharts types **cannot be assigned to a single panel group** without also selecting axis/coordinate mode:
 
-
 | Series type                    | Spans these groups                                                                             | Why                                                            |
 | ------------------------------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | **bar**, **line**              | Group 1 (time x) **and** Group 2 (category x)                                                  | Same `series.type`, different x-axis type and data tuple shape |
@@ -253,7 +248,6 @@ These ECharts types **cannot be assigned to a single panel group** without also 
 | **lines**                      | Group 8 (flow) **and** Group 1/9 (coordinate lines)                                            | Context-dependent                                              |
 | **graph**                      | Group 8 standalone **or** overlaid on cartesian/polar/geo                                      | Dual layout modes in ECharts 6                                 |
 | **radar**, **parallel**        | Group 6 only for data, but radar indicators vs parallel dimensions are different option shapes | Shared tabular source, different adapters                      |
-
 
 ```mermaid
 flowchart TB
@@ -270,8 +264,6 @@ flowchart TB
   pie --> G9
 ```
 
-
-
 ---
 
 ## Comparison: current WIP vs proposed groups
@@ -285,7 +277,6 @@ flowchart TB
 
 ### Where the current model is incomplete or conflates concepts
 
-
 | Issue                              | Current behavior                                                                                       | Proposed refinement                                                                                                                                                                                              |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **"Cartesian" = time-only**        | `cartesianTimeSeriesTypes` assumes time x-axis; `panelTypeToAxis` always returns `time` for this group | Split **TimeCartesian** vs **CategoryCartesian**; axis type should follow data, not series type                                                                                                                  |
@@ -295,7 +286,6 @@ flowchart TB
 | **16 types in flat union**         | Single `seriesType` dropdown mixes unrelated families                                                  | Panel type picker could group by the 11 families above; `seriesType` remains ECharts render type within a family                                                                                                 |
 | **Heatmap x-axis nuance lost**     | `panelTypeToAxis('heatmap')` always `time`; code handles numeric x via `xIsTime` at render time        | Axis mapping should be data-driven (`xIsTime`), not type-driven                                                                                                                                                  |
 | **panel type vs series type**      | Same `seriesType` field serves both roles                                                              | **Resolved by the app-plugin design:** panel **family** = nested plugin identity; **render type** (line vs bar) = in-panel option; per-field override = within-family (+ composite overlay in the heatmap panel) |
-
 
 ### Suggested routing (app-plugin design)
 
@@ -319,14 +309,12 @@ The research above treats the plugin as one panel with a flat `seriesType` picke
 
 ### Near-term nested panels
 
-
 | Nested panel                  | Logical groups                          | ECharts render types                                                  | Chart module(s) reused                                                                  |
 | ----------------------------- | --------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `echarts-cartesian-panel`     | 1 (time), 2 (category), 3 (multi-value) | line, bar, scatter, effectScatter, pictorialBar, candlestick, boxplot | `[cartesianChartModule](src/echarts/charts/cartesian.ts)` (+ new multi-value converter) |
 | `echarts-heatmap-panel`       | 4 (matrix/cells) — **composite**        | heatmap + cartesian overlay                                           | `[heatmapChartModule](src/echarts/charts/heatmap.ts)`                                   |
 | `echarts-part-to-whole-panel` | 5                                       | pie, funnel, gauge                                                    | `[pieChartModule](src/echarts/charts/pie.ts)`                                           |
 | `echarts-multivariate-panel`  | 6                                       | radar, parallel                                                       | `[radarChartModule](src/echarts/charts/radar.ts)`                                       |
-
 
 Groups 7-11 (hierarchy, graph/flow, geo, single-axis stream, custom) are **roadmap** nested panels — documented here, not scaffolded.
 
@@ -359,8 +347,6 @@ flowchart TB
   ptw --> lib
   mv --> lib
 ```
-
-
 
 ---
 
@@ -401,7 +387,6 @@ Correlating each logical group with the [Grafana dataplane contract](https://gra
 - **Heatmap** — `HeatmapRows`, `HeatmapCells`
 - **Logs** — `LogLines`
 
-
 | Logical group           | Dataplane kind | Subtypes / formats        | Notes                                                                                                                                                                                                                                                                |
 | ----------------------- | -------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 Time cartesian        | Time series    | Wide, Multi, Long         | Maps to `[time, value]` in `[timeSeries.ts](src/echarts/converters/timeSeries.ts)`; Long carries dimensions in string fields                                                                                                                                         |
@@ -410,13 +395,12 @@ Correlating each logical group with the [Grafana dataplane contract](https://gra
 | 4 Heatmap               | Heatmap        | HeatmapRows, HeatmapCells | `TimeSeriesWide` is directly consumable as heatmap-rows (each value field → a row); matches `xIsTime` + `HeatmapData` in `[heatmap.ts](src/echarts/converters/heatmap.ts)`                                                                                           |
 | 5 Part-to-whole         | Numeric        | Wide, Multi, Long         | One value per category (pie uses first numeric field)                                                                                                                                                                                                                |
 | 6 Multivariate          | Numeric        | Long, Wide                | Multiple metrics per entity/row → radar indicators / parallel axes                                                                                                                                                                                                   |
-| 7 Hierarchy             | *(none)*†      | —                         | Grafana flame-graph **nested-set** frame (`level`/`value`/`self`/`label`, depth-first order); **out of contract**, signaled by `preferredVisualisationType: 'flamegraph'`                                                                                            |
-| 8 Graph / flow          | *(none)*†      | —                         | Grafana node-graph frame pair (nodes + edges, `id`/`source`/`target`); **out of contract**, signaled by `preferredVisualisationType: 'nodeGraph'` or frames named nodes/edges                                                                                        |
-| 9 Geo                   | *(none)*       | —                         | lat/lng or geohash fields (Geomap convention); **out of contract**                                                                                                                                                                                                   |
+| 7 Hierarchy             | _(none)_†      | —                         | Grafana flame-graph **nested-set** frame (`level`/`value`/`self`/`label`, depth-first order); **out of contract**, signaled by `preferredVisualisationType: 'flamegraph'`                                                                                            |
+| 8 Graph / flow          | _(none)_†      | —                         | Grafana node-graph frame pair (nodes + edges, `id`/`source`/`target`); **out of contract**, signaled by `preferredVisualisationType: 'nodeGraph'` or frames named nodes/edges                                                                                        |
+| 9 Geo                   | _(none)_       | —                         | lat/lng or geohash fields (Geomap convention); **out of contract**                                                                                                                                                                                                   |
 | — Logs                  | Logs           | LogLines                  | No direct ECharts group; only after aggregation into log-volume bars (feeds Group 1/4). **Unmapped**                                                                                                                                                                 |
 
-
-† **Detected via a different channel.** Node-graph and flame-graph are *not* dataplane kinds and carry no `frame.meta.type`. They are signaled by `frame.meta.preferredVisualisationType` (enum in `[grafana-data/src/types/data.ts](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/types/data.ts)`: `graph | table | logs | trace | nodeGraph | flamegraph | rawPrometheus`), which is a **separate routing signal** from the dataplane `frame.meta.type`. Any suggestion/detection logic for Groups 7-8 must inspect this field (and the field-name conventions), not `PanelDataSummary.hasDataFrameType`.
+† **Detected via a different channel.** Node-graph and flame-graph are _not_ dataplane kinds and carry no `frame.meta.type`. They are signaled by `frame.meta.preferredVisualisationType` (enum in `[grafana-data/src/types/data.ts](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/types/data.ts)`: `graph | table | logs | trace | nodeGraph | flamegraph | rawPrometheus`), which is a **separate routing signal** from the dataplane `frame.meta.type`. Any suggestion/detection logic for Groups 7-8 must inspect this field (and the field-name conventions), not `PanelDataSummary.hasDataFrameType`.
 
 ---
 
@@ -428,8 +412,8 @@ The [Grafana dataplane contract](https://grafana.com/developers/dataplane/) defi
 
 Field-name conventions from `NodeGraphDataFrameFieldNames` (`[grafana-data/src/utils/nodeGraph.ts](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/utils/nodeGraph.ts)`):
 
-- **edges** (required): `id`, `source`, `target`. Optional: `mainstat`, `secondarystat`, `thickness`, `color`, `strokedasharray`, `detail__`*, `highlighted` (deprecated → use `color`).
-- **nodes** (optional frame; stats otherwise computed from edges): `id` (required). Optional: `title`, `subtitle`, `mainstat`, `secondarystat`, `arc__`* (color sections summing to 1), `icon`, `color`, `noderadius`, `detail__*`, `fixedx`/`fixedy`, `highlighted`.
+- **edges** (required): `id`, `source`, `target`. Optional: `mainstat`, `secondarystat`, `thickness`, `color`, `strokedasharray`, `detail__`\*, `highlighted` (deprecated → use `color`).
+- **nodes** (optional frame; stats otherwise computed from edges): `id` (required). Optional: `title`, `subtitle`, `mainstat`, `secondarystat`, `arc__`_ (color sections summing to 1), `icon`, `color`, `noderadius`, `detail\_\__`, `fixedx`/`fixedy`, `highlighted`.
 
 **ECharts target:** `graph` series — nodes → `series.data`, edges → `series.links` (`{ source, target }`). `sankey`/`chord`/`lines` reuse the same node/edge source with different layouts.
 
@@ -464,7 +448,6 @@ Popular data sources that already emit frames in each grouping:
 
 All types are already listed in `[SeriesType](src/editor/types.ts)`. Mapping to proposed groups:
 
-
 | ECharts type  | Proposed group(s)   | Supported today |
 | ------------- | ------------------- | --------------- |
 | line          | 1, 2                | 1 only          |
@@ -490,7 +473,6 @@ All types are already listed in `[SeriesType](src/editor/types.ts)`. Mapping to 
 | map           | 9                   | no              |
 | themeRiver    | 10                  | no              |
 | custom        | 11                  | no              |
-
 
 ---
 

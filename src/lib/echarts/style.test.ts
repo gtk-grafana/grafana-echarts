@@ -1,4 +1,12 @@
-import { createTheme, type Field, FieldColorModeId, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
+import {
+  createTheme,
+  type Field,
+  FieldColorModeId,
+  FieldType,
+  formattedValueToString,
+  ThresholdsMode,
+  toDataFrame,
+} from '@grafana/data';
 import { getPaletteColorByIndex, getSeriesColor, getValueFormatter } from 'lib/echarts/style';
 
 const theme = createTheme();
@@ -20,8 +28,8 @@ describe('getSeriesColor', () => {
     field.state = { seriesIndex: 1 };
     const second = getSeriesColor(field, theme);
 
-    expect(first).toEqual(expect.any(String));
-    expect(first).not.toBe(second);
+    expect(first).toEqual('#73BF69');
+    expect(second).toBe('#F2CC0C');
   });
 
   it('colors by value when the field uses a by-value color mode', () => {
@@ -48,7 +56,7 @@ describe('getPaletteColorByIndex', () => {
   it('cycles through the palette and resolves a color string', () => {
     const { palette } = theme.visualization;
 
-    expect(getPaletteColorByIndex(0, theme)).toEqual(expect.any(String));
+    expect(getPaletteColorByIndex(0, theme)).toEqual('#73BF69');
     expect(getPaletteColorByIndex(palette.length, theme)).toBe(getPaletteColorByIndex(0, theme));
   });
 });
@@ -58,13 +66,15 @@ describe('getValueFormatter', () => {
     const field = numericField({ unit: 'percent', decimals: 1 });
     const format = getValueFormatter(field, theme);
 
-    expect(format(12.345)).toMatch(/^12\.3\s*%$/);
+    expect(formattedValueToString(format(12.345))).toEqual('12.3%');
   });
 
-  it('returns a string for null values', () => {
+  it('returns a FormattedValue with string text for null values', () => {
     const field = numericField({ unit: 'percent' });
     const format = getValueFormatter(field, theme);
 
-    expect(typeof format(null)).toBe('string');
+    // @ts-expect-error
+    const result = format(null).text;
+    expect(result).toBe('');
   });
 });

@@ -1,6 +1,5 @@
 import { css } from '@emotion/css';
-import { type GrafanaTheme2 } from '@grafana/data';
-import { type ValueFormatter } from 'lib/echarts/style';
+import { formattedValueToString, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type OptionDataValue } from 'echarts/types/src/util/types';
 
@@ -15,10 +14,7 @@ type TooltipParam = CallbackDataParams & {
 };
 
 /**
- * Format a raw ECharts tooltip value with Grafana's field formatter. ECharts
- * hands the tooltip the series' raw data item, which is a bare scalar (pie) or
- * an array whose trailing element is the numeric value we care about (cartesian
- * `[time, value]`, heatmap `[..., value]`).
+ * Format a raw ECharts tooltip value with Grafana's field formatter.
  * See https://echarts.apache.org/en/option.html#tooltip.valueFormatter
  */
 export function formatTooltipValue(
@@ -27,7 +23,7 @@ export function formatTooltipValue(
 ): string {
   const numeric = Array.isArray(eChartValue) ? eChartValue[eChartValue.length - 1] : eChartValue;
   if (typeof numeric === 'number') {
-    return grafanaFormatValue(numeric);
+    return formattedValueToString(grafanaFormatValue(numeric));
   }
 
   // @todo better defaults

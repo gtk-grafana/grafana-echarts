@@ -1,9 +1,9 @@
-import { createTheme } from '@grafana/data';
+import { createTheme, type ValueFormatter } from '@grafana/data';
 import { buildTooltipContent, formatTooltipValue } from 'lib/echarts/tooltip/template';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 const theme = createTheme();
-const formatValue = (value: number | null) => (value == null ? 'null' : `${value}`);
+const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
 
 // ECharts formatter params carry more fields at runtime than the base type; the
 // tests only set the ones the template reads.

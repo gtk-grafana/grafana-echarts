@@ -1,4 +1,4 @@
-import { createTheme } from '@grafana/data';
+import { createTheme, type ValueFormatter } from '@grafana/data';
 import { type HeatmapData } from 'lib/echarts/converters/heatmap';
 import { buildHeatmapTooltip, getHeatmapBucketAxis } from 'lib/echarts/options/heatmap';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
@@ -75,7 +75,7 @@ describe('getHeatmapBucketAxis', () => {
 
 describe('buildHeatmapTooltip', () => {
   const theme = createTheme();
-  const formatValue = (value: number | null) => (value == null ? 'null' : `${value}`);
+  const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
   const ctx = { theme, timeZone: 'utc', formatValue };
   // Encoded cell tuple: [xStart, yStart, xEnd, yEnd, value].
   const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as unknown as TopLevelFormatterParams;

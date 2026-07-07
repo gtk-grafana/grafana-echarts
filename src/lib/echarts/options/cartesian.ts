@@ -1,6 +1,11 @@
-import { type GrafanaTheme2, type TimeRange } from '@grafana/data';
-import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';
+import { formattedValueToString, type GrafanaTheme2, type TimeRange, type ValueFormatter } from '@grafana/data';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
+import {
+  type AxisLabelValueFormatter,
+  type NumericAxisBaseOptionCommon,
+} from 'echarts/types/src/coord/axisCommonTypes';
+import { type CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
+import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';
 
 /**
  * Pin an ECharts `time` axis to the dashboard time range so panels with gappy
@@ -35,18 +40,23 @@ export function getCartesianAxisStyle(theme: GrafanaTheme2) {
   };
 }
 
-type AxisStyle = ReturnType<typeof getCartesianAxisStyle>;
-
 /** Merge base axis config with theme styling and optional extras. */
 export function mergeAxisStyle(
-  baseAxis: Record<string, unknown>,
-  axisStyle: AxisStyle,
-  extras?: Record<string, unknown>,
-  valueFormatter?: (value: unknown) => string
-) {
-  const extraAxisLabel = (extras?.axisLabel ?? {}) as Record<string, unknown>;
-  const extraAxisTick = (extras?.axisTick ?? {}) as Record<string, unknown>;
-  const extraSplitLine = (extras?.splitLine ?? {}) as Record<string, unknown>;
+  baseAxis: CartesianAxisOption,
+  axisStyle: CartesianAxisOption,
+  extras?: CartesianAxisOption,
+  grafanaValueFormatter?: ValueFormatter
+): NumericAxisBaseOptionCommon | CartesianAxisOption {
+  const extraAxisLabel = extras?.axisLabel ?? {};
+  const extraAxisTick = extras?.axisTick ?? {};
+  const extraSplitLine = extras?.splitLine ?? {};
+
+  // Only attach a formatter when a Grafana value formatter is supplied. Axes
+  // without one (e.g. the time x-axis) must keep ECharts' default formatter
+  // https://echarts.apache.org/en/option.html#yAxis.axisLabel.formatter
+  const formatter: AxisLabelValueFormatter | undefined = grafanaValueFormatter
+    ? (value) => formattedValueToString(grafanaValueFormatter(value))
+    : undefined;
 
   return {
     ...baseAxis,
@@ -55,18 +65,21 @@ export function mergeAxisStyle(
     axisLabel: {
       ...axisStyle.axisLabel,
       ...extraAxisLabel,
-      ...(valueFormatter ? { formatter: valueFormatter } : {}),
+      ...(formatter ? { formatter } : {}),
     },
     axisTick: { ...axisStyle.axisTick, ...extraAxisTick },
     splitLine: { ...axisStyle.splitLine, ...extraSplitLine },
-  };
+    // @todo need to figure out the types
+  } as CartesianAxisOption;
 }
 
 /**
  * Shared base option for cartesian time series charts (line, bar, scatter).
  * Tooltip and grid are merged at render time.
  */
-export const cartesianTimeDefaultOptions: ECBasicOption = {
+export const cartesianTimeDefaultOptions: ECBasicOption & { xAxis: CartesianAxisOption } & {
+  yAxis: CartesianAxisOption;
+} = {
   ...createBaseOptions(),
   xAxis: {
     type: 'time',
@@ -75,9 +88,7 @@ export const cartesianTimeDefaultOptions: ECBasicOption = {
   },
   yAxis: {
     type: 'value',
-    // `scale: true` lets ECharts auto-fit the axis to the data's min/max (with a
-    // small buffer to nice tick bounds) instead of forcing zero into range,
-    // matching Grafana/uPlot's default numeric y-axis behavior.
+    // `scale: true` auto-fits the axis to the data's min/max
     // https://echarts.apache.org/en/option.html#yAxis.scale
     scale: true,
   },
@@ -90,7 +101,9 @@ export const cartesianTimeDefaultOptions: ECBasicOption = {
  * time from the categorical model. Tooltip and grid are merged at render time.
  * See https://echarts.apache.org/en/option.html#xAxis.type
  */
-export const cartesianCategoryDefaultOptions: ECBasicOption = {
+export const cartesianCategoryDefaultOptions: ECBasicOption & { xAxis: CartesianAxisOption } & {
+  yAxis: CartesianAxisOption;
+} = {
   ...createBaseOptions(),
   xAxis: {
     type: 'category',

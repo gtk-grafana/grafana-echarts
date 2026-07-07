@@ -25,9 +25,7 @@ describe('Legend limit', () => {
   });
 
   it('collapses to the first N rows and reveals the rest via the "show all" toggle', () => {
-    render(
-      <Legend items={items(['a', 'b', 'c', 'd', 'e'])} legend={legend({ limit: 2 })} width={400} height={120} />
-    );
+    render(<Legend items={items(['a', 'b', 'c', 'd', 'e'])} legend={legend({ limit: 2 })} width={400} height={120} />);
 
     expect(screen.getByText('a')).toBeInTheDocument();
     expect(screen.getByText('b')).toBeInTheDocument();
