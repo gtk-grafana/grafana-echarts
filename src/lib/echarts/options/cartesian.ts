@@ -51,12 +51,12 @@ export function mergeAxisStyle(
   const extraAxisTick = extras?.axisTick ?? {};
   const extraSplitLine = extras?.splitLine ?? {};
 
-  /**
-   * @todo dive into this further
-   */
-  const formatter: AxisLabelValueFormatter = (value, index, extra) => {
-    return grafanaValueFormatter ? formattedValueToString(grafanaValueFormatter(value)) : value.toString();
-  };
+  // Only attach a formatter when a Grafana value formatter is supplied. Axes
+  // without one (e.g. the time x-axis) must keep ECharts' default formatter
+  // https://echarts.apache.org/en/option.html#yAxis.axisLabel.formatter
+  const formatter: AxisLabelValueFormatter | undefined = grafanaValueFormatter
+    ? (value) => formattedValueToString(grafanaValueFormatter(value))
+    : undefined;
 
   return {
     ...baseAxis,
@@ -65,10 +65,7 @@ export function mergeAxisStyle(
     axisLabel: {
       ...axisStyle.axisLabel,
       ...extraAxisLabel,
-      // https://echarts.apache.org/en/option.html#yAxis.axisLabel.formatter
-      // https://echarts.apache.org/en/option.html#xAxis.axisLabel.formatter
-
-      formatter,
+      ...(formatter ? { formatter } : {}),
     },
     axisTick: { ...axisStyle.axisTick, ...extraAxisTick },
     splitLine: { ...axisStyle.splitLine, ...extraSplitLine },

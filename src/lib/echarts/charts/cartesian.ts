@@ -48,11 +48,12 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
   );
 
   // Pin the time axis to the dashboard range so gaps in this panel's data still
-  // align with sibling panels sharing the same range.
+  // align with sibling panels sharing the same range. No value formatter is
+  // applied: the x-axis is time, so it keeps ECharts' built-in date formatting.
   const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis, axisStyle, {
     ...getTimeAxisBounds(ctx.timeRange),
     zlevel: options.zLevel?.axis,
-  }, formatValue);
+  });
 
   return {
     ...cartesianTimeDefaultOptions,
@@ -79,14 +80,9 @@ function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBas
 
   // The category axis carries its labels in `data`; there is no per-tick value
   // to format, so no value formatter is applied to the x-axis.
-  const xAxis = mergeAxisStyle(
-    cartesianCategoryDefaultOptions.xAxis,
-    axisStyle,
-    {
-      data: categoryData.categories,
-    },
-    formatValue
-  );
+  const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
+    data: categoryData.categories,
+  });
 
   return {
     ...cartesianCategoryDefaultOptions,
@@ -123,7 +119,7 @@ function buildMultiValueOption(ctx: ChartContext, isGrafanaLegend: boolean): ECB
 
   // The category axis carries its labels in `data`; there is no per-tick value
   // to format, so no value formatter is applied to the x-axis.
-  const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis , axisStyle, {
+  const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
     data: multiValueData.categories,
   });
 
