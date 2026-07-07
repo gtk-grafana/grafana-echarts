@@ -24,14 +24,15 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
 
-  // Not wired up to UI yet
+  // @internal
   animation?: {
     // https://echarts.apache.org/en/option.html#animation
     enabled: boolean;
   };
 
-  // Each element with a defined zLevel is split out into a separate canvas (for performance reasons)
+  // @internal
   zLevel?: {
+    // Each element with a defined zLevel is split out into a separate canvas (for performance reasons)
     // https://echarts.apache.org/en/option.html#series-line.zlevel
     series?: number;
     axis?: number;
