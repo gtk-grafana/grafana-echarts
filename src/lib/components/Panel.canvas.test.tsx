@@ -1,7 +1,10 @@
 import {
+  applyFieldOverrides,
+  createTheme,
   type DataFrame,
   dateTime,
   EventBusSrv,
+  FieldColorModeId,
   FieldType,
   LoadingState,
   type PanelData,
@@ -39,11 +42,35 @@ import { Panel } from './Panel';
 const width = 400;
 const height = 300;
 
+const theme = createTheme();
+
 const defaultTimeRange: TimeRange = {
   from: dateTime(1783137094497),
   to: dateTime(1783147894497),
   raw: { from: 'now-3h', to: 'now' },
 };
+
+// Set the color palette. Note you can't set defaults in `applyFieldOverrides` and expect it to do its job in tests,
+// `applyFieldOverrides` copies defaults onto fields via the standard field-config registry.
+// Since grafana doesn't expose any way to mock the registry in plugins we're left with manually doing the work of applyFieldOverrides without any of the benefit
+// @todo create an issue for core Grafana to support registry mocking
+const applyGrafanaFieldDefaults = (frames: DataFrame[]): DataFrame[] =>
+  applyFieldOverrides({
+    data: frames.map((frame) => ({
+      ...frame,
+      fields: frame.fields.map((field) => ({
+        ...field,
+        config: {
+          ...field.config,
+          color: field.config.color ?? { mode: FieldColorModeId.PaletteClassic },
+        },
+      })),
+    })),
+    fieldConfig: { defaults: {}, overrides: [] },
+    replaceVariables: (value) => value,
+    theme,
+    timeZone: 'utc',
+  });
 
 const getComponent = (
   frames: DataFrame[],
@@ -70,7 +97,7 @@ const getComponent = (
 
   const data: PanelData = {
     state: LoadingState.Done,
-    series: frames,
+    series: applyGrafanaFieldDefaults(frames),
     timeRange: defaultTimeRange,
     ...panelDataOverrides,
   };
