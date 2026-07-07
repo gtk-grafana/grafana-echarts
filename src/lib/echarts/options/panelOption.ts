@@ -60,6 +60,7 @@ export function buildPanelChartOption(
   return {
     ...echartOption,
     tooltip: tooltipOption,
+    animation: ctx.options.animation?.enabled,
     ...(axisPointer ? { axisPointer } : {}),
   };
 }

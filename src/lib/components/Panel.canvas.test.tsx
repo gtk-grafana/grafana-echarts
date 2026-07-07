@@ -17,7 +17,7 @@ import { CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { getInstanceByDom } from 'lib/echarts/echarts';
 import React from 'react';
-import { readLayeredCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
+import { mockEChartsSize, readLayeredCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { type PanelOptions } from 'types';
 import { Panel } from './Panel';
 
@@ -94,7 +94,11 @@ const getComponent = (
     ...panelPropsOverrides,
   };
 
-  return <Panel {...props} />;
+  return (
+    <div style={{height, width}}>
+      <Panel {...props} />
+    </div>
+  );
 };
 
 function clearMockedCanvasEvents(ctx: CanvasRenderingContext2D) {
@@ -123,13 +127,19 @@ describe('Panel canvas renders', () => {
         ],
       });
 
-      // @todo broken, the axis AND the series is not rendering
+      // @todo broken, the events look good but the width is zero
       it('renders a time-axis line chart to the canvas', async () => {
-        const { container } = render(getComponent([frame], 'line', {zLevel: {series: SERIES_ZLEVEL}}));
+        const { container } = render(
+          getComponent([frame], 'line', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false }
+          })
+        );
 
         // get the echarts DOM instance
         const chartDom = container.querySelector<HTMLDivElement>('[_echarts_instance_]') as HTMLDivElement;
         expect(chartDom).not.toBeNull();
+        mockEChartsSize(chartDom, { width, height });
 
         // get chart object
         const chart = getInstanceByDom(chartDom);
@@ -145,7 +155,6 @@ describe('Panel canvas renders', () => {
 
         // const initialEvents = ctx.__getEvents();
         // expect(initialEvents.length).toBeGreaterThan(0);
-        // clearMockedCanvasEvents(ctx);
 
         let finished = false;
         let rendered = false;
@@ -158,7 +167,6 @@ describe('Panel canvas renders', () => {
           // empty
           renderEvents = ctx.__getEvents();
           // expect(renderEvents.length).toBeGreaterThan(0);
-          clearMockedCanvasEvents(ctx);
         });
 
         chart!.on('finished', () => {
@@ -171,10 +179,8 @@ describe('Panel canvas renders', () => {
 
         await waitFor(() => expect(rendered).toBeTruthy());
         await waitFor(() => expect(finished).toBeTruthy());
-        screen.logTestingPlaygroundURL();
         const { canvasEvents, seriesEvents } = readLayeredCanvasEvents(chartDom);
 
-        // @todo width is zero?
         expect(removeCanvasTransforms(seriesEvents)).toMatchCanvasSnapshot(canvasEvents, { width, height });
       });
 
