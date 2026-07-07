@@ -10,14 +10,19 @@ import {
   toDataFrame,
 } from '@grafana/data';
 import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions } from '@grafana/schema';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
-import { CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { getInstanceByDom } from 'lib/echarts/echarts';
 import React from 'react';
-import { mockEChartsSize, readLayeredCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
+import {
+  CANVAS_LAYER_SELECTOR,
+  readLayeredCanvasEvents,
+  removeCanvasClear,
+  SERIES_LAYER_SELECTOR,
+  SERIES_ZLEVEL,
+} from 'test/canvas';
 import { type PanelOptions } from 'types';
 import { Panel } from './Panel';
 
@@ -34,10 +39,10 @@ import { Panel } from './Panel';
 const width = 400;
 const height = 300;
 
-const timeRange: TimeRange = {
-  from: dateTime(0),
-  to: dateTime(4),
-  raw: { from: 'now-4ms', to: 'now' },
+const defaultTimeRange: TimeRange = {
+  from: dateTime(1783137094497),
+  to: dateTime(1783147894497),
+  raw: { from: 'now-3h', to: 'now' },
 };
 
 const getComponent = (
@@ -66,7 +71,7 @@ const getComponent = (
   const data: PanelData = {
     state: LoadingState.Done,
     series: frames,
-    timeRange,
+    timeRange: defaultTimeRange,
     ...panelDataOverrides,
   };
 
@@ -76,7 +81,7 @@ const getComponent = (
     width,
     height,
     timeZone: 'utc',
-    timeRange,
+    timeRange: defaultTimeRange,
     id: 1,
     transparent: false,
     eventBus: new EventBusSrv(),
@@ -95,132 +100,63 @@ const getComponent = (
   };
 
   return (
-    <div style={{height, width}}>
+    <div style={{ height, width }}>
       <Panel {...props} />
     </div>
   );
 };
 
-function clearMockedCanvasEvents(ctx: CanvasRenderingContext2D) {
-  ctx.__clearDrawCalls();
-  ctx.__clearEvents();
-  ctx.__clearPath();
-}
-
 describe('Panel canvas renders', () => {
-  beforeAll(() => {
-    // jest.spyOn(element, 'clientHeight', 'get').mockImplementation(() => height);
-  });
-  afterAll(() => {
-    // jest.useFakeTimers()
-  });
-
-  // @todo time axis is not rendering,
-  // @todo dates are showing as 1970
-  // @todo series are not rendering
+  // @todo time axis formatting is wrong
   describe('cartesian', () => {
     describe('time series', () => {
       const frame = toDataFrame({
         fields: [
-          { name: 'time', type: FieldType.time, values: [1783140614497, 1783140694497, 1783144294497, 1783147894497] },
+          { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497, 1783144294497, 1783147894497] },
           { name: 'cpu', type: FieldType.number, values: [10, 20, 30, 10], config: { displayName: 'cpu' } },
         ],
       });
 
       // @todo broken, the events look good but the width is zero
-      it('renders a time-axis line chart to the canvas', async () => {
+      it('renders default line chart', async () => {
         const { container } = render(
           getComponent([frame], 'line', {
             zLevel: { series: SERIES_ZLEVEL },
-            animation: { enabled: false }
+            animation: { enabled: false },
           })
         );
 
         // get the echarts DOM instance
-        const chartDom = container.querySelector<HTMLDivElement>('[_echarts_instance_]') as HTMLDivElement;
-        expect(chartDom).not.toBeNull();
-        mockEChartsSize(chartDom, { width, height });
+        const chartInstanceDom = container.querySelector<HTMLDivElement>('[_echarts_instance_]') as HTMLDivElement;
+        const seriesDom = container.querySelector<HTMLCanvasElement>(SERIES_LAYER_SELECTOR) as HTMLCanvasElement;
+        const canvasDom = container.querySelector<HTMLCanvasElement>(CANVAS_LAYER_SELECTOR) as HTMLCanvasElement;
+        expect(seriesDom).not.toBeNull();
+        expect(canvasDom).not.toBeNull();
 
         // get chart object
-        const chart = getInstanceByDom(chartDom);
+        const chart = getInstanceByDom(chartInstanceDom);
         expect(chart).toBeDefined();
 
-        // get canvas
-        const canvas = chart?.renderToCanvas() as HTMLCanvasElement;
-        expect(canvas).toBeDefined();
-
         // get context 2d
-        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-        expect(ctx).toBeDefined();
-
-        // const initialEvents = ctx.__getEvents();
-        // expect(initialEvents.length).toBeGreaterThan(0);
+        const seriesCtx = seriesDom.getContext('2d') as CanvasRenderingContext2D;
+        const canvasCtx = canvasDom.getContext('2d') as CanvasRenderingContext2D;
+        expect(seriesCtx).toBeDefined();
+        expect(canvasCtx).toBeDefined();
 
         let finished = false;
-        let rendered = false;
-
-        let finishedEvents: CanvasRenderingContext2DEvent[] = [];
-        let renderEvents: CanvasRenderingContext2DEvent[] = [];
-
-        chart!.on('rendered', () => {
-          rendered = true;
-          // empty
-          renderEvents = ctx.__getEvents();
-          // expect(renderEvents.length).toBeGreaterThan(0);
-        });
 
         chart!.on('finished', () => {
           finished = true;
-          // empty
-          finishedEvents = ctx.__getEvents();
-          // expect(finishedEvents.length).toBeGreaterThan(0);
-          console.log('FINISHED');
         });
 
-        await waitFor(() => expect(rendered).toBeTruthy());
         await waitFor(() => expect(finished).toBeTruthy());
-        const { canvasEvents, seriesEvents } = readLayeredCanvasEvents(chartDom);
+        const { canvasEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
 
-        expect(removeCanvasTransforms(seriesEvents)).toMatchCanvasSnapshot(canvasEvents, { width, height });
+        expect((removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(canvasEvents, {
+          width,
+          height,
+        });
       });
-
-      // @todo test is broken, the series isn't rendering
-      // it('working axis, but too big', async () => {
-      //   const { container } = render(getComponent([frame], 'line'));
-      //
-      //   // ECharts stamps the DOM node it was bound to with `_echarts_instance_`, so
-      //   // we can recover the instance the Panel created (it isn't exposed otherwise).
-      //   const chartDom = await waitFor(() => {
-      //     const dom = container.querySelector<HTMLElement>('[_echarts_instance_]');
-      //     expect(dom).not.toBeNull();
-      //     return dom!;
-      //   });
-      //
-      //   // Gate the capture on ECharts' `finished` event, which fires once rendering
-      //   // AND the entry animation have settled. Since the Panel keeps animation on
-      //   // (~1s), it is still pending when we attach here, so the event fires after.
-      //   // https://echarts.apache.org/en/api.html#events.finished
-      //   await waitFor(() => {
-      //     const canvas = container.querySelector<HTMLCanvasElement>('canvas');
-      //     expect(canvas).not.toBeNull();
-      //     const ctx = canvas!.getContext('2d') as unknown as { __getEvents(): unknown[] };
-      //     expect(ctx.__getEvents().length).toBeGreaterThan(0);
-      //   });
-      //
-      //   const chart = getInstanceByDom(chartDom);
-      //
-      //   // chart!.on('finished', () => {
-      //   //   rendered = true;
-      //   // });
-      //
-      //   expect(chart).toBeDefined();
-      //
-      //   // await waitFor(() => expect(rendered).toEqual(true));
-      //
-      //   const ctx = container.querySelector('canvas')!.getContext('2d');
-      //   expect(ctx).not.toBeNull();
-      //   expect(removeCanvasTransforms(ctx!.__getEvents())).toMatchCanvasSnapshot([], { width, height });
-      // });
     });
   });
 });

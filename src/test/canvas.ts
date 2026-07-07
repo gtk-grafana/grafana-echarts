@@ -33,17 +33,18 @@ export const AXIS_ZLEVEL = 1;
 export const CANVAS_ZLEVEL = 0;
 
 // zrender tags each layer canvas with `data-zr-dom-id="zr_<zlevel>.<zlevel2>"`,
-const AXIS_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${AXIS_ZLEVEL}."]`;
-const SERIES_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${SERIES_ZLEVEL}."]`;
+export const AXIS_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${AXIS_ZLEVEL}."]`;
+export const SERIES_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${SERIES_ZLEVEL}."]`;
 // Canvas just means everything else that wasn't split into a dedicated canvas
-const CANVAS_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${CANVAS_ZLEVEL}."]`;
-const GRID_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${GRID_ZLEVEL}."]`;
+export const CANVAS_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${CANVAS_ZLEVEL}."]`;
+export const GRID_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${GRID_ZLEVEL}."]`;
 
 /** Read the axis (`zr_0`) and series (`SERIES_ZLEVEL`) layer canvases from a root. */
 export function readLayeredCanvasEvents(root: ParentNode): LayeredCanvasEvents {
   const axis = root.querySelector<HTMLCanvasElement>(AXIS_LAYER_SELECTOR);
   const series = root.querySelector<HTMLCanvasElement>(SERIES_LAYER_SELECTOR);
   const grid = root.querySelector<HTMLCanvasElement>(GRID_LAYER_SELECTOR);
+  // Default zLevel containing everything that doesn't have a specific zLevel override
   const canvas = root.querySelector<HTMLCanvasElement>(CANVAS_LAYER_SELECTOR);
 
   if(!canvas || !series){
@@ -79,6 +80,14 @@ export function renderEChartsOptionToCanvasEvents(option: ECBasicOption, size: C
     },
     { notMerge: true }
   );
+}
+
+export const removeCanvasClear = (events: CanvasRenderingContext2DEvent[]) => events.filter((e) => e.type !== 'clearRect');
+
+export function clearMockedCanvasEvents(ctx: CanvasRenderingContext2D) {
+  ctx.__clearDrawCalls();
+  ctx.__clearEvents();
+  ctx.__clearPath();
 }
 
 export function mockEChartsSize(
