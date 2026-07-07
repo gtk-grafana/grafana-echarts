@@ -101,16 +101,17 @@ export const cartesianTimeDefaultOptions: ECBasicOption & { xAxis: CartesianAxis
  * time from the categorical model. Tooltip and grid are merged at render time.
  * See https://echarts.apache.org/en/option.html#xAxis.type
  */
-export const cartesianCategoryDefaultOptions: ECBasicOption & { xAxis: CartesianAxisOption } & { yAxis: CartesianAxisOption } =
-  {
-    ...createBaseOptions(),
-    xAxis: {
-      type: 'category',
-    },
-    yAxis: {
-      type: 'value',
-      // See cartesianTimeDefaultOptions above: fit to data min/max, don't force zero.
-      // https://echarts.apache.org/en/option.html#yAxis.scale
-      scale: true,
-    },
-  };
+export const cartesianCategoryDefaultOptions: ECBasicOption & { xAxis: CartesianAxisOption } & {
+  yAxis: CartesianAxisOption;
+} = {
+  ...createBaseOptions(),
+  xAxis: {
+    type: 'category',
+  },
+  yAxis: {
+    type: 'value',
+    // See cartesianTimeDefaultOptions above: fit to data min/max, don't force zero.
+    // https://echarts.apache.org/en/option.html#yAxis.scale
+    scale: true,
+  },
+};

@@ -53,7 +53,12 @@ describe('pieToEChartsOption', () => {
     const frame = toDataFrame({
       fields: [
         { name: 'category', type: FieldType.string, values: ['a', 'b', 'c'] },
-        { name: 'v', type: FieldType.number, values: [0, null, undefined as unknown as number], config: { displayName: 'v' } },
+        {
+          name: 'v',
+          type: FieldType.number,
+          values: [0, null, undefined as unknown as number],
+          config: { displayName: 'v' },
+        },
       ],
     });
 

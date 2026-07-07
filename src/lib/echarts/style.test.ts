@@ -56,7 +56,7 @@ describe('getPaletteColorByIndex', () => {
   it('cycles through the palette and resolves a color string', () => {
     const { palette } = theme.visualization;
 
-    expect(getPaletteColorByIndex(0, theme)).toEqual("#73BF69");
+    expect(getPaletteColorByIndex(0, theme)).toEqual('#73BF69');
     expect(getPaletteColorByIndex(palette.length, theme)).toBe(getPaletteColorByIndex(0, theme));
   });
 });

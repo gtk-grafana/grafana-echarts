@@ -14,7 +14,7 @@ type TooltipParam = CallbackDataParams & {
 };
 
 /**
- * Format a raw ECharts tooltip value with Grafana's field formatter. 
+ * Format a raw ECharts tooltip value with Grafana's field formatter.
  * See https://echarts.apache.org/en/option.html#tooltip.valueFormatter
  */
 export function formatTooltipValue(

@@ -68,10 +68,12 @@ const getTooltipPosition: NonNullable<TooltipOption['position']> = (point, _para
   const [tooltipWidth, tooltipHeight] = size.contentSize;
   const [viewWidth, viewHeight] = size.viewSize;
 
-  const x = cursorX + TOOLTIP_CURSOR_GAP + tooltipWidth > viewWidth
+  const x =
+    cursorX + TOOLTIP_CURSOR_GAP + tooltipWidth > viewWidth
       ? cursorX - tooltipWidth - TOOLTIP_CURSOR_GAP
       : cursorX + TOOLTIP_CURSOR_GAP;
-  const y = cursorY + TOOLTIP_CURSOR_GAP + tooltipHeight > viewHeight
+  const y =
+    cursorY + TOOLTIP_CURSOR_GAP + tooltipHeight > viewHeight
       ? cursorY - tooltipHeight - TOOLTIP_CURSOR_GAP
       : cursorY + TOOLTIP_CURSOR_GAP;
 

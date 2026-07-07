@@ -1,4 +1,10 @@
-import { createDataFrame, DataFrameType, FieldType, getPanelDataSummary, VisualizationSuggestionScore } from '@grafana/data';
+import {
+  createDataFrame,
+  DataFrameType,
+  FieldType,
+  getPanelDataSummary,
+  VisualizationSuggestionScore,
+} from '@grafana/data';
 import { cartesianSuggestionsSupplier } from './suggestions';
 
 const timeSeriesFrame = (type?: DataFrameType) =>
@@ -13,9 +19,7 @@ const timeSeriesFrame = (type?: DataFrameType) =>
 describe('cartesianSuggestionsSupplier', () => {
   it('returns void when there is no time field', () => {
     const result = cartesianSuggestionsSupplier(
-      getPanelDataSummary([
-        createDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [1, 2, 3] }] }),
-      ])
+      getPanelDataSummary([createDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [1, 2, 3] }] })])
     );
     expect(result).toBeUndefined();
   });
@@ -70,9 +74,7 @@ describe('cartesianSuggestionsSupplier', () => {
   });
 
   it('scores Good for explicit time series frame types', () => {
-    const result = cartesianSuggestionsSupplier(
-      getPanelDataSummary([timeSeriesFrame(DataFrameType.TimeSeriesWide)])
-    );
+    const result = cartesianSuggestionsSupplier(getPanelDataSummary([timeSeriesFrame(DataFrameType.TimeSeriesWide)]));
     expect(result!.every((s) => s.score === VisualizationSuggestionScore.Good)).toBe(true);
   });
 });

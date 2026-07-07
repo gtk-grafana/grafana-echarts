@@ -30,8 +30,8 @@ export function readLayeredCanvasEvents(root: ParentNode): LayeredCanvasEvents {
   const seriesCanvas = root.querySelector<HTMLCanvasElement>(SERIES_LAYER_SELECTOR);
   const defaultCanvas = root.querySelector<HTMLCanvasElement>(DEFAULT_LAYER_SELECTOR);
 
-  if(!defaultCanvas || !seriesCanvas){
-    throw new Error('Canvas and series DOM nodes are required!')
+  if (!defaultCanvas || !seriesCanvas) {
+    throw new Error('Canvas and series DOM nodes are required!');
   }
 
   return {
@@ -40,7 +40,8 @@ export function readLayeredCanvasEvents(root: ParentNode): LayeredCanvasEvents {
   };
 }
 
-export const removeCanvasClear = (events: CanvasRenderingContext2DEvent[]) => events.filter((e) => e.type !== 'clearRect');
+export const removeCanvasClear = (events: CanvasRenderingContext2DEvent[]) =>
+  events.filter((e) => e.type !== 'clearRect');
 
 export function clearMockedCanvasEvents(ctx: CanvasRenderingContext2D) {
   ctx.__clearDrawCalls();

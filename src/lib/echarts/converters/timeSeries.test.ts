@@ -58,10 +58,7 @@ describe('timeSeriesToEChartsOption', () => {
 
   describe('Multi format (many frames, each with its own time field)', () => {
     it('returns one series per frame, preserving each frame non-aligned timestamps', () => {
-      const frames = [
-        multiFrame('a', [1, 2, 3], [10, 20, 30]),
-        multiFrame('b', [5, 6, 9], [60, 80, 90]),
-      ];
+      const frames = [multiFrame('a', [1, 2, 3], [10, 20, 30]), multiFrame('b', [5, 6, 9], [60, 80, 90])];
 
       const result = timeSeriesToEChartsOption(frames, 'line', theme);
 

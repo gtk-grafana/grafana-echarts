@@ -9,7 +9,7 @@ import {
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
 import { HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
-import { getHeatmapBucketAxis, getHeatmapSeries, getHeatmapVisualMap, } from 'lib/echarts/options/heatmap';
+import { getHeatmapBucketAxis, getHeatmapSeries, getHeatmapVisualMap } from 'lib/echarts/options/heatmap';
 import { DEFAULT_CHART_LEGEND, getCartesianGrid } from 'lib/echarts/options/legend';
 import { type ChartContext, type ChartModule } from './types';
 
@@ -69,19 +69,17 @@ export const heatmapChartModule: ChartModule = {
     const bucketAxisExtra = heatmap ? getHeatmapBucketAxis(heatmap) : {};
     const yAxis = heatmap
       ? [
-          mergeAxisStyle(
-            cartesianTimeDefaultOptions.yAxis as Record<string, unknown>,
-            axisStyle,
-            { min: heatmap.yMin, max: heatmap.yMax, ...bucketAxisExtra }
-          ),
+          mergeAxisStyle(cartesianTimeDefaultOptions.yAxis as Record<string, unknown>, axisStyle, {
+            min: heatmap.yMin,
+            max: heatmap.yMax,
+            ...bucketAxisExtra,
+          }),
           { ...overlayValueAxis, position: 'right' },
         ]
       : overlayValueAxis;
 
     const baseGrid = getCartesianGrid(isGrafanaLegend ? undefined : options.legend);
-    const grid = heatmap
-      ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH }
-      : baseGrid;
+    const grid = heatmap ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH } : baseGrid;
 
     const xAxisIsTime = cartSeries.length > 0 || (heatmap ? heatmap.xIsTime : true);
     const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis as Record<string, unknown>, axisStyle, {

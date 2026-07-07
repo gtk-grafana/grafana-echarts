@@ -1,6 +1,12 @@
 import { createTheme } from '@grafana/data';
 import { LegendDisplayMode, type LegendPlacement, type VizLegendOptions } from '@grafana/schema';
-import { DEFAULT_CHART_LEGEND, getCartesianGrid, getLegendOption, isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
+import {
+  DEFAULT_CHART_LEGEND,
+  getCartesianGrid,
+  getLegendOption,
+  isLegendVisible,
+  resolveLegendOptions,
+} from 'lib/echarts/options/legend';
 import { cartesianChartModule } from 'lib/echarts/charts/cartesian';
 import { type PanelOptions } from 'types';
 

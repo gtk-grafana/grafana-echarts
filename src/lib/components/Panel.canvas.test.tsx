@@ -107,7 +107,6 @@ const getComponent = (
 };
 
 describe('Panel canvas renders', () => {
-  // @todo time axis formatting is wrong
   describe('cartesian', () => {
     describe('time series', () => {
       const frame = toDataFrame({
@@ -117,7 +116,6 @@ describe('Panel canvas renders', () => {
         ],
       });
 
-      // @todo broken, the events look good but the width is zero
       it('renders default line chart', async () => {
         const { container } = render(
           getComponent([frame], 'line', {
@@ -152,7 +150,7 @@ describe('Panel canvas renders', () => {
         await waitFor(() => expect(finished).toBeTruthy());
         const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
 
-        expect((removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });

@@ -27,7 +27,7 @@ export function buildPanelChartOption(
 ): ECBasicOption {
   const chartModule = resolveChartModule(ctx.seriesType);
   if (!chartModule) {
-    throw new Error(`Invalid chart module ${chartModule} for ${ctx.seriesType}`)
+    throw new Error(`Invalid chart module ${chartModule} for ${ctx.seriesType}`);
   }
 
   // Axis type is data-driven for the cartesian family: Numeric frames (no time

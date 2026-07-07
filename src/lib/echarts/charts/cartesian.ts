@@ -42,7 +42,7 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
     cartesianTimeDefaultOptions.yAxis,
     axisStyle,
     {
-      zlevel: options.zLevel?.axis
+      zlevel: options.zLevel?.axis,
     },
     formatValue
   );
@@ -61,7 +61,7 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
     grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
     xAxis,
     yAxis,
-    series: cartSeries
+    series: cartSeries,
   };
 }
 

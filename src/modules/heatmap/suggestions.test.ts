@@ -1,4 +1,10 @@
-import { createDataFrame, DataFrameType, FieldType, getPanelDataSummary, VisualizationSuggestionScore } from '@grafana/data';
+import {
+  createDataFrame,
+  DataFrameType,
+  FieldType,
+  getPanelDataSummary,
+  VisualizationSuggestionScore,
+} from '@grafana/data';
 import { heatmapSuggestionsSupplier } from './suggestions';
 
 describe('heatmapSuggestionsSupplier', () => {

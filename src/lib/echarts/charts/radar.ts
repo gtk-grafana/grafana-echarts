@@ -19,7 +19,11 @@ export const radarChartModule: ChartModule = {
       ...radarDefaultOptions,
       legend: isGrafanaLegend
         ? { show: false }
-        : getLegendOption(options.legend, theme, radar.data.map((polygon) => polygon.name)),
+        : getLegendOption(
+            options.legend,
+            theme,
+            radar.data.map((polygon) => polygon.name)
+          ),
       radar: { indicator: radar.indicator },
       series: [{ type: seriesType, data: radar.data }],
     };
