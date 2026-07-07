@@ -27,8 +27,8 @@ export function getSeriesColor(field: Field, theme: GrafanaTheme2): string {
 
 /**
  * Resolve a color from Grafana's classic visualization palette by index,
- * cycling when the index exceeds the palette length. Useful for charts that
- * color by category (e.g. pie slices) rather than by field.
+ * cycling when the index exceeds the palette length.
+ * @todo is this not exposed from core Grafana to plugins?
  */
 export function getPaletteColorByIndex(index: number, theme: GrafanaTheme2): string {
   const { palette } = theme.visualization;

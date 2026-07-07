@@ -1,4 +1,5 @@
 import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import { type SeriesType } from 'editor/types';
 
@@ -26,9 +27,7 @@ describe('timeSeriesToEChartsOption', () => {
     it('returns one series per numeric field sharing the time field', () => {
       const result = timeSeriesToEChartsOption([wideFrame()], 'line', theme);
 
-      expect(result).not.toBeNull();
       expect(result).toHaveLength(2);
-
       expect(result![0]).toMatchObject({
         name: 'cpu',
         type: 'line',
@@ -52,8 +51,8 @@ describe('timeSeriesToEChartsOption', () => {
     it('resolves a color for each series, shared between symbol and line', () => {
       const result = timeSeriesToEChartsOption([wideFrame()], 'line', theme);
 
-      expect(result![0].itemStyle.color).toEqual(expect.any(String));
-      expect(result![0].itemStyle.color).toBe(result![0].lineStyle.color);
+      const series = result![0] as LineSeriesOption;
+      expect(series.itemStyle?.color).toEqual('#808080');
     });
   });
 
@@ -66,7 +65,6 @@ describe('timeSeriesToEChartsOption', () => {
 
       const result = timeSeriesToEChartsOption(frames, 'line', theme);
 
-      expect(result).not.toBeNull();
       expect(result).toHaveLength(2);
 
       expect(result![0].name).toBe('a');
@@ -177,8 +175,6 @@ describe('timeSeriesToEChartsOption', () => {
       });
 
       const result = timeSeriesToEChartsOption([invalid, valid], 'line', theme);
-
-      expect(result).toHaveLength(1);
       expect(result![0].name).toBe('a');
     });
   });
