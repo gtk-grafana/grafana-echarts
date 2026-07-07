@@ -150,9 +150,9 @@ describe('Panel canvas renders', () => {
         });
 
         await waitFor(() => expect(finished).toBeTruthy());
-        const { canvasEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
+        const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
 
-        expect((removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(canvasEvents, {
+        expect((removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });

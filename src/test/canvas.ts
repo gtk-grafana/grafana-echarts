@@ -10,17 +10,16 @@ import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
  * https://echarts.apache.org/en/option.html#series-line.zlevel
  */
 export interface LayeredCanvasEvents {
-  gridEvents?: CanvasRenderingContext2DEvent[];
-  canvasEvents: CanvasRenderingContext2DEvent[];
   /** Draw calls on the grid/axis layer (default `zlevel` 0 canvas). */
-  axisEvents?: CanvasRenderingContext2DEvent[];
+  defaultEvents: CanvasRenderingContext2DEvent[];
+
   /** Draw calls on the series layer (the dedicated `SERIES_ZLEVEL` canvas). */
   seriesEvents: CanvasRenderingContext2DEvent[];
 }
 
-export const SERIES_ZLEVEL = 3;
 // Default canvas contains everything that wasn't split into a dedicated zlevel
 export const DEFAULT_ZLEVEL = 0;
+export const SERIES_ZLEVEL = 3;
 
 // zrender tags each layer canvas with `data-zr-dom-id="zr_<zlevel>.<zlevel2>"`,
 export const SERIES_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${SERIES_ZLEVEL}."]`;
@@ -28,16 +27,16 @@ export const DEFAULT_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${DEFAULT_ZLEV
 
 /** Get the layered canvas events. */
 export function readLayeredCanvasEvents(root: ParentNode): LayeredCanvasEvents {
-  const series = root.querySelector<HTMLCanvasElement>(SERIES_LAYER_SELECTOR);
-  const canvas = root.querySelector<HTMLCanvasElement>(DEFAULT_LAYER_SELECTOR);
+  const seriesCanvas = root.querySelector<HTMLCanvasElement>(SERIES_LAYER_SELECTOR);
+  const defaultCanvas = root.querySelector<HTMLCanvasElement>(DEFAULT_LAYER_SELECTOR);
 
-  if(!canvas || !series){
+  if(!defaultCanvas || !seriesCanvas){
     throw new Error('Canvas and series DOM nodes are required!')
   }
 
   return {
-    canvasEvents: canvas.getContext('2d')!.__getEvents(),
-    seriesEvents: series.getContext('2d')!.__getEvents(),
+    defaultEvents: defaultCanvas.getContext('2d')!.__getEvents(),
+    seriesEvents: seriesCanvas.getContext('2d')!.__getEvents(),
   };
 }
 
