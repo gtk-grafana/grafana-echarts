@@ -14,7 +14,7 @@ import {
 } from '@grafana/data';
 import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions } from '@grafana/schema';
 import { render, waitFor } from '@testing-library/react';
-import { seriesTypePath } from 'editor/constants';
+import { cartesianTimeSeriesTypes, seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { getInstanceByDom } from 'lib/echarts/echarts';
@@ -143,7 +143,46 @@ describe('Panel canvas renders', () => {
         ],
       });
 
-      it('renders default line chart', async () => {
+      it.each(cartesianTimeSeriesTypes)('renders default %s chart', async (seriesType) => {
+        const { container } = render(
+          getComponent([frame], seriesType, {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        // get the echarts DOM instance
+        const chartInstanceDom = container.querySelector<HTMLDivElement>('[_echarts_instance_]') as HTMLDivElement;
+        const seriesDom = container.querySelector<HTMLCanvasElement>(SERIES_LAYER_SELECTOR) as HTMLCanvasElement;
+        const canvasDom = container.querySelector<HTMLCanvasElement>(DEFAULT_LAYER_SELECTOR) as HTMLCanvasElement;
+        expect(seriesDom).not.toBeNull();
+        expect(canvasDom).not.toBeNull();
+
+        // get chart object
+        const chart = getInstanceByDom(chartInstanceDom);
+        expect(chart).toBeDefined();
+
+        // get context 2d
+        const seriesCtx = seriesDom.getContext('2d') as CanvasRenderingContext2D;
+        const canvasCtx = canvasDom.getContext('2d') as CanvasRenderingContext2D;
+        expect(seriesCtx).toBeDefined();
+        expect(canvasCtx).toBeDefined();
+
+        let finished = false;
+
+        chart!.on('finished', () => {
+          finished = true;
+        });
+
+        await waitFor(() => expect(finished).toBeTruthy());
+        const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+      it('renders default grid', async () => {
         const { container } = render(
           getComponent([frame], 'line', {
             zLevel: { series: SERIES_ZLEVEL },
@@ -177,7 +216,7 @@ describe('Panel canvas renders', () => {
         await waitFor(() => expect(finished).toBeTruthy());
         const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(removeCanvasTransforms(removeCanvasClear(defaultEvents))).toMatchCanvasSnapshot(seriesEvents, {
           width,
           height,
         });

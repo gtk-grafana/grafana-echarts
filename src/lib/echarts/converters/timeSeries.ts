@@ -53,6 +53,11 @@ export function timeSeriesToEChartsOption(
       lineStyle: { color },
       zlevel: options.zLevel?.series,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+      // effectScatter ripples continuously with the default `showEffectOn: 'render'`,
+      // which never lets the chart settle. Trigger the ripple on hover instead so
+      // the render animation completes (and the points draw as static markers).
+      // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
+      ...(type === 'effectScatter' ? { showEffectOn: 'emphasis' } : {}),
     });
   });
 
