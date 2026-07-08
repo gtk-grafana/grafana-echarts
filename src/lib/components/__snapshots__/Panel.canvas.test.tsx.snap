@@ -3521,7 +3521,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
   },
   {
     "props": {
-      "value": "bold 12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
     },
     "type": "font",
   },
@@ -3559,7 +3559,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
   },
   {
     "props": {
-      "value": "bold 12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
     },
     "type": "font",
   },
@@ -3597,7 +3597,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
   },
   {
     "props": {
-      "value": "bold 12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
     },
     "type": "font",
   },
@@ -5482,7 +5482,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
   },
   {
     "props": {
-      "value": "bold 12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
     },
     "type": "font",
   },
@@ -5520,7 +5520,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
   },
   {
     "props": {
-      "value": "bold 12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
     },
     "type": "font",
   },
@@ -5558,7 +5558,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
   },
   {
     "props": {
-      "value": "bold 12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
     },
     "type": "font",
   },

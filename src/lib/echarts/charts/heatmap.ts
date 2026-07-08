@@ -11,6 +11,7 @@ import {
 import { HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
 import { getHeatmapBucketAxis, getHeatmapSeries, getHeatmapVisualMap } from 'lib/echarts/options/heatmap';
 import { DEFAULT_CHART_LEGEND, getCartesianGrid } from 'lib/echarts/options/legend';
+import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
 import { type ChartContext, type ChartModule } from './types';
 
 /**
@@ -82,8 +83,14 @@ export const heatmapChartModule: ChartModule = {
     const xAxisIsTime = cartSeries.length > 0 || (heatmap ? heatmap.xIsTime : true);
     const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis as Record<string, unknown>, axisStyle, {
       // Pin the time axis to the dashboard range so gappy panels stay aligned;
-      // non-time (value) buckets keep their data-derived extent.
-      ...(xAxisIsTime ? getTimeAxisBounds(ctx.timeRange) : { type: 'value' }),
+      // non-time (value) buckets keep their data-derived extent. Time labels use
+      // Grafana's timezone-aware formatter to match the tz-aware tooltip.
+      ...(xAxisIsTime
+        ? {
+            ...getTimeAxisBounds(ctx.timeRange),
+            axisLabel: { formatter: getTimeAxisLabelFormatter(ctx.timeRange, ctx.timeZone) },
+          }
+        : { type: 'value' }),
     });
 
     return {
