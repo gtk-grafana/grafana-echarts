@@ -25,7 +25,9 @@ export type SeriesType =
   | 'chord'
   | 'custom';
 
-export type CategoricalAxisSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter' | 'pie' | 'radar'>;
+
+export type CategoricalOnlySeriesType = Extract<SeriesType, 'pie' | 'radar'>;
+export type CategoricalAxisSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter' >;
 export type CartesianSingleValueSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter'>;
 export type CartesianMultiValueSeriesType = Extract<SeriesType, 'candlestick' | 'boxplot'>;
 export type HeatmapSeriesType = Extract<SeriesType, 'heatmap'>

@@ -24,6 +24,6 @@ describe('panelTypeToAxis', () => {
   });
 
   it('defaults unmapped types to a category axis instead of throwing', () => {
-    expect(panelTypeToAxis('gauge')).toBe('category');
+    expect(() => panelTypeToAxis('gauge')).toThrow()
   });
 });

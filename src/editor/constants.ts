@@ -1,7 +1,7 @@
 import { DataFrameType, type SelectableValue } from '@grafana/data';
 import {
   type CartesianMultiValueSeriesType,
-  type CartesianSingleValueSeriesType, type CategoricalAxisSeriesType,
+  type CartesianSingleValueSeriesType, type CategoricalAxisSeriesType, CategoricalOnlySeriesType,
   type HeatmapSeriesType,
   type SeriesType,
 } from 'editor/types';
@@ -21,6 +21,8 @@ export const stackSeriesName = 'Stack series';
  * https://echarts.apache.org/en/option.html#series-bar.stack
  */
 export const STACK_GROUP_ID = 'total';
+
+export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar'];
 
 export const categoricalAxisSeriesTypes: CategoricalAxisSeriesType[] = ['line', 'bar', 'scatter', 'effectScatter', 'pie', 'radar'];
 /**
