@@ -69,6 +69,8 @@ export const Legend: React.FC<Props> = ({ items, legend, width, height }) => {
         isSortable={isTable}
         onToggleSort={onToggleSort}
         limit={legend.limit}
+        // Name overflow toggle (ellipsis vs wrap), added in grafana/grafana#126198.
+        overflow={legend.overflow}
       />
     </div>
   );
