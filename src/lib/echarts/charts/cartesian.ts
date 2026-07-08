@@ -18,6 +18,7 @@ import {
   buildMultiValueCartesianLegendItems,
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
+import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
 import { type CartesianOption, type ChartContext, type ChartModule } from './types';
 
 // Cartesian family (Groups 1-2). The x-axis mode follows the data, not the
@@ -50,10 +51,12 @@ function buildTimeOption(
   );
 
   // Pin the time axis to the dashboard range so gaps in this panel's data still
-  // align with sibling panels sharing the same range. No value formatter is
-  // applied: the x-axis is time, so it keeps ECharts' built-in date formatting.
+  // align with sibling panels sharing the same range. Labels are formatted via
+  // Grafana's timezone-aware formatter (ECharts' built-in date labels would
+  // render in browser-local time, ignoring the dashboard timezone).
   const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis, axisStyle, {
     ...getTimeAxisBounds(ctx.timeRange),
+    axisLabel: { formatter: getTimeAxisLabelFormatter(ctx.timeRange, ctx.timeZone) },
     zlevel: options.zLevel?.axis,
   });
 
@@ -108,7 +111,7 @@ function buildMultiValueOption(
   ctx: ChartContext<MultiValueSeriesType>,
   isGrafanaLegend: boolean
 ): ECBasicOption | null {
-  const { frames, theme, options, seriesType, formatValue, timeRange } = ctx;
+  const { frames, theme, options, seriesType, formatValue, timeRange, timeZone } = ctx;
   const multiValueData = multiValueCartesianToEChartsOption(frames, seriesType, theme, timeRange);
 
   if (!multiValueData || multiValueData.series.length === 0) {
@@ -119,10 +122,12 @@ function buildMultiValueOption(
 
   const yAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.yAxis, axisStyle, undefined, formatValue);
 
-  // The category axis carries its labels in `data`; there is no per-tick value
-  // to format, so no value formatter is applied to the x-axis.
+  // Candlestick/boxplot render on a category axis whose labels are ISO
+  // timestamps (kept ISO for deterministic categories). Format them for display
+  // via Grafana's timezone-aware formatter; non-time categories pass through.
   const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
     data: multiValueData.categories,
+    axisLabel: { formatter: getTimeAxisLabelFormatter(timeRange, timeZone) },
   });
 
   return {
