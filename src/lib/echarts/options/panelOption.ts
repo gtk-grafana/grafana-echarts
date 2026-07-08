@@ -4,6 +4,7 @@ import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
+import { getTimeBrushOption } from 'lib/echarts/timeBrush';
 import {
   getCrosshairAxisPointer,
   getNoTooltipOption,
@@ -30,10 +31,9 @@ export function buildPanelChartOption(
     throw new Error(`Invalid chart module ${chartModule} for ${ctx.seriesType}`);
   }
 
-  // Axis type is data-driven for the cartesian family: Numeric frames (no time
-  // field) render on a category axis, which changes the tooltip trigger and
-  // drops the time crosshair below.
-  const axisType = panelTypeToAxis(ctx.seriesType, framesHaveTimeField(ctx.frames));
+  // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
+  const hasTimeField = framesHaveTimeField(ctx.frames);
+  const axisType = panelTypeToAxis(ctx.seriesType, hasTimeField);
   const tooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
   const tooltipOption = getTooltipOption(
     grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
@@ -57,10 +57,16 @@ export function buildPanelChartOption(
         : getCrosshairAxisPointer()
       : undefined;
 
+  // Drag-to-zoom is only meaningful on a time axis, where the brush selection
+  // maps to an absolute time range the dashboard can adopt. The cursor is armed
+  // programmatically in Panel.tsx after `setOption`.
+  const isTimeAxis = hasTimeField && axisType === 'time';
+
   return {
     ...echartOption,
     tooltip: tooltipOption,
     animation: ctx.options.animation?.enabled,
     ...(axisPointer ? { axisPointer } : {}),
+    ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };
 }

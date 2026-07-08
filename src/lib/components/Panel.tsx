@@ -17,6 +17,13 @@ import { type EChartsType, init } from 'lib/echarts/echarts';
 import { getPanelLayout } from 'lib/echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
+import {
+  type BrushEndEvent,
+  brushEndToTimeRange,
+  CLEAR_TIME_BRUSH_ACTION,
+  DISABLE_TIME_BRUSH_ACTION,
+  ENABLE_TIME_BRUSH_ACTION,
+} from 'lib/echarts/timeBrush';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
@@ -47,6 +54,7 @@ export const Panel: React.FC<Props> = ({
   timeZone,
   eventBus,
   timeRange,
+  onChangeTimeRange,
 }) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
@@ -55,6 +63,13 @@ export const Panel: React.FC<Props> = ({
   // held in state so the option/resize effects re-run once it exists.
   const [chart, setChart] = useState<EChartsType | null>(null);
   const seriesType = options[seriesTypePath];
+
+  // Latest time-range setter, read from the brush handler (attached once per
+  // chart instance) so it always calls the current prop without re-binding.
+  const onChangeTimeRangeRef = useRef(onChangeTimeRange);
+  useEffect(() => {
+    onChangeTimeRangeRef.current = onChangeTimeRange;
+  }, [onChangeTimeRange]);
 
   const chartModule = useMemo(() => resolveChartModule(seriesType), [seriesType]);
 
@@ -126,9 +141,6 @@ export const Panel: React.FC<Props> = ({
       return;
     }
 
-    // ECharts is imported statically here, but this whole component is loaded
-    // via React.lazy (see lib/components/LazyPanel), so its (~0.6MB) bundle is
-    // still emitted as shared async chunks rather than every panel's entry.
     const instance = init(dom);
     setChart(instance);
 
@@ -158,6 +170,11 @@ export const Panel: React.FC<Props> = ({
     // warm for transitions, unlike a full chart.clear() + setOption reset.
     // https://echarts.apache.org/en/api.html#echartsInstance.setOption
     chart.setOption(option, { notMerge: true });
+
+    // Arm (or clear) the permanent time-span brush cursor after each rebuild;
+    // `notMerge` recreates the brush component, so the cursor must be re-armed.
+    // A `brush` option is only present for time-axis charts (see panelOption).
+    chart.dispatchAction('brush' in option ? ENABLE_TIME_BRUSH_ACTION : DISABLE_TIME_BRUSH_ACTION);
   }, [chart, chartModule, chartContext, isVizLegend]);
 
   useEffect(() => {
@@ -166,6 +183,37 @@ export const Panel: React.FC<Props> = ({
     }
     chart.resize({ width: chartWidth, height: chartHeight });
   }, [chart, chartWidth, chartHeight]);
+
+  // Translate a completed time-axis drag-select into a dashboard time-range
+  // change. Bound once per instance (the option effect (re-)arms the cursor);
+  // the handler reads the latest setter via ref. Grafana then refetches and the
+  // panel re-renders with the new range pinned on the axis.
+  useEffect(() => {
+    if (!chart) {
+      return;
+    }
+
+    const handleBrushEnd = (event: BrushEndEvent) => {
+      const range = brushEndToTimeRange(event);
+      // Clear the selection highlight so it does not linger through the refetch.
+      chart.dispatchAction(CLEAR_TIME_BRUSH_ACTION);
+      if (range) {
+        onChangeTimeRangeRef.current(range);
+      }
+    };
+
+    // eCharts types here are cryptic and/or missing definitions for all of the chart events, so we must typecast for now
+    // See the comment in lib/echarts/timeBrush.ts
+    chart.on('brushEnd', handleBrushEnd as (...args: unknown[]) => void);
+    return () => {
+      // On unmount the layout effect's cleanup disposes the instance before this
+      // passive cleanup runs, so guard against calling `off` on a disposed chart
+      // (dispose already drops its listeners). https://echarts.apache.org/en/api.html#echartsInstance.isDisposed
+      if (!chart.isDisposed()) {
+        chart.off('brushEnd', handleBrushEnd);
+      }
+    };
+  }, [chart]);
 
   if (data.series.length === 0) {
     return <PanelDataErrorView fieldConfig={fieldConfig} panelId={id} data={data} needsStringField />;
