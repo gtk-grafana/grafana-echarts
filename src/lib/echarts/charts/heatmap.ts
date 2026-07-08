@@ -38,7 +38,7 @@ export const heatmapChartModule: ChartModule = {
     const { overlayFrames, heatmap } = splitFrames(ctx);
 
     const overlayType = cartesianTimeSeriesTypes.includes(seriesType) ? seriesType : 'line';
-    const cartSeries = timeSeriesToEChartsOption(overlayFrames, overlayType, theme) ?? [];
+    const cartSeries = timeSeriesToEChartsOption({ ...ctx, seriesType: overlayType, frames: overlayFrames }) ?? [];
 
     if (cartSeries.length === 0 && !heatmap) {
       return null;

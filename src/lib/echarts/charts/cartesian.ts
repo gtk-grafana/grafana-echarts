@@ -1,9 +1,10 @@
+import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { multiValueCartesianTypes } from 'editor/constants';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import {
-  type MultiValueChartType,
   multiValueCartesianToEChartsOption,
+  type MultiValueChartType,
 } from 'lib/echarts/converters/multiValueCartesian';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {
@@ -13,14 +14,13 @@ import {
   getTimeAxisBounds,
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
-import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
+import { DEFAULT_CHART_LEGEND, getCartesianGrid, getLegendOption } from 'lib/echarts/options/legend';
 import {
   buildCategoryCartesianLegendItems,
   buildMultiValueCartesianLegendItems,
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
 import { type ChartContext, type ChartModule } from './types';
-import { type ECBasicOption } from 'echarts/types/dist/shared';
 
 // Cartesian family (Groups 1-2). The x-axis mode follows the data, not the
 // series type: time frames render on a `time` axis, while Numeric frames with no
@@ -29,10 +29,8 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 
 /** Time-axis cartesian: `[time, value]` series on a time grid. */
 function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
-  const { frames, theme, options, seriesType, formatValue } = ctx;
-  // @todo refactor object
-  const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme, options.zLevel?.series);
-  const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme, options.stackSeries ?? false);
+  const { theme, options, formatValue } = ctx;
+  const cartSeries = timeSeriesToEChartsOption(ctx);
 
   if (!cartSeries || cartSeries.length === 0) {
     return null;
