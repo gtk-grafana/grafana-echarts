@@ -1,7 +1,7 @@
 import { DataFrameType, type SelectableValue } from '@grafana/data';
 import {
   type CartesianMultiValueSeriesType,
-  type CartesianSingleValueSeriesType, type CategoricalAxisSeriesType, CategoricalOnlySeriesType,
+  type CartesianSingleValueSeriesType, type CategoricalAxisSeriesType, type CategoricalOnlySeriesType,
   type HeatmapSeriesType,
   type SeriesType,
 } from 'editor/types';
@@ -24,7 +24,7 @@ export const STACK_GROUP_ID = 'total';
 
 export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar'];
 
-export const categoricalAxisSeriesTypes: CategoricalAxisSeriesType[] = ['line', 'bar', 'scatter', 'effectScatter', 'pie', 'radar'];
+export const categoricalAxisSeriesTypes: CategoricalAxisSeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
 /**
  * Cartesian time series types that render on a time/value grid and consume the
  * converter's `[time, value]` output unchanged (one numeric value per point).
