@@ -12,9 +12,11 @@ export const getPanelLayout = (width: number, height: number, legend: VizLegendO
   }
 
   if (legend.placement === 'right') {
+    // @grafana/schema types legend.width as number | string; coerce to pixels.
+    const configuredWidth = Number(legend.width) || 0;
     const legendWidth =
-      legend.width && legend.width > 0
-        ? Math.min(legend.width, Math.floor(width / 2))
+      configuredWidth > 0
+        ? Math.min(configuredWidth, Math.floor(width / 2))
         : Math.min(DEFAULT_LEGEND_WIDTH, Math.floor(width / 2));
     return { chartWidth: width - legendWidth, chartHeight: height, legendWidth, legendHeight: height };
   }

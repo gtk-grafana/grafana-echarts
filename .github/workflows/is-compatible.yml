@@ -11,7 +11,7 @@ jobs:
     outputs:
       modules: ${{ steps.find-module-ts.outputs.modules }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -33,7 +33,7 @@ jobs:
       matrix:
         module: ${{ fromJSON(needs.find-modules.outputs.modules) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -54,7 +54,7 @@ jobs:
         run: pnpm run build
 
       - name: Compatibility check
-        uses: grafana/plugin-actions/is-compatible@is-compatible/v1.0.2
+        uses: grafana/plugin-actions/is-compatible@is-compatible/v1.0.3
         with:
           module: ${{ matrix.module }}
           comment-pr: 'no'
