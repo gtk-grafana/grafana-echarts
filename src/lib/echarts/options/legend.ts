@@ -117,8 +117,9 @@ export function getCartesianGrid(legend?: VizLegendOptions) {
   }
 
   if ((legend?.placement ?? 'bottom') === 'right') {
-    const width = legend?.width;
-    return { ...grid, right: width && width > 0 ? width + 24 : 120 };
+    // @grafana/schema types legend.width as number | string; coerce to pixels.
+    const width = Number(legend?.width) || 0;
+    return { ...grid, right: width > 0 ? width + 24 : 120 };
   }
 
   return { ...grid, bottom: 48 };
