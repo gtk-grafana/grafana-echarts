@@ -163,8 +163,7 @@ export function buildHeatmapTooltip(
     const yEnd = Number(tuple[3]);
     const value = tuple[HEATMAP_VALUE_DIM] ?? null;
 
-    const bucket =
-      bucketLabels.get(`${yStart}:${yEnd}`) ?? `${formatBucketBound(yStart)} - ${formatBucketBound(yEnd)}`;
+    const bucket = bucketLabels.get(`${yStart}:${yEnd}`) ?? `${formatBucketBound(yStart)} - ${formatBucketBound(yEnd)}`;
 
     const shell = buildTooltipShell(ctx.theme);
     shell.appendHeader(formatX(xStart));

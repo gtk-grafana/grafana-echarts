@@ -85,12 +85,7 @@ describe('radarToEChartsOption', () => {
       const result = radarToEChartsOption([frame], theme);
 
       expect(result!.data).toMatchObject([{ name: 'v', value: [0, null, 30, null] }]);
-      expect(result!.indicator).toEqual([
-        { name: 'a', max: 0 },
-        { name: 'b' },
-        { name: 'c', max: 30 },
-        { name: 'd' },
-      ]);
+      expect(result!.indicator).toEqual([{ name: 'a', max: 0 }, { name: 'b' }, { name: 'c', max: 30 }, { name: 'd' }]);
     });
   });
 

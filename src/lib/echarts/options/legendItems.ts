@@ -19,12 +19,7 @@ import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
 /**
  * Reduce a field down to per-series calc columns for the table legend.
  */
-export function getCalcDisplayValues(
-  calcs: string[],
-  field: Field,
-  theme: GrafanaTheme2,
-  timeZone?: string
-) {
+export function getCalcDisplayValues(calcs: string[], field: Field, theme: GrafanaTheme2, timeZone?: string) {
   if (calcs.length === 0) {
     return [];
   }

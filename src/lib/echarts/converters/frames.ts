@@ -1,10 +1,4 @@
-import {
-  type DataFrame,
-  type Field,
-  FieldType,
-  getFieldDisplayName,
-  type GrafanaTheme2,
-} from '@grafana/data';
+import { type DataFrame, type Field, FieldType, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
 import { getSeriesColor } from 'lib/echarts/style';
 
 /**
@@ -49,11 +43,7 @@ export interface MappedNumericField {
 /**
  * Map every numeric field in a frame to display metadata shared by converters and legends.
  */
-export function mapNumericFields(
-  frame: DataFrame,
-  series: DataFrame[],
-  theme: GrafanaTheme2
-): MappedNumericField[] {
+export function mapNumericFields(frame: DataFrame, series: DataFrame[], theme: GrafanaTheme2): MappedNumericField[] {
   return frame.fields
     .filter((field) => field.type === FieldType.number)
     .map((field) => ({
@@ -86,10 +76,7 @@ export function resolveTimeField(frame: DataFrame): Field | undefined {
  * Iterate numeric value fields across all frames that have a usable time/X field.
  * Skips frames with no time or numeric fallback field.
  */
-export function forEachTimeSeriesField(
-  series: DataFrame[],
-  callback: (ref: TimeSeriesFieldRef) => void
-): void {
+export function forEachTimeSeriesField(series: DataFrame[], callback: (ref: TimeSeriesFieldRef) => void): void {
   // @todo convert to for loop
   series.forEach((frame, frameIndex) => {
     const timeField = resolveTimeField(frame);

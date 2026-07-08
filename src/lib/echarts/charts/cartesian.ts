@@ -30,6 +30,8 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 /** Time-axis cartesian: `[time, value]` series on a time grid. */
 function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
   const { frames, theme, options, seriesType, formatValue } = ctx;
+  // @todo refactor object
+  const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme, options.zLevel?.series);
   const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme, options.stackSeries ?? false);
 
   if (!cartSeries || cartSeries.length === 0) {
@@ -37,22 +39,23 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
   }
 
   const axisStyle = getCartesianAxisStyle(theme);
-  const valueFormatter = (value: unknown) => formatValue(typeof value === 'number' ? value : null);
 
   const yAxis = mergeAxisStyle(
-    cartesianTimeDefaultOptions.yAxis as Record<string, unknown>,
+    cartesianTimeDefaultOptions.yAxis,
     axisStyle,
-    undefined,
-    valueFormatter
+    {
+      zlevel: options.zLevel?.axis,
+    },
+    formatValue
   );
 
   // Pin the time axis to the dashboard range so gaps in this panel's data still
-  // align with sibling panels sharing the same range.
-  const xAxis = mergeAxisStyle(
-    cartesianTimeDefaultOptions.xAxis as Record<string, unknown>,
-    axisStyle,
-    getTimeAxisBounds(ctx.timeRange)
-  );
+  // align with sibling panels sharing the same range. No value formatter is
+  // applied: the x-axis is time, so it keeps ECharts' built-in date formatting.
+  const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis, axisStyle, {
+    ...getTimeAxisBounds(ctx.timeRange),
+    zlevel: options.zLevel?.axis,
+  });
 
   return {
     ...cartesianTimeDefaultOptions,
@@ -74,18 +77,12 @@ function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBas
   }
 
   const axisStyle = getCartesianAxisStyle(theme);
-  const valueFormatter = (value: unknown) => formatValue(typeof value === 'number' ? value : null);
 
-  const yAxis = mergeAxisStyle(
-    cartesianCategoryDefaultOptions.yAxis as Record<string, unknown>,
-    axisStyle,
-    undefined,
-    valueFormatter
-  );
+  const yAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.yAxis, axisStyle, undefined, formatValue);
 
   // The category axis carries its labels in `data`; there is no per-tick value
   // to format, so no value formatter is applied to the x-axis.
-  const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis as Record<string, unknown>, axisStyle, {
+  const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
     data: categoryData.categories,
   });
 
@@ -119,18 +116,12 @@ function buildMultiValueOption(ctx: ChartContext, isGrafanaLegend: boolean): ECB
   }
 
   const axisStyle = getCartesianAxisStyle(theme);
-  const valueFormatter = (value: unknown) => formatValue(typeof value === 'number' ? value : null);
 
-  const yAxis = mergeAxisStyle(
-    cartesianCategoryDefaultOptions.yAxis as Record<string, unknown>,
-    axisStyle,
-    undefined,
-    valueFormatter
-  );
+  const yAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.yAxis, axisStyle, undefined, formatValue);
 
   // The category axis carries its labels in `data`; there is no per-tick value
   // to format, so no value formatter is applied to the x-axis.
-  const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis as Record<string, unknown>, axisStyle, {
+  const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
     data: multiValueData.categories,
   });
 

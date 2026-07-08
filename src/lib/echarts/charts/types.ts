@@ -1,9 +1,8 @@
 import { type VizLegendOptions } from '@grafana/schema';
 import { type VizLegendItem } from '@grafana/ui';
-import { type ValueFormatter } from 'lib/echarts/style';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type SeriesType } from 'editor/types';
-import { type DataFrame, type GrafanaTheme2, type TimeRange } from '@grafana/data';
+import { type DataFrame, type GrafanaTheme2, type TimeRange, type ValueFormatter } from '@grafana/data';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */

@@ -1,45 +1,28 @@
 import { css } from '@emotion/css';
-import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type PanelProps } from '@grafana/data';
+import { type GrafanaTheme2, type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import { LegendDisplayMode, type LegendPlacement, TooltipDisplayMode } from '@grafana/schema';
-import { PanelContextProvider, type SeriesVisibilityChangeMode, usePanelContext, useStyles2, useTheme2 } from '@grafana/ui';
+import { LegendDisplayMode, type LegendPlacement } from '@grafana/schema';
+import {
+  PanelContextProvider,
+  type SeriesVisibilityChangeMode,
+  usePanelContext,
+  useStyles2,
+  useTheme2,
+} from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 import { seriesTypePath } from 'editor/constants';
-import { init, type EChartsType } from 'lib/echarts/echarts';
-import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
-import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { type ChartContext } from 'lib/echarts/charts/types';
+import { type EChartsType, init } from 'lib/echarts/echarts';
 import { getPanelLayout } from 'lib/echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
-import { getValueFormatter, type ValueFormatter } from 'lib/echarts/style';
-import {
-  getCrosshairAxisPointer,
-  getNoTooltipOption,
-  getTooltipOption,
-  grafanaTooltipModeToEChartsTrigger,
-} from 'lib/echarts/tooltip';
+import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
+import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
 import { Legend } from './Legend';
 
 interface Props extends PanelProps<PanelOptions> {}
-
-const getRepresentativeFormatter = (series: DataFrame[], theme: GrafanaTheme2, timeZone: string): ValueFormatter => {
-  let numericField: Field | undefined;
-  for (const frame of series) {
-    numericField = frame.fields.find((field) => field.type === FieldType.number);
-    if (numericField) {
-      break;
-    }
-  }
-
-  if (!numericField) {
-    return (value) => String(value ?? '');
-  }
-
-  return getValueFormatter(numericField, theme, timeZone);
-};
 
 const getStyles = (theme: GrafanaTheme2, height: number, width: number, placement: LegendPlacement) => {
   return {
@@ -54,7 +37,17 @@ const getStyles = (theme: GrafanaTheme2, height: number, width: number, placemen
   };
 };
 
-export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConfig, id, timeZone, eventBus, timeRange }) => {
+export const Panel: React.FC<Props> = ({
+  options,
+  data,
+  width,
+  height,
+  fieldConfig,
+  id,
+  timeZone,
+  eventBus,
+  timeRange,
+}) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
   const panelDOMRef = useRef<HTMLDivElement>(null);
@@ -106,8 +99,6 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     return chartModule.buildLegendItems(chartContext, resolvedLegend.calcs ?? []);
   }, [isVizLegend, chartModule, chartContext, resolvedLegend]);
 
-  const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
-
   const onSeriesColorChange = useCallback((_label: string, _color: string) => {
     // @todo requires fieldConfig override write-back (PanelContext not available to community panels)
   }, []);
@@ -152,32 +143,12 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
       return;
     }
 
-    // Axis type is data-driven for the cartesian family: Numeric frames (no time
-    // field) render on a category axis, which changes the tooltip trigger and
-    // drops the time crosshair below.
-    const axisType = panelTypeToAxis(seriesType, framesHaveTimeField(data.series));
-    const tooltipOption = getTooltipOption(
-      grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
-      tooltipMode,
-      formatValue,
-      theme,
-    );
+    const option = buildPanelChartOption(chartContext, { isGrafanaLegend: isVizLegend });
 
-    const echartOption = chartModule.buildOption(chartContext, { isGrafanaLegend: isVizLegend });
-
-    if (!echartOption) {
+    if (!option) {
       debug('No echart option', LOG_LEVELS.error, chartContext);
       throw new Error('No echart option!');
     }
-
-    // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.
-    // @todo clean up nested ternary
-    const axisPointer =
-      axisType !== 'category'
-        ? tooltipMode === TooltipDisplayMode.None
-          ? getNoTooltipOption()
-          : getCrosshairAxisPointer()
-        : undefined;
 
     // `notMerge` replaces the previous option outright (removing any components
     // the new option omits) instead of merging into it. This effect rebuilds the
@@ -186,15 +157,8 @@ export const Panel: React.FC<Props> = ({ options, data, width, height, fieldConf
     // leave stale components behind. Replacing in place also keeps the instance
     // warm for transitions, unlike a full chart.clear() + setOption reset.
     // https://echarts.apache.org/en/api.html#echartsInstance.setOption
-    chart.setOption(
-      {
-        ...echartOption,
-        tooltip: tooltipOption,
-        ...(axisPointer ? { axisPointer } : {}),
-      },
-      { notMerge: true }
-    );
-  }, [chart, chartModule, chartContext, isVizLegend, formatValue, seriesType, tooltipMode, theme, data.series]);
+    chart.setOption(option, { notMerge: true });
+  }, [chart, chartModule, chartContext, isVizLegend]);
 
   useEffect(() => {
     if (!chart) {

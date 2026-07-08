@@ -1,5 +1,4 @@
-import type { GrafanaTheme2 } from '@grafana/data';
-import type { ValueFormatter } from 'lib/echarts/style';
+import type { GrafanaTheme2, ValueFormatter } from '@grafana/data';
 
 /** Built-in color gradients offered for the heatmap cell layer. */
 export type HeatmapColorScheme = 'spectral' | 'blues' | 'turbo' | 'magma';

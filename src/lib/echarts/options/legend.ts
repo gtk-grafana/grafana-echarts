@@ -50,11 +50,7 @@ export function isLegendVisible(legend?: VizLegendOptions): boolean {
     return false;
   }
 
-  return (
-    legend.showLegend !== false &&
-    legend.isVisible !== false &&
-    legend.displayMode !== LegendDisplayMode.Hidden
-  );
+  return legend.showLegend !== false && legend.isVisible !== false && legend.displayMode !== LegendDisplayMode.Hidden;
 }
 
 /**

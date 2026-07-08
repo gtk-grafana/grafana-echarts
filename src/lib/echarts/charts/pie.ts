@@ -19,7 +19,11 @@ export const pieChartModule: ChartModule = {
       ...pieDefaultOptions,
       legend: isGrafanaLegend
         ? { show: false }
-        : getLegendOption(options.legend, theme, slices.map((slice) => slice.name)),
+        : getLegendOption(
+            options.legend,
+            theme,
+            slices.map((slice) => slice.name)
+          ),
       series: [{ type: seriesType, data: slices }],
     };
   },

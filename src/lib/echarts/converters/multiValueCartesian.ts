@@ -182,8 +182,7 @@ export function multiValueCartesianToEChartsOption(
   // keep every row (see resolveRowIndices).
   const rows = resolveRowIndices(frame, timeRange);
 
-  const built =
-    chartType === 'candlestick' ? buildCandlestick(frame, theme, rows) : buildBoxplot(frame, theme, rows);
+  const built = chartType === 'candlestick' ? buildCandlestick(frame, theme, rows) : buildBoxplot(frame, theme, rows);
   if (!built) {
     return null;
   }

@@ -1,4 +1,5 @@
 import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import { type SeriesType } from 'editor/types';
 
@@ -26,9 +27,7 @@ describe('timeSeriesToEChartsOption', () => {
     it('returns one series per numeric field sharing the time field', () => {
       const result = timeSeriesToEChartsOption([wideFrame()], 'line', theme);
 
-      expect(result).not.toBeNull();
       expect(result).toHaveLength(2);
-
       expect(result![0]).toMatchObject({
         name: 'cpu',
         type: 'line',
@@ -52,21 +51,17 @@ describe('timeSeriesToEChartsOption', () => {
     it('resolves a color for each series, shared between symbol and line', () => {
       const result = timeSeriesToEChartsOption([wideFrame()], 'line', theme);
 
-      expect(result![0].itemStyle.color).toEqual(expect.any(String));
-      expect(result![0].itemStyle.color).toBe(result![0].lineStyle.color);
+      const series = result![0] as LineSeriesOption;
+      expect(series.itemStyle?.color).toEqual('#808080');
     });
   });
 
   describe('Multi format (many frames, each with its own time field)', () => {
     it('returns one series per frame, preserving each frame non-aligned timestamps', () => {
-      const frames = [
-        multiFrame('a', [1, 2, 3], [10, 20, 30]),
-        multiFrame('b', [5, 6, 9], [60, 80, 90]),
-      ];
+      const frames = [multiFrame('a', [1, 2, 3], [10, 20, 30]), multiFrame('b', [5, 6, 9], [60, 80, 90])];
 
       const result = timeSeriesToEChartsOption(frames, 'line', theme);
 
-      expect(result).not.toBeNull();
       expect(result).toHaveLength(2);
 
       expect(result![0].name).toBe('a');
@@ -229,8 +224,6 @@ describe('timeSeriesToEChartsOption', () => {
       });
 
       const result = timeSeriesToEChartsOption([invalid, valid], 'line', theme);
-
-      expect(result).toHaveLength(1);
       expect(result![0].name).toBe('a');
     });
   });

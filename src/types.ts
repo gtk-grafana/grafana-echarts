@@ -1,8 +1,9 @@
+import { type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type TooltipDisplayMode } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 
-import { HeatmapColorScheme } from 'lib/echarts/options/types';
+import { type HeatmapColorScheme } from 'lib/echarts/options/types';
 
 export type { EChartsFieldConfig } from 'editor/types';
 
@@ -15,13 +16,32 @@ export type { EChartsFieldConfig } from 'editor/types';
  *
  * `heatmapColorScheme` selects the color gradient used for the heatmap cell
  * layer (only relevant when a heatmap frame is present).
+ *
+ * @todo we probably want to build options around echarts API instead of using Grafana's
  */
-export interface PanelOptions extends OptionsWithLegend {
+export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
   [seriesTypePath]: SeriesType;
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
-  // Panel-level default for stacking bar series (only meaningful when the panel
-  // series type is `bar`). Per-field overrides win; see EChartsFieldConfig.
-  stackSeries?: boolean;
-}
 
+  /**
+   * Bar series stacking
+   */
+  stackSeries?: boolean;
+
+  // @internal
+  animation?: {
+    // https://echarts.apache.org/en/option.html#animation
+    enabled: boolean;
+  };
+
+  // @internal
+  zLevel?: {
+    // Each element with a defined zLevel is split out into a separate canvas (for performance reasons)
+    // https://echarts.apache.org/en/option.html#series-line.zlevel
+    series?: number;
+    axis?: number;
+    grid?: number;
+    legend?: number;
+  };
+}
