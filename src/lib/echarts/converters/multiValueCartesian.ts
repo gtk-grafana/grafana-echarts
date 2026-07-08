@@ -1,5 +1,5 @@
 import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type TimeRange } from '@grafana/data';
-import { type CartesianMultiValueSeriesType } from 'editor/types';
+import { type MultiValueSeriesType } from 'editor/types';
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
 
@@ -17,7 +17,7 @@ import { getSeriesColor } from 'lib/echarts/style';
  */
 export interface MultiValueCartesianSeries {
   name: string;
-  type: CartesianMultiValueSeriesType;
+  type: MultiValueSeriesType;
   data: Array<Array<number | null>>;
   itemStyle: { color: string };
 }
@@ -164,7 +164,7 @@ function buildBoxplot(frame: DataFrame, theme: GrafanaTheme2, rows: number[]): M
  */
 export function multiValueCartesianToEChartsOption(
   series: DataFrame[],
-  chartType: CartesianMultiValueSeriesType,
+  chartType: MultiValueSeriesType,
   theme: GrafanaTheme2,
   timeRange?: TimeRange
 ): MultiValueCartesianData | null {

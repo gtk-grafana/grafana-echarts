@@ -3,6 +3,7 @@ import {
   isCategoricalAxisSeriesType,
   isCategoricalOnlySeriesType,
   isHeatmapSeriesType,
+  isTimeAxisSupportedForSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { supportedChartSeriesTypes } from 'lib/echarts/charts/registry';
 
@@ -25,17 +26,27 @@ export type EChartsAxisType = 'value' | 'category' | 'time' | 'log';
  * non-cartesian coordinate systems, which ECharts treats as categorical for
  * tooltip purposes. Any other type has no registered chart module, so `category`
  * is a safe default.
+ *
+ * @todo why is heatmap time and not value or log when missing time field?
+ * Look into what the various echart axis types support and when we want to use them and revisit this method
+ * Leaving explicit for now under the assumption we will refactor this later.
  */
 export const panelTypeToAxis = (seriesType: SeriesType, hasTimeField = true): EChartsAxisType => {
   if (!supportedChartSeriesTypes.includes(seriesType)) {
-    throw new Error(`Unsupported panel type: ${seriesType}`);
+    throw new Error(`Unsupported axis for series type: ${seriesType}`);
   }
 
+  // Check for series types that cannot support a time axis first in case someone is sending a time to pie or radar
   if (isCategoricalOnlySeriesType(seriesType)) {
     return 'category';
   }
 
-  if (isHeatmapSeriesType(seriesType) || hasTimeField) {
+  // Then if we have a time axis, we use it
+  if (isTimeAxisSupportedForSeriesType(seriesType) && hasTimeField) {
+    return 'time';
+  }
+
+  if(isHeatmapSeriesType(seriesType)){
     return 'time';
   }
 
@@ -43,5 +54,5 @@ export const panelTypeToAxis = (seriesType: SeriesType, hasTimeField = true): EC
     return 'category';
   }
 
-  throw new Error(`Invalid panel type: ${seriesType}`);
+  throw new Error(`Unsupported axis for series typ: ${seriesType}`);
 };

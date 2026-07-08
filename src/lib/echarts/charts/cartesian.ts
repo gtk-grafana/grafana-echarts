@@ -1,6 +1,6 @@
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { type CartesianMultiValueSeriesType, CartesianSingleValueSeriesType } from 'editor/types';
-import { isCartesianMultiValueSeriesType, isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
+import { type MultiValueSeriesType, CartesianSingleValueSeriesType } from 'editor/types';
+import { isMultiValueSeriesType, isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import {
@@ -101,7 +101,7 @@ function buildCategoryOption(ctx: ChartContext<CartesianSingleValueSeriesType>, 
  * mapping in the converter.
  */
 function buildMultiValueOption(
-  ctx: ChartContext<CartesianMultiValueSeriesType>,
+  ctx: ChartContext<MultiValueSeriesType>,
   isGrafanaLegend: boolean
 ): ECBasicOption | null {
   const { frames, theme, options, seriesType, formatValue, timeRange } = ctx;
@@ -134,12 +134,12 @@ function buildMultiValueOption(
 export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx: ChartContext<CartesianSingleValueSeriesType | CartesianMultiValueSeriesType>, { isGrafanaLegend }) {
+  buildOption(ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>, { isGrafanaLegend }) {
     // @todo gate invalid frames and always throw in internal methods
 
     const seriesType = ctx.seriesType;
 
-    if (isCartesianMultiValueSeriesType(seriesType)) {
+    if (isMultiValueSeriesType(seriesType)) {
       // @todo this is a unnecessary spread to get typescript playing nicely, I guess we need narrowing methods for context as well to avoid this
       return buildMultiValueOption({ ...ctx, seriesType }, isGrafanaLegend);
     }
@@ -154,7 +154,7 @@ export const cartesianChartModule: ChartModule = {
   },
 
   buildLegendItems(ctx, calcs) {
-    if (isCartesianMultiValueSeriesType(ctx.seriesType)) {
+    if (isMultiValueSeriesType(ctx.seriesType)) {
       return buildMultiValueCartesianLegendItems(ctx.frames, ctx.theme, ctx.seriesType);
     }
     return framesHaveTimeField(ctx.frames)

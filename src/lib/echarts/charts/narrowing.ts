@@ -3,15 +3,15 @@ import {
   categoricalAxisSeriesTypes,
   categoricalOnlySeriesType,
   heatmapSeriesTypes,
-  multiValueCartesianSeriesTypes,
+  multiValueSeriesTypes, supportsTimeAxisSeriesTypes,
 } from 'editor/constants';
 import {
-  type CartesianMultiValueSeriesType,
+  type MultiValueSeriesType,
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
   type CategoricalOnlySeriesType,
   type HeatmapSeriesType,
-  type SeriesType,
+  type SeriesType, TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
 // Categorical charts like pie and radar cannot render a cartesian axis
@@ -24,17 +24,22 @@ export function isCategoricalAxisSeriesType(type: SeriesType): type is Categoric
   return (categoricalAxisSeriesTypes as SeriesType[]).includes(type);
 }
 
+export function isTimeAxisSupportedForSeriesType(type: SeriesType): type is TimeAxisSupportsSeriesType {
+  return (supportsTimeAxisSeriesTypes as SeriesType[]).includes(type);
+}
+
 // Single value cartesian like line, bar, scatter
 export function isCartesianSingleValueSeriesType(type: SeriesType): type is CartesianSingleValueSeriesType {
   return (cartesianTimeSeriesTypes as SeriesType[]).includes(type);
 }
 
 // Multi-value cartesian like box-plot, candlestick
-export function isCartesianMultiValueSeriesType(type: SeriesType): type is CartesianMultiValueSeriesType {
-  return (multiValueCartesianSeriesTypes as SeriesType[]).includes(type);
+export function isMultiValueSeriesType(type: SeriesType): type is MultiValueSeriesType {
+  return (multiValueSeriesTypes as SeriesType[]).includes(type);
 }
 
 // Heatmap is its own beast
 export function isHeatmapSeriesType(type: SeriesType): type is HeatmapSeriesType {
   return (heatmapSeriesTypes as SeriesType[]).includes(type);
 }
+

@@ -1,9 +1,11 @@
 import { DataFrameType, type SelectableValue } from '@grafana/data';
 import {
-  type CartesianMultiValueSeriesType,
-  type CartesianSingleValueSeriesType, type CategoricalAxisSeriesType, type CategoricalOnlySeriesType,
+  type CartesianSingleValueSeriesType,
+  type CategoricalAxisSeriesType,
+  type CategoricalOnlySeriesType,
   type HeatmapSeriesType,
-  type SeriesType,
+  type MultiValueSeriesType,
+  type SeriesType, type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
 export const seriesTypePath = 'seriesType';
@@ -24,7 +26,29 @@ export const STACK_GROUP_ID = 'total';
 
 export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar'];
 
-export const categoricalAxisSeriesTypes: CategoricalAxisSeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
+/**
+ * Series types that support a categorical axis
+ */
+export const categoricalAxisSeriesTypes: CategoricalAxisSeriesType[] = [
+  'line',
+  'bar',
+  'scatter',
+  'effectScatter',
+  'boxplot',
+];
+
+/**
+ * Series types that support a time axis
+ */
+export const supportsTimeAxisSeriesTypes: TimeAxisSupportsSeriesType[] = [
+  'line',
+  'bar',
+  'scatter',
+  'effectScatter',
+  'candlestick',
+  'heatmap',
+  'boxplot',
+];
 /**
  * Cartesian time series types that render on a time/value grid and consume the
  * converter's `[time, value]` output unchanged (one numeric value per point).
@@ -40,7 +64,7 @@ export const cartesianTimeSeriesTypes: CartesianSingleValueSeriesType[] = ['line
  * multi-value converter (see echarts/converters/multiValueCartesian.ts) and,
  * unlike the time series types, are not offered as per-field overrides.
  */
-export const multiValueCartesianSeriesTypes: CartesianMultiValueSeriesType[] = ['candlestick', 'boxplot'];
+export const multiValueSeriesTypes: MultiValueSeriesType[] = ['candlestick', 'boxplot'];
 /**
  * Series editor options
  */
@@ -71,7 +95,7 @@ export const heatmapSeriesTypes: HeatmapSeriesType[] = ['heatmap'];
  */
 export const cartesianSeriesTypeOptions: Array<SelectableValue<SeriesType>> = [
   ...cartesianTimeSeriesTypes,
-  ...multiValueCartesianSeriesTypes,
+  ...multiValueSeriesTypes,
 ].map((type) => ({
   value: type,
   label: type,
