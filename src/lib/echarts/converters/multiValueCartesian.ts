@@ -1,15 +1,10 @@
 import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type TimeRange } from '@grafana/data';
+import { type MultiValueSeriesType } from 'editor/types';
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
-import { type SeriesType } from 'editor/types';
 
 /**
- * Multi-value cartesian render types (Group 3): each x position carries several
- * aligned numeric dimensions rather than the single `y` of line/bar.
- */
-export type MultiValueChartType = Extract<SeriesType, 'candlestick' | 'boxplot'>;
-
-/**
+ * @todo delete this local version of eChart types
  * One ECharts multi-value cartesian series drawn against a shared x-axis.
  *
  * Unlike the time-series shape (`[time, value]` tuples) or the single-value
@@ -22,7 +17,7 @@ export type MultiValueChartType = Extract<SeriesType, 'candlestick' | 'boxplot'>
  */
 export interface MultiValueCartesianSeries {
   name: string;
-  type: MultiValueChartType;
+  type: MultiValueSeriesType;
   data: Array<Array<number | null>>;
   itemStyle: { color: string };
 }
@@ -169,7 +164,7 @@ function buildBoxplot(frame: DataFrame, theme: GrafanaTheme2, rows: number[]): M
  */
 export function multiValueCartesianToEChartsOption(
   series: DataFrame[],
-  chartType: MultiValueChartType,
+  chartType: MultiValueSeriesType,
   theme: GrafanaTheme2,
   timeRange?: TimeRange
 ): MultiValueCartesianData | null {

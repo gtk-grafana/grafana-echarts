@@ -1,9 +1,55 @@
 import { DataFrameType, type SelectableValue } from '@grafana/data';
-import { type SeriesType } from 'editor/types';
+import {
+  type CartesianSingleValueSeriesType,
+  type CategoricalAxisSeriesType,
+  type CategoricalOnlySeriesType,
+  type HeatmapSeriesType,
+  type MultiValueSeriesType,
+  type SeriesType,
+  type TimeAxisSupportsSeriesType,
+} from 'editor/types';
 
 export const seriesTypePath = 'seriesType';
 export const seriesTypeName = 'Type';
 export const seriesTypeDefault: SeriesType = 'line';
+/**
+ * Stack series option: panel option path and per-field custom config key share
+ * the same name. Only meaningful for `bar` series.
+ */
+export const stackSeriesPath = 'stackSeries';
+export const stackSeriesName = 'Stack series';
+/**
+ * Shared ECharts `stack` group id. Series that share the same `stack` string are
+ * stacked together, so all stacked bar series use this single group.
+ * https://echarts.apache.org/en/option.html#series-bar.stack
+ */
+export const STACK_GROUP_ID = 'total';
+
+export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar'];
+
+/**
+ * Series types that support a categorical axis
+ */
+export const categoricalAxisSeriesTypes: CategoricalAxisSeriesType[] = [
+  'line',
+  'bar',
+  'scatter',
+  'effectScatter',
+  'boxplot',
+];
+
+/**
+ * Series types that support a time axis
+ */
+export const supportsTimeAxisSeriesTypes: TimeAxisSupportsSeriesType[] = [
+  'line',
+  'bar',
+  'scatter',
+  'effectScatter',
+  'candlestick',
+  'heatmap',
+  'boxplot',
+];
 /**
  * Cartesian time series types that render on a time/value grid and consume the
  * converter's `[time, value]` output unchanged (one numeric value per point).
@@ -11,7 +57,7 @@ export const seriesTypeDefault: SeriesType = 'line';
  * Other types (e.g. candlestick, boxplot, heatmap) need multi-value data, and
  * non-cartesian types (e.g. pie, gauge, radar) need different data shaping.
  */
-export const cartesianTimeSeriesTypes: SeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
+export const cartesianTimeSeriesTypes: CartesianSingleValueSeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
 /**
  * Multi-value cartesian types (Group 3): each x position carries several aligned
  * numeric dimensions (candlestick OHLC, boxplot five-number summary) rather than
@@ -19,7 +65,7 @@ export const cartesianTimeSeriesTypes: SeriesType[] = ['line', 'bar', 'scatter',
  * multi-value converter (see echarts/converters/multiValueCartesian.ts) and,
  * unlike the time series types, are not offered as per-field overrides.
  */
-export const multiValueCartesianTypes: SeriesType[] = ['candlestick', 'boxplot'];
+export const multiValueSeriesTypes: MultiValueSeriesType[] = ['candlestick', 'boxplot'];
 /**
  * Series editor options
  */
@@ -40,7 +86,7 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
  * frame isn't tagged as a heatmap. Frames already tagged via `meta.type` render
  * as a heatmap regardless of the selected type. See echarts/converters/heatmap.ts.
  */
-export const heatmapSeriesTypes: SeriesType[] = ['heatmap'];
+export const heatmapSeriesTypes: HeatmapSeriesType[] = ['heatmap'];
 /**
  * Cartesian render types offered by the cartesian family panel. These are the
  * in-family render variants selected per panel: the single-value time/category
@@ -50,7 +96,7 @@ export const heatmapSeriesTypes: SeriesType[] = ['heatmap'];
  */
 export const cartesianSeriesTypeOptions: Array<SelectableValue<SeriesType>> = [
   ...cartesianTimeSeriesTypes,
-  ...multiValueCartesianTypes,
+  ...multiValueSeriesTypes,
 ].map((type) => ({
   value: type,
   label: type,

@@ -15,6 +15,10 @@ module.exports = {
     '^.+\\.(t|j)sx?$': [
       '@swc/jest',
       {
+        // Emit inline source maps so Jest reports failures against the original
+        // .ts/.tsx source instead of the SWC-compiled output. Mirrors the
+        // scaffolded .config/jest.config.js, which this transform block replaces.
+        sourceMaps: 'inline',
         jsc: {
           parser: {
             syntax: 'typescript',

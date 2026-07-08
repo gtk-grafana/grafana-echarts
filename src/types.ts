@@ -24,6 +24,11 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
 
+  /**
+   * Bar series stacking
+   */
+  stackSeries?: boolean;
+
   // @internal
   animation?: {
     // https://echarts.apache.org/en/option.html#animation

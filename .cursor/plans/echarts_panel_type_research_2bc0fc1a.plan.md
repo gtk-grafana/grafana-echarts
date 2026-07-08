@@ -194,7 +194,7 @@ Grouping is by **shared intermediate data model** and **shared option/axis patte
 **Grafana data model:** the concrete Grafana source is the **node-graph** frame pair (also **out of the dataplane contract**), detected via `frame.meta.preferredVisualisationType === 'nodeGraph'` or frames literally named `nodes` and `edges`. Field-name conventions come from `NodeGraphDataFrameFieldNames` in `[packages/grafana-data/src/utils/nodeGraph.ts](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/utils/nodeGraph.ts)`:
 
 - **edges frame** — required `id`, `source`, `target`; optional `mainstat`, `secondarystat`, `thickness`, `color`, `strokedasharray`, `detail__`\*, `highlighted` (deprecated).
-- **nodes frame** (optional; stats can be computed from edges) — required `id`; optional `title`, `subtitle`, `mainstat`, `secondarystat`, `arc__`_ (color sections summing to 1), `icon`, `color`, `noderadius`, `detail\_\__`, `fixedx`/`fixedy`, `highlighted`.
+- **nodes frame** (optional; stats can be computed from edges) — required `id`; optional `title`, `subtitle`, `mainstat`, `secondarystat`, `arc__`\_ (color sections summing to 1), `icon`, `color`, `noderadius`, `detail\_\__`, `fixedx`/`fixedy`, `highlighted`.
 
 **ECharts mapping:** this maps cleanly onto the ECharts `graph` series — nodes → `series.data` (`id`/`name`, `value` from `mainstat`, `symbolSize` from `noderadius`), edges → `series.links` (`{ source, target }`, `lineStyle` from `thickness`/`color`/`strokedasharray`). `lines`/`sankey`/`chord` reuse the same node/edge source with different layouts.
 
@@ -413,7 +413,7 @@ The [Grafana dataplane contract](https://grafana.com/developers/dataplane/) defi
 Field-name conventions from `NodeGraphDataFrameFieldNames` (`[grafana-data/src/utils/nodeGraph.ts](https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/utils/nodeGraph.ts)`):
 
 - **edges** (required): `id`, `source`, `target`. Optional: `mainstat`, `secondarystat`, `thickness`, `color`, `strokedasharray`, `detail__`\*, `highlighted` (deprecated → use `color`).
-- **nodes** (optional frame; stats otherwise computed from edges): `id` (required). Optional: `title`, `subtitle`, `mainstat`, `secondarystat`, `arc__`_ (color sections summing to 1), `icon`, `color`, `noderadius`, `detail\_\__`, `fixedx`/`fixedy`, `highlighted`.
+- **nodes** (optional frame; stats otherwise computed from edges): `id` (required). Optional: `title`, `subtitle`, `mainstat`, `secondarystat`, `arc__`\_ (color sections summing to 1), `icon`, `color`, `noderadius`, `detail\_\__`, `fixedx`/`fixedy`, `highlighted`.
 
 **ECharts target:** `graph` series — nodes → `series.data`, edges → `series.links` (`{ source, target }`). `sankey`/`chord`/`lines` reuse the same node/edge source with different layouts.
 

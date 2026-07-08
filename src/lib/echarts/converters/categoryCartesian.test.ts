@@ -1,7 +1,47 @@
-import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import {
+  createTheme,
+  type DataFrame,
+  FieldType,
+  getDefaultTimeRange,
+  toDataFrame,
+  type ValueFormatter,
+} from '@grafana/data';
+import { seriesTypePath } from 'editor/constants';
+import { type CartesianSingleValueSeriesType } from 'editor/types';
+import { type ChartContext } from 'lib/echarts/charts/types';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
+import { type PanelOptions } from 'types';
 
 const theme = createTheme();
+
+const formatValue: ValueFormatter = (value) => ({ text: value == null ? '' : String(value) });
+
+/** Build a minimal ChartContext for the category cartesian converter under test. */
+const makeContext = (
+  frames: DataFrame[],
+  seriesType: CartesianSingleValueSeriesType,
+  stackSeries?: boolean
+): ChartContext<CartesianSingleValueSeriesType> => ({
+  frames,
+  theme,
+  timeZone: 'utc',
+  timeRange: getDefaultTimeRange(),
+  options: { [seriesTypePath]: seriesType, stackSeries } as PanelOptions,
+  seriesType,
+  formatValue,
+});
+
+/** Run the converter, normalizing the ECharts `Arrayable` series into an array. */
+const run = (frames: DataFrame[], seriesType: CartesianSingleValueSeriesType, stackSeries?: boolean) => {
+  const { categories, series } = categoryCartesianToEChartsOption(makeContext(frames, seriesType, stackSeries));
+  expect(Array.isArray(series)).toBe(true);
+
+  if (!Array.isArray(series)) {
+    throw new Error('Narrow series to array');
+  }
+
+  return { categories, series };
+};
 
 const tableFrame = (): DataFrame =>
   toDataFrame({
@@ -14,28 +54,28 @@ const tableFrame = (): DataFrame =>
 
 describe('categoryCartesianToEChartsOption', () => {
   it('projects each numeric field onto the shared category axis', () => {
-    const result = categoryCartesianToEChartsOption([tableFrame()], 'bar', theme);
+    const result = run([tableFrame()], 'bar');
 
-    expect(result).not.toBeNull();
-    expect(result!.categories).toEqual(['Sales', 'Admin', 'IT']);
-    expect(result!.series).toMatchObject([
+    expect(result.categories).toEqual(['Sales', 'Admin', 'IT']);
+    expect(result.series).toMatchObject([
       { name: 'Budget', type: 'bar', data: [43, 10, 30] },
       { name: 'Actual', type: 'bar', data: [50, 14, 28] },
     ]);
   });
 
   it('applies the panel-level series type to every series', () => {
-    const result = categoryCartesianToEChartsOption([tableFrame()], 'line', theme);
+    const result = run([tableFrame()], 'line');
 
-    expect(result!.series.every((s) => s.type === 'line')).toBe(true);
+    expect(result.series).toMatchObject([{ type: 'line' }, { type: 'line' }]);
   });
 
   it('resolves a color for each series (item and line style)', () => {
-    const result = categoryCartesianToEChartsOption([tableFrame()], 'bar', theme);
+    const result = run([tableFrame()], 'bar');
 
-    for (const s of result!.series) {
-      expect(s.itemStyle.color).toEqual(expect.any(String));
-      expect(s.lineStyle.color).toBe(s.itemStyle.color);
+    for (const s of result.series) {
+      const color = s.itemStyle?.color;
+      expect(color).toEqual('#808080');
+      expect(s).toMatchObject({ lineStyle: { color } });
     }
   });
 
@@ -46,15 +86,15 @@ describe('categoryCartesianToEChartsOption', () => {
         {
           name: 'v',
           type: FieldType.number,
-          values: [0, null, 30, undefined as unknown as number],
+          values: [0, null, 30, undefined],
           config: { displayName: 'v' },
         },
       ],
     });
 
-    const result = categoryCartesianToEChartsOption([frame], 'bar', theme);
+    const result = run([frame], 'bar');
 
-    expect(result!.series[0].data).toEqual([0, null, 30, null]);
+    expect(result.series).toMatchObject([{ data: [0, null, 30, null] }]);
   });
 
   it('falls back to row indices when there is no string field', () => {
@@ -62,16 +102,47 @@ describe('categoryCartesianToEChartsOption', () => {
       fields: [{ name: 'v', type: FieldType.number, values: [1, 2], config: { displayName: 'v' } }],
     });
 
-    const result = categoryCartesianToEChartsOption([frame], 'bar', theme);
+    const result = run([frame], 'bar');
 
-    expect(result!.categories).toEqual(['0', '1']);
+    expect(result.categories).toEqual(['0', '1']);
   });
 
-  it('returns null when no frame has a numeric field', () => {
+  describe('stacking', () => {
+    it('adds a shared stack group to bar series when stacking is on', () => {
+      const result = run([tableFrame()], 'bar', true);
+
+      for (const s of result.series) {
+        expect(s).toHaveProperty('stack', 'total');
+      }
+    });
+
+    it('does not stack bar series when stacking is off', () => {
+      const result = run([tableFrame()], 'bar', false);
+      const resultStacked = run([tableFrame()], 'bar', true);
+
+      expect(result.series.length).toEqual(resultStacked.series.length);
+      for (let i = 0; i < result.series.length; i++) {
+        expect(result.series[i].stack).toBeUndefined();
+        expect(resultStacked.series[i].stack).toEqual('total');
+      }
+    });
+
+    it.each(['line', 'scatter'])('never stacks %s series even when stacking is on', (seriesType) => {
+      const result = run([tableFrame()], seriesType as CartesianSingleValueSeriesType, true);
+
+      for (const s of result.series) {
+        // Asserting something doesn't exist is typically a bad test smell, but paired with the test above I think it's fine to verify that we're not stacking things that should not be stacked
+        // Although eCharts does support setting stack on scatter and line, I think those usages are for when scatter/line shares a stack group with a bar chart which is probably fine to set aside for now
+        expect(s.stack).toBeUndefined();
+      }
+    });
+  });
+
+  it('throws when no frame has a numeric field', () => {
     const frame = toDataFrame({
       fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],
     });
 
-    expect(categoryCartesianToEChartsOption([frame], 'bar', theme)).toBeNull();
+    expect(() => run([frame], 'bar')).toThrow();
   });
 });

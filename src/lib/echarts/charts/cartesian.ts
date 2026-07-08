@@ -1,10 +1,9 @@
-import { multiValueCartesianTypes } from 'editor/constants';
+import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { type MultiValueSeriesType, type CartesianSingleValueSeriesType } from 'editor/types';
+import { isMultiValueSeriesType, isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
-import {
-  type MultiValueChartType,
-  multiValueCartesianToEChartsOption,
-} from 'lib/echarts/converters/multiValueCartesian';
+import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {
   cartesianCategoryDefaultOptions,
@@ -13,14 +12,13 @@ import {
   getTimeAxisBounds,
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
-import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
+import { DEFAULT_CHART_LEGEND, getCartesianGrid, getLegendOption } from 'lib/echarts/options/legend';
 import {
   buildCategoryCartesianLegendItems,
   buildMultiValueCartesianLegendItems,
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
-import { type ChartContext, type ChartModule } from './types';
-import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { type CartesianOption, type ChartContext, type ChartModule } from './types';
 
 // Cartesian family (Groups 1-2). The x-axis mode follows the data, not the
 // series type: time frames render on a `time` axis, while Numeric frames with no
@@ -28,9 +26,13 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 // model. See the plan's "axis type should follow data" note.
 
 /** Time-axis cartesian: `[time, value]` series on a time grid. */
-function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
-  const { frames, theme, options, seriesType, formatValue } = ctx;
-  const cartSeries = timeSeriesToEChartsOption(frames, seriesType, theme, options.zLevel?.series);
+function buildTimeOption(
+  ctx: ChartContext<CartesianSingleValueSeriesType>,
+  isGrafanaLegend: boolean
+): ECBasicOption | null {
+  const { theme, options, formatValue } = ctx;
+
+  const cartSeries = timeSeriesToEChartsOption(ctx);
 
   if (!cartSeries || cartSeries.length === 0) {
     return null;
@@ -66,16 +68,18 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
 }
 
 /** Category-axis cartesian: plain y-values over a category x-axis. */
-function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
-  const { frames, theme, options, seriesType, formatValue } = ctx;
-  const categoryData = categoryCartesianToEChartsOption(frames, seriesType, theme);
+function buildCategoryOption(
+  ctx: ChartContext<CartesianSingleValueSeriesType>,
+  isGrafanaLegend: boolean
+): CartesianOption | null {
+  const { theme, options, formatValue, seriesType } = ctx;
 
-  if (!categoryData || categoryData.series.length === 0) {
-    return null;
+  if (!isCartesianSingleValueSeriesType(seriesType)) {
+    throw new Error(`Categorical-x requires a cartesian series type! ${seriesType}`);
   }
 
+  const categoryData = categoryCartesianToEChartsOption({ ...ctx, seriesType });
   const axisStyle = getCartesianAxisStyle(theme);
-
   const yAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.yAxis, axisStyle, undefined, formatValue);
 
   // The category axis carries its labels in `data`; there is no per-tick value
@@ -100,14 +104,12 @@ function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBas
  * summary) instead of a single y, so the render type also selects the field
  * mapping in the converter.
  */
-function buildMultiValueOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
+function buildMultiValueOption(
+  ctx: ChartContext<MultiValueSeriesType>,
+  isGrafanaLegend: boolean
+): ECBasicOption | null {
   const { frames, theme, options, seriesType, formatValue, timeRange } = ctx;
-  const multiValueData = multiValueCartesianToEChartsOption(
-    frames,
-    seriesType as MultiValueChartType,
-    theme,
-    timeRange
-  );
+  const multiValueData = multiValueCartesianToEChartsOption(frames, seriesType, theme, timeRange);
 
   if (!multiValueData || multiValueData.series.length === 0) {
     return null;
@@ -133,26 +135,31 @@ function buildMultiValueOption(ctx: ChartContext, isGrafanaLegend: boolean): ECB
   };
 }
 
-/** True when the panel render type is a multi-value cartesian type (Group 3). */
-function isMultiValueType(seriesType: ChartContext['seriesType']): boolean {
-  return multiValueCartesianTypes.includes(seriesType);
-}
-
 export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { isGrafanaLegend }) {
-    if (isMultiValueType(ctx.seriesType)) {
-      return buildMultiValueOption(ctx, isGrafanaLegend);
+  buildOption(ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>, { isGrafanaLegend }) {
+    // @todo gate invalid frames and always throw in internal methods
+
+    const seriesType = ctx.seriesType;
+
+    if (isMultiValueSeriesType(seriesType)) {
+      // @todo this is a unnecessary spread to get typescript playing nicely, I guess we need narrowing methods for context as well to avoid this
+      return buildMultiValueOption({ ...ctx, seriesType }, isGrafanaLegend);
     }
-    return framesHaveTimeField(ctx.frames)
-      ? buildTimeOption(ctx, isGrafanaLegend)
-      : buildCategoryOption(ctx, isGrafanaLegend);
+
+    if (isCartesianSingleValueSeriesType(ctx.seriesType)) {
+      return framesHaveTimeField(ctx.frames)
+        ? buildTimeOption({ ...ctx, seriesType }, isGrafanaLegend)
+        : buildCategoryOption({ ...ctx, seriesType }, isGrafanaLegend);
+    }
+
+    throw new Error(`Invalid series type: ${ctx.seriesType}`);
   },
 
   buildLegendItems(ctx, calcs) {
-    if (isMultiValueType(ctx.seriesType)) {
-      return buildMultiValueCartesianLegendItems(ctx.frames, ctx.theme, ctx.seriesType as MultiValueChartType);
+    if (isMultiValueSeriesType(ctx.seriesType)) {
+      return buildMultiValueCartesianLegendItems(ctx.frames, ctx.theme, ctx.seriesType);
     }
     return framesHaveTimeField(ctx.frames)
       ? buildTimeSeriesLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone)

@@ -450,6 +450,151 @@
       ],
       "title": "Single-series category bar — Numeric frame",
       "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Stacked category bar: the same Budget vs Actual Numeric frame with the panel-level 'Stack series' option on, so the two bar series stack per department instead of drawing side by side.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 9,
+      "options": {
+        "seriesType": "bar",
+        "stackSeries": true,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Department,Budget,Actual\nSales,43,50\nMarketing,30,45\nEngineering,60,55\nSupport,25,30\nOperations,40,35"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Department",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Stacked category bar — Budget + Actual",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Stacked time-series bar with a per-field override: the panel-level 'Stack series' option is on, but a field override opts 'Series B' out of the stack, so it renders as a separate (unstacked) bar next to the stacked group.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 10,
+      "options": {
+        "seriesType": "bar",
+        "stackSeries": true,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Series B"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "bar"
+              },
+              {
+                "id": "custom.stackSeries",
+                "value": false
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B\n2021-01-01T00:00:00Z,10,40\n2021-01-01T01:00:00Z,20,50\n2021-01-01T02:00:00Z,15,45\n2021-01-01T03:00:00Z,25,55\n2021-01-01T04:00:00Z,30,60"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Time",
+                "destinationType": "time"
+              },
+              {
+                "targetField": "Series A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Series B",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Stacked time-series bar — per-field override",
+      "type": "grafana-echartscartesian-panel"
     }
   ],
   "refresh": "",
@@ -466,6 +611,6 @@
   "timezone": "utc",
   "title": "Provisioned echarts dashboard",
   "uid": "a538aeff-5a8a-42a5-901c-938d896fdd6f",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
