@@ -100,6 +100,10 @@ describe('getCartesianGrid', () => {
     expect(getCartesianGrid(legend({ placement: 'right', width: 200 })).right).toBe(224);
   });
 
+  it('falls back to the default inset when a stray non-numeric width slips through', () => {
+    expect(getCartesianGrid(legend({ placement: 'right', width: '35%' })).right).toBe(120);
+  });
+
   it('uses default insets when the legend is hidden', () => {
     const grid = getCartesianGrid(legend({ showLegend: false }));
 
