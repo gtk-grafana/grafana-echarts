@@ -10,6 +10,7 @@ import {
   useTheme2,
 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
+import type BrushModel from 'echarts/types/src/component/brush/BrushModel';
 import { seriesTypePath } from 'editor/constants';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
@@ -17,7 +18,12 @@ import { type EChartsType, init } from 'lib/echarts/echarts';
 import { getPanelLayout } from 'lib/echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
-import { brushEndToTimeRange, CLEAR_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
+import {
+  brushEndToTimeRange,
+  CLEAR_TIME_BRUSH_ACTION,
+  DISABLE_TIME_BRUSH_ACTION,
+  ENABLE_TIME_BRUSH_ACTION,
+} from 'lib/echarts/timeBrush';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
@@ -167,6 +173,11 @@ export const Panel: React.FC<Props> = ({
     // warm for transitions, unlike a full chart.clear() + setOption reset.
     // https://echarts.apache.org/en/api.html#echartsInstance.setOption
     chart.setOption(option, { notMerge: true });
+
+    // Arm (or clear) the permanent time-span brush cursor after each rebuild;
+    // `notMerge` recreates the brush component, so the cursor must be re-armed.
+    // A `brush` option is only present for time-axis charts (see panelOption).
+    chart.dispatchAction('brush' in option ? ENABLE_TIME_BRUSH_ACTION : DISABLE_TIME_BRUSH_ACTION);
   }, [chart, chartModule, chartContext, isVizLegend]);
 
   useEffect(() => {
@@ -185,7 +196,7 @@ export const Panel: React.FC<Props> = ({
       return;
     }
 
-    const handleBrushEnd = (event: unknown) => {
+    const handleBrushEnd = (event: BrushModel) => {
       const range = brushEndToTimeRange(event);
       // Clear the selection highlight so it does not linger through the refetch.
       chart.dispatchAction(CLEAR_TIME_BRUSH_ACTION);

@@ -1,4 +1,7 @@
 import { type AbsoluteTimeRange, type GrafanaTheme2 } from '@grafana/data';
+import { debug, LOG_LEVELS } from 'development';
+import { type BrushOption } from 'echarts/types/dist/shared';
+import type BrushModel from 'echarts/types/src/component/brush/BrushModel';
 
 // Grafana-style drag-to-zoom for time-axis panels. A `lineX` brush lets the user
 // drag a horizontal span over the time axis; on release we translate the
@@ -14,7 +17,7 @@ import { type AbsoluteTimeRange, type GrafanaTheme2 } from '@grafana/data';
  * ECharts `brush` config bound to the primary time x-axis. `lineX` selects a
  * time span across the full height; `removeOnClick` discards a stray click.
  */
-export function getTimeBrushOption(theme: GrafanaTheme2) {
+export function getTimeBrushOption(theme: GrafanaTheme2): BrushOption {
   return {
     xAxisIndex: 0,
     brushType: 'lineX',
@@ -49,11 +52,6 @@ export const DISABLE_TIME_BRUSH_ACTION = {
 /** `brush` payload that clears any active selection highlight. */
 export const CLEAR_TIME_BRUSH_ACTION = { type: 'brush', areas: [] };
 
-/** Shape of the `brushEnd` event we consume; only the first area's range matters. */
-interface BrushEndEvent {
-  areas?: Array<{ coordRange?: unknown }>;
-}
-
 function isFiniteNumberPair(value: unknown): value is [number, number] {
   return (
     Array.isArray(value) &&
@@ -71,9 +69,10 @@ function isFiniteNumberPair(value: unknown): value is [number, number] {
  * `coordRange` is `[fromMs, toMs]` in axis data values (already time-ordered by
  * ECharts, but we normalize defensively).
  */
-export function brushEndToTimeRange(event: unknown): AbsoluteTimeRange | null {
-  const coordRange = (event as BrushEndEvent)?.areas?.[0]?.coordRange;
+export function brushEndToTimeRange(event: BrushModel): AbsoluteTimeRange | null {
+  const coordRange = event.areas?.[0]?.coordRange;
   if (!isFiniteNumberPair(coordRange)) {
+    debug('Invalid coordinate range', LOG_LEVELS.warn, { coordRange, event });
     return null;
   }
 

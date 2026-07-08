@@ -4,6 +4,7 @@ import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
+import { getTimeBrushOption } from 'lib/echarts/timeBrush';
 import {
   getCrosshairAxisPointer,
   getNoTooltipOption,
@@ -57,10 +58,16 @@ export function buildPanelChartOption(
         : getCrosshairAxisPointer()
       : undefined;
 
+  // Drag-to-zoom is only meaningful on a time axis, where the brush selection
+  // maps to an absolute time range the dashboard can adopt. The cursor is armed
+  // programmatically in Panel.tsx after `setOption`.
+  const isTimeAxis = axisType === 'time';
+
   return {
     ...echartOption,
     tooltip: tooltipOption,
     animation: ctx.options.animation?.enabled,
     ...(axisPointer ? { axisPointer } : {}),
+    ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };
 }
