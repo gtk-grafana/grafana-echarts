@@ -100,11 +100,7 @@ describe('getCartesianGrid', () => {
     expect(getCartesianGrid(legend({ placement: 'right', width: 200 })).right).toBe(224);
   });
 
-  it('resolves a px-string width for a right legend', () => {
-    expect(getCartesianGrid(legend({ placement: 'right', width: '200px' })).right).toBe(224);
-  });
-
-  it('falls back to the default inset for a percentage width (chart width unknown here)', () => {
+  it('falls back to the default inset when a stray non-numeric width slips through', () => {
     expect(getCartesianGrid(legend({ placement: 'right', width: '35%' })).right).toBe(120);
   });
 

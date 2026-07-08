@@ -1,7 +1,6 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { defaultVizLegendOptions, LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
 import { type ChartModule } from 'lib/echarts/charts/types';
-import { resolveLegendWidthPx } from 'lib/echarts/layout/layout';
 import { LEGEND_FONT_SIZE, getThemeTextStyle } from 'lib/echarts/options/base';
 import { type PanelOptions } from 'types';
 
@@ -118,10 +117,9 @@ export function getCartesianGrid(legend?: VizLegendOptions) {
   }
 
   if (legend?.placement === 'right') {
-    // Native ECharts legend fallback: the chart's pixel width is not known here,
-    // so a percentage width cannot be resolved and falls back to the default
-    // inset (containerWidth 0 -> percentages resolve to 0).
-    const width = resolveLegendWidthPx(legend?.width, 0);
+    // Legend width is kept numeric (see `editor/legend`); coerce defensively in
+    // case a legacy string value (px/%) reaches us from provisioned JSON.
+    const width = Number(legend?.width) || 0;
     return { ...grid, right: width > 0 ? width + 24 : 120 };
   }
 
