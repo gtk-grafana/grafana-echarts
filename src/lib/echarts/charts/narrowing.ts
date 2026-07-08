@@ -3,15 +3,17 @@ import {
   categoricalAxisSeriesTypes,
   categoricalOnlySeriesType,
   heatmapSeriesTypes,
-  multiValueSeriesTypes, supportsTimeAxisSeriesTypes,
+  multiValueSeriesTypes,
+  supportsTimeAxisSeriesTypes,
 } from 'editor/constants';
 import {
-  type MultiValueSeriesType,
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
   type CategoricalOnlySeriesType,
   type HeatmapSeriesType,
-  type SeriesType, TimeAxisSupportsSeriesType,
+  type MultiValueSeriesType,
+  type SeriesType,
+  type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
 // Categorical charts like pie and radar cannot render a cartesian axis
@@ -42,4 +44,3 @@ export function isMultiValueSeriesType(type: SeriesType): type is MultiValueSeri
 export function isHeatmapSeriesType(type: SeriesType): type is HeatmapSeriesType {
   return (heatmapSeriesTypes as SeriesType[]).includes(type);
 }
-
