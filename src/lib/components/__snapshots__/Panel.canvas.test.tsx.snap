@@ -1,6 +1,589 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`Panel canvas renders cartesian time series renders default bar chart 1`] = `
+exports[`Panel canvas renders cartesian bar stacking 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -82.13,
+      "width": 83.95,
+      "x": 37.858333333333334,
+      "y": 207,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -82.13,
+            "width": 83.95,
+            "x": 37.858333333333334,
+            "y": 207,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -19.099999999999994,
+      "width": 83.94999999999999,
+      "x": 159.52499999999998,
+      "y": 207,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -19.099999999999994,
+            "width": 83.94999999999999,
+            "x": 159.52499999999998,
+            "y": 207,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -57.30000000000001,
+      "width": 83.94999999999999,
+      "x": 281.19166666666666,
+      "y": 207,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -57.30000000000001,
+            "width": 83.94999999999999,
+            "x": 281.19166666666666,
+            "y": 207,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -95.5,
+      "width": 83.95,
+      "x": 37.858333333333334,
+      "y": 124.87,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -95.5,
+            "width": 83.95,
+            "x": 37.858333333333334,
+            "y": 124.87,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -26.74000000000001,
+      "width": 83.94999999999999,
+      "x": 159.52499999999998,
+      "y": 187.9,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -26.74000000000001,
+            "width": 83.94999999999999,
+            "x": 159.52499999999998,
+            "y": 187.9,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -53.479999999999976,
+      "width": 83.94999999999999,
+      "x": 281.19166666666666,
+      "y": 149.7,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -53.479999999999976,
+            "width": 83.94999999999999,
+            "x": 281.19166666666666,
+            "y": 149.7,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -82.13,
+      "width": 83.95,
+      "x": 37.858333333333334,
+      "y": 207,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -82.13,
+            "width": 83.95,
+            "x": 37.858333333333334,
+            "y": 207,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -19.099999999999994,
+      "width": 83.94999999999999,
+      "x": 159.52499999999998,
+      "y": 207,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -19.099999999999994,
+            "width": 83.94999999999999,
+            "x": 159.52499999999998,
+            "y": 207,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -57.30000000000001,
+      "width": 83.94999999999999,
+      "x": 281.19166666666666,
+      "y": 207,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -57.30000000000001,
+            "width": 83.94999999999999,
+            "x": 281.19166666666666,
+            "y": 207,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -95.5,
+      "width": 83.95,
+      "x": 37.858333333333334,
+      "y": 124.87,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -95.5,
+            "width": 83.95,
+            "x": 37.858333333333334,
+            "y": 124.87,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -26.74000000000001,
+      "width": 83.94999999999999,
+      "x": 159.52499999999998,
+      "y": 187.9,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -26.74000000000001,
+            "width": 83.94999999999999,
+            "x": 159.52499999999998,
+            "y": 187.9,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -53.479999999999976,
+      "width": 83.94999999999999,
+      "x": 281.19166666666666,
+      "y": 149.7,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -53.479999999999976,
+            "width": 83.94999999999999,
+            "x": 281.19166666666666,
+            "y": 149.7,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`Panel canvas renders cartesian renders default bar series 1`] = `
 [
   {
     "props": {},
@@ -435,7 +1018,7 @@ exports[`Panel canvas renders cartesian time series renders default bar chart 1`
 ]
 `;
 
-exports[`Panel canvas renders cartesian time series renders default effectScatter chart 1`] = `
+exports[`Panel canvas renders cartesian renders default effectScatter series 1`] = `
 [
   {
     "props": {},
@@ -1080,7 +1663,7 @@ exports[`Panel canvas renders cartesian time series renders default effectScatte
 ]
 `;
 
-exports[`Panel canvas renders cartesian time series renders default grid 1`] = `
+exports[`Panel canvas renders cartesian renders default grid 1`] = `
 [
   {
     "props": {},
@@ -5007,7 +5590,7 @@ exports[`Panel canvas renders cartesian time series renders default grid 1`] = `
 ]
 `;
 
-exports[`Panel canvas renders cartesian time series renders default line chart 1`] = `
+exports[`Panel canvas renders cartesian renders default line series 1`] = `
 [
   {
     "props": {},
@@ -6310,7 +6893,7 @@ exports[`Panel canvas renders cartesian time series renders default line chart 1
 ]
 `;
 
-exports[`Panel canvas renders cartesian time series renders default scatter chart 1`] = `
+exports[`Panel canvas renders cartesian renders default scatter series 1`] = `
 [
   {
     "props": {},

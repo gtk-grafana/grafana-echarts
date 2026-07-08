@@ -1,6 +1,8 @@
 import { type VizLegendOptions } from '@grafana/schema';
 import { type VizLegendItem } from '@grafana/ui';
+import { BarSeriesOption, ComposeOption, EffectScatterSeriesOption, ScatterSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
 import { type DataFrame, type GrafanaTheme2, type TimeRange, type ValueFormatter } from '@grafana/data';
 import { type PanelOptions } from 'types';
@@ -29,3 +31,7 @@ export interface ChartModule {
   buildOption(ctx: ChartContext, base: BaseOptionParts): ECBasicOption | null;
   buildLegendItems?(ctx: ChartContext, calcs: string[]): VizLegendItem[];
 }
+
+export type CartesianOption = ComposeOption<
+  BarSeriesOption | LineSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption
+>;

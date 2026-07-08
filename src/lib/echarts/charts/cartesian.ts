@@ -20,7 +20,7 @@ import {
   buildMultiValueCartesianLegendItems,
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
-import { type ChartContext, type ChartModule } from './types';
+import { CartesianOption, type ChartContext, type ChartModule } from './types';
 
 // Cartesian family (Groups 1-2). The x-axis mode follows the data, not the
 // series type: time frames render on a `time` axis, while Numeric frames with no
@@ -66,16 +66,10 @@ function buildTimeOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOp
 }
 
 /** Category-axis cartesian: plain y-values over a category x-axis. */
-function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): ECBasicOption | null {
-  const { frames, theme, options, seriesType, formatValue } = ctx;
-  const categoryData = categoryCartesianToEChartsOption(frames, seriesType, theme, options.stackSeries ?? false);
-
-  if (!categoryData || categoryData.series.length === 0) {
-    return null;
-  }
-
+function buildCategoryOption(ctx: ChartContext, isGrafanaLegend: boolean): CartesianOption | null {
+  const { theme, options, formatValue } = ctx;
+  const categoryData = categoryCartesianToEChartsOption(ctx);
   const axisStyle = getCartesianAxisStyle(theme);
-
   const yAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.yAxis, axisStyle, undefined, formatValue);
 
   // The category axis carries its labels in `data`; there is no per-tick value
@@ -142,6 +136,7 @@ export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
   buildOption(ctx, { isGrafanaLegend }) {
+    // @todo gate invalid frames
     if (isMultiValueType(ctx.seriesType)) {
       return buildMultiValueOption(ctx, isGrafanaLegend);
     }

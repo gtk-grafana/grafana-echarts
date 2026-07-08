@@ -1,7 +1,9 @@
-import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { debug, LOG_LEVELS } from 'development';
+import { CategoryAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
 import { STACK_GROUP_ID } from 'editor/constants';
-import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { type SeriesType } from 'editor/types';
+import { CartesianOption, ChartContext } from 'lib/echarts/charts/types';
+import { frameToCategorical } from 'lib/echarts/converters/categorical';
 
 /**
  * One ECharts cartesian series drawn against a shared category x-axis.
@@ -32,13 +34,12 @@ export interface CategoryCartesianSeries {
  * caller merges these into a base cartesian option with `xAxis.type: 'category'`.
  */
 export interface CategoryCartesianData {
-  categories: string[];
-  series: CategoryCartesianSeries[];
+  categories: CategoryAxisBaseOption['data'];
+  series: CartesianOption['series'];
 }
 
 /**
  * Convert Grafana Numeric frames into an ECharts category-axis cartesian chart
- * (Group 2: category bar/line).
  *
  * This is a thin adapter over the shared categorical model
  * (see echarts/converters/categorical.ts):
@@ -52,25 +53,24 @@ export interface CategoryCartesianData {
  * is `bar`. See echarts/converters/timeSeries.ts.
  *
  * Inherits the categorical model's trade-offs (single frame, time fields
- * ignored, positional alignment). Returns `null` when no usable categorical data
- * can be derived, so callers can fall back to a no-data view.
+ * ignored, positional alignment).
  */
-export function categoryCartesianToEChartsOption(
-  series: DataFrame[],
-  seriesType: SeriesType,
-  theme: GrafanaTheme2,
-  panelStack = false
-): CategoryCartesianData | null {
-  const categorical = frameToCategorical(series, theme);
+export function categoryCartesianToEChartsOption(ctx: ChartContext): CategoryCartesianData {
+  const { frames, theme, seriesType, options } = ctx;
+  const categorical = frameToCategorical(frames, theme);
 
   if (!categorical) {
-    return null;
+    // We should bail for empty/invalid frames earlier then this
+    debug('Categorical-x cartesian plots must have categorical data', LOG_LEVELS.warn, frames);
+    throw new Error('Categorical-x cartesian plots must have categorical data')
   }
 
-  const stacked = seriesType === 'bar' && panelStack;
-  const echartsSeries: CategoryCartesianSeries[] = categorical.series.map((field) => ({
+  const stacked = seriesType === 'bar' && options.stackSeries;
+  // @todo fix this type
+  const echartsSeries: CartesianOption['series'] = categorical.series.map((field) => ({
     name: field.name,
     type: seriesType,
+    zlevel: options.zLevel?.series,
     data: field.values,
     itemStyle: { color: field.color },
     lineStyle: { color: field.color },

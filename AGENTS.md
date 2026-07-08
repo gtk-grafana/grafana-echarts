@@ -18,3 +18,4 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Add comments to code, but keep them as concise as possible
 - Adhere to data plane frame specifications: https://grafana.com/developers/dataplane/, except when explicitly told not to
 - Create provisioned dashboards for all new panel functionality, prompt the user to check existing dashboards that can be impacted by a change
+- Always use eCharts types instead of creating local definitions of the eCharts API
