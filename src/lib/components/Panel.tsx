@@ -10,7 +10,6 @@ import {
   useTheme2,
 } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
-import type BrushModel from 'echarts/types/src/component/brush/BrushModel';
 import { seriesTypePath } from 'editor/constants';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
@@ -19,6 +18,7 @@ import { getPanelLayout } from 'lib/echarts/layout/layout';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
 import {
+  type BrushEndEvent,
   brushEndToTimeRange,
   CLEAR_TIME_BRUSH_ACTION,
   DISABLE_TIME_BRUSH_ACTION,
@@ -141,9 +141,6 @@ export const Panel: React.FC<Props> = ({
       return;
     }
 
-    // ECharts is imported statically here, but this whole component is loaded
-    // via React.lazy (see lib/components/LazyPanel), so its (~0.6MB) bundle is
-    // still emitted as shared async chunks rather than every panel's entry.
     const instance = init(dom);
     setChart(instance);
 
@@ -196,7 +193,7 @@ export const Panel: React.FC<Props> = ({
       return;
     }
 
-    const handleBrushEnd = (event: BrushModel) => {
+    const handleBrushEnd = (event: BrushEndEvent) => {
       const range = brushEndToTimeRange(event);
       // Clear the selection highlight so it does not linger through the refetch.
       chart.dispatchAction(CLEAR_TIME_BRUSH_ACTION);
@@ -205,7 +202,9 @@ export const Panel: React.FC<Props> = ({
       }
     };
 
-    chart.on('brushEnd', handleBrushEnd);
+    // eCharts types here are cryptic and/or missing definitions for all of the chart events, so we must typecast for now
+    // See the comment in lib/echarts/timeBrush.ts
+    chart.on('brushEnd', handleBrushEnd as (...args: unknown[]) => void);
     return () => {
       // On unmount the layout effect's cleanup disposes the instance before this
       // passive cleanup runs, so guard against calling `off` on a disposed chart
