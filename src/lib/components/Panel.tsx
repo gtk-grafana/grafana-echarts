@@ -207,7 +207,12 @@ export const Panel: React.FC<Props> = ({
 
     chart.on('brushEnd', handleBrushEnd);
     return () => {
-      chart.off('brushEnd', handleBrushEnd);
+      // On unmount the layout effect's cleanup disposes the instance before this
+      // passive cleanup runs, so guard against calling `off` on a disposed chart
+      // (dispose already drops its listeners). https://echarts.apache.org/en/api.html#echartsInstance.isDisposed
+      if (!chart.isDisposed()) {
+        chart.off('brushEnd', handleBrushEnd);
+      }
     };
   }, [chart]);
 
