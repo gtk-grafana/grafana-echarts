@@ -20,7 +20,7 @@ import {
   buildMultiValueCartesianLegendItems,
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
-import { CartesianOption, type ChartContext, type ChartModule } from './types';
+import { type CartesianOption, type ChartContext, type ChartModule } from './types';
 
 // Cartesian family (Groups 1-2). The x-axis mode follows the data, not the
 // series type: time frames render on a `time` axis, while Numeric frames with no

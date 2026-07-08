@@ -1,4 +1,4 @@
-import { EChartsType } from 'echarts';
+import { type EChartsType } from 'echarts';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { getInstanceByDom } from 'lib/echarts/echarts';
 
