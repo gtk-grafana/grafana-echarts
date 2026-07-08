@@ -1,5 +1,5 @@
-import { cartesianTimeSeriesTypes } from 'editor/constants';
 import { frameHasCartesianOverride } from 'editor/series';
+import { HeatmapSeriesType } from 'editor/types';
 import { frameToHeatmap } from 'lib/echarts/converters/heatmap';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {
@@ -33,12 +33,10 @@ function splitFrames(ctx: ChartContext) {
 export const heatmapChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { isGrafanaLegend }) {
+  buildOption(ctx: ChartContext<HeatmapSeriesType>, { isGrafanaLegend }) {
     const { theme, options, seriesType, formatValue } = ctx;
     const { overlayFrames, heatmap } = splitFrames(ctx);
-
-    const overlayType = cartesianTimeSeriesTypes.includes(seriesType) ? seriesType : 'line';
-    const cartSeries = timeSeriesToEChartsOption({ ...ctx, seriesType: overlayType, frames: overlayFrames }) ?? [];
+    const cartSeries = timeSeriesToEChartsOption({ ...ctx, seriesType, frames: overlayFrames }) ?? [];
 
     if (cartSeries.length === 0 && !heatmap) {
       return null;

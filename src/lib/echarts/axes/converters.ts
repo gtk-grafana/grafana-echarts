@@ -1,5 +1,5 @@
-import { cartesianTimeSeriesTypes, heatmapSeriesTypes } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
+import { isCategoricalAxisSeriesType, isHeatmapSeriesType } from 'lib/echarts/charts/narrowing';
 
 /**
  * ECharts axis types we map Grafana panel types onto.
@@ -21,14 +21,14 @@ export type EChartsAxisType = 'value' | 'category' | 'time' | 'log';
  * tooltip purposes. Any other type has no registered chart module, so `category`
  * is a safe default.
  */
-export const panelTypeToAxis = (panelType: SeriesType, hasTimeField = true): EChartsAxisType => {
-  if (heatmapSeriesTypes.includes(panelType)) {
+export const panelTypeToAxis = (seriesType: SeriesType, hasTimeField = true): EChartsAxisType => {
+  if (isHeatmapSeriesType(seriesType) || hasTimeField) {
     return 'time';
   }
 
-  if (cartesianTimeSeriesTypes.includes(panelType)) {
-    return hasTimeField ? 'time' : 'category';
+  if (isCategoricalAxisSeriesType(seriesType)) {
+    return 'category';
   }
 
-  return 'category';
+  throw new Error(`Invalid panel type: ${seriesType}`);
 };

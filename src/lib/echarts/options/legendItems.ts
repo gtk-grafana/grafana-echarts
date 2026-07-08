@@ -1,19 +1,17 @@
 import {
   type DataFrame,
   type Field,
-  FieldType,
   fieldReducers,
+  FieldType,
   getDisplayProcessor,
   getFieldDisplayName,
   type GrafanaTheme2,
   reduceField,
 } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
+import type { CartesianMultiValueSeriesType } from 'editor/types';
 import { findCategoricalFrame, forEachTimeSeriesField, resolveCategories } from 'lib/echarts/converters/frames';
-import {
-  type MultiValueChartType,
-  multiValueCartesianToEChartsOption,
-} from 'lib/echarts/converters/multiValueCartesian';
+import { multiValueCartesianToEChartsOption, } from 'lib/echarts/converters/multiValueCartesian';
 import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
 
 /**
@@ -103,7 +101,7 @@ export function buildCategoryCartesianLegendItems(
 export function buildMultiValueCartesianLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
-  chartType: MultiValueChartType
+  chartType: CartesianMultiValueSeriesType
 ): VizLegendItem[] {
   const data = multiValueCartesianToEChartsOption(series, chartType, theme);
   if (!data) {

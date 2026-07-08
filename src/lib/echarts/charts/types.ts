@@ -8,13 +8,13 @@ import { type SeriesType } from 'editor/types';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
-export interface ChartContext {
+export interface ChartContext<T = SeriesType> {
   frames: DataFrame[];
   theme: GrafanaTheme2;
   timeZone: string;
   timeRange: TimeRange;
   options: PanelOptions;
-  seriesType: SeriesType;
+  seriesType: T;
   formatValue: ValueFormatter;
 }
 

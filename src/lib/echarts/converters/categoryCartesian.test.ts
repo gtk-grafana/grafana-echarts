@@ -7,7 +7,7 @@ import {
   type ValueFormatter,
 } from '@grafana/data';
 import { seriesTypePath } from 'editor/constants';
-import { type SeriesType } from 'editor/types';
+import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
 import { type PanelOptions } from 'types';
@@ -17,7 +17,11 @@ const theme = createTheme();
 const formatValue: ValueFormatter = (value) => ({ text: value == null ? '' : String(value) });
 
 /** Build a minimal ChartContext for the category cartesian converter under test. */
-const makeContext = (frames: DataFrame[], seriesType: SeriesType, stackSeries?: boolean): ChartContext => ({
+const makeContext = (
+  frames: DataFrame[],
+  seriesType: CartesianSingleValueSeriesType,
+  stackSeries?: boolean
+): ChartContext<CartesianSingleValueSeriesType> => ({
   frames,
   theme,
   timeZone: 'utc',
@@ -28,12 +32,12 @@ const makeContext = (frames: DataFrame[], seriesType: SeriesType, stackSeries?: 
 });
 
 /** Run the converter, normalizing the ECharts `Arrayable` series into an array. */
-const run = (frames: DataFrame[], seriesType: SeriesType, stackSeries?: boolean) => {
+const run = (frames: DataFrame[], seriesType: CartesianSingleValueSeriesType, stackSeries?: boolean) => {
   const { categories, series } = categoryCartesianToEChartsOption(makeContext(frames, seriesType, stackSeries));
   expect(Array.isArray(series)).toBe(true);
 
-  if (!Array.isArray(series)){
-    throw new Error('Narrow series to array')
+  if (!Array.isArray(series)) {
+    throw new Error('Narrow series to array');
   }
 
   return { categories, series };
@@ -118,13 +122,13 @@ describe('categoryCartesianToEChartsOption', () => {
 
       expect(result.series.length).toEqual(resultStacked.series.length);
       for (let i = 0; i < result.series.length; i++) {
-        expect(result.series[i].stack).toBeUndefined()
+        expect(result.series[i].stack).toBeUndefined();
         expect(resultStacked.series[i].stack).toEqual('total');
       }
     });
 
     it.each(['line', 'scatter'])('never stacks %s series even when stacking is on', (seriesType) => {
-      const result = run([tableFrame()], seriesType as SeriesType, true);
+      const result = run([tableFrame()], seriesType as CartesianSingleValueSeriesType, true);
 
       for (const s of result.series) {
         // Asserting something doesn't exist is typically a bad test smell, but paired with the test above I think it's fine to verify that we're not stacking things that should not be stacked

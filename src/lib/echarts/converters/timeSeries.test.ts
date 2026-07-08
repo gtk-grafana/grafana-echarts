@@ -8,7 +8,7 @@ import {
 } from '@grafana/data';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { seriesTypePath } from 'editor/constants';
-import { type SeriesType } from 'editor/types';
+import { CartesianSingleValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import { type PanelOptions } from 'types';
@@ -18,7 +18,11 @@ const theme = createTheme();
 const formatValue: ValueFormatter = (value) => ({ text: value == null ? '' : String(value) });
 
 /** Build a minimal ChartContext for the time series converter under test. */
-const makeContext = (frames: DataFrame[], seriesType: SeriesType, stackSeries?: boolean): ChartContext => ({
+const makeContext = (
+  frames: DataFrame[],
+  seriesType: CartesianSingleValueSeriesType,
+  stackSeries?: boolean
+): ChartContext<CartesianSingleValueSeriesType> => ({
   frames,
   theme,
   timeZone: 'utc',
@@ -28,7 +32,7 @@ const makeContext = (frames: DataFrame[], seriesType: SeriesType, stackSeries?: 
   formatValue,
 });
 
-const run = (frames: DataFrame[], seriesType: SeriesType, stackSeries?: boolean) =>
+const run = (frames: DataFrame[], seriesType: CartesianSingleValueSeriesType, stackSeries?: boolean) =>
   timeSeriesToEChartsOption(makeContext(frames, seriesType, stackSeries));
 
 const wideFrame = (): DataFrame =>
@@ -123,7 +127,7 @@ describe('timeSeriesToEChartsOption', () => {
   });
 
   describe('series type', () => {
-    it.each(['line', 'bar', 'scatter', 'effectScatter'] as SeriesType[])(
+    it.each(['line', 'bar', 'scatter', 'effectScatter'] as CartesianSingleValueSeriesType[])(
       'propagates the requested series type "%s" to every series',
       (seriesType) => {
         const result = run([wideFrame()], seriesType);

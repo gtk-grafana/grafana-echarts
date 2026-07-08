@@ -25,6 +25,10 @@ export type SeriesType =
   | 'chord'
   | 'custom';
 
+export type CategoricalAxisSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter' | 'pie' | 'radar'>;
+export type CartesianSingleValueSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter'>;
+export type CartesianMultiValueSeriesType = Extract<SeriesType, 'candlestick' | 'boxplot'>;
+export type HeatmapSeriesType = Extract<SeriesType, 'heatmap'>
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s
  * `useCustomConfig`. It lets a Grafana field override (by name, regex, type or

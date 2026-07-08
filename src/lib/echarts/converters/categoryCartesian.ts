@@ -1,5 +1,6 @@
 import { debug, LOG_LEVELS } from 'development';
 import { STACK_GROUP_ID } from 'editor/constants';
+import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type CartesianOption, type ChartContext } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
@@ -21,22 +22,22 @@ import { type CategoryCartesianData } from 'lib/echarts/converters/types';
  * Inherits the categorical model's trade-offs (single frame, time fields
  * ignored, positional alignment).
  */
-export function categoryCartesianToEChartsOption(ctx: ChartContext): CategoryCartesianData {
+
+export function categoryCartesianToEChartsOption(ctx: ChartContext<CartesianSingleValueSeriesType>): CategoryCartesianData {
   const { frames, theme, seriesType, options } = ctx;
   const categorical = frameToCategorical(frames, theme);
 
   if (!categorical) {
     // We should bail for empty/invalid frames earlier then this
     debug('Categorical-x cartesian plots must have categorical data', LOG_LEVELS.warn, frames);
-    throw new Error('Categorical-x cartesian plots must have categorical data')
+    throw new Error('Categorical-x cartesian plots must have categorical data');
   }
 
   const stacked = seriesType === 'bar' && options.stackSeries;
-  // @todo fix this type
-  // @ts-expect-error
   const echartsSeries: CartesianOption['series'] = categorical.series.map((field) => ({
     name: field.name,
-    type: seriesType,
+    // effectScatter has types inconsistency but should have same behavior as scatter with same options, type assertion will have to do for now
+    type: seriesType as Exclude<CartesianSingleValueSeriesType, 'effectScatter'>,
     zlevel: options.zLevel?.series,
     data: field.values,
     itemStyle: { color: field.color },

@@ -2,8 +2,9 @@ import { type Field, getFieldDisplayName } from '@grafana/data';
 import { type ScatterSeriesOption } from 'echarts';
 import { type CandlestickSeriesOption } from 'echarts/types/src/chart/candlestick/CandlestickSeries';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
-import { cartesianTimeSeriesTypes, STACK_GROUP_ID } from 'editor/constants';
-import { type SeriesType } from 'editor/types';
+import { STACK_GROUP_ID } from 'editor/constants';
+import { CartesianSingleValueSeriesType, HeatmapSeriesType, type SeriesType } from 'editor/types';
+import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
@@ -13,9 +14,9 @@ import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
  * Resolve the series type for a single value field: field override wins when cartesian.
  */
 function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesType {
-  const override = getFieldConfigFromField(field).custom?.seriesType;
-  if (override && cartesianTimeSeriesTypes.includes(override)) {
-    return override;
+  const seriesTypeOverride = getFieldConfigFromField(field).custom?.seriesType;
+  if (seriesTypeOverride && isCartesianSingleValueSeriesType(seriesTypeOverride)) {
+    return seriesTypeOverride;
   }
   return defaultType;
 }
@@ -33,7 +34,7 @@ function resolveFieldStack(field: Field, panelStack = false): boolean {
  * @todo take context instead of fn params
  */
 export function timeSeriesToEChartsOption(
-  ctx: ChartContext
+  ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
 ): Array<LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption> | null {
   const { frames, theme, options, seriesType } = ctx;
   const echartsSeries: LineSeriesOption[] = [];
