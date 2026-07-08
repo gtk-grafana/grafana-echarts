@@ -54,5 +54,5 @@ export const panelTypeToAxis = (seriesType: SeriesType, hasTimeField = true): EC
     return 'category';
   }
 
-  throw new Error(`Unsupported axis for series typ: ${seriesType}`);
+  throw new Error(`Unknown axix mapping for series type: ${seriesType}`);
 };
