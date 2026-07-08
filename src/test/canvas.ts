@@ -42,7 +42,6 @@ export function readLayeredCanvasEvents(root: ParentNode): LayeredCanvasEvents {
   };
 }
 
-
 /**
  * Handles getting the canvases split by zLevel from the rendered DOM
  */
@@ -67,7 +66,6 @@ export const setupECharts = (container: HTMLElement) => {
 
   return { chartInstanceDom, chart };
 };
-
 
 export const removeCanvasClear = (events: CanvasRenderingContext2DEvent[]) =>
   events.filter((e) => e.type !== 'clearRect');

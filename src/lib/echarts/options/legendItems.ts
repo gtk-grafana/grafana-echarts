@@ -11,7 +11,7 @@ import {
 import { type VizLegendItem } from '@grafana/ui';
 import type { MultiValueSeriesType } from 'editor/types';
 import { findCategoricalFrame, forEachTimeSeriesField, resolveCategories } from 'lib/echarts/converters/frames';
-import { multiValueCartesianToEChartsOption, } from 'lib/echarts/converters/multiValueCartesian';
+import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
 import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
 
 /**

@@ -1,11 +1,9 @@
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { type MultiValueSeriesType, CartesianSingleValueSeriesType } from 'editor/types';
+import { type MultiValueSeriesType, type CartesianSingleValueSeriesType } from 'editor/types';
 import { isMultiValueSeriesType, isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
-import {
-  multiValueCartesianToEChartsOption,
-} from 'lib/echarts/converters/multiValueCartesian';
+import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {
   cartesianCategoryDefaultOptions,
@@ -28,7 +26,10 @@ import { type CartesianOption, type ChartContext, type ChartModule } from './typ
 // model. See the plan's "axis type should follow data" note.
 
 /** Time-axis cartesian: `[time, value]` series on a time grid. */
-function buildTimeOption(ctx: ChartContext<CartesianSingleValueSeriesType>, isGrafanaLegend: boolean): ECBasicOption | null {
+function buildTimeOption(
+  ctx: ChartContext<CartesianSingleValueSeriesType>,
+  isGrafanaLegend: boolean
+): ECBasicOption | null {
   const { theme, options, formatValue } = ctx;
 
   const cartSeries = timeSeriesToEChartsOption(ctx);
@@ -67,7 +68,10 @@ function buildTimeOption(ctx: ChartContext<CartesianSingleValueSeriesType>, isGr
 }
 
 /** Category-axis cartesian: plain y-values over a category x-axis. */
-function buildCategoryOption(ctx: ChartContext<CartesianSingleValueSeriesType>, isGrafanaLegend: boolean): CartesianOption | null {
+function buildCategoryOption(
+  ctx: ChartContext<CartesianSingleValueSeriesType>,
+  isGrafanaLegend: boolean
+): CartesianOption | null {
   const { theme, options, formatValue, seriesType } = ctx;
 
   if (!isCartesianSingleValueSeriesType(seriesType)) {

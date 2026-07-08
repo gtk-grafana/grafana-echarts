@@ -33,6 +33,4 @@ export interface ChartModule {
 }
 
 // @todo EffectScatterSeriesOption seems to differ from the ScatterSeriesOption which causes some type errors, excluding it for now as I'm leaning towards removing that panel type for now if it keeps acting up
-export type CartesianOption = ComposeOption<
-  BarSeriesOption | LineSeriesOption | ScatterSeriesOption
->;
+export type CartesianOption = ComposeOption<BarSeriesOption | LineSeriesOption | ScatterSeriesOption>;

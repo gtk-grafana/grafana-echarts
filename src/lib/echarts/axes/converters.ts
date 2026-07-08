@@ -46,7 +46,7 @@ export const panelTypeToAxis = (seriesType: SeriesType, hasTimeField = true): EC
     return 'time';
   }
 
-  if(isHeatmapSeriesType(seriesType)){
+  if (isHeatmapSeriesType(seriesType)) {
     return 'time';
   }
 

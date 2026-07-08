@@ -148,7 +148,7 @@ const getCanvasEvents = async (container: HTMLElement) => {
   await waitForFinished(chart);
   const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
   return { defaultEvents, seriesEvents };
-}
+};
 describe('Panel canvas renders', () => {
   describe('cartesian', () => {
     const frame = toDataFrame({

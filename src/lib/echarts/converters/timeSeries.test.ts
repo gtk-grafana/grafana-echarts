@@ -8,7 +8,7 @@ import {
 } from '@grafana/data';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { seriesTypePath } from 'editor/constants';
-import { CartesianSingleValueSeriesType } from 'editor/types';
+import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import { type PanelOptions } from 'types';

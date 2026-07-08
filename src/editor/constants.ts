@@ -5,7 +5,8 @@ import {
   type CategoricalOnlySeriesType,
   type HeatmapSeriesType,
   type MultiValueSeriesType,
-  type SeriesType, type TimeAxisSupportsSeriesType,
+  type SeriesType,
+  type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
 export const seriesTypePath = 'seriesType';

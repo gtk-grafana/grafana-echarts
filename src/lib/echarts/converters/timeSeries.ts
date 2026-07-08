@@ -3,7 +3,7 @@ import { type ScatterSeriesOption } from 'echarts';
 import { type CandlestickSeriesOption } from 'echarts/types/src/chart/candlestick/CandlestickSeries';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { STACK_GROUP_ID } from 'editor/constants';
-import { CartesianSingleValueSeriesType, HeatmapSeriesType, type SeriesType } from 'editor/types';
+import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type SeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';

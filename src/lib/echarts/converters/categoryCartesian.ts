@@ -23,7 +23,9 @@ import { type CategoryCartesianData } from 'lib/echarts/converters/types';
  * ignored, positional alignment).
  */
 
-export function categoryCartesianToEChartsOption(ctx: ChartContext<CartesianSingleValueSeriesType>): CategoryCartesianData {
+export function categoryCartesianToEChartsOption(
+  ctx: ChartContext<CartesianSingleValueSeriesType>
+): CategoryCartesianData {
   const { frames, theme, seriesType, options } = ctx;
   const categorical = frameToCategorical(frames, theme);
 
