@@ -20,6 +20,7 @@ import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
 import {
   type BrushEndEvent,
   brushEndToTimeRange,
+  type BrushXAxisInfo,
   CLEAR_TIME_BRUSH_ACTION,
   DISABLE_TIME_BRUSH_ACTION,
   ENABLE_TIME_BRUSH_ACTION,
@@ -194,7 +195,11 @@ export const Panel: React.FC<Props> = ({
     }
 
     const handleBrushEnd = (event: BrushEndEvent) => {
-      const range = brushEndToTimeRange(event);
+      // Candlestick/boxplot render on a category axis, whose `coordRange` is in
+      // category-index units; read the rendered x-axis so those indices can be
+      // mapped back to timestamps. `getOption` normalizes `xAxis` to an array.
+      const option = chart.getOption() as { xAxis?: BrushXAxisInfo[] };
+      const range = brushEndToTimeRange(event, option?.xAxis?.[0]);
       // Clear the selection highlight so it does not linger through the refetch.
       chart.dispatchAction(CLEAR_TIME_BRUSH_ACTION);
       if (range) {

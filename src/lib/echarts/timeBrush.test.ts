@@ -35,4 +35,70 @@ describe('brushEndToTimeRange', () => {
     expect(brushEndToTimeRange({ areas: [{ coordRange: ['a', 'b'] }] } as unknown as BrushModel)).toBeNull();
     expect(brushEndToTimeRange({ areas: [{}] } as BrushModel)).toBeNull();
   });
+
+  describe('category axis (candlestick/boxplot)', () => {
+    // coordRange is in category-index units, so ISO-timestamp labels are needed
+    // to translate the selection back into epoch ms.
+    const categories = [
+      '2021-07-13T17:00:00.000Z', // index 0
+      '2021-07-13T17:13:07.798Z', // index 1
+      '2021-07-13T17:20:00.000Z', // index 2
+      '2021-07-13T17:26:25.145Z', // index 3
+      '2021-07-13T17:30:00.000Z', // index 4
+    ];
+    const xAxis = { type: 'category', data: categories };
+
+    it('maps brushed category indices to the bounding timestamps', () => {
+      const event = { areas: [{ coordRange: [1, 3] }] } as BrushModel;
+
+      expect(brushEndToTimeRange(event, xAxis)).toEqual({
+        from: Date.parse('2021-07-13T17:13:07.798Z'),
+        to: Date.parse('2021-07-13T17:26:25.145Z'),
+      });
+    });
+
+    it('rounds fractional indices to the nearest category', () => {
+      const event = { areas: [{ coordRange: [0.9, 3.1] }] } as BrushModel;
+
+      expect(brushEndToTimeRange(event, xAxis)).toEqual({
+        from: Date.parse('2021-07-13T17:13:07.798Z'),
+        to: Date.parse('2021-07-13T17:26:25.145Z'),
+      });
+    });
+
+    it('normalizes a reversed selection', () => {
+      const event = { areas: [{ coordRange: [3, 1] }] } as BrushModel;
+
+      expect(brushEndToTimeRange(event, xAxis)).toEqual({
+        from: Date.parse('2021-07-13T17:13:07.798Z'),
+        to: Date.parse('2021-07-13T17:26:25.145Z'),
+      });
+    });
+
+    it('clamps indices beyond the category bounds to the available data', () => {
+      const event = { areas: [{ coordRange: [-5, 99] }] } as BrushModel;
+
+      expect(brushEndToTimeRange(event, xAxis)).toEqual({
+        from: Date.parse(categories[0]),
+        to: Date.parse(categories[categories.length - 1]),
+      });
+    });
+
+    it('returns null when the selection collapses to a single category', () => {
+      expect(brushEndToTimeRange({ areas: [{ coordRange: [2, 2] }] } as BrushModel, xAxis)).toBeNull();
+    });
+
+    it('returns null when the axis has no category labels', () => {
+      expect(brushEndToTimeRange({ areas: [{ coordRange: [1, 3] }] } as BrushModel, { type: 'category' })).toBeNull();
+      expect(
+        brushEndToTimeRange({ areas: [{ coordRange: [1, 3] }] } as BrushModel, { type: 'category', data: [] })
+      ).toBeNull();
+    });
+
+    it('returns null when category labels are not parseable timestamps', () => {
+      const event = { areas: [{ coordRange: [0, 1] }] } as BrushModel;
+
+      expect(brushEndToTimeRange(event, { type: 'category', data: ['alpha', 'beta'] })).toBeNull();
+    });
+  });
 });
