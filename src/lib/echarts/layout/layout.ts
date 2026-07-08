@@ -12,9 +12,13 @@ export const getPanelLayout = (width: number, height: number, legend: VizLegendO
   }
 
   if (legend.placement === 'right') {
+    // This panel keeps the legend width numeric (see `editor/legend`); Core
+    // widened it to `number | string` (px/%) in grafana/grafana#126198, but the
+    // ECharts canvas is sized in pixels, so any stray string is coerced away.
+    const configuredWidth = Number(legend.width) || 0;
     const legendWidth =
-      legend.width && legend.width > 0
-        ? Math.min(legend.width, Math.floor(width / 2))
+      configuredWidth > 0
+        ? Math.min(configuredWidth, Math.floor(width / 2))
         : Math.min(DEFAULT_LEGEND_WIDTH, Math.floor(width / 2));
     return { chartWidth: width - legendWidth, chartHeight: height, legendWidth, legendHeight: height };
   }

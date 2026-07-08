@@ -1,6 +1,12 @@
 import { createTheme } from '@grafana/data';
 import { LegendDisplayMode, type LegendPlacement, type VizLegendOptions } from '@grafana/schema';
-import { DEFAULT_CHART_LEGEND, getCartesianGrid, getLegendOption, isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
+import {
+  DEFAULT_CHART_LEGEND,
+  getCartesianGrid,
+  getLegendOption,
+  isLegendVisible,
+  resolveLegendOptions,
+} from 'lib/echarts/options/legend';
 import { cartesianChartModule } from 'lib/echarts/charts/cartesian';
 import { type PanelOptions } from 'types';
 
@@ -92,6 +98,10 @@ describe('getCartesianGrid', () => {
 
   it('reserves right space sized to the configured width for a right legend', () => {
     expect(getCartesianGrid(legend({ placement: 'right', width: 200 })).right).toBe(224);
+  });
+
+  it('falls back to the default inset when a stray non-numeric width slips through', () => {
+    expect(getCartesianGrid(legend({ placement: 'right', width: '35%' })).right).toBe(120);
   });
 
   it('uses default insets when the legend is hidden', () => {

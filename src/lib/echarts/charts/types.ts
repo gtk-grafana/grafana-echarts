@@ -1,19 +1,20 @@
+import { type DataFrame, type GrafanaTheme2, type TimeRange, type ValueFormatter } from '@grafana/data';
 import { type VizLegendOptions } from '@grafana/schema';
 import { type VizLegendItem } from '@grafana/ui';
-import { type ValueFormatter } from 'lib/echarts/style';
+import { type BarSeriesOption, type ComposeOption, type ScatterSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
-import { type DataFrame, type GrafanaTheme2, type TimeRange } from '@grafana/data';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
-export interface ChartContext {
+export interface ChartContext<T = SeriesType> {
   frames: DataFrame[];
   theme: GrafanaTheme2;
   timeZone: string;
   timeRange: TimeRange;
   options: PanelOptions;
-  seriesType: SeriesType;
+  seriesType: T;
   formatValue: ValueFormatter;
 }
 
@@ -30,3 +31,6 @@ export interface ChartModule {
   buildOption(ctx: ChartContext, base: BaseOptionParts): ECBasicOption | null;
   buildLegendItems?(ctx: ChartContext, calcs: string[]): VizLegendItem[];
 }
+
+// @todo EffectScatterSeriesOption seems to differ from the ScatterSeriesOption which causes some type errors, excluding it for now as I'm leaning towards removing that panel type for now if it keeps acting up
+export type CartesianOption = ComposeOption<BarSeriesOption | LineSeriesOption | ScatterSeriesOption>;

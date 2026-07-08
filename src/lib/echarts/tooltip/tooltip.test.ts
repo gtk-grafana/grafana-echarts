@@ -1,10 +1,10 @@
-import { createTheme } from '@grafana/data';
+import { createTheme, type ValueFormatter } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { getTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'lib/echarts/tooltip';
 import { type TooltipPositionCallback } from 'echarts/types/dist/shared';
 
 const theme = createTheme();
-const formatValue = (value: number | null) => (value == null ? 'null' : `${value}`);
+const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
 
 function callTooltipPosition(point: [number, number], contentSize: [number, number], viewSize: [number, number]) {
   const { position } = getTooltipOption('item', TooltipDisplayMode.Single, formatValue, theme);

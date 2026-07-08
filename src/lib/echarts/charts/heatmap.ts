@@ -1,5 +1,5 @@
-import {cartesianTimeSeriesTypes} from "editor/constants";
 import { frameHasCartesianOverride } from 'editor/series';
+import { type HeatmapSeriesType } from 'editor/types';
 import { frameToHeatmap } from 'lib/echarts/converters/heatmap';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import {
@@ -9,13 +9,8 @@ import {
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
 import { HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
-import {
-  getHeatmapBucketAxis,
-  getHeatmapSeries,
-  getHeatmapVisualMap,
-
-} from 'lib/echarts/options/heatmap';
-import { getCartesianGrid, getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
+import { getHeatmapBucketAxis, getHeatmapSeries, getHeatmapVisualMap } from 'lib/echarts/options/heatmap';
+import { DEFAULT_CHART_LEGEND, getCartesianGrid } from 'lib/echarts/options/legend';
 import { type ChartContext, type ChartModule } from './types';
 
 /**
@@ -38,19 +33,20 @@ function splitFrames(ctx: ChartContext) {
 export const heatmapChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx, { isGrafanaLegend }) {
+  buildOption(ctx: ChartContext<HeatmapSeriesType>, { isGrafanaLegend }) {
     const { theme, options, seriesType, formatValue } = ctx;
     const { overlayFrames, heatmap } = splitFrames(ctx);
-
-    const overlayType = cartesianTimeSeriesTypes.includes(seriesType) ? seriesType : 'line';
-    const cartSeries = timeSeriesToEChartsOption(overlayFrames, overlayType, theme) ?? [];
+    const cartSeries = timeSeriesToEChartsOption({ ...ctx, seriesType, frames: overlayFrames }) ?? [];
 
     if (cartSeries.length === 0 && !heatmap) {
       return null;
     }
 
     const axisStyle = getCartesianAxisStyle(theme);
-    const valueFormatter = (value: unknown) => formatValue(typeof value === 'number' ? value : null);
+
+    const valueFormatter = (value: number) => formatValue(value);
+    //@todo get value formatter
+    // const valueFormatter = getValueFormat(ctx.options);
     const overlayYAxisIndex = heatmap ? 1 : 0;
 
     const series: unknown[] = [];
@@ -71,19 +67,17 @@ export const heatmapChartModule: ChartModule = {
     const bucketAxisExtra = heatmap ? getHeatmapBucketAxis(heatmap) : {};
     const yAxis = heatmap
       ? [
-          mergeAxisStyle(
-            cartesianTimeDefaultOptions.yAxis as Record<string, unknown>,
-            axisStyle,
-            { min: heatmap.yMin, max: heatmap.yMax, ...bucketAxisExtra }
-          ),
+          mergeAxisStyle(cartesianTimeDefaultOptions.yAxis as Record<string, unknown>, axisStyle, {
+            min: heatmap.yMin,
+            max: heatmap.yMax,
+            ...bucketAxisExtra,
+          }),
           { ...overlayValueAxis, position: 'right' },
         ]
       : overlayValueAxis;
 
     const baseGrid = getCartesianGrid(isGrafanaLegend ? undefined : options.legend);
-    const grid = heatmap
-      ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH }
-      : baseGrid;
+    const grid = heatmap ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH } : baseGrid;
 
     const xAxisIsTime = cartSeries.length > 0 || (heatmap ? heatmap.xIsTime : true);
     const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis as Record<string, unknown>, axisStyle, {
@@ -94,7 +88,8 @@ export const heatmapChartModule: ChartModule = {
 
     return {
       ...cartesianTimeDefaultOptions,
-      legend: getLegendOption(options.legend, theme, heatmap ? cartSeries.map((s) => s.name) : undefined),
+      // @todo clean up
+      // legend: getLegendOption(options.legend, theme, heatmap ? cartSeries.map((s) => s.name) : undefined),
       grid,
       xAxis,
       yAxis,

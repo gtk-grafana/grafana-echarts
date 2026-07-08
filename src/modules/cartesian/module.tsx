@@ -1,6 +1,6 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { commonOptionsBuilder } from '@grafana/ui';
+import { addLegendOptions } from 'editor/legend';
 import {
   cartesianOverrideOptions,
   cartesianSeriesTypeOptions,
@@ -8,8 +8,10 @@ import {
   seriesTypeDefault,
   seriesTypeName,
   seriesTypePath,
+  stackSeriesName,
+  stackSeriesPath,
 } from 'editor/constants';
-import { type EChartsFieldConfig } from 'editor/types';
+import { type EChartsGraphFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
@@ -23,7 +25,7 @@ import { cartesianSuggestionsSupplier } from './suggestions';
 // per-field override below (e.g. one field as `bar`, others as `line`).
 // Cross-family mixing (e.g. heatmap + line) is reserved for the composite
 // heatmap panel, so heatmap frames never route here.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(LazyPanel)
   // Standard field config options (Color scheme, Unit, Decimals, Min, Max,
   // Display name, No value, Thresholds, Value mappings, Data links). Grafana
   // includes the full set by default and applies them to every field in
@@ -56,6 +58,18 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
           isClearable: true,
         },
       });
+
+      // Per-field stack override. Only meaningful when the field renders as a
+      // bar, so it is shown only when this field's Series type override is `bar`.
+      // Grafana field-config `showIf` only sees this field's custom config, not
+      // the panel-level series type.
+      builder.addBooleanSwitch({
+        path: stackSeriesPath,
+        name: stackSeriesName,
+        description: 'Stack this field with other stacked bar series.',
+        defaultValue: false,
+        showIf: (config) => config.seriesType === 'bar',
+      });
     },
   })
   .setPanelOptions((builder) => {
@@ -70,11 +84,22 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
           options: cartesianSeriesTypeOptions,
         },
         category: [seriesCategoryName],
+      })
+      // Panel-level default for stacking bar series. Only relevant for `bar`, so
+      // it is hidden for other series types. Fields can override via the
+      // per-field switch above.
+      .addBooleanSwitch({
+        path: stackSeriesPath,
+        name: stackSeriesName,
+        defaultValue: false,
+        category: [seriesCategoryName],
+        showIf: (opts) => opts[seriesTypePath] === 'bar',
       });
 
     // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,
-    // Width, Limit, Values), registered in their own category.
-    commonOptionsBuilder.addLegendOptions(builder);
+    // Width, Limit, Values), with a numeric pixel-only Width editor (see
+    // `editor/legend`), registered in their own category.
+    addLegendOptions(builder);
 
     // Tooltip mode maps to the ECharts native tooltip trigger (see
     // `tooltipTriggerForMode`): Single hovers a single item, All shares the x

@@ -10,6 +10,7 @@ export enum LOG_LEVELS {
 
 export const LOG_LEVEL = LOG_LEVELS.warn;
 
+// @todo rename to not fight autocomplete with webpack
 export const debug = (msg: string, level = LOG_LEVELS.info, data?: unknown) => {
   if (!CONSOLE_OUTPUT || level < LOG_LEVEL) {
     return;

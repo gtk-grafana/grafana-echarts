@@ -6,14 +6,14 @@ import {
   type VisualizationSuggestionsSupplier,
 } from '@grafana/data';
 import { seriesTypePath } from 'editor/constants';
-import { type EChartsFieldConfig } from 'editor/types';
+import { type EChartsFieldConfig, type EChartsGraphFieldConfig } from 'editor/types';
 import { type PanelOptions } from 'types';
 
 // Visualization Suggestions for the cartesian family (Groups 1-3): line/bar/
 // scatter on a shared time/value grid. Scoring is keyed on the pre-computed
 // PanelDataSummary rather than a flat series-type dropdown.
 // https://grafana.com/developers/plugin-tools/how-to-guides/panel-plugins/add-suggestions-support
-export const cartesianSuggestionsSupplier: VisualizationSuggestionsSupplier<PanelOptions, EChartsFieldConfig> = (
+export const cartesianSuggestionsSupplier: VisualizationSuggestionsSupplier<PanelOptions, EChartsGraphFieldConfig> = (
   dataSummary
 ) => {
   // Needs a time axis + at least one numeric value field and more than one

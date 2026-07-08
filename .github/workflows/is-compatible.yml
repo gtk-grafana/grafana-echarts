@@ -2,12 +2,38 @@ name: Latest Grafana API compatibility check
 on: [pull_request]
 
 jobs:
-  compatibilitycheck:
+  # Discover every module.ts(x) so each can be checked independently. A single
+  # $GITHUB_OUTPUT line cannot hold a multi-line list, so emit a JSON array.
+  find-modules:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      modules: ${{ steps.find-module-ts.outputs.modules }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Find module.ts or module.tsx
+        id: find-module-ts
+        run: |
+          MODULES="$(find ./src -type f \( -name "module.ts" -o -name "module.tsx" \) \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+          echo "modules=${MODULES}" >> "$GITHUB_OUTPUT"
+
+  compatibilitycheck:
+    needs: find-modules
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # is-compatible checks one module per run; fan out over every module.
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.find-modules.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -27,15 +53,9 @@ jobs:
       - name: Build plugin
         run: pnpm run build
 
-      - name: Find module.ts or module.tsx
-        id: find-module-ts
-        run: |
-          MODULETS="$(find ./src -type f \( -name "module.ts" -o -name "module.tsx" \))"
-          echo "modulets=${MODULETS}" >> $GITHUB_OUTPUT
-
       - name: Compatibility check
-        uses: grafana/plugin-actions/is-compatible@is-compatible/v1.0.2
+        uses: grafana/plugin-actions/is-compatible@is-compatible/v1.0.3
         with:
-          module: ${{ steps.find-module-ts.outputs.modulets }}
+          module: ${{ matrix.module }}
           comment-pr: 'no'
           fail-if-incompatible: 'yes'

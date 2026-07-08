@@ -1,57 +1,64 @@
-import { type DataFrame, type Field, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
-import {cartesianTimeSeriesTypes} from "editor/constants";
+import { type Field, getFieldDisplayName } from '@grafana/data';
+import { type ScatterSeriesOption } from 'echarts';
+import { type CandlestickSeriesOption } from 'echarts/types/src/chart/candlestick/CandlestickSeries';
+import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
+import { STACK_GROUP_ID } from 'editor/constants';
+import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type SeriesType } from 'editor/types';
+import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
+import { type ChartContext } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
-import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
+import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 
 /**
  * Resolve the series type for a single value field: field override wins when cartesian.
  */
 function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesType {
-  const override = (field.config.custom as EChartsFieldConfig | undefined)?.seriesType;
-  if (override && cartesianTimeSeriesTypes.includes(override)) {
-    return override;
+  const seriesTypeOverride = getFieldConfigFromField(field).custom?.seriesType;
+  if (seriesTypeOverride && isCartesianSingleValueSeriesType(seriesTypeOverride)) {
+    return seriesTypeOverride;
   }
   return defaultType;
 }
-
-
-/** X of each cartesian `[x, y]` data item: epoch ms timestamp. */
-type XAxisValue = number;
-/** Y of each cartesian `[x, y]` data item; `null` renders a gap rather than a zero. */
-type YAxisValue = number | null;
-interface EChartsTimeSeries {
-  name: string;
-  type: SeriesType;
-  /**
-   * Data items as `[time, value]` tuples (x = epoch ms, y = number | null).
-   * ECharts echoes the same tuple back as the tooltip hover param's `value`,
-   * where it is normalized into a `TimeSeriesPoint` (see echarts/tooltip).
-   * See https://echarts.apache.org/en/option.html#series-line.data
-   */
-  data: Array<[XAxisValue, YAxisValue]>;
-  itemStyle: { color: string };
-  lineStyle: { color: string };
+/**
+ * Whether a bar field should stack: field override wins over the panel default.
+ * Only bar series stack, so callers gate on the resolved render type.
+ */
+function resolveFieldStack(field: Field, panelStack = false): boolean {
+  const override = getFieldConfigFromField(field).custom?.stackSeries;
+  return override ?? panelStack;
 }
 
 /**
  * Convert Grafana time series DataFrames into ECharts series data.
+ * @todo take context instead of fn params
  */
 export function timeSeriesToEChartsOption(
-  series: DataFrame[],
-  seriesType: SeriesType,
-  theme: GrafanaTheme2
-): EChartsTimeSeries[] | null {
-  const echartsSeries: EChartsTimeSeries[] = [];
+  ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
+): Array<LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption> | null {
+  const { frames, theme, options, seriesType } = ctx;
+  const echartsSeries: LineSeriesOption[] = [];
 
-  forEachTimeSeriesField(series, ({ frame, field, timeField }) => {
+  forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
+    const type = resolveFieldSeriesType(field, seriesType);
+    const stacked = type === 'bar' && resolveFieldStack(field, options.stackSeries);
+
     echartsSeries.push({
-      name: getFieldDisplayName(field, frame, series),
-      type: resolveFieldSeriesType(field, seriesType),
+      name: getFieldDisplayName(field, frame, frames),
+      // @todo fix types
+      // @ts-expect-error
+      type,
       data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
       itemStyle: { color },
       lineStyle: { color },
+      zlevel: options.zLevel?.series,
+      ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+      // effectScatter ripples continuously with the default `showEffectOn: 'render'`,
+      // which never lets the chart settle. Trigger the ripple on hover instead so
+      // the render animation completes (and the points draw as static markers).
+      // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
+      ...(type === 'effectScatter' ? { showEffectOn: 'emphasis' } : {}),
     });
   });
 

@@ -50,11 +50,7 @@ export function isLegendVisible(legend?: VizLegendOptions): boolean {
     return false;
   }
 
-  return (
-    legend.showLegend !== false &&
-    legend.isVisible !== false &&
-    legend.displayMode !== LegendDisplayMode.Hidden
-  );
+  return legend.showLegend !== false && legend.isVisible !== false && legend.displayMode !== LegendDisplayMode.Hidden;
 }
 
 /**
@@ -120,9 +116,11 @@ export function getCartesianGrid(legend?: VizLegendOptions) {
     return grid;
   }
 
-  if ((legend?.placement ?? 'bottom') === 'right') {
-    const width = legend?.width;
-    return { ...grid, right: width && width > 0 ? width + 24 : 120 };
+  if (legend?.placement === 'right') {
+    // Legend width is kept numeric (see `editor/legend`); coerce defensively in
+    // case a legacy string value (px/%) reaches us from provisioned JSON.
+    const width = Number(legend?.width) || 0;
+    return { ...grid, right: width > 0 ? width + 24 : 120 };
   }
 
   return { ...grid, bottom: 48 };

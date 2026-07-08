@@ -1,4 +1,4 @@
-import { HeatmapColorScheme } from 'lib/echarts/options/types';
+import { type HeatmapColorScheme } from 'lib/echarts/options/types';
 
 export const heatmapColorSchemeDefault: HeatmapColorScheme = 'spectral';
 /**

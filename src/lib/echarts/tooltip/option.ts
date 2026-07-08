@@ -1,7 +1,6 @@
-import { type GrafanaTheme2 } from '@grafana/data';
+import { type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
-import { type ValueFormatter } from 'lib/echarts/style';
 import { type TooltipOption } from 'echarts/types/dist/shared';
 import { convertThemePxToNumeric } from 'lib/grafana/converters/theme';
 import { type CrossStyle, type EChartsTooltipTrigger } from './eChartsTypes';
@@ -69,10 +68,12 @@ const getTooltipPosition: NonNullable<TooltipOption['position']> = (point, _para
   const [tooltipWidth, tooltipHeight] = size.contentSize;
   const [viewWidth, viewHeight] = size.viewSize;
 
-  const x = cursorX + TOOLTIP_CURSOR_GAP + tooltipWidth > viewWidth
+  const x =
+    cursorX + TOOLTIP_CURSOR_GAP + tooltipWidth > viewWidth
       ? cursorX - tooltipWidth - TOOLTIP_CURSOR_GAP
       : cursorX + TOOLTIP_CURSOR_GAP;
-  const y = cursorY + TOOLTIP_CURSOR_GAP + tooltipHeight > viewHeight
+  const y =
+    cursorY + TOOLTIP_CURSOR_GAP + tooltipHeight > viewHeight
       ? cursorY - tooltipHeight - TOOLTIP_CURSOR_GAP
       : cursorY + TOOLTIP_CURSOR_GAP;
 

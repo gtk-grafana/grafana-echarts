@@ -1,4 +1,10 @@
-import { createDataFrame, DataFrameType, FieldType, getPanelDataSummary, VisualizationSuggestionScore } from '@grafana/data';
+import {
+  createDataFrame,
+  DataFrameType,
+  FieldType,
+  getPanelDataSummary,
+  VisualizationSuggestionScore,
+} from '@grafana/data';
 import { partToWholeSuggestionsSupplier } from './suggestions';
 
 describe('partToWholeSuggestionsSupplier', () => {

@@ -23,7 +23,15 @@ describe('panelTypeToAxis', () => {
     expect(panelTypeToAxis('radar')).toBe('category');
   });
 
+  it('routes multi-value types by axis support: candlestick needs a time field, boxplot falls back to category', () => {
+    expect(panelTypeToAxis('candlestick')).toBe('time');
+    expect(panelTypeToAxis('boxplot')).toBe('time');
+    expect(panelTypeToAxis('boxplot', false)).toBe('category');
+    // candlestick has no category-axis fallback, so a time-less frame is unsupported
+    expect(() => panelTypeToAxis('candlestick', false)).toThrow();
+  });
+
   it('defaults unmapped types to a category axis instead of throwing', () => {
-    expect(panelTypeToAxis('gauge')).toBe('category');
+    expect(() => panelTypeToAxis('gauge')).toThrow();
   });
 });
