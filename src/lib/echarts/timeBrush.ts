@@ -70,11 +70,12 @@ function isFiniteNumberPair(value: unknown): value is [number, number] {
  * ECharts, but we normalize defensively).
  */
 export function brushEndToTimeRange(event: BrushModel): AbsoluteTimeRange | null {
-  const coordRange = event.areas?.[0]?.coordRange;
+  const coordRange = event?.areas?.[0]?.coordRange;
   if (!isFiniteNumberPair(coordRange)) {
     debug('Invalid coordinate range', LOG_LEVELS.warn, { coordRange, event });
     return null;
   }
+  debug('Valid coordinate range', LOG_LEVELS.debug, { coordRange });
 
   const from = Math.round(Math.min(coordRange[0], coordRange[1]));
   const to = Math.round(Math.max(coordRange[0], coordRange[1]));
