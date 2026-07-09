@@ -24,7 +24,7 @@ function findNumericFieldByName(frame: DataFrame, name: string): Field | undefin
 }
 
 /** Positional dimension array for one row: `field.values[row] ?? null` per field. */
-function rowValues(fields: Array<Field<number[]>>, row: number) {
+function rowValues(fields: Array<Field<number>>, row: number) {
   return fields.map((field) => field.values[row] ?? null);
 }
 
@@ -135,9 +135,8 @@ function buildBoxplot(
     name: seriesName(frame, 'Boxplot'),
     type: 'boxplot',
     zlevel,
-    // ECharts types boxplot values as `number | '-'`, but the plugin uses `null`
-    // for gaps (rendered identically at runtime and asserted by tests), so the
-    // gap-preserving rows are cast to the series' data type.
+    // ECharts types boxplot values as `number | '-'`, but the plugin uses `null` for gaps
+    // we might get runtime values of null for missing values within echarts, but the types are on the input from grafana
     data: rows.map((row) => rowValues(fields, row)),
     // Colored from the median field for a representative series color.
     itemStyle: { color: getSeriesColor(fields[2], theme) },

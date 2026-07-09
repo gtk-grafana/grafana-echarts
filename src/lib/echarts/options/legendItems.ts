@@ -111,7 +111,7 @@ export function buildMultiValueCartesianLegendItems(ctx: ChartContext<MultiValue
     return {
       label,
       fieldName: label,
-      color: chartSeries.itemStyle?.color as string | undefined,
+      color: chartSeries.itemStyle?.color?.toString(),
       yAxis: 1,
       getItemKey: () => `multiValue-${index}`,
       getDisplayValues: () => [],

@@ -1,13 +1,13 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { addLegendOptions } from 'editor/legend';
 import { cartesianOverrideOptions, seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
-import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
-import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
+import { addLegendOptions } from 'editor/legend';
+import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
+import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
 import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
-import { heatmapSuggestionsSupplier } from './suggestions';
 import { type PanelOptions } from 'types';
+import { heatmapSuggestionsSupplier } from './suggestions';
 
 // Heatmap family panel: renders Grafana heatmap frames as ECharts
 // cells. The family is fixed to `heatmap`; the shared Panel resolves the
@@ -55,9 +55,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
     builder.addSelect({
       path: seriesTypePath,
       name: seriesTypeName,
-      defaultValue: 'heatmap' as SeriesType,
+      defaultValue: 'heatmap',
       settings: {
-        options: [{ value: 'heatmap', label: 'heatmap' }] as Array<SelectableValue<SeriesType>>,
+        options: [{ value: 'heatmap', label: 'heatmap' }],
       },
       category: [seriesCategoryName],
     });

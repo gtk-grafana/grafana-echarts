@@ -186,7 +186,7 @@ export function buildTooltipContent(
   valueFormatter: ValueFormatter,
   theme: GrafanaTheme2
 ): HTMLElement {
-  const items = (Array.isArray(params) ? params : [params]) as TooltipParam[];
+  const items = (Array.isArray(params) ? params : [params]);
   const shell = buildTooltipShell(theme);
 
   const header = getHeader(items);
@@ -195,6 +195,7 @@ export function buildTooltipContent(
   }
 
   for (const item of items) {
+    // @todo fix type assertion
     let value = formatTooltipValue(item.value as OptionDataValue | OptionDataValue[], valueFormatter);
     // Slice charts (pie) expose the share of the whole as a percentage.
     if (typeof item.percent === 'number') {

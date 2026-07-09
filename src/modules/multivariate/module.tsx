@@ -1,11 +1,11 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { addLegendOptions } from 'editor/legend';
 import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
-import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
+import { addLegendOptions } from 'editor/legend';
+import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
-import { multivariateSuggestionsSupplier } from './suggestions';
 import { type PanelOptions } from 'types';
+import { multivariateSuggestionsSupplier } from './suggestions';
 
 // Multivariate family panel: radar built from the categorical model
 // (categories -> indicators, series -> polygons). The family is fixed to
@@ -30,9 +30,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
     builder.addSelect({
       path: seriesTypePath,
       name: seriesTypeName,
-      defaultValue: 'radar' as SeriesType,
+      defaultValue: 'radar',
       settings: {
-        options: [{ value: 'radar', label: 'radar' }] as Array<SelectableValue<SeriesType>>,
+        options: [{ value: 'radar', label: 'radar' }],
       },
       category: [seriesCategoryName],
     });
