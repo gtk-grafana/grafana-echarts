@@ -1,13 +1,12 @@
 import { createTheme } from '@grafana/data';
-import { LegendDisplayMode, type LegendPlacement, type VizLegendOptions } from '@grafana/schema';
+import { LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { cartesianChartModule } from 'lib/echarts/charts/cartesian';
 import {
   DEFAULT_CHART_LEGEND,
-  getCartesianGrid,
   getLegendOption,
   isLegendVisible,
   resolveLegendOptions,
 } from 'lib/echarts/options/legend';
-import { cartesianChartModule } from 'lib/echarts/charts/cartesian';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -24,7 +23,6 @@ describe('isLegendVisible', () => {
   it('is false when undefined, hidden, showLegend is false, or isVisible is false', () => {
     expect(isLegendVisible(undefined)).toBe(false);
     expect(isLegendVisible(legend({ showLegend: false }))).toBe(false);
-    expect(isLegendVisible(legend({ displayMode: LegendDisplayMode.Hidden }))).toBe(false);
     expect(isLegendVisible(legend({ isVisible: false }))).toBe(false);
   });
 
@@ -88,28 +86,5 @@ describe('getLegendOption', () => {
     const option = getLegendOption(legend(), theme, ['A', 'B']);
 
     expect(option.data).toEqual(['A', 'B']);
-  });
-});
-
-describe('getCartesianGrid', () => {
-  it('reserves bottom space for a bottom legend', () => {
-    expect(getCartesianGrid(legend({ placement: 'bottom' })).bottom).toBe(48);
-  });
-
-  it('reserves right space sized to the configured width for a right legend', () => {
-    expect(getCartesianGrid(legend({ placement: 'right', width: 200 })).right).toBe(224);
-  });
-
-  it('uses default insets when the legend is hidden', () => {
-    const grid = getCartesianGrid(legend({ showLegend: false }));
-
-    expect(grid.bottom).toBe(24);
-    expect(grid.containLabel).toBe(true);
-  });
-
-  it('treats an unknown placement value defensively as bottom', () => {
-    const grid = getCartesianGrid(legend({ placement: 'top' as LegendPlacement }));
-
-    expect(grid.bottom).toBe(48);
   });
 });

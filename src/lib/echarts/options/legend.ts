@@ -1,7 +1,7 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { defaultVizLegendOptions, LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
 import { type ChartModule } from 'lib/echarts/charts/types';
-import { LEGEND_FONT_SIZE, getThemeTextStyle } from 'lib/echarts/options/base';
+import { getThemeTextStyle, LEGEND_FONT_SIZE } from 'lib/echarts/options/base';
 import { type PanelOptions } from 'types';
 
 /** Subset of the ECharts `legend` option this plugin sets. */
@@ -105,22 +105,12 @@ export function getLegendOption(
   return { ...base, orient: 'horizontal', bottom: 0, left: 'left' };
 }
 
-/**
- * Grid insets for cartesian charts that reserve room for the legend so it does
- * not overlap the plot. `containLabel` keeps axis labels inside the grid.
- */
+const LEGEND_GRID_PADDING = 12
+const DEFAULT_GRID_PADDING = 8;
+
 export function getCartesianGrid(legend?: VizLegendOptions) {
-  const grid = { top: 16, left: 8, right: 16, bottom: 24, containLabel: true };
+  let right = legend?.placement === 'right' ? LEGEND_GRID_PADDING : 0;
+  let bottom = legend?.placement === 'bottom' ? LEGEND_GRID_PADDING : 0;
 
-  if (!isLegendVisible(legend)) {
-    return grid;
-  }
-
-  if ((legend?.placement ?? 'bottom') === 'right') {
-    // @grafana/schema types legend.width as number | string; coerce to pixels.
-    const width = Number(legend?.width) || 0;
-    return { ...grid, right: width > 0 ? width + 24 : 120 };
-  }
-
-  return { ...grid, bottom: 48 };
+  return { top: DEFAULT_GRID_PADDING, left: DEFAULT_GRID_PADDING, right, bottom, containLabel: true,  };
 }

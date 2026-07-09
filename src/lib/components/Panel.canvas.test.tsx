@@ -83,6 +83,7 @@ const getComponent = (
       placement: 'bottom',
       calcs: [],
     } as VizLegendOptions,
+    width,
     tooltip: { mode: TooltipDisplayMode.Single },
   };
 

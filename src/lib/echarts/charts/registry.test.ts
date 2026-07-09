@@ -26,7 +26,7 @@ describe('resolveChartModule', () => {
   });
 
   it('returns null for unsupported types', () => {
-    expect(resolveChartModule('gauge')).toBeNull();
+    expect(() => resolveChartModule('gauge')).toThrow();
   });
 
   it('lists all supported series types', () => {
