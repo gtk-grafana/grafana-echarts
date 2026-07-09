@@ -35,7 +35,7 @@ export const supportedChartSeriesTypes: SeriesType[] = [
  * Visualization Suggestions supplier, keeping cross-family mixing (heatmap +
  * line) contained to the composite heatmap panel that owns both layers.
  */
-export function resolveChartModule(seriesType: SeriesType): ChartModule | null {
+export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (seriesType === 'heatmap') {
     return heatmapChartModule;
   }
@@ -49,7 +49,7 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule | null {
   if (pieSeriesTypes.includes(seriesType)) {
     return pieModule;
   }
-  return null;
+  throw new Error(`Cannot resolve chart module, invalid ${seriesType}!`);
 }
 
 export { cartesianChartModule, heatmapChartModule, pieChartModule, radarChartModule };

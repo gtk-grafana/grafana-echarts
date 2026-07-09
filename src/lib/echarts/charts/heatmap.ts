@@ -33,6 +33,10 @@ function splitFrames(ctx: ChartContext) {
 
 export const heatmapChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
+  buildLegendItems() {
+    // Use the eCharts legend for now
+    return null;
+  },
 
   buildOption(ctx: ChartContext<HeatmapSeriesType>, { isGrafanaLegend }) {
     const { theme, options, seriesType, formatValue } = ctx;
