@@ -39,7 +39,7 @@ export const Panel: React.FC<Props> = ({
 
   const resolvedLegend = useMemo(() => resolveLegendOptions(chartModule, options), [chartModule, options]);
 
-  const isVizLegend = Boolean(resolvedLegend && isLegendVisible(resolvedLegend) && chartModule?.buildLegendItems);
+  const isVizLegend = isLegendVisible(resolvedLegend);
 
   const formatValue = useMemo(
     () => getRepresentativeFormatter(data.series, theme, timeZone),
@@ -60,7 +60,7 @@ export const Panel: React.FC<Props> = ({
   );
 
   const legendItems = useMemo(() => {
-    if (!isVizLegend || !chartModule?.buildLegendItems || !resolvedLegend) {
+    if (!isVizLegend) {
       return [];
     }
     return chartModule.buildLegendItems(chartContext, resolvedLegend.calcs ?? []);
@@ -89,9 +89,17 @@ export const Panel: React.FC<Props> = ({
 
   const renderLegend = useCallback(
     () => (
-      legendItems && <VizLayout.Legend placement={resolvedLegend.placement} width={resolvedLegend.width}>
+      <VizLayout.Legend placement={resolvedLegend.placement} width={resolvedLegend.width}>
         <PanelContextProvider value={legendContextValue}>
-          <VizLegend items={legendItems} isSortable={true} {...resolvedLegend} />
+          <VizLegend
+            items={legendItems}
+            displayMode={resolvedLegend.displayMode}
+            placement={resolvedLegend.placement}
+            sortBy={resolvedLegend.sortBy}
+            sortDesc={resolvedLegend.sortDesc}
+            isSortable={true}
+            limit={resolvedLegend.limit}
+          />
         </PanelContextProvider>
       </VizLayout.Legend>
     ),
@@ -103,20 +111,16 @@ export const Panel: React.FC<Props> = ({
   }
 
   return (
-    <VizLayout width={width} height={height} legend={legendItems && renderLegend()}>
+    <VizLayout width={width} height={height} legend={legendItems.length > 0 ? renderLegend() : null}>
       {(vizWidth: number, vizHeight: number) => (
-        <>
-          {chartModule && (
-            <EChart
-              chartContext={chartContext}
-              chartModule={chartModule}
-              isGrafanaLegend={isVizLegend}
-              onChangeTimeRange={onChangeTimeRange}
-              width={vizWidth}
-              height={vizHeight}
-            />
-          )}
-        </>
+        <EChart
+          chartContext={chartContext}
+          chartModule={chartModule}
+          isGrafanaLegend={isVizLegend}
+          onChangeTimeRange={onChangeTimeRange}
+          width={vizWidth}
+          height={vizHeight}
+        />
       )}
     </VizLayout>
   );

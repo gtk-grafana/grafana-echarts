@@ -63,7 +63,7 @@ function buildTimeOption(
   return {
     ...cartesianTimeDefaultOptions,
     legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
-    grid: getCartesianGrid(options.legend),
+    grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
     xAxis,
     yAxis,
     series: cartSeries,
@@ -94,7 +94,7 @@ function buildCategoryOption(
   return {
     ...cartesianCategoryDefaultOptions,
     legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
-    grid: getCartesianGrid(isGrafanaLegend ? options.legend : undefined),
+    grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
     xAxis,
     yAxis,
     series: categoryData.series,
