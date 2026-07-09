@@ -79,5 +79,10 @@
     "react": "19.2.7",
     "react-dom": "19.2.7"
   },
-  "packageManager": "pnpm@10.4.0"
+  "packageManager": "pnpm@10.4.0",
+  "pnpm": {
+    "patchedDependencies": {
+      "jest-canvas-mock@2.5.2": "patches/jest-canvas-mock@2.5.2.patch"
+    }
+  }
 }

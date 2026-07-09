@@ -75,7 +75,7 @@ exports[`Panel canvas renders cartesian bar stacking 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -364,7 +364,7 @@ exports[`Panel canvas renders cartesian bar stacking 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -664,7 +664,7 @@ exports[`Panel canvas renders cartesian boxplot renders 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -1748,7 +1748,7 @@ exports[`Panel canvas renders cartesian boxplot renders 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -2837,7 +2837,7 @@ exports[`Panel canvas renders cartesian candlestick renders 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -3774,7 +3774,7 @@ exports[`Panel canvas renders cartesian candlestick renders 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -4710,7 +4710,7 @@ exports[`Panel canvas renders cartesian renders default bar series 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -4925,7 +4925,7 @@ exports[`Panel canvas renders cartesian renders default bar series 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -5145,7 +5145,7 @@ exports[`Panel canvas renders cartesian renders default effectScatter series 1`]
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -5465,7 +5465,7 @@ exports[`Panel canvas renders cartesian renders default effectScatter series 1`]
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -5790,7 +5790,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -7151,7 +7151,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
     "props": {
       "value": 2,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {
@@ -7751,7 +7751,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -9112,7 +9112,7 @@ exports[`Panel canvas renders cartesian renders default grid 1`] = `
     "props": {
       "value": 2,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {
@@ -9772,7 +9772,7 @@ exports[`Panel canvas renders cartesian renders default line series 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -9930,7 +9930,7 @@ exports[`Panel canvas renders cartesian renders default line series 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -10421,7 +10421,7 @@ exports[`Panel canvas renders cartesian renders default line series 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -10579,7 +10579,7 @@ exports[`Panel canvas renders cartesian renders default line series 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -11020,7 +11020,7 @@ exports[`Panel canvas renders cartesian renders default scatter series 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},
@@ -11340,7 +11340,7 @@ exports[`Panel canvas renders cartesian renders default scatter series 1`] = `
     "props": {
       "value": 10,
     },
-    "type": "lineWidth",
+    "type": "miterLimit",
   },
   {
     "props": {},

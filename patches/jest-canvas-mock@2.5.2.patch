@@ -1,0 +1,13 @@
+diff --git a/lib/classes/CanvasRenderingContext2D.js b/lib/classes/CanvasRenderingContext2D.js
+index e1e4b8fe31826baadbdce3f48ee2a68455de8910..a74fa1739406b1d0656263e4f3c244da8e8c1a15 100644
+--- a/lib/classes/CanvasRenderingContext2D.js
++++ b/lib/classes/CanvasRenderingContext2D.js
+@@ -779,7 +779,7 @@ class CanvasRenderingContext2D {
+     const result = Number(value);
+     if (Number.isFinite(result) && result > 0) {
+       this._miterLimitStack[this._stackIndex] = result;
+-      const event = (0, _createCanvasEvent.default)('lineWidth', getTransformSlice(this), {
++      const event = (0, _createCanvasEvent.default)('miterLimit', getTransformSlice(this), {
+         value: result
+       });
+       this._events.push(event);
