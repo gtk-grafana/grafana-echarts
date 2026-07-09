@@ -111,10 +111,10 @@ function buildMultiValueOption(
   ctx: ChartContext<MultiValueSeriesType>,
   isGrafanaLegend: boolean
 ): ECBasicOption | null {
-  const { frames, theme, options, seriesType, formatValue, timeRange, timeZone } = ctx;
-  const multiValueData = multiValueCartesianToEChartsOption(frames, seriesType, theme, timeRange);
+  const { theme, options, formatValue, timeRange, timeZone } = ctx;
+  const multiValueData = multiValueCartesianToEChartsOption(ctx);
 
-  if (!multiValueData || multiValueData.series.length === 0) {
+  if (!multiValueData) {
     return null;
   }
 
@@ -163,8 +163,9 @@ export const cartesianChartModule: ChartModule = {
   },
 
   buildLegendItems(ctx, calcs) {
-    if (isMultiValueSeriesType(ctx.seriesType)) {
-      return buildMultiValueCartesianLegendItems(ctx.frames, ctx.theme, ctx.seriesType);
+    const seriesType = ctx.seriesType;
+    if (isMultiValueSeriesType(seriesType)) {
+      return buildMultiValueCartesianLegendItems({ ...ctx, seriesType });
     }
     return framesHaveTimeField(ctx.frames)
       ? buildTimeSeriesLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone)

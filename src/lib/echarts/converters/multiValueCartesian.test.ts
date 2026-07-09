@@ -1,7 +1,21 @@
-import { createTheme, dateTime, type DataFrame, FieldType, type TimeRange, toDataFrame } from '@grafana/data';
+import {
+  createTheme,
+  dateTime,
+  type DataFrame,
+  FieldType,
+  type TimeRange,
+  toDataFrame,
+  type ValueFormatter,
+} from '@grafana/data';
+import { seriesTypePath } from 'editor/constants';
+import { type MultiValueSeriesType } from 'editor/types';
+import { type ChartContext } from 'lib/echarts/charts/types';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
+import { type PanelOptions } from 'types';
 
 const theme = createTheme();
+
+const formatValue: ValueFormatter = (value) => ({ text: value == null ? '' : String(value) });
 
 /** Absolute time range from epoch-ms bounds, matching what the panel passes in. */
 const timeRange = (from: number, to: number): TimeRange => ({
@@ -9,6 +23,40 @@ const timeRange = (from: number, to: number): TimeRange => ({
   to: dateTime(to),
   raw: { from: dateTime(from), to: dateTime(to) },
 });
+
+// Wide default range that covers every fixture row (candlestick rows sit at
+// t=0 and t=60_000), so a test only narrows it when it asserts range filtering.
+const fullRange = timeRange(0, 60_000);
+
+/** Build a minimal ChartContext for the multi-value converter under test. */
+const makeContext = (
+  frames: DataFrame[],
+  seriesType: MultiValueSeriesType,
+  range: TimeRange = fullRange
+): ChartContext<MultiValueSeriesType> => ({
+  frames,
+  theme,
+  timeZone: 'utc',
+  timeRange: range,
+  options: { [seriesTypePath]: seriesType } as PanelOptions,
+  seriesType,
+  formatValue,
+});
+
+/** Run the converter, normalizing the ECharts `Arrayable` series into an array. */
+const run = (frames: DataFrame[], seriesType: MultiValueSeriesType, range?: TimeRange) => {
+  const result = multiValueCartesianToEChartsOption(makeContext(frames, seriesType, range));
+  if (result === null) {
+    return null;
+  }
+
+  const { categories, series } = result;
+  if (!Array.isArray(series)) {
+    throw new Error('Narrow series to array');
+  }
+
+  return { categories, series };
+};
 
 const ohlcFrame = (fieldNames = ['open', 'high', 'low', 'close']): DataFrame =>
   toDataFrame({
@@ -25,7 +73,7 @@ const ohlcFrame = (fieldNames = ['open', 'high', 'low', 'close']): DataFrame =>
 describe('multiValueCartesianToEChartsOption', () => {
   describe('candlestick', () => {
     it('maps OHLC fields to ECharts [open, close, low, high] order', () => {
-      const result = multiValueCartesianToEChartsOption([ohlcFrame()], 'candlestick', theme);
+      const result = run([ohlcFrame()], 'candlestick');
 
       expect(result).not.toBeNull();
       expect(result!.series).toHaveLength(1);
@@ -40,17 +88,13 @@ describe('multiValueCartesianToEChartsOption', () => {
     });
 
     it('labels each item by its timestamp (ISO), one per row', () => {
-      const result = multiValueCartesianToEChartsOption([ohlcFrame()], 'candlestick', theme);
+      const result = run([ohlcFrame()], 'candlestick');
 
       expect(result!.categories).toEqual([new Date(0).toISOString(), new Date(60_000).toISOString()]);
     });
 
     it('resolves OHLC fields case-insensitively', () => {
-      const result = multiValueCartesianToEChartsOption(
-        [ohlcFrame(['Open', 'HIGH', 'Low', 'Close'])],
-        'candlestick',
-        theme
-      );
+      const result = run([ohlcFrame(['Open', 'HIGH', 'Low', 'Close'])], 'candlestick');
 
       expect(result!.series[0].data).toEqual([
         [10, 18, 5, 20],
@@ -59,9 +103,9 @@ describe('multiValueCartesianToEChartsOption', () => {
     });
 
     it('resolves a color for the series', () => {
-      const result = multiValueCartesianToEChartsOption([ohlcFrame()], 'candlestick', theme);
+      const result = run([ohlcFrame()], 'candlestick');
 
-      expect(result!.series[0].itemStyle.color).toEqual(expect.any(String));
+      expect(result!.series[0].itemStyle?.color).toEqual(expect.any(String));
     });
 
     it('preserves zero but maps null/undefined to gaps', () => {
@@ -75,21 +119,21 @@ describe('multiValueCartesianToEChartsOption', () => {
         ],
       });
 
-      const result = multiValueCartesianToEChartsOption([frame], 'candlestick', theme);
+      const result = run([frame], 'candlestick');
 
       expect(result!.series[0].data).toEqual([[0, 3, null, null]]);
     });
 
     it('drops rows outside the dashboard time range when a time field is present', () => {
-      const result = multiValueCartesianToEChartsOption([ohlcFrame()], 'candlestick', theme, timeRange(0, 30_000));
+      const result = run([ohlcFrame()], 'candlestick', timeRange(0, 30_000));
 
       // Rows are at t=0 and t=60_000; only the first is within [0, 30_000].
       expect(result!.categories).toEqual([new Date(0).toISOString()]);
       expect(result!.series[0].data).toEqual([[10, 18, 5, 20]]);
     });
 
-    it('keeps every row when no time range is supplied', () => {
-      const result = multiValueCartesianToEChartsOption([ohlcFrame()], 'candlestick', theme);
+    it('keeps every row when the time range covers all rows', () => {
+      const result = run([ohlcFrame()], 'candlestick', timeRange(0, 60_000));
 
       expect(result!.series[0].data).toHaveLength(2);
     });
@@ -104,7 +148,21 @@ describe('multiValueCartesianToEChartsOption', () => {
         ],
       });
 
-      expect(multiValueCartesianToEChartsOption([frame], 'candlestick', theme)).toBeNull();
+      expect(run([frame], 'candlestick')).toBeNull();
+    });
+
+    it('places the series on the configured zlevel', () => {
+      const ctx = makeContext([ohlcFrame()], 'candlestick');
+      const result = multiValueCartesianToEChartsOption({
+        ...ctx,
+        options: { ...ctx.options, zLevel: { series: 3 } },
+      });
+      const series = result!.series;
+      if (!Array.isArray(series)) {
+        throw new Error('Narrow series to array');
+      }
+
+      expect(series[0].zlevel).toBe(3);
     });
   });
 
@@ -123,7 +181,7 @@ describe('multiValueCartesianToEChartsOption', () => {
       });
 
     it('maps named fields to [min, Q1, median, Q3, max] over a category axis', () => {
-      const result = multiValueCartesianToEChartsOption([boxFrame()], 'boxplot', theme);
+      const result = run([boxFrame()], 'boxplot');
 
       expect(result!.categories).toEqual(['a', 'b']);
       expect(result!.series[0]).toMatchObject({
@@ -137,7 +195,7 @@ describe('multiValueCartesianToEChartsOption', () => {
     });
 
     it('falls back to the first five numeric fields when names do not match', () => {
-      const result = multiValueCartesianToEChartsOption([boxFrame(['a', 'b', 'c', 'd', 'e'])], 'boxplot', theme);
+      const result = run([boxFrame(['a', 'b', 'c', 'd', 'e'])], 'boxplot');
 
       expect(result!.series[0].data).toEqual([
         [1, 3, 5, 7, 9],
@@ -146,7 +204,7 @@ describe('multiValueCartesianToEChartsOption', () => {
     });
 
     it('ignores the time range for a categorical (non-time) frame', () => {
-      const result = multiValueCartesianToEChartsOption([boxFrame()], 'boxplot', theme, timeRange(0, 1));
+      const result = run([boxFrame()], 'boxplot', timeRange(0, 1));
 
       expect(result!.categories).toEqual(['a', 'b']);
       expect(result!.series[0].data).toHaveLength(2);
@@ -163,7 +221,7 @@ describe('multiValueCartesianToEChartsOption', () => {
         ],
       });
 
-      expect(multiValueCartesianToEChartsOption([frame], 'boxplot', theme)).toBeNull();
+      expect(run([frame], 'boxplot')).toBeNull();
     });
   });
 
@@ -172,6 +230,6 @@ describe('multiValueCartesianToEChartsOption', () => {
       fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],
     });
 
-    expect(multiValueCartesianToEChartsOption([frame], 'candlestick', theme)).toBeNull();
+    expect(run([frame], 'candlestick')).toBeNull();
   });
 });
