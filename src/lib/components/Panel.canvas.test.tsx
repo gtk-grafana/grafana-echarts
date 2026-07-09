@@ -215,5 +215,66 @@ describe('Panel canvas renders', () => {
         });
       });
     });
+
+    describe('candlestick', () => {
+      // OHLC frame: fields resolved by name convention into [open, close, low, high].
+      const frame = toDataFrame({
+        name: 'BTC',
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497, 1783144294497, 1783147894497] },
+          { name: 'open', type: FieldType.number, values: [10, 18, 22, 15] },
+          { name: 'high', type: FieldType.number, values: [20, 25, 28, 24] },
+          { name: 'low', type: FieldType.number, values: [5, 12, 18, 11] },
+          { name: 'close', type: FieldType.number, values: [18, 22, 15, 21] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'candlestick', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    describe('boxplot', () => {
+      // Five aligned numeric fields over a category axis: [min, Q1, median, Q3, max].
+      const frame = toDataFrame({
+        name: 'latency',
+        fields: [
+          { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT'] },
+          { name: 'min', type: FieldType.number, values: [1, 2, 3] },
+          { name: 'q1', type: FieldType.number, values: [3, 4, 5] },
+          { name: 'median', type: FieldType.number, values: [5, 6, 7] },
+          { name: 'q3', type: FieldType.number, values: [7, 8, 9] },
+          { name: 'max', type: FieldType.number, values: [9, 10, 11] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'boxplot', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
   });
 });

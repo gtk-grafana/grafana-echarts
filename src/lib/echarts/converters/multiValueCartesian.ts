@@ -1,41 +1,22 @@
 import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type TimeRange } from '@grafana/data';
+import { type BoxplotSeriesOption, type CandlestickSeriesOption } from 'echarts';
 import { type MultiValueSeriesType } from 'editor/types';
+import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/charts/types';
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
+import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
 
-/**
- * @todo delete this local version of eChart types
- * One ECharts multi-value cartesian series drawn against a shared x-axis.
- *
- * Unlike the time-series shape (`[time, value]` tuples) or the single-value
- * category shape (plain y-values), each `data` item is a fixed-length array of
- * dimensions aligned to `categories[i]` by index (`null` renders a gap):
- * - candlestick: `[open, close, low, high]`
- *   (see https://echarts.apache.org/en/option.html#series-candlestick.data)
- * - boxplot: `[min, Q1, median, Q3, max]`
- *   (see https://echarts.apache.org/en/option.html#series-boxplot.data)
- */
-export interface MultiValueCartesianSeries {
-  name: string;
-  type: MultiValueSeriesType;
-  data: Array<Array<number | null>>;
-  itemStyle: { color: string };
-}
-
-/**
- * The two data-dependent pieces a multi-value cartesian chart needs: the shared
- * `categories` (x-axis labels) and the multi-dimension `series`. The caller
- * merges these into a base cartesian option with `xAxis.type: 'category'`.
- */
-export interface MultiValueCartesianData {
-  categories: string[];
-  series: MultiValueCartesianSeries[];
-}
+// Multi-value cartesian series carry several aligned dimensions per x position
+// instead of the single value of line/bar (`null` renders a gap):
+// - candlestick: `[open, close, low, high]`
+//   (see https://echarts.apache.org/en/option.html#series-candlestick.data)
+// - boxplot: `[min, Q1, median, Q3, max]`
+//   (see https://echarts.apache.org/en/option.html#series-boxplot.data)
 
 /** ECharts candlestick data order: `[open, close, low, high]`. */
-const CANDLESTICK_FIELDS = ['open', 'high', 'low', 'close'] as const;
+const CANDLESTICK_FIELDS = ['open', 'high', 'low', 'close'];
 /** ECharts boxplot data order (also the plugin's positional convention). */
-const BOXPLOT_FIELDS = ['min', 'q1', 'median', 'q3', 'max'] as const;
+const BOXPLOT_FIELDS = ['min', 'q1', 'median', 'q3', 'max'];
 
 /** First numeric field whose name matches `name` (case-insensitive). */
 function findNumericFieldByName(frame: DataFrame, name: string): Field | undefined {
@@ -43,7 +24,7 @@ function findNumericFieldByName(frame: DataFrame, name: string): Field | undefin
 }
 
 /** Positional dimension array for one row: `field.values[row] ?? null` per field. */
-function rowValues(fields: Field[], row: number): Array<number | null> {
+function rowValues(fields: Array<Field<number>>, row: number) {
   return fields.map((field) => field.values[row] ?? null);
 }
 
@@ -105,15 +86,22 @@ function seriesName(frame: DataFrame, fallback: string): string {
  *
  * See https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/candlestick/
  */
-function buildCandlestick(frame: DataFrame, theme: GrafanaTheme2, rows: number[]): MultiValueCartesianSeries | null {
+function buildCandlestick(
+  frame: DataFrame,
+  theme: GrafanaTheme2,
+  rows: number[],
+  zlevel: number | undefined
+): CandlestickSeriesOption | null {
   const [open, high, low, close] = CANDLESTICK_FIELDS.map((name) => findNumericFieldByName(frame, name));
   if (!open || !high || !low || !close) {
     return null;
   }
 
+
   return {
     name: seriesName(frame, 'OHLC'),
     type: 'candlestick',
+    zlevel,
     data: rows.map((row) => rowValues([open, close, low, high], row)),
     // Bullish/bearish (`color`/`color0`) styling is a render-step concern; this
     // single color is a fallback derived from the close field.
@@ -127,7 +115,12 @@ function buildCandlestick(frame: DataFrame, theme: GrafanaTheme2, rows: number[]
  * (`min`/`q1`/`median`/`q3`/`max`, case-insensitive) and otherwise fall back to
  * the first five numeric fields in order. Returns `null` with fewer than five.
  */
-function buildBoxplot(frame: DataFrame, theme: GrafanaTheme2, rows: number[]): MultiValueCartesianSeries | null {
+function buildBoxplot(
+  frame: DataFrame,
+  theme: GrafanaTheme2,
+  rows: number[],
+  zlevel: number | undefined
+): BoxplotSeriesOption | null {
   const numericFields = frame.fields.filter((field) => field.type === FieldType.number);
   const namedFields = BOXPLOT_FIELDS.map((name) => findNumericFieldByName(frame, name));
   const fields = namedFields.every((field): field is Field => field !== undefined)
@@ -141,6 +134,9 @@ function buildBoxplot(frame: DataFrame, theme: GrafanaTheme2, rows: number[]): M
   return {
     name: seriesName(frame, 'Boxplot'),
     type: 'boxplot',
+    zlevel,
+    // ECharts types boxplot values as `number | '-'`, but the plugin uses `null` for gaps
+    // we might get runtime values of null for missing values within echarts, but the types are on the input from grafana
     data: rows.map((row) => rowValues(fields, row)),
     // Colored from the median field for a representative series color.
     itemStyle: { color: getSeriesColor(fields[2], theme) },
@@ -153,22 +149,22 @@ function buildBoxplot(frame: DataFrame, theme: GrafanaTheme2, rows: number[]): M
  *
  * Each x position carries multiple aligned numeric dimensions instead of the
  * single value of line/bar. Only the first frame with a numeric field is used
- * (single-frame limitation shared with the categorical model), and the render
- * type (`chartType`) selects both the field mapping and the ECharts series type.
+ * (single-frame limitation shared with the categorical model), and the context's
+ * `seriesType` selects both the field mapping and the ECharts series type.
  *
- * When `timeRange` is supplied and the frame has a time field, rows outside the
- * range are dropped so the panel tracks the dashboard time window.
+ * The frame's `zLevel.series` (from `options`) is applied to the built series so
+ * it paints on its own zrender layer, matching the single-value cartesian paths.
+ * When the frame has a time field, rows outside the context's `timeRange` are
+ * dropped so the panel tracks the dashboard time window.
  *
  * Returns `null` when no usable multi-value data can be derived, so callers can
  * fall back to a no-data view.
  */
 export function multiValueCartesianToEChartsOption(
-  series: DataFrame[],
-  chartType: MultiValueSeriesType,
-  theme: GrafanaTheme2,
-  timeRange?: TimeRange
-): MultiValueCartesianData | null {
-  const frame = findCategoricalFrame(series);
+  ctx: ChartContext<MultiValueSeriesType>
+): CategoryCartesianData<MultiValueCartesianOption['series']> | null {
+  const { frames, theme, seriesType, timeRange, options } = ctx;
+  const frame = findCategoricalFrame(frames);
   if (!frame) {
     return null;
   }
@@ -176,8 +172,12 @@ export function multiValueCartesianToEChartsOption(
   // Time-based frames are constrained to the dashboard range; categorical frames
   // keep every row (see resolveRowIndices).
   const rows = resolveRowIndices(frame, timeRange);
+  const zlevel = options.zLevel?.series;
 
-  const built = chartType === 'candlestick' ? buildCandlestick(frame, theme, rows) : buildBoxplot(frame, theme, rows);
+  const built =
+    seriesType === 'candlestick'
+      ? buildCandlestick(frame, theme, rows, zlevel)
+      : buildBoxplot(frame, theme, rows, zlevel);
   if (!built) {
     return null;
   }

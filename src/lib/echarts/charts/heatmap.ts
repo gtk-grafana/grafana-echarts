@@ -59,7 +59,7 @@ export const heatmapChartModule: ChartModule = {
     }
 
     const overlayValueAxis = mergeAxisStyle(
-      cartesianTimeDefaultOptions.yAxis as Record<string, unknown>,
+      cartesianTimeDefaultOptions.yAxis,
       axisStyle,
       undefined,
       valueFormatter
@@ -68,7 +68,7 @@ export const heatmapChartModule: ChartModule = {
     const bucketAxisExtra = heatmap ? getHeatmapBucketAxis(heatmap) : {};
     const yAxis = heatmap
       ? [
-          mergeAxisStyle(cartesianTimeDefaultOptions.yAxis as Record<string, unknown>, axisStyle, {
+          mergeAxisStyle(cartesianTimeDefaultOptions.yAxis, axisStyle, {
             min: heatmap.yMin,
             max: heatmap.yMax,
             ...bucketAxisExtra,
@@ -81,7 +81,7 @@ export const heatmapChartModule: ChartModule = {
     const grid = heatmap ? { ...baseGrid, right: Number(baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH } : baseGrid;
 
     const xAxisIsTime = cartSeries.length > 0 || (heatmap ? heatmap.xIsTime : true);
-    const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis as Record<string, unknown>, axisStyle, {
+    const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis, axisStyle, {
       // Pin the time axis to the dashboard range so gappy panels stay aligned;
       // non-time (value) buckets keep their data-derived extent. Time labels use
       // Grafana's timezone-aware formatter to match the tz-aware tooltip.

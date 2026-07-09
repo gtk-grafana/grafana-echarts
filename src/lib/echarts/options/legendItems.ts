@@ -10,6 +10,7 @@ import {
 } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
 import type { MultiValueSeriesType } from 'editor/types';
+import { type ChartContext } from 'lib/echarts/charts/types';
 import { findCategoricalFrame, forEachTimeSeriesField, resolveCategories } from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
 import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
@@ -98,24 +99,24 @@ export function buildCategoryCartesianLegendItems(
  * multi-dimensional array (OHLC / five-number summary), so a single reduced
  * value would be misleading.
  */
-export function buildMultiValueCartesianLegendItems(
-  series: DataFrame[],
-  theme: GrafanaTheme2,
-  chartType: MultiValueSeriesType
-): VizLegendItem[] {
-  const data = multiValueCartesianToEChartsOption(series, chartType, theme);
+export function buildMultiValueCartesianLegendItems(ctx: ChartContext<MultiValueSeriesType>): VizLegendItem[] {
+  const data = multiValueCartesianToEChartsOption(ctx);
   if (!data) {
     return [];
   }
 
-  return data.series.map((chartSeries, index) => ({
-    label: chartSeries.name,
-    fieldName: chartSeries.name,
-    color: chartSeries.itemStyle.color,
-    yAxis: 1,
-    getItemKey: () => `multiValue-${index}`,
-    getDisplayValues: () => [],
-  }));
+  const series = Array.isArray(data.series) ? data.series : data.series ? [data.series] : [];
+  return series.map((chartSeries, index) => {
+    const label = chartSeries.name?.toString() ?? '';
+    return {
+      label,
+      fieldName: label,
+      color: chartSeries.itemStyle?.color?.toString(),
+      yAxis: 1,
+      getItemKey: () => `multiValue-${index}`,
+      getDisplayValues: () => [],
+    };
+  });
 }
 
 export function buildRadarLegendItems(

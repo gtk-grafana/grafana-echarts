@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  jest-canvas-mock@2.5.2:
+    hash: dc8514334e01d95ac41193086e86beca41bdc7267f04114ed811469fac8d28ba
+    path: patches/jest-canvas-mock@2.5.2.patch
+
 importers:
 
   .:
@@ -128,10 +133,10 @@ importers:
         version: 30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2))
       jest-canvas-mock:
         specifier: 2.5.2
-        version: 2.5.2
+        version: 2.5.2(patch_hash=dc8514334e01d95ac41193086e86beca41bdc7267f04114ed811469fac8d28ba)
       jest-canvas-mock-compare:
         specifier: 0.1.0
-        version: 0.1.0(jest-canvas-mock@2.5.2)(jest-snapshot@30.4.1)(jest@30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2)))
+        version: 0.1.0(jest-canvas-mock@2.5.2(patch_hash=dc8514334e01d95ac41193086e86beca41bdc7267f04114ed811469fac8d28ba))(jest-snapshot@30.4.1)(jest@30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2)))
       jest-environment-jsdom:
         specifier: 30.4.1
         version: 30.4.1
@@ -8786,13 +8791,13 @@ snapshots:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
 
-  jest-canvas-mock-compare@0.1.0(jest-canvas-mock@2.5.2)(jest-snapshot@30.4.1)(jest@30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2))):
+  jest-canvas-mock-compare@0.1.0(jest-canvas-mock@2.5.2(patch_hash=dc8514334e01d95ac41193086e86beca41bdc7267f04114ed811469fac8d28ba))(jest-snapshot@30.4.1)(jest@30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2))):
     dependencies:
       jest: 30.4.2(@types/node@24.0.0)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.15.0(@swc/helpers@0.5.0))(@types/node@24.0.0)(typescript@5.9.2))
-      jest-canvas-mock: 2.5.2
+      jest-canvas-mock: 2.5.2(patch_hash=dc8514334e01d95ac41193086e86beca41bdc7267f04114ed811469fac8d28ba)
       jest-snapshot: 30.4.1
 
-  jest-canvas-mock@2.5.2:
+  jest-canvas-mock@2.5.2(patch_hash=dc8514334e01d95ac41193086e86beca41bdc7267f04114ed811469fac8d28ba):
     dependencies:
       cssfontparser: 1.2.1
       moo-color: 1.0.3

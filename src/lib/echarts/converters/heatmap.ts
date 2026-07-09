@@ -142,7 +142,7 @@ function rowsToCells(frame: DataFrame, series: DataFrame[]): FrameHeatmap {
     return EMPTY_FRAME_HEATMAP;
   }
 
-  const xs = xField.values as number[];
+  const xs = xField.values;
   const xStep = minPositiveStep(xs);
 
   // Order rows by their numeric `le` upper bound when present so stacked bucket
@@ -219,8 +219,8 @@ function cellsToCells(frame: DataFrame): FrameHeatmap {
   }
 
   const rowCount = frame.length;
-  const xStep = xCenter ? minPositiveStep(xCenter.values as number[]) : 1;
-  const yStep = yCenter ? minPositiveStep(yCenter.values as number[]) : 1;
+  const xStep = xCenter ? minPositiveStep(xCenter.values) : 1;
+  const yStep = yCenter ? minPositiveStep(yCenter.values) : 1;
 
   const cells: HeatmapCell[] = [];
   // Distinct Y bucket bounds (cells repeat the same row across X), keyed to

@@ -198,6 +198,7 @@ export const Panel: React.FC<Props> = ({
       // Candlestick/boxplot render on a category axis, whose `coordRange` is in
       // category-index units; read the rendered x-axis so those indices can be
       // mapped back to timestamps. `getOption` normalizes `xAxis` to an array.
+      // @todo remove type assertion
       const option = chart.getOption() as { xAxis?: BrushXAxisInfo[] };
       const range = brushEndToTimeRange(event, option?.xAxis?.[0]);
       // Clear the selection highlight so it does not linger through the refetch.
