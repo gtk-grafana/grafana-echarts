@@ -11,6 +11,7 @@ import {
 import { HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
 import { getHeatmapBucketAxis, getHeatmapSeries, getHeatmapVisualMap } from 'lib/echarts/options/heatmap';
 import { DEFAULT_CHART_LEGEND, getCartesianGrid } from 'lib/echarts/options/legend';
+import { buildTimeSeriesLegendItems } from 'lib/echarts/options/legendItems';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
 import { type ChartContext, type ChartModule } from './types';
 
@@ -33,9 +34,11 @@ function splitFrames(ctx: ChartContext) {
 
 export const heatmapChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
-  buildLegendItems() {
-    // Use the eCharts legend for now
-    return [];
+  buildLegendItems(ctx, calcs) {
+    // Heatmap cells are represented by the ECharts visualMap (see buildOption);
+    // only the overlaid cartesian series belong in the Grafana DOM legend.
+    const overlayFrames = ctx.frames.filter(frameHasCartesianOverride);
+    return buildTimeSeriesLegendItems(overlayFrames, ctx.theme, calcs, ctx.timeZone);
   },
 
   buildOption(ctx: ChartContext<HeatmapSeriesType>, { isGrafanaLegend }) {
@@ -99,8 +102,6 @@ export const heatmapChartModule: ChartModule = {
 
     return {
       ...cartesianTimeDefaultOptions,
-      // @todo clean up
-      // legend: getLegendOption(options.legend, theme, heatmap ? cartSeries.map((s) => s.name) : undefined),
       grid,
       xAxis,
       yAxis,
