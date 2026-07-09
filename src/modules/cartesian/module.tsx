@@ -1,6 +1,6 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { addLegendOptions } from 'editor/legend';
+import { commonOptionsBuilder } from '@grafana/ui';
 import {
   cartesianOverrideOptions,
   cartesianSeriesTypeOptions,
@@ -97,9 +97,8 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
       });
 
     // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,
-    // Width, Limit, Values), with a numeric pixel-only Width editor (see
-    // `editor/legend`), registered in their own category.
-    addLegendOptions(builder);
+    // Width, Limit, Values), registered in their own category.
+    commonOptionsBuilder.addLegendOptions(builder);
 
     // Tooltip mode maps to the ECharts native tooltip trigger (see
     // `tooltipTriggerForMode`): Single hovers a single item, All shares the x
