@@ -34,8 +34,9 @@ export interface BaseOptionParts {
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
+  // @todo replace null with reason why chart cannot render?
   buildOption(ctx: ChartContext, base: BaseOptionParts): ECBasicOption | null;
-  buildLegendItems?(ctx: ChartContext, calcs: string[]): VizLegendItem[];
+  buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];
 }
 
 // @todo EffectScatterSeriesOption seems to differ from the ScatterSeriesOption which causes some type errors, excluding it for now as I'm leaning towards removing that panel type for now if it keeps acting up

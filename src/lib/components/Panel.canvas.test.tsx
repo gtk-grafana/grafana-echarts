@@ -12,7 +12,7 @@ import {
   type TimeRange,
   toDataFrame,
 } from '@grafana/data';
-import { LegendDisplayMode, TooltipDisplayMode } from '@grafana/schema';
+import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions } from '@grafana/schema';
 import { render, waitFor } from '@testing-library/react';
 import { type EChartsType } from 'echarts';
 import { cartesianTimeSeriesTypes, seriesTypePath } from 'editor/constants';
@@ -20,7 +20,7 @@ import { type SeriesType } from 'editor/types';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import React from 'react';
 import { readLayeredCanvasEvents, removeCanvasClear, SERIES_ZLEVEL, setupECharts } from 'test/canvas';
-import { type PanelLegendOptions, type PanelOptions } from 'types';
+import { type PanelOptions } from 'types';
 import { Panel } from './Panel';
 
 // Integration test: render the real <Panel /> (React glue + ECharts init +
@@ -82,7 +82,8 @@ const getComponent = (
       displayMode: LegendDisplayMode.List,
       placement: 'bottom',
       calcs: [],
-    } as PanelLegendOptions,
+    } as VizLegendOptions,
+    width,
     tooltip: { mode: TooltipDisplayMode.Single },
   };
 

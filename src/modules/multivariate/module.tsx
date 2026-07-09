@@ -1,7 +1,7 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
+import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
-import { addLegendOptions } from 'editor/legend';
 import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
@@ -37,7 +37,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
       category: [seriesCategoryName],
     });
 
-    addLegendOptions(builder);
+    commonOptionsBuilder.addLegendOptions(builder);
 
     builder.addRadio({
       path: 'tooltip.mode',

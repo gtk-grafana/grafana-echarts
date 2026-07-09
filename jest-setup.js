@@ -35,6 +35,36 @@ for (const dimension of ['Width', 'Height']) {
   });
 }
 
+// jsdom ships no ResizeObserver, so `@grafana/ui`'s `VizLayout` (via react-use's
+// `useMeasure`) measures its legend as 0x0 and then refuses to render its
+// measure-gated children (the chart) at all. Provide a minimal synchronous
+// ResizeObserver that reports the element's inline-style-derived client size
+// (see the clientWidth/Height shim above), falling back to a small non-zero box
+// so the legend measures a sensible size and the chart mounts.
+// https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
+const FALLBACK_MEASURE_WIDTH = 240;
+const FALLBACK_MEASURE_HEIGHT = 40;
+
+global.ResizeObserver = class ResizeObserver {
+  constructor(callback) {
+    this.callback = callback;
+  }
+
+  observe(element) {
+    const width = element.clientWidth || FALLBACK_MEASURE_WIDTH;
+    const height = element.clientHeight || FALLBACK_MEASURE_HEIGHT;
+    this.callback([
+      {
+        target: element,
+        contentRect: { x: 0, y: 0, top: 0, left: 0, right: width, bottom: height, width, height },
+      },
+    ]);
+  }
+
+  unobserve() {}
+  disconnect() {}
+};
+
 // jest-canvas-mock installs a recording 2D canvas context (exposing `__getEvents`),
 // replacing jsdom's unimplemented getContext. This lets ECharts actually draw in
 // tests so canvas snapshot matchers can compare the emitted draw calls.
