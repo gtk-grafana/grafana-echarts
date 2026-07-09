@@ -48,3 +48,7 @@ ci/
 
 # Ephemeral canvas snapshot compare payloads (jest-canvas-mock-compare)
 /.jest-canvas-mock-compare/
+
+# Local provisionining
+provisioning/dashboards/local/*
+!provisioning/dashboards/local/.gitkeep

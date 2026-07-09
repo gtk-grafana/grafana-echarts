@@ -3,5 +3,10 @@ apiVersion: 1
 providers:
   - name: 'echarts'
     type: file
+    # Recurse into subdirectories and mirror the folder structure in Grafana,
+    # so committed dashboards land at the root and personal dashboards under
+    # `local/` (git-ignored) show up in a dedicated "local" folder.
+    # https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
     options:
       path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true
