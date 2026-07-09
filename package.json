@@ -10,7 +10,7 @@
     "lint": "eslint --cache .",
     "lint:fix": "pnpm run lint --fix && prettier --write --list-different .",
     "e2e": "playwright test",
-    "server": "docker compose up --build",
+    "server": "COMPOSE_PROJECT_NAME=${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-${GRAFANA_PORT:-3001}} docker compose up --build",
     "sign": "sign-plugin"
   },
   "author": "Grafana",
