@@ -1,9 +1,20 @@
 import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
-import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { HeatmapSeriesOption } from 'echarts';
+import {
+  type CallbackDataParams,
+  type ContinuousVisualMapOption,
+  type CustomSeriesRenderItem,
+  type TopLevelFormatterParams,
+} from 'echarts/types/dist/shared';
 import { formatBucketBound, type HeatmapCell, type HeatmapData } from 'lib/echarts/converters/heatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
 import { COLOR_SCHEMES, HEATMAP_VALUE_DIM, heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
-import { type HeatmapColorScheme, type HeatmapTooltipContext, type Rect } from 'lib/echarts/options/types';
+import {
+  type HeatmapColorScalePlacement,
+  type HeatmapColorScheme,
+  type HeatmapTooltipContext,
+  type Rect,
+} from 'lib/echarts/options/types';
 import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
 
 /**
@@ -87,44 +98,68 @@ function clipRectByRect(target: Rect, clip: Rect): Rect | undefined {
 }
 
 /**
- * `renderItem` for the heatmap custom series: convert each cell's two corners to
- * pixels via `api.coord`, draw a rect clipped to the grid, and fill it with the
- * color the visualMap computed for this item (`api.visual('color')`). Works on a
- * continuous `time` x-axis, unlike the native heatmap series.
+ * Canvas shadow applied to a cell in its emphasis (hover) state. Assignable to
+ * an element's `emphasis.style` (a subset of ECharts' path style props).
  */
-export function heatmapRenderItem(params: any, api: any) {
-  const xStart = api.value(0);
-  const yStart = api.value(1);
-  const xEnd = api.value(2);
-  const yEnd = api.value(3);
+export interface HeatmapCellShadow {
+  shadowBlur: number;
+  shadowColor: string;
+}
 
-  const start = api.coord([xStart, yStart]);
-  const end = api.coord([xEnd, yEnd]);
-
-  const rect = {
-    x: Math.min(start[0], end[0]),
-    y: Math.min(start[1], end[1]),
-    // +0.5 closes sub-pixel seams between adjacent cells.
-    width: Math.abs(end[0] - start[0]) + 0.5,
-    height: Math.abs(end[1] - start[1]) + 0.5,
-  };
-
-  const coordSys = params.coordSys;
-  const shape = clipRectByRect(rect, {
-    x: coordSys.x,
-    y: coordSys.y,
-    width: coordSys.width,
-    height: coordSys.height,
-  });
-
-  if (!shape) {
-    return;
-  }
-
+/**
+ * Approximate `theme.shadows.z3` for canvas rendering. The theme's z3 is a CSS
+ * box-shadow string that can't be applied to a canvas element, so we map it to a
+ * fixed blur plus a theme-derived shadow color (darker/denser on dark themes).
+ * Used by the cells' emphasis state so hovering the visualMap (`hoverLink`) or a
+ * cell lifts the matching cells, mirroring the ECharts heatmap-cartesian example.
+ */
+export function getHeatmapCellEmphasisShadow(theme: GrafanaTheme2): HeatmapCellShadow {
   return {
-    type: 'rect',
-    shape,
-    style: api.style({ fill: api.visual('color') }),
+    shadowBlur: 10,
+    shadowColor: theme.isDark ? 'rgba(0, 0, 0, 0.75)' : 'rgba(0, 0, 0, 0.35)',
+  };
+}
+
+/**
+ * Build the `renderItem` for the heatmap custom series: convert each cell's two
+ * corners to pixels via `api.coord`, draw a rect clipped to the grid, and fill it
+ * with the color the visualMap computed for this item (`api.visual('color')`).
+ * Works on a continuous `time` x-axis, unlike the native heatmap series.
+ *
+ * The returned rect carries an `emphasis.style` shadow so hovering the visualMap
+ * (`hoverLink`) or an individual cell lifts the matching cells.
+ * See https://echarts.apache.org/en/option.html#series-custom.renderItem
+ */
+export function makeHeatmapRenderItem(emphasisShadow: HeatmapCellShadow): CustomSeriesRenderItem {
+  return (params, api) => {
+    const start = api.coord([api.value(0), api.value(1)]);
+    const end = api.coord([api.value(2), api.value(3)]);
+
+    const rect: Rect = {
+      x: Math.min(start[0], end[0]),
+      y: Math.min(start[1], end[1]),
+      // +0.5 closes sub-pixel seams between adjacent cells.
+      width: Math.abs(end[0] - start[0]) + 0.5,
+      height: Math.abs(end[1] - start[1]) + 0.5,
+    };
+
+    // ECharts types `coordSys` only as `{ type }`, but on cartesian2d it also
+    // carries the grid rect at runtime; narrow to our Rect to clip against it.
+    const coordSys = params.coordSys as unknown as Rect;
+    const shape = clipRectByRect(rect, coordSys);
+
+    if (!shape) {
+      return;
+    }
+
+    return {
+      type: 'rect',
+      shape,
+      // Fill each cell with the color the visualMap computed for this item.
+      // (`api.style()` is deprecated for custom series; set the style directly.)
+      style: { fill: api.visual('color') },
+      emphasis: { style: emphasisShadow },
+    };
   };
 }
 
@@ -176,13 +211,17 @@ export function buildHeatmapTooltip(
 /**
  * Build the heatmap custom series. `yAxisIndex` defaults to 0 (the bucket axis).
  */
-export function getHeatmapSeries(data: HeatmapData, tooltipCtx: HeatmapTooltipContext, yAxisIndex = 0) {
+export function getHeatmapSeries(
+  data: HeatmapData,
+  tooltipCtx: HeatmapTooltipContext,
+  yAxisIndex = 0
+): HeatmapSeriesOption {
   return {
     name: 'Heatmap',
-    type: 'custom',
+    type: 'heatmap',
     coordinateSystem: 'cartesian2d',
     yAxisIndex,
-    renderItem: heatmapRenderItem,
+    // renderItem: makeHeatmapRenderItem(getHeatmapCellEmphasisShadow(tooltipCtx.theme)),
     // Map tuple dims to axes: x spans dims [0, 2] (xStart..xEnd), y spans [1, 3]
     // (yStart..yEnd), and the tooltip reads the value dim.
     // See https://echarts.apache.org/en/option.html#series-custom.encode
@@ -198,15 +237,26 @@ export function getHeatmapSeries(data: HeatmapData, tooltipCtx: HeatmapTooltipCo
 
 /**
  * Continuous visualMap that colors only the heatmap series (by `seriesIndex`).
- * Rendered vertically on the right so it does not clash with a bottom legend;
- * sized to the cell value range.
+ * Placed on the right (vertical) by default or on the bottom (horizontal), sized
+ * to the cell value range. `hoverLink` (on by default) highlights the cells in a
+ * hovered value range; the highlight shadow lives on the series emphasis state
+ * (see {@link makeHeatmapRenderItem}).
+ * See https://echarts.apache.org/en/option.html#visualMap-continuous
  */
 export function getHeatmapVisualMap(
   data: HeatmapData,
   theme: GrafanaTheme2,
   seriesIndex: number,
-  scheme?: HeatmapColorScheme
-) {
+  scheme?: HeatmapColorScheme,
+  placement: HeatmapColorScalePlacement = 'right'
+): ContinuousVisualMapOption {
+  // Position/size the bar per placement. ECharts positions accept a number (px)
+  // or a percent/keyword string, so plain px numbers are used here.
+  const orientation: Pick<ContinuousVisualMapOption, 'orient' | 'left' | 'right' | 'top' | 'bottom' | 'itemWidth' | 'itemHeight'> =
+    placement === 'bottom'
+      ? { orient: 'horizontal', bottom: 8, left: 'center', itemWidth: 120, itemHeight: 12 }
+      : { orient: 'vertical', right: 8, top: 'middle', itemWidth: 12, itemHeight: 120 };
+
   return {
     type: 'continuous',
     min: data.valueMin,
@@ -214,12 +264,9 @@ export function getHeatmapVisualMap(
     dimension: HEATMAP_VALUE_DIM,
     seriesIndex,
     calculable: true,
-    orient: 'vertical',
-    right: 8,
-    top: 'middle',
-    itemWidth: 12,
-    itemHeight: 120,
+    hoverLink: true,
+    ...orientation,
     inRange: { color: getHeatmapColors(scheme) },
-    textStyle: { ...getThemeTextStyle(theme) },
+    textStyle: getThemeTextStyle(theme),
   };
 }

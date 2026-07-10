@@ -6,9 +6,11 @@ import {
   type BoxplotSeriesOption,
   type CandlestickSeriesOption,
   type ComposeOption,
+  type EffectScatterSeriesOption,
+  type HeatmapSeriesOption,
+  type PieSeriesOption,
   type ScatterSeriesOption,
 } from 'echarts';
-import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
 import { type PanelOptions } from 'types';
@@ -30,12 +32,35 @@ export interface BaseOptionParts {
   isGrafanaLegend: boolean;
 }
 
+export type EChartHeatmapOption = ComposeOption<HeatmapSeriesOption>;
+export type EChartBarSeriesOption = ComposeOption<BarSeriesOption>;
+export type EChartLineSeriesOption = ComposeOption<LineSeriesOption>;
+export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;
+export type EChartPieSeriesOption = ComposeOption<PieSeriesOption>;
+export type EChartCandlestickSeriesOption = ComposeOption<CandlestickSeriesOption>;
+export type EChartBoxPlotSeriesOption = ComposeOption<BoxplotSeriesOption>;
+export type EChartEffectScatterSeriesOption = ComposeOption<EffectScatterSeriesOption>;
+
+export type EChartMultiValueCartesianSeriesOption = ComposeOption<CandlestickSeriesOption | BoxplotSeriesOption>;
+export type EChartCartesianSeriesOption = ComposeOption<BarSeriesOption | HeatmapSeriesOption | LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption>
+export type EChartBuildOption =
+  | EChartHeatmapOption
+  | EChartBarSeriesOption
+  | EChartLineSeriesOption
+  | EChartScatterSeriesOption
+  | EChartPieSeriesOption
+  | EChartCandlestickSeriesOption
+  | EChartBoxPlotSeriesOption
+  | EChartEffectScatterSeriesOption
+  | EChartCartesianSeriesOption
+  | EChartMultiValueCartesianSeriesOption;
+
 /** Self-contained chart family: option building, legend, and tooltip metadata. */
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
   // @todo replace null with reason why chart cannot render?
-  buildOption(ctx: ChartContext, base: BaseOptionParts): ECBasicOption | null;
+  buildOption(ctx: ChartContext, base: BaseOptionParts): EChartBuildOption | null;
   buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];
 }
 

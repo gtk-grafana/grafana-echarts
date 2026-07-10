@@ -43,3 +43,5 @@ export const COLOR_SCHEMES: Record<HeatmapColorScheme, string[]> = {
 export const HEATMAP_VALUE_DIM = 4;
 /** Reserved width (px) for the vertical visualMap color scale on the right. */
 export const HEATMAP_VISUALMAP_WIDTH = 60;
+/** Reserved height (px) for the horizontal visualMap color scale on the bottom. */
+export const HEATMAP_VISUALMAP_HEIGHT = 44;

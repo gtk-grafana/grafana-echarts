@@ -1,20 +1,7 @@
 import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import type { EChartPieSeriesOption } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
-
-/**
- * A single pie slice: a named category and its numeric value.
- *
- * `itemStyle.color` is taken from Grafana's classic palette by slice index,
- * mirroring how Core's pie panel colors slices by category.
- *
- * See https://echarts.apache.org/en/option.html#series-pie.data
- */
-export interface PieSlice {
-  name: string;
-  value: number | null;
-  itemStyle: { color: string };
-}
 
 /**
  * Convert Grafana data frames into ECharts pie slices.
@@ -34,7 +21,7 @@ export interface PieSlice {
  *
  * Returns `null` when no usable categorical data can be derived.
  */
-export function pieToEChartsOption(series: DataFrame[], theme: GrafanaTheme2): PieSlice[] | null {
+export function pieToEChartsOption(series: DataFrame[], theme: GrafanaTheme2): EChartPieSeriesOption | null {
   const categorical = frameToCategorical(series, theme);
 
   if (!categorical) {

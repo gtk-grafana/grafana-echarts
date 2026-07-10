@@ -1,11 +1,8 @@
 import { type Field, getFieldDisplayName } from '@grafana/data';
-import { type ScatterSeriesOption } from 'echarts';
-import { type CandlestickSeriesOption } from 'echarts/types/src/chart/candlestick/CandlestickSeries';
-import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { STACK_GROUP_ID } from 'editor/constants';
 import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type SeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
-import { type ChartContext } from 'lib/echarts/charts/types';
+import { type ChartContext, type EChartCartesianSeriesOption } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
 import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
@@ -13,7 +10,7 @@ import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 /**
  * Resolve the series type for a single value field: field override wins when cartesian.
  */
-function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesType {
+function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesType | CartesianSingleValueSeriesType {
   const seriesTypeOverride = getFieldConfigFromField(field).custom?.seriesType;
   if (seriesTypeOverride && isCartesianSingleValueSeriesType(seriesTypeOverride)) {
     return seriesTypeOverride;
@@ -35,19 +32,17 @@ function resolveFieldStack(field: Field, panelStack = false): boolean {
  */
 export function timeSeriesToEChartsOption(
   ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
-): Array<LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption> | null {
+): Array<EChartCartesianSeriesOption['series']> | null {
   const { frames, theme, options, seriesType } = ctx;
-  const echartsSeries: LineSeriesOption[] = [];
+  const echartsSeries: Array<EChartCartesianSeriesOption['series']> = [];
 
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
-    const type = resolveFieldSeriesType(field, seriesType);
+    const type = resolveFieldSeriesType(field, seriesType) as 'line' | 'bar' | 'scatter' | 'effectScatter';
     const stacked = type === 'bar' && resolveFieldStack(field, options.stackSeries);
 
     echartsSeries.push({
       name: getFieldDisplayName(field, frame, frames),
-      // @todo fix types
-      // @ts-expect-error
       type,
       data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
       itemStyle: { color },

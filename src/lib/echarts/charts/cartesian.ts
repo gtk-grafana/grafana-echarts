@@ -1,6 +1,5 @@
-import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { type MultiValueSeriesType, type CartesianSingleValueSeriesType } from 'editor/types';
-import { isMultiValueSeriesType, isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
+import { type CartesianSingleValueSeriesType, type MultiValueSeriesType } from 'editor/types';
+import { isCartesianSingleValueSeriesType, isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
@@ -19,7 +18,12 @@ import {
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
-import { type CartesianOption, type ChartContext, type ChartModule } from './types';
+import {
+  type ChartContext,
+  type ChartModule,
+  type EChartCartesianSeriesOption,
+  type EChartMultiValueCartesianSeriesOption,
+} from './types';
 
 // Cartesian family (Groups 1-2). The x-axis mode follows the data, not the
 // series type: time frames render on a `time` axis, while Numeric frames with no
@@ -30,7 +34,7 @@ import { type CartesianOption, type ChartContext, type ChartModule } from './typ
 function buildTimeOption(
   ctx: ChartContext<CartesianSingleValueSeriesType>,
   isGrafanaLegend: boolean
-): ECBasicOption | null {
+): EChartCartesianSeriesOption | null {
   const { theme, options, formatValue } = ctx;
 
   const cartSeries = timeSeriesToEChartsOption(ctx);
@@ -74,7 +78,7 @@ function buildTimeOption(
 function buildCategoryOption(
   ctx: ChartContext<CartesianSingleValueSeriesType>,
   isGrafanaLegend: boolean
-): CartesianOption | null {
+): EChartCartesianSeriesOption | null {
   const { theme, options, formatValue, seriesType } = ctx;
 
   if (!isCartesianSingleValueSeriesType(seriesType)) {
@@ -110,7 +114,7 @@ function buildCategoryOption(
 function buildMultiValueOption(
   ctx: ChartContext<MultiValueSeriesType>,
   isGrafanaLegend: boolean
-): ECBasicOption | null {
+): EChartMultiValueCartesianSeriesOption | null {
   const { theme, options, formatValue, timeRange, timeZone } = ctx;
   const multiValueData = multiValueCartesianToEChartsOption(ctx);
 
@@ -143,7 +147,10 @@ function buildMultiValueOption(
 export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>, { isGrafanaLegend }) {
+  buildOption(
+    ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>,
+    { isGrafanaLegend }
+  ): EChartCartesianSeriesOption | EChartMultiValueCartesianSeriesOption | null{
     // @todo gate invalid frames and always throw in internal methods
 
     const seriesType = ctx.seriesType;

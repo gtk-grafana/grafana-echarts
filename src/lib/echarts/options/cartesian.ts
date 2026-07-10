@@ -3,6 +3,7 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 import {
   type AxisLabelValueFormatter,
   type NumericAxisBaseOptionCommon,
+  TimeAxisBaseOption,
 } from 'echarts/types/src/coord/axisCommonTypes';
 import { type CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';
@@ -42,9 +43,9 @@ export function getCartesianAxisStyle(theme: GrafanaTheme2) {
 
 /** Merge base axis config with theme styling and optional extras. */
 export function mergeAxisStyle(
-  baseAxis: CartesianAxisOption,
-  axisStyle: CartesianAxisOption,
-  extras?: CartesianAxisOption,
+  baseAxis: CartesianAxisOption | TimeAxisBaseOption,
+  axisStyle: CartesianAxisOption | TimeAxisBaseOption,
+  extras?: CartesianAxisOption | TimeAxisBaseOption,
   grafanaValueFormatter?: ValueFormatter
 ): NumericAxisBaseOptionCommon | CartesianAxisOption {
   const extraAxisLabel = extras?.axisLabel ?? {};

@@ -3,9 +3,10 @@ import { type OptionsWithLegend, type TooltipDisplayMode } from '@grafana/schema
 import { type seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 
-import { type HeatmapColorScheme } from 'lib/echarts/options/types';
+import { type HeatmapColorScalePlacement, type HeatmapColorScheme } from 'lib/echarts/options/types';
 
 export type { EChartsFieldConfig } from 'editor/types';
+export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
 
 /**
  * `OptionsWithLegend` contributes the standard Core Grafana `legend`
@@ -23,6 +24,9 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
   [seriesTypePath]: SeriesType;
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
+
+  /** Placement of the heatmap color scale (ECharts `visualMap`). */
+  heatmapColorScale?: { placement: HeatmapColorScalePlacement };
 
   /**
    * Bar series stacking
