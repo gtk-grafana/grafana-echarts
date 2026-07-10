@@ -1,5 +1,5 @@
 import { type DataFrame, type Field, type FieldConfig } from '@grafana/data';
-import { EChartsFieldConfig } from 'editor/types';
+import { type EChartsFieldConfig } from 'editor/types';
 
 /**
  * It has always bothered me that the exposed types include generics which make it very cumbersome to avoid type assertions
