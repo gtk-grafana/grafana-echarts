@@ -7,11 +7,13 @@ import {
   type CandlestickSeriesOption,
   type ComposeOption,
   type EffectScatterSeriesOption,
+  type GridComponentOption,
   type HeatmapSeriesOption,
   type PieSeriesOption,
   type RadarComponentOption,
   type RadarSeriesOption,
   type ScatterSeriesOption,
+  type VisualMapComponentOption,
 } from 'echarts';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
@@ -34,7 +36,21 @@ export interface BaseOptionParts {
   isGrafanaLegend: boolean;
 }
 
-export type EChartHeatmapOption = ComposeOption<HeatmapSeriesOption>;
+/**
+ * The composite option the heatmap panel builds: the heatmap cell series plus the
+ * cartesian overlay series, and the `grid`/`visualMap` components it configures.
+ * `GridComponentOption` also pulls in the typed `xAxis`/`yAxis` dependencies.
+ */
+export type EChartHeatmapOption = ComposeOption<
+  | HeatmapSeriesOption
+  | BarSeriesOption
+  | LineSeriesOption
+  | CandlestickSeriesOption
+  | ScatterSeriesOption
+  | EffectScatterSeriesOption
+  | GridComponentOption
+  | VisualMapComponentOption
+>;
 export type EChartBarSeriesOption = ComposeOption<BarSeriesOption>;
 export type EChartLineSeriesOption = ComposeOption<LineSeriesOption>;
 export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;

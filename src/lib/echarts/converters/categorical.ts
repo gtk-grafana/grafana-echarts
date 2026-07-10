@@ -30,7 +30,7 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
  * @todo should be able to select the string field instead of using the first
  */
 export function frameToCategorical(series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>, theme: GrafanaTheme2) {
-  const frame = findCategoricalFrame<number>(series);
+  const frame = findCategoricalFrame(series);
 
   if (!frame) {
     return null;

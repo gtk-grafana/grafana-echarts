@@ -17,7 +17,7 @@ import {
   type ChartContext,
   type ChartModule,
   type EChartSingleValueCartesianSeries,
-  type EChartCartesianSeriesOption,
+  type EChartHeatmapOption,
 } from './types';
 
 /**
@@ -46,7 +46,7 @@ export const heatmapChartModule: ChartModule = {
     return buildTimeSeriesLegendItems(overlayFrames, ctx.theme, calcs, ctx.timeZone);
   },
 
-  buildOption(ctx: ChartContext<HeatmapSeriesType>, { isGrafanaLegend }): EChartCartesianSeriesOption | null {
+  buildOption(ctx: ChartContext<HeatmapSeriesType>, { isGrafanaLegend }): EChartHeatmapOption | null {
     const { theme, options, seriesType, formatValue } = ctx;
     const placement = options.heatmapColorScale?.placement ?? 'right';
     const { overlayFrames, heatmap } = splitFrames(ctx);
@@ -115,8 +115,11 @@ export const heatmapChartModule: ChartModule = {
     return {
       ...cartesianTimeDefaultOptions,
       grid,
-      xAxis,
-      yAxis,
+      // ECharts types xAxis/yAxis as a discriminated union keyed on the axis `type`;
+      // the shared cartesian axis helpers are intentionally loose (any axis type),
+      // so assert the axis shape while keeping grid/visualMap/series fully typed.
+      xAxis: xAxis as EChartHeatmapOption['xAxis'],
+      yAxis: yAxis as EChartHeatmapOption['yAxis'],
       series,
       ...(heatmap ? { visualMap: getHeatmapVisualMap(heatmap, theme, 0, options.heatmapColorScheme, placement) } : {}),
     };

@@ -1,15 +1,17 @@
 import { type DataFrame, type Field, FieldType, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
 import { type EChartsFieldConfig } from 'editor/types';
 import { getSeriesColor } from 'lib/echarts/style';
+import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
  * First frame with at least one numeric field — the categorical chart source frame.
  */
-export function findCategoricalFrame<T>(series: DataFrame[]): FieldTypedDataFrame<T & unknown, EChartsFieldConfig> | undefined {
-  return series.find((frame) => frame.fields.some((field: Field<T>) => field.type === FieldType.number));
+export function findCategoricalFrame(
+  series: Array<FieldTypedDataFrame<unknown, EChartsFieldConfig>>
+): FieldTypedDataFrame<unknown, EChartsFieldConfig> | undefined {
+  return series.find((frame) => frame.fields.some(isNumberField));
 }
-
 /**
  * True when any frame carries a genuine time field.
  *
@@ -22,7 +24,7 @@ export function findCategoricalFrame<T>(series: DataFrame[]): FieldTypedDataFram
  * See https://grafana.com/developers/dataplane/
  */
 export function framesHaveTimeField(series: DataFrame[]): boolean {
-  return series.some((frame) => frame.fields.some((field) => field.type === FieldType.time));
+  return series.some((frame) => frame.fields.some(isTimeField));
 }
 
 /**
@@ -45,9 +47,13 @@ export interface MappedNumericField {
 /**
  * Map every numeric field in a frame to display metadata shared by converters and legends.
  */
-export function mapNumericFields(frame: FieldTypedDataFrame<number, EChartsFieldConfig>, series: DataFrame[], theme: GrafanaTheme2): MappedNumericField[] {
+export function mapNumericFields(
+  frame: FieldTypedDataFrame<unknown, EChartsFieldConfig>,
+  series: DataFrame[],
+  theme: GrafanaTheme2
+): MappedNumericField[] {
   return frame.fields
-    .filter((field) => field.type === FieldType.number)
+    .filter(isNumberField) // numeric fields only
     .map((field) => ({
       field,
       name: getFieldDisplayName(field, frame, series),
@@ -60,16 +66,16 @@ export interface TimeSeriesFieldRef {
   frameIndex: number;
   field: Field;
   fieldIndex: number;
-  timeField: Field;
+  timeField: Field<number>;
 }
 
 /**
  * Resolve the time (or fallback X) field for a frame, matching timeSeries converter logic.
  */
 export function resolveTimeField(frame: DataFrame): Field | undefined {
-  let timeField = frame.fields.find((field) => field.type === FieldType.time);
+  let timeField = frame.fields.find(isTimeField);
   if (!timeField) {
-    timeField = frame.fields.find((field) => field.type === FieldType.number);
+    timeField = frame.fields.find(isNumberField);
   }
   return timeField;
 }
