@@ -5,6 +5,7 @@ import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/c
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
+import { isTimeField } from 'lib/grafana/narrowing';
 import { FieldTypedDataFrame } from 'lib/grafana/types';
 
 // Multi-value cartesian series carry several aligned dimensions per x position
@@ -41,8 +42,7 @@ function rowValues(fields: Array<Field<number>>, row: number) {
  */
 function resolveRowIndices(frame: FieldTypedDataFrame<number | unknown, EChartsFieldConfig>, timeRange?: TimeRange): number[] {
   const allRows = Array.from({ length: frame.length }, (_, row) => row);
-  // @todo create narrowing function that asserts time fields are Field<number>
-  const timeField: Field<number> = frame.fields.find((field) => field.type === FieldType.time);
+  const timeField = frame.fields.find(isTimeField);
   if (!timeField || !timeRange) {
     return allRows;
   }
@@ -51,7 +51,7 @@ function resolveRowIndices(frame: FieldTypedDataFrame<number | unknown, EChartsF
   const to = timeRange.to.valueOf();
   return allRows.filter((row) => {
     const value = timeField.values[row];
-    return typeof value === 'number' && value >= from && value <= to;
+    return value >= from && value <= to;
   });
 }
 
