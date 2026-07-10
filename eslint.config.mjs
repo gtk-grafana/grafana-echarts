@@ -47,4 +47,33 @@ export default defineConfig([
       '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
     },
   },
+  {
+    // Strict type-safety rules for production source only. Tests and test
+    // helpers are excluded so fixtures can use loose types and casts.
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.test.{ts,tsx}', 'src/test/**'],
+    rules: {
+      // Ban `any`, the root cause that let untyped code slip through lint.
+      // https://typescript-eslint.io/rules/no-explicit-any/
+      '@typescript-eslint/no-explicit-any': 'error',
+      // Enforce `as` style and flag escape-hatch object-literal casts.
+      // https://typescript-eslint.io/rules/consistent-type-assertions/
+      '@typescript-eslint/consistent-type-assertions': [
+        'error',
+        { assertionStyle: 'as', objectLiteralTypeAssertions: 'allow-as-parameter' },
+      ],
+      // Type-aware rules that reject values flowing in/out of `any`, which is
+      // how `as any` casts leak untyped data through the codebase.
+      // https://typescript-eslint.io/rules/no-unsafe-argument/
+      '@typescript-eslint/no-unsafe-argument': 'error',
+      // https://typescript-eslint.io/rules/no-unsafe-assignment/
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      // https://typescript-eslint.io/rules/no-unsafe-call/
+      '@typescript-eslint/no-unsafe-call': 'error',
+      // https://typescript-eslint.io/rules/no-unsafe-member-access/
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      // https://typescript-eslint.io/rules/no-unsafe-return/
+      '@typescript-eslint/no-unsafe-return': 'error',
+    },
+  },
 ]);
