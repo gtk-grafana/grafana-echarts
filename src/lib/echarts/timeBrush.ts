@@ -27,7 +27,6 @@ export function getTimeBrushOption(theme: GrafanaTheme2): BrushOption {
     throttleDelay: 80,
     removeOnClick: true,
     // No default toolbox brush buttons; the cursor is armed programmatically.
-    toolbox: [],
     brushStyle: {
       color: theme.colors.action.selected,
       borderColor: theme.colors.border.strong,

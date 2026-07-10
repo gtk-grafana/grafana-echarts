@@ -1,6 +1,8 @@
 import { type DataFrame, type Field, FieldType, getFieldDisplayName } from '@grafana/data';
 import { heatmapFrameTypes } from 'editor/constants';
+import { type EChartsFieldConfig } from 'editor/types';
 import { formatBucketBound } from 'lib/echarts/format';
+import { type FieldTypedDataFrame, type NumericFrame } from 'lib/grafana/types';
 
 /**
  * A single heatmap cell with explicit bounds in data space.
@@ -93,7 +95,7 @@ function minPositiveStep(values: number[]): number {
   return Number.isFinite(step) ? step : 1;
 }
 
-function fieldByName(frame: DataFrame, name: string): Field | undefined {
+function fieldByName<T>(frame: FieldTypedDataFrame<T, EChartsFieldConfig>, name: string): Field<T> | undefined {
   return frame.fields.find((field) => field.name === name);
 }
 
@@ -129,7 +131,7 @@ function frameXIsTime(frame: DataFrame): boolean {
  * X cells span `[x, x + step)` where `step` is the smallest gap between X values
  * (the last column reuses the prior step).
  */
-function rowsToCells(frame: DataFrame, series: DataFrame[]): FrameHeatmap {
+function rowsToCells(frame: FieldTypedDataFrame<number, EChartsFieldConfig>, series: DataFrame[]): FrameHeatmap {
   const xField = frame.fields[0];
   if (!xField || (xField.type !== FieldType.time && xField.type !== FieldType.number)) {
     return EMPTY_FRAME_HEATMAP;
@@ -200,7 +202,7 @@ function rowsToCells(frame: DataFrame, series: DataFrame[]): FrameHeatmap {
  * Y bounds come from `yMin`/`yMax` or the center `y` field +/- half its step.
  * The first value field that isn't an axis-bound field is the displayed value.
  */
-function cellsToCells(frame: DataFrame): FrameHeatmap {
+function cellsToCells(frame: NumericFrame): FrameHeatmap {
   const xMin = fieldByName(frame, 'xMin');
   const xMax = fieldByName(frame, 'xMax');
   const xCenter = fieldByName(frame, 'x') ?? frame.fields.find((field) => field.type === FieldType.time);

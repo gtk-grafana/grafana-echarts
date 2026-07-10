@@ -9,7 +9,6 @@ import {
   type ValueFormatter,
 } from '@grafana/data';
 import { LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
-import { GridComponentOption, VisualMapComponentOption } from 'echarts';
 import { seriesTypePath } from 'editor/constants';
 import { HEATMAP_VISUALMAP_HEIGHT, HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
 import { type HeatmapColorScalePlacement, type PanelOptions } from 'types';
@@ -106,9 +105,9 @@ describe('heatmapChartModule.buildOption', () => {
   });
 
   it('places the visualMap on the right (vertical) by default and reserves grid width', () => {
-    const option = heatmapChartModule.buildOption(makeContext([heatmapFrame()]), { isGrafanaLegend: true });
-    const visualMap = single<VisualMapComponentOption>(option?.visualMap);
-    const grid = single<GridComponentOption>(option?.grid);
+    const option = buildHeatmapOption(makeContext([heatmapFrame()]), { isGrafanaLegend: true });
+    const visualMap = single(option?.visualMap);
+    const grid = single(option?.grid);
     expect(visualMap?.orient).toBe('vertical');
     expect(visualMap?.right).toBeDefined();
     // hoverLink drives the cell highlight on visualMap hover; must stay enabled.
@@ -117,9 +116,9 @@ describe('heatmapChartModule.buildOption', () => {
   });
 
   it('places the visualMap on the bottom (horizontal) and reserves grid height for bottom placement', () => {
-    const option = heatmapChartModule.buildOption(makeContext([heatmapFrame()], 'bottom'), { isGrafanaLegend: true });
-    const visualMap = single<VisualMapComponentOption>(option?.visualMap);
-    const grid = single<GridComponentOption>(option?.grid);
+    const option = buildHeatmapOption(makeContext([heatmapFrame()], 'bottom'), { isGrafanaLegend: true });
+    const visualMap = single(option?.visualMap);
+    const grid = single(option?.grid);
     expect(visualMap?.orient).toBe('horizontal');
     expect(visualMap?.bottom).toBeDefined();
     expect(Number(grid?.bottom)).toEqual(HEATMAP_VISUALMAP_HEIGHT);

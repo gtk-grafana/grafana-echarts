@@ -6,6 +6,8 @@ import {
   type CustomSeriesRenderItem,
   type TopLevelFormatterParams,
 } from 'echarts/types/dist/shared';
+import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
+import type { CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { formatBucketBound, type HeatmapCell, type HeatmapData } from 'lib/echarts/converters/heatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
 import { COLOR_SCHEMES, HEATMAP_VALUE_DIM, heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
@@ -30,27 +32,29 @@ import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/templ
  * Uses ECharts `customValues` (value-axis support added in 5.5), so it requires
  * ECharts >= 5.5 (the plugin ships 6.x).
  */
-export function getHeatmapBucketAxis(data: HeatmapData): Record<string, unknown> {
-  const buckets = data.yBuckets;
-  if (buckets.length === 0) {
+export function getHeatmapBucketAxis(data: HeatmapData): CartesianAxisOption | TimeAxisBaseOption  {
+  const rawBuckets = data.yBuckets;
+  if (rawBuckets.length === 0) {
     return {};
   }
 
-  // @todo clean this up
-  const boundaries = Array.from(new Set(buckets.flatMap((bucket) => [bucket.start, bucket.end])))
-    .filter((value) => Number.isFinite(value))
-    .sort((a, b) => a - b);
+  // const buckets: Array<[number, number]> = rawBuckets.flatMap<[number, number]>((bucket) => [bucket.start, bucket.end]);
+
+  // the old code removes infinite values and sorts, but our buckets should already be processed by now?
+  // const boundaries = Array.from(new Set(buckets.flatMap((bucket) => [bucket.start, bucket.end])))
+  //   .filter((value) => Number.isFinite(value))
+  //   .sort((a, b) => a - b);
 
   const labelByValue = new Map<number, string>();
   if (data.yLabelPlacement === 'center') {
-    for (const bucket of buckets) {
+    for (const bucket of rawBuckets) {
       labelByValue.set((bucket.start + bucket.end) / 2, bucket.label);
     }
   } else {
     // Label the bottom edge of the first bucket too, so the axis isn't missing
     // its lower bound (e.g. the leading "0" of a Prometheus histogram).
-    labelByValue.set(buckets[0].start, formatBucketBound(buckets[0].start));
-    for (const bucket of buckets) {
+    labelByValue.set(rawBuckets[0].start, formatBucketBound(rawBuckets[0].start));
+    for (const bucket of rawBuckets) {
       labelByValue.set(bucket.end, bucket.label);
     }
   }
@@ -60,7 +64,9 @@ export function getHeatmapBucketAxis(data: HeatmapData): Record<string, unknown>
   return {
     axisLabel: { customValues: labelValues, formatter: (value: number) => labelByValue.get(Number(value)) ?? '' },
     axisTick: { customValues: labelValues },
-    splitLine: { customValues: boundaries },
+    breaks: rawBuckets,
+    // @todo why does splitLine not have customValues? Removing for now until we figure out if this is needed
+    // splitLine: { customValues: boundaries } as Record<string, unknown>,
   };
 }
 
@@ -253,7 +259,10 @@ export function getHeatmapVisualMap(
 ): ContinuousVisualMapOption {
   // Position/size the bar per placement. ECharts positions accept a number (px)
   // or a percent/keyword string, so plain px numbers are used here.
-  const orientation: Pick<ContinuousVisualMapOption, 'orient' | 'left' | 'right' | 'top' | 'bottom' | 'itemWidth' | 'itemHeight'> =
+  const orientation: Pick<
+    ContinuousVisualMapOption,
+    'orient' | 'left' | 'right' | 'top' | 'bottom' | 'itemWidth' | 'itemHeight'
+  > =
     placement === 'bottom'
       ? { orient: 'horizontal', bottom: 8, left: 'center', itemWidth: 120, itemHeight: 12 }
       : { orient: 'vertical', right: 8, top: 'middle', itemWidth: 12, itemHeight: 120 };
