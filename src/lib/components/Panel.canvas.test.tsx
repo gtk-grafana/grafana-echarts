@@ -2,6 +2,7 @@ import {
   applyFieldOverrides,
   createTheme,
   type DataFrame,
+  DataFrameType,
   dateTime,
   EventBusSrv,
   FieldColorModeId,
@@ -278,35 +279,131 @@ describe('Panel canvas renders', () => {
       });
     });
 
-    // describe('heatmap', () => {
-    //   // heatmap-rows frame: the first field is the X (time) axis and every
-    //   // remaining numeric field is a bucket row, keyed by its `le` upper bound
-    //   // (Prometheus histogram convention). See lib/echarts/converters/heatmap.
-    //   const frame = toDataFrame({
-    //     meta: { type: DataFrameType.HeatmapRows },
-    //     fields: [
-    //       { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497, 1783144294497, 1783147894497] },
-    //       { name: 'b1', type: FieldType.number, values: [5, 6, 7, 8], labels: { le: '10' } },
-    //       { name: 'b2', type: FieldType.number, values: [7, 8, 9, 10], labels: { le: '20' } },
-    //       { name: 'b3', type: FieldType.number, values: [9, 10, 11, 12], labels: { le: '+Inf' } },
-    //     ],
-    //   });
-    //
-    //   it('renders', async () => {
-    //     const { container } = render(
-    //       getComponent([frame], 'heatmap', {
-    //         zLevel: { series: SERIES_ZLEVEL },
-    //         animation: { enabled: false },
-    //       })
-    //     );
-    //
-    //     const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
-    //
-    //     expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-    //       width,
-    //       height,
-    //     });
-    //   });
-    // });
+  });
+
+  // Binned heatmap: dataplane heatmap frames drawn as interval cells via the
+  // custom series (see lib/echarts/converters/binnedHeatmap). One case per major
+  // dataplane frame shape.
+  describe('heatmap', () => {
+    const times = [1783137094497, 1783140694497, 1783144294497, 1783147894497];
+
+    // heatmap-rows without `le` labels: each numeric field is an ordinal bucket
+    // row labelled by field name (yLabelPlacement 'center').
+    describe('heatmapRows', () => {
+      const frame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapRows },
+        fields: [
+          { name: 'time', type: FieldType.time, values: times },
+          { name: 'low', type: FieldType.number, values: [5, 6, 7, 8] },
+          { name: 'mid', type: FieldType.number, values: [7, 8, 9, 10] },
+          { name: 'high', type: FieldType.number, values: [9, 10, 11, 12] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Prometheus native histogram: heatmap-rows keyed by `le` upper bounds,
+    // including the open-ended `+Inf` top bucket (yLabelPlacement 'bound').
+    describe('prometheus native histogram', () => {
+      const frame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapRows },
+        fields: [
+          { name: 'time', type: FieldType.time, values: times },
+          { name: 'b1', type: FieldType.number, values: [5, 6, 7, 8], labels: { le: '10' } },
+          { name: 'b2', type: FieldType.number, values: [7, 8, 9, 10], labels: { le: '20' } },
+          { name: 'b3', type: FieldType.number, values: [9, 10, 11, 12], labels: { le: '+Inf' } },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // heatmap-cells (dense): one row per cell with center x/y coordinates and a
+    // value; cell bounds are inferred from the smallest gap between centers.
+    describe('heatmapCells', () => {
+      const frame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapCells },
+        fields: [
+          { name: 'x', type: FieldType.time, values: [times[0], times[0], times[1], times[1]] },
+          { name: 'y', type: FieldType.number, values: [5, 15, 5, 15] },
+          { name: 'Count', type: FieldType.number, values: [3, 7, 5, 9] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Sparse heatmap-cells: explicit xMin/xMax/yMin/yMax bounds per cell.
+    describe('sparseHeatmaps', () => {
+      const frame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapCells },
+        fields: [
+          { name: 'xMin', type: FieldType.time, values: [times[0], times[0], times[2], times[2]] },
+          { name: 'xMax', type: FieldType.time, values: [times[1], times[1], times[3], times[3]] },
+          { name: 'yMin', type: FieldType.number, values: [0, 10, 0, 10] },
+          { name: 'yMax', type: FieldType.number, values: [10, 20, 10, 20] },
+          { name: 'Count', type: FieldType.number, values: [3, 7, 5, 9] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
   });
 });

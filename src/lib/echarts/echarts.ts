@@ -54,8 +54,8 @@ registerEChartsModules([
   BoxplotChart, // multi-value cartesian: [min, Q1, median, Q3, max]
   PieChart,
   RadarChart,
-  CustomChart,
-  HeatmapChart, // heatmap cells are drawn as a custom series
+  CustomChart, // binned heatmap cells are drawn as a custom series
+  HeatmapChart, // reserved for the (not-yet-implemented) matrix heatmap layout
   // ToolboxComponent,
   // Components
   GridComponent,

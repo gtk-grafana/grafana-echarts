@@ -19,7 +19,7 @@ import {
 import { type HeatmapColorScheme } from 'lib/echarts/options/types';
 import { type HeatmapColorScalePlacement, type PanelOptions } from 'types';
 import { heatmapChartModule } from './heatmap';
-import { type ChartContext, type EChartHeatmapOption } from './types';
+import { type ChartContext, type EChartBinnedHeatmapOption } from './types';
 
 /**
  * ECharts composes each component option to `T | T[]` (see `ComposeOption`).
@@ -32,8 +32,9 @@ const single = <T>(value: T | T[] | undefined): T | undefined => (Array.isArray(
  * `ChartModule.buildOption` widens the return to the whole `EChartBuildOption`
  * union; narrow it back to the concrete option the heatmap module actually builds.
  */
-const buildHeatmapOption = (...args: Parameters<typeof heatmapChartModule.buildOption>): EChartHeatmapOption | null =>
-  heatmapChartModule.buildOption(...args) as EChartHeatmapOption | null;
+const buildHeatmapOption = (
+  ...args: Parameters<typeof heatmapChartModule.buildOption>
+): EChartBinnedHeatmapOption | null => heatmapChartModule.buildOption(...args) as EChartBinnedHeatmapOption | null;
 
 const timeRange: TimeRange = {
   from: dateTime(1783137094497),
@@ -146,7 +147,7 @@ describe('heatmapChartModule.buildOption', () => {
     expect(visualMap?.bottom).toBeDefined();
     expect(Number(grid?.bottom)).toEqual(HEATMAP_VISUALMAP_HEIGHT);
   });
-//
+
   it('returns null when there are no heatmap frames (only a cartesian overlay)', () => {
     expect(buildHeatmapOption(makeContext([overlayFrame()]), { isGrafanaLegend: true })).toBeNull();
   });
@@ -193,13 +194,14 @@ describe('heatmapChartModule.buildOption', () => {
 });
 
 describe('heatmapChartModule.buildOption series composition', () => {
-  const seriesOf = (option: EChartHeatmapOption | null) =>
+  const seriesOf = (option: EChartBinnedHeatmapOption | null) =>
     (Array.isArray(option?.series) ? option?.series : option?.series ? [option.series] : []) ?? [];
 
   it('emits a single heatmap cell series for a pure heatmap', () => {
     const series = seriesOf(buildHeatmapOption(makeContext([heatmapFrame()]), { isGrafanaLegend: true }));
     expect(series).toHaveLength(1);
-    expect(series[0]).toMatchObject({ type: 'heatmap', name: 'Heatmap' });
+    // The binned cell layer is drawn as a custom series (interval rectangles).
+    expect(series[0]).toMatchObject({ type: 'custom', name: 'Heatmap' });
   });
 
   it('appends cartesian overlays after the cell layer on a secondary y-axis', () => {
@@ -208,7 +210,7 @@ describe('heatmapChartModule.buildOption series composition', () => {
     );
     expect(series).toHaveLength(2);
     // Cell layer stays first (series index 0, which the visualMap colors).
-    expect(series[0]).toMatchObject({ type: 'heatmap', name: 'Heatmap' });
+    expect(series[0]).toMatchObject({ type: 'custom', name: 'Heatmap' });
     // The overlay renders against the secondary y-axis so it isn't squashed onto
     // the bucket scale.
     expect(series[1]).toMatchObject({ yAxisIndex: 1 });
