@@ -7,11 +7,12 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
 /**
  * First frame with at least one numeric field — the categorical chart source frame.
  */
-export function findCategoricalFrame(
-  series: Array<FieldTypedDataFrame<unknown, EChartsFieldConfig>>
-): FieldTypedDataFrame<unknown, EChartsFieldConfig> | undefined {
+export function findCategoricalFrame<T>(
+  series: Array<FieldTypedDataFrame<T | number, EChartsFieldConfig>>
+): FieldTypedDataFrame<T | number, EChartsFieldConfig> | undefined {
   return series.find((frame) => frame.fields.some(isNumberField));
 }
+
 /**
  * True when any frame carries a genuine time field.
  *
@@ -61,10 +62,10 @@ export function mapNumericFields(
     }));
 }
 
-export interface TimeSeriesFieldRef {
-  frame: DataFrame;
+export interface TimeSeriesFieldRef<T> {
+  frame: FieldTypedDataFrame<T, EChartsFieldConfig>;
   frameIndex: number;
-  field: Field;
+  field: Field<T>;
   fieldIndex: number;
   timeField: Field<number>;
 }
@@ -72,7 +73,7 @@ export interface TimeSeriesFieldRef {
 /**
  * Resolve the time (or fallback X) field for a frame, matching timeSeries converter logic.
  */
-export function resolveTimeField(frame: DataFrame): Field | undefined {
+export function resolveTimeField(frame: DataFrame) {
   let timeField = frame.fields.find(isTimeField);
   if (!timeField) {
     timeField = frame.fields.find(isNumberField);
@@ -84,7 +85,7 @@ export function resolveTimeField(frame: DataFrame): Field | undefined {
  * Iterate numeric value fields across all frames that have a usable time/X field.
  * Skips frames with no time or numeric fallback field.
  */
-export function forEachTimeSeriesField(series: DataFrame[], callback: (ref: TimeSeriesFieldRef) => void): void {
+export function forEachTimeSeriesField<T>(series: Array<FieldTypedDataFrame<T, EChartsFieldConfig>>, callback: (ref: TimeSeriesFieldRef<T>) => void): void {
   // @todo convert to for loop
   series.forEach((frame, frameIndex) => {
     const timeField = resolveTimeField(frame);

@@ -5,7 +5,8 @@ import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/c
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
-import { isTimeField } from 'lib/grafana/narrowing';
+import { filterNonStringOrNumericFields } from 'lib/grafana/filtering';
+import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 // Multi-value cartesian series carry several aligned dimensions per x position
@@ -21,8 +22,8 @@ const CANDLESTICK_FIELDS = ['open', 'high', 'low', 'close'];
 const BOXPLOT_FIELDS = ['min', 'q1', 'median', 'q3', 'max'];
 
 /** First numeric field whose name matches `name` (case-insensitive). */
-function findNumericFieldByName(frame: DataFrame, name: string): Field | undefined {
-  return frame.fields.find((field) => field.type === FieldType.number && field.name.toLowerCase() === name);
+function findNumericFieldByName(frame: DataFrame, name: string): Field<number> | undefined {
+  return frame.fields.find((field) => isNumberField(field) && field.name.toLowerCase() === name);
 }
 
 /** Positional dimension array for one row: `field.values[row] ?? null` per field. */
@@ -40,7 +41,10 @@ function rowValues(fields: Array<Field<number>>, row: number) {
  * (matching Grafana's native candlestick). Frames without a time field (e.g. a
  * categorical boxplot) keep every row.
  */
-function resolveRowIndices(frame: FieldTypedDataFrame<number | unknown, EChartsFieldConfig>, timeRange?: TimeRange): number[] {
+function resolveRowIndices(
+  frame: FieldTypedDataFrame<number | unknown, EChartsFieldConfig>,
+  timeRange?: TimeRange
+): number[] {
   const allRows = Array.from({ length: frame.length }, (_, row) => row);
   const timeField = frame.fields.find(isTimeField);
   if (!timeField || !timeRange) {
@@ -63,7 +67,10 @@ function resolveRowIndices(frame: FieldTypedDataFrame<number | unknown, EChartsF
  * render-step concern; a stable ISO label keeps the category axis deterministic.
  * Otherwise this falls back to the shared string/row-index categories.
  */
-function resolveMultiValueCategories(frame: DataFrame, rows: number[]): string[] {
+function resolveMultiValueCategories(
+  frame: FieldTypedDataFrame<number | string, EChartsFieldConfig>,
+  rows: number[]
+): string[] {
   const timeField = frame.fields.find((field) => field.type === FieldType.time);
   if (!timeField) {
     const categories = resolveCategories(frame);
@@ -99,7 +106,6 @@ function buildCandlestick(
     return null;
   }
 
-
   return {
     name: seriesName(frame, 'OHLC'),
     type: 'candlestick',
@@ -123,9 +129,9 @@ function buildBoxplot(
   rows: number[],
   zlevel: number | undefined
 ): BoxplotSeriesOption | null {
-  const numericFields = frame.fields.filter((field) => field.type === FieldType.number);
+  const numericFields = frame.fields.filter(isNumberField);
   const namedFields = BOXPLOT_FIELDS.map((name) => findNumericFieldByName(frame, name));
-  const fields = namedFields.every((field): field is Field => field !== undefined)
+  const fields = namedFields.every((field) => field !== undefined)
     ? namedFields
     : numericFields.slice(0, BOXPLOT_FIELDS.length);
 
@@ -165,7 +171,9 @@ function buildBoxplot(
 export function multiValueCartesianToEChartsOption(
   ctx: ChartContext<MultiValueSeriesType>
 ): CategoryCartesianData<MultiValueCartesianOption['series']> | null {
-  const { frames, theme, seriesType, timeRange, options } = ctx;
+  const { frames: unfilteredFrames, theme, seriesType, timeRange, options } = ctx;
+  const frames = filterNonStringOrNumericFields(unfilteredFrames);
+
   const frame = findCategoricalFrame(frames);
   if (!frame) {
     return null;

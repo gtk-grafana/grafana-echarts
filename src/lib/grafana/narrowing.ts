@@ -14,3 +14,7 @@ export function isTimeField(field: Field): field is Field<number> {
 export function isNumberField(field: Field): field is Field<number> {
   return field.type === FieldType.number;
 }
+
+export function isStringField(field: Field): field is Field<string> {
+  return field.type === FieldType.string;
+}

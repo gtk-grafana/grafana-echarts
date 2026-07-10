@@ -1,11 +1,17 @@
 import { type Field, getFieldDisplayName } from '@grafana/data';
 import { STACK_GROUP_ID } from 'editor/constants';
-import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type SeriesType } from 'editor/types';
+import {
+  type CartesianSingleValueSeriesType,
+  type EChartsFieldConfig,
+  type HeatmapSeriesType,
+  type SeriesType,
+} from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
 import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
+import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
  * Resolve the series type for a single value field: field override wins when cartesian.
@@ -33,7 +39,9 @@ function resolveFieldStack(field: Field, panelStack = false): boolean {
 export function timeSeriesToEChartsOption(
   ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
 ): EChartSingleValueCartesianSeries[] | null {
-  const { frames, theme, options, seriesType } = ctx;
+  const { frames: rawFrames, theme, options, seriesType } = ctx;
+
+  const frames: Array<FieldTypedDataFrame<string | number, EChartsFieldConfig>> = rawFrames;
   const echartsSeries: EChartSingleValueCartesianSeries[] = [];
 
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {

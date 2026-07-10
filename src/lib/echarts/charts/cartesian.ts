@@ -1,4 +1,4 @@
-import { XAXisOption, YAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
+import { type XAXisOption, type YAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type CartesianSingleValueSeriesType, type MultiValueSeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType, isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
@@ -152,7 +152,7 @@ export const cartesianChartModule: ChartModule = {
   buildOption(
     ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>,
     { isGrafanaLegend }
-  ): EChartCartesianSeriesOption | EChartMultiValueCartesianSeriesOption | null{
+  ): EChartCartesianSeriesOption | EChartMultiValueCartesianSeriesOption | null {
     // @todo gate invalid frames and always throw in internal methods
 
     const seriesType = ctx.seriesType;
