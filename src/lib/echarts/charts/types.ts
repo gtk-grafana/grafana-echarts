@@ -43,6 +43,9 @@ export type EChartEffectScatterSeriesOption = ComposeOption<EffectScatterSeriesO
 
 export type EChartMultiValueCartesianSeriesOption = ComposeOption<CandlestickSeriesOption | BoxplotSeriesOption>;
 export type EChartCartesianSeriesOption = ComposeOption<BarSeriesOption | HeatmapSeriesOption | LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption>
+
+// A single cartesian series entry narrowed to the single-series union so arrays assign to a `series` field.
+export type EChartSingleValueCartesianSeries = Exclude<NonNullable<EChartCartesianSeriesOption['series']>, unknown[]>
 export type EChartBuildOption =
   | EChartHeatmapOption
   | EChartBarSeriesOption

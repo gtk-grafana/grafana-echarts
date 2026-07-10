@@ -2,7 +2,7 @@ import { type Field, getFieldDisplayName } from '@grafana/data';
 import { STACK_GROUP_ID } from 'editor/constants';
 import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type SeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
-import { type ChartContext, type EChartCartesianSeriesOption } from 'lib/echarts/charts/types';
+import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
 import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
@@ -32,9 +32,9 @@ function resolveFieldStack(field: Field, panelStack = false): boolean {
  */
 export function timeSeriesToEChartsOption(
   ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
-): Array<EChartCartesianSeriesOption['series']> | null {
+): EChartSingleValueCartesianSeries[] | null {
   const { frames, theme, options, seriesType } = ctx;
-  const echartsSeries: Array<EChartCartesianSeriesOption['series']> = [];
+  const echartsSeries: EChartSingleValueCartesianSeries[] = [];
 
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);

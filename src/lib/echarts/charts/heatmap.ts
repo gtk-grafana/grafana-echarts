@@ -1,4 +1,3 @@
-import { type HeatmapSeriesOption } from 'echarts';
 import { frameHasCartesianOverride } from 'editor/series';
 import { type HeatmapSeriesType } from 'editor/types';
 import { frameToHeatmap } from 'lib/echarts/converters/heatmap';
@@ -14,7 +13,12 @@ import { getHeatmapBucketAxis, getHeatmapSeries, getHeatmapVisualMap } from 'lib
 import { DEFAULT_CHART_LEGEND, getCartesianGrid } from 'lib/echarts/options/legend';
 import { buildTimeSeriesLegendItems } from 'lib/echarts/options/legendItems';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
-import { type ChartContext, type ChartModule, type EChartHeatmapOption } from './types';
+import {
+  type ChartContext,
+  type ChartModule,
+  type EChartSingleValueCartesianSeries,
+  type EChartCartesianSeriesOption,
+} from './types';
 
 /**
  * Split the panel's frames into the heatmap cell layer and an optional cartesian
@@ -42,7 +46,7 @@ export const heatmapChartModule: ChartModule = {
     return buildTimeSeriesLegendItems(overlayFrames, ctx.theme, calcs, ctx.timeZone);
   },
 
-  buildOption(ctx: ChartContext<HeatmapSeriesType>, { isGrafanaLegend }): EChartHeatmapOption | null {
+  buildOption(ctx: ChartContext<HeatmapSeriesType>, { isGrafanaLegend }): EChartCartesianSeriesOption | null {
     const { theme, options, seriesType, formatValue } = ctx;
     const placement = options.heatmapColorScale?.placement ?? 'right';
     const { overlayFrames, heatmap } = splitFrames(ctx);
@@ -59,7 +63,8 @@ export const heatmapChartModule: ChartModule = {
     // const valueFormatter = getValueFormat(ctx.options);
     const overlayYAxisIndex = heatmap ? 1 : 0;
 
-    const series: HeatmapSeriesOption[] = [];
+    // Composite panel: the heatmap cell layer plus optional cartesian overlays (line/bar/scatter),
+    const series: EChartSingleValueCartesianSeries[] = [];
     if (heatmap) {
       series.push(getHeatmapSeries(heatmap, { theme, timeZone: ctx.timeZone, formatValue }, 0));
     }
