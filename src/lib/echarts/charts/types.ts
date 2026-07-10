@@ -9,11 +9,11 @@ import {
   type EffectScatterSeriesOption,
   type HeatmapSeriesOption,
   type PieSeriesOption,
+  type RadarComponentOption,
+  type RadarSeriesOption,
   type ScatterSeriesOption,
 } from 'echarts';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
-import { PieDataItemOption } from 'echarts/types/src/chart/pie/PieSeries';
-import { OptionDataValueNumeric } from 'echarts/types/src/util/types';
 import { type SeriesType } from 'editor/types';
 import { type PanelOptions } from 'types';
 
@@ -39,6 +39,8 @@ export type EChartBarSeriesOption = ComposeOption<BarSeriesOption>;
 export type EChartLineSeriesOption = ComposeOption<LineSeriesOption>;
 export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;
 export type EChartPieSeriesOption = ComposeOption<PieSeriesOption>;
+// Radar needs both the series and the `radar` coordinate component.
+export type EChartRadarSeriesOption = ComposeOption<RadarSeriesOption | RadarComponentOption>;
 /**
  * @todo revisit
  * A single pie slice data item. ECharts types a pie series' `data` as
@@ -62,6 +64,7 @@ export type EChartBuildOption =
   | EChartLineSeriesOption
   | EChartScatterSeriesOption
   | EChartPieSeriesOption
+  | EChartRadarSeriesOption
   | EChartCandlestickSeriesOption
   | EChartBoxPlotSeriesOption
   | EChartEffectScatterSeriesOption
