@@ -1,0 +1,92 @@
+import { createTheme, type ValueFormatter } from '@grafana/data';
+import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
+import {
+  buildMatrixHeatmapTooltip,
+  getMatrixHeatmapSeries,
+  getMatrixHeatmapVisualMap,
+} from 'lib/echarts/options/matrixHeatmap';
+import { COLOR_SCHEMES } from 'lib/echarts/options/constants';
+
+const theme = createTheme();
+const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
+const ctx = { theme, timeZone: 'utc', formatValue };
+
+const data: MatrixHeatmapData = {
+  xCategories: ['c1', 'c2'],
+  yCategories: ['a', 'b'],
+  cells: [
+    [0, 0, 1],
+    [1, 1, 4],
+  ],
+  valueMin: 1,
+  valueMax: 4,
+};
+
+describe('getMatrixHeatmapSeries', () => {
+  it('builds a native heatmap series carrying the cell tuples and zlevel', () => {
+    const series = getMatrixHeatmapSeries(data, ctx, 7);
+    expect(series.type).toBe('heatmap');
+    expect(series.name).toBe('Heatmap');
+    expect(series.zlevel).toBe(7);
+    expect(series.data).toEqual(data.cells);
+    // The cell grid is not a togglable legend series.
+    expect(series.legendHoverLink).toBe(false);
+  });
+});
+
+describe('getMatrixHeatmapVisualMap', () => {
+  it('scales to the value range on the value dimension', () => {
+    const visualMap = getMatrixHeatmapVisualMap(data, theme, 0);
+    expect(visualMap.min).toBe(1);
+    expect(visualMap.max).toBe(4);
+    // Value is the third dim of the [xIndex, yIndex, value] tuple.
+    expect(visualMap.dimension).toBe(2);
+    expect(visualMap.hoverLink).not.toBe(false);
+  });
+
+  it('places the scale on the right (vertical) by default', () => {
+    const visualMap = getMatrixHeatmapVisualMap(data, theme, 0);
+    expect(visualMap.orient).toBe('vertical');
+    expect(visualMap.right).toBeDefined();
+  });
+
+  it('places the scale on the bottom (horizontal) for bottom placement', () => {
+    const visualMap = getMatrixHeatmapVisualMap(data, theme, 0, undefined, 'bottom');
+    expect(visualMap.orient).toBe('horizontal');
+    expect(visualMap.bottom).toBeDefined();
+  });
+
+  it('applies the selected color scheme', () => {
+    const visualMap = getMatrixHeatmapVisualMap(data, theme, 0, 'blues');
+    expect(visualMap.inRange?.color).toEqual(COLOR_SCHEMES.blues);
+  });
+
+  it('widens a degenerate single-value range so the scale still renders', () => {
+    const flat = { ...data, valueMin: 5, valueMax: 5 };
+    const visualMap = getMatrixHeatmapVisualMap(flat, theme, 0);
+    expect(visualMap.min).toBe(5);
+    expect(visualMap.max).toBe(6);
+  });
+});
+
+describe('buildMatrixHeatmapTooltip', () => {
+  const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as unknown as TopLevelFormatterParams;
+
+  it('maps cell indices back to their category labels and value', () => {
+    const formatter = buildMatrixHeatmapTooltip(data, ctx);
+    const el = formatter(asParams([1, 0, 3]));
+    // X category header, then Value row and the Y category name.
+    expect(el.textContent).toContain('c2');
+    expect(el.textContent).toContain('Value');
+    expect(el.textContent).toContain('3');
+    expect(el.textContent).toContain('Name');
+    expect(el.textContent).toContain('a');
+  });
+
+  it('renders the Grafana no-value fallback for null cells', () => {
+    const formatter = buildMatrixHeatmapTooltip(data, ctx);
+    const el = formatter(asParams([0, 0, null]));
+    expect(el.textContent).toContain('N/A');
+  });
+});
