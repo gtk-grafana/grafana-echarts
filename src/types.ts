@@ -3,7 +3,7 @@ import { type OptionsWithLegend, type TooltipDisplayMode } from '@grafana/schema
 import { type seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 
-import { type HeatmapColorScalePlacement, type HeatmapColorScheme } from 'lib/echarts/options/types';
+import { type HeatmapColorScalePlacement, type HeatmapColorScheme, type HeatmapLayout } from 'lib/echarts/options/types';
 
 export type { EChartsFieldConfig } from 'editor/types';
 export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
@@ -24,6 +24,12 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
   [seriesTypePath]: SeriesType;
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
+
+  /**
+   * Heatmap coordinate model: continuous interval cells (`binned`, the dataplane
+   * heatmap default) vs a categorical `matrix` grid (native ECharts heatmap).
+   */
+  heatmapLayout?: HeatmapLayout;
 
   /** Placement of the heatmap color scale (ECharts `visualMap`). */
   heatmapColorScale?: { placement: HeatmapColorScalePlacement };

@@ -1,6 +1,8 @@
-import { type HeatmapColorScheme } from 'lib/echarts/options/types';
+import { type HeatmapColorScheme, type HeatmapLayout } from 'lib/echarts/options/types';
 
 export const heatmapColorSchemeDefault: HeatmapColorScheme = 'spectral';
+/** Default heatmap layout: the continuous, interval-cell dataplane rendering. */
+export const heatmapLayoutDefault: HeatmapLayout = 'binned';
 /**
  * Color stops per scheme, low value -> high value. Kept as static gradients
  * (matching common scientific colormaps) so the layer reads consistently in

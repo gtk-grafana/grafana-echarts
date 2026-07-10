@@ -1,4 +1,4 @@
-import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type TimeRange } from '@grafana/data';
+import { type DataFrame, type Field, type GrafanaTheme2, type TimeRange } from '@grafana/data';
 import { type BoxplotSeriesOption, type CandlestickSeriesOption } from 'echarts';
 import { type EChartsFieldConfig, type MultiValueSeriesType } from 'editor/types';
 import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/charts/types';
@@ -21,7 +21,9 @@ const CANDLESTICK_FIELDS = ['open', 'high', 'low', 'close'];
 /** ECharts boxplot data order (also the plugin's positional convention). */
 const BOXPLOT_FIELDS = ['min', 'q1', 'median', 'q3', 'max'];
 
-/** First numeric field whose name matches `name` (case-insensitive). */
+/** First numeric field whose name matches `name` (case-insensitive).
+ * @todo is this safe?
+ */
 function findNumericFieldByName(frame: DataFrame, name: string): Field<number> | undefined {
   return frame.fields.find((field) => isNumberField(field) && field.name.toLowerCase() === name);
 }
@@ -71,7 +73,7 @@ function resolveMultiValueCategories(
   frame: FieldTypedDataFrame<number | string, EChartsFieldConfig>,
   rows: number[]
 ): string[] {
-  const timeField = frame.fields.find((field) => field.type === FieldType.time);
+  const timeField = frame.fields.find(isTimeField);
   if (!timeField) {
     const categories = resolveCategories(frame);
     return rows.map((row) => categories[row]);
@@ -79,7 +81,7 @@ function resolveMultiValueCategories(
 
   return rows.map((row) => {
     const value = timeField.values[row];
-    return typeof value === 'number' ? new Date(value).toISOString() : String(value ?? row);
+    return new Date(value).toISOString();
   });
 }
 

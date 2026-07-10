@@ -9,8 +9,8 @@ import {
 } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
-import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
-import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
+import { heatmapColorSchemeDefault, heatmapLayoutDefault } from 'lib/echarts/options/constants';
+import { heatmapColorSchemeOptions, heatmapLayoutOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
 import { addOverlayLegendOptions } from './legendOptions';
 import { heatmapSuggestionsSupplier } from './suggestions';
@@ -67,6 +67,20 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         options: [{ value: 'heatmap', label: 'heatmap' }],
       },
       showIf: () => false,
+    });
+
+    // Heatmap coordinate model: `binned` (continuous interval cells, the
+    // dataplane default) vs `matrix` (categorical grid via native ECharts heatmap).
+    builder.addRadio({
+      path: 'heatmapLayout',
+      name: 'Layout',
+      description:
+        'Binned draws dataplane heatmap frames as interval cells on continuous axes; Matrix draws a category × category grid.',
+      defaultValue: heatmapLayoutDefault,
+      settings: {
+        options: heatmapLayoutOptions,
+      },
+      category: [seriesCategoryName],
     });
 
     builder.addSelect({

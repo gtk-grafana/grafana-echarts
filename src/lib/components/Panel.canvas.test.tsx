@@ -277,5 +277,36 @@ describe('Panel canvas renders', () => {
         });
       });
     });
+
+    // describe('heatmap', () => {
+    //   // heatmap-rows frame: the first field is the X (time) axis and every
+    //   // remaining numeric field is a bucket row, keyed by its `le` upper bound
+    //   // (Prometheus histogram convention). See lib/echarts/converters/heatmap.
+    //   const frame = toDataFrame({
+    //     meta: { type: DataFrameType.HeatmapRows },
+    //     fields: [
+    //       { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497, 1783144294497, 1783147894497] },
+    //       { name: 'b1', type: FieldType.number, values: [5, 6, 7, 8], labels: { le: '10' } },
+    //       { name: 'b2', type: FieldType.number, values: [7, 8, 9, 10], labels: { le: '20' } },
+    //       { name: 'b3', type: FieldType.number, values: [9, 10, 11, 12], labels: { le: '+Inf' } },
+    //     ],
+    //   });
+    //
+    //   it('renders', async () => {
+    //     const { container } = render(
+    //       getComponent([frame], 'heatmap', {
+    //         zLevel: { series: SERIES_ZLEVEL },
+    //         animation: { enabled: false },
+    //       })
+    //     );
+    //
+    //     const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+    //
+    //     expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+    //       width,
+    //       height,
+    //     });
+    //   });
+    // });
   });
 });
