@@ -12,6 +12,8 @@ import {
   type ScatterSeriesOption,
 } from 'echarts';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
+import { PieDataItemOption } from 'echarts/types/src/chart/pie/PieSeries';
+import { OptionDataValueNumeric } from 'echarts/types/src/util/types';
 import { type SeriesType } from 'editor/types';
 import { type PanelOptions } from 'types';
 
@@ -37,6 +39,14 @@ export type EChartBarSeriesOption = ComposeOption<BarSeriesOption>;
 export type EChartLineSeriesOption = ComposeOption<LineSeriesOption>;
 export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;
 export type EChartPieSeriesOption = ComposeOption<PieSeriesOption>;
+/**
+ * @todo revisit
+ * A single pie slice data item. ECharts types a pie series' `data` as
+ * `(number | '-' | number[] | PieDataItemOption)[]`; we exclude the primitive
+ * and array forms to keep the object item type (with `name`, `value`, etc.).
+ */
+export type EChartPieDataItem = Exclude<NonNullable<PieSeriesOption['data']>[number], number | string | unknown[]>;
+// export type EChartPieDataItem = Array<OptionDataValueNumeric | OptionDataValueNumeric[] | PieDataItemOption>;
 export type EChartCandlestickSeriesOption = ComposeOption<CandlestickSeriesOption>;
 export type EChartBoxPlotSeriesOption = ComposeOption<BoxplotSeriesOption>;
 export type EChartEffectScatterSeriesOption = ComposeOption<EffectScatterSeriesOption>;

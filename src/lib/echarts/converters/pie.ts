@@ -1,7 +1,9 @@
-import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
-import type { EChartPieSeriesOption } from 'lib/echarts/charts/types';
+import { type GrafanaTheme2 } from '@grafana/data';
+import { EChartsFieldConfig } from 'editor/types';
+import type { EChartPieDataItem } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
  * Convert Grafana data frames into ECharts pie slices.
@@ -21,7 +23,7 @@ import { getPaletteColorByIndex } from 'lib/echarts/style';
  *
  * Returns `null` when no usable categorical data can be derived.
  */
-export function pieToEChartsOption(series: DataFrame[], theme: GrafanaTheme2): EChartPieSeriesOption | null {
+export function pieToEChartsOption(series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>, theme: GrafanaTheme2): EChartPieDataItem[] | null {
   const categorical = frameToCategorical(series, theme);
 
   if (!categorical) {

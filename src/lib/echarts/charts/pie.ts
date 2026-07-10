@@ -20,7 +20,7 @@ export const pieChartModule: ChartModule = {
       : getLegendOption(
           options.legend,
           theme,
-          slices.map((slice) => slice.name)
+          slices.map((slice) => slice.name?.toString() ?? '')
         );
 
     return {
