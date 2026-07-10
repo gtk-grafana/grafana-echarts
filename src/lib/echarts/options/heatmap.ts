@@ -1,5 +1,5 @@
 import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
-import { HeatmapSeriesOption } from 'echarts';
+import { type HeatmapSeriesOption } from 'echarts';
 import {
   type CallbackDataParams,
   type ContinuousVisualMapOption,

@@ -3,7 +3,7 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 import {
   type AxisLabelValueFormatter,
   type NumericAxisBaseOptionCommon,
-  TimeAxisBaseOption,
+  type TimeAxisBaseOption,
 } from 'echarts/types/src/coord/axisCommonTypes';
 import { type CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';

@@ -1,6 +1,6 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { defaultVizLegendOptions, LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
-import { LegendComponentOption } from 'echarts';
+import { type LegendComponentOption } from 'echarts';
 import { type ChartModule } from 'lib/echarts/charts/types';
 import { getThemeTextStyle, LEGEND_FONT_SIZE } from 'lib/echarts/options/base';
 import { type PanelOptions } from 'types';
