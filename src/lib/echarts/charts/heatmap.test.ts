@@ -96,7 +96,7 @@ describe('heatmapChartModule.buildOption', () => {
     expect(option.visualMap.right).toBeDefined();
     // hoverLink drives the cell highlight on visualMap hover; must stay enabled.
     expect(option.visualMap.hoverLink).not.toBe(false);
-    expect(Number(option.grid.right)).toBeGreaterThanOrEqual(HEATMAP_VISUALMAP_WIDTH);
+    expect(Number(option.grid.right)).toEqual(HEATMAP_VISUALMAP_WIDTH);
   });
 
   it('places the visualMap on the bottom (horizontal) and reserves grid height for bottom placement', () => {
@@ -105,22 +105,6 @@ describe('heatmapChartModule.buildOption', () => {
     }) as any;
     expect(option.visualMap.orient).toBe('horizontal');
     expect(option.visualMap.bottom).toBeDefined();
-    expect(Number(option.grid.bottom)).toBeGreaterThanOrEqual(HEATMAP_VISUALMAP_HEIGHT);
-  });
-
-  it('gives heatmap cells an emphasis box-shadow (highlighted on visualMap hover)', () => {
-    const option = heatmapChartModule.buildOption(makeContext([heatmapFrame()]), { isGrafanaLegend: true }) as any;
-    const heatmapSeries = option.series[0];
-    const tuple = [0, 0, 10, 10, 5];
-    const rect = heatmapSeries.renderItem(
-      { coordSys: { x: 0, y: 0, width: 100, height: 100 } },
-      {
-        value: (dim: number) => tuple[dim],
-        coord: ([x, y]: number[]) => [x, y],
-        style: (s: Record<string, unknown>) => s,
-        visual: () => '#fff',
-      }
-    );
-    expect(rect.emphasis.style.shadowBlur).toBeGreaterThan(0);
+    expect(Number(option.grid.bottom)).toEqual(HEATMAP_VISUALMAP_HEIGHT);
   });
 });

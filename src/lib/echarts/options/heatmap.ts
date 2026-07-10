@@ -36,6 +36,7 @@ export function getHeatmapBucketAxis(data: HeatmapData): Record<string, unknown>
     return {};
   }
 
+  // @todo clean this up
   const boundaries = Array.from(new Set(buckets.flatMap((bucket) => [bucket.start, bucket.end])))
     .filter((value) => Number.isFinite(value))
     .sort((a, b) => a - b);

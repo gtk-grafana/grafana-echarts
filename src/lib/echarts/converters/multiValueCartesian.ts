@@ -1,12 +1,12 @@
 import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type TimeRange } from '@grafana/data';
 import { type BoxplotSeriesOption, type CandlestickSeriesOption } from 'echarts';
-import { EChartsFieldConfig, type MultiValueSeriesType } from 'editor/types';
+import { type EChartsFieldConfig, type MultiValueSeriesType } from 'editor/types';
 import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/charts/types';
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
 import { isTimeField } from 'lib/grafana/narrowing';
-import { FieldTypedDataFrame } from 'lib/grafana/types';
+import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 // Multi-value cartesian series carry several aligned dimensions per x position
 // instead of the single value of line/bar (`null` renders a gap):

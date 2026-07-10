@@ -11,7 +11,6 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Any usage of Grafana or EChart APIs should contain links to the relevant documentation
 
 ## Critical rules
-
 - Push back on the prompter when scope of work conflicts with project goals.
 - Ask for permission and clarity whenever ambiguities arise.
 - Keep plans small and focused to the task at hand, do not make changes that were not explicitly requested
@@ -19,3 +18,4 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Adhere to data plane frame specifications: https://grafana.com/developers/dataplane/, except when explicitly told not to
 - Create provisioned dashboards for all new panel functionality, prompt the user to check existing dashboards that can be impacted by a change
 - Always use eCharts types instead of creating local definitions of the eCharts API. See https://echarts.apache.org/handbook/en/basics/import/#creating-an-option-type-in-typescript
+- Assume data frames are square (all fields have the same number of values) and the frame length matches the value length.

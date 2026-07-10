@@ -1,11 +1,13 @@
 import { type DataFrame, type Field, FieldType, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
+import { type EChartsFieldConfig } from 'editor/types';
 import { getSeriesColor } from 'lib/echarts/style';
+import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
  * First frame with at least one numeric field — the categorical chart source frame.
  */
-export function findCategoricalFrame(series: DataFrame[]): DataFrame | undefined {
-  return series.find((frame) => frame.fields.some((field) => field.type === FieldType.number));
+export function findCategoricalFrame<T>(series: DataFrame[]): FieldTypedDataFrame<T & unknown, EChartsFieldConfig> | undefined {
+  return series.find((frame) => frame.fields.some((field: Field<T>) => field.type === FieldType.number));
 }
 
 /**
@@ -35,7 +37,7 @@ export function resolveCategories(frame: DataFrame): string[] {
 
 /** One numeric field mapped to name, positional values, and color. */
 export interface MappedNumericField {
-  field: Field;
+  field: Field<number>;
   name: string;
   color: string;
 }
@@ -43,7 +45,7 @@ export interface MappedNumericField {
 /**
  * Map every numeric field in a frame to display metadata shared by converters and legends.
  */
-export function mapNumericFields(frame: DataFrame, series: DataFrame[], theme: GrafanaTheme2): MappedNumericField[] {
+export function mapNumericFields(frame: FieldTypedDataFrame<number, EChartsFieldConfig>, series: DataFrame[], theme: GrafanaTheme2): MappedNumericField[] {
   return frame.fields
     .filter((field) => field.type === FieldType.number)
     .map((field) => ({

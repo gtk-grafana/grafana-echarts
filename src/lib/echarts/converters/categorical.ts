@@ -1,33 +1,7 @@
-import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { type GrafanaTheme2 } from '@grafana/data';
+import { type EChartsFieldConfig } from 'editor/types';
 import { findCategoricalFrame, mapNumericFields, resolveCategories } from 'lib/echarts/converters/frames';
-
-/**
- * One numeric series projected over the shared category axis.
- *
- * `values` is positional: `values[i]` belongs to `categories[i]`. Missing cells
- * are `null` (a gap) rather than `0`.
- *
- * `color` is resolved from the field's standard Color scheme config so each
- * series matches Grafana.
- */
-export interface CategoricalSeries {
-  name: string;
-  values: Array<number | null>;
-  color: string;
-}
-
-/**
- * The shared, chart-agnostic shape for "tabular" frames: a single set of
- * categories plus one numeric series per numeric field.
- *
- * This is the common intermediate behind every categorical ECharts type
- * (radar, pie, funnel, category bar/line, parallel). Each chart's converter is
- * a thin adapter that reshapes this into the option that chart expects.
- */
-export interface CategoricalData {
-  categories: string[];
-  series: CategoricalSeries[];
-}
+import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
  * Extract the categorical model from Grafana data frames.
@@ -55,18 +29,18 @@ export interface CategoricalData {
  *
  * @todo should be able to select the string field instead of using the first
  */
-export function frameToCategorical(series: DataFrame[], theme: GrafanaTheme2): CategoricalData | null {
-  const frame = findCategoricalFrame(series);
+export function frameToCategorical(series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>, theme: GrafanaTheme2) {
+  const frame = findCategoricalFrame<number>(series);
 
   if (!frame) {
     return null;
   }
 
   const categories = resolveCategories(frame);
-  const categoricalSeries: CategoricalSeries[] = mapNumericFields(frame, series, theme).map(
+  const categoricalSeries= mapNumericFields(frame, series, theme).map(
     ({ field, name, color }) => ({
       name,
-      values: Array.from({ length: frame.length }, (_, row) => field.values[row] ?? null),
+      values: field.values,
       color,
     })
   );
