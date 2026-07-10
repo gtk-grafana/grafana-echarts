@@ -34,7 +34,9 @@ export function pieToEChartsOption(series: Array<FieldTypedDataFrame<number, ECh
 
   return categorical.categories.map((name, row) => ({
     name,
-    value: firstSeries.values[row],
+    // ECharts pie values are numeric-only; map Grafana nulls to undefined so
+    // missing points render as empty slices instead of failing the type.
+    value: firstSeries.values[row] ?? undefined,
     itemStyle: { color: getPaletteColorByIndex(row, theme) },
   }));
 }

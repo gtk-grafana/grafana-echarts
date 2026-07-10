@@ -64,8 +64,8 @@ describe('pieToEChartsOption', () => {
 
     expect(pieToEChartsOption([frame], theme)).toMatchObject([
       { name: 'a', value: 0 },
-      { name: 'b', value: null },
-      { name: 'c', value: null },
+      { name: 'b', value: undefined },
+      { name: 'c', value: undefined },
     ]);
   });
 

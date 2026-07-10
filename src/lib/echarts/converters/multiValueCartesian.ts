@@ -1,10 +1,11 @@
 import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type TimeRange } from '@grafana/data';
 import { type BoxplotSeriesOption, type CandlestickSeriesOption } from 'echarts';
-import { type MultiValueSeriesType } from 'editor/types';
+import { EChartsFieldConfig, type MultiValueSeriesType } from 'editor/types';
 import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/charts/types';
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
+import { FieldTypedDataFrame } from 'lib/grafana/types';
 
 // Multi-value cartesian series carry several aligned dimensions per x position
 // instead of the single value of line/bar (`null` renders a gap):
@@ -38,9 +39,10 @@ function rowValues(fields: Array<Field<number>>, row: number) {
  * (matching Grafana's native candlestick). Frames without a time field (e.g. a
  * categorical boxplot) keep every row.
  */
-function resolveRowIndices(frame: DataFrame, timeRange?: TimeRange): number[] {
+function resolveRowIndices(frame: FieldTypedDataFrame<number | unknown, EChartsFieldConfig>, timeRange?: TimeRange): number[] {
   const allRows = Array.from({ length: frame.length }, (_, row) => row);
-  const timeField = frame.fields.find((field) => field.type === FieldType.time);
+  // @todo create narrowing function that asserts time fields are Field<number>
+  const timeField: Field<number> = frame.fields.find((field) => field.type === FieldType.time);
   if (!timeField || !timeRange) {
     return allRows;
   }
