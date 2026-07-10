@@ -1,0 +1,11 @@
+# Pre-commit gate: block commits that break TypeScript types or lint.
+# https://lefthook.dev/configuration/
+pre-commit:
+  parallel: true
+  commands:
+    # Project-wide type check; broken types cannot be committed.
+    typecheck:
+      run: pnpm run typecheck
+    # Lint the whole project (cached); enforces the no-any / no-unsafe rules.
+    lint:
+      run: pnpm run lint

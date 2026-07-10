@@ -10,6 +10,7 @@
     "lint": "eslint --cache .",
     "lint:fix": "pnpm run lint --fix && prettier --write --list-different .",
     "e2e": "playwright test",
+    "prepare": "lefthook install",
     "server": "COMPOSE_PROJECT_NAME=${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-${GRAFANA_PORT:-3001}} docker compose up --build",
     "sign": "sign-plugin"
   },
@@ -49,6 +50,7 @@
     "jest-canvas-mock": "2.5.2",
     "jest-canvas-mock-compare": "0.1.0",
     "jest-environment-jsdom": "30.4.1",
+    "lefthook": "2.1.9",
     "prettier": "3.6.0",
     "replace-in-file-webpack-plugin": "1.0.6",
     "sass": "1.89.0",
