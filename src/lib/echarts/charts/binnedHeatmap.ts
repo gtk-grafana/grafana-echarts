@@ -1,3 +1,4 @@
+import { type DataFrame } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
 import { type GridOption } from 'echarts/types/dist/shared';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
@@ -30,15 +31,20 @@ import { type BaseOptionParts, type ChartContext, type EChartBinnedHeatmapOption
 type BinnedHeatmapSeries = Exclude<NonNullable<EChartBinnedHeatmapOption['series']>, unknown[]>;
 
 /**
+ * Frames drawn as cartesian overlays (line/bar/scatter) on top of the heatmap cells, selected by the per-field override.
+ */
+function getOverlayFrames(ctx: ChartContext): DataFrame[] {
+  return ctx.frames.filter(frameHasCartesianOverride);
+}
+
+/**
  * Split the panel's frames into the heatmap cell layer and an optional cartesian
- * overlay. Only this composite heatmap panel is allowed to mix families, and the
- * split is driven entirely by the per-field override: a frame whose numeric
- * field is overridden to a cartesian type (line/bar/scatter) is drawn as an
- * overlay on top of the cells, while every other frame feeds the heatmap layer.
- * See `frameHasCartesianOverride`.
+ * overlay. The split is driven entirely by the per-field override: an overlay
+ * frame is drawn on top of the cells, while every other frame feeds the heatmap
+ * layer.
  */
 function splitFrames(ctx: ChartContext) {
-  const overlayFrames = ctx.frames.filter(frameHasCartesianOverride);
+  const overlayFrames = getOverlayFrames(ctx);
   const heatmapSourceFrames = ctx.frames.filter((frame) => !frameHasCartesianOverride(frame));
 
   // returns null when there are no frames, otherwise throw
@@ -52,8 +58,7 @@ function splitFrames(ctx: ChartContext) {
  * binned heatmap cells are represented by the ECharts visualMap.
  */
 export function buildBinnedHeatmapLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[] {
-  const overlayFrames = ctx.frames.filter(frameHasCartesianOverride);
-  return buildTimeSeriesLegendItems(overlayFrames, ctx.theme, calcs, ctx.timeZone);
+  return buildTimeSeriesLegendItems(getOverlayFrames(ctx), ctx.theme, calcs, ctx.timeZone);
 }
 
 /**
