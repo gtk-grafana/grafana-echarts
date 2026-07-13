@@ -3,7 +3,12 @@ import { heatmapLayoutDefault } from 'lib/echarts/options/constants';
 import { buildBinnedHeatmapLegendItems, buildBinnedHeatmapOption } from './binnedHeatmap';
 import { buildMatrixHeatmapOption } from './matrixHeatmap';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
-import { type ChartContext, type ChartModule, type EChartBinnedHeatmapOption } from './types';
+import {
+  type ChartContext,
+  type ChartModule,
+  type EChartBinnedHeatmapOption,
+  type EChartMatrixHeatmapOption,
+} from './types';
 
 /**
  * The heatmap panel family. The persisted `seriesType: 'heatmap'` routes here
@@ -20,7 +25,10 @@ export const heatmapChartModule: ChartModule = {
     return buildBinnedHeatmapLegendItems(ctx, calcs);
   },
 
-  buildOption(ctx: ChartContext<HeatmapSeriesType>, base): EChartBinnedHeatmapOption | null {
+  buildOption(
+    ctx: ChartContext<HeatmapSeriesType>,
+    base
+  ): EChartBinnedHeatmapOption | EChartMatrixHeatmapOption | null {
     const layout = ctx.options.heatmapLayout ?? heatmapLayoutDefault;
     if (layout === 'matrix') {
       return buildMatrixHeatmapOption(ctx, base);

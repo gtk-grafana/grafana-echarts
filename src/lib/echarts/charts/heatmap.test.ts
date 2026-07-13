@@ -19,7 +19,7 @@ import {
 import { type HeatmapColorScheme } from 'lib/echarts/options/types';
 import { type HeatmapColorScalePlacement, type PanelOptions } from 'types';
 import { heatmapChartModule } from './heatmap';
-import { type ChartContext, type EChartBinnedHeatmapOption } from './types';
+import { type ChartContext, type EChartBinnedHeatmapOption, type EChartMatrixHeatmapOption } from './types';
 
 /**
  * ECharts composes each component option to `T | T[]` (see `ComposeOption`).
@@ -190,6 +190,47 @@ describe('heatmapChartModule.buildOption', () => {
     const option = buildHeatmapOption(makeContext([numericXHeatmapFrame()]), { isGrafanaLegend: true });
     const xAxis = single(option?.xAxis);
     expect(xAxis?.type).toBe('value');
+  });
+});
+
+describe('heatmapChartModule.buildOption matrix layout', () => {
+  // Wide/pivot frame: string field (Y rows) plus numeric fields (X columns).
+  const matrixFrame = (): DataFrame =>
+    toDataFrame({
+      fields: [
+        { name: 'row', type: FieldType.string, values: ['a', 'b'] },
+        { name: 'c1', type: FieldType.number, values: [1, 2] },
+        { name: 'c2', type: FieldType.number, values: [3, 4] },
+      ],
+    });
+
+  const matrixContext = (frames: DataFrame[]): ChartContext => {
+    const ctx = makeContext(frames);
+    return { ...ctx, options: { ...ctx.options, heatmapLayout: 'matrix' } };
+  };
+
+  const buildMatrix = (frames: DataFrame[]): EChartMatrixHeatmapOption | null =>
+    heatmapChartModule.buildOption(matrixContext(frames), { isGrafanaLegend: true }) as EChartMatrixHeatmapOption | null;
+
+  it('renders on two category axes', () => {
+    const option = buildMatrix([matrixFrame()]);
+    expect(single(option?.xAxis)?.type).toBe('category');
+    expect(single(option?.yAxis)?.type).toBe('category');
+  });
+
+  it('emits a single native heatmap series and a visualMap', () => {
+    const option = buildMatrix([matrixFrame()]);
+    const series = Array.isArray(option?.series) ? option?.series : option?.series ? [option.series] : [];
+    expect(series).toHaveLength(1);
+    expect(series?.[0]).toMatchObject({ type: 'heatmap', name: 'Heatmap' });
+    expect(option).toHaveProperty('visualMap');
+    expect(single(option?.visualMap)?.min).toBe(1);
+    expect(single(option?.visualMap)?.max).toBe(4);
+  });
+
+  it('returns null when there is no numeric data', () => {
+    const frame = toDataFrame({ fields: [{ name: 'row', type: FieldType.string, values: ['a', 'b'] }] });
+    expect(buildMatrix([frame])).toBeNull();
   });
 });
 

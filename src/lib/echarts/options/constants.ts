@@ -41,6 +41,10 @@ export const COLOR_SCHEMES: Record<HeatmapColorScheme, string[]> = {
   ],
   magma: ['#000004', '#1c1044', '#4f127b', '#812581', '#b5367a', '#e55064', '#fb8761', '#fec287', '#fcfdbf'],
 };
+/** Resolve the gradient color stops for a scheme (falls back to the default). */
+export function getHeatmapColors(scheme?: HeatmapColorScheme): string[] {
+  return COLOR_SCHEMES[scheme ?? heatmapColorSchemeDefault] ?? COLOR_SCHEMES[heatmapColorSchemeDefault];
+}
 /** Dimension index of the cell value within the encoded heatmap data tuple. */
 export const HEATMAP_VALUE_DIM = 4;
 /** Reserved width (px) for the vertical visualMap color scale on the right. */

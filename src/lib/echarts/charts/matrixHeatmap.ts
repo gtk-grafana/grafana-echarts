@@ -1,20 +1,62 @@
-import { debug, LOG_LEVELS } from 'development';
+import { type GridOption } from 'echarts/types/dist/shared';
+import {
+  type XAXisOption,
+  type YAXisOption,
+} from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type HeatmapSeriesType } from 'editor/types';
-import { type BaseOptionParts, type ChartContext, type EChartBinnedHeatmapOption } from './types';
+import { frameToMatrixHeatmap } from 'lib/echarts/converters/matrixHeatmap';
+import { getHeatmapGrid } from 'lib/echarts/grid/grid';
+import {
+  cartesianCategoryDefaultOptions,
+  getCartesianAxisStyle,
+  mergeAxisStyle,
+} from 'lib/echarts/options/cartesian';
+import { getMatrixHeatmapSeries, getMatrixHeatmapVisualMap } from 'lib/echarts/options/matrixHeatmap';
+import { type BaseOptionParts, type ChartContext, type EChartMatrixHeatmapOption } from './types';
 
 /**
- * Matrix heatmap layout: a category × category grid (one tile per ordinal slot),
- * drawn by the native ECharts `heatmap` series.
+ * Matrix heatmap layout: a category x category grid (one tile per ordinal slot),
+ * drawn by the native ECharts `heatmap` series on two category axes.
  * https://echarts.apache.org/en/option.html#series-heatmap
  *
- * @todo not yet implemented. Selecting the "Matrix" layout renders an empty
- * panel until the native `type: 'heatmap'` path (with its own converter) lands.
- * For now it returns null so the panel stays empty rather than crashing.
+ * Consumes the wide/pivot shape (see `frameToMatrixHeatmap`): the first frame's
+ * string field supplies the Y (row) categories and each numeric field is an X
+ * (column) category. Cells-only: unlike the binned layout there is no cartesian
+ * overlay. Returns null when no numeric data is present (empty panel).
  */
 export function buildMatrixHeatmapOption(
-  _ctx: ChartContext<HeatmapSeriesType>,
-  _base: BaseOptionParts
-): EChartBinnedHeatmapOption | null {
-  debug('matrix heatmap layout not yet implemented', LOG_LEVELS.warn);
-  return null;
+  ctx: ChartContext<HeatmapSeriesType>,
+  { isGrafanaLegend }: BaseOptionParts
+): EChartMatrixHeatmapOption | null {
+  const { theme, options, timeZone, formatValue } = ctx;
+  const data = frameToMatrixHeatmap(ctx.frames, theme);
+
+  // no numeric data: show empty panel
+  if (data === null) {
+    return null;
+  }
+
+  const placement = options.heatmapColorScale?.placement ?? 'right';
+  const axisStyle = getCartesianAxisStyle(theme);
+
+  const xAxis = mergeAxisStyle<XAXisOption>(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
+    type: 'category',
+    data: data.xCategories,
+  });
+  const yAxis = mergeAxisStyle<YAXisOption>(cartesianCategoryDefaultOptions.yAxis, axisStyle, {
+    type: 'category',
+    data: data.yCategories,
+  });
+
+  const vizLegendOptions = isGrafanaLegend ? undefined : options.legend;
+  const grid: GridOption = getHeatmapGrid(placement, vizLegendOptions);
+
+  return {
+    ...cartesianCategoryDefaultOptions,
+    grid,
+    xAxis,
+    yAxis,
+    series: [getMatrixHeatmapSeries(data, { theme, timeZone, formatValue }, options.zLevel?.series)],
+    visualMap: getMatrixHeatmapVisualMap(data, theme, 0, options.heatmapColorScheme, placement),
+  };
 }

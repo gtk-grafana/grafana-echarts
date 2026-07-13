@@ -287,6 +287,36 @@ describe('Panel canvas renders', () => {
   describe('heatmap', () => {
     const times = [1783137094497, 1783140694497, 1783144294497, 1783147894497];
 
+    // Matrix layout: a category x category grid via the native ECharts heatmap
+    // series, fed by the wide/pivot shape (string rows + numeric columns).
+    describe('matrix', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'row', type: FieldType.string, values: ['a', 'b', 'c'] },
+          { name: 'c1', type: FieldType.number, values: [1, 5, 9] },
+          { name: 'c2', type: FieldType.number, values: [3, 7, 2] },
+          { name: 'c3', type: FieldType.number, values: [8, 4, 6] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            heatmapLayout: 'matrix',
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
     // heatmap-rows without `le` labels: each numeric field is an ordinal bucket
     // row labelled by field name (yLabelPlacement 'center').
     describe('heatmapRows', () => {

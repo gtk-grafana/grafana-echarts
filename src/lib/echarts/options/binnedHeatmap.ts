@@ -16,7 +16,7 @@ import {
   formatBucketBound,
 } from 'lib/echarts/converters/binnedHeatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
-import { COLOR_SCHEMES, HEATMAP_VALUE_DIM, heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
+import { getHeatmapColors, HEATMAP_VALUE_DIM } from 'lib/echarts/options/constants';
 import {
   type BinnedHeatmapTooltipContext,
   type HeatmapColorScalePlacement,
@@ -65,11 +65,6 @@ export function getBinnedHeatmapBucketAxis(data: BinnedHeatmapData): CartesianAx
     axisTick: { customValues: labelValues },
     breaks: rawBuckets,
   };
-}
-
-/** Resolve the gradient color stops for a scheme (falls back to the default). */
-export function getHeatmapColors(scheme?: HeatmapColorScheme): string[] {
-  return COLOR_SCHEMES[scheme ?? heatmapColorSchemeDefault] ?? COLOR_SCHEMES[heatmapColorSchemeDefault];
 }
 
 /**

@@ -55,7 +55,7 @@ registerEChartsModules([
   PieChart,
   RadarChart,
   CustomChart, // binned heatmap cells are drawn as a custom series
-  HeatmapChart, // reserved for the (not-yet-implemented) matrix heatmap layout
+  HeatmapChart, // native series for the matrix heatmap layout (category x category grid)
   // ToolboxComponent,
   // Components
   GridComponent,

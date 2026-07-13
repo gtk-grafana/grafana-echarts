@@ -9,6 +9,7 @@ import {
   type CustomSeriesOption,
   type EffectScatterSeriesOption,
   type GridComponentOption,
+  type HeatmapSeriesOption,
   type PieSeriesOption,
   type RadarComponentOption,
   type RadarSeriesOption,
@@ -53,6 +54,15 @@ export type EChartBinnedHeatmapOption = ComposeOption<
   | GridComponentOption
   | VisualMapComponentOption
 >;
+/**
+ * The option the matrix heatmap panel builds: the native ECharts `heatmap`
+ * series (a category x category tile grid) plus the `grid` and `visualMap`
+ * components it configures. Unlike the binned layout (a `custom` series on
+ * continuous axes), matrix uses the native heatmap series on two category axes.
+ */
+export type EChartMatrixHeatmapOption = ComposeOption<
+  HeatmapSeriesOption | GridComponentOption | VisualMapComponentOption
+>;
 export type EChartBarSeriesOption = ComposeOption<BarSeriesOption>;
 export type EChartLineSeriesOption = ComposeOption<LineSeriesOption>;
 export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;
@@ -78,6 +88,7 @@ export type EChartCartesianSeriesOption = ComposeOption<BarSeriesOption | LineSe
 export type EChartSingleValueCartesianSeries = Exclude<NonNullable<EChartCartesianSeriesOption['series']>, unknown[]>
 export type EChartBuildOption =
   | EChartBinnedHeatmapOption
+  | EChartMatrixHeatmapOption
   | EChartBarSeriesOption
   | EChartLineSeriesOption
   | EChartScatterSeriesOption
