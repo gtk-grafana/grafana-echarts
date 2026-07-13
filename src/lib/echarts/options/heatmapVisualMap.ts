@@ -8,13 +8,7 @@ import { type HeatmapColorScalePlacement, type HeatmapColorScheme } from 'lib/ec
 const VISUALMAP_ITEM_THICKNESS = 12;
 /** Bar length (px) along the gradient; ECharts uses `itemHeight` in both orientations. */
 const VISUALMAP_ITEM_LENGTH = 120;
-/** Inset (px) from the right panel edge for the vertical color scale. */
 const VISUALMAP_RIGHT_INSET = 0;
-/**
- * Inset (px) from the bottom panel edge for the horizontal color scale. Kept
- * small: the bar sits in the band the grid reserves below the x-axis labels
- * (see `HEATMAP_VISUALMAP_HEIGHT`), so it clears both the labels and the edge.
- */
 const VISUALMAP_BOTTOM_INSET = 0;
 
 /** Inputs for the shared heatmap color scale, decoupled from the binned/matrix data shapes. */
