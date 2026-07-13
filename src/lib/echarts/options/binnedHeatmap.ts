@@ -262,7 +262,7 @@ export function getBinnedHeatmapVisualMap(
     'orient' | 'left' | 'right' | 'top' | 'bottom' | 'itemWidth' | 'itemHeight'
   > =
     placement === 'bottom'
-      ? { orient: 'horizontal', bottom: 8, left: 'center', itemWidth: 120, itemHeight: 12 }
+      ? { orient: 'horizontal', bottom: 8, left: 'center', itemWidth: 12, itemHeight: 120 }
       : { orient: 'vertical', right: 8, top: 'middle', itemWidth: 12, itemHeight: 120 };
 
   return {
