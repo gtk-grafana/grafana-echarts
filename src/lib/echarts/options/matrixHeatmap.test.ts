@@ -71,7 +71,7 @@ describe('getMatrixHeatmapVisualMap', () => {
 });
 
 describe('buildMatrixHeatmapTooltip', () => {
-  const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as unknown as TopLevelFormatterParams;
+  const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as TopLevelFormatterParams;
 
   it('maps cell indices back to their category labels and value', () => {
     const formatter = buildMatrixHeatmapTooltip(data, ctx);

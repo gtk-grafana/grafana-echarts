@@ -1,4 +1,5 @@
 import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { debug, LOG_LEVELS } from 'development';
 import { findCategoricalFrame, mapNumericFields, resolveCategories } from 'lib/echarts/converters/frames';
 
 /**
@@ -60,10 +61,12 @@ export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2):
     const { field } = numericFields[c];
     for (let r = 0; r < yCategories.length; r++) {
       const raw = field.values[r];
-      const value = typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
+      const value = Number.isFinite(raw) ? raw : null;
       if (value != null) {
         valueMin = Math.min(valueMin, value);
         valueMax = Math.max(valueMax, value);
+      }else{
+        debug('invalid matrix cell value', LOG_LEVELS.debug, { raw });
       }
       cells.push([c, r, value]);
     }
@@ -72,6 +75,7 @@ export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2):
   if (!Number.isFinite(valueMin)) {
     valueMin = 0;
     valueMax = 0;
+    debug('Matrix: unable to calculate min value', LOG_LEVELS.warn, { valueMin });
   }
 
   return { xCategories, yCategories, cells, valueMin, valueMax };
