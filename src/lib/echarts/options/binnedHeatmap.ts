@@ -3,11 +3,7 @@ import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
 // `CustomSeriesOption.renderItem` declaration; the shared-dist copy is a
 // separate declaration ECharts' own option type rejects.
 import { type CustomSeriesOption, type CustomSeriesRenderItem } from 'echarts';
-import {
-  type CallbackDataParams,
-  type ContinuousVisualMapOption,
-  type TopLevelFormatterParams,
-} from 'echarts/types/dist/shared';
+import { type ContinuousVisualMapOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
 import type { CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type ZRRectLike } from 'echarts/types/src/util/types';
@@ -195,8 +191,8 @@ export function buildBinnedHeatmapTooltip(
   };
 
   return (params) => {
-    const param = (Array.isArray(params) ? params[0] : params) as CallbackDataParams | undefined;
-    const tuple = (Array.isArray(param?.value) ? param.value : []) as Array<number | null>;
+    const param = Array.isArray(params) ? params[0] : params;
+    const tuple = Array.isArray(param?.value) ? param.value : [];
     const xStart = Number(tuple[0]);
     const yStart = Number(tuple[1]);
     const yEnd = Number(tuple[3]);
