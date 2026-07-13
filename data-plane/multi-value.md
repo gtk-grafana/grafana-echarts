@@ -30,10 +30,10 @@ turning every numeric field into its own series.
 
 Fields are resolved by a case-insensitive name convention:
 
-| Series      | Field names (in ECharts value order)      | Fallback                         |
-| ----------- | ----------------------------------------- | -------------------------------- |
-| candlestick | `open`, `high`, `low`, `close`             | none — missing any field → `null` |
-| boxplot     | `min`, `q1`, `median`, `q3`, `max`         | first five numeric fields, in order |
+| Series      | Field names (in ECharts value order) | Fallback                            |
+| ----------- | ------------------------------------ | ----------------------------------- |
+| candlestick | `open`, `high`, `low`, `close`       | none — missing any field → `null`   |
+| boxplot     | `min`, `q1`, `median`, `q3`, `max`   | first five numeric fields, in order |
 
 - Each row becomes one item: the aligned dimension array
   (`field.values[row] ?? null` per field).

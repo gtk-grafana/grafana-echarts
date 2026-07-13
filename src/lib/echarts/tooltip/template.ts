@@ -1,7 +1,6 @@
 import { css } from '@emotion/css';
 import { formattedValueToString, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { type OptionDataValue } from 'echarts/types/src/util/types';
 
 /**
  * Axis-trigger tooltip params carry extra axis fields that ECharts adds at
@@ -18,7 +17,7 @@ type TooltipParam = CallbackDataParams & {
  * See https://echarts.apache.org/en/option.html#tooltip.valueFormatter
  */
 export function formatTooltipValue(
-  eChartValue: OptionDataValue | OptionDataValue[],
+  eChartValue: CallbackDataParams['value'],
   grafanaFormatValue: ValueFormatter
 ): string {
   const numeric = Array.isArray(eChartValue) ? eChartValue[eChartValue.length - 1] : eChartValue;
@@ -186,7 +185,7 @@ export function buildTooltipContent(
   valueFormatter: ValueFormatter,
   theme: GrafanaTheme2
 ): HTMLElement {
-  const items = (Array.isArray(params) ? params : [params]);
+  const items = Array.isArray(params) ? params : [params];
   const shell = buildTooltipShell(theme);
 
   const header = getHeader(items);
@@ -195,8 +194,7 @@ export function buildTooltipContent(
   }
 
   for (const item of items) {
-    // @todo fix type assertion
-    let value = formatTooltipValue(item.value as OptionDataValue | OptionDataValue[], valueFormatter);
+    let value = formatTooltipValue(item.value, valueFormatter);
     // Slice charts (pie) expose the share of the whole as a percentage.
     if (typeof item.percent === 'number') {
       value = `${value} (${item.percent}%)`;

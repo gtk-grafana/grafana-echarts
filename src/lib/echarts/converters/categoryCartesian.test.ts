@@ -104,8 +104,8 @@ describe('categoryCartesianToEChartsOption', () => {
 
       expect(result.series.length).toEqual(resultStacked.series.length);
       for (let i = 0; i < result.series.length; i++) {
-        expect(result.series[i].stack).toBeUndefined();
-        expect(resultStacked.series[i].stack).toEqual('total');
+        expect(result.series[i]).not.toHaveProperty('stack');
+        expect(resultStacked.series[i]).toHaveProperty('stack', 'total');
       }
     });
 
@@ -115,7 +115,7 @@ describe('categoryCartesianToEChartsOption', () => {
       for (const s of result.series) {
         // Asserting something doesn't exist is typically a bad test smell, but paired with the test above I think it's fine to verify that we're not stacking things that should not be stacked
         // Although eCharts does support setting stack on scatter and line, I think those usages are for when scatter/line shares a stack group with a bar chart which is probably fine to set aside for now
-        expect(s.stack).toBeUndefined();
+        expect(s).not.toHaveProperty('stack');
       }
     });
   });

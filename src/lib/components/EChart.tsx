@@ -1,12 +1,13 @@
 import { type AbsoluteTimeRange } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
+import { type ComposeOption } from 'echarts';
+import type { XAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
 import {
   type BrushEndEvent,
   brushEndToTimeRange,
-  type BrushXAxisInfo,
   CLEAR_TIME_BRUSH_ACTION,
   DISABLE_TIME_BRUSH_ACTION,
   ENABLE_TIME_BRUSH_ACTION,
@@ -114,8 +115,15 @@ export const EChart: React.FC<Props> = ({
       // category-index units; read the rendered x-axis so those indices can be
       // mapped back to timestamps. `getOption` normalizes `xAxis` to an array.
       // @todo remove type assertion
-      const option = chart.getOption() as { xAxis?: BrushXAxisInfo[] };
-      const range = brushEndToTimeRange(event, option?.xAxis?.[0]);
+      const option: ComposeOption<XAXisOption> = chart.getOption();
+      if (!Array.isArray(option.xAxis)) {
+        debug('xAxis option is invalid!', LOG_LEVELS.warn, option.xAxis);
+        throw new Error('Invalid xAxis!');
+      }
+      if (option.xAxis.length > 1) {
+        debug('Chart contains multiple xAxis, grabbing range from first', LOG_LEVELS.info, option.xAxis);
+      }
+      const range = brushEndToTimeRange(event, option.xAxis[0]);
       // Clear the selection highlight so it does not linger through the refetch.
       chart.dispatchAction(CLEAR_TIME_BRUSH_ACTION);
       if (range) {
@@ -125,6 +133,7 @@ export const EChart: React.FC<Props> = ({
 
     // eCharts types here are cryptic and/or missing definitions for all of the chart events, so we must typecast for now
     // See the comment in lib/echarts/timeBrush.ts
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     chart.on('brushEnd', handleBrushEnd as (...args: unknown[]) => void);
     return () => {
       // On unmount the layout effect's cleanup disposes the instance before this

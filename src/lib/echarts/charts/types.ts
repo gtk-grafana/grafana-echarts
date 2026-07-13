@@ -82,10 +82,12 @@ export type EChartBoxPlotSeriesOption = ComposeOption<BoxplotSeriesOption>;
 export type EChartEffectScatterSeriesOption = ComposeOption<EffectScatterSeriesOption>;
 
 export type EChartMultiValueCartesianSeriesOption = ComposeOption<CandlestickSeriesOption | BoxplotSeriesOption>;
-export type EChartCartesianSeriesOption = ComposeOption<BarSeriesOption | LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption>
+export type EChartCartesianSeriesOption = ComposeOption<
+  BarSeriesOption | LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption
+>;
 
 // A single cartesian series entry narrowed to the single-series union so arrays assign to a `series` field.
-export type EChartSingleValueCartesianSeries = Exclude<NonNullable<EChartCartesianSeriesOption['series']>, unknown[]>
+export type EChartSingleValueCartesianSeries = Exclude<NonNullable<EChartCartesianSeriesOption['series']>, unknown[]>;
 export type EChartBuildOption =
   | EChartBinnedHeatmapOption
   | EChartMatrixHeatmapOption
@@ -109,8 +111,9 @@ export interface ChartModule {
   buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];
 }
 
-// @todo EffectScatterSeriesOption seems to differ from the ScatterSeriesOption which causes some type errors, excluding it for now as I'm leaning towards removing that panel type for now if it keeps acting up
-export type CartesianOption = ComposeOption<BarSeriesOption | LineSeriesOption | ScatterSeriesOption>;
+export type CartesianOption = ComposeOption<
+  BarSeriesOption | LineSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption
+>;
 
 /**
  * Multi-value cartesian option (candlestick OHLC / boxplot five-number summary).

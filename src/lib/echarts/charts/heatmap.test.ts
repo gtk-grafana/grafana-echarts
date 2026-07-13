@@ -234,7 +234,9 @@ describe('heatmapChartModule.buildOption matrix layout', () => {
   };
 
   const buildMatrix = (frames: DataFrame[]): EChartMatrixHeatmapOption | null =>
-    heatmapChartModule.buildOption(matrixContext(frames), { isGrafanaLegend: true }) as EChartMatrixHeatmapOption | null;
+    heatmapChartModule.buildOption(matrixContext(frames), {
+      isGrafanaLegend: true,
+    }) as EChartMatrixHeatmapOption | null;
 
   it('renders on two category axes', () => {
     const option = buildMatrix([matrixFrame()]);

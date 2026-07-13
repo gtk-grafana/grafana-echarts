@@ -29,7 +29,10 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
  *
  * @todo should be able to select the string field instead of using the first
  */
-export function frameToCategorical(series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>, theme: GrafanaTheme2) {
+export function frameToCategorical(
+  series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>,
+  theme: GrafanaTheme2
+) {
   const frame = findCategoricalFrame(series);
 
   if (!frame) {
@@ -37,13 +40,11 @@ export function frameToCategorical(series: Array<FieldTypedDataFrame<number, ECh
   }
 
   const categories = resolveCategories(frame);
-  const categoricalSeries= mapNumericFields(frame, series, theme).map(
-    ({ field, name, color }) => ({
-      name,
-      values: field.values,
-      color,
-    })
-  );
+  const categoricalSeries = mapNumericFields(frame, series, theme).map(({ field, name, color }) => ({
+    name,
+    values: field.values,
+    color,
+  }));
 
   return { categories, series: categoricalSeries };
 }

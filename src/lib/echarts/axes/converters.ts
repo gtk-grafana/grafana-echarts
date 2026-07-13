@@ -28,7 +28,7 @@ export type EChartsAxisType = 'value' | 'category' | 'time' | 'log';
  * is a safe default.
  *
  * @todo why is heatmap time and not value or log when missing time field?
- * @todo do we want to use frame meta when available?  
+ * @todo do we want to use frame meta when available?
  * Look into what the various echart axis types support and when we want to use them and revisit this method
  * Leaving explicit for now under the assumption we will refactor this later.
  */

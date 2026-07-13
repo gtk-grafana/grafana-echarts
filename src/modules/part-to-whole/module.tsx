@@ -1,11 +1,11 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectableValue } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
-import { type EChartsFieldConfig, type SeriesType } from 'editor/types';
+import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
-import { partToWholeSuggestionsSupplier } from './suggestions';
 import { type PanelOptions } from 'types';
+import { partToWholeSuggestionsSupplier } from './suggestions';
 
 // Part-to-whole family panel: pie built from the categorical model
 // (one value per category). The family is fixed to `pie`; the shared Panel
@@ -29,9 +29,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
     builder.addSelect({
       path: seriesTypePath,
       name: seriesTypeName,
-      defaultValue: 'pie' as SeriesType,
+      defaultValue: 'pie',
       settings: {
-        options: [{ value: 'pie', label: 'pie' }] as Array<SelectableValue<SeriesType>>,
+        options: [{ value: 'pie', label: 'pie' }],
       },
       category: [seriesCategoryName],
     });
