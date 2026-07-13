@@ -1,4 +1,3 @@
-import { type SeriesType } from 'editor/types';
 import {
   isCategoricalAxisSeriesType,
   isCategoricalOnlySeriesType,
@@ -6,6 +5,7 @@ import {
   isTimeAxisSupportedForSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { supportedChartSeriesTypes } from 'lib/echarts/charts/registry';
+import { type ChartContext } from 'lib/echarts/charts/types';
 
 /**
  * ECharts axis types we map Grafana panel types onto.
@@ -28,10 +28,12 @@ export type EChartsAxisType = 'value' | 'category' | 'time' | 'log';
  * is a safe default.
  *
  * @todo why is heatmap time and not value or log when missing time field?
+ * @todo do we want to use frame meta when available?  
  * Look into what the various echart axis types support and when we want to use them and revisit this method
  * Leaving explicit for now under the assumption we will refactor this later.
  */
-export const panelTypeToAxis = (seriesType: SeriesType, hasTimeField = true): EChartsAxisType => {
+export const panelTypeToAxis = (ctx: ChartContext, hasTimeField = true): EChartsAxisType => {
+  const seriesType = ctx.seriesType;
   if (!supportedChartSeriesTypes.includes(seriesType)) {
     throw new Error(`Unsupported axis for series type: ${seriesType}`);
   }
@@ -41,12 +43,16 @@ export const panelTypeToAxis = (seriesType: SeriesType, hasTimeField = true): EC
     return 'category';
   }
 
-  // Then if we have a time axis, we use it
-  if (isTimeAxisSupportedForSeriesType(seriesType) && hasTimeField) {
+  // Heatmap can support either time or categorical axis so make sure we check the manual setting first
+  if (isHeatmapSeriesType(seriesType)) {
+    if (ctx.options.heatmapLayout === 'matrix') {
+      return 'category';
+    }
     return 'time';
   }
 
-  if (isHeatmapSeriesType(seriesType)) {
+  // Then if we have a time axis, we use it
+  if (isTimeAxisSupportedForSeriesType(seriesType) && hasTimeField) {
     return 'time';
   }
 

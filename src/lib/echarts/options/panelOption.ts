@@ -33,7 +33,7 @@ export function buildPanelChartOption(
 
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
   const hasTimeField = framesHaveTimeField(ctx.frames);
-  const axisType = panelTypeToAxis(ctx.seriesType, hasTimeField);
+  const axisType = panelTypeToAxis(ctx, hasTimeField);
   const tooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
   const tooltipOption = getTooltipOption(
     grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
