@@ -1,11 +1,6 @@
 import { type Field, getFieldDisplayName } from '@grafana/data';
 import { STACK_GROUP_ID } from 'editor/constants';
-import {
-  type CartesianSingleValueSeriesType,
-  type EChartsFieldConfig,
-  type HeatmapSeriesType,
-  type SeriesType,
-} from 'editor/types';
+import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type HeatmapSeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
@@ -16,7 +11,7 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
 /**
  * Resolve the series type for a single value field: field override wins when cartesian.
  */
-function resolveFieldSeriesType(field: Field, defaultType: SeriesType): SeriesType | CartesianSingleValueSeriesType {
+function resolveFieldSeriesType<T>(field: Field, defaultType: T): T | CartesianSingleValueSeriesType {
   const seriesTypeOverride = getFieldConfigFromField(field).custom?.seriesType;
   if (seriesTypeOverride && isCartesianSingleValueSeriesType(seriesTypeOverride)) {
     return seriesTypeOverride;
@@ -34,7 +29,6 @@ function resolveFieldStack(field: Field, panelStack = false): boolean {
 
 /**
  * Convert Grafana time series DataFrames into ECharts series data.
- * @todo take context instead of fn params
  */
 export function timeSeriesToEChartsOption(
   ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
@@ -46,8 +40,14 @@ export function timeSeriesToEChartsOption(
 
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
-    const type = resolveFieldSeriesType(field, seriesType) as 'line' | 'bar' | 'scatter' | 'effectScatter';
-    const stacked = type === 'bar' && resolveFieldStack(field, options.stackSeries);
+    const resolvedType = resolveFieldSeriesType<CartesianSingleValueSeriesType | HeatmapSeriesType>(field, seriesType);
+    // Only bar supports stacked
+    const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
+    // Heatmap doesn't support series.type
+    const type = resolvedType === 'heatmap' ? undefined : resolvedType;
+    // Only effectScatter supports showEffectOn
+    // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
+    const showEffectOn = resolvedType === 'effectScatter' ? 'emphasis' : undefined;
 
     echartsSeries.push({
       name: getFieldDisplayName(field, frame, frames),
@@ -57,11 +57,7 @@ export function timeSeriesToEChartsOption(
       lineStyle: { color },
       zlevel: options.zLevel?.series,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
-      // effectScatter ripples continuously with the default `showEffectOn: 'render'`,
-      // which never lets the chart settle. Trigger the ripple on hover instead so
-      // the render animation completes (and the points draw as static markers).
-      // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
-      ...(type === 'effectScatter' ? { showEffectOn: 'emphasis' } : {}),
+      showEffectOn,
     });
   });
 

@@ -38,8 +38,7 @@ export function categoryCartesianToEChartsOption(
   const stacked = seriesType === 'bar' && options.stackSeries;
   const echartsSeries: CartesianOption['series'] = categorical.series.map((field) => ({
     name: field.name,
-    // effectScatter has types inconsistency but should have same behavior as scatter with same options, type assertion will have to do for now
-    type: seriesType as Exclude<CartesianSingleValueSeriesType, 'effectScatter'>,
+    type: seriesType,
     zlevel: options.zLevel?.series,
     data: field.values,
     itemStyle: { color: field.color },
