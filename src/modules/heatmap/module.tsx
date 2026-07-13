@@ -1,12 +1,18 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { commonOptionsBuilder } from '@grafana/ui';
-import { cartesianOverrideOptions, seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
+import {
+  cartesianOverrideOptions,
+  heatmapLegendCategoryName,
+  seriesCategoryName,
+  seriesTypeName,
+  seriesTypePath,
+} from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
-import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
-import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
+import { heatmapColorSchemeDefault, heatmapLayoutDefault } from 'lib/echarts/options/constants';
+import { heatmapColorSchemeOptions, heatmapLayoutOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
+import { addOverlayLegendOptions } from './legendOptions';
 import { heatmapSuggestionsSupplier } from './suggestions';
 
 // Heatmap family panel: renders Grafana heatmap frames as ECharts
@@ -49,15 +55,30 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
     },
   })
   .setPanelOptions((builder) => {
-    // Family is fixed to `heatmap`; a single-option select keeps the shared
-    // Panel routing to the heatmap chart module. Broader render-type choices
-    // and data-driven routing are deferred to later meta-plan steps.
+    // Family is fixed to `heatmap`. The select is registered hidden so its
+    // `defaultValue` still routes the shared Panel to the heatmap chart module,
+    // without exposing a single-option dropdown to the user.
     builder.addSelect({
       path: seriesTypePath,
       name: seriesTypeName,
       defaultValue: 'heatmap',
+
       settings: {
         options: [{ value: 'heatmap', label: 'heatmap' }],
+      },
+      showIf: () => false,
+    });
+
+    // Heatmap coordinate model: `binned` (continuous interval cells, the
+    // dataplane default) vs `matrix` (categorical grid via native ECharts heatmap).
+    builder.addRadio({
+      path: 'heatmapLayout',
+      name: 'Layout',
+      description:
+        'Binned draws dataplane heatmap frames as interval cells on continuous axes; Matrix draws a category × category grid.',
+      defaultValue: heatmapLayoutDefault,
+      settings: {
+        options: heatmapLayoutOptions,
       },
       category: [seriesCategoryName],
     });
@@ -72,7 +93,24 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
       category: [seriesCategoryName],
     });
 
-    commonOptionsBuilder.addLegendOptions(builder);
+    // Placement of the ECharts visualMap (the heatmap cell color scale). Grouped
+    // separately from the Grafana DOM "Legend" (which governs overlay series).
+    builder.addRadio({
+      path: 'heatmapColorScale.placement',
+      name: 'Placement',
+      description: 'Where to render the heatmap color scale (the ECharts visualMap legend).',
+      defaultValue: 'right',
+      settings: {
+        options: [
+          { value: 'right', label: 'Right' },
+          { value: 'bottom', label: 'Bottom' },
+        ],
+      },
+      category: [heatmapLegendCategoryName],
+    });
+
+    // Grafana DOM legend options, shown only when a cartesian overlay exists.
+    addOverlayLegendOptions(builder);
 
     builder.addRadio({
       path: 'tooltip.mode',

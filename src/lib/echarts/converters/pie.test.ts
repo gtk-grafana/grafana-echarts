@@ -26,9 +26,9 @@ describe('pieToEChartsOption', () => {
   it('colors slices by category from the classic palette', () => {
     const result = pieToEChartsOption([tableFrame()], theme);
 
-    expect(result![0].itemStyle.color).toEqual(expect.any(String));
+    expect(result![0].itemStyle!.color).toEqual('#73BF69');
     // Adjacent slices get distinct palette colors.
-    expect(result![0].itemStyle.color).not.toBe(result![1].itemStyle.color);
+    expect(result![1].itemStyle!.color).toBe('#F2CC0C');
   });
 
   it('ignores additional numeric fields beyond the first', () => {
@@ -64,8 +64,8 @@ describe('pieToEChartsOption', () => {
 
     expect(pieToEChartsOption([frame], theme)).toMatchObject([
       { name: 'a', value: 0 },
-      { name: 'b', value: null },
-      { name: 'c', value: null },
+      { name: 'b', value: undefined },
+      { name: 'c', value: undefined },
     ]);
   });
 

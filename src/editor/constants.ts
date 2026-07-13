@@ -71,6 +71,12 @@ export const multiValueSeriesTypes: MultiValueSeriesType[] = ['candlestick', 'bo
  */
 export const seriesCategoryName = 'Series';
 /**
+ * Editor category grouping the heatmap color scale (ECharts `visualMap`)
+ * options. Kept distinct from the Grafana DOM "Legend" category, which only
+ * governs the cartesian overlay series.
+ */
+export const heatmapLegendCategoryName = 'Heatmap legend';
+/**
  * Radar types, which use a radar coordinate system (indicators + polygons)
  * rather than the cartesian time/value grid. See echarts/converters/radar.ts.
  */

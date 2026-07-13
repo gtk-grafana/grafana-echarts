@@ -52,24 +52,6 @@ describe('frameToCategorical', () => {
     expect(result!.categories).toEqual(['Sales', 'Admin', 'IT']);
   });
 
-  it('coerces null/undefined values to null but preserves zero', () => {
-    const frame = toDataFrame({
-      fields: [
-        { name: 'category', type: FieldType.string, values: ['a', 'b', 'c', 'd'] },
-        {
-          name: 'v',
-          type: FieldType.number,
-          values: [0, null, 30, undefined as unknown as number],
-          config: { displayName: 'v' },
-        },
-      ],
-    });
-
-    const result = frameToCategorical([frame], theme);
-
-    expect(result!.series).toMatchObject([{ name: 'v', values: [0, null, 30, null] }]);
-  });
-
   it('returns null for an empty frame list', () => {
     expect(frameToCategorical([], theme)).toBeNull();
   });

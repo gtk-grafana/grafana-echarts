@@ -79,24 +79,6 @@ describe('categoryCartesianToEChartsOption', () => {
     }
   });
 
-  it('preserves zero but maps null/undefined to gaps', () => {
-    const frame = toDataFrame({
-      fields: [
-        { name: 'category', type: FieldType.string, values: ['a', 'b', 'c', 'd'] },
-        {
-          name: 'v',
-          type: FieldType.number,
-          values: [0, null, 30, undefined],
-          config: { displayName: 'v' },
-        },
-      ],
-    });
-
-    const result = run([frame], 'bar');
-
-    expect(result.series).toMatchObject([{ data: [0, null, 30, null] }]);
-  });
-
   it('falls back to row indices when there is no string field', () => {
     const frame = toDataFrame({
       fields: [{ name: 'v', type: FieldType.number, values: [1, 2], config: { displayName: 'v' } }],

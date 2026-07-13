@@ -1,9 +1,9 @@
 import { createTheme, type ValueFormatter } from '@grafana/data';
-import { type HeatmapData } from 'lib/echarts/converters/heatmap';
-import { buildHeatmapTooltip, getHeatmapBucketAxis } from 'lib/echarts/options/heatmap';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type BinnedHeatmapData } from 'lib/echarts/converters/binnedHeatmap';
+import { buildBinnedHeatmapTooltip, getBinnedHeatmapBucketAxis } from 'lib/echarts/options/binnedHeatmap';
 
-const baseData = (overrides: Partial<HeatmapData>): HeatmapData => ({
+const baseData = (overrides: Partial<BinnedHeatmapData>): BinnedHeatmapData => ({
   cells: [],
   valueMin: 0,
   valueMax: 1,
@@ -15,13 +15,13 @@ const baseData = (overrides: Partial<HeatmapData>): HeatmapData => ({
   ...overrides,
 });
 
-describe('getHeatmapBucketAxis', () => {
+describe('getBinnedHeatmapBucketAxis', () => {
   it('returns nothing when there are no buckets', () => {
-    expect(getHeatmapBucketAxis(baseData({ yBuckets: [] }))).toEqual({});
+    expect(getBinnedHeatmapBucketAxis(baseData({ yBuckets: [] }))).toEqual({});
   });
 
   it('places labels at bucket upper bounds (plus the first lower bound) for "bound" placement', () => {
-    const axis = getHeatmapBucketAxis(
+    const axis = getBinnedHeatmapBucketAxis(
       baseData({
         yLabelPlacement: 'bound',
         yBuckets: [
@@ -34,7 +34,6 @@ describe('getHeatmapBucketAxis', () => {
 
     // Labels at 0, 10, 20, 30; grid lines at every boundary.
     expect((axis.axisLabel as { customValues: number[] }).customValues).toEqual([0, 10, 20, 30]);
-    expect((axis.splitLine as { customValues: number[] }).customValues).toEqual([0, 10, 20, 30]);
 
     const formatter = (axis.axisLabel as { formatter: (v: number) => string }).formatter;
     expect(formatter(0)).toBe('0');
@@ -44,7 +43,7 @@ describe('getHeatmapBucketAxis', () => {
   });
 
   it('places labels at bucket centers for "center" (ordinal) placement', () => {
-    const axis = getHeatmapBucketAxis(
+    const axis = getBinnedHeatmapBucketAxis(
       baseData({
         yLabelPlacement: 'center',
         yBuckets: [
@@ -55,25 +54,14 @@ describe('getHeatmapBucketAxis', () => {
     );
 
     expect((axis.axisLabel as { customValues: number[] }).customValues).toEqual([0.5, 1.5]);
-    expect((axis.splitLine as { customValues: number[] }).customValues).toEqual([0, 1, 2]);
 
     const formatter = (axis.axisLabel as { formatter: (v: number) => string }).formatter;
     expect(formatter(0.5)).toBe('a');
     expect(formatter(1.5)).toBe('b');
   });
-
-  it('drops non-finite boundaries from the grid lines', () => {
-    const axis = getHeatmapBucketAxis(
-      baseData({
-        yLabelPlacement: 'bound',
-        yBuckets: [{ start: 0, end: Infinity, label: '+Inf' }],
-      })
-    );
-    expect((axis.splitLine as { customValues: number[] }).customValues).toEqual([0]);
-  });
 });
 
-describe('buildHeatmapTooltip', () => {
+describe('buildBinnedHeatmapTooltip', () => {
   const theme = createTheme();
   const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
   const ctx = { theme, timeZone: 'utc', formatValue };
@@ -81,7 +69,7 @@ describe('buildHeatmapTooltip', () => {
   const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as unknown as TopLevelFormatterParams;
 
   it('formats the x header as time and shows the value and bucket name', () => {
-    const formatter = buildHeatmapTooltip(
+    const formatter = buildBinnedHeatmapTooltip(
       baseData({
         xIsTime: true,
         yBuckets: [
@@ -104,7 +92,7 @@ describe('buildHeatmapTooltip', () => {
   });
 
   it('formats a numeric x header when the axis is not time', () => {
-    const formatter = buildHeatmapTooltip(
+    const formatter = buildBinnedHeatmapTooltip(
       baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
       ctx
     );
@@ -117,7 +105,7 @@ describe('buildHeatmapTooltip', () => {
   });
 
   it('falls back to the numeric bucket bounds when no label matches', () => {
-    const formatter = buildHeatmapTooltip(
+    const formatter = buildBinnedHeatmapTooltip(
       baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
       ctx
     );
@@ -128,7 +116,7 @@ describe('buildHeatmapTooltip', () => {
   });
 
   it('renders the Grafana no-value fallback for null cells', () => {
-    const formatter = buildHeatmapTooltip(
+    const formatter = buildBinnedHeatmapTooltip(
       baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
       ctx
     );

@@ -1,13 +1,13 @@
 import { type DataFrame, DataFrameType, FieldType, toDataFrame } from '@grafana/data';
-import { frameToHeatmap, type HeatmapCell, isHeatmapFrame } from 'lib/echarts/converters/heatmap';
+import { type BinnedHeatmapCell, frameToBinnedHeatmap, isBinnedHeatmapFrame } from 'lib/echarts/converters/binnedHeatmap';
 
-const findCell = (cells: HeatmapCell[], xStart: number, yStart: number): HeatmapCell | undefined =>
+const findCell = (cells: BinnedHeatmapCell[], xStart: number, yStart: number): BinnedHeatmapCell | undefined =>
   cells.find((cell) => cell.xStart === xStart && cell.yStart === yStart);
 
-describe('isHeatmapFrame', () => {
+describe('isBinnedHeatmapFrame', () => {
   it.each([DataFrameType.HeatmapRows, DataFrameType.HeatmapCells])('is true for %s frames', (type) => {
     const frame = toDataFrame({ meta: { type }, fields: [{ name: 'x', type: FieldType.number, values: [1] }] });
-    expect(isHeatmapFrame(frame)).toBe(true);
+    expect(isBinnedHeatmapFrame(frame)).toBe(true);
   });
 
   it('is false for frames without a heatmap meta type', () => {
@@ -17,11 +17,11 @@ describe('isHeatmapFrame', () => {
         { name: 'v', type: FieldType.number, values: [1] },
       ],
     });
-    expect(isHeatmapFrame(frame)).toBe(false);
+    expect(isBinnedHeatmapFrame(frame)).toBe(false);
   });
 });
 
-describe('frameToHeatmap - heatmap-rows', () => {
+describe('frameToBinnedHeatmap - heatmap-rows', () => {
   const rowsFrame = (): DataFrame =>
     toDataFrame({
       meta: { type: DataFrameType.HeatmapRows },
@@ -34,7 +34,7 @@ describe('frameToHeatmap - heatmap-rows', () => {
     });
 
   it('derives bucket bounds from le labels and contiguous lower bounds', () => {
-    const result = frameToHeatmap([rowsFrame()]);
+    const result = frameToBinnedHeatmap([rowsFrame()]);
     expect(result).not.toBeNull();
 
     // 3 buckets x 2 timestamps.
@@ -47,12 +47,12 @@ describe('frameToHeatmap - heatmap-rows', () => {
   });
 
   it('spans X cells by the smallest timestamp gap', () => {
-    const result = frameToHeatmap([rowsFrame()]);
+    const result = frameToBinnedHeatmap([rowsFrame()]);
     expect(findCell(result!.cells, 2, 0)).toMatchObject({ xStart: 2, xEnd: 3 });
   });
 
   it('reports value and bucket ranges', () => {
-    const result = frameToHeatmap([rowsFrame()]);
+    const result = frameToBinnedHeatmap([rowsFrame()]);
     expect(result!.valueMin).toBe(5);
     expect(result!.valueMax).toBe(10);
     expect(result!.yMin).toBe(0);
@@ -60,12 +60,12 @@ describe('frameToHeatmap - heatmap-rows', () => {
   });
 
   it('flags a time X field as a time axis', () => {
-    const result = frameToHeatmap([rowsFrame()]);
+    const result = frameToBinnedHeatmap([rowsFrame()]);
     expect(result!.xIsTime).toBe(true);
   });
 
   it('derives bound-placed bucket labels from le labels', () => {
-    const result = frameToHeatmap([rowsFrame()]);
+    const result = frameToBinnedHeatmap([rowsFrame()]);
     expect(result!.yLabelPlacement).toBe('bound');
     expect(result!.yBuckets).toEqual([
       { start: 0, end: 10, label: '10' },
@@ -84,7 +84,7 @@ describe('frameToHeatmap - heatmap-rows', () => {
       ],
     });
 
-    const result = frameToHeatmap([frame]);
+    const result = frameToBinnedHeatmap([frame]);
     expect(result).not.toBeNull();
     // 2 buckets x 2 X values; the numeric X field is not treated as a bucket row.
     expect(result!.cells).toHaveLength(4);
@@ -104,7 +104,7 @@ describe('frameToHeatmap - heatmap-rows', () => {
       ],
     });
 
-    const result = frameToHeatmap([frame]);
+    const result = frameToBinnedHeatmap([frame]);
     expect(findCell(result!.cells, 1, 0)).toMatchObject({ yStart: 0, yEnd: 1, value: 3 });
     expect(findCell(result!.cells, 1, 1)).toMatchObject({ yStart: 1, yEnd: 2, value: 4 });
     // No le labels: rows are ordinal, labelled by field name at their center.
@@ -116,7 +116,7 @@ describe('frameToHeatmap - heatmap-rows', () => {
   });
 });
 
-describe('frameToHeatmap - heatmap-cells', () => {
+describe('frameToBinnedHeatmap - heatmap-cells', () => {
   it('uses explicit min/max bounds (sparse) and the first non-axis value field', () => {
     const frame = toDataFrame({
       meta: { type: DataFrameType.HeatmapCells },
@@ -129,7 +129,7 @@ describe('frameToHeatmap - heatmap-cells', () => {
       ],
     });
 
-    const result = frameToHeatmap([frame]);
+    const result = frameToBinnedHeatmap([frame]);
     expect(result!.cells).toHaveLength(2);
     expect(result!.cells[0]).toMatchObject({ xStart: 1000, xEnd: 2000, yStart: 0, yEnd: 10, value: 3 });
     expect(result!.cells[1]).toMatchObject({ xStart: 2000, xEnd: 3000, yStart: 10, yEnd: 20, value: 7 });
@@ -153,7 +153,7 @@ describe('frameToHeatmap - heatmap-cells', () => {
       ],
     });
 
-    const result = frameToHeatmap([frame]);
+    const result = frameToBinnedHeatmap([frame]);
     // x step = 10 -> +/- 5; y step = 1 -> +/- 0.5
     expect(result!.cells[0]).toMatchObject({ xStart: 5, xEnd: 15, yStart: 0.5, yEnd: 1.5, value: 5 });
     // The center `x` field is numeric, so the axis is a value axis.
@@ -161,12 +161,12 @@ describe('frameToHeatmap - heatmap-cells', () => {
   });
 });
 
-describe('frameToHeatmap - no usable data', () => {
+describe('frameToBinnedHeatmap - no usable data', () => {
   it('returns null when no cells can be derived', () => {
     const frame = toDataFrame({
       meta: { type: DataFrameType.HeatmapRows },
       fields: [{ name: 'time', type: FieldType.time, values: [1] }],
     });
-    expect(frameToHeatmap([frame])).toBeNull();
+    expect(frameToBinnedHeatmap([frame])).toBeNull();
   });
 });

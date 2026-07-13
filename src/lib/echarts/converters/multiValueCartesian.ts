@@ -1,10 +1,13 @@
-import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type TimeRange } from '@grafana/data';
+import { type DataFrame, type Field, type GrafanaTheme2, type TimeRange } from '@grafana/data';
 import { type BoxplotSeriesOption, type CandlestickSeriesOption } from 'echarts';
-import { type MultiValueSeriesType } from 'editor/types';
+import { type EChartsFieldConfig, type MultiValueSeriesType } from 'editor/types';
 import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/charts/types';
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
+import { filterUnsupportedFields } from 'lib/grafana/filtering';
+import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
+import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 // Multi-value cartesian series carry several aligned dimensions per x position
 // instead of the single value of line/bar (`null` renders a gap):
@@ -18,9 +21,11 @@ const CANDLESTICK_FIELDS = ['open', 'high', 'low', 'close'];
 /** ECharts boxplot data order (also the plugin's positional convention). */
 const BOXPLOT_FIELDS = ['min', 'q1', 'median', 'q3', 'max'];
 
-/** First numeric field whose name matches `name` (case-insensitive). */
-function findNumericFieldByName(frame: DataFrame, name: string): Field | undefined {
-  return frame.fields.find((field) => field.type === FieldType.number && field.name.toLowerCase() === name);
+/** First numeric field whose name matches `name` (case-insensitive).
+ * @todo is this safe?
+ */
+function findNumericFieldByName(frame: DataFrame, name: string): Field<number> | undefined {
+  return frame.fields.find((field) => isNumberField(field) && field.name.toLowerCase() === name);
 }
 
 /** Positional dimension array for one row: `field.values[row] ?? null` per field. */
@@ -38,9 +43,12 @@ function rowValues(fields: Array<Field<number>>, row: number) {
  * (matching Grafana's native candlestick). Frames without a time field (e.g. a
  * categorical boxplot) keep every row.
  */
-function resolveRowIndices(frame: DataFrame, timeRange?: TimeRange): number[] {
+function resolveRowIndices(
+  frame: FieldTypedDataFrame<number | unknown, EChartsFieldConfig>,
+  timeRange?: TimeRange
+): number[] {
   const allRows = Array.from({ length: frame.length }, (_, row) => row);
-  const timeField = frame.fields.find((field) => field.type === FieldType.time);
+  const timeField = frame.fields.find(isTimeField);
   if (!timeField || !timeRange) {
     return allRows;
   }
@@ -49,7 +57,7 @@ function resolveRowIndices(frame: DataFrame, timeRange?: TimeRange): number[] {
   const to = timeRange.to.valueOf();
   return allRows.filter((row) => {
     const value = timeField.values[row];
-    return typeof value === 'number' && value >= from && value <= to;
+    return value >= from && value <= to;
   });
 }
 
@@ -61,8 +69,11 @@ function resolveRowIndices(frame: DataFrame, timeRange?: TimeRange): number[] {
  * render-step concern; a stable ISO label keeps the category axis deterministic.
  * Otherwise this falls back to the shared string/row-index categories.
  */
-function resolveMultiValueCategories(frame: DataFrame, rows: number[]): string[] {
-  const timeField = frame.fields.find((field) => field.type === FieldType.time);
+function resolveMultiValueCategories(
+  frame: FieldTypedDataFrame<number | string, EChartsFieldConfig>,
+  rows: number[]
+): string[] {
+  const timeField = frame.fields.find(isTimeField);
   if (!timeField) {
     const categories = resolveCategories(frame);
     return rows.map((row) => categories[row]);
@@ -70,7 +81,7 @@ function resolveMultiValueCategories(frame: DataFrame, rows: number[]): string[]
 
   return rows.map((row) => {
     const value = timeField.values[row];
-    return typeof value === 'number' ? new Date(value).toISOString() : String(value ?? row);
+    return new Date(value).toISOString();
   });
 }
 
@@ -97,7 +108,6 @@ function buildCandlestick(
     return null;
   }
 
-
   return {
     name: seriesName(frame, 'OHLC'),
     type: 'candlestick',
@@ -121,9 +131,9 @@ function buildBoxplot(
   rows: number[],
   zlevel: number | undefined
 ): BoxplotSeriesOption | null {
-  const numericFields = frame.fields.filter((field) => field.type === FieldType.number);
+  const numericFields = frame.fields.filter(isNumberField);
   const namedFields = BOXPLOT_FIELDS.map((name) => findNumericFieldByName(frame, name));
-  const fields = namedFields.every((field): field is Field => field !== undefined)
+  const fields = namedFields.every((field) => field !== undefined)
     ? namedFields
     : numericFields.slice(0, BOXPLOT_FIELDS.length);
 
@@ -163,7 +173,9 @@ function buildBoxplot(
 export function multiValueCartesianToEChartsOption(
   ctx: ChartContext<MultiValueSeriesType>
 ): CategoryCartesianData<MultiValueCartesianOption['series']> | null {
-  const { frames, theme, seriesType, timeRange, options } = ctx;
+  const { frames: unfilteredFrames, theme, seriesType, timeRange, options } = ctx;
+  const frames = filterUnsupportedFields(unfilteredFrames);
+
   const frame = findCategoricalFrame(frames);
   if (!frame) {
     return null;

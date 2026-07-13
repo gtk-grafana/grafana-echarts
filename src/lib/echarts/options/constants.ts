@@ -1,6 +1,8 @@
-import { type HeatmapColorScheme } from 'lib/echarts/options/types';
+import { type HeatmapColorScheme, type HeatmapLayout } from 'lib/echarts/options/types';
 
 export const heatmapColorSchemeDefault: HeatmapColorScheme = 'spectral';
+/** Default heatmap layout: the continuous, interval-cell dataplane rendering. */
+export const heatmapLayoutDefault: HeatmapLayout = 'binned';
 /**
  * Color stops per scheme, low value -> high value. Kept as static gradients
  * (matching common scientific colormaps) so the layer reads consistently in
@@ -39,7 +41,13 @@ export const COLOR_SCHEMES: Record<HeatmapColorScheme, string[]> = {
   ],
   magma: ['#000004', '#1c1044', '#4f127b', '#812581', '#b5367a', '#e55064', '#fb8761', '#fec287', '#fcfdbf'],
 };
+/** Resolve the gradient color stops for a scheme (falls back to the default). */
+export function getHeatmapColors(scheme?: HeatmapColorScheme): string[] {
+  return COLOR_SCHEMES[scheme ?? heatmapColorSchemeDefault] ?? COLOR_SCHEMES[heatmapColorSchemeDefault];
+}
 /** Dimension index of the cell value within the encoded heatmap data tuple. */
 export const HEATMAP_VALUE_DIM = 4;
 /** Reserved width (px) for the vertical visualMap color scale on the right. */
 export const HEATMAP_VISUALMAP_WIDTH = 60;
+/** Reserved height (px) for the horizontal visualMap color scale on the bottom. */
+export const HEATMAP_VISUALMAP_HEIGHT = 44;

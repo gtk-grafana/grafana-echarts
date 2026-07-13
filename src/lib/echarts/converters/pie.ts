@@ -1,20 +1,9 @@
-import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { type GrafanaTheme2 } from '@grafana/data';
+import { type EChartsFieldConfig } from 'editor/types';
+import type { EChartPieDataItem } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
-
-/**
- * A single pie slice: a named category and its numeric value.
- *
- * `itemStyle.color` is taken from Grafana's classic palette by slice index,
- * mirroring how Core's pie panel colors slices by category.
- *
- * See https://echarts.apache.org/en/option.html#series-pie.data
- */
-export interface PieSlice {
-  name: string;
-  value: number | null;
-  itemStyle: { color: string };
-}
+import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
  * Convert Grafana data frames into ECharts pie slices.
@@ -34,7 +23,7 @@ export interface PieSlice {
  *
  * Returns `null` when no usable categorical data can be derived.
  */
-export function pieToEChartsOption(series: DataFrame[], theme: GrafanaTheme2): PieSlice[] | null {
+export function pieToEChartsOption(series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>, theme: GrafanaTheme2): EChartPieDataItem[] | null {
   const categorical = frameToCategorical(series, theme);
 
   if (!categorical) {
@@ -45,7 +34,9 @@ export function pieToEChartsOption(series: DataFrame[], theme: GrafanaTheme2): P
 
   return categorical.categories.map((name, row) => ({
     name,
-    value: firstSeries.values[row],
+    // ECharts pie values are numeric-only; map Grafana nulls to undefined so
+    // missing points render as empty slices instead of failing the type.
+    value: firstSeries.values[row] ?? undefined,
     itemStyle: { color: getPaletteColorByIndex(row, theme) },
   }));
 }

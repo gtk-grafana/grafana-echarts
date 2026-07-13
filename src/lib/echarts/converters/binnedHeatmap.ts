@@ -1,9 +1,11 @@
 import { type DataFrame, type Field, FieldType, getFieldDisplayName } from '@grafana/data';
 import { heatmapFrameTypes } from 'editor/constants';
+import { type EChartsFieldConfig } from 'editor/types';
 import { formatBucketBound } from 'lib/echarts/format';
+import { type FieldTypedDataFrame, type NumericFrame } from 'lib/grafana/types';
 
 /**
- * A single heatmap cell with explicit bounds in data space.
+ * A single binned heatmap cell with explicit bounds in data space.
  *
  * Bounds are half-open rectangles `[xStart, xEnd) x [yStart, yEnd)` in the
  * axis' native units (time in ms for X, bucket value for Y). Drawing from
@@ -11,7 +13,7 @@ import { formatBucketBound } from 'lib/echarts/format';
  * a custom series, which the native ECharts heatmap can't do in this version
  * (it requires two category axes).
  */
-export interface HeatmapCell {
+export interface BinnedHeatmapCell {
   xStart: number;
   xEnd: number;
   yStart: number;
@@ -24,18 +26,18 @@ export interface HeatmapCell {
  * show for it. For Prometheus-style histograms the label is the `le` upper
  * bound; for plain wide series reused as rows it is the field display name.
  */
-export interface HeatmapBucket {
+export interface BinnedHeatmapBucket {
   start: number;
   end: number;
   label: string;
 }
 
 /**
- * The chart-agnostic heatmap model: the cells plus the value and Y (bucket)
- * ranges needed to configure the visualMap and the bucket axis.
+ * The chart-agnostic binned heatmap model: the cells plus the value and Y
+ * (bucket) ranges needed to configure the visualMap and the bucket axis.
  */
-export interface HeatmapData {
-  cells: HeatmapCell[];
+export interface BinnedHeatmapData {
+  cells: BinnedHeatmapCell[];
   /** Min/max of finite cell values, for the visualMap color range. */
   valueMin: number;
   valueMax: number;
@@ -49,7 +51,7 @@ export interface HeatmapData {
    */
   xIsTime: boolean;
   /** The distinct Y buckets (rows), ordered by their lower bound. */
-  yBuckets: HeatmapBucket[];
+  yBuckets: BinnedHeatmapBucket[];
   /**
    * How to place the Y bucket labels. `bound` labels each bucket at its upper
    * edge (Prometheus `le` histograms / numeric cell bounds); `center` labels
@@ -60,8 +62,8 @@ export interface HeatmapData {
 
 /** Cells plus the bucket metadata derived from a single heatmap frame. */
 interface FrameHeatmap {
-  cells: HeatmapCell[];
-  buckets: HeatmapBucket[];
+  cells: BinnedHeatmapCell[];
+  buckets: BinnedHeatmapBucket[];
   /** True for numeric/`le` bounds, false for ordinal (field-name) rows. */
   labelsAtBounds: boolean;
 }
@@ -75,7 +77,7 @@ export { formatBucketBound } from 'lib/echarts/format';
  * identified by its dataplane frame type. See
  * https://grafana.com/developers/dataplane/heatmap
  */
-export function isHeatmapFrame(frame: DataFrame): boolean {
+export function isBinnedHeatmapFrame(frame: DataFrame): boolean {
   const type = frame.meta?.type;
   return type != null && heatmapFrameTypes.includes(type);
 }
@@ -93,7 +95,7 @@ function minPositiveStep(values: number[]): number {
   return Number.isFinite(step) ? step : 1;
 }
 
-function fieldByName(frame: DataFrame, name: string): Field | undefined {
+function fieldByName<T>(frame: FieldTypedDataFrame<T, EChartsFieldConfig>, name: string): Field<T> | undefined {
   return frame.fields.find((field) => field.name === name);
 }
 
@@ -129,7 +131,7 @@ function frameXIsTime(frame: DataFrame): boolean {
  * X cells span `[x, x + step)` where `step` is the smallest gap between X values
  * (the last column reuses the prior step).
  */
-function rowsToCells(frame: DataFrame, series: DataFrame[]): FrameHeatmap {
+function rowsToCells(frame: FieldTypedDataFrame<number, EChartsFieldConfig>, series: DataFrame[]): FrameHeatmap {
   const xField = frame.fields[0];
   if (!xField || (xField.type !== FieldType.time && xField.type !== FieldType.number)) {
     return EMPTY_FRAME_HEATMAP;
@@ -165,8 +167,8 @@ function rowsToCells(frame: DataFrame, series: DataFrame[]): FrameHeatmap {
   }));
   rows.sort((a, b) => a.upper - b.upper);
 
-  const cells: HeatmapCell[] = [];
-  const buckets: HeatmapBucket[] = [];
+  const cells: BinnedHeatmapCell[] = [];
+  const buckets: BinnedHeatmapBucket[] = [];
   for (let r = 0; r < rows.length; r++) {
     const { field, upper } = rows[r];
     const yStart = r === 0 ? 0 : rows[r - 1].upper;
@@ -200,7 +202,7 @@ function rowsToCells(frame: DataFrame, series: DataFrame[]): FrameHeatmap {
  * Y bounds come from `yMin`/`yMax` or the center `y` field +/- half its step.
  * The first value field that isn't an axis-bound field is the displayed value.
  */
-function cellsToCells(frame: DataFrame): FrameHeatmap {
+function cellsToCells(frame: NumericFrame): FrameHeatmap {
   const xMin = fieldByName(frame, 'xMin');
   const xMax = fieldByName(frame, 'xMax');
   const xCenter = fieldByName(frame, 'x') ?? frame.fields.find((field) => field.type === FieldType.time);
@@ -222,10 +224,10 @@ function cellsToCells(frame: DataFrame): FrameHeatmap {
   const xStep = xCenter ? minPositiveStep(xCenter.values) : 1;
   const yStep = yCenter ? minPositiveStep(yCenter.values) : 1;
 
-  const cells: HeatmapCell[] = [];
+  const cells: BinnedHeatmapCell[] = [];
   // Distinct Y bucket bounds (cells repeat the same row across X), keyed to
   // dedupe so the bucket axis gets one label per row.
-  const bucketByKey = new Map<string, HeatmapBucket>();
+  const bucketByKey = new Map<string, BinnedHeatmapBucket>();
   for (let i = 0; i < rowCount; i++) {
     const xs = xMin ? Number(xMin.values[i]) : xCenter ? Number(xCenter.values[i]) - xStep / 2 : i;
     const xe = xMax ? Number(xMax.values[i]) : xCenter ? Number(xCenter.values[i]) + xStep / 2 : i + 1;
@@ -252,15 +254,15 @@ function cellsToCells(frame: DataFrame): FrameHeatmap {
 
 /**
  * Convert Grafana heatmap frames (heatmap-rows and/or heatmap-cells) into the
- * common cell model plus the value and bucket ranges. Multiple heatmap frames
- * are merged into a single cell set.
+ * common binned cell model plus the value and bucket ranges. Multiple heatmap
+ * frames are merged into a single cell set.
  *
  * Returns `null` when no usable cells can be derived, so the caller can skip the
  * heatmap layer.
  */
-export function frameToHeatmap(frames: DataFrame[], series: DataFrame[] = frames): HeatmapData | null {
-  const cells: HeatmapCell[] = [];
-  const bucketByKey = new Map<string, HeatmapBucket>();
+export function frameToBinnedHeatmap(frames: DataFrame[], series: DataFrame[] = frames): BinnedHeatmapData | null {
+  const cells: BinnedHeatmapCell[] = [];
+  const bucketByKey = new Map<string, BinnedHeatmapBucket>();
   // X axis is time only when every frame that actually contributes cells uses a
   // time X field; a single numeric-X frame drops the whole layer to a value axis.
   let xIsTime = true;

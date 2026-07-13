@@ -1,25 +1,9 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { defaultVizLegendOptions, LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { type LegendComponentOption } from 'echarts';
 import { type ChartModule } from 'lib/echarts/charts/types';
 import { getThemeTextStyle, LEGEND_FONT_SIZE } from 'lib/echarts/options/base';
 import { type PanelOptions } from 'types';
-
-/** Subset of the ECharts `legend` option this plugin sets. */
-export interface EChartsLegendOption {
-  show: boolean;
-  type?: string;
-  icon?: string;
-  itemWidth?: number;
-  itemHeight?: number;
-  textStyle?: { color: string; fontFamily: string; fontSize: number };
-  orient?: 'horizontal' | 'vertical';
-  bottom?: number;
-  left?: string;
-  right?: number;
-  top?: string;
-  data?: string[];
-}
-
 /** Baseline legend defaults shared by chart modules. */
 export const DEFAULT_CHART_LEGEND: VizLegendOptions = {
   ...defaultVizLegendOptions,
@@ -78,7 +62,7 @@ export function getLegendOption(
   legend: VizLegendOptions | undefined,
   theme: GrafanaTheme2,
   names?: string[]
-): EChartsLegendOption {
+): LegendComponentOption {
   if (!isLegendVisible(legend)) {
     return { show: false };
   }
@@ -103,14 +87,4 @@ export function getLegendOption(
   }
 
   return { ...base, orient: 'horizontal', bottom: 0, left: 'left' };
-}
-
-const LEGEND_GRID_PADDING = 12
-const DEFAULT_GRID_PADDING = 8;
-
-export function getCartesianGrid(legend?: VizLegendOptions) {
-  let right = legend?.placement === 'right' ? LEGEND_GRID_PADDING : 0;
-  let bottom = legend?.placement === 'bottom' ? LEGEND_GRID_PADDING : 0;
-
-  return { top: DEFAULT_GRID_PADDING, left: DEFAULT_GRID_PADDING, right, bottom, containLabel: true,  };
 }

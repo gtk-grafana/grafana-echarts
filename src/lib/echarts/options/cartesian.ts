@@ -1,10 +1,11 @@
 import { formattedValueToString, type GrafanaTheme2, type TimeRange, type ValueFormatter } from '@grafana/data';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { type AxisLabelValueFormatter, type TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
 import {
-  type AxisLabelValueFormatter,
-  type NumericAxisBaseOptionCommon,
-} from 'echarts/types/src/coord/axisCommonTypes';
-import { type CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
+  type CartesianAxisOption,
+  type XAXisOption,
+  type YAXisOption,
+} from 'echarts/types/src/coord/cartesian/AxisModel';
 import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';
 
 /**
@@ -40,13 +41,19 @@ export function getCartesianAxisStyle(theme: GrafanaTheme2) {
   };
 }
 
-/** Merge base axis config with theme styling and optional extras. */
-export function mergeAxisStyle(
-  baseAxis: CartesianAxisOption,
-  axisStyle: CartesianAxisOption,
-  extras?: CartesianAxisOption,
+/**
+ * Merge base axis config with theme styling and optional extras.
+ *
+ * Generic over the concrete axis type (`XAXisOption`/`YAXisOption`) so the merged
+ * result keeps the discriminated ECharts axis type of the `baseAxis`, letting it
+ * assign directly to a composed option's `xAxis`/`yAxis` without a cast.
+ */
+export function mergeAxisStyle<T extends CartesianAxisOption>(
+  baseAxis: T,
+  axisStyle: CartesianAxisOption | TimeAxisBaseOption,
+  extras?: CartesianAxisOption | TimeAxisBaseOption,
   grafanaValueFormatter?: ValueFormatter
-): NumericAxisBaseOptionCommon | CartesianAxisOption {
+): T {
   const extraAxisLabel = extras?.axisLabel ?? {};
   const extraAxisTick = extras?.axisTick ?? {};
   const extraSplitLine = extras?.splitLine ?? {};
@@ -69,17 +76,14 @@ export function mergeAxisStyle(
     },
     axisTick: { ...axisStyle.axisTick, ...extraAxisTick },
     splitLine: { ...axisStyle.splitLine, ...extraSplitLine },
-    // @todo need to figure out the types
-  } as CartesianAxisOption;
+  };
 }
 
 /**
  * Shared base option for cartesian time series charts (line, bar, scatter).
  * Tooltip and grid are merged at render time.
  */
-export const cartesianTimeDefaultOptions: ECBasicOption & { xAxis: CartesianAxisOption } & {
-  yAxis: CartesianAxisOption;
-} = {
+export const cartesianTimeDefaultOptions: ECBasicOption & { xAxis: XAXisOption; yAxis: YAXisOption } = {
   ...createBaseOptions(),
   xAxis: {
     type: 'time',
@@ -101,9 +105,7 @@ export const cartesianTimeDefaultOptions: ECBasicOption & { xAxis: CartesianAxis
  * time from the categorical model. Tooltip and grid are merged at render time.
  * See https://echarts.apache.org/en/option.html#xAxis.type
  */
-export const cartesianCategoryDefaultOptions: ECBasicOption & { xAxis: CartesianAxisOption } & {
-  yAxis: CartesianAxisOption;
-} = {
+export const cartesianCategoryDefaultOptions: ECBasicOption & { xAxis: XAXisOption; yAxis: YAXisOption } = {
   ...createBaseOptions(),
   xAxis: {
     type: 'category',

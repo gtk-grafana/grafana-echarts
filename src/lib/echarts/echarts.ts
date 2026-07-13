@@ -1,4 +1,25 @@
 // Single entry point for the ECharts runtime surface used by the plugin.
+import {
+  BarChart,
+  BoxplotChart,
+  CandlestickChart,
+  CustomChart,
+  EffectScatterChart,
+  HeatmapChart,
+  LineChart,
+  PieChart,
+  RadarChart,
+  ScatterChart,
+} from 'echarts/charts';
+import {
+  AxisPointerComponent,
+  BrushComponent,
+  GridComponent,
+  LegendComponent,
+  RadarComponent,
+  TooltipComponent,
+  VisualMapContinuousComponent,
+} from 'echarts/components';
 //
 // Instead of importing the full `echarts` barrel (which bundles every series
 // type and component), we pull in the modular `echarts/core` and register only
@@ -16,26 +37,6 @@
 // `use` is aliased to avoid the react-hooks lint rule mistaking ECharts' `use()`
 // for the React `use` hook.
 import { use as registerEChartsModules } from 'echarts/core';
-import {
-  BarChart,
-  BoxplotChart,
-  CandlestickChart,
-  CustomChart,
-  EffectScatterChart,
-  LineChart,
-  PieChart,
-  RadarChart,
-  ScatterChart,
-} from 'echarts/charts';
-import {
-  AxisPointerComponent,
-  BrushComponent,
-  GridComponent,
-  LegendComponent,
-  RadarComponent,
-  TooltipComponent,
-  VisualMapContinuousComponent,
-} from 'echarts/components';
 // In ECharts 6 `grid.containLabel` is a no-op unless this legacy feature is
 // registered; without it axis labels overflow the grid. Registering it restores
 // label-aware grid layout for the cartesian charts.
@@ -53,7 +54,9 @@ registerEChartsModules([
   BoxplotChart, // multi-value cartesian: [min, Q1, median, Q3, max]
   PieChart,
   RadarChart,
-  CustomChart, // heatmap cells are drawn as a custom series
+  CustomChart, // binned heatmap cells are drawn as a custom series
+  HeatmapChart, // native series for the matrix heatmap layout (category x category grid)
+  // ToolboxComponent,
   // Components
   GridComponent,
   TooltipComponent,
