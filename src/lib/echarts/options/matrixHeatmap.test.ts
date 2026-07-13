@@ -57,6 +57,16 @@ describe('getMatrixHeatmapVisualMap', () => {
     expect(visualMap.bottom).toBeDefined();
   });
 
+  it('keeps the bar thin in both orientations so it fits the reserved grid margin', () => {
+    // ECharts `itemHeight` is the bar length and `itemWidth` its thickness in
+    // both orientations; a thick bar overflows the grid band and overlaps cells.
+    const vertical = getMatrixHeatmapVisualMap(data, theme, 0, undefined, 'right');
+    const horizontal = getMatrixHeatmapVisualMap(data, theme, 0, undefined, 'bottom');
+    expect(vertical.itemWidth).toBe(horizontal.itemWidth);
+    expect(vertical.itemHeight).toBe(horizontal.itemHeight);
+    expect(vertical.itemWidth).toBeLessThan(Number(vertical.itemHeight));
+  });
+
   it('applies the selected color scheme', () => {
     const visualMap = getMatrixHeatmapVisualMap(data, theme, 0, 'blues');
     expect(visualMap.inRange?.color).toEqual(COLOR_SCHEMES.blues);

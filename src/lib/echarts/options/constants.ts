@@ -49,5 +49,9 @@ export function getHeatmapColors(scheme?: HeatmapColorScheme): string[] {
 export const HEATMAP_VALUE_DIM = 4;
 /** Reserved width (px) for the vertical visualMap color scale on the right. */
 export const HEATMAP_VISUALMAP_WIDTH = 60;
-/** Reserved height (px) for the horizontal visualMap color scale on the bottom. */
-export const HEATMAP_VISUALMAP_HEIGHT = 44;
+/**
+ * Reserved height (px) for the horizontal visualMap color scale on the bottom.
+ * Sized to hold the x-axis labels AND the color bar in a dedicated band below
+ * them, so the bar clears the labels instead of overlapping them.
+ */
+export const HEATMAP_VISUALMAP_HEIGHT = 60;

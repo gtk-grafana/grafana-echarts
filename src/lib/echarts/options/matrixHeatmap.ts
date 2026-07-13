@@ -2,8 +2,7 @@ import { type GrafanaTheme2 } from '@grafana/data';
 import { type HeatmapSeriesOption } from 'echarts';
 import { type ContinuousVisualMapOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
-import { getThemeTextStyle } from 'lib/echarts/options/base';
-import { getHeatmapColors } from 'lib/echarts/options/constants';
+import { getHeatmapVisualMap } from 'lib/echarts/options/heatmapVisualMap';
 import {
   type BinnedHeatmapTooltipContext,
   type HeatmapColorScalePlacement,
@@ -66,11 +65,10 @@ export function getMatrixHeatmapSeries(
 }
 
 /**
- * Continuous visualMap that colors the matrix heatmap series by its value
- * dimension. Placed on the right (vertical) by default or on the bottom
- * (horizontal), sized to the cell value range. Mirrors the binned heatmap
- * visualMap so the color scale reads consistently across layouts.
- * https://echarts.apache.org/en/option.html#visualMap-continuous
+ * Continuous visualMap that colors the matrix heatmap series by its value dim
+ * ({@link MATRIX_VALUE_DIM}). Shares its placement/sizing with the binned layout
+ * via {@link getHeatmapVisualMap} so the color scale reads consistently across
+ * layouts.
  */
 export function getMatrixHeatmapVisualMap(
   data: MatrixHeatmapData,
@@ -79,24 +77,13 @@ export function getMatrixHeatmapVisualMap(
   scheme?: HeatmapColorScheme,
   placement: HeatmapColorScalePlacement = 'right'
 ): ContinuousVisualMapOption {
-  const orientation: Pick<
-    ContinuousVisualMapOption,
-    'orient' | 'left' | 'right' | 'top' | 'bottom' | 'itemWidth' | 'itemHeight'
-  > =
-    placement === 'bottom'
-      ? { orient: 'horizontal', bottom: 8, left: 'center', itemWidth: 12, itemHeight: 120 }
-      : { orient: 'vertical', right: 8, top: 'middle', itemWidth: 12, itemHeight: 120 };
-
-  return {
-    type: 'continuous',
-    min: data.valueMin,
-    max: data.valueMax === data.valueMin ? data.valueMin + 1 : data.valueMax,
+  return getHeatmapVisualMap({
+    valueMin: data.valueMin,
+    valueMax: data.valueMax,
     dimension: MATRIX_VALUE_DIM,
+    theme,
     seriesIndex,
-    calculable: true,
-    hoverLink: true,
-    ...orientation,
-    inRange: { color: getHeatmapColors(scheme) },
-    textStyle: getThemeTextStyle(theme),
-  };
+    scheme,
+    placement,
+  });
 }
