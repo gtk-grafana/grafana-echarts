@@ -6,6 +6,7 @@ import {
   type BoxplotSeriesOption,
   type CandlestickSeriesOption,
   type ComposeOption,
+  type CustomSeriesOption,
   type EffectScatterSeriesOption,
   type GridComponentOption,
   type HeatmapSeriesOption,
@@ -37,12 +38,14 @@ export interface BaseOptionParts {
 }
 
 /**
- * The composite option the heatmap panel builds: the heatmap cell series plus the
- * cartesian overlay series, and the `grid`/`visualMap` components it configures.
- * `GridComponentOption` also pulls in the typed `xAxis`/`yAxis` dependencies.
+ * The composite option the binned heatmap panel builds: the custom-series cell
+ * layer plus the cartesian overlay series, and the `grid`/`visualMap` components
+ * it configures. `GridComponentOption` also pulls in the typed `xAxis`/`yAxis`
+ * dependencies. The cell layer is a `custom` series (interval rectangles on
+ * continuous axes), not the native `heatmap` series.
  */
-export type EChartHeatmapOption = ComposeOption<
-  | HeatmapSeriesOption
+export type EChartBinnedHeatmapOption = ComposeOption<
+  | CustomSeriesOption
   | BarSeriesOption
   | LineSeriesOption
   | CandlestickSeriesOption
@@ -50,6 +53,15 @@ export type EChartHeatmapOption = ComposeOption<
   | EffectScatterSeriesOption
   | GridComponentOption
   | VisualMapComponentOption
+>;
+/**
+ * The option the matrix heatmap panel builds: the native ECharts `heatmap`
+ * series (a category x category tile grid) plus the `grid` and `visualMap`
+ * components it configures. Unlike the binned layout (a `custom` series on
+ * continuous axes), matrix uses the native heatmap series on two category axes.
+ */
+export type EChartMatrixHeatmapOption = ComposeOption<
+  HeatmapSeriesOption | GridComponentOption | VisualMapComponentOption
 >;
 export type EChartBarSeriesOption = ComposeOption<BarSeriesOption>;
 export type EChartLineSeriesOption = ComposeOption<LineSeriesOption>;
@@ -70,12 +82,13 @@ export type EChartBoxPlotSeriesOption = ComposeOption<BoxplotSeriesOption>;
 export type EChartEffectScatterSeriesOption = ComposeOption<EffectScatterSeriesOption>;
 
 export type EChartMultiValueCartesianSeriesOption = ComposeOption<CandlestickSeriesOption | BoxplotSeriesOption>;
-export type EChartCartesianSeriesOption = ComposeOption<BarSeriesOption | HeatmapSeriesOption | LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption>
+export type EChartCartesianSeriesOption = ComposeOption<BarSeriesOption | LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption>
 
 // A single cartesian series entry narrowed to the single-series union so arrays assign to a `series` field.
 export type EChartSingleValueCartesianSeries = Exclude<NonNullable<EChartCartesianSeriesOption['series']>, unknown[]>
 export type EChartBuildOption =
-  | EChartHeatmapOption
+  | EChartBinnedHeatmapOption
+  | EChartMatrixHeatmapOption
   | EChartBarSeriesOption
   | EChartLineSeriesOption
   | EChartScatterSeriesOption

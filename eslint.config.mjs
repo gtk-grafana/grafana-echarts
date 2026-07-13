@@ -62,6 +62,7 @@ export default defineConfig([
         'error',
         { assertionStyle: 'as', objectLiteralTypeAssertions: 'allow-as-parameter' },
       ],
+      // '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       // Type-aware rules that reject values flowing in/out of `any`, which is
       // how `as any` casts leak untyped data through the codebase.
       // https://typescript-eslint.io/rules/no-unsafe-argument/

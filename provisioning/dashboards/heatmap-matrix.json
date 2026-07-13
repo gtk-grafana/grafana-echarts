@@ -1,0 +1,156 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Matrix heatmap layout (heatmapLayout = 'matrix'): a category × category grid drawn by the native ECharts heatmap series. The wide/pivot query has a string field (Service) that supplies the Y row categories and one numeric field per weekday, each becoming an X column category. Every cell is colored by the shared visualMap on the right.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapLayout": "matrix",
+        "heatmapColorScheme": "spectral",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Service,Mon,Tue,Wed,Thu,Fri\nAPI,12,19,3,5,2\nWeb,8,11,14,7,9\nDB,3,6,9,4,15\nCache,20,4,7,12,6"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Mon", "destinationType": "number" },
+              { "targetField": "Tue", "destinationType": "number" },
+              { "targetField": "Wed", "destinationType": "number" },
+              { "targetField": "Thu", "destinationType": "number" },
+              { "targetField": "Fri", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Matrix heatmap (right color scale)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Same matrix data with the color scale placed on the bottom (heatmapColorScale.placement = 'bottom') and the Blues color scheme, exercising the horizontal visualMap placement for the matrix layout.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapLayout": "matrix",
+        "heatmapColorScheme": "blues",
+        "heatmapColorScale": {
+          "placement": "bottom"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Service,Mon,Tue,Wed,Thu,Fri\nAPI,12,19,3,5,2\nWeb,8,11,14,7,9\nDB,3,6,9,4,15\nCache,20,4,7,12,6"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Mon", "destinationType": "number" },
+              { "targetField": "Tue", "destinationType": "number" },
+              { "targetField": "Wed", "destinationType": "number" },
+              { "targetField": "Thu", "destinationType": "number" },
+              { "targetField": "Fri", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Matrix heatmap (bottom color scale, Blues)",
+      "type": "grafana-echartsheatmap-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "heatmap", "matrix"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Heatmap matrix layout",
+  "uid": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+  "version": 1,
+  "weekStart": ""
+}

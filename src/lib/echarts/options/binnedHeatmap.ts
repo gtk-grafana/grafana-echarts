@@ -1,20 +1,26 @@
 import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
-import { type HeatmapSeriesOption } from 'echarts';
+// `renderItem`'s type must come from the `echarts` barrel so it matches the
+// `CustomSeriesOption.renderItem` declaration; the shared-dist copy is a
+// separate declaration ECharts' own option type rejects.
+import { type CustomSeriesOption, type CustomSeriesRenderItem } from 'echarts';
 import {
   type CallbackDataParams,
   type ContinuousVisualMapOption,
-  type CustomSeriesRenderItem,
   type TopLevelFormatterParams,
 } from 'echarts/types/dist/shared';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
 import type { CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
-import { formatBucketBound, type HeatmapCell, type HeatmapData } from 'lib/echarts/converters/heatmap';
-import { getThemeTextStyle } from 'lib/echarts/options/base';
-import { COLOR_SCHEMES, HEATMAP_VALUE_DIM, heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
 import {
+  type BinnedHeatmapCell,
+  type BinnedHeatmapData,
+  formatBucketBound,
+} from 'lib/echarts/converters/binnedHeatmap';
+import { getThemeTextStyle } from 'lib/echarts/options/base';
+import { getHeatmapColors, HEATMAP_VALUE_DIM } from 'lib/echarts/options/constants';
+import {
+  type BinnedHeatmapTooltipContext,
   type HeatmapColorScalePlacement,
   type HeatmapColorScheme,
-  type HeatmapTooltipContext,
   type Rect,
 } from 'lib/echarts/options/types';
 import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
@@ -32,18 +38,11 @@ import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/templ
  * Uses ECharts `customValues` (value-axis support added in 5.5), so it requires
  * ECharts >= 5.5 (the plugin ships 6.x).
  */
-export function getHeatmapBucketAxis(data: HeatmapData): CartesianAxisOption | TimeAxisBaseOption  {
+export function getBinnedHeatmapBucketAxis(data: BinnedHeatmapData): CartesianAxisOption | TimeAxisBaseOption {
   const rawBuckets = data.yBuckets;
   if (rawBuckets.length === 0) {
     return {};
   }
-
-  // const buckets: Array<[number, number]> = rawBuckets.flatMap<[number, number]>((bucket) => [bucket.start, bucket.end]);
-
-  // the old code removes infinite values and sorts, but our buckets should already be processed by now?
-  // const boundaries = Array.from(new Set(buckets.flatMap((bucket) => [bucket.start, bucket.end])))
-  //   .filter((value) => Number.isFinite(value))
-  //   .sort((a, b) => a - b);
 
   const labelByValue = new Map<number, string>();
   if (data.yLabelPlacement === 'center') {
@@ -65,14 +64,7 @@ export function getHeatmapBucketAxis(data: HeatmapData): CartesianAxisOption | T
     axisLabel: { customValues: labelValues, formatter: (value: number) => labelByValue.get(Number(value)) ?? '' },
     axisTick: { customValues: labelValues },
     breaks: rawBuckets,
-    // @todo why does splitLine not have customValues? Removing for now until we figure out if this is needed
-    // splitLine: { customValues: boundaries } as Record<string, unknown>,
   };
-}
-
-/** Resolve the gradient color stops for a scheme (falls back to the default). */
-export function getHeatmapColors(scheme?: HeatmapColorScheme): string[] {
-  return COLOR_SCHEMES[scheme ?? heatmapColorSchemeDefault] ?? COLOR_SCHEMES[heatmapColorSchemeDefault];
 }
 
 /**
@@ -82,7 +74,7 @@ export function getHeatmapColors(scheme?: HeatmapColorScheme): string[] {
  * passes this same tuple back as the tooltip hover param's `value`.
  * See https://echarts.apache.org/en/option.html#series-custom.data
  */
-export function encodeHeatmapData(cells: HeatmapCell[]): Array<Array<number | null>> {
+export function encodeBinnedHeatmapData(cells: BinnedHeatmapCell[]): Array<Array<number | null>> {
   return cells.map((cell) => [cell.xStart, cell.yStart, cell.xEnd, cell.yEnd, cell.value]);
 }
 
@@ -108,7 +100,7 @@ function clipRectByRect(target: Rect, clip: Rect): Rect | undefined {
  * Canvas shadow applied to a cell in its emphasis (hover) state. Assignable to
  * an element's `emphasis.style` (a subset of ECharts' path style props).
  */
-export interface HeatmapCellShadow {
+export interface BinnedHeatmapCellShadow {
   shadowBlur: number;
   shadowColor: string;
 }
@@ -120,7 +112,7 @@ export interface HeatmapCellShadow {
  * Used by the cells' emphasis state so hovering the visualMap (`hoverLink`) or a
  * cell lifts the matching cells, mirroring the ECharts heatmap-cartesian example.
  */
-export function getHeatmapCellEmphasisShadow(theme: GrafanaTheme2): HeatmapCellShadow {
+export function getBinnedHeatmapCellEmphasisShadow(theme: GrafanaTheme2): BinnedHeatmapCellShadow {
   return {
     shadowBlur: 10,
     shadowColor: theme.isDark ? 'rgba(0, 0, 0, 0.75)' : 'rgba(0, 0, 0, 0.35)',
@@ -128,16 +120,17 @@ export function getHeatmapCellEmphasisShadow(theme: GrafanaTheme2): HeatmapCellS
 }
 
 /**
- * Build the `renderItem` for the heatmap custom series: convert each cell's two
- * corners to pixels via `api.coord`, draw a rect clipped to the grid, and fill it
- * with the color the visualMap computed for this item (`api.visual('color')`).
- * Works on a continuous `time` x-axis, unlike the native heatmap series.
+ * Build the `renderItem` for the binned heatmap custom series: convert each
+ * cell's two corners to pixels via `api.coord`, draw a rect clipped to the grid,
+ * and fill it with the color the visualMap computed for this item
+ * (`api.visual('color')`). Works on a continuous `time` x-axis, unlike the
+ * native heatmap series.
  *
  * The returned rect carries an `emphasis.style` shadow so hovering the visualMap
  * (`hoverLink`) or an individual cell lifts the matching cells.
  * See https://echarts.apache.org/en/option.html#series-custom.renderItem
  */
-export function makeHeatmapRenderItem(emphasisShadow: HeatmapCellShadow): CustomSeriesRenderItem {
+export function makeBinnedHeatmapRenderItem(emphasisShadow: BinnedHeatmapCellShadow): CustomSeriesRenderItem {
   return (params, api) => {
     const start = api.coord([api.value(0), api.value(1)]);
     const end = api.coord([api.value(2), api.value(3)]);
@@ -171,19 +164,20 @@ export function makeHeatmapRenderItem(emphasisShadow: HeatmapCellShadow): Custom
 }
 
 /**
- * Per-cell tooltip for the heatmap custom series. Unlike the generic tooltip
- * (which would show the series name "Heatmap" and the raw cell value), this
- * matches core Grafana: the X (time/value) in the header, then a "Value" row and
- * the bucket "Name" row. The bucket label is recovered from the cell's Y bounds
- * via {@link HeatmapData.yBuckets}, the same labels the bucket axis uses.
+ * Per-cell tooltip for the binned heatmap custom series. Unlike the generic
+ * tooltip (which would show the series name "Heatmap" and the raw cell value),
+ * this matches core Grafana: the X (time/value) in the header, then a "Value"
+ * row and the bucket "Name" row. The bucket label is recovered from the cell's Y
+ * bounds via {@link BinnedHeatmapData.yBuckets}, the same labels the bucket axis
+ * uses.
  *
  * ECharts hands `params.value` back the encoded `[xStart, yStart, xEnd, yEnd,
  * value]` tuple (item trigger). Returns safe DOM (no innerHTML) via the shared
  * tooltip shell. See https://echarts.apache.org/en/option.html#series-custom.tooltip
  */
-export function buildHeatmapTooltip(
-  data: HeatmapData,
-  ctx: HeatmapTooltipContext
+export function buildBinnedHeatmapTooltip(
+  data: BinnedHeatmapData,
+  ctx: BinnedHeatmapTooltipContext
 ): (params: TopLevelFormatterParams) => HTMLElement {
   const bucketLabels = new Map<string, string>();
   for (const bucket of data.yBuckets) {
@@ -216,42 +210,47 @@ export function buildHeatmapTooltip(
 }
 
 /**
- * Build the heatmap custom series. `yAxisIndex` defaults to 0 (the bucket axis).
+ * Build the binned heatmap custom series. `yAxisIndex` defaults to 0 (the bucket
+ * axis). `zlevel` places the cells on the series canvas layer (see the panel's
+ * `zLevel.series`), matching the cartesian series so layered canvas capture can
+ * isolate the series draw calls.
  */
-export function getHeatmapSeries(
-  data: HeatmapData,
-  tooltipCtx: HeatmapTooltipContext,
-  yAxisIndex = 0
-): HeatmapSeriesOption {
+export function getBinnedHeatmapSeries(
+  data: BinnedHeatmapData,
+  tooltipCtx: BinnedHeatmapTooltipContext,
+  yAxisIndex = 0,
+  zlevel?: number
+): CustomSeriesOption {
   return {
     name: 'Heatmap',
-    type: 'heatmap',
+    type: 'custom',
     coordinateSystem: 'cartesian2d',
     yAxisIndex,
-    // renderItem: makeHeatmapRenderItem(getHeatmapCellEmphasisShadow(tooltipCtx.theme)),
+    zlevel,
+    renderItem: makeBinnedHeatmapRenderItem(getBinnedHeatmapCellEmphasisShadow(tooltipCtx.theme)),
     // Map tuple dims to axes: x spans dims [0, 2] (xStart..xEnd), y spans [1, 3]
     // (yStart..yEnd), and the tooltip reads the value dim.
     // See https://echarts.apache.org/en/option.html#series-custom.encode
     encode: { x: [0, 2], y: [1, 3], tooltip: [HEATMAP_VALUE_DIM] },
-    data: encodeHeatmapData(data.cells),
+    data: encodeBinnedHeatmapData(data.cells),
     // Exclude from the toggle legend; the cell layer isn't a togglable series.
     legendHoverLink: false,
     // Per-series tooltip so a hovered cell reads like core Grafana's heatmap.
     // https://echarts.apache.org/en/option.html#series-custom.tooltip
-    tooltip: { formatter: buildHeatmapTooltip(data, tooltipCtx) },
+    tooltip: { formatter: buildBinnedHeatmapTooltip(data, tooltipCtx) },
   };
 }
 
 /**
- * Continuous visualMap that colors only the heatmap series (by `seriesIndex`).
- * Placed on the right (vertical) by default or on the bottom (horizontal), sized
- * to the cell value range. `hoverLink` (on by default) highlights the cells in a
- * hovered value range; the highlight shadow lives on the series emphasis state
- * (see {@link makeHeatmapRenderItem}).
+ * Continuous visualMap that colors only the binned heatmap series (by
+ * `seriesIndex`). Placed on the right (vertical) by default or on the bottom
+ * (horizontal), sized to the cell value range. `hoverLink` (on by default)
+ * highlights the cells in a hovered value range; the highlight shadow lives on
+ * the series emphasis state (see {@link makeBinnedHeatmapRenderItem}).
  * See https://echarts.apache.org/en/option.html#visualMap-continuous
  */
-export function getHeatmapVisualMap(
-  data: HeatmapData,
+export function getBinnedHeatmapVisualMap(
+  data: BinnedHeatmapData,
   theme: GrafanaTheme2,
   seriesIndex: number,
   scheme?: HeatmapColorScheme,

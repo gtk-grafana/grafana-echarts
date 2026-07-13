@@ -27,8 +27,8 @@ export interface Rect {
   height: number;
 }
 
-/** Theme + formatting context the heatmap tooltip needs to match Grafana. */
-export interface HeatmapTooltipContext {
+/** Theme + formatting context the binned heatmap tooltip needs to match Grafana. */
+export interface BinnedHeatmapTooltipContext {
   theme: GrafanaTheme2;
   timeZone: string;
   formatValue: ValueFormatter;
