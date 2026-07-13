@@ -19,14 +19,6 @@ export type HeatmapLayout = 'binned' | 'matrix';
  * relative to the cell grid.
  */
 export type HeatmapColorScalePlacement = 'right' | 'bottom';
-
-export interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 /** Theme + formatting context the binned heatmap tooltip needs to match Grafana. */
 export interface BinnedHeatmapTooltipContext {
   theme: GrafanaTheme2;

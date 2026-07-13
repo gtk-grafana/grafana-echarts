@@ -10,6 +10,7 @@ import {
 } from 'echarts/types/dist/shared';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
 import type { CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
+import { type ZRRectLike } from 'echarts/types/src/util/types';
 import {
   type BinnedHeatmapCell,
   type BinnedHeatmapData,
@@ -17,11 +18,11 @@ import {
 } from 'lib/echarts/converters/binnedHeatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
 import { getHeatmapColors, HEATMAP_VALUE_DIM } from 'lib/echarts/options/constants';
+import { isRect } from 'lib/echarts/options/narrowing';
 import {
   type BinnedHeatmapTooltipContext,
   type HeatmapColorScalePlacement,
   type HeatmapColorScheme,
-  type Rect,
 } from 'lib/echarts/options/types';
 import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
 
@@ -84,7 +85,7 @@ export function encodeBinnedHeatmapData(cells: BinnedHeatmapCell[]): Array<Array
  * no ECharts runtime import (letting ECharts load as a shared async chunk).
  * https://github.com/apache/echarts/blob/master/src/util/graphic.ts
  */
-function clipRectByRect(target: Rect, clip: Rect): Rect | undefined {
+function clipRectByRect(target: ZRRectLike, clip: ZRRectLike): ZRRectLike | undefined {
   const x = Math.max(target.x, clip.x);
   const x2 = Math.min(target.x + target.width, clip.x + clip.width);
   const y = Math.max(target.y, clip.y);
@@ -135,7 +136,7 @@ export function makeBinnedHeatmapRenderItem(emphasisShadow: BinnedHeatmapCellSha
     const start = api.coord([api.value(0), api.value(1)]);
     const end = api.coord([api.value(2), api.value(3)]);
 
-    const rect: Rect = {
+    const rect: ZRRectLike = {
       x: Math.min(start[0], end[0]),
       y: Math.min(start[1], end[1]),
       // +0.5 closes sub-pixel seams between adjacent cells.
@@ -145,8 +146,10 @@ export function makeBinnedHeatmapRenderItem(emphasisShadow: BinnedHeatmapCellSha
 
     // ECharts types `coordSys` only as `{ type }`, but on cartesian2d it also
     // carries the grid rect at runtime; narrow to our Rect to clip against it.
-    const coordSys = params.coordSys as unknown as Rect;
-    const shape = clipRectByRect(rect, coordSys);
+    if (!isRect(params.coordSys)) {
+      return;
+    }
+    const shape = clipRectByRect(rect, params.coordSys);
 
     if (!shape) {
       return;
