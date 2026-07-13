@@ -1,4 +1,4 @@
-# Pre-commit gate: block commits that break TypeScript types or lint.
+# Pre-commit gate: block commits that break TypeScript types, lint, or formatting.
 # https://lefthook.dev/configuration/
 pre-commit:
   parallel: true
@@ -9,3 +9,6 @@ pre-commit:
     # Lint the whole project (cached); enforces the no-any / no-unsafe rules.
     lint:
       run: pnpm run lint
+    # Check Prettier formatting; run `pnpm run lint:fix` to auto-fix.
+    prettier:
+      run: pnpm run prettier:check
