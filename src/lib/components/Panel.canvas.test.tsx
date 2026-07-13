@@ -17,7 +17,7 @@ import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions } from '@g
 import { render, waitFor } from '@testing-library/react';
 import { type EChartsType } from 'echarts';
 import { cartesianTimeSeriesTypes, seriesTypePath } from 'editor/constants';
-import { type SeriesType } from 'editor/types';
+import { type CartesianSingleValueSeriesType, type SeriesType } from 'editor/types';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import React from 'react';
 import { readLayeredCanvasEvents, removeCanvasClear, SERIES_ZLEVEL, setupECharts } from 'test/canvas';
@@ -392,6 +392,52 @@ describe('Panel canvas renders', () => {
       it('renders', async () => {
         const { container } = render(
           getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Cartesian overlays: a heatmap cell layer plus line/bar series drawn on top.
+    // Overlays render against a secondary y-axis (index 1); without it ECharts
+    // errors during series init (e.g. "yAxis '0' not found" for a bar overlay).
+    describe('overlay', () => {
+      const heatmapFrame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapRows },
+        fields: [
+          { name: 'time', type: FieldType.time, values: times },
+          { name: 'b1', type: FieldType.number, values: [5, 6, 7, 8], labels: { le: '10' } },
+          { name: 'b2', type: FieldType.number, values: [7, 8, 9, 10], labels: { le: '20' } },
+        ],
+      });
+
+      // Overlay frame: a numeric field overridden to a cartesian series type. Its
+      // magnitude (100s) is far outside the bucket range, so it must ride the
+      // secondary y-axis rather than being squashed onto the bucket scale.
+      const overlayFrame = (overlaySeriesType: CartesianSingleValueSeriesType) =>
+        toDataFrame({
+          fields: [
+            { name: 'time', type: FieldType.time, values: times },
+            {
+              name: 'metric',
+              type: FieldType.number,
+              values: [120, 340, 180, 260],
+              config: { displayName: 'overlay-metric', custom: { seriesType: overlaySeriesType } },
+            },
+          ],
+        });
+
+      it.each(['line', 'bar', 'scatter'])('renders a %s overlay', async (overlaySeriesType) => {
+        const { container } = render(
+          getComponent([heatmapFrame, overlayFrame(overlaySeriesType as CartesianSingleValueSeriesType)], 'heatmap', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
           })

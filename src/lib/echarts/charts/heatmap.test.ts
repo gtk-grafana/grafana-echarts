@@ -9,6 +9,7 @@ import {
   type ValueFormatter,
 } from '@grafana/data';
 import { LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { type YAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { seriesTypePath } from 'editor/constants';
 import {
   COLOR_SCHEMES,
@@ -178,6 +179,29 @@ describe('heatmapChartModule.buildOption', () => {
     // Buckets 0..10 and 10..20 give a 0..20 bucket range.
     expect(yAxis?.min).toBe(0);
     expect(yAxis?.max).toBe(20);
+  });
+
+  it('emits a single bucket y-axis (object, not array) for a pure heatmap', () => {
+    const option = buildHeatmapOption(makeContext([heatmapFrame()]), { isGrafanaLegend: true });
+    // No overlay: keep a single y-axis so the pure heatmap layout is unchanged.
+    expect(Array.isArray(option?.yAxis)).toBe(false);
+  });
+
+  it('adds a secondary auto-scaled y-axis for the overlay (index 1)', () => {
+    const option = buildHeatmapOption(makeContext([heatmapFrame(), overlayFrame()]), { isGrafanaLegend: true });
+    // The overlay references yAxisIndex 1, so that axis must exist or ECharts
+    // errors during series init.
+    expect(Array.isArray(option?.yAxis)).toBe(true);
+    const yAxes = (Array.isArray(option?.yAxis) ? option?.yAxis : []) as YAXisOption[];
+    expect(yAxes).toHaveLength(2);
+    // Bucket axis (index 0) stays pinned to the bucket range.
+    expect(yAxes[0]?.min).toBe(0);
+    expect(yAxes[0]?.max).toBe(20);
+    // Overlay axis (index 1) auto-fits its own values instead of the bucket scale.
+    // `scale` lives on the value-axis variant of the YAXisOption union.
+    const overlayAxis = yAxes[1] as { type?: string; scale?: boolean };
+    expect(overlayAxis.type).toBe('value');
+    expect(overlayAxis.scale).toBe(true);
   });
 
   it('uses a time x-axis when the heatmap X field is time', () => {

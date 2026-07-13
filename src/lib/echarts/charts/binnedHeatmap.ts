@@ -85,18 +85,36 @@ export function buildBinnedHeatmapOption(
 
   // Composite panel: the heatmap cell layer plus optional cartesian overlays (line/bar/scatter).
   const series: BinnedHeatmapSeries[] = [];
-  series.push(getBinnedHeatmapSeries(heatmap, { theme, timeZone: ctx.timeZone, formatValue }, 0, options.zLevel?.series));
+  series.push(
+    getBinnedHeatmapSeries(heatmap, { theme, timeZone: ctx.timeZone, formatValue }, 0, options.zLevel?.series)
+  );
   for (const cartesian of cartSeries) {
     series.push({ ...cartesian, yAxisIndex: overlayYAxisIndex });
   }
 
   const bucketAxisExtra: CartesianAxisOption | TimeAxisBaseOption = getBinnedHeatmapBucketAxis(heatmap);
 
-  const yAxis = mergeAxisStyle<YAXisOption>(cartesianTimeDefaultOptions.yAxis, axisStyle, {
+  // Primary y-axis (index 0): the bucket scale the heatmap cells are drawn against.
+  const bucketYAxis = mergeAxisStyle<YAXisOption>(cartesianTimeDefaultOptions.yAxis, axisStyle, {
     min: heatmap.yMin,
     max: heatmap.yMax,
     ...bucketAxisExtra,
   });
+
+  // Adds additional y-axis if heatmap has overlays.
+  // hidden, auto-scaled value axis to avoid collisions with the eCharts legend (visualMap)
+  // https://echarts.apache.org/en/option.html#yAxis
+  const yAxis: YAXisOption | YAXisOption[] =
+    cartSeries.length > 0
+      ? [
+          bucketYAxis,
+          mergeAxisStyle<YAXisOption>(cartesianTimeDefaultOptions.yAxis, axisStyle, {
+            axisLabel: { show: false },
+            axisTick: { show: false },
+            splitLine: { show: false },
+          }),
+        ]
+      : bucketYAxis;
 
   const vizLegendOptions = isGrafanaLegend ? undefined : options.legend;
   const grid: GridOption = getHeatmapGrid(placement, vizLegendOptions);
