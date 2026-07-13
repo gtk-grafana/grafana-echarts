@@ -133,6 +133,7 @@ export const EChart: React.FC<Props> = ({
 
     // eCharts types here are cryptic and/or missing definitions for all of the chart events, so we must typecast for now
     // See the comment in lib/echarts/timeBrush.ts
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     chart.on('brushEnd', handleBrushEnd as (...args: unknown[]) => void);
     return () => {
       // On unmount the layout effect's cleanup disposes the instance before this
