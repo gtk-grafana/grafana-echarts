@@ -5,7 +5,7 @@ import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/c
 import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
-import { filterNonStringOrNumericFields } from 'lib/grafana/filtering';
+import { filterUnsupportedFields } from 'lib/grafana/filtering';
 import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
@@ -174,7 +174,7 @@ export function multiValueCartesianToEChartsOption(
   ctx: ChartContext<MultiValueSeriesType>
 ): CategoryCartesianData<MultiValueCartesianOption['series']> | null {
   const { frames: unfilteredFrames, theme, seriesType, timeRange, options } = ctx;
-  const frames = filterNonStringOrNumericFields(unfilteredFrames);
+  const frames = filterUnsupportedFields(unfilteredFrames);
 
   const frame = findCategoricalFrame(frames);
   if (!frame) {
