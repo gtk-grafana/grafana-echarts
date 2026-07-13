@@ -11,6 +11,7 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Any usage of Grafana or EChart APIs should contain links to the relevant documentation
 
 ## Critical rules
+
 - Push back on the prompter when scope of work conflicts with project goals.
 - Ask for permission and clarity whenever ambiguities arise.
 - Keep plans small and focused to the task at hand, do not make changes that were not explicitly requested

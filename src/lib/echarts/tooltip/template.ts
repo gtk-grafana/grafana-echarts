@@ -186,7 +186,7 @@ export function buildTooltipContent(
   valueFormatter: ValueFormatter,
   theme: GrafanaTheme2
 ): HTMLElement {
-  const items = (Array.isArray(params) ? params : [params]);
+  const items = Array.isArray(params) ? params : [params];
   const shell = buildTooltipShell(theme);
 
   const header = getHeader(items);

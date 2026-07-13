@@ -23,7 +23,10 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
  *
  * Returns `null` when no usable categorical data can be derived.
  */
-export function pieToEChartsOption(series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>, theme: GrafanaTheme2): EChartPieDataItem[] | null {
+export function pieToEChartsOption(
+  series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>,
+  theme: GrafanaTheme2
+): EChartPieDataItem[] | null {
   const categorical = frameToCategorical(series, theme);
 
   if (!categorical) {

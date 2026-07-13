@@ -23,11 +23,11 @@ https://grafana.com/developers/dataplane/numeric — and pivots it into a matrix
 `frameToMatrixHeatmap` uses the same `findCategoricalFrame` / `resolveCategories`
 / `mapNumericFields` helpers as the categorical model:
 
-| Grafana field        | Used as                                              |
-| -------------------- | ---------------------------------------------------- |
-| First `string` field | **Y categories** (rows), one per data row            |
-| Each `number` field   | **X category** (column), labelled by display name    |
-| cell `[c, r]`         | column `c`'s numeric value at row `r`                |
+| Grafana field        | Used as                                           |
+| -------------------- | ------------------------------------------------- |
+| First `string` field | **Y categories** (rows), one per data row         |
+| Each `number` field  | **X category** (column), labelled by display name |
+| cell `[c, r]`        | column `c`'s numeric value at row `r`             |
 
 Non-finite values become `null` so the tile renders empty rather than as `0`.
 `valueMin`/`valueMax` (finite values only) size the ECharts `visualMap`,

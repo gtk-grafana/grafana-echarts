@@ -278,7 +278,6 @@ describe('Panel canvas renders', () => {
         });
       });
     });
-
   });
 
   // Binned heatmap: dataplane heatmap frames drawn as interval cells via the

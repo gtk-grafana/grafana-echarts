@@ -65,7 +65,7 @@ export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2):
       if (value != null) {
         valueMin = Math.min(valueMin, value);
         valueMax = Math.max(valueMax, value);
-      }else{
+      } else {
         debug('invalid matrix cell value', LOG_LEVELS.debug, { raw });
       }
       cells.push([c, r, value]);

@@ -29,11 +29,11 @@ that has at least one numeric field, so `NumericWide`, `NumericMulti`, and
 
 `frameToCategorical` maps a single frame as follows:
 
-| Grafana field           | Used as                                             |
-| ----------------------- | --------------------------------------------------- |
-| First `string` field    | The shared **categories** (x-axis / slices / axes)  |
-| Each `number` field      | One **series**, its positional `values` array       |
-| `time` fields            | Ignored                                             |
+| Grafana field        | Used as                                            |
+| -------------------- | -------------------------------------------------- |
+| First `string` field | The shared **categories** (x-axis / slices / axes) |
+| Each `number` field  | One **series**, its positional `values` array      |
+| `time` fields        | Ignored                                            |
 
 - **Categories** come from the first string field's row values. With no string
   field, row indices (`"0"`, `"1"`, ...) are used
@@ -56,13 +56,13 @@ Per-chart narrowing on top of this model:
 
 ## Divergences from the data plane spec
 
-- **Single frame only.** `findCategoricalFrame` returns the *first* frame with a
+- **Single frame only.** `findCategoricalFrame` returns the _first_ frame with a
   numeric field; all other frames are silently dropped. `NumericMulti` (and the
   time series "Multi" format, one frame per series) is **not** merged. This is a
   known gap tracked in `todo/multiple-frames.md`.
 - **Labels are not used for identity.** The spec builds series identity from
   field name + labels (`NumericWide`) or from string-column dimensions
-  (`NumericLong`). This plugin only uses labels for the display *name* and never
+  (`NumericLong`). This plugin only uses labels for the display _name_ and never
   pivots a long-format frame into multiple dimensions — the first string field
   is always treated as the category axis, not as a dimension key.
 - **First string field wins.** There is no way to choose which string field

@@ -1,5 +1,9 @@
 import { type DataFrame, DataFrameType, FieldType, toDataFrame } from '@grafana/data';
-import { type BinnedHeatmapCell, frameToBinnedHeatmap, isBinnedHeatmapFrame } from 'lib/echarts/converters/binnedHeatmap';
+import {
+  type BinnedHeatmapCell,
+  frameToBinnedHeatmap,
+  isBinnedHeatmapFrame,
+} from 'lib/echarts/converters/binnedHeatmap';
 
 const findCell = (cells: BinnedHeatmapCell[], xStart: number, yStart: number): BinnedHeatmapCell | undefined =>
   cells.find((cell) => cell.xStart === xStart && cell.yStart === yStart);

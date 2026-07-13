@@ -85,7 +85,10 @@ export function resolveTimeField(frame: DataFrame) {
  * Iterate numeric value fields across all frames that have a usable time/X field.
  * Skips frames with no time or numeric fallback field.
  */
-export function forEachTimeSeriesField<T>(series: Array<FieldTypedDataFrame<T, EChartsFieldConfig>>, callback: (ref: TimeSeriesFieldRef<T>) => void): void {
+export function forEachTimeSeriesField<T>(
+  series: Array<FieldTypedDataFrame<T, EChartsFieldConfig>>,
+  callback: (ref: TimeSeriesFieldRef<T>) => void
+): void {
   // @todo convert to for loop
   series.forEach((frame, frameIndex) => {
     const timeField = resolveTimeField(frame);

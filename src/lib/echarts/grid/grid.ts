@@ -44,5 +44,5 @@ export function getHeatmapGrid(
     ...baseGrid,
     left: LEFT_GRID_PADDING,
     ...(placement === 'bottom' ? { bottom } : { right }),
-  }
+  };
 }

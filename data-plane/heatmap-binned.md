@@ -19,7 +19,7 @@ heatmap when its `meta.type` is `heatmap-rows` or `heatmap-cells`
 read as heatmap-rows, per the spec note that "Timeseries wide can be used
 directly as heatmap-rows".
 
-Because the native ECharts heatmap series requires two *category* axes, the
+Because the native ECharts heatmap series requires two _category_ axes, the
 plugin does not use it here. Instead it derives explicit half-open cell
 rectangles `[xStart, xEnd) x [yStart, yEnd)` in data space and renders them with
 a custom series, which preserves a continuous `time` (or `value`) x-axis.
@@ -28,7 +28,7 @@ a custom series, which preserves a continuous `time` (or `value`) x-axis.
 
 `rowsToCells` maps a rows frame:
 
-- The **first field is the X axis**, taken *positionally* (not by type) to match
+- The **first field is the X axis**, taken _positionally_ (not by type) to match
   core Grafana (`heatmap.fields[0]`). Per the spec the X field may be `time`
   **or** `number`; `xIsTime` records which so the caller picks a `time` vs
   `value` axis.

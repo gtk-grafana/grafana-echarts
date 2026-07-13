@@ -1,9 +1,6 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { type HeatmapSeriesOption } from 'echarts';
-import {
-  type ContinuousVisualMapOption,
-  type TopLevelFormatterParams,
-} from 'echarts/types/dist/shared';
+import { type ContinuousVisualMapOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
 import { getHeatmapColors } from 'lib/echarts/options/constants';
@@ -29,8 +26,8 @@ export function buildMatrixHeatmapTooltip(
   ctx: BinnedHeatmapTooltipContext
 ): (params: TopLevelFormatterParams) => HTMLElement {
   return (params) => {
-    const param = (Array.isArray(params) ? params[0] : params);
-    const tuple = (Array.isArray(param?.value) ? param.value : []);
+    const param = Array.isArray(params) ? params[0] : params;
+    const tuple = Array.isArray(param?.value) ? param.value : [];
     const xIndex = Number(tuple[0]);
     const yIndex = Number(tuple[1]);
     const value = tuple[MATRIX_VALUE_DIM] ?? null;

@@ -1,16 +1,9 @@
 import { type GridOption } from 'echarts/types/dist/shared';
-import {
-  type XAXisOption,
-  type YAXisOption,
-} from 'echarts/types/src/coord/cartesian/AxisModel';
+import { type XAXisOption, type YAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type HeatmapSeriesType } from 'editor/types';
 import { frameToMatrixHeatmap } from 'lib/echarts/converters/matrixHeatmap';
 import { getHeatmapGrid } from 'lib/echarts/grid/grid';
-import {
-  cartesianCategoryDefaultOptions,
-  getCartesianAxisStyle,
-  mergeAxisStyle,
-} from 'lib/echarts/options/cartesian';
+import { cartesianCategoryDefaultOptions, getCartesianAxisStyle, mergeAxisStyle } from 'lib/echarts/options/cartesian';
 import { getMatrixHeatmapSeries, getMatrixHeatmapVisualMap } from 'lib/echarts/options/matrixHeatmap';
 import { type BaseOptionParts, type ChartContext, type EChartMatrixHeatmapOption } from './types';
 
