@@ -57,7 +57,7 @@ export const supportsTimeAxisSeriesTypes: TimeAxisSupportsSeriesType[] = [
  */
 export const cartesianTimeSeriesTypes: CartesianSingleValueSeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
 /**
- * Multi-value cartesian types (Group 3): each x position carries several aligned
+ * Multi-value cartesian types: each x position carries several aligned
  * numeric dimensions (candlestick OHLC, boxplot five-number summary) rather than
  * the single value of line/bar. They render on a category axis via the
  * multi-value converter (see echarts/converters/multiValueCartesian.ts) and,

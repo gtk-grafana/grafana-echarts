@@ -64,6 +64,14 @@ export function thresholdDisplayForMode(mode: GraphThresholdsStyleMode): Thresho
  * `getActiveThresholdForValue`), so they are mapped onto that range here. The
  * leading base step (`-Infinity`) is preserved so callers can pin the lowest
  * region to the axis edge. Returns `null` when the field has no thresholds.
+ *
+ * The range prefers `field.state.range`, which Grafana precomputes in
+ * `applyFieldOverrides`. That precomputed range already honors the standard
+ * Min/Max options, the cross-field global range, and the "Field min/max" toggle
+ * (`config.fieldMinMax`: per-field vs. all-field range). This matches how
+ * by-value color resolves (`getScaleCalculator`); the per-field
+ * `getMinMaxAndDelta` is only a fallback for when no state range is present
+ * (e.g. unit tests that build bare fields).
  */
 export function resolveFieldThresholds(field: Field, theme: GrafanaTheme2): ResolvedThreshold[] | null {
   // Thresholds are a standard field config, so a plain `Field` suffices here.
@@ -74,7 +82,7 @@ export function resolveFieldThresholds(field: Field, theme: GrafanaTheme2): Reso
 
   let range: { min: number; delta: number } | undefined;
   if (thresholds.mode === ThresholdsMode.Percentage) {
-    const { min, delta } = getMinMaxAndDelta(field);
+    const { min, delta } = field.state?.range ?? getMinMaxAndDelta(field);
     range = { min: min ?? 0, delta: delta ?? 0 };
   }
 

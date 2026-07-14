@@ -5,6 +5,7 @@ import {
   type GrafanaTheme2,
   type ValueFormatter,
 } from '@grafana/data';
+import { getNoValueText } from 'lib/grafana/fields/fieldConfig';
 
 /**
  * Resolve the color to use for an entire series/slice from a Grafana field.
@@ -46,8 +47,13 @@ export function getPaletteColorByIndex(index: number, theme: GrafanaTheme2): str
  */
 export function getValueFormatter(field: Field, theme: GrafanaTheme2, timeZone?: string): ValueFormatter {
   const display = field.display ?? getDisplayProcessor({ field, theme, timeZone });
+  const noValue = getNoValueText(field);
 
-  return (value) => display(value);
+  // Empty (null/undefined/NaN) values render the field's "No value" text rather
+  // than the display processor's empty string, honoring the standard option in
+  // tooltips. Axis label usage is unaffected (labels are always numeric).
+  return (value) =>
+    value == null || (typeof value === 'number' && Number.isNaN(value)) ? { text: noValue } : display(value);
 }
 
 /**

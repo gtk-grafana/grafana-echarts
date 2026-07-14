@@ -81,6 +81,53 @@ describe('resolveFieldThresholds', () => {
       { value: 100, color: theme.visualization.getColorByName('red') },
     ]);
   });
+
+  // "Field min/max": Grafana precomputes `field.state.range` in
+  // `applyFieldOverrides`, honoring the cross-field global range and the
+  // `fieldMinMax` toggle. Percentage thresholds must resolve against that range,
+  // not the field's own values, so the toggle actually takes effect.
+  it('prefers the precomputed field.state.range for percentage steps', () => {
+    const field = numericField(
+      {
+        thresholds: {
+          mode: ThresholdsMode.Percentage,
+          // 50% of the state range [0, 400] === 200, not 50% of the values.
+          steps: [
+            { value: -Infinity, color: 'green' },
+            { value: 50, color: 'red' },
+          ],
+        },
+      },
+      [0, 50, 100]
+    );
+    field.state = { range: { min: 0, max: 400, delta: 400 } };
+
+    expect(resolveFieldThresholds(field, theme)).toEqual([
+      { value: -Infinity, color: theme.visualization.getColorByName('green') },
+      { value: 200, color: theme.visualization.getColorByName('red') },
+    ]);
+  });
+
+  it('falls back to the per-field range when no state range is present', () => {
+    const field = numericField(
+      {
+        thresholds: {
+          mode: ThresholdsMode.Percentage,
+          // No config min/max and no state range: 50% of the values [0, 100] === 50.
+          steps: [
+            { value: -Infinity, color: 'green' },
+            { value: 50, color: 'red' },
+          ],
+        },
+      },
+      [0, 50, 100]
+    );
+
+    expect(resolveFieldThresholds(field, theme)).toEqual([
+      { value: -Infinity, color: theme.visualization.getColorByName('green') },
+      { value: 50, color: theme.visualization.getColorByName('red') },
+    ]);
+  });
 });
 
 describe('findThresholdField', () => {
