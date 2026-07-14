@@ -16,7 +16,7 @@ import { type PanelOptions } from 'types';
 const zLevel = { series: SERIES_ZLEVEL, axis: AXIS_ZLEVEL };
 
 /** Numeric field with an optional unit and per-field y-axis placement override. */
-const numeric = (name: string, values: number[], unit?: string, placement?: AxisPlacement): Field => ({
+const generateNumberField = (name: string, values: number[], unit?: string, placement?: AxisPlacement): Field => ({
   name,
   type: FieldType.number,
   values,
@@ -27,7 +27,7 @@ const numeric = (name: string, values: number[], unit?: string, placement?: Axis
   },
 });
 
-const time = (values: number[]): Field => ({ name: 'time', type: FieldType.time, values, config: {} });
+const generateTimeField = (values: number[]): Field => ({ name: 'time', type: FieldType.time, values, config: {} });
 const times = [1783137094497, 1783140694497, 1783144294497, 1783147894497];
 
 describe('Panel canvas axis renders', () => {
@@ -36,7 +36,7 @@ describe('Panel canvas axis renders', () => {
   // from Panel.canvas.test.tsx so all grid/axis snapshots live together.
   it('grid', async () => {
     const frame = toDataFrame({
-      fields: [time(times), numeric('cpu', [10, 20, 30, 10])],
+      fields: [generateTimeField(times), generateNumberField('cpu', [10, 20, 30, 10])],
     });
 
     const { container } = render(
@@ -57,32 +57,38 @@ describe('Panel canvas axis renders', () => {
   // A single y-axis rendered by each axis-bearing chart family. Confirms every
   // renderer draws exactly one value/category axis on the dedicated axis layer.
   describe('single y-axis renderers', () => {
-    const cartesianFrame = toDataFrame({ fields: [time(times), numeric('cpu', [10, 20, 30, 10])] });
+    const cartesianFrame = toDataFrame({
+      fields: [generateTimeField(times), generateNumberField('cpu', [10, 20, 30, 10])],
+    });
     const categoryFrame = toDataFrame({
       fields: [
         { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT'] },
-        numeric('Budget', [43, 10, 30]),
+        generateNumberField('Budget', [43, 10, 30]),
       ],
     });
     const candlestickFrame = toDataFrame({
       name: 'BTC',
       fields: [
-        time(times),
-        numeric('open', [10, 18, 22, 15]),
-        numeric('high', [20, 25, 28, 24]),
-        numeric('low', [5, 12, 18, 11]),
-        numeric('close', [18, 22, 15, 21]),
+        generateTimeField(times),
+        generateNumberField('open', [10, 18, 22, 15]),
+        generateNumberField('high', [20, 25, 28, 24]),
+        generateNumberField('low', [5, 12, 18, 11]),
+        generateNumberField('close', [18, 22, 15, 21]),
       ],
     });
     const heatmapRowsFrame = toDataFrame({
       meta: { type: DataFrameType.HeatmapRows },
-      fields: [time(times), numeric('low', [5, 6, 7, 8]), numeric('high', [9, 10, 11, 12])],
+      fields: [
+        generateTimeField(times),
+        generateNumberField('low', [5, 6, 7, 8]),
+        generateNumberField('high', [9, 10, 11, 12]),
+      ],
     });
     const matrixFrame = toDataFrame({
       fields: [
         { name: 'row', type: FieldType.string, values: ['a', 'b', 'c'] },
-        numeric('c1', [1, 5, 9]),
-        numeric('c2', [3, 7, 2]),
+        generateNumberField('c1', [1, 5, 9]),
+        generateNumberField('c2', [3, 7, 2]),
       ],
     });
 
@@ -122,9 +128,9 @@ describe('Panel canvas axis renders', () => {
     const twoSeriesFrame = (placementA?: AxisPlacement, placementB?: AxisPlacement) =>
       toDataFrame({
         fields: [
-          time(times),
-          numeric('bytesSeries', [10, 20, 30, 10], 'bytes', placementA),
-          numeric('percentSeries', [40, 55, 45, 60], 'percent', placementB),
+          generateTimeField(times),
+          generateNumberField('bytesSeries', [10, 20, 30, 10], 'bytes', placementA),
+          generateNumberField('percentSeries', [40, 55, 45, 60], 'percent', placementB),
         ],
       });
 
@@ -155,10 +161,10 @@ describe('Panel canvas axis renders', () => {
   it('three y-axes (left-left-right)', async () => {
     const frame = toDataFrame({
       fields: [
-        time(times),
-        numeric('bytesSeries', [10, 20, 30, 10], 'bytes', AxisPlacement.Left),
-        numeric('wattSeries', [5, 6, 7, 8], 'watt', AxisPlacement.Left),
-        numeric('percentSeries', [40, 55, 45, 60], 'percent', AxisPlacement.Right),
+        generateTimeField(times),
+        generateNumberField('bytesSeries', [10, 20, 30, 10], 'bytes', AxisPlacement.Left),
+        generateNumberField('wattSeries', [5, 6, 7, 8], 'watt', AxisPlacement.Left),
+        generateNumberField('percentSeries', [40, 55, 45, 60], 'percent', AxisPlacement.Right),
       ],
     });
 

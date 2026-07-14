@@ -54,6 +54,8 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
     // Each element with a defined zLevel is split out into a separate canvas (for performance reasons)
     // https://echarts.apache.org/en/option.html#series-line.zlevel
     series?: number;
+    // Moves the y-axes onto a dedicated canvas so they can be captured in
+    // isolation (the x-axis stays on the default/grid layer).
     axis?: number;
     grid?: number;
     legend?: number;

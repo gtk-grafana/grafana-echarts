@@ -75,7 +75,6 @@ function buildTimeOption(
   const xAxis = mergeAxisStyle<XAXisOption>(cartesianTimeDefaultOptions.xAxis, axisStyle, {
     ...getTimeAxisBounds(ctx.timeRange),
     axisLabel: { formatter: getTimeAxisLabelFormatter(ctx.timeRange, ctx.timeZone) },
-    zlevel: options.zLevel?.axis,
   });
 
   return {
