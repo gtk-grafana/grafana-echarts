@@ -25,6 +25,12 @@ export const heatmapChartModule: ChartModule = {
     return buildBinnedHeatmapLegendItems(ctx, calcs);
   },
 
+  // Heatmap is out of scope for per-field tooltip units; keep the panel-level
+  // formatter for both cells and overlays (current behavior).
+  getTooltipValueFormatter(ctx) {
+    return () => ctx.formatValue;
+  },
+
   buildOption(
     ctx: ChartContext<HeatmapSeriesType>,
     base

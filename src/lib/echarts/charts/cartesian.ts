@@ -1,8 +1,14 @@
+import { type Field } from '@grafana/data';
 import { type XAXisOption, type YAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type CartesianSingleValueSeriesType, type MultiValueSeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType, isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
-import { framesHaveTimeField } from 'lib/echarts/converters/frames';
+import {
+  collectTimeSeriesFields,
+  findCategoricalFrame,
+  framesHaveTimeField,
+  mapNumericFields,
+} from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import { getCartesianGrid } from 'lib/echarts/grid/grid';
@@ -19,6 +25,8 @@ import {
   buildMultiValueCartesianLegendItems,
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
+import { getFieldValueFormatters } from 'lib/echarts/style';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
 import {
   type ChartContext,
@@ -146,8 +154,30 @@ function buildMultiValueOption(
   };
 }
 
+/**
+ * Numeric value fields in the same order the converters emit series, so a
+ * tooltip's `seriesIndex` maps back to its source field. Multi-value
+ * (candlestick/boxplot) draws a single series from several fields, so there is
+ * no per-series field to return; the resolver falls back to the panel formatter.
+ */
+function cartesianSeriesFields(ctx: ChartContext): Field[] {
+  if (isMultiValueSeriesType(ctx.seriesType)) {
+    return [];
+  }
+  if (framesHaveTimeField(ctx.frames)) {
+    return collectTimeSeriesFields(ctx.frames);
+  }
+  const frame = findCategoricalFrame(ctx.frames);
+  return frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+}
+
 export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
+
+  getTooltipValueFormatter(ctx) {
+    const formatters = getFieldValueFormatters(cartesianSeriesFields(ctx), ctx.theme, ctx.timeZone);
+    return indexedFormatterResolver(formatters, ctx.formatValue, 'seriesIndex');
+  },
 
   buildOption(
     ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>,

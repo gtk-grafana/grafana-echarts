@@ -49,3 +49,12 @@ export function getValueFormatter(field: Field, theme: GrafanaTheme2, timeZone?:
 
   return (value) => display(value);
 }
+
+/**
+ * Build one value formatter per field, preserving order so callers can index by
+ * a series' position. Each formatter honors that field's own unit/decimals
+ * overrides (via `getValueFormatter`), so heterogeneous units format correctly.
+ */
+export function getFieldValueFormatters(fields: Field[], theme: GrafanaTheme2, timeZone?: string): ValueFormatter[] {
+  return fields.map((field) => getValueFormatter(field, theme, timeZone));
+}
