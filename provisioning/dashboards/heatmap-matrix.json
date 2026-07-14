@@ -287,6 +287,65 @@
       ],
       "title": "Matrix heatmap (value field unit=decbytes, decimals=1, bottom scale)",
       "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Same matrix data with the color scale hidden (heatmapColorScale.placement = 'none'). The visualMap legend is removed and no grid space is reserved for it, so the cells fill the full panel width; the cells stay colored because the value→color mapping still applies.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapLayout": "matrix",
+        "heatmapColorScheme": "spectral",
+        "heatmapColorScale": {
+          "placement": "none"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Service,Mon,Tue,Wed,Thu,Fri\nAPI,12,19,3,5,2\nWeb,8,11,14,7,9\nDB,3,6,9,4,15\nCache,20,4,7,12,6"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Mon", "destinationType": "number" },
+              { "targetField": "Tue", "destinationType": "number" },
+              { "targetField": "Wed", "destinationType": "number" },
+              { "targetField": "Thu", "destinationType": "number" },
+              { "targetField": "Fri", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Matrix heatmap (color scale hidden)",
+      "type": "grafana-echartsheatmap-panel"
     }
   ],
   "refresh": "",

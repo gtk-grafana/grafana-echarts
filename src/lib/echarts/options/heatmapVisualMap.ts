@@ -69,6 +69,10 @@ export function getHeatmapVisualMap({
 
   return {
     type: 'continuous',
+    // `none` hides the color scale legend but still maps cell values to colors,
+    // so the heatmap stays colored without the scale taking up panel space.
+    // https://echarts.apache.org/en/option.html#visualMap-continuous.show
+    show: placement !== 'none',
     min: valueMin,
     // Widen a degenerate single-value range so the scale still renders.
     max: valueMax === valueMin ? valueMin + 1 : valueMax,

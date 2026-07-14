@@ -1,18 +1,12 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import {
-  cartesianOverrideOptions,
-  heatmapLegendCategoryName,
-  seriesCategoryName,
-  seriesTypeName,
-  seriesTypePath,
-} from 'editor/constants';
+import { commonOptionsBuilder } from '@grafana/ui';
+import { cartesianOverrideOptions, heatmapLegendCategoryName, seriesCategoryName } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
 import { heatmapColorSchemeDefault, heatmapLayoutDefault } from 'lib/echarts/options/constants';
 import { heatmapColorSchemeOptions, heatmapLayoutOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
-import { addOverlayLegendOptions } from './legendOptions';
 import { heatmapSuggestionsSupplier } from './suggestions';
 
 // Heatmap family panel: renders Grafana heatmap frames as ECharts
@@ -55,20 +49,6 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
     },
   })
   .setPanelOptions((builder) => {
-    // Family is fixed to `heatmap`. The select is registered hidden so its
-    // `defaultValue` still routes the shared Panel to the heatmap chart module,
-    // without exposing a single-option dropdown to the user.
-    builder.addSelect({
-      path: seriesTypePath,
-      name: seriesTypeName,
-      defaultValue: 'heatmap',
-
-      settings: {
-        options: [{ value: 'heatmap', label: 'heatmap' }],
-      },
-      showIf: () => false,
-    });
-
     // Heatmap coordinate model: `binned` (continuous interval cells, the
     // dataplane default) vs `matrix` (categorical grid via native ECharts heatmap).
     builder.addRadio({
@@ -104,13 +84,16 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         options: [
           { value: 'right', label: 'Right' },
           { value: 'bottom', label: 'Bottom' },
+          { value: 'none', label: 'None' },
         ],
       },
       category: [heatmapLegendCategoryName],
     });
 
-    // Grafana DOM legend options, shown only when a cartesian overlay exists.
-    addOverlayLegendOptions(builder);
+    // @todo We only need this in a somewhat edge-case situation, so it really sucks that we always have to display the
+    // legend in the editor UI because the field config is applied to the data frame after the panel options are already
+    // built. So we don't have the field config override that we want to know if a field has been selected to render as a cartesian series.
+    commonOptionsBuilder.addLegendOptions(builder);
 
     builder.addRadio({
       path: 'tooltip.mode',

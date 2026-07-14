@@ -18,7 +18,7 @@ export type HeatmapLayout = 'binned' | 'matrix';
  * Where the heatmap color scale (the ECharts `visualMap` legend) is rendered
  * relative to the cell grid.
  */
-export type HeatmapColorScalePlacement = 'right' | 'bottom';
+export type HeatmapColorScalePlacement = 'right' | 'bottom' | 'none';
 /** Theme + formatting context the binned heatmap tooltip needs to match Grafana. */
 export interface BinnedHeatmapTooltipContext {
   theme: GrafanaTheme2;

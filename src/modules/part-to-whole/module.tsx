@@ -1,7 +1,6 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
@@ -26,16 +25,6 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
     },
   })
   .setPanelOptions((builder) => {
-    builder.addSelect({
-      path: seriesTypePath,
-      name: seriesTypeName,
-      defaultValue: 'pie',
-      settings: {
-        options: [{ value: 'pie', label: 'pie' }],
-      },
-      category: [seriesCategoryName],
-    });
-
     commonOptionsBuilder.addLegendOptions(builder);
 
     builder.addRadio({

@@ -176,6 +176,18 @@ describe('heatmapChartModule.buildOption', () => {
     expect(Number(grid?.bottom)).toEqual(HEATMAP_VISUALMAP_HEIGHT);
   });
 
+  it('hides the visualMap and reserves no grid space for it when placement is none', () => {
+    const option = buildHeatmapOption(makeContext([heatmapFrame()], 'none'), { isGrafanaLegend: true });
+    const visualMap = single(option?.visualMap);
+    const grid = single(option?.grid);
+    // Hidden legend, but the color mapping stays so the cells remain colored.
+    expect(visualMap?.show).toBe(false);
+    expect(visualMap?.dimension).toBe(HEATMAP_VALUE_DIM);
+    // No visualMap band reserved on either edge.
+    expect(Number(grid?.right)).toBe(0);
+    expect(grid?.bottom).not.toBe(HEATMAP_VISUALMAP_HEIGHT);
+  });
+
   it('returns null when there are no heatmap frames (only a cartesian overlay)', () => {
     expect(buildHeatmapOption(makeContext([overlayFrame()]), { isGrafanaLegend: true })).toBeNull();
   });
