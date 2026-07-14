@@ -177,4 +177,64 @@ describe('Panel canvas axis renders', () => {
       { width, height }
     );
   });
+
+  // A binned heatmap with cartesian overlays: the bucket axis stays on the left
+  // while one value axis per overlay unit stacks on the right (defaulting to the
+  // right so they clear the bucket axis). See `buildBinnedHeatmapOption`.
+  describe('heatmap overlay y-axes', () => {
+    const heatmapCells = toDataFrame({
+      meta: { type: DataFrameType.HeatmapRows },
+      fields: [
+        generateTimeField(times),
+        generateNumberField('low', [5, 6, 7, 8]),
+        generateNumberField('high', [9, 10, 11, 12]),
+      ],
+    });
+
+    // Two overlay fields with distinct units, promoted to cartesian overlays via
+    // the per-field `seriesType` override. An optional placement on the percent
+    // field exercises the hidden-axis path.
+    const overlayFrame = (percentPlacement?: AxisPlacement) =>
+      toDataFrame({
+        fields: [
+          generateTimeField(times),
+          {
+            name: 'bytesOverlay',
+            type: FieldType.number,
+            values: [10, 20, 30, 10],
+            config: { unit: 'bytes', custom: { seriesType: 'line' } },
+          },
+          {
+            name: 'percentOverlay',
+            type: FieldType.number,
+            values: [40, 55, 45, 60],
+            config: {
+              unit: 'percent',
+              custom: { seriesType: 'line', ...(percentPlacement ? { axisPlacement: percentPlacement } : {}) },
+            },
+          },
+        ],
+      });
+
+    const cases: Array<{ name: string; percentPlacement?: AxisPlacement }> = [
+      { name: 'two units (right-right)' },
+      { name: 'unit hidden', percentPlacement: AxisPlacement.Hidden },
+    ];
+
+    it.each(cases)('$name', async ({ percentPlacement }) => {
+      const { container } = render(
+        getComponent([heatmapCells, overlayFrame(percentPlacement)], 'heatmap', {
+          zLevel,
+          animation: { enabled: false },
+        })
+      );
+
+      const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
+
+      expect(removeCanvasTransforms(removeCanvasClear(axisEvents))).toMatchCanvasSnapshot(
+        [...defaultEvents, ...seriesEvents],
+        { width, height }
+      );
+    });
+  });
 });

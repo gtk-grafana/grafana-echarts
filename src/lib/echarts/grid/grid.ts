@@ -25,10 +25,15 @@ export function getCartesianGrid(
 
 /**
  * Reserve space for the visualMap color scale (eCharts native heatmap legend) on whichever side it sits.
+ *
+ * `extraAxisSpacing` reserves additional px for stacked (offset) overlay y-axes
+ * beyond the first on each side, on top of the visualMap width, so overlay right
+ * axes stay inboard of a right-placed visualMap (see `buildBinnedHeatmapOption`).
  */
 export function getHeatmapGrid(
   placement: HeatmapColorScalePlacement,
-  legend: VizLegendOptions | undefined
+  legend: VizLegendOptions | undefined,
+  extraAxisSpacing?: { left?: number; right?: number }
 ): GridOption {
   const baseGrid = getCartesianGrid(legend);
 
@@ -44,11 +49,15 @@ export function getHeatmapGrid(
     throw new Error('Invalid grid right type');
   }
 
+  // The visualMap only reserves width on the right when placed there; overlay
+  // axis offset spacing is reserved regardless so stacked right axes always fit.
+  const visualMapRight = placement === 'bottom' ? 0 : HEATMAP_VISUALMAP_WIDTH;
+  const right = (baseGrid.right ?? 16) + visualMapRight + (extraAxisSpacing?.right ?? 0);
   const bottom = (baseGrid.bottom ?? 0) + HEATMAP_VISUALMAP_HEIGHT;
-  const right = (baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH;
   return {
     ...baseGrid,
-    left: LEFT_GRID_PADDING,
-    ...(placement === 'bottom' ? { bottom } : { right }),
+    left: LEFT_GRID_PADDING + (extraAxisSpacing?.left ?? 0),
+    right,
+    ...(placement === 'bottom' ? { bottom } : {}),
   };
 }

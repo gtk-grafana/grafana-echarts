@@ -76,8 +76,32 @@ export function buildCartesianYAxes(params: {
   timeZone?: string;
   fallbackFormatter: ValueFormatter;
   zlevel?: number;
+  /**
+   * Side that `Auto`-placed unit groups resolve to. Defaults to the core Grafana
+   * rule (first unit left, the rest right). The heatmap overlay passes `right`
+   * so its axes don't collide with the bucket axis pinned to the left.
+   */
+  autoSide?: Side;
+  /**
+   * Axes already occupying each side before these are laid out, so offsets and
+   * grid spacing account for them. The heatmap passes `initialLeftCount: 1` for
+   * its bucket axis, pushing any overlay left axis outboard of it.
+   */
+  initialLeftCount?: number;
+  initialRightCount?: number;
 }): CartesianYAxes {
-  const { fields, baseYAxis, axisStyle, theme, timeZone, fallbackFormatter, zlevel } = params;
+  const {
+    fields,
+    baseYAxis,
+    axisStyle,
+    theme,
+    timeZone,
+    fallbackFormatter,
+    zlevel,
+    autoSide,
+    initialLeftCount = 0,
+    initialRightCount = 0,
+  } = params;
 
   if (fields.length === 0) {
     const yAxis = mergeAxisStyle<YAXisOption>(baseYAxis, axisStyle, { zlevel }, fallbackFormatter);
@@ -87,9 +111,9 @@ export function buildCartesianYAxes(params: {
   const { units, byUnit } = groupFieldsByUnit(fields);
   const unitAxisIndex = new Map(units.map((unit, index) => [unit, index]));
 
-  let leftAxisCount = 0;
-  let rightAxisCount = 0;
-  let splitLineAssigned = false;
+  let leftAxisCount = initialLeftCount;
+  let rightAxisCount = initialRightCount;
+  let splitLineAssigned = initialLeftCount > 0 || initialRightCount > 0;
 
   const yAxis = units.map((unit, groupIndex) => {
     const groupFields = byUnit.get(unit) ?? [];
@@ -102,8 +126,9 @@ export function buildCartesianYAxes(params: {
     } else if (placement === AxisPlacement.Right) {
       side = 'right';
     } else {
-      // Auto (and hidden): first unit left, the rest right.
-      side = groupIndex === 0 ? 'left' : 'right';
+      // Auto (and hidden): use the caller's override, else first unit left, the
+      // rest right (core Grafana's dual-axis default).
+      side = autoSide ?? (groupIndex === 0 ? 'left' : 'right');
     }
 
     // Only visible axes take up grid space / an offset slot.

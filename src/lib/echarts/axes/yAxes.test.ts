@@ -105,6 +105,59 @@ describe('buildCartesianYAxes', () => {
     const percentFormatter = yAxis[0].axisLabel?.formatter as (value: number) => string;
     expect(percentFormatter(50)).toContain('%');
   });
+
+  it('sends all auto-placed units to autoSide when provided (overlay default)', () => {
+    // The heatmap overlay passes `right` so its axes clear the bucket axis; even
+    // the first unit lands on the right instead of the usual left.
+    const { yAxis, seriesYAxisIndex } = buildCartesianYAxes({
+      fields: [field('a', 'bytes'), field('b', 'percent')],
+      baseYAxis,
+      axisStyle,
+      theme,
+      fallbackFormatter: fallback,
+      autoSide: 'right',
+    });
+
+    expect(yAxis).toHaveLength(2);
+    expect(yAxis[0].position).toBe('right');
+    expect(yAxis[1].position).toBe('right');
+    expect(yAxis.map((axis) => axis.offset)).toEqual([0, AXIS_OFFSET_STEP]);
+    expect(seriesYAxisIndex).toEqual([0, 1]);
+  });
+
+  it('offsets left axes past an initial (reserved) left axis and counts it', () => {
+    // initialLeftCount reserves the heatmap bucket's left slot, so an explicit
+    // Left overlay axis stacks outboard of it.
+    const { yAxis, leftAxisCount } = buildCartesianYAxes({
+      fields: [field('a', 'bytes', AxisPlacement.Left)],
+      baseYAxis,
+      axisStyle,
+      theme,
+      fallbackFormatter: fallback,
+      initialLeftCount: 1,
+    });
+
+    expect(yAxis[0].position).toBe('left');
+    expect(yAxis[0].offset).toBe(AXIS_OFFSET_STEP);
+    expect(leftAxisCount).toBe(2);
+    expect(getAxisGridSpacing({ leftAxisCount, rightAxisCount: 0 }).left).toBe(AXIS_OFFSET_STEP);
+  });
+
+  it('does not draw split lines when a side is pre-occupied by an initial axis', () => {
+    // The reserved (bucket) axis owns the grid split lines, so overlay axes stay
+    // clear to avoid a doubled grid.
+    const { yAxis } = buildCartesianYAxes({
+      fields: [field('a', 'bytes')],
+      baseYAxis,
+      axisStyle,
+      theme,
+      fallbackFormatter: fallback,
+      autoSide: 'right',
+      initialLeftCount: 1,
+    });
+
+    expect(yAxis[0].splitLine?.show).toBe(false);
+  });
 });
 
 describe('getAxisGridSpacing', () => {

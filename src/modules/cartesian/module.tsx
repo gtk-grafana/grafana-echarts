@@ -1,16 +1,7 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
-import {
-  cartesianOverrideOptions,
-  cartesianSeriesTypeOptions,
-  seriesCategoryName,
-  seriesTypeDefault,
-  seriesTypeName,
-  seriesTypePath,
-  stackSeriesName,
-  stackSeriesPath,
-} from 'editor/constants';
+import { cartesianOverrideOptions, seriesTypePath, stackSeriesName, stackSeriesPath } from 'editor/constants';
 import { type EChartsGraphFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
@@ -49,9 +40,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
     // fields fall back to the panel-level series type.
     useCustomConfig: (builder) => {
       builder.addSelect({
-        path: 'seriesType',
+        path: seriesTypePath,
         name: 'Series type',
-        description: 'Override the panel series type for matching fields (cartesian types only).',
+        description: 'Sets series renderer (bar, line, scatter)',
         settings: {
           options: cartesianOverrideOptions,
           allowCustomValue: false,
@@ -66,6 +57,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
       builder.addBooleanSwitch({
         path: stackSeriesPath,
         name: stackSeriesName,
+        category: ['Bar chart'],
         description: 'Stack this field with other stacked bar series.',
         defaultValue: false,
         showIf: (config) => config.seriesType === 'bar',
@@ -81,29 +73,6 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
     },
   })
   .setPanelOptions((builder) => {
-    builder
-      // Panel-level render type, scoped to the cartesian family. Fields can
-      // override this individually via the per-field override above.
-      .addSelect({
-        path: seriesTypePath,
-        name: seriesTypeName,
-        defaultValue: seriesTypeDefault,
-        settings: {
-          options: cartesianSeriesTypeOptions,
-        },
-        category: [seriesCategoryName],
-      })
-      // Panel-level default for stacking bar series. Only relevant for `bar`, so
-      // it is hidden for other series types. Fields can override via the
-      // per-field switch above.
-      .addBooleanSwitch({
-        path: stackSeriesPath,
-        name: stackSeriesName,
-        defaultValue: false,
-        category: [seriesCategoryName],
-        showIf: (opts) => opts[seriesTypePath] === 'bar',
-      });
-
     // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,
     // Width, Limit, Values), registered in their own category.
     commonOptionsBuilder.addLegendOptions(builder);

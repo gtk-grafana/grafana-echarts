@@ -10200,8 +10200,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 66,
+      "width": 69.75,
+      "x": 64.625,
       "y": 129.5,
     },
     "type": "rect",
@@ -10217,8 +10217,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 66,
+            "width": 69.75,
+            "x": 64.625,
             "y": 129.5,
           },
           "type": "rect",
@@ -10240,8 +10240,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 138,
+      "width": 69.75,
+      "x": 133.875,
       "y": 129.5,
     },
     "type": "rect",
@@ -10257,8 +10257,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 138,
+            "width": 69.75,
+            "x": 133.875,
             "y": 129.5,
           },
           "type": "rect",
@@ -10280,8 +10280,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 210,
+      "width": 69.75,
+      "x": 203.125,
       "y": 129.5,
     },
     "type": "rect",
@@ -10297,8 +10297,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 210,
+            "width": 69.75,
+            "x": 203.125,
             "y": 129.5,
           },
           "type": "rect",
@@ -10320,8 +10320,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 36,
-      "x": 282,
+      "width": 34.625,
+      "x": 272.375,
       "y": 129.5,
     },
     "type": "rect",
@@ -10337,8 +10337,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 36,
-            "x": 282,
+            "width": 34.625,
+            "x": 272.375,
             "y": 129.5,
           },
           "type": "rect",
@@ -10360,8 +10360,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 66,
+      "width": 69.75,
+      "x": 64.625,
       "y": 8,
     },
     "type": "rect",
@@ -10377,8 +10377,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 66,
+            "width": 69.75,
+            "x": 64.625,
             "y": 8,
           },
           "type": "rect",
@@ -10400,8 +10400,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 138,
+      "width": 69.75,
+      "x": 133.875,
       "y": 8,
     },
     "type": "rect",
@@ -10417,8 +10417,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 138,
+            "width": 69.75,
+            "x": 133.875,
             "y": 8,
           },
           "type": "rect",
@@ -10440,8 +10440,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 210,
+      "width": 69.75,
+      "x": 203.125,
       "y": 8,
     },
     "type": "rect",
@@ -10457,8 +10457,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 210,
+            "width": 69.75,
+            "x": 203.125,
             "y": 8,
           },
           "type": "rect",
@@ -10480,8 +10480,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 36,
-      "x": 282,
+      "width": 34.625,
+      "x": 272.375,
       "y": 8,
     },
     "type": "rect",
@@ -10497,8 +10497,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 36,
-            "x": 282,
+            "width": 34.625,
+            "x": 272.375,
             "y": 8,
           },
           "type": "rect",
@@ -10520,8 +10520,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -19.439999999999998,
-      "width": 49.68000000000001,
-      "x": 41.16,
+      "width": 47.7825,
+      "x": 40.73375,
       "y": 251,
     },
     "type": "rect",
@@ -10537,8 +10537,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -19.439999999999998,
-            "width": 49.68000000000001,
-            "x": 41.16,
+            "width": 47.7825,
+            "x": 40.73375,
             "y": 251,
           },
           "type": "rect",
@@ -10554,8 +10554,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -233.28000000000003,
-      "width": 49.68000000000001,
-      "x": 113.16,
+      "width": 47.78250000000001,
+      "x": 109.98375,
       "y": 251,
     },
     "type": "rect",
@@ -10571,8 +10571,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -233.28000000000003,
-            "width": 49.68000000000001,
-            "x": 113.16,
+            "width": 47.78250000000001,
+            "x": 109.98375,
             "y": 251,
           },
           "type": "rect",
@@ -10588,8 +10588,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -77.76000000000002,
-      "width": 49.68000000000001,
-      "x": 185.16,
+      "width": 47.7825,
+      "x": 179.23375,
       "y": 251,
     },
     "type": "rect",
@@ -10605,8 +10605,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -77.76000000000002,
-            "width": 49.68000000000001,
-            "x": 185.16,
+            "width": 47.7825,
+            "x": 179.23375,
             "y": 251,
           },
           "type": "rect",
@@ -10622,8 +10622,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -155.52,
-      "width": 49.68000000000001,
-      "x": 257.15999999999997,
+      "width": 47.78250000000003,
+      "x": 248.48375,
       "y": 251,
     },
     "type": "rect",
@@ -10639,8 +10639,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -155.52,
-            "width": 49.68000000000001,
-            "x": 257.15999999999997,
+            "width": 47.78250000000003,
+            "x": 248.48375,
             "y": 251,
           },
           "type": "rect",
@@ -10735,8 +10735,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 66,
+      "width": 69.75,
+      "x": 64.625,
       "y": 129.5,
     },
     "type": "rect",
@@ -10752,8 +10752,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 66,
+            "width": 69.75,
+            "x": 64.625,
             "y": 129.5,
           },
           "type": "rect",
@@ -10775,8 +10775,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 138,
+      "width": 69.75,
+      "x": 133.875,
       "y": 129.5,
     },
     "type": "rect",
@@ -10792,8 +10792,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 138,
+            "width": 69.75,
+            "x": 133.875,
             "y": 129.5,
           },
           "type": "rect",
@@ -10815,8 +10815,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 210,
+      "width": 69.75,
+      "x": 203.125,
       "y": 129.5,
     },
     "type": "rect",
@@ -10832,8 +10832,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 210,
+            "width": 69.75,
+            "x": 203.125,
             "y": 129.5,
           },
           "type": "rect",
@@ -10855,8 +10855,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 36,
-      "x": 282,
+      "width": 34.625,
+      "x": 272.375,
       "y": 129.5,
     },
     "type": "rect",
@@ -10872,8 +10872,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 36,
-            "x": 282,
+            "width": 34.625,
+            "x": 272.375,
             "y": 129.5,
           },
           "type": "rect",
@@ -10895,8 +10895,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 66,
+      "width": 69.75,
+      "x": 64.625,
       "y": 8,
     },
     "type": "rect",
@@ -10912,8 +10912,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 66,
+            "width": 69.75,
+            "x": 64.625,
             "y": 8,
           },
           "type": "rect",
@@ -10935,8 +10935,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 138,
+      "width": 69.75,
+      "x": 133.875,
       "y": 8,
     },
     "type": "rect",
@@ -10952,8 +10952,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 138,
+            "width": 69.75,
+            "x": 133.875,
             "y": 8,
           },
           "type": "rect",
@@ -10975,8 +10975,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 210,
+      "width": 69.75,
+      "x": 203.125,
       "y": 8,
     },
     "type": "rect",
@@ -10992,8 +10992,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 210,
+            "width": 69.75,
+            "x": 203.125,
             "y": 8,
           },
           "type": "rect",
@@ -11015,8 +11015,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 36,
-      "x": 282,
+      "width": 34.625,
+      "x": 272.375,
       "y": 8,
     },
     "type": "rect",
@@ -11032,8 +11032,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 36,
-            "x": 282,
+            "width": 34.625,
+            "x": 272.375,
             "y": 8,
           },
           "type": "rect",
@@ -11055,8 +11055,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -19.439999999999998,
-      "width": 49.68000000000001,
-      "x": 41.16,
+      "width": 47.7825,
+      "x": 40.73375,
       "y": 251,
     },
     "type": "rect",
@@ -11072,8 +11072,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -19.439999999999998,
-            "width": 49.68000000000001,
-            "x": 41.16,
+            "width": 47.7825,
+            "x": 40.73375,
             "y": 251,
           },
           "type": "rect",
@@ -11089,8 +11089,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -233.28000000000003,
-      "width": 49.68000000000001,
-      "x": 113.16,
+      "width": 47.78250000000001,
+      "x": 109.98375,
       "y": 251,
     },
     "type": "rect",
@@ -11106,8 +11106,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -233.28000000000003,
-            "width": 49.68000000000001,
-            "x": 113.16,
+            "width": 47.78250000000001,
+            "x": 109.98375,
             "y": 251,
           },
           "type": "rect",
@@ -11123,8 +11123,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -77.76000000000002,
-      "width": 49.68000000000001,
-      "x": 185.16,
+      "width": 47.7825,
+      "x": 179.23375,
       "y": 251,
     },
     "type": "rect",
@@ -11140,8 +11140,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -77.76000000000002,
-            "width": 49.68000000000001,
-            "x": 185.16,
+            "width": 47.7825,
+            "x": 179.23375,
             "y": 251,
           },
           "type": "rect",
@@ -11157,8 +11157,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -155.52,
-      "width": 49.68000000000001,
-      "x": 257.15999999999997,
+      "width": 47.78250000000003,
+      "x": 248.48375,
       "y": 251,
     },
     "type": "rect",
@@ -11174,8 +11174,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -155.52,
-            "width": 49.68000000000001,
-            "x": 257.15999999999997,
+            "width": 47.78250000000003,
+            "x": 248.48375,
             "y": 251,
           },
           "type": "rect",
@@ -11275,7 +11275,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 129.5,
     },
@@ -11292,7 +11292,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 129.5,
           },
@@ -11315,8 +11315,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 129.5,
     },
     "type": "rect",
@@ -11332,8 +11332,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 129.5,
           },
           "type": "rect",
@@ -11355,8 +11355,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 129.5,
     },
     "type": "rect",
@@ -11372,8 +11372,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 129.5,
           },
           "type": "rect",
@@ -11396,7 +11396,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
     "props": {
       "height": 121.5,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 129.5,
     },
     "type": "rect",
@@ -11413,7 +11413,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
           "props": {
             "height": 121.5,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 129.5,
           },
           "type": "rect",
@@ -11435,7 +11435,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 8,
     },
@@ -11452,7 +11452,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 8,
           },
@@ -11475,8 +11475,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 8,
     },
     "type": "rect",
@@ -11492,8 +11492,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 8,
           },
           "type": "rect",
@@ -11515,8 +11515,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 8,
     },
     "type": "rect",
@@ -11532,8 +11532,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 8,
           },
           "type": "rect",
@@ -11556,7 +11556,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
     "props": {
       "height": 122,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 8,
     },
     "type": "rect",
@@ -11573,7 +11573,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
           "props": {
             "height": 122,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 8,
           },
           "type": "rect",
@@ -11604,7 +11604,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 245,
-      "width": 290,
+      "width": 279,
       "x": 29,
       "y": 7,
     },
@@ -11621,7 +11621,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 245,
-            "width": 290,
+            "width": 279,
             "x": 29,
             "y": 7,
           },
@@ -11673,21 +11673,21 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   },
   {
     "props": {
-      "x": 126,
+      "x": 122.33333587646484,
       "y": 17.719999313354492,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 222,
+      "x": 214.6666717529297,
       "y": 173.24000549316406,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 318,
+      "x": 307,
       "y": 95.4800033569336,
     },
     "type": "lineTo",
@@ -11708,21 +11708,21 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         },
         {
           "props": {
-            "x": 126,
+            "x": 122.33333587646484,
             "y": 17.719999313354492,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 222,
+            "x": 214.6666717529297,
             "y": 173.24000549316406,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 318,
+            "x": 307,
             "y": 95.4800033569336,
           },
           "type": "lineTo",
@@ -11905,7 +11905,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 126,
+      "e": 122.33333587646484,
       "f": 17.719999313354492,
     },
     "type": "setTransform",
@@ -11997,7 +11997,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 222,
+      "e": 214.6666717529297,
       "f": 173.24000549316406,
     },
     "type": "setTransform",
@@ -12089,7 +12089,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 318,
+      "e": 307,
       "f": 95.4800033569336,
     },
     "type": "setTransform",
@@ -12261,7 +12261,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 129.5,
     },
@@ -12278,7 +12278,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 129.5,
           },
@@ -12301,8 +12301,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 129.5,
     },
     "type": "rect",
@@ -12318,8 +12318,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 129.5,
           },
           "type": "rect",
@@ -12341,8 +12341,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 129.5,
     },
     "type": "rect",
@@ -12358,8 +12358,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 129.5,
           },
           "type": "rect",
@@ -12382,7 +12382,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
     "props": {
       "height": 121.5,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 129.5,
     },
     "type": "rect",
@@ -12399,7 +12399,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
           "props": {
             "height": 121.5,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 129.5,
           },
           "type": "rect",
@@ -12421,7 +12421,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 8,
     },
@@ -12438,7 +12438,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 8,
           },
@@ -12461,8 +12461,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 8,
     },
     "type": "rect",
@@ -12478,8 +12478,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 8,
           },
           "type": "rect",
@@ -12501,8 +12501,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 8,
     },
     "type": "rect",
@@ -12518,8 +12518,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 8,
           },
           "type": "rect",
@@ -12542,7 +12542,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
     "props": {
       "height": 122,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 8,
     },
     "type": "rect",
@@ -12559,7 +12559,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
           "props": {
             "height": 122,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 8,
           },
           "type": "rect",
@@ -12590,7 +12590,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 245,
-      "width": 290,
+      "width": 279,
       "x": 29,
       "y": 7,
     },
@@ -12607,7 +12607,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 245,
-            "width": 290,
+            "width": 279,
             "x": 29,
             "y": 7,
           },
@@ -12659,21 +12659,21 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   },
   {
     "props": {
-      "x": 126,
+      "x": 122.33333587646484,
       "y": 17.719999313354492,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 222,
+      "x": 214.6666717529297,
       "y": 173.24000549316406,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 318,
+      "x": 307,
       "y": 95.4800033569336,
     },
     "type": "lineTo",
@@ -12694,21 +12694,21 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         },
         {
           "props": {
-            "x": 126,
+            "x": 122.33333587646484,
             "y": 17.719999313354492,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 222,
+            "x": 214.6666717529297,
             "y": 173.24000549316406,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 318,
+            "x": 307,
             "y": 95.4800033569336,
           },
           "type": "lineTo",
@@ -12891,7 +12891,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 126,
+      "e": 122.33333587646484,
       "f": 17.719999313354492,
     },
     "type": "setTransform",
@@ -12983,7 +12983,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 222,
+      "e": 214.6666717529297,
       "f": 173.24000549316406,
     },
     "type": "setTransform",
@@ -13075,7 +13075,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 318,
+      "e": 307,
       "f": 95.4800033569336,
     },
     "type": "setTransform",
@@ -13252,7 +13252,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 129.5,
     },
@@ -13269,7 +13269,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 129.5,
           },
@@ -13292,8 +13292,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 129.5,
     },
     "type": "rect",
@@ -13309,8 +13309,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 129.5,
           },
           "type": "rect",
@@ -13332,8 +13332,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 129.5,
     },
     "type": "rect",
@@ -13349,8 +13349,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 129.5,
           },
           "type": "rect",
@@ -13373,7 +13373,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
     "props": {
       "height": 121.5,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 129.5,
     },
     "type": "rect",
@@ -13390,7 +13390,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
           "props": {
             "height": 121.5,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 129.5,
           },
           "type": "rect",
@@ -13412,7 +13412,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 8,
     },
@@ -13429,7 +13429,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 8,
           },
@@ -13452,8 +13452,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 8,
     },
     "type": "rect",
@@ -13469,8 +13469,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 8,
           },
           "type": "rect",
@@ -13492,8 +13492,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 8,
     },
     "type": "rect",
@@ -13509,8 +13509,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 8,
           },
           "type": "rect",
@@ -13533,7 +13533,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
     "props": {
       "height": 122,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 8,
     },
     "type": "rect",
@@ -13550,7 +13550,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
           "props": {
             "height": 122,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 8,
           },
           "type": "rect",
@@ -13646,7 +13646,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 126,
+      "e": 122.33333333581686,
       "f": 17.71999999999997,
     },
     "type": "setTransform",
@@ -13709,7 +13709,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 222,
+      "e": 214.66666666418314,
       "f": 173.23999999999998,
     },
     "type": "setTransform",
@@ -13772,7 +13772,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 318,
+      "e": 307,
       "f": 95.47999999999999,
     },
     "type": "setTransform",
@@ -13915,7 +13915,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 129.5,
     },
@@ -13932,7 +13932,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 129.5,
           },
@@ -13955,8 +13955,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 129.5,
     },
     "type": "rect",
@@ -13972,8 +13972,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 129.5,
           },
           "type": "rect",
@@ -13995,8 +13995,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 129.5,
     },
     "type": "rect",
@@ -14012,8 +14012,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 129.5,
           },
           "type": "rect",
@@ -14036,7 +14036,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
     "props": {
       "height": 121.5,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 129.5,
     },
     "type": "rect",
@@ -14053,7 +14053,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
           "props": {
             "height": 121.5,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 129.5,
           },
           "type": "rect",
@@ -14075,7 +14075,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 8,
     },
@@ -14092,7 +14092,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 8,
           },
@@ -14115,8 +14115,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 8,
     },
     "type": "rect",
@@ -14132,8 +14132,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 8,
           },
           "type": "rect",
@@ -14155,8 +14155,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 8,
     },
     "type": "rect",
@@ -14172,8 +14172,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 8,
           },
           "type": "rect",
@@ -14196,7 +14196,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
     "props": {
       "height": 122,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 8,
     },
     "type": "rect",
@@ -14213,7 +14213,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
           "props": {
             "height": 122,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 8,
           },
           "type": "rect",
@@ -14309,7 +14309,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 126,
+      "e": 122.33333333581686,
       "f": 17.71999999999997,
     },
     "type": "setTransform",
@@ -14372,7 +14372,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 222,
+      "e": 214.66666666418314,
       "f": 173.23999999999998,
     },
     "type": "setTransform",
@@ -14435,7 +14435,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 318,
+      "e": 307,
       "f": 95.47999999999999,
     },
     "type": "setTransform",
