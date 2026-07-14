@@ -49,7 +49,7 @@ export function buildMatrixHeatmapOption(
   const formatDisplayValue = getDisplayProcessor({
     timeZone,
     theme,
-    field: getDefaultShortValueFieldConfig(data.yField),
+    field: getDefaultShortValueFieldConfig(data.xField),
   });
   return {
     ...cartesianCategoryDefaultOptions,

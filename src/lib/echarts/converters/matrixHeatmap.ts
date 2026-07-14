@@ -54,13 +54,12 @@ export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2):
   }
 
   const numericFields = mapNumericFields(frame, frames, theme);
-  const xField = numericFields[0].field;
-
-  if (numericFields.length === 0 || !xField) {
+  if (numericFields.length === 0) {
     debug('matrix heatmap has no numeric field', LOG_LEVELS.info);
     return null;
   }
 
+  const xField = numericFields[0].field;
   const yField = findCategoryField(frame);
   const yCategories = resolveCategoriesFromField(yField, frame.length);
 

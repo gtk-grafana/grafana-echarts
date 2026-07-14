@@ -1,5 +1,4 @@
-import { type GrafanaTheme2 } from '@grafana/data';
-import type { DisplayProcessor } from '@grafana/data/dist/types/types/displayValue';
+import { type DisplayProcessor, type GrafanaTheme2 } from '@grafana/data';
 import { type HeatmapSeriesOption } from 'echarts';
 import { type ContinuousVisualMapOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';

@@ -1,5 +1,4 @@
-import { formattedValueToString, type GrafanaTheme2 } from '@grafana/data';
-import type { DisplayProcessor } from '@grafana/data/dist/types/types/displayValue';
+import { type DisplayProcessor, formattedValueToString, type GrafanaTheme2 } from '@grafana/data';
 import { type ContinuousVisualMapOption } from 'echarts/types/dist/shared';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
 import { getHeatmapColors } from 'lib/echarts/options/constants';

@@ -1,8 +1,4 @@
-import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
-import { type DisplayProcessor } from '@grafana/data/dist/types/types/displayValue';
-// `renderItem`'s type must come from the `echarts` barrel so it matches the
-// `CustomSeriesOption.renderItem` declaration; the shared-dist copy is a
-// separate declaration ECharts' own option type rejects.
+import { dateTimeFormat, type DisplayProcessor, type GrafanaTheme2 } from '@grafana/data';
 import { type CustomSeriesOption, type CustomSeriesRenderItem } from 'echarts';
 import { type ContinuousVisualMapOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
