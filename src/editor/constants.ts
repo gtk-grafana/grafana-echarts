@@ -10,8 +10,6 @@ import {
 } from 'editor/types';
 
 export const seriesTypePath = 'seriesType';
-export const seriesTypeName = 'Type';
-export const seriesTypeDefault: SeriesType = 'line';
 /**
  * Stack series option: panel option path and per-field custom config key share
  * the same name. Only meaningful for `bar` series.
@@ -125,3 +123,15 @@ export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cart
  * layer rather than as cartesian series. See echarts/converters/heatmap.ts.
  */
 export const heatmapFrameTypes: string[] = [DataFrameType.HeatmapRows, DataFrameType.HeatmapCells];
+
+/**
+ * Threshold display control (custom field config `thresholdsStyle.mode`). Grafana
+ * standard options already provide the threshold *steps* editor; this select
+ * chooses how they are drawn (lines and/or filled regions), mirroring core
+ * Grafana's time series "Show thresholds" option. The option list itself comes
+ * from `@grafana/ui`'s `graphFieldOptions.thresholdsDisplayModes` (which already
+ * omits the out-of-scope per-value `Series` mode); see the cartesian module.
+ */
+export const thresholdsCategoryName = 'Thresholds';
+export const thresholdsStyleModePath = 'thresholdsStyle.mode';
+export const thresholdsStyleModeName = 'Show thresholds';

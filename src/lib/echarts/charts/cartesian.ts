@@ -26,8 +26,15 @@ import {
   buildMultiValueCartesianLegendItems,
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
+import { buildThresholdMarks, type ThresholdMarks } from 'lib/echarts/options/thresholds';
 import { getFieldValueFormatters } from 'lib/echarts/style';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import {
+  findThresholdField,
+  getThresholdsStyleMode,
+  resolveFieldThresholds,
+  thresholdDisplayForMode,
+} from 'lib/grafana/fields/thresholds';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
 import {
   type ChartContext,
@@ -66,7 +73,8 @@ function buildTimeOption(
     fallbackFormatter: formatValue,
     zlevel: options.zLevel?.axis,
   });
-  const series = cartSeries.map((cartesian, i) => ({ ...cartesian, yAxisIndex: axes.seriesYAxisIndex[i] ?? 0 }));
+  const indexedSeries = cartSeries.map((cartesian, i) => ({ ...cartesian, yAxisIndex: axes.seriesYAxisIndex[i] ?? 0 }));
+  const series = attachThresholdMarks(indexedSeries, cartesianThresholdMarks(ctx));
 
   // Pin the time axis to the dashboard range so gaps in this panel's data still
   // align with sibling panels sharing the same range. Labels are formatted via
@@ -114,7 +122,11 @@ function buildCategoryOption(
 
   const baseSeries = categoryData.series;
   const seriesArray = Array.isArray(baseSeries) ? baseSeries : baseSeries ? [baseSeries] : [];
-  const series = seriesArray.map((cartesian, i) => ({ ...cartesian, yAxisIndex: axes.seriesYAxisIndex[i] ?? 0 }));
+  const indexedSeries = seriesArray.map((cartesian, i) => ({
+    ...cartesian,
+    yAxisIndex: axes.seriesYAxisIndex[i] ?? 0,
+  }));
+  const series = attachThresholdMarks(indexedSeries, cartesianThresholdMarks(ctx));
 
   // The category axis carries its labels in `data`; there is no per-tick value
   // to format, so no value formatter is applied to the x-axis.
@@ -166,13 +178,17 @@ function buildMultiValueOption(
     axisLabel: { formatter: getTimeAxisLabelFormatter(timeRange, timeZone) },
   });
 
+  const baseSeries = multiValueData.series;
+  const seriesArray = Array.isArray(baseSeries) ? baseSeries : baseSeries ? [baseSeries] : [];
+  const series = attachThresholdMarks(seriesArray, cartesianThresholdMarks(ctx));
+
   return {
     ...cartesianCategoryDefaultOptions,
     legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
     grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
     xAxis,
     yAxis,
-    series: multiValueData.series,
+    series,
   };
 }
 
@@ -191,6 +207,38 @@ function cartesianSeriesFields(ctx: ChartContext): Field[] {
   }
   const frame = findCategoricalFrame(ctx.frames);
   return frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+}
+
+/**
+ * Threshold line/region overlays for the panel, derived from the first field
+ * with an active threshold display. Thresholds render once on the shared value
+ * axis, so callers attach the result to a single series. Returns `undefined`
+ * when no field requests thresholds.
+ */
+function cartesianThresholdMarks(ctx: ChartContext): ThresholdMarks | undefined {
+  const field = findThresholdField(ctx.frames.flatMap((frame) => frame.fields));
+  if (!field) {
+    return undefined;
+  }
+
+  const display = thresholdDisplayForMode(getThresholdsStyleMode(field));
+  const steps = resolveFieldThresholds(field, ctx.theme);
+  if (!display || !steps) {
+    return undefined;
+  }
+
+  return buildThresholdMarks(steps, display);
+}
+
+/**
+ * Attach threshold overlays to the first series so the horizontal lines/regions
+ * paint once on the shared y-axis rather than being duplicated per series.
+ */
+function attachThresholdMarks<T>(series: T[], marks: ThresholdMarks | undefined): T[] {
+  if (!marks || series.length === 0) {
+    return series;
+  }
+  return [{ ...series[0], ...marks }, ...series.slice(1)];
 }
 
 export const cartesianChartModule: ChartModule = {

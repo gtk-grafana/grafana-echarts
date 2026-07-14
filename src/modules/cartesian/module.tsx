@@ -1,7 +1,15 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
-import { TooltipDisplayMode } from '@grafana/schema';
-import { commonOptionsBuilder } from '@grafana/ui';
-import { cartesianOverrideOptions, seriesTypePath, stackSeriesName, stackSeriesPath } from 'editor/constants';
+import { GraphThresholdsStyleMode, TooltipDisplayMode } from '@grafana/schema';
+import { commonOptionsBuilder, getGraphFieldOptions } from '@grafana/ui';
+import {
+  cartesianOverrideOptions,
+  seriesTypePath,
+  stackSeriesName,
+  stackSeriesPath,
+  thresholdsCategoryName,
+  thresholdsStyleModeName,
+  thresholdsStyleModePath,
+} from 'editor/constants';
 import { type EChartsGraphFieldConfig } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
@@ -70,6 +78,25 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
       // exactly Auto/Left/Right/Hidden here, so no options filter is needed.
       // https://grafana.com/developers/plugin-tools/
       commonOptionsBuilder.addAxisPlacement(builder);
+
+      // Threshold display (writes the custom `thresholdsStyle.mode` field
+      // config; read back in `cartesianThresholdMarks`). The standard Thresholds
+      // section already edits the step values; this chooses how they render as
+      // ECharts markLine/markArea overlays. Grouped with the standard Thresholds
+      // category so it sits beside the steps editor. The option list is Grafana's
+      // own `graphFieldOptions.thresholdsDisplayModes` (used by the core time
+      // series panel), which already omits the out-of-scope per-value `Series`
+      // mode. `getGraphFieldOptions()` is called (rather than the deprecated
+      // `graphFieldOptions` constant) so its translated labels load correctly.
+      builder.addSelect({
+        path: thresholdsStyleModePath,
+        name: thresholdsStyleModeName,
+        category: [thresholdsCategoryName],
+        defaultValue: GraphThresholdsStyleMode.Off,
+        settings: {
+          options: getGraphFieldOptions().thresholdsDisplayModes,
+        },
+      });
     },
   })
   .setPanelOptions((builder) => {
