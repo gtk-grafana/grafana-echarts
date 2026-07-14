@@ -1,0 +1,307 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Threshold lines: the standard Thresholds steps (green/orange/red) drawn as horizontal ECharts markLines via the field config 'Show thresholds' = As lines. Thresholds render once on the shared value axis. Compare with the native uPlot time series panel below-right.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 40, "color": "orange" },
+              { "value": 70, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 1,
+          "startValue": 50,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "title": "ECharts Thresholds \u2014 As lines",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Threshold filled regions plus lines: 'Show thresholds' = As filled regions and lines. Each step colors the band from its own value up to the next step (open top/bottom bands are pinned to the grid edges), drawn as ECharts markArea + markLine.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 40, "color": "orange" },
+              { "value": 70, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 1,
+          "startValue": 50,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "title": "ECharts Thresholds \u2014 As filled regions and lines",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Bar chart over a category axis with dashed threshold lines: thresholds also render on the non-time (category) cartesian path.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 30, "color": "orange" },
+              { "value": 45, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nSales,43\nAdmin,10\nIT,30\nSupport,48\nOps,22"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "category",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "ECharts Thresholds \u2014 category bar (dashed lines)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Comparison: Grafana's native (uPlot) time series panel over the same random walk with the same thresholds and 'As filled regions and lines' style.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "thresholdsStyle": {
+              "mode": "line+area"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 40, "color": "orange" },
+              { "value": 70, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 1,
+          "startValue": 50,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "title": "uPlot Time series \u2014 thresholds (native)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "thresholds", "cartesian"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Thresholds (Cartesian)",
+  "uid": "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5a",
+  "version": 1,
+  "weekStart": ""
+}

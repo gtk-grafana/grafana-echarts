@@ -1,4 +1,5 @@
-import { DataFrameType, FieldType, toDataFrame } from '@grafana/data';
+import { DataFrameType, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
+import { GraphThresholdsStyleMode } from '@grafana/schema';
 import { render } from '@testing-library/react';
 import { cartesianTimeSeriesTypes } from 'editor/constants';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
@@ -55,6 +56,49 @@ describe('Panel canvas renders', () => {
         const { container } = render(
           getComponent([frame], 'bar', {
             stackSeries: true,
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Threshold overlays: markLine + markArea drawn on the series layer from the
+    // field's threshold steps and `thresholdsStyle` display mode.
+    describe('thresholds', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497, 1783144294497, 1783147894497] },
+          {
+            name: 'cpu',
+            type: FieldType.number,
+            values: [10, 50, 90, 30],
+            config: {
+              displayName: 'cpu',
+              custom: { thresholdsStyle: { mode: GraphThresholdsStyleMode.LineAndArea } },
+              thresholds: {
+                mode: ThresholdsMode.Absolute,
+                steps: [
+                  { value: -Infinity, color: 'green' },
+                  { value: 40, color: 'orange' },
+                  { value: 70, color: 'red' },
+                ],
+              },
+            },
+          },
+        ],
+      });
+
+      it('renders lines and filled regions', async () => {
+        const { container } = render(
+          getComponent([frame], 'line', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
           })

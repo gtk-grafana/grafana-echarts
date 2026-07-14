@@ -16,6 +16,8 @@ import {
   BrushComponent,
   GridComponent,
   LegendComponent,
+  MarkAreaComponent,
+  MarkLineComponent,
   RadarComponent,
   TooltipComponent,
   VisualMapContinuousComponent,
@@ -65,6 +67,8 @@ registerEChartsModules([
   BrushComponent, // drag-select on the time axis for range zoom
   RadarComponent, // radar coordinate system
   VisualMapContinuousComponent, // heatmap color gradient
+  MarkLineComponent, // threshold lines on cartesian series
+  MarkAreaComponent, // threshold filled regions on cartesian series
   // Features
   LegacyGridContainLabel, // makes `grid.containLabel` work in ECharts 6
   // Renderer
