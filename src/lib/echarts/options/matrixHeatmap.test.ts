@@ -97,6 +97,21 @@ describe('getMatrixHeatmapVisualMap', () => {
     expect(vertical.itemWidth).toBeLessThan(Number(vertical.itemHeight));
   });
 
+  it('hides the color scale but keeps color mapping when placement is none', () => {
+    const visualMap = getMatrixHeatmapVisualMap({
+      data,
+      theme,
+      seriesIndex: 0,
+      placement: 'none',
+      formatDisplayValue,
+    });
+    // Legend hidden, but min/max/dimension mapping stays so the cells stay colored.
+    expect(visualMap.show).toBe(false);
+    expect(visualMap.min).toBe(1);
+    expect(visualMap.max).toBe(4);
+    expect(visualMap.dimension).toBe(2);
+  });
+
   it('applies the selected color scheme', () => {
     const visualMap = getMatrixHeatmapVisualMap({
       data,

@@ -49,9 +49,10 @@ export function getHeatmapGrid(
     throw new Error('Invalid grid right type');
   }
 
-  // The visualMap only reserves width on the right when placed there; overlay
-  // axis offset spacing is reserved regardless so stacked right axes always fit.
-  const visualMapRight = placement === 'bottom' ? 0 : HEATMAP_VISUALMAP_WIDTH;
+  // The visualMap reserves width on the right (its default/`right` placement),
+  // height on the bottom, or nothing when hidden (`none`); overlay axis offset
+  // spacing is reserved regardless so stacked right axes always fit.
+  const visualMapRight = placement === 'right' ? HEATMAP_VISUALMAP_WIDTH : 0;
   const right = (baseGrid.right ?? 16) + visualMapRight + (extraAxisSpacing?.right ?? 0);
   const bottom = (baseGrid.bottom ?? 0) + HEATMAP_VISUALMAP_HEIGHT;
   return {

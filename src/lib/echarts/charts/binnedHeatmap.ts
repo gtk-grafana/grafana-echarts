@@ -28,7 +28,7 @@ import {
 import { buildTimeSeriesLegendItems } from 'lib/echarts/options/legendItems';
 import { getDefaultShortValueFieldConfig } from 'lib/grafana/fields/fieldConfig';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
-import { type PanelOptions } from 'types';
+import { type HeatmapColorScalePlacement, type PanelOptions } from 'types';
 import {
   type BaseOptionParts,
   type ChartContext,
@@ -170,7 +170,7 @@ const buildGridOption = (
   isGrafanaLegend: boolean,
   options: PanelOptions,
   overlayAxes: CartesianYAxes | undefined,
-  placement: 'right' | 'bottom'
+  placement: HeatmapColorScalePlacement
 ) => {
   const vizLegendOptions = isGrafanaLegend ? undefined : options.legend;
   const extraAxisSpacing = overlayAxes ? getAxisGridSpacing(overlayAxes) : undefined;
