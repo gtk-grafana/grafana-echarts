@@ -663,6 +663,118 @@
       ],
       "title": "Per-field units — tooltip override",
       "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "Per-unit y-axes: three series with distinct units. 'Series A' (bytes) uses the auto left axis, 'Series B' (percent) is forced to the right, and 'Series C' (watt) hides its axis while still plotting. Each y-axis is labeled in its own unit.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 12,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Series A"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Series B"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Series C"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "watt"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "hidden"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B,Series C\n2021-01-01T00:00:00Z,1048576,40,120\n2021-01-01T01:00:00Z,2097152,55,90\n2021-01-01T02:00:00Z,1572864,45,150\n2021-01-01T03:00:00Z,3145728,60,110\n2021-01-01T04:00:00Z,2621440,50,180"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Time",
+                "destinationType": "time"
+              },
+              {
+                "targetField": "Series A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Series B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Series C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Per-unit y-axes — left/right/hidden",
+      "type": "grafana-echartscartesian-panel"
     }
   ],
   "refresh": "",

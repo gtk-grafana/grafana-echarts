@@ -21,11 +21,16 @@ export interface LayeredCanvasEvents {
 
 // Default canvas contains everything that wasn't split into a dedicated zlevel
 export const DEFAULT_ZLEVEL = 0;
+// Dedicated axis layer: setting `zLevel.axis` moves the y-axis (lines, ticks,
+// labels, split lines) onto its own canvas so it can be snapshotted in isolation
+// from the grid and series, keeping the committed snapshot small.
+export const AXIS_ZLEVEL = 2;
 export const SERIES_ZLEVEL = 3;
 
 // zrender tags each layer canvas with `data-zr-dom-id="zr_<zlevel>.<zlevel2>"`,
 export const SERIES_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${SERIES_ZLEVEL}."]`;
 export const DEFAULT_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${DEFAULT_ZLEVEL}."]`;
+export const AXIS_LAYER_SELECTOR = `canvas[data-zr-dom-id^="zr_${AXIS_ZLEVEL}."]`;
 
 /** Get the layered canvas events. */
 export function readLayeredCanvasEvents(root: ParentNode): LayeredCanvasEvents {
@@ -40,6 +45,33 @@ export function readLayeredCanvasEvents(root: ParentNode): LayeredCanvasEvents {
     defaultEvents: defaultCanvas.getContext('2d')!.__getEvents(),
     seriesEvents: seriesCanvas.getContext('2d')!.__getEvents(),
   };
+}
+
+/**
+ * Draw calls for a single layer, or an empty array when that layer's canvas
+ * doesn't exist. zrender only creates a canvas for a zlevel that paints
+ * something, so a layer can be absent (e.g. the default layer when the axis is
+ * moved to its own zlevel, or the axis layer when every axis is hidden).
+ */
+export function readCanvasLayer(root: ParentNode, selector: string): CanvasRenderingContext2DEvent[] {
+  const canvas = root.querySelector<HTMLCanvasElement>(selector);
+  return canvas ? canvas.getContext('2d')!.__getEvents() : [];
+}
+
+/** Draw calls on the dedicated axis layer (see `AXIS_ZLEVEL`). */
+export function readAxisCanvasEvents(root: ParentNode): CanvasRenderingContext2DEvent[] {
+  return readCanvasLayer(root, AXIS_LAYER_SELECTOR);
+}
+
+/**
+ * Resolve the ECharts instance for a rendered panel without asserting any layer
+ * canvases exist (unlike `setupECharts`), so callers can read layers tolerantly.
+ */
+export function getChart(container: HTMLElement): { chartInstanceDom: HTMLDivElement; chart: EChartsType | undefined } {
+  const chartInstanceDom = container.querySelector<HTMLDivElement>('[_echarts_instance_]') as HTMLDivElement;
+  const chart = getInstanceByDom(chartInstanceDom) as EChartsType | undefined;
+  expect(chart).toBeDefined();
+  return { chartInstanceDom, chart };
 }
 
 /**

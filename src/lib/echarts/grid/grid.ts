@@ -9,12 +9,18 @@ const DEFAULT_GRID_PADDING = 8;
 const LEFT_GRID_PADDING = 20;
 
 // @todo need more dynamic way of reserving width for axis labels, long values keep getting truncated!
-export function getCartesianGrid(legend?: VizLegendOptions): GridOption {
-  const right = legend?.placement === 'right' ? LEGEND_GRID_PADDING : 0;
+export function getCartesianGrid(
+  legend?: VizLegendOptions,
+  // Extra px reserved on each side for stacked (offset) y-axes beyond the first;
+  // `containLabel` only accounts for the innermost axis on each side.
+  extraAxisSpacing?: { left?: number; right?: number }
+): GridOption {
+  const right = (legend?.placement === 'right' ? LEGEND_GRID_PADDING : 0) + (extraAxisSpacing?.right ?? 0);
   const bottom = legend?.placement === 'bottom' ? LEGEND_GRID_PADDING : 0;
+  const left = DEFAULT_GRID_PADDING + (extraAxisSpacing?.left ?? 0);
 
   // @todo outerBounds might be solution instead of using deprecated containLabel
-  return { top: DEFAULT_GRID_PADDING, left: DEFAULT_GRID_PADDING, right, bottom, containLabel: true };
+  return { top: DEFAULT_GRID_PADDING, left, right, bottom, containLabel: true };
 }
 
 /**

@@ -101,6 +101,7 @@ export function buildBinnedHeatmapOption(
   const bucketYAxis = mergeAxisStyle<YAXisOption>(cartesianTimeDefaultOptions.yAxis, axisStyle, {
     min: heatmap.yMin,
     max: heatmap.yMax,
+    zlevel: options.zLevel?.axis,
     ...bucketAxisExtra,
   });
 
@@ -115,6 +116,7 @@ export function buildBinnedHeatmapOption(
             axisLabel: { show: false },
             axisTick: { show: false },
             splitLine: { show: false },
+            zlevel: options.zLevel?.axis,
           }),
         ]
       : bucketYAxis;

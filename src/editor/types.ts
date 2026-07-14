@@ -1,4 +1,4 @@
-import { type GraphFieldConfig } from '@grafana/schema';
+import { type AxisPlacement, type GraphFieldConfig } from '@grafana/schema';
 
 export type SeriesType =
   | 'line'
@@ -47,5 +47,9 @@ export interface EChartsFieldConfig {
   // Per-field override for stacking, honored only when the field renders as
   // `bar`. Overrides the panel-level `stackSeries` default.
   stackSeries?: boolean;
+  // Per-field y-axis placement. Fields are grouped onto one y-axis per distinct
+  // unit; this controls which side that unit's axis renders on (or hides it).
+  // Only `Left`, `Right`, `Hidden`, and `Auto` are meaningful for a y-axis.
+  axisPlacement?: AxisPlacement;
 }
 export interface EChartsGraphFieldConfig extends GraphFieldConfig, EChartsFieldConfig {}

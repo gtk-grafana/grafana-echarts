@@ -2,6 +2,9 @@ import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/dat
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import {
+  axisPlacementName,
+  axisPlacementOptions,
+  axisPlacementPath,
   cartesianOverrideOptions,
   cartesianSeriesTypeOptions,
   seriesCategoryName,
@@ -69,6 +72,20 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
         description: 'Stack this field with other stacked bar series.',
         defaultValue: false,
         showIf: (config) => config.seriesType === 'bar',
+      });
+
+      // Per-field y-axis placement. Fields are grouped onto one y-axis per
+      // distinct unit; this override controls which side that unit's axis draws
+      // on, or hides it while still plotting the series.
+      builder.addSelect({
+        path: axisPlacementPath,
+        name: axisPlacementName,
+        description: 'Place this field\u2019s unit axis on the left/right, or hide it.',
+        settings: {
+          options: axisPlacementOptions,
+          allowCustomValue: false,
+          isClearable: true,
+        },
       });
     },
   })
