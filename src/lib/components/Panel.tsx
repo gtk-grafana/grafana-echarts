@@ -3,15 +3,18 @@ import { PanelDataErrorView } from '@grafana/runtime';
 import {
   PanelContextProvider,
   type SeriesVisibilityChangeMode,
+  SeriesVisibilityChangeBehavior,
   usePanelContext,
   useTheme2,
   VizLayout,
   VizLegend,
 } from '@grafana/ui';
 import { seriesTypePath } from 'editor/constants';
+import { isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
+import { changeSeriesColorConfig, toggleSeriesVisibilityConfig } from 'lib/grafana/fields/seriesConfig';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useCallback, useMemo } from 'react';
 import { type PanelOptions } from 'types';
@@ -30,6 +33,7 @@ export const Panel: React.FC<Props> = ({
   eventBus,
   timeRange,
   onChangeTimeRange,
+  onFieldConfigChange,
 }) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
@@ -55,8 +59,9 @@ export const Panel: React.FC<Props> = ({
       options,
       seriesType,
       formatValue,
+      fieldConfig,
     }),
-    [data.series, theme, timeZone, timeRange, options, seriesType, formatValue]
+    [data.series, theme, timeZone, timeRange, options, seriesType, formatValue, fieldConfig]
   );
 
   const legendItems = useMemo(() => {
@@ -66,15 +71,23 @@ export const Panel: React.FC<Props> = ({
     return chartModule.buildLegendItems(chartContext, resolvedLegend.calcs ?? []);
   }, [isVizLegend, chartModule, chartContext, resolvedLegend]);
 
-  const onSeriesColorChange = useCallback((_label: string, _color: string) => {
-    // @todo requires fieldConfig override write-back (PanelContext not available to community panels)
-  }, []);
-
-  const onToggleSeriesVisibility = useCallback(
-    (_label: string | string[] | null, _mode: SeriesVisibilityChangeMode) => {
-      // @todo requires series visibility state
+  // Persist a legend color pick as a `byName` fixed-color field-config override;
+  // Grafana re-applies it to `data.series` so the chart re-renders in the color.
+  const onSeriesColorChange = useCallback(
+    (label: string, color: string) => {
+      onFieldConfigChange(changeSeriesColorConfig(fieldConfig, label, color));
     },
-    []
+    [fieldConfig, onFieldConfigChange]
+  );
+
+  // Persist a legend visibility toggle as `byName` `hideFrom` overrides. The
+  // isolate/append semantics need the full set of legend series names.
+  const onToggleSeriesVisibility = useCallback(
+    (label: string | string[] | null, mode: SeriesVisibilityChangeMode) => {
+      const seriesNames = legendItems.map((item) => item.fieldName ?? item.label);
+      onFieldConfigChange(toggleSeriesVisibilityConfig(fieldConfig, label, mode, seriesNames));
+    },
+    [fieldConfig, onFieldConfigChange, legendItems]
   );
 
   const legendContextValue = useMemo(
@@ -87,6 +100,14 @@ export const Panel: React.FC<Props> = ({
     [panelContext, eventBus, onSeriesColorChange, onToggleSeriesVisibility]
   );
 
+  // Pie slices and candlestick/boxplot series map to legend items individually
+  // (not 1:1 with fields), so each click toggles that one item (Hide behavior)
+  // rather than the isolate-others default used by per-field families.
+  const seriesVisibilityChangeBehavior =
+    seriesType === 'pie' || isMultiValueSeriesType(seriesType)
+      ? SeriesVisibilityChangeBehavior.Hide
+      : SeriesVisibilityChangeBehavior.Isolate;
+
   const renderLegend = useCallback(
     () => (
       <VizLayout.Legend placement={resolvedLegend.placement} width={resolvedLegend.width}>
@@ -95,6 +116,7 @@ export const Panel: React.FC<Props> = ({
             items={legendItems}
             displayMode={resolvedLegend.displayMode}
             placement={resolvedLegend.placement}
+            seriesVisibilityChangeBehavior={seriesVisibilityChangeBehavior}
             sortBy={resolvedLegend.sortBy}
             sortDesc={resolvedLegend.sortDesc}
             isSortable={true}
@@ -103,7 +125,7 @@ export const Panel: React.FC<Props> = ({
         </PanelContextProvider>
       </VizLayout.Legend>
     ),
-    [legendContextValue, legendItems, resolvedLegend]
+    [legendContextValue, legendItems, resolvedLegend, seriesVisibilityChangeBehavior]
   );
 
   if (data.series.length === 0) {

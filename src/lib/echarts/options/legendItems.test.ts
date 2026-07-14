@@ -1,4 +1,4 @@
-import { createTheme, type DataFrame, type Field, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type DataFrame, type Field, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import {
   buildPieLegendItems,
   buildRadarLegendItems,
@@ -7,6 +7,22 @@ import {
 } from 'lib/echarts/options/legendItems';
 
 const theme = createTheme();
+
+const fieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
+
+/** A byName `hideFrom` override for `name`, as the visibility toggle writes it. */
+const hiddenConfig = (name: string): FieldConfigSource => ({
+  defaults: {},
+  overrides: [
+    {
+      matcher: { id: 'byName', options: name },
+      properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
+    },
+  ],
+});
+
+/** A numeric field flagged hidden from the viz via `custom.hideFrom.viz`. */
+const hiddenFieldConfig = { custom: { hideFrom: { viz: true, legend: false, tooltip: false } } };
 
 const wideFrame = (): DataFrame =>
   toDataFrame({
@@ -107,22 +123,52 @@ describe('buildRadarLegendItems', () => {
 
 describe('buildPieLegendItems', () => {
   it('builds one item per category row (one per slice), labeled by category', () => {
-    const items = buildPieLegendItems([categoricalFrame()], theme, []);
+    const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig);
 
     expect(items.map((item) => item.label)).toEqual(['north', 'south', 'east']);
   });
 
   it('colors slices by palette index, independent of the field color', () => {
-    const items = buildPieLegendItems([categoricalFrame()], theme, []);
+    const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig);
 
     expect(items[0].color).not.toBe(items[1].color);
   });
 
   it('shows each slice value from the first numeric field in the calc columns', () => {
-    const items = buildPieLegendItems([categoricalFrame()], theme, ['last']);
+    const items = buildPieLegendItems([categoricalFrame()], theme, ['last'], fieldConfig);
 
     // A slice is a single value, so any reducer resolves to that slice's value.
     expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ numeric: 10 })]);
     expect(items[2].getDisplayValues?.()).toEqual([expect.objectContaining({ numeric: 30 })]);
+  });
+
+  it('keeps a hidden slice in the legend but marks it disabled', () => {
+    const items = buildPieLegendItems([categoricalFrame()], theme, [], hiddenConfig('south'));
+
+    expect(items.map((item) => item.label)).toEqual(['north', 'south', 'east']);
+    expect(items.map((item) => item.disabled ?? false)).toEqual([false, true, false]);
+  });
+});
+
+describe('legend disabled state (per-field families)', () => {
+  const withHiddenField = (): DataFrame =>
+    toDataFrame({
+      fields: [
+        { name: 'time', type: FieldType.time, values: [1, 2, 3] },
+        { name: 'cpu', type: FieldType.number, values: [10, 20, 30], config: { displayName: 'cpu' } },
+        {
+          name: 'mem',
+          type: FieldType.number,
+          values: [40, 50, 60],
+          config: { displayName: 'mem', ...hiddenFieldConfig },
+        },
+      ],
+    });
+
+  it('marks time series items disabled when the field is hidden from the viz', () => {
+    const items = buildTimeSeriesLegendItems([withHiddenField()], theme, []);
+
+    expect(items.map((item) => item.label)).toEqual(['cpu', 'mem']);
+    expect(items.map((item) => item.disabled ?? false)).toEqual([false, true]);
   });
 });

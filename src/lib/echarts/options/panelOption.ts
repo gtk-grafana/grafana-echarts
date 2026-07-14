@@ -5,6 +5,7 @@ import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
+import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
 import {
   getCrosshairAxisPointer,
   getNoTooltipOption,
@@ -23,9 +24,16 @@ import {
  * the series type or the module produces no option.
  */
 export function buildPanelChartOption(
-  ctx: ChartContext,
+  rawCtx: ChartContext,
   { isGrafanaLegend }: { isGrafanaLegend: boolean }
 ): ECBasicOption {
+  // Drop value fields hidden via the legend visibility toggle (`hideFrom.viz`)
+  // before building. Doing it once here keeps series, axes, and tooltip
+  // formatters consistent for the per-field families (cartesian/radar/heatmap
+  // overlays). The DOM legend is built separately in `Panel.tsx` from the
+  // original frames, so hidden series remain in the legend (greyed).
+  const ctx: ChartContext = { ...rawCtx, frames: stripHiddenValueFields(rawCtx.frames) };
+
   const chartModule = resolveChartModule(ctx.seriesType);
   if (!chartModule) {
     throw new Error(`Invalid chart module ${chartModule} for ${ctx.seriesType}`);

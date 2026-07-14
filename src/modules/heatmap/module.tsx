@@ -46,6 +46,12 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
           isClearable: true,
         },
       });
+
+      // Register `custom.hideFrom` so the legend visibility toggle's `byName`
+      // override is applied by Grafana. Only the cartesian overlay series carry
+      // legend items; the chart strips overlay fields flagged `hideFrom.viz`
+      // (see `lib/grafana/fields/seriesConfig.ts`).
+      commonOptionsBuilder.addHideFrom(builder);
     },
   })
   .setPanelOptions((builder) => {

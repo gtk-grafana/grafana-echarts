@@ -28,6 +28,7 @@ const makeContext = (seriesType: SeriesType, heatmapLayout?: HeatmapLayout): Cha
   } as PanelOptions,
   seriesType,
   formatValue,
+  fieldConfig: { defaults: {}, overrides: [] },
 });
 
 describe('panelTypeToAxis', () => {

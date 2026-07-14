@@ -27,6 +27,7 @@ import {
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
 import { buildThresholdMarks, type ThresholdMarks } from 'lib/echarts/options/thresholds';
+import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import { getFieldValueFormatters } from 'lib/echarts/style';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
 import { getFieldMinMax } from 'lib/grafana/fields/fieldConfig';
@@ -192,7 +193,12 @@ function buildMultiValueOption(
 
   const baseSeries = multiValueData.series;
   const seriesArray = Array.isArray(baseSeries) ? baseSeries : baseSeries ? [baseSeries] : [];
-  const series = attachThresholdMarks(seriesArray, cartesianThresholdMarks(ctx));
+  // The multi-value series maps to a legend item by name; drop it when hidden
+  // via the legend toggle. The legend keeps the item (greyed) so it can be
+  // toggled back (see `buildMultiValueCartesianLegendItems`).
+  const hidden = getHiddenSeriesNames(ctx.fieldConfig);
+  const visibleSeries = seriesArray.filter((chartSeries) => !hidden.has(String(chartSeries.name ?? '')));
+  const series = attachThresholdMarks(visibleSeries, cartesianThresholdMarks(ctx));
 
   return {
     ...cartesianCategoryDefaultOptions,

@@ -1,4 +1,10 @@
-import { type DataFrame, type GrafanaTheme2, type TimeRange, type ValueFormatter } from '@grafana/data';
+import {
+  type DataFrame,
+  type FieldConfigSource,
+  type GrafanaTheme2,
+  type TimeRange,
+  type ValueFormatter,
+} from '@grafana/data';
 import type { TimeZone, VizLegendOptions } from '@grafana/schema';
 import { type VizLegendItem } from '@grafana/ui';
 import {
@@ -32,6 +38,10 @@ export interface ChartContext<T = SeriesType> {
   options: PanelOptions;
   seriesType: T;
   formatValue: ValueFormatter;
+  // The panel's field config (defaults + overrides). Row/series families
+  // (pie slices, candlestick/boxplot) read legend color/visibility overrides
+  // from here by name, since they do not map to Grafana fields.
+  fieldConfig: FieldConfigSource;
 }
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */

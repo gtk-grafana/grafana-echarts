@@ -1,12 +1,37 @@
-import { type Field, type FieldConfig } from '@grafana/data';
+import { type DataFrame, type Field, type FieldConfig } from '@grafana/data';
 import type { EChartsFieldConfig } from 'editor/types';
 import { sampleByStride } from 'lib/grafana/sampling';
+import { isNumberField } from 'lib/grafana/narrowing';
 import { type ConfigTypedField } from 'lib/grafana/types';
 
 export function getFieldConfigFromField<V>(
   field: ConfigTypedField<V, EChartsFieldConfig>
 ): FieldConfig<EChartsFieldConfig> {
   return field.config;
+}
+
+/**
+ * Whether a field is hidden from the visualization via the standard
+ * `custom.hideFrom.viz` field config (the legend visibility toggle writes this
+ * as a `byName` override; Grafana applies it before the panel renders). The
+ * series is still shown in the legend (greyed) so callers keep the legend item.
+ * https://grafana.com/docs/grafana/latest/panels-visualizations/configure-standard-options/
+ */
+export function isFieldHiddenFromViz(field: Field): boolean {
+  return getFieldConfigFromField(field).custom?.hideFrom?.viz === true;
+}
+
+/**
+ * Drop numeric value fields flagged `hideFrom.viz` so per-field chart families
+ * (cartesian, radar, heatmap overlays) skip them consistently across series,
+ * axis, and tooltip building. Non-numeric fields (time/category) are retained
+ * and frames stay square (whole columns are removed, so row counts are unchanged).
+ */
+export function stripHiddenValueFields(frames: DataFrame[]): DataFrame[] {
+  return frames.map((frame) => ({
+    ...frame,
+    fields: frame.fields.filter((field) => !(isNumberField(field) && isFieldHiddenFromViz(field))),
+  }));
 }
 
 /**

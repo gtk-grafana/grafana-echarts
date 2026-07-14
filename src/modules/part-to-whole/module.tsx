@@ -23,6 +23,13 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         },
       },
     },
+    // Register `custom.hideFrom` so the legend visibility toggle's `byName`
+    // override is applied by Grafana (unregistered override properties are
+    // skipped). Pie slices are rows of one field, so the converter reads the
+    // hidden set by name (see `lib/grafana/fields/seriesConfig.ts`).
+    useCustomConfig: (builder) => {
+      commonOptionsBuilder.addHideFrom(builder);
+    },
   })
   .setPanelOptions((builder) => {
     commonOptionsBuilder.addLegendOptions(builder);

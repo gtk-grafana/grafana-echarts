@@ -29,6 +29,7 @@ const makeContext = (
   options: { [seriesTypePath]: seriesType, stackSeries } as PanelOptions,
   seriesType,
   formatValue,
+  fieldConfig: { defaults: {}, overrides: [] },
 });
 
 /** Run the converter, normalizing the ECharts `Arrayable` series into an array. */
