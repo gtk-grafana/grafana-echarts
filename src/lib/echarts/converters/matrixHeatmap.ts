@@ -62,7 +62,7 @@ export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2):
   }
 
   const yField = findCategoryField(frame);
-  const yCategories = resolveCategoriesFromField(yField);
+  const yCategories = resolveCategoriesFromField(yField, frame.length);
 
   if (!yField) {
     debug('matrix heatmap has no category field', LOG_LEVELS.info);

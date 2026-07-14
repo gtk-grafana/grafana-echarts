@@ -12,3 +12,5 @@ pre-commit:
     # Check Prettier formatting; run `pnpm run lint:fix` to auto-fix.
     prettier:
       run: pnpm run prettier:check
+    test:
+      run: pnpm run test:ci

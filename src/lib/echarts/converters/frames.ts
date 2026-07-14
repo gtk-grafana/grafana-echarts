@@ -40,11 +40,11 @@ export function framesHaveTimeField(series: DataFrame[]): boolean {
  */
 export function resolveCategoriesFromFrame(frame: DataFrame): string[] {
   const categoryField = findCategoryField(frame);
-  return resolveCategoriesFromField(categoryField);
+  return resolveCategoriesFromField(categoryField, frame.length);
 }
 
-export function resolveCategoriesFromField(field?: Field<string>): string[] {
-  return field?.values ?? [];
+export function resolveCategoriesFromField(field: Field<string> | undefined, frameLength: number): string[] {
+  return field?.values ?? Array.from({ length: frameLength }, (_, i) => i.toString());
 }
 
 /** One numeric field mapped to name, positional values, and color. */
