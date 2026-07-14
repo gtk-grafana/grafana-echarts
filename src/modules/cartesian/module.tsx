@@ -2,9 +2,6 @@ import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/dat
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import {
-  axisPlacementName,
-  axisPlacementOptions,
-  axisPlacementPath,
   cartesianOverrideOptions,
   cartesianSeriesTypeOptions,
   seriesCategoryName,
@@ -74,19 +71,13 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
         showIf: (config) => config.seriesType === 'bar',
       });
 
-      // Per-field y-axis placement. Fields are grouped onto one y-axis per
-      // distinct unit; this override controls which side that unit's axis draws
-      // on, or hides it while still plotting the series.
-      builder.addSelect({
-        path: axisPlacementPath,
-        name: axisPlacementName,
-        description: 'Place this field\u2019s unit axis on the left/right, or hide it.',
-        settings: {
-          options: axisPlacementOptions,
-          allowCustomValue: false,
-          isClearable: true,
-        },
-      });
+      // Per-field y-axis placement (writes the standard `axisPlacement` field
+      // config; read back in `buildCartesianYAxes`). Fields are grouped onto one
+      // y-axis per distinct unit; this controls which side that unit's axis draws
+      // on, or hides it while still plotting the series. Core already offers
+      // exactly Auto/Left/Right/Hidden here, so no options filter is needed.
+      // https://grafana.com/developers/plugin-tools/
+      commonOptionsBuilder.addAxisPlacement(builder);
     },
   })
   .setPanelOptions((builder) => {

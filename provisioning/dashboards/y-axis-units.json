@@ -1,0 +1,801 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "1 axis (left) — two series share the same unit (bytes), so they collapse onto a single left value axis. Exercises the same-unit grouping rule: one axis per distinct unit.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B\n2021-01-01T00:00:00Z,1048576,2097152\n2021-01-01T01:00:00Z,2097152,3145728\n2021-01-01T02:00:00Z,1572864,2621440\n2021-01-01T03:00:00Z,3145728,4194304\n2021-01-01T04:00:00Z,2621440,3670016"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "1 axis (left) — shared unit",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "1 axis (right) — a single unit (percent) forced to the right side via axisPlacement=right. The lone value axis renders on the right.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A\n2021-01-01T00:00:00Z,40\n2021-01-01T01:00:00Z,55\n2021-01-01T02:00:00Z,45\n2021-01-01T03:00:00Z,60\n2021-01-01T04:00:00Z,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "1 axis (right)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "1 axis (none) — a single unit (watt) with axisPlacement=hidden. No axis is drawn but the series still plots against it.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [
+              { "id": "unit", "value": "watt" },
+              { "id": "custom.axisPlacement", "value": "hidden" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A\n2021-01-01T00:00:00Z,120\n2021-01-01T01:00:00Z,90\n2021-01-01T02:00:00Z,150\n2021-01-01T03:00:00Z,110\n2021-01-01T04:00:00Z,180"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "1 axis (none / hidden)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "2 axis (left-left) — two distinct units (bytes, percent) both forced left. The second left axis is offset so the two stack side by side on the left.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B\n2021-01-01T00:00:00Z,1048576,40\n2021-01-01T01:00:00Z,2097152,55\n2021-01-01T02:00:00Z,1572864,45\n2021-01-01T03:00:00Z,3145728,60\n2021-01-01T04:00:00Z,2621440,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "2 axis (left-left)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "2 axis (right-right) — two distinct units (bytes, percent) both forced right. The second right axis is offset so the two stack side by side on the right.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B\n2021-01-01T00:00:00Z,1048576,40\n2021-01-01T01:00:00Z,2097152,55\n2021-01-01T02:00:00Z,1572864,45\n2021-01-01T03:00:00Z,3145728,60\n2021-01-01T04:00:00Z,2621440,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "2 axis (right-right)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "2 axis (left-right) — two distinct units (bytes, percent) with Auto placement. The first unit lands on the left, the second on the right (core Grafana dual-axis default).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [{ "id": "unit", "value": "percent" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B\n2021-01-01T00:00:00Z,1048576,40\n2021-01-01T01:00:00Z,2097152,55\n2021-01-01T02:00:00Z,1572864,45\n2021-01-01T03:00:00Z,3145728,60\n2021-01-01T04:00:00Z,2621440,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "2 axis (left-right / auto)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "2 axis (right-left) — the reverse of the auto default: the first unit (bytes) is forced right and the second unit (percent) forced left.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 7,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B\n2021-01-01T00:00:00Z,1048576,40\n2021-01-01T01:00:00Z,2097152,55\n2021-01-01T02:00:00Z,1572864,45\n2021-01-01T03:00:00Z,3145728,60\n2021-01-01T04:00:00Z,2621440,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "2 axis (right-left)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "2 axis (left-none) — the first unit (bytes) draws on the left (auto) while the second unit (percent) is hidden. Only one axis is visible; both series still plot.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 8,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "hidden" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B\n2021-01-01T00:00:00Z,1048576,40\n2021-01-01T01:00:00Z,2097152,55\n2021-01-01T02:00:00Z,1572864,45\n2021-01-01T03:00:00Z,3145728,60\n2021-01-01T04:00:00Z,2621440,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "2 axis (left-none)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "3 axis (left-left-right) — three distinct units: bytes and percent both forced left (stacked with an offset), watt forced right.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "id": 9,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series C" },
+            "properties": [
+              { "id": "unit", "value": "watt" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B,Series C\n2021-01-01T00:00:00Z,1048576,40,120\n2021-01-01T01:00:00Z,2097152,55,90\n2021-01-01T02:00:00Z,1572864,45,150\n2021-01-01T03:00:00Z,3145728,60,110\n2021-01-01T04:00:00Z,2621440,50,180"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" },
+              { "targetField": "Series C", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "3 axis (left-left-right)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "3 axis (left-right-none) — three distinct units: bytes left, percent right, watt hidden. Two axes are visible and the hidden unit still plots.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "id": 10,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series C" },
+            "properties": [
+              { "id": "unit", "value": "watt" },
+              { "id": "custom.axisPlacement", "value": "hidden" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B,Series C\n2021-01-01T00:00:00Z,1048576,40,120\n2021-01-01T01:00:00Z,2097152,55,90\n2021-01-01T02:00:00Z,1572864,45,150\n2021-01-01T03:00:00Z,3145728,60,110\n2021-01-01T04:00:00Z,2621440,50,180"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" },
+              { "targetField": "Series C", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "3 axis (left-right-none)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "4 axis (left-left-right-right) — four distinct units: bytes and celsius forced left, percent and watt forced right. Each side stacks two offset axes, exercising grid spacing on both sides at once.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "id": 11,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Series A" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series B" },
+            "properties": [
+              { "id": "unit", "value": "celsius" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series C" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Series D" },
+            "properties": [
+              { "id": "unit", "value": "watt" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Series A,Series B,Series C,Series D\n2021-01-01T00:00:00Z,1048576,21,40,120\n2021-01-01T01:00:00Z,2097152,23,55,90\n2021-01-01T02:00:00Z,1572864,22,45,150\n2021-01-01T03:00:00Z,3145728,25,60,110\n2021-01-01T04:00:00Z,2621440,24,50,180"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "Series A", "destinationType": "number" },
+              { "targetField": "Series B", "destinationType": "number" },
+              { "targetField": "Series C", "destinationType": "number" },
+              { "targetField": "Series D", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "4 axis (left-left-right-right)",
+      "type": "grafana-echartscartesian-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "y-axis", "units"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2021-01-01T00:00:00.000Z",
+    "to": "2021-01-01T04:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts — y-axis & units",
+  "uid": "c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e",
+  "version": 1,
+  "weekStart": ""
+}

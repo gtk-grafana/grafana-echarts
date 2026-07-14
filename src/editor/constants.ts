@@ -1,5 +1,4 @@
 import { DataFrameType, type SelectableValue } from '@grafana/data';
-import { AxisPlacement } from '@grafana/schema';
 import {
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
@@ -25,20 +24,6 @@ export const stackSeriesName = 'Stack series';
  * https://echarts.apache.org/en/option.html#series-bar.stack
  */
 export const STACK_GROUP_ID = 'total';
-
-/**
- * Per-field y-axis placement override (custom field config). Fields are grouped
- * onto one y-axis per distinct unit; this picks the side that unit's axis draws
- * on, or hides it. Only the y-axis-relevant subset of `AxisPlacement` is offered.
- */
-export const axisPlacementPath = 'axisPlacement';
-export const axisPlacementName = 'Axis placement';
-export const axisPlacementOptions: Array<SelectableValue<AxisPlacement>> = [
-  { value: AxisPlacement.Auto, label: 'Auto' },
-  { value: AxisPlacement.Left, label: 'Left' },
-  { value: AxisPlacement.Right, label: 'Right' },
-  { value: AxisPlacement.Hidden, label: 'Hidden' },
-];
 
 export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar'];
 
