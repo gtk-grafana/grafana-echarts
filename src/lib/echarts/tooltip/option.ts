@@ -1,10 +1,10 @@
-import { type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
+import { type GrafanaTheme2 } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
 import { type TooltipOption } from 'echarts/types/dist/shared';
 import { convertThemePxToNumeric } from 'lib/grafana/converters/theme';
 import { type CrossStyle, type EChartsTooltipTrigger } from './eChartsTypes';
-import { buildTooltipContent, formatTooltipValue } from './template';
+import { buildTooltipContent, formatTooltipValue, type TooltipValueFormatterResolver } from './template';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
 const CROSSHAIR_COLOR = 'rgba(120, 120, 130, 0.5)';
@@ -93,7 +93,7 @@ const getTooltipPosition: NonNullable<TooltipOption['position']> = (point, _para
 export function getTooltipOption(
   trigger: EChartsTooltipTrigger,
   mode: TooltipDisplayMode,
-  grafanaValueFormatter: ValueFormatter,
+  resolveValueFormatter: TooltipValueFormatterResolver,
   grafanaTheme: GrafanaTheme2
 ): TooltipOption {
   if (mode === TooltipDisplayMode.None) {
@@ -116,9 +116,10 @@ export function getTooltipOption(
     // Takes precedence over valueFormatter, which stays as a fallback for the
     // default template (e.g. per-series tooltips that don't set their own).
     // https://echarts.apache.org/en/option.html#tooltip.formatter
-    formatter: (params) => buildTooltipContent(params, grafanaValueFormatter, grafanaTheme),
-    // Value formatter passes the values from the eCharts data into the grafana formatValue method
-    valueFormatter: (eChartValue) => formatTooltipValue(eChartValue, grafanaValueFormatter),
+    formatter: (params) => buildTooltipContent(params, resolveValueFormatter, grafanaTheme),
+    // Fallback for the default template (no seriesIndex/dataIndex available here);
+    // resolves to the panel-level formatter.
+    valueFormatter: (eChartValue) => formatTooltipValue(eChartValue, resolveValueFormatter({})),
     // https://echarts.apache.org/en/option.html#grid.tooltip.backgroundColor
     backgroundColor: grafanaTheme.colors.background.elevated,
     //https://echarts.apache.org/en/option.html#tooltip.padding

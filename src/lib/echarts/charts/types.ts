@@ -18,6 +18,9 @@ import {
 } from 'echarts';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
+// Imported from the module (not the barrel) to avoid a cycle: the tooltip barrel
+// pulls in `option.ts` -> `axes/converters` -> this file.
+import { type TooltipValueFormatterResolver } from 'lib/echarts/tooltip/template';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
@@ -109,6 +112,12 @@ export interface ChartModule {
   // @todo replace null with reason why chart cannot render?
   buildOption(ctx: ChartContext, base: BaseOptionParts): EChartBuildOption | null;
   buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];
+  /**
+   * Resolve the value formatter for a hovered tooltip item so each series
+   * formats with its own field's unit/decimals overrides. Chart families map the
+   * item to a field differently (by `seriesIndex` or `dataIndex`).
+   */
+  getTooltipValueFormatter(ctx: ChartContext): TooltipValueFormatterResolver;
 }
 
 export type CartesianOption = ComposeOption<

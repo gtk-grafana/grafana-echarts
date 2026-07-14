@@ -5715,3933 +5715,6 @@ exports[`Panel canvas renders cartesian renders default effectScatter series 1`]
 ]
 `;
 
-exports[`Panel canvas renders cartesian renders default grid 1`] = `
-[
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "rgba(240, 250, 255, 0.09)",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 10,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 251.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 251.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 251.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 251.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 190.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 190.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 190.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 190.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 129.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 129.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 129.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 129.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 69.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 69.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 69.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 69.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 8.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 8.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 8.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 8.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 18.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 18.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 36.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 36.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 36.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 36.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 78.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 78.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 78.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 78.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 121.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 121.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 121.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 121.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 163.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 163.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 163.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 163.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 205.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 205.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 205.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 205.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 248.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 248.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 248.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 248.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 290.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 290.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 290.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 290.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 333.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 333.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 333.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 333.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 375.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 375.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 375.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 375.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 400.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 400.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 251.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14,
-      "y": 251.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 251.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14,
-            "y": 251.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.000000000000004,
-      "y": 190.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14.000000000000004,
-      "y": 190.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.000000000000004,
-            "y": 190.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14.000000000000004,
-            "y": 190.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.000000000000007,
-      "y": 129.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14.000000000000007,
-      "y": 129.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.000000000000007,
-            "y": 129.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14.000000000000007,
-            "y": 129.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.00000000000001,
-      "y": 69.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14.00000000000001,
-      "y": 69.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.00000000000001,
-            "y": 69.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14.00000000000001,
-            "y": 69.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.000000000000014,
-      "y": 8.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14.000000000000014,
-      "y": 8.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.000000000000014,
-            "y": 8.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14.000000000000014,
-            "y": 8.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 36.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 36.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 36.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 36.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 78.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 78.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 78.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 78.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 121.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 121.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 121.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 121.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 163.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 163.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 163.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 163.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 205.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 205.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 205.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 205.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 248.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 248.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 248.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 248.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 290.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 290.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 290.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 290.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 333.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 333.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 333.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 333.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 375.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 375.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 375.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 375.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10,
-      "f": 251,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "#ccccdc",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 2,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "10",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10.000000000000004,
-      "f": 190.25,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "15",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10.000000000000007,
-      "f": 129.5,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "20",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10.00000000000001,
-      "f": 68.75,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "25",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10.000000000000014,
-      "f": 8,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "30",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 78.3242727777778,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "04:20",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 120.76871722222221,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "04:40",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 205.6576061111111,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "05:20",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 248.10205055555556,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "05:40",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 332.99093944444445,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "06:20",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 375.4353838888889,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "06:40",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 35.879828333333336,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "04:00",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 163.21316166666665,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "05:00",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 290.546495,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "06:00",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "rgba(240, 250, 255, 0.09)",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 10,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 251.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 251.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 251.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 251.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 190.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 190.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 190.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 190.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 129.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 129.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 129.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 129.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 69.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 69.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 69.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 69.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 8.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400,
-      "y": 8.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 8.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400,
-            "y": 8.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 18.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 18.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 36.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 36.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 36.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 36.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 78.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 78.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 78.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 78.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 121.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 121.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 121.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 121.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 163.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 163.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 163.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 163.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 205.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 205.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 205.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 205.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 248.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 248.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 248.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 248.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 290.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 290.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 290.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 290.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 333.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 333.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 333.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 333.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 375.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 375.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 375.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 375.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 400.5,
-      "y": 8,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 400.5,
-      "y": 251,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 400.5,
-            "y": 8,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 400.5,
-            "y": 251,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18,
-      "y": 251.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14,
-      "y": 251.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18,
-            "y": 251.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14,
-            "y": 251.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.000000000000004,
-      "y": 190.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14.000000000000004,
-      "y": 190.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.000000000000004,
-            "y": 190.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14.000000000000004,
-            "y": 190.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.000000000000007,
-      "y": 129.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14.000000000000007,
-      "y": 129.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.000000000000007,
-            "y": 129.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14.000000000000007,
-            "y": 129.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.00000000000001,
-      "y": 69.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14.00000000000001,
-      "y": 69.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.00000000000001,
-            "y": 69.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14.00000000000001,
-            "y": 69.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 18.000000000000014,
-      "y": 8.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 14.000000000000014,
-      "y": 8.5,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 18.000000000000014,
-            "y": 8.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 14.000000000000014,
-            "y": 8.5,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 36.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 36.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 36.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 36.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 78.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 78.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 78.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 78.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 121.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 121.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 121.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 121.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 163.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 163.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 163.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 163.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 205.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 205.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 205.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 205.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 248.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 248.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 248.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 248.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 290.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 290.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 290.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 290.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 333.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 333.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 333.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 333.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 375.5,
-      "y": 251,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 375.5,
-      "y": 255,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 375.5,
-            "y": 251,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 375.5,
-            "y": 255,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10,
-      "f": 251,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "#ccccdc",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 2,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "10",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10.000000000000004,
-      "f": 190.25,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "15",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10.000000000000007,
-      "f": 129.5,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "20",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10.00000000000001,
-      "f": 68.75,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "25",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
-      "d": 1,
-      "e": 10.000000000000014,
-      "f": 8,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "30",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 78.3242727777778,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "04:20",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 120.76871722222221,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "04:40",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 205.6576061111111,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "05:20",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 248.10205055555556,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "05:40",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 332.99093944444445,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "06:20",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 375.4353838888889,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "06:40",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 35.879828333333336,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "04:00",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 163.21316166666665,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "05:00",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 290.546495,
-      "f": 259,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "06:00",
-      "x": 0,
-      "y": 0.5,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-]
-`;
-
 exports[`Panel canvas renders cartesian renders default line series 1`] = `
 [
   {
@@ -14127,8 +10200,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 66,
+      "width": 69.75,
+      "x": 64.625,
       "y": 129.5,
     },
     "type": "rect",
@@ -14144,8 +10217,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 66,
+            "width": 69.75,
+            "x": 64.625,
             "y": 129.5,
           },
           "type": "rect",
@@ -14167,8 +10240,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 138,
+      "width": 69.75,
+      "x": 133.875,
       "y": 129.5,
     },
     "type": "rect",
@@ -14184,8 +10257,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 138,
+            "width": 69.75,
+            "x": 133.875,
             "y": 129.5,
           },
           "type": "rect",
@@ -14207,8 +10280,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 210,
+      "width": 69.75,
+      "x": 203.125,
       "y": 129.5,
     },
     "type": "rect",
@@ -14224,8 +10297,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 210,
+            "width": 69.75,
+            "x": 203.125,
             "y": 129.5,
           },
           "type": "rect",
@@ -14247,8 +10320,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 36,
-      "x": 282,
+      "width": 34.625,
+      "x": 272.375,
       "y": 129.5,
     },
     "type": "rect",
@@ -14264,8 +10337,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 36,
-            "x": 282,
+            "width": 34.625,
+            "x": 272.375,
             "y": 129.5,
           },
           "type": "rect",
@@ -14287,8 +10360,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 66,
+      "width": 69.75,
+      "x": 64.625,
       "y": 8,
     },
     "type": "rect",
@@ -14304,8 +10377,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 66,
+            "width": 69.75,
+            "x": 64.625,
             "y": 8,
           },
           "type": "rect",
@@ -14327,8 +10400,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 138,
+      "width": 69.75,
+      "x": 133.875,
       "y": 8,
     },
     "type": "rect",
@@ -14344,8 +10417,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 138,
+            "width": 69.75,
+            "x": 133.875,
             "y": 8,
           },
           "type": "rect",
@@ -14367,8 +10440,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 210,
+      "width": 69.75,
+      "x": 203.125,
       "y": 8,
     },
     "type": "rect",
@@ -14384,8 +10457,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 210,
+            "width": 69.75,
+            "x": 203.125,
             "y": 8,
           },
           "type": "rect",
@@ -14407,8 +10480,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 36,
-      "x": 282,
+      "width": 34.625,
+      "x": 272.375,
       "y": 8,
     },
     "type": "rect",
@@ -14424,8 +10497,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 36,
-            "x": 282,
+            "width": 34.625,
+            "x": 272.375,
             "y": 8,
           },
           "type": "rect",
@@ -14447,8 +10520,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -19.439999999999998,
-      "width": 49.68000000000001,
-      "x": 41.16,
+      "width": 47.7825,
+      "x": 40.73375,
       "y": 251,
     },
     "type": "rect",
@@ -14464,8 +10537,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -19.439999999999998,
-            "width": 49.68000000000001,
-            "x": 41.16,
+            "width": 47.7825,
+            "x": 40.73375,
             "y": 251,
           },
           "type": "rect",
@@ -14481,8 +10554,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -233.28000000000003,
-      "width": 49.68000000000001,
-      "x": 113.16,
+      "width": 47.78250000000001,
+      "x": 109.98375,
       "y": 251,
     },
     "type": "rect",
@@ -14498,8 +10571,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -233.28000000000003,
-            "width": 49.68000000000001,
-            "x": 113.16,
+            "width": 47.78250000000001,
+            "x": 109.98375,
             "y": 251,
           },
           "type": "rect",
@@ -14515,8 +10588,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -77.76000000000002,
-      "width": 49.68000000000001,
-      "x": 185.16,
+      "width": 47.7825,
+      "x": 179.23375,
       "y": 251,
     },
     "type": "rect",
@@ -14532,8 +10605,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -77.76000000000002,
-            "width": 49.68000000000001,
-            "x": 185.16,
+            "width": 47.7825,
+            "x": 179.23375,
             "y": 251,
           },
           "type": "rect",
@@ -14549,8 +10622,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -155.52,
-      "width": 49.68000000000001,
-      "x": 257.15999999999997,
+      "width": 47.78250000000003,
+      "x": 248.48375,
       "y": 251,
     },
     "type": "rect",
@@ -14566,8 +10639,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -155.52,
-            "width": 49.68000000000001,
-            "x": 257.15999999999997,
+            "width": 47.78250000000003,
+            "x": 248.48375,
             "y": 251,
           },
           "type": "rect",
@@ -14662,8 +10735,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 66,
+      "width": 69.75,
+      "x": 64.625,
       "y": 129.5,
     },
     "type": "rect",
@@ -14679,8 +10752,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 66,
+            "width": 69.75,
+            "x": 64.625,
             "y": 129.5,
           },
           "type": "rect",
@@ -14702,8 +10775,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 138,
+      "width": 69.75,
+      "x": 133.875,
       "y": 129.5,
     },
     "type": "rect",
@@ -14719,8 +10792,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 138,
+            "width": 69.75,
+            "x": 133.875,
             "y": 129.5,
           },
           "type": "rect",
@@ -14742,8 +10815,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 72.5,
-      "x": 210,
+      "width": 69.75,
+      "x": 203.125,
       "y": 129.5,
     },
     "type": "rect",
@@ -14759,8 +10832,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 72.5,
-            "x": 210,
+            "width": 69.75,
+            "x": 203.125,
             "y": 129.5,
           },
           "type": "rect",
@@ -14782,8 +10855,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 36,
-      "x": 282,
+      "width": 34.625,
+      "x": 272.375,
       "y": 129.5,
     },
     "type": "rect",
@@ -14799,8 +10872,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 36,
-            "x": 282,
+            "width": 34.625,
+            "x": 272.375,
             "y": 129.5,
           },
           "type": "rect",
@@ -14822,8 +10895,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 66,
+      "width": 69.75,
+      "x": 64.625,
       "y": 8,
     },
     "type": "rect",
@@ -14839,8 +10912,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 66,
+            "width": 69.75,
+            "x": 64.625,
             "y": 8,
           },
           "type": "rect",
@@ -14862,8 +10935,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 138,
+      "width": 69.75,
+      "x": 133.875,
       "y": 8,
     },
     "type": "rect",
@@ -14879,8 +10952,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 138,
+            "width": 69.75,
+            "x": 133.875,
             "y": 8,
           },
           "type": "rect",
@@ -14902,8 +10975,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 72.5,
-      "x": 210,
+      "width": 69.75,
+      "x": 203.125,
       "y": 8,
     },
     "type": "rect",
@@ -14919,8 +10992,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 72.5,
-            "x": 210,
+            "width": 69.75,
+            "x": 203.125,
             "y": 8,
           },
           "type": "rect",
@@ -14942,8 +11015,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 36,
-      "x": 282,
+      "width": 34.625,
+      "x": 272.375,
       "y": 8,
     },
     "type": "rect",
@@ -14959,8 +11032,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 36,
-            "x": 282,
+            "width": 34.625,
+            "x": 272.375,
             "y": 8,
           },
           "type": "rect",
@@ -14982,8 +11055,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -19.439999999999998,
-      "width": 49.68000000000001,
-      "x": 41.16,
+      "width": 47.7825,
+      "x": 40.73375,
       "y": 251,
     },
     "type": "rect",
@@ -14999,8 +11072,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -19.439999999999998,
-            "width": 49.68000000000001,
-            "x": 41.16,
+            "width": 47.7825,
+            "x": 40.73375,
             "y": 251,
           },
           "type": "rect",
@@ -15016,8 +11089,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -233.28000000000003,
-      "width": 49.68000000000001,
-      "x": 113.16,
+      "width": 47.78250000000001,
+      "x": 109.98375,
       "y": 251,
     },
     "type": "rect",
@@ -15033,8 +11106,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -233.28000000000003,
-            "width": 49.68000000000001,
-            "x": 113.16,
+            "width": 47.78250000000001,
+            "x": 109.98375,
             "y": 251,
           },
           "type": "rect",
@@ -15050,8 +11123,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -77.76000000000002,
-      "width": 49.68000000000001,
-      "x": 185.16,
+      "width": 47.7825,
+      "x": 179.23375,
       "y": 251,
     },
     "type": "rect",
@@ -15067,8 +11140,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -77.76000000000002,
-            "width": 49.68000000000001,
-            "x": 185.16,
+            "width": 47.7825,
+            "x": 179.23375,
             "y": 251,
           },
           "type": "rect",
@@ -15084,8 +11157,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
   {
     "props": {
       "height": -155.52,
-      "width": 49.68000000000001,
-      "x": 257.15999999999997,
+      "width": 47.78250000000003,
+      "x": 248.48375,
       "y": 251,
     },
     "type": "rect",
@@ -15101,8 +11174,8 @@ exports[`Panel canvas renders heatmap overlay renders a bar overlay 1`] = `
         {
           "props": {
             "height": -155.52,
-            "width": 49.68000000000001,
-            "x": 257.15999999999997,
+            "width": 47.78250000000003,
+            "x": 248.48375,
             "y": 251,
           },
           "type": "rect",
@@ -15202,7 +11275,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 129.5,
     },
@@ -15219,7 +11292,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 129.5,
           },
@@ -15242,8 +11315,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 129.5,
     },
     "type": "rect",
@@ -15259,8 +11332,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 129.5,
           },
           "type": "rect",
@@ -15282,8 +11355,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 129.5,
     },
     "type": "rect",
@@ -15299,8 +11372,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 129.5,
           },
           "type": "rect",
@@ -15323,7 +11396,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
     "props": {
       "height": 121.5,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 129.5,
     },
     "type": "rect",
@@ -15340,7 +11413,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
           "props": {
             "height": 121.5,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 129.5,
           },
           "type": "rect",
@@ -15362,7 +11435,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 8,
     },
@@ -15379,7 +11452,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 8,
           },
@@ -15402,8 +11475,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 8,
     },
     "type": "rect",
@@ -15419,8 +11492,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 8,
           },
           "type": "rect",
@@ -15442,8 +11515,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 8,
     },
     "type": "rect",
@@ -15459,8 +11532,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 8,
           },
           "type": "rect",
@@ -15483,7 +11556,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
     "props": {
       "height": 122,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 8,
     },
     "type": "rect",
@@ -15500,7 +11573,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
           "props": {
             "height": 122,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 8,
           },
           "type": "rect",
@@ -15531,7 +11604,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 245,
-      "width": 290,
+      "width": 279,
       "x": 29,
       "y": 7,
     },
@@ -15548,7 +11621,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 245,
-            "width": 290,
+            "width": 279,
             "x": 29,
             "y": 7,
           },
@@ -15600,21 +11673,21 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   },
   {
     "props": {
-      "x": 126,
+      "x": 122.33333587646484,
       "y": 17.719999313354492,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 222,
+      "x": 214.6666717529297,
       "y": 173.24000549316406,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 318,
+      "x": 307,
       "y": 95.4800033569336,
     },
     "type": "lineTo",
@@ -15635,21 +11708,21 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         },
         {
           "props": {
-            "x": 126,
+            "x": 122.33333587646484,
             "y": 17.719999313354492,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 222,
+            "x": 214.6666717529297,
             "y": 173.24000549316406,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 318,
+            "x": 307,
             "y": 95.4800033569336,
           },
           "type": "lineTo",
@@ -15832,7 +11905,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 126,
+      "e": 122.33333587646484,
       "f": 17.719999313354492,
     },
     "type": "setTransform",
@@ -15924,7 +11997,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 222,
+      "e": 214.6666717529297,
       "f": 173.24000549316406,
     },
     "type": "setTransform",
@@ -16016,7 +12089,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 318,
+      "e": 307,
       "f": 95.4800033569336,
     },
     "type": "setTransform",
@@ -16188,7 +12261,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 129.5,
     },
@@ -16205,7 +12278,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 129.5,
           },
@@ -16228,8 +12301,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 129.5,
     },
     "type": "rect",
@@ -16245,8 +12318,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 129.5,
           },
           "type": "rect",
@@ -16268,8 +12341,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 129.5,
     },
     "type": "rect",
@@ -16285,8 +12358,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 129.5,
           },
           "type": "rect",
@@ -16309,7 +12382,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
     "props": {
       "height": 121.5,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 129.5,
     },
     "type": "rect",
@@ -16326,7 +12399,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
           "props": {
             "height": 121.5,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 129.5,
           },
           "type": "rect",
@@ -16348,7 +12421,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 8,
     },
@@ -16365,7 +12438,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 8,
           },
@@ -16388,8 +12461,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 8,
     },
     "type": "rect",
@@ -16405,8 +12478,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 8,
           },
           "type": "rect",
@@ -16428,8 +12501,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 8,
     },
     "type": "rect",
@@ -16445,8 +12518,8 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 8,
           },
           "type": "rect",
@@ -16469,7 +12542,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
     "props": {
       "height": 122,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 8,
     },
     "type": "rect",
@@ -16486,7 +12559,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
           "props": {
             "height": 122,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 8,
           },
           "type": "rect",
@@ -16517,7 +12590,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   {
     "props": {
       "height": 245,
-      "width": 290,
+      "width": 279,
       "x": 29,
       "y": 7,
     },
@@ -16534,7 +12607,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         {
           "props": {
             "height": 245,
-            "width": 290,
+            "width": 279,
             "x": 29,
             "y": 7,
           },
@@ -16586,21 +12659,21 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
   },
   {
     "props": {
-      "x": 126,
+      "x": 122.33333587646484,
       "y": 17.719999313354492,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 222,
+      "x": 214.6666717529297,
       "y": 173.24000549316406,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 318,
+      "x": 307,
       "y": 95.4800033569336,
     },
     "type": "lineTo",
@@ -16621,21 +12694,21 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
         },
         {
           "props": {
-            "x": 126,
+            "x": 122.33333587646484,
             "y": 17.719999313354492,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 222,
+            "x": 214.6666717529297,
             "y": 173.24000549316406,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 318,
+            "x": 307,
             "y": 95.4800033569336,
           },
           "type": "lineTo",
@@ -16818,7 +12891,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 126,
+      "e": 122.33333587646484,
       "f": 17.719999313354492,
     },
     "type": "setTransform",
@@ -16910,7 +12983,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 222,
+      "e": 214.6666717529297,
       "f": 173.24000549316406,
     },
     "type": "setTransform",
@@ -17002,7 +13075,7 @@ exports[`Panel canvas renders heatmap overlay renders a line overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 318,
+      "e": 307,
       "f": 95.4800033569336,
     },
     "type": "setTransform",
@@ -17179,7 +13252,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 129.5,
     },
@@ -17196,7 +13269,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 129.5,
           },
@@ -17219,8 +13292,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 129.5,
     },
     "type": "rect",
@@ -17236,8 +13309,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 129.5,
           },
           "type": "rect",
@@ -17259,8 +13332,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 129.5,
     },
     "type": "rect",
@@ -17276,8 +13349,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 129.5,
           },
           "type": "rect",
@@ -17300,7 +13373,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
     "props": {
       "height": 121.5,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 129.5,
     },
     "type": "rect",
@@ -17317,7 +13390,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
           "props": {
             "height": 121.5,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 129.5,
           },
           "type": "rect",
@@ -17339,7 +13412,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 8,
     },
@@ -17356,7 +13429,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 8,
           },
@@ -17379,8 +13452,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 8,
     },
     "type": "rect",
@@ -17396,8 +13469,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 8,
           },
           "type": "rect",
@@ -17419,8 +13492,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 8,
     },
     "type": "rect",
@@ -17436,8 +13509,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 8,
           },
           "type": "rect",
@@ -17460,7 +13533,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
     "props": {
       "height": 122,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 8,
     },
     "type": "rect",
@@ -17477,7 +13550,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
           "props": {
             "height": 122,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 8,
           },
           "type": "rect",
@@ -17573,7 +13646,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 126,
+      "e": 122.33333333581686,
       "f": 17.71999999999997,
     },
     "type": "setTransform",
@@ -17636,7 +13709,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 222,
+      "e": 214.66666666418314,
       "f": 173.23999999999998,
     },
     "type": "setTransform",
@@ -17699,7 +13772,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 318,
+      "e": 307,
       "f": 95.47999999999999,
     },
     "type": "setTransform",
@@ -17842,7 +13915,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 129.5,
     },
@@ -17859,7 +13932,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 129.5,
           },
@@ -17882,8 +13955,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 129.5,
     },
     "type": "rect",
@@ -17899,8 +13972,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 129.5,
           },
           "type": "rect",
@@ -17922,8 +13995,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 121.5,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 129.5,
     },
     "type": "rect",
@@ -17939,8 +14012,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 121.5,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 129.5,
           },
           "type": "rect",
@@ -17963,7 +14036,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
     "props": {
       "height": 121.5,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 129.5,
     },
     "type": "rect",
@@ -17980,7 +14053,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
           "props": {
             "height": 121.5,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 129.5,
           },
           "type": "rect",
@@ -18002,7 +14075,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
+      "width": 92.83333333581686,
       "x": 30,
       "y": 8,
     },
@@ -18019,7 +14092,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
+            "width": 92.83333333581686,
             "x": 30,
             "y": 8,
           },
@@ -18042,8 +14115,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96.5,
-      "x": 126,
+      "width": 92.83333332836628,
+      "x": 122.33333333581686,
       "y": 8,
     },
     "type": "rect",
@@ -18059,8 +14132,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96.5,
-            "x": 126,
+            "width": 92.83333332836628,
+            "x": 122.33333333581686,
             "y": 8,
           },
           "type": "rect",
@@ -18082,8 +14155,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
   {
     "props": {
       "height": 122,
-      "width": 96,
-      "x": 222,
+      "width": 92.33333333581686,
+      "x": 214.66666666418314,
       "y": 8,
     },
     "type": "rect",
@@ -18099,8 +14172,8 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
         {
           "props": {
             "height": 122,
-            "width": 96,
-            "x": 222,
+            "width": 92.33333333581686,
+            "x": 214.66666666418314,
             "y": 8,
           },
           "type": "rect",
@@ -18123,7 +14196,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
     "props": {
       "height": 122,
       "width": 0,
-      "x": 318,
+      "x": 307,
       "y": 8,
     },
     "type": "rect",
@@ -18140,7 +14213,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
           "props": {
             "height": 122,
             "width": 0,
-            "x": 318,
+            "x": 307,
             "y": 8,
           },
           "type": "rect",
@@ -18236,7 +14309,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 126,
+      "e": 122.33333333581686,
       "f": 17.71999999999997,
     },
     "type": "setTransform",
@@ -18299,7 +14372,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 222,
+      "e": 214.66666666418314,
       "f": 173.23999999999998,
     },
     "type": "setTransform",
@@ -18362,7 +14435,7 @@ exports[`Panel canvas renders heatmap overlay renders a scatter overlay 1`] = `
       "b": 0,
       "c": 0,
       "d": 5,
-      "e": 318,
+      "e": 307,
       "f": 95.47999999999999,
     },
     "type": "setTransform",

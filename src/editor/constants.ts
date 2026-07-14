@@ -17,7 +17,7 @@ export const seriesTypeDefault: SeriesType = 'line';
  * the same name. Only meaningful for `bar` series.
  */
 export const stackSeriesPath = 'stackSeries';
-export const stackSeriesName = 'Stack series';
+export const stackSeriesName = 'Stacking';
 /**
  * Shared ECharts `stack` group id. Series that share the same `stack` string are
  * stacked together, so all stacked bar series use this single group.

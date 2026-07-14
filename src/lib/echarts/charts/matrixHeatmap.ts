@@ -41,6 +41,7 @@ export function buildMatrixHeatmapOption(
   const yAxis = mergeAxisStyle<YAXisOption>(cartesianCategoryDefaultOptions.yAxis, axisStyle, {
     type: 'category',
     data: data.yCategories,
+    zlevel: options.zLevel?.axis,
   });
 
   const vizLegendOptions = isGrafanaLegend ? undefined : options.legend;

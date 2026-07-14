@@ -5,9 +5,10 @@ import { type TooltipPositionCallback } from 'echarts/types/dist/shared';
 
 const theme = createTheme();
 const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
+const resolveValue = () => formatValue;
 
 function callTooltipPosition(point: [number, number], contentSize: [number, number], viewSize: [number, number]) {
-  const { position } = getTooltipOption('item', TooltipDisplayMode.Single, formatValue, theme);
+  const { position } = getTooltipOption('item', TooltipDisplayMode.Single, resolveValue, theme);
   return (position as TooltipPositionCallback)(point, [], null, null, { contentSize, viewSize });
 }
 
@@ -30,19 +31,19 @@ describe('grafanaTooltipModeToEChartsTrigger', () => {
 
 describe('getTooltipOption', () => {
   it('disables the tooltip entirely in "Hidden" mode', () => {
-    expect(getTooltipOption('axis', TooltipDisplayMode.None, formatValue, theme)).toEqual({ show: false });
-    expect(getTooltipOption('item', TooltipDisplayMode.None, formatValue, theme)).toEqual({ show: false });
+    expect(getTooltipOption('axis', TooltipDisplayMode.None, resolveValue, theme)).toEqual({ show: false });
+    expect(getTooltipOption('item', TooltipDisplayMode.None, resolveValue, theme)).toEqual({ show: false });
   });
 
   it('produces a native tooltip for the given trigger with a crosshair axis pointer', () => {
-    const option = getTooltipOption('axis', TooltipDisplayMode.Multi, formatValue, theme);
+    const option = getTooltipOption('axis', TooltipDisplayMode.Multi, resolveValue, theme);
     expect(option).toMatchObject({ show: true, trigger: 'axis' });
     expect(option).toHaveProperty('axisPointer.type', 'cross');
-    expect(getTooltipOption('item', TooltipDisplayMode.Single, formatValue, theme)).toMatchObject({ trigger: 'item' });
+    expect(getTooltipOption('item', TooltipDisplayMode.Single, resolveValue, theme)).toMatchObject({ trigger: 'item' });
   });
 
   it('formats scalar values through the Grafana formatter', () => {
-    const { valueFormatter } = getTooltipOption('item', TooltipDisplayMode.Single, formatValue, theme) as {
+    const { valueFormatter } = getTooltipOption('item', TooltipDisplayMode.Single, resolveValue, theme) as {
       valueFormatter: (value: unknown) => string;
     };
     expect(valueFormatter(10)).toBe('10');
@@ -51,7 +52,7 @@ describe('getTooltipOption', () => {
   });
 
   it('unwraps the trailing numeric from array data items before formatting', () => {
-    const { valueFormatter } = getTooltipOption('axis', TooltipDisplayMode.Multi, formatValue, theme) as {
+    const { valueFormatter } = getTooltipOption('axis', TooltipDisplayMode.Multi, resolveValue, theme) as {
       valueFormatter: (value: unknown) => string;
     };
     // Cartesian [time, value] tuple.

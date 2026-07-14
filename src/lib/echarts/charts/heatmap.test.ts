@@ -4,13 +4,15 @@ import {
   DataFrameType,
   dateTime,
   FieldType,
+  formattedValueToString,
   type TimeRange,
   toDataFrame,
   type ValueFormatter,
 } from '@grafana/data';
-import { LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { AxisPlacement, LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
 import { type YAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { seriesTypePath } from 'editor/constants';
+import { AXIS_OFFSET_STEP } from 'lib/echarts/axes/yAxes';
 import {
   COLOR_SCHEMES,
   HEATMAP_VALUE_DIM,
@@ -104,6 +106,31 @@ const overlayFrame = (): DataFrame =>
         type: FieldType.number,
         values: [10, 20],
         config: { displayName: 'overlay-metric', custom: { seriesType: 'line' } },
+      },
+    ],
+  });
+
+// A cartesian overlay frame with two distinct units, so the overlay builds one
+// value axis per unit (bytes, percent). An optional placement override on the
+// percent field exercises the Left/Right/Hidden axis-placement path.
+const twoUnitOverlayFrame = (percentPlacement?: AxisPlacement): DataFrame =>
+  toDataFrame({
+    fields: [
+      { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497] },
+      {
+        name: 'bytesMetric',
+        type: FieldType.number,
+        values: [10, 20],
+        config: { unit: 'bytes', custom: { seriesType: 'line' } },
+      },
+      {
+        name: 'percentMetric',
+        type: FieldType.number,
+        values: [40, 55],
+        config: {
+          unit: 'percent',
+          custom: { seriesType: 'line', ...(percentPlacement ? { axisPlacement: percentPlacement } : {}) },
+        },
       },
     ],
   });
@@ -204,6 +231,49 @@ describe('heatmapChartModule.buildOption', () => {
     expect(overlayAxis.scale).toBe(true);
   });
 
+  it('defaults the overlay axis to the right so it clears the bucket axis', () => {
+    const option = buildHeatmapOption(makeContext([heatmapFrame(), overlayFrame()]), { isGrafanaLegend: true });
+    const yAxes = (Array.isArray(option?.yAxis) ? option?.yAxis : []) as YAXisOption[];
+    // Bucket axis keeps the left; the overlay axis defaults to the right.
+    expect(yAxes[1]?.position).toBe('right');
+    // The bucket axis owns the split lines; the overlay axis stays clear.
+    expect(yAxes[1]?.splitLine?.show).toBe(false);
+  });
+
+  it('builds one overlay axis per distinct unit, stacked on the right after the bucket axis', () => {
+    const option = buildHeatmapOption(makeContext([heatmapFrame(), twoUnitOverlayFrame()]), { isGrafanaLegend: true });
+    const yAxes = (Array.isArray(option?.yAxis) ? option?.yAxis : []) as YAXisOption[];
+    // Bucket axis (0) plus one axis per overlay unit (1: bytes, 2: percent).
+    expect(yAxes).toHaveLength(3);
+    expect(yAxes[0]?.min).toBe(0);
+    expect(yAxes[0]?.max).toBe(20);
+    expect(yAxes[1]?.position).toBe('right');
+    expect(yAxes[2]?.position).toBe('right');
+    // Stacked on the right with increasing offsets so labels don't overlap.
+    expect(yAxes[1]?.offset).toBe(0);
+    expect(yAxes[2]?.offset).toBe(AXIS_OFFSET_STEP);
+  });
+
+  it('reserves extra grid width for stacked overlay right axes', () => {
+    const option = buildHeatmapOption(makeContext([heatmapFrame(), twoUnitOverlayFrame()]), { isGrafanaLegend: true });
+    const grid = single(option?.grid);
+    // visualMap width plus one extra offset slot for the second right axis.
+    expect(Number(grid?.right)).toBe(HEATMAP_VISUALMAP_WIDTH + AXIS_OFFSET_STEP);
+  });
+
+  it('hides an overlay axis whose field sets axisPlacement=hidden but still plots it', () => {
+    const option = buildHeatmapOption(makeContext([heatmapFrame(), twoUnitOverlayFrame(AxisPlacement.Hidden)]), {
+      isGrafanaLegend: true,
+    });
+    const yAxes = (Array.isArray(option?.yAxis) ? option?.yAxis : []) as YAXisOption[];
+    // The percent axis (index 2) is hidden; its series still maps to it.
+    expect(yAxes[2]?.axisLabel?.show).toBe(false);
+    expect(yAxes[2]?.axisTick?.show).toBe(false);
+    // A hidden axis reserves no grid width beyond the visualMap.
+    const grid = single(option?.grid);
+    expect(Number(grid?.right)).toBe(HEATMAP_VISUALMAP_WIDTH);
+  });
+
   it('uses a time x-axis when the heatmap X field is time', () => {
     const option = buildHeatmapOption(makeContext([heatmapFrame()]), { isGrafanaLegend: true });
     const xAxis = single(option?.xAxis);
@@ -281,5 +351,38 @@ describe('heatmapChartModule.buildOption series composition', () => {
     // The overlay renders against the secondary y-axis so it isn't squashed onto
     // the bucket scale.
     expect(series[1]).toMatchObject({ yAxisIndex: 1 });
+  });
+
+  it('pins each overlay series to its unit axis, offset past the bucket axis', () => {
+    const series = seriesOf(
+      buildHeatmapOption(makeContext([heatmapFrame(), twoUnitOverlayFrame()]), { isGrafanaLegend: true })
+    );
+    // Cell layer + one overlay series per unit.
+    expect(series).toHaveLength(3);
+    expect(series[0]).toMatchObject({ type: 'custom', name: 'Heatmap' });
+    // Bucket axis is index 0, so unit axes start at 1 (bytes) and 2 (percent).
+    expect(series[1]).toMatchObject({ yAxisIndex: 1 });
+    expect(series[2]).toMatchObject({ yAxisIndex: 2 });
+  });
+});
+
+describe('heatmapChartModule.getTooltipValueFormatter', () => {
+  it('uses the panel formatter for the cell layer (series index 0)', () => {
+    const resolve = heatmapChartModule.getTooltipValueFormatter(makeContext([heatmapFrame(), twoUnitOverlayFrame()]));
+    // The cell layer is series index 0; it falls back to the panel formatter.
+    expect(resolve({ seriesIndex: 0 })(5)).toEqual(formatValue(5));
+  });
+
+  it('resolves each overlay series to its own field unit formatter', () => {
+    const resolve = heatmapChartModule.getTooltipValueFormatter(makeContext([heatmapFrame(), twoUnitOverlayFrame()]));
+    // Overlays follow the cell layer: index 1 is bytes, index 2 is percent.
+    expect(formattedValueToString(resolve({ seriesIndex: 2 })(50))).toContain('%');
+    // The bytes overlay formats with its unit, unlike the raw panel formatter.
+    expect(formattedValueToString(resolve({ seriesIndex: 1 })(1048576))).not.toBe(String(1048576));
+  });
+
+  it('falls back to the panel formatter for an unknown series index', () => {
+    const resolve = heatmapChartModule.getTooltipValueFormatter(makeContext([heatmapFrame()]));
+    expect(resolve({ seriesIndex: 5 })(7)).toEqual(formatValue(7));
   });
 });

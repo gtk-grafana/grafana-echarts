@@ -13,6 +13,30 @@ type TooltipParam = CallbackDataParams & {
 };
 
 /**
+ * Resolve the value formatter for a single hovered tooltip item. Chart families
+ * lay out series differently (one series per field vs. one series with per-field
+ * data items), so each supplies its own resolver keyed by `seriesIndex` and/or
+ * `dataIndex`. This is what lets tooltips honor per-field unit/decimals overrides
+ * instead of formatting every row with one shared formatter.
+ */
+export type TooltipValueFormatterResolver = (item: { seriesIndex?: number; dataIndex?: number }) => ValueFormatter;
+
+/**
+ * Build a resolver that indexes into an ordered list of per-series formatters by
+ * the given key, falling back when the index is missing or out of range.
+ */
+export function indexedFormatterResolver(
+  formatters: ValueFormatter[],
+  fallback: ValueFormatter,
+  key: 'seriesIndex' | 'dataIndex'
+): TooltipValueFormatterResolver {
+  return (item) => {
+    const index = item[key];
+    return (index != null ? formatters[index] : undefined) ?? fallback;
+  };
+}
+
+/**
  * Format a raw ECharts tooltip value with Grafana's field formatter.
  * See https://echarts.apache.org/en/option.html#tooltip.valueFormatter
  */
@@ -182,7 +206,7 @@ function getLabel(item: TooltipParam, header: string): string {
  */
 export function buildTooltipContent(
   params: TopLevelFormatterParams,
-  valueFormatter: ValueFormatter,
+  resolveValueFormatter: TooltipValueFormatterResolver,
   theme: GrafanaTheme2
 ): HTMLElement {
   const items = Array.isArray(params) ? params : [params];
@@ -194,6 +218,9 @@ export function buildTooltipContent(
   }
 
   for (const item of items) {
+    // Each row formats with its own field's formatter so per-field unit/decimals
+    // overrides are respected.
+    const valueFormatter = resolveValueFormatter({ seriesIndex: item.seriesIndex, dataIndex: item.dataIndex });
     let value = formatTooltipValue(item.value, valueFormatter);
     // Slice charts (pie) expose the share of the whole as a percentage.
     if (typeof item.percent === 'number') {

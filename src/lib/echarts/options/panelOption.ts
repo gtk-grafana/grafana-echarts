@@ -38,7 +38,8 @@ export function buildPanelChartOption(
   const tooltipOption = getTooltipOption(
     grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
     tooltipMode,
-    ctx.formatValue,
+    // Per-series resolver so each row honors its field's unit/decimals overrides.
+    chartModule.getTooltipValueFormatter(ctx),
     ctx.theme
   );
 
