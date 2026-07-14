@@ -101,6 +101,61 @@ beyond what the edges frame implies.
 
 A node with no edge connection is drawn on its own, outside the network.
 
+The same pair as `toDataFrame` partials (the shape used in unit tests):
+
+```typescript
+import { FieldType, toDataFrame } from '@grafana/data';
+
+const nodes = toDataFrame({
+  name: 'nodes',
+  refId: 'nodes',
+  meta: { preferredVisualisationType: 'nodeGraph' },
+  fields: [
+    { name: 'id', type: FieldType.string, values: ['node1', 'node2', 'node3'] },
+    { name: 'title', type: FieldType.string, values: ['PC', 'PC', 'Mac'] },
+    { name: 'subtitle', type: FieldType.string, values: ['Windows', 'Linux', 'MacOS'] },
+    { name: 'mainstat', type: FieldType.string, values: ['AMD', 'Intel', 'M3'] },
+    { name: 'secondarystat', type: FieldType.string, values: ['16gbRAM', '32gbRAM', '16gbRAM'] },
+    { name: 'color', type: FieldType.string, values: ['blue', 'green', 'gray'] },
+    { name: 'icon', type: FieldType.string, values: ['', 'eye', 'apps'] },
+    { name: 'highlighted', type: FieldType.boolean, values: [true, false, false] },
+  ],
+});
+
+const edges = toDataFrame({
+  name: 'edges',
+  refId: 'edges',
+  meta: { preferredVisualisationType: 'nodeGraph' },
+  fields: [
+    { name: 'id', type: FieldType.string, values: ['edge1', 'edge2'] },
+    { name: 'source', type: FieldType.string, values: ['node1', 'node3'] },
+    { name: 'target', type: FieldType.string, values: ['node2', 'node2'] },
+    { name: 'mainstat', type: FieldType.string, values: ['TheMain', 'Main2'] },
+    { name: 'secondarystat', type: FieldType.string, values: ['TheSub', 'Sub2'] },
+    { name: 'thickness', type: FieldType.number, values: [3, 1] },
+    { name: 'color', type: FieldType.string, values: ['cyan', 'orange'] },
+  ],
+});
+```
+
+`arc__*` and `detail__*` fields carry a suffix and per-field config, e.g. a node
+frame with two arc sections that sum to 1 and a labelled detail column:
+
+```typescript
+const nodesWithArcs = toDataFrame({
+  name: 'nodes',
+  refId: 'nodes',
+  meta: { preferredVisualisationType: 'nodeGraph' },
+  fields: [
+    { name: 'id', type: FieldType.string, values: ['node1'] },
+    { name: 'title', type: FieldType.string, values: ['gateway'] },
+    { name: 'arc__success', type: FieldType.number, values: [0.9], config: { color: { fixedColor: 'green' } } },
+    { name: 'arc__errors', type: FieldType.number, values: [0.1], config: { color: { fixedColor: 'red' } } },
+    { name: 'detail__zone', type: FieldType.string, values: ['us-east-1'], config: { displayName: 'Zone' } },
+  ],
+});
+```
+
 ## References
 
 - Node graph panel Data API:
