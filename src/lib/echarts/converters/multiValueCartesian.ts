@@ -2,7 +2,7 @@ import { type DataFrame, type Field, type GrafanaTheme2, type TimeRange } from '
 import { type BoxplotSeriesOption, type CandlestickSeriesOption } from 'echarts';
 import { type EChartsFieldConfig, type MultiValueSeriesType } from 'editor/types';
 import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/charts/types';
-import { findCategoricalFrame, resolveCategories } from 'lib/echarts/converters/frames';
+import { findCategoricalFrame, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
 import { filterUnsupportedFields } from 'lib/grafana/filtering';
@@ -75,7 +75,7 @@ function resolveMultiValueCategories(
 ): string[] {
   const timeField = frame.fields.find(isTimeField);
   if (!timeField) {
-    const categories = resolveCategories(frame);
+    const categories = resolveCategoriesFromFrame(frame);
     return rows.map((row) => categories[row]);
   }
 

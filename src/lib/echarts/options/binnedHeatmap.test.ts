@@ -1,4 +1,4 @@
-import { createTheme, type ValueFormatter } from '@grafana/data';
+import { createTheme, FieldType, type ValueFormatter } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type BinnedHeatmapData } from 'lib/echarts/converters/binnedHeatmap';
 import { buildBinnedHeatmapTooltip, getBinnedHeatmapBucketAxis } from 'lib/echarts/options/binnedHeatmap';
@@ -12,6 +12,7 @@ const baseData = (overrides: Partial<BinnedHeatmapData>): BinnedHeatmapData => (
   xIsTime: true,
   yBuckets: [],
   yLabelPlacement: 'bound',
+  valueField: { name: 'value', type: FieldType.number, values: [], config: {} },
   ...overrides,
 });
 

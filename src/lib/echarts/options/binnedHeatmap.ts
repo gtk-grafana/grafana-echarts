@@ -1,7 +1,4 @@
-import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
-// `renderItem`'s type must come from the `echarts` barrel so it matches the
-// `CustomSeriesOption.renderItem` declaration; the shared-dist copy is a
-// separate declaration ECharts' own option type rejects.
+import { dateTimeFormat, type DisplayProcessor, type GrafanaTheme2 } from '@grafana/data';
 import { type CustomSeriesOption, type CustomSeriesRenderItem } from 'echarts';
 import { type ContinuousVisualMapOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
@@ -12,8 +9,8 @@ import {
   type BinnedHeatmapData,
   formatBucketBound,
 } from 'lib/echarts/converters/binnedHeatmap';
-import { getThemeTextStyle } from 'lib/echarts/options/base';
-import { getHeatmapColors, HEATMAP_VALUE_DIM } from 'lib/echarts/options/constants';
+import { HEATMAP_VALUE_DIM } from 'lib/echarts/options/constants';
+import { getHeatmapVisualMap } from 'lib/echarts/options/heatmapVisualMap';
 import { isRect } from 'lib/echarts/options/narrowing';
 import {
   type BinnedHeatmapTooltipContext,
@@ -242,39 +239,35 @@ export function getBinnedHeatmapSeries(
 
 /**
  * Continuous visualMap that colors only the binned heatmap series (by
- * `seriesIndex`). Placed on the right (vertical) by default or on the bottom
- * (horizontal), sized to the cell value range. `hoverLink` (on by default)
- * highlights the cells in a hovered value range; the highlight shadow lives on
- * the series emphasis state (see {@link makeBinnedHeatmapRenderItem}).
- * See https://echarts.apache.org/en/option.html#visualMap-continuous
+ * `seriesIndex`), mapping the cell value dim ({@link HEATMAP_VALUE_DIM}) to a
+ * color. Shares its placement/sizing with the matrix layout via
+ * {@link getHeatmapVisualMap}; `hoverLink` highlights the cells in a hovered
+ * value range (the highlight shadow lives on the series emphasis state, see
+ * {@link makeBinnedHeatmapRenderItem}).
  */
-export function getBinnedHeatmapVisualMap(
-  data: BinnedHeatmapData,
-  theme: GrafanaTheme2,
-  seriesIndex: number,
-  scheme?: HeatmapColorScheme,
-  placement: HeatmapColorScalePlacement = 'right'
-): ContinuousVisualMapOption {
-  // Position/size the bar per placement. ECharts positions accept a number (px)
-  // or a percent/keyword string, so plain px numbers are used here.
-  const orientation: Pick<
-    ContinuousVisualMapOption,
-    'orient' | 'left' | 'right' | 'top' | 'bottom' | 'itemWidth' | 'itemHeight'
-  > =
-    placement === 'bottom'
-      ? { orient: 'horizontal', bottom: 8, left: 'center', itemWidth: 120, itemHeight: 12 }
-      : { orient: 'vertical', right: 8, top: 'middle', itemWidth: 12, itemHeight: 120 };
-
-  return {
-    type: 'continuous',
-    min: data.valueMin,
-    max: data.valueMax === data.valueMin ? data.valueMin + 1 : data.valueMax,
+export function getBinnedHeatmapVisualMap({
+  data,
+  theme,
+  seriesIndex,
+  placement = 'right',
+  scheme,
+  formatDisplayValue,
+}: {
+  data: BinnedHeatmapData;
+  theme: GrafanaTheme2;
+  seriesIndex: number;
+  scheme?: HeatmapColorScheme;
+  placement: HeatmapColorScalePlacement;
+  formatDisplayValue: DisplayProcessor;
+}): ContinuousVisualMapOption {
+  return getHeatmapVisualMap({
+    valueMin: data.valueMin,
+    valueMax: data.valueMax,
     dimension: HEATMAP_VALUE_DIM,
+    theme,
     seriesIndex,
-    calculable: true,
-    hoverLink: true,
-    ...orientation,
-    inRange: { color: getHeatmapColors(scheme) },
-    textStyle: getThemeTextStyle(theme),
-  };
+    scheme,
+    placement,
+    formatDisplayValue,
+  });
 }

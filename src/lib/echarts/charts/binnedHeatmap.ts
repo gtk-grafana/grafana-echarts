@@ -1,5 +1,6 @@
-import { type DataFrame } from '@grafana/data';
+import { type DataFrame, getDisplayProcessor } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
+import { debug, LOG_LEVELS } from 'development';
 import { type GridOption } from 'echarts/types/dist/shared';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
 import {
@@ -24,6 +25,7 @@ import {
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
 import { buildTimeSeriesLegendItems } from 'lib/echarts/options/legendItems';
+import { getDefaultShortValueFieldConfig } from 'lib/grafana/fields/fieldConfig';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
 import { type BaseOptionParts, type ChartContext, type EChartBinnedHeatmapOption } from './types';
 
@@ -70,13 +72,14 @@ export function buildBinnedHeatmapOption(
   ctx: ChartContext<HeatmapSeriesType>,
   { isGrafanaLegend }: BaseOptionParts
 ): EChartBinnedHeatmapOption | null {
-  const { theme, options, seriesType, formatValue } = ctx;
+  const { theme, options, seriesType, formatValue, timeZone } = ctx;
   const placement = options.heatmapColorScale?.placement ?? 'right';
   const { overlayFrames, heatmap } = splitFrames(ctx);
   const cartSeries = timeSeriesToEChartsOption({ ...ctx, seriesType, frames: overlayFrames }) ?? [];
 
   // no heatmap frames: show empty panel
   if (heatmap === null) {
+    debug('Binned heatmap has empty frame', LOG_LEVELS.info);
     return null;
   }
 
@@ -132,12 +135,25 @@ export function buildBinnedHeatmapOption(
 
   const xAxis = mergeAxisStyle<XAXisOption>(cartesianTimeDefaultOptions.xAxis, axisStyle, heatmapAxisExtras);
 
+  const formatDisplayValue = getDisplayProcessor({
+    theme,
+    timeZone,
+    field: getDefaultShortValueFieldConfig(heatmap.valueField),
+  });
+
   return {
     ...cartesianTimeDefaultOptions,
     grid,
     xAxis,
     yAxis,
     series,
-    visualMap: getBinnedHeatmapVisualMap(heatmap, theme, 0, options.heatmapColorScheme, placement),
+    visualMap: getBinnedHeatmapVisualMap({
+      data: heatmap,
+      theme,
+      seriesIndex: 0,
+      placement,
+      scheme: options.heatmapColorScheme,
+      formatDisplayValue,
+    }),
   };
 }

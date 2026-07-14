@@ -38,8 +38,8 @@ export function getHeatmapGrid(
     throw new Error('Invalid grid right type');
   }
 
-  const bottom: number = (baseGrid.bottom ?? 0) + HEATMAP_VISUALMAP_HEIGHT;
-  const right: number = (baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH;
+  const bottom = (baseGrid.bottom ?? 0) + HEATMAP_VISUALMAP_HEIGHT;
+  const right = (baseGrid.right ?? 16) + HEATMAP_VISUALMAP_WIDTH;
   return {
     ...baseGrid,
     left: LEFT_GRID_PADDING,
