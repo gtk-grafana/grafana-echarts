@@ -4,7 +4,7 @@ import { type TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes
 import { type CartesianAxisOption, type YAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { mergeAxisStyle } from 'lib/echarts/options/cartesian';
 import { getValueFormatter } from 'lib/echarts/style';
-import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
+import { getFieldConfigFromField, getFieldMinMax } from 'lib/grafana/fields/fieldConfig';
 
 /** Horizontal gap (px) between stacked axes sharing a side. */
 export const AXIS_OFFSET_STEP = 50;
@@ -149,11 +149,17 @@ export function buildCartesianYAxes(params: {
     }
 
     const formatter = getValueFormatter(groupFields[0], theme, timeZone);
+    // Explicit standard-option Min/Max pin the axis; `scale: true` (from the base
+    // axis) still auto-fits any side left unset. Read from the group's
+    // representative field, as the formatter/placement above.
+    const { min, max } = getFieldMinMax(groupFields[0]);
     const extras: CartesianAxisOption = {
       position: side,
       offset,
       zlevel,
       splitLine: { show: showSplitLine },
+      min,
+      max,
       ...(hidden
         ? {
             axisLabel: { show: false },

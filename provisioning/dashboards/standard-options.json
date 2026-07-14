@@ -1,0 +1,258 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Standard Min/Max options pin the value (y) axis to [-25, 125] even though the random walk stays within [0, 100]. Leaving either field empty lets ECharts auto-fit that side. Compare the axis bounds with the native uPlot time series (same Min/Max) on the right.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": -25,
+          "max": 125
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 1,
+          "startValue": 50,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "title": "ECharts Min/Max \u2014 axis pinned to [-25, 125]",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Comparison: Grafana's native (uPlot) time series over the same random walk with the same standard Min/Max options, so the ECharts axis bounds can be checked against core behavior.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": -25,
+          "max": 125
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 1,
+          "startValue": 50,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "title": "uPlot Time series \u2014 Min/Max (native)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "No value: the series contains null points (the 'null' entries below). Hover a gap with tooltip mode 'All' to see the configured No value text '(no data)' instead of a hyphen. The line renders gaps for nulls, as in core panels.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "noValue": "(no data)"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "line",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "10,20,null,40,null,60,30,null,55"
+        }
+      ],
+      "title": "ECharts No value \u2014 null points show '(no data)' in the tooltip",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "No value on a category bar: the 'Admin' row has an empty (null) value, so its bar is absent. The configured No value text '(no data)' appears when hovering the series in the tooltip.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "noValue": "(no data)"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nSales,43\nAdmin,\nIT,30\nSupport,48\nOps,22"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "category",
+                "destinationType": "string"
+              },
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "ECharts No value \u2014 category bar (empty Admin value)",
+      "type": "grafana-echartscartesian-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "standard-options", "cartesian"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Standard Options (Min/Max, No value)",
+  "uid": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+  "version": 1,
+  "weekStart": ""
+}

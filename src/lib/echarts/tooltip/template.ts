@@ -49,8 +49,16 @@ export function formatTooltipValue(
     return formattedValueToString(grafanaFormatValue(numeric));
   }
 
-  // @todo better defaults
-  return eChartValue != null ? eChartValue.toString() : 'N/A';
+  // Empty (null/undefined) values route through the field formatter as `NaN`,
+  // which it renders as the field's standard "No value" text (see
+  // `getValueFormatter`). `NaN` is used because `ValueFormatter` is typed to
+  // accept a number, and the formatter treats `NaN` the same as null.
+  if (numeric == null) {
+    return formattedValueToString(grafanaFormatValue(NaN));
+  }
+
+  // A genuine non-null, non-numeric value (e.g. a category label).
+  return String(numeric);
 }
 
 /**

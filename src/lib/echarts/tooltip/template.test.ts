@@ -1,14 +1,15 @@
 import { createTheme, type ValueFormatter } from '@grafana/data';
+import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import {
   buildTooltipContent,
   formatTooltipValue,
   indexedFormatterResolver,
   type TooltipValueFormatterResolver,
 } from 'lib/echarts/tooltip/template';
-import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 const theme = createTheme();
-const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
+// Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
+const formatValue: ValueFormatter = (value) => ({ text: value == null || Number.isNaN(value) ? 'null' : `${value}` });
 // Most tests use a single shared formatter regardless of the hovered item.
 const resolveValue: TooltipValueFormatterResolver = () => formatValue;
 
@@ -19,8 +20,20 @@ const asParams = (params: unknown) => params as TopLevelFormatterParams;
 describe('formatTooltipValue', () => {
   it('formats scalar numbers through the Grafana formatter', () => {
     expect(formatTooltipValue(10, formatValue)).toBe('10');
-    expect(formatTooltipValue(null, formatValue)).toBe('N/A');
+    // Genuine string categories pass through as-is.
     expect(formatTooltipValue('text', formatValue)).toBe('text');
+  });
+
+  it('routes empty values through the formatter for its No value text', () => {
+    // The field formatter emits the standard "No value" text for null/undefined
+    // (see getValueFormatter); here the stub returns 'null'.
+    expect(formatTooltipValue(null, formatValue)).toBe('null');
+    expect(formatTooltipValue(undefined, formatValue)).toBe('null');
+    // A configured No value text flows through the same path.
+    const dashFormatter: ValueFormatter = (value) => ({
+      text: value == null || Number.isNaN(value) ? '-' : `${value}`,
+    });
+    expect(formatTooltipValue(null, dashFormatter)).toBe('-');
   });
 
   it('unwraps the trailing numeric from array data items', () => {

@@ -154,8 +154,7 @@ function buildBoxplot(
 }
 
 /**
- * Convert Grafana frames into an ECharts multi-value cartesian chart (Group 3:
- * candlestick / boxplot).
+ * Convert Grafana frames into an ECharts multi-value cartesian chart: candlestick / boxplot.
  *
  * Each x position carries multiple aligned numeric dimensions instead of the
  * single value of line/bar. Only the first frame with a numeric field is used

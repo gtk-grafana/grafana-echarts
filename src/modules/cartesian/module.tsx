@@ -49,6 +49,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
     useCustomConfig: (builder) => {
       builder.addSelect({
         path: seriesTypePath,
+        defaultValue: 'Auto',
         name: 'Series type',
         description: 'Sets series renderer (bar, line, scatter)',
         settings: {

@@ -27,6 +27,14 @@ const generateNumberField = (name: string, values: number[], unit?: string, plac
   },
 });
 
+/** Numeric field carrying explicit standard Min/Max axis bounds. */
+const generateBoundedField = (name: string, values: number[], min?: number, max?: number): Field => ({
+  name,
+  type: FieldType.number,
+  values,
+  config: { displayName: name, min, max },
+});
+
 const generateTimeField = (values: number[]): Field => ({ name: 'time', type: FieldType.time, values, config: {} });
 const times = [1783137094497, 1783140694497, 1783144294497, 1783147894497];
 
@@ -119,6 +127,24 @@ describe('Panel canvas axis renders', () => {
         { width, height }
       );
     });
+  });
+
+  // Explicit standard Min/Max options pin the value axis bounds; the axis ticks
+  // and grid lines are laid out to those bounds instead of ECharts' data-fit
+  // scale. Snapshots the axis layer to catch regressions in the min/max wiring.
+  it('value axis honors explicit Min/Max bounds', async () => {
+    const frame = toDataFrame({
+      fields: [generateTimeField(times), generateBoundedField('cpu', [10, 20, 30, 10], 0, 100)],
+    });
+
+    const { container } = render(getComponent([frame], 'line', { zLevel, animation: { enabled: false } }));
+
+    const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
+
+    expect(removeCanvasTransforms(removeCanvasClear(axisEvents))).toMatchCanvasSnapshot(
+      [...defaultEvents, ...seriesEvents],
+      { width, height }
+    );
   });
 
   // Two series with distinct units get one y-axis each; the per-field

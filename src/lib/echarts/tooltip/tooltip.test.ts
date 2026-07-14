@@ -4,7 +4,8 @@ import { getTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'lib/echart
 import { type TooltipPositionCallback } from 'echarts/types/dist/shared';
 
 const theme = createTheme();
-const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
+// Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
+const formatValue: ValueFormatter = (value) => ({ text: value == null || Number.isNaN(value) ? 'null' : `${value}` });
 const resolveValue = () => formatValue;
 
 function callTooltipPosition(point: [number, number], contentSize: [number, number], viewSize: [number, number]) {
@@ -47,7 +48,8 @@ describe('getTooltipOption', () => {
       valueFormatter: (value: unknown) => string;
     };
     expect(valueFormatter(10)).toBe('10');
-    expect(valueFormatter(null)).toBe('N/A');
+    // Empty values route through the field formatter's No value text (stub -> 'null').
+    expect(valueFormatter(null)).toBe('null');
     expect(valueFormatter('text')).toBe('text');
   });
 

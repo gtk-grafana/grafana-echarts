@@ -9,7 +9,8 @@ import {
 import { COLOR_SCHEMES } from 'lib/echarts/options/constants';
 
 const theme = createTheme();
-const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
+// Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
+const formatValue: ValueFormatter = (value) => ({ text: value == null || Number.isNaN(value) ? 'null' : `${value}` });
 const ctx = { theme, timeZone: 'utc', formatValue };
 
 const xField: Field<number> = { name: 'c1', type: FieldType.number, values: [1, 4], config: {} };
@@ -152,9 +153,11 @@ describe('buildMatrixHeatmapTooltip', () => {
     expect(el.textContent).toContain('a');
   });
 
-  it('renders the Grafana no-value fallback for null cells', () => {
+  it('routes null cells through the field formatter for its No value text', () => {
     const formatter = buildMatrixHeatmapTooltip(data, ctx);
     const el = formatter(asParams([0, 0, null]));
-    expect(el.textContent).toContain('N/A');
+    // The representative formatter (stub) emits the field's No value text; in
+    // production this is `config.noValue` (default '-'). See getValueFormatter.
+    expect(el.textContent).toContain('null');
   });
 });

@@ -109,3 +109,85 @@ describe('cartesianChartModule threshold overlays', () => {
     expect(series[0].markArea).toBeUndefined();
   });
 });
+
+describe('cartesianChartModule axis Min/Max', () => {
+  const theme = createTheme();
+  const formatValue: ValueFormatter = (value) => ({ text: value == null ? '' : String(value) });
+
+  const makeContext = (
+    frames: DataFrame[],
+    seriesType: CartesianSingleValueSeriesType | 'candlestick' = 'line'
+  ): ChartContext =>
+    ({
+      frames,
+      theme,
+      timeZone: 'utc',
+      timeRange: getDefaultTimeRange(),
+      options: { [seriesTypePath]: seriesType } as PanelOptions,
+      seriesType,
+      formatValue,
+    }) as ChartContext;
+
+  const firstYAxis = (result: unknown): Record<string, unknown> => {
+    const yAxis = (result as { yAxis: unknown }).yAxis;
+    return (Array.isArray(yAxis) ? yAxis[0] : yAxis) as Record<string, unknown>;
+  };
+
+  it('pins the time-axis value axis to the configured Min/Max', () => {
+    const frame = toDataFrame({
+      fields: [
+        { name: 'time', type: FieldType.time, values: [1, 2, 3] },
+        { name: 'cpu', type: FieldType.number, values: [10, 50, 90], config: { min: 0, max: 100 } },
+      ],
+    });
+
+    const yAxis = firstYAxis(cartesianChartModule.buildOption(makeContext([frame]), { isGrafanaLegend: true }));
+    expect(yAxis.min).toBe(0);
+    expect(yAxis.max).toBe(100);
+  });
+
+  it('pins the category-axis value axis to the configured Min/Max', () => {
+    const frame = toDataFrame({
+      fields: [
+        { name: 'category', type: FieldType.string, values: ['a', 'b', 'c'] },
+        { name: 'v', type: FieldType.number, values: [10, 50, 90], config: { min: -10, max: 200 } },
+      ],
+    });
+
+    const yAxis = firstYAxis(cartesianChartModule.buildOption(makeContext([frame], 'bar'), { isGrafanaLegend: true }));
+    expect(yAxis.min).toBe(-10);
+    expect(yAxis.max).toBe(200);
+  });
+
+  it('pins the multi-value (candlestick) value axis to the configured Min/Max', () => {
+    const frame = toDataFrame({
+      name: 'BTC',
+      fields: [
+        { name: 'time', type: FieldType.time, values: [1, 2, 3] },
+        { name: 'open', type: FieldType.number, values: [10, 18, 22], config: { min: 0, max: 40 } },
+        { name: 'high', type: FieldType.number, values: [20, 25, 28] },
+        { name: 'low', type: FieldType.number, values: [5, 12, 18] },
+        { name: 'close', type: FieldType.number, values: [18, 22, 15] },
+      ],
+    });
+
+    const yAxis = firstYAxis(
+      cartesianChartModule.buildOption(makeContext([frame], 'candlestick'), { isGrafanaLegend: true })
+    );
+    expect(yAxis.min).toBe(0);
+    expect(yAxis.max).toBe(40);
+  });
+
+  it('leaves Min/Max unset when not configured', () => {
+    const frame = toDataFrame({
+      fields: [
+        { name: 'time', type: FieldType.time, values: [1, 2, 3] },
+        { name: 'cpu', type: FieldType.number, values: [10, 50, 90] },
+      ],
+    });
+
+    const yAxis = firstYAxis(cartesianChartModule.buildOption(makeContext([frame]), { isGrafanaLegend: true }));
+    expect(yAxis.min).toBeUndefined();
+    expect(yAxis.max).toBeUndefined();
+  });
+});

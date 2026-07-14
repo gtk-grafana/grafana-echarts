@@ -23,6 +23,12 @@ const field = (name: string, unit?: string, placement?: AxisPlacement): Field =>
   return frame.fields[0];
 };
 
+/** Numeric field carrying explicit standard Min/Max bounds. */
+const fieldWithBounds = (name: string, min?: number, max?: number): Field =>
+  toDataFrame({
+    fields: [{ name, type: FieldType.number, values: [1, 2, 3], config: { min, max } }],
+  }).fields[0];
+
 const build = (fields: Field[]) =>
   buildCartesianYAxes({ fields, baseYAxis, axisStyle, theme, fallbackFormatter: fallback });
 
@@ -97,6 +103,36 @@ describe('buildCartesianYAxes', () => {
     // Hidden axis is not counted for grid spacing.
     expect(leftAxisCount).toBe(1);
     expect(rightAxisCount).toBe(0);
+  });
+
+  it('applies explicit Min/Max bounds from the field config', () => {
+    const { yAxis } = build([fieldWithBounds('a', 0, 100)]);
+
+    expect(yAxis[0].min).toBe(0);
+    expect(yAxis[0].max).toBe(100);
+  });
+
+  it('applies only the bound that is set, leaving the other for auto-fit', () => {
+    const { yAxis } = build([fieldWithBounds('a', undefined, 100)]);
+
+    expect(yAxis[0].min).toBeUndefined();
+    expect(yAxis[0].max).toBe(100);
+  });
+
+  it('omits Min/Max when neither is configured', () => {
+    const { yAxis } = build([field('a', 'bytes')]);
+
+    expect(yAxis[0].min).toBeUndefined();
+    expect(yAxis[0].max).toBeUndefined();
+  });
+
+  it('reads Min/Max from the representative field of a unit group', () => {
+    // Both fields share the empty-unit group; the first is representative.
+    const { yAxis } = build([fieldWithBounds('a', -5, 5), fieldWithBounds('b', 0, 100)]);
+
+    expect(yAxis).toHaveLength(1);
+    expect(yAxis[0].min).toBe(-5);
+    expect(yAxis[0].max).toBe(5);
   });
 
   it('formats each axis with its own unit formatter', () => {

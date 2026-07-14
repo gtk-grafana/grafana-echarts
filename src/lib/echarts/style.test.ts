@@ -69,12 +69,24 @@ describe('getValueFormatter', () => {
     expect(formattedValueToString(format(12.345))).toEqual('12.3%');
   });
 
-  it('returns a FormattedValue with string text for null values', () => {
+  it('renders the default no-value hyphen for empty values', () => {
     const field = numericField({ unit: 'percent' });
     const format = getValueFormatter(field, theme);
 
-    // @ts-expect-error
-    const result = format(null).text;
-    expect(result).toBe('');
+    // @ts-expect-error null is a valid runtime input ECharts passes for gaps.
+    expect(format(null).text).toBe('-');
+    // @ts-expect-error undefined is likewise a runtime possibility.
+    expect(format(undefined).text).toBe('-');
+    expect(format(NaN).text).toBe('-');
+  });
+
+  it('renders the configured No value text for empty values', () => {
+    const field = numericField({ unit: 'percent', noValue: 'n/a' });
+    const format = getValueFormatter(field, theme);
+
+    // @ts-expect-error null is a valid runtime input ECharts passes for gaps.
+    expect(format(null).text).toBe('n/a');
+    // Real numeric values still format normally.
+    expect(formattedValueToString(format(12))).toBe('12%');
   });
 });

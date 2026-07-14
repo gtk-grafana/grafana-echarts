@@ -29,6 +29,8 @@ import {
 import { buildThresholdMarks, type ThresholdMarks } from 'lib/echarts/options/thresholds';
 import { getFieldValueFormatters } from 'lib/echarts/style';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { getFieldMinMax } from 'lib/grafana/fields/fieldConfig';
+import { isNumberField } from 'lib/grafana/narrowing';
 import {
   findThresholdField,
   getThresholdsStyleMode,
@@ -163,10 +165,20 @@ function buildMultiValueOption(
 
   const axisStyle = getCartesianAxisStyle(theme);
 
+  // Candlestick/boxplot share one value axis. Source explicit Min/Max from the
+  // first numeric field (the same field backing the panel `formatValue`); any
+  // unset side keeps ECharts' `scale: true` auto-fit.
+  const representativeField = ctx.frames.flatMap((frame) => frame.fields).find(isNumberField);
+  const { min, max } = representativeField ? getFieldMinMax(representativeField) : {};
+
   const yAxis = mergeAxisStyle(
     cartesianCategoryDefaultOptions.yAxis,
     axisStyle,
-    { zlevel: options.zLevel?.axis },
+    {
+      zlevel: options.zLevel?.axis,
+      min,
+      max,
+    },
     formatValue
   );
 
