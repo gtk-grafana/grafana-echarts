@@ -19,6 +19,7 @@ the fields present.
 | [multi-value.md](./multi-value.md)       | candlestick, boxplot                         | TimeSeriesWide / Numeric (by name convention)   |
 | [heatmap-binned.md](./heatmap-binned.md) | continuous-axis heatmap (custom cell series) | Heatmap (`heatmap-rows` / `heatmap-cells`)      |
 | [heatmap-matrix.md](./heatmap-matrix.md) | category x category heatmap (native series)  | Numeric (wide / pivot) — _not_ the Heatmap kind |
+| [node-graph.md](./node-graph.md)         | _spec only, not implemented_                 | Node graph (out of contract — nodes + edges)    |
 
 Time series (line/bar/scatter on a `time` axis) is the straightforward
 `[time, value]` mapping in `src/lib/echarts/converters/timeSeries.ts` and is not

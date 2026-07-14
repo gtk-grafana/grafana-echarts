@@ -26,6 +26,9 @@ todos:
   - id: roadmap-remaining
     content: Document Groups 7-11 (hierarchy, graph/flow, geo, stream, custom) as roadmap nested panels; note dataplane gaps
     status: pending
+  - id: parity-docs
+    content: 'Editor option parity docs per nested panel: src/modules/heatmap/parity.md, src/modules/cartesian/parity/{timeseries,barchart,xychart,candlestick,boxplot}.md, src/modules/part-to-whole/parity.md, src/modules/multivariate/parity.md'
+    status: completed
 isProject: false
 ---
 
@@ -317,6 +320,26 @@ The research above treats the plugin as one panel with a flat `seriesType` picke
 | `echarts-multivariate-panel`  | 6                                       | radar, parallel                                                       | `[radarChartModule](src/echarts/charts/radar.ts)`                                       |
 
 Groups 7-11 (hierarchy, graph/flow, geo, single-axis stream, custom) are **roadmap** nested panels — documented here, not scaffolded.
+
+### Editor option parity docs
+
+Each nested panel has a parity doc comparing its editor options against the core
+Grafana panel(s) it corresponds to. Because `StandardOptionConfig` has no
+`category`, standard field-config options cannot be regrouped per family; the docs
+capture this and the other gaps.
+
+| Nested panel                        | Core Grafana panel(s)                         | Parity doc(s)                                                               |
+| ----------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
+| `echarts-cartesian-panel`           | Time series, Bar chart, XY Chart, Candlestick | `src/modules/cartesian/parity/{timeseries,barchart,xychart,candlestick}.md` |
+| `echarts-cartesian-panel` (boxplot) | _none_                                        | `src/modules/cartesian/parity/boxplot.md`                                   |
+| `echarts-heatmap-panel`             | Heatmap                                       | `src/modules/heatmap/parity.md`                                             |
+| `echarts-part-to-whole-panel`       | Pie chart                                     | `src/modules/part-to-whole/parity.md`                                       |
+| `echarts-multivariate-panel`        | _none_ (radar)                                | `src/modules/multivariate/parity.md`                                        |
+
+**No core equivalent:** `boxplot` (multi-value cartesian) and `radar`
+(multivariate) have no core Grafana panel; those docs compare against ECharts
+semantics instead. Candlestick and boxplot render paths exist but are not yet
+selectable from the editor.
 
 ### Shared library
 
