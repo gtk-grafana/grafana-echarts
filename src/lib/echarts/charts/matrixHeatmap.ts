@@ -1,3 +1,4 @@
+import { getDisplayProcessor } from '@grafana/data';
 import { type GridOption } from 'echarts/types/dist/shared';
 import { type XAXisOption, type YAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type HeatmapSeriesType } from 'editor/types';
@@ -5,6 +6,7 @@ import { frameToMatrixHeatmap } from 'lib/echarts/converters/matrixHeatmap';
 import { getHeatmapGrid } from 'lib/echarts/grid/grid';
 import { cartesianCategoryDefaultOptions, getCartesianAxisStyle, mergeAxisStyle } from 'lib/echarts/options/cartesian';
 import { getMatrixHeatmapSeries, getMatrixHeatmapVisualMap } from 'lib/echarts/options/matrixHeatmap';
+import { getDefaultShortValueFieldConfig } from 'lib/grafana/fields/fieldConfig';
 import { type BaseOptionParts, type ChartContext, type EChartMatrixHeatmapOption } from './types';
 
 /**
@@ -44,12 +46,24 @@ export function buildMatrixHeatmapOption(
   const vizLegendOptions = isGrafanaLegend ? undefined : options.legend;
   const grid: GridOption = getHeatmapGrid(placement, vizLegendOptions);
 
+  const formatDisplayValue = getDisplayProcessor({
+    timeZone,
+    theme,
+    field: getDefaultShortValueFieldConfig(data.yField),
+  });
   return {
     ...cartesianCategoryDefaultOptions,
     grid,
     xAxis,
     yAxis,
     series: [getMatrixHeatmapSeries(data, { theme, timeZone, formatValue }, options.zLevel?.series)],
-    visualMap: getMatrixHeatmapVisualMap(data, theme, 0, options.heatmapColorScheme, placement),
+    visualMap: getMatrixHeatmapVisualMap({
+      data,
+      theme,
+      seriesIndex: 0,
+      scheme: options.heatmapColorScheme,
+      placement,
+      formatDisplayValue,
+    }),
   };
 }

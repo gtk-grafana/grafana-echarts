@@ -11,7 +11,11 @@ import {
 import { type VizLegendItem } from '@grafana/ui';
 import type { MultiValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
-import { findCategoricalFrame, forEachTimeSeriesField, resolveCategories } from 'lib/echarts/converters/frames';
+import {
+  findCategoricalFrame,
+  forEachTimeSeriesField,
+  resolveCategoriesFromFrame,
+} from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
 import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
 
@@ -165,7 +169,7 @@ export function buildPieLegendItems(
     return [];
   }
 
-  const categories = resolveCategories(frame);
+  const categories = resolveCategoriesFromFrame(frame);
   const items: VizLegendItem[] = [];
 
   for (let row = 0; row < frame.length; row++) {

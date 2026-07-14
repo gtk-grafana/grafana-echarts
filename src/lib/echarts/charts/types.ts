@@ -1,5 +1,5 @@
 import { type DataFrame, type GrafanaTheme2, type TimeRange, type ValueFormatter } from '@grafana/data';
-import { type VizLegendOptions } from '@grafana/schema';
+import type { TimeZone, VizLegendOptions } from '@grafana/schema';
 import { type VizLegendItem } from '@grafana/ui';
 import {
   type BarSeriesOption,
@@ -24,7 +24,7 @@ import { type PanelOptions } from 'types';
 export interface ChartContext<T = SeriesType> {
   frames: DataFrame[];
   theme: GrafanaTheme2;
-  timeZone: string;
+  timeZone: TimeZone;
   timeRange: TimeRange;
   options: PanelOptions;
   seriesType: T;

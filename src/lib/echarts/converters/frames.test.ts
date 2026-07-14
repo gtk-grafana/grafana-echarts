@@ -3,7 +3,7 @@ import {
   collectTimeSeriesFields,
   findCategoricalFrame,
   framesHaveTimeField,
-  resolveCategories,
+  resolveCategoriesFromFrame,
 } from 'lib/echarts/converters/frames';
 
 describe('frames utilities', () => {
@@ -38,7 +38,7 @@ describe('frames utilities', () => {
   });
 
   it('resolveCategories uses string field values', () => {
-    expect(resolveCategories(categoricalFrame)).toEqual(['a', 'b']);
+    expect(resolveCategoriesFromFrame(categoricalFrame)).toEqual(['a', 'b']);
   });
 
   it('collectTimeSeriesFields skips frames without a time field', () => {

@@ -1,6 +1,11 @@
-import { type DataFrame, type GrafanaTheme2 } from '@grafana/data';
+import { type DataFrame, type Field, type GrafanaTheme2 } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
-import { findCategoricalFrame, mapNumericFields, resolveCategories } from 'lib/echarts/converters/frames';
+import {
+  findCategoricalFrame,
+  findCategoryField,
+  mapNumericFields,
+  resolveCategoriesFromField,
+} from 'lib/echarts/converters/frames';
 
 /**
  * A single matrix heatmap cell as the tuple the native ECharts heatmap series
@@ -24,6 +29,8 @@ export interface MatrixHeatmapData {
   /** Min/max of finite cell values, for the visualMap color range. */
   valueMin: number;
   valueMax: number;
+  xField: Field<number>;
+  yField: Field<string>;
 }
 
 /**
@@ -42,12 +49,23 @@ export interface MatrixHeatmapData {
 export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2): MatrixHeatmapData | null {
   const frame = findCategoricalFrame(frames);
   if (!frame) {
+    debug('matrix frame is empty', LOG_LEVELS.debug);
     return null;
   }
 
-  const yCategories = resolveCategories(frame);
   const numericFields = mapNumericFields(frame, frames, theme);
-  if (numericFields.length === 0) {
+  const xField = numericFields[0].field;
+
+  if (numericFields.length === 0 || !xField) {
+    debug('matrix heatmap has no numeric field', LOG_LEVELS.info);
+    return null;
+  }
+
+  const yField = findCategoryField(frame);
+  const yCategories = resolveCategoriesFromField(yField);
+
+  if (!yField) {
+    debug('matrix heatmap has no category field', LOG_LEVELS.info);
     return null;
   }
 
@@ -78,5 +96,5 @@ export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2):
     debug('Matrix: unable to calculate min value', LOG_LEVELS.warn, { valueMin });
   }
 
-  return { xCategories, yCategories, cells, valueMin, valueMax };
+  return { xCategories, yCategories, cells, valueMin, valueMax, xField, yField };
 }

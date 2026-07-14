@@ -37,16 +37,16 @@ describe('frameToMatrixHeatmap', () => {
     expect(data!.valueMax).toBe(4);
   });
 
-  it('falls back to row indices when the frame has no string field', () => {
+  it('returns null when the frame has no string (category) field', () => {
     const frame = toDataFrame({
       fields: [
         { name: 'c1', type: FieldType.number, values: [1, 2] },
         { name: 'c2', type: FieldType.number, values: [3, 4] },
       ],
     });
-    const data = frameToMatrixHeatmap([frame], theme);
-    expect(data!.yCategories).toEqual(['0', '1']);
-    expect(data!.xCategories).toEqual(['c1', 'c2']);
+    // The Y axis needs a real category field to supply row labels and the value
+    // display processor, so a numeric-only frame yields an empty panel.
+    expect(frameToMatrixHeatmap([frame], theme)).toBeNull();
   });
 
   it('renders non-finite values as null tiles', () => {

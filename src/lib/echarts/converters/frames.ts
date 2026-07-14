@@ -1,7 +1,7 @@
 import { type DataFrame, type Field, FieldType, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
 import { type EChartsFieldConfig } from 'editor/types';
 import { getSeriesColor } from 'lib/echarts/style';
-import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
+import { isNumberField, isStringField, isTimeField } from 'lib/grafana/narrowing';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
@@ -11,6 +11,13 @@ export function findCategoricalFrame<T>(
   series: Array<FieldTypedDataFrame<T | number, EChartsFieldConfig>>
 ): FieldTypedDataFrame<T | number, EChartsFieldConfig> | undefined {
   return series.find((frame) => frame.fields.some(isNumberField));
+}
+
+/**
+ * Return first string field as category field
+ */
+export function findCategoryField(frame: DataFrame) {
+  return frame.fields.find(isStringField);
 }
 
 /**
@@ -31,11 +38,13 @@ export function framesHaveTimeField(series: DataFrame[]): boolean {
 /**
  * Category labels for a frame: string field row values, or row indices as strings.
  */
-export function resolveCategories(frame: DataFrame): string[] {
-  const categoryField = frame.fields.find((field) => field.type === FieldType.string);
-  return Array.from({ length: frame.length }, (_, row) =>
-    categoryField ? String(categoryField.values[row] ?? row) : String(row)
-  );
+export function resolveCategoriesFromFrame(frame: DataFrame): string[] {
+  const categoryField = findCategoryField(frame);
+  return resolveCategoriesFromField(categoryField);
+}
+
+export function resolveCategoriesFromField(field?: Field<string>): string[] {
+  return field?.values ?? [];
 }
 
 /** One numeric field mapped to name, positional values, and color. */

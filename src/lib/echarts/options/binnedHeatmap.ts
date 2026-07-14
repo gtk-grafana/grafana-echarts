@@ -1,4 +1,5 @@
 import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
+import { type DisplayProcessor } from '@grafana/data/dist/types/types/displayValue';
 // `renderItem`'s type must come from the `echarts` barrel so it matches the
 // `CustomSeriesOption.renderItem` declaration; the shared-dist copy is a
 // separate declaration ECharts' own option type rejects.
@@ -248,13 +249,21 @@ export function getBinnedHeatmapSeries(
  * value range (the highlight shadow lives on the series emphasis state, see
  * {@link makeBinnedHeatmapRenderItem}).
  */
-export function getBinnedHeatmapVisualMap(
-  data: BinnedHeatmapData,
-  theme: GrafanaTheme2,
-  seriesIndex: number,
-  scheme?: HeatmapColorScheme,
-  placement: HeatmapColorScalePlacement = 'right'
-): ContinuousVisualMapOption {
+export function getBinnedHeatmapVisualMap({
+  data,
+  theme,
+  seriesIndex,
+  placement = 'right',
+  scheme,
+  formatDisplayValue,
+}: {
+  data: BinnedHeatmapData;
+  theme: GrafanaTheme2;
+  seriesIndex: number;
+  scheme?: HeatmapColorScheme;
+  placement: HeatmapColorScalePlacement;
+  formatDisplayValue: DisplayProcessor;
+}): ContinuousVisualMapOption {
   return getHeatmapVisualMap({
     valueMin: data.valueMin,
     valueMax: data.valueMax,
@@ -263,5 +272,6 @@ export function getBinnedHeatmapVisualMap(
     seriesIndex,
     scheme,
     placement,
+    formatDisplayValue,
   });
 }

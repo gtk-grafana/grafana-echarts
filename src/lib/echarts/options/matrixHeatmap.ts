@@ -1,4 +1,5 @@
 import { type GrafanaTheme2 } from '@grafana/data';
+import type { DisplayProcessor } from '@grafana/data/dist/types/types/displayValue';
 import { type HeatmapSeriesOption } from 'echarts';
 import { type ContinuousVisualMapOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
@@ -64,19 +65,29 @@ export function getMatrixHeatmapSeries(
   };
 }
 
+interface MatrixHeatmapVisualMapOptions {
+  data: MatrixHeatmapData;
+  theme: GrafanaTheme2;
+  seriesIndex: number;
+  scheme?: HeatmapColorScheme;
+  formatDisplayValue: DisplayProcessor;
+  placement: HeatmapColorScalePlacement;
+}
+
 /**
  * Continuous visualMap that colors the matrix heatmap series by its value dim
  * ({@link MATRIX_VALUE_DIM}). Shares its placement/sizing with the binned layout
  * via {@link getHeatmapVisualMap} so the color scale reads consistently across
  * layouts.
  */
-export function getMatrixHeatmapVisualMap(
-  data: MatrixHeatmapData,
-  theme: GrafanaTheme2,
-  seriesIndex: number,
-  scheme?: HeatmapColorScheme,
-  placement: HeatmapColorScalePlacement = 'right'
-): ContinuousVisualMapOption {
+export function getMatrixHeatmapVisualMap({
+  data,
+  theme,
+  formatDisplayValue,
+  placement = 'right',
+  scheme,
+  seriesIndex,
+}: MatrixHeatmapVisualMapOptions): ContinuousVisualMapOption {
   return getHeatmapVisualMap({
     valueMin: data.valueMin,
     valueMax: data.valueMax,
@@ -85,5 +96,6 @@ export function getMatrixHeatmapVisualMap(
     seriesIndex,
     scheme,
     placement,
+    formatDisplayValue,
   });
 }

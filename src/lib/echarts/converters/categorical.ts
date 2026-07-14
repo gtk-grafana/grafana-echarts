@@ -1,6 +1,6 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { type EChartsFieldConfig } from 'editor/types';
-import { findCategoricalFrame, mapNumericFields, resolveCategories } from 'lib/echarts/converters/frames';
+import { findCategoricalFrame, mapNumericFields, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
@@ -39,7 +39,7 @@ export function frameToCategorical(
     return null;
   }
 
-  const categories = resolveCategories(frame);
+  const categories = resolveCategoriesFromFrame(frame);
   const categoricalSeries = mapNumericFields(frame, series, theme).map(({ field, name, color }) => ({
     name,
     values: field.values,

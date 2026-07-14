@@ -1,4 +1,4 @@
-import { createTheme, type ValueFormatter } from '@grafana/data';
+import { createTheme, FieldType, getDisplayProcessor, type Field, type ValueFormatter } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
 import {
@@ -12,6 +12,10 @@ const theme = createTheme();
 const formatValue: ValueFormatter = (value) => ({ text: value == null ? 'null' : `${value}` });
 const ctx = { theme, timeZone: 'utc', formatValue };
 
+const xField: Field<number> = { name: 'c1', type: FieldType.number, values: [1, 4], config: {} };
+const yField: Field<string> = { name: 'row', type: FieldType.string, values: ['a', 'b'], config: {} };
+const formatDisplayValue = getDisplayProcessor({ theme, field: yField });
+
 const data: MatrixHeatmapData = {
   xCategories: ['c1', 'c2'],
   yCategories: ['a', 'b'],
@@ -21,6 +25,8 @@ const data: MatrixHeatmapData = {
   ],
   valueMin: 1,
   valueMax: 4,
+  xField,
+  yField,
 };
 
 describe('getMatrixHeatmapSeries', () => {
@@ -37,7 +43,13 @@ describe('getMatrixHeatmapSeries', () => {
 
 describe('getMatrixHeatmapVisualMap', () => {
   it('scales to the value range on the value dimension', () => {
-    const visualMap = getMatrixHeatmapVisualMap(data, theme, 0);
+    const visualMap = getMatrixHeatmapVisualMap({
+      data,
+      theme,
+      seriesIndex: 0,
+      placement: 'right',
+      formatDisplayValue,
+    });
     expect(visualMap.min).toBe(1);
     expect(visualMap.max).toBe(4);
     // Value is the third dim of the [xIndex, yIndex, value] tuple.
@@ -46,13 +58,25 @@ describe('getMatrixHeatmapVisualMap', () => {
   });
 
   it('places the scale on the right (vertical) by default', () => {
-    const visualMap = getMatrixHeatmapVisualMap(data, theme, 0);
+    const visualMap = getMatrixHeatmapVisualMap({
+      data,
+      theme,
+      seriesIndex: 0,
+      placement: 'right',
+      formatDisplayValue,
+    });
     expect(visualMap.orient).toBe('vertical');
     expect(visualMap.right).toBeDefined();
   });
 
   it('places the scale on the bottom (horizontal) for bottom placement', () => {
-    const visualMap = getMatrixHeatmapVisualMap(data, theme, 0, undefined, 'bottom');
+    const visualMap = getMatrixHeatmapVisualMap({
+      data,
+      theme,
+      seriesIndex: 0,
+      placement: 'bottom',
+      formatDisplayValue,
+    });
     expect(visualMap.orient).toBe('horizontal');
     expect(visualMap.bottom).toBeDefined();
   });
@@ -60,21 +84,40 @@ describe('getMatrixHeatmapVisualMap', () => {
   it('keeps the bar thin in both orientations so it fits the reserved grid margin', () => {
     // ECharts `itemHeight` is the bar length and `itemWidth` its thickness in
     // both orientations; a thick bar overflows the grid band and overlaps cells.
-    const vertical = getMatrixHeatmapVisualMap(data, theme, 0, undefined, 'right');
-    const horizontal = getMatrixHeatmapVisualMap(data, theme, 0, undefined, 'bottom');
+    const vertical = getMatrixHeatmapVisualMap({ data, theme, seriesIndex: 0, placement: 'right', formatDisplayValue });
+    const horizontal = getMatrixHeatmapVisualMap({
+      data,
+      theme,
+      seriesIndex: 0,
+      placement: 'bottom',
+      formatDisplayValue,
+    });
     expect(vertical.itemWidth).toBe(horizontal.itemWidth);
     expect(vertical.itemHeight).toBe(horizontal.itemHeight);
     expect(vertical.itemWidth).toBeLessThan(Number(vertical.itemHeight));
   });
 
   it('applies the selected color scheme', () => {
-    const visualMap = getMatrixHeatmapVisualMap(data, theme, 0, 'blues');
+    const visualMap = getMatrixHeatmapVisualMap({
+      data,
+      theme,
+      seriesIndex: 0,
+      placement: 'right',
+      scheme: 'blues',
+      formatDisplayValue,
+    });
     expect(visualMap.inRange?.color).toEqual(COLOR_SCHEMES.blues);
   });
 
   it('widens a degenerate single-value range so the scale still renders', () => {
     const flat = { ...data, valueMin: 5, valueMax: 5 };
-    const visualMap = getMatrixHeatmapVisualMap(flat, theme, 0);
+    const visualMap = getMatrixHeatmapVisualMap({
+      data: flat,
+      theme,
+      seriesIndex: 0,
+      placement: 'right',
+      formatDisplayValue,
+    });
     expect(visualMap.min).toBe(5);
     expect(visualMap.max).toBe(6);
   });

@@ -1,4 +1,5 @@
-import { type GrafanaTheme2 } from '@grafana/data';
+import { formattedValueToString, type GrafanaTheme2 } from '@grafana/data';
+import type { DisplayProcessor } from '@grafana/data/dist/types/types/displayValue';
 import { type ContinuousVisualMapOption } from 'echarts/types/dist/shared';
 import { getThemeTextStyle } from 'lib/echarts/options/base';
 import { getHeatmapColors } from 'lib/echarts/options/constants';
@@ -21,6 +22,7 @@ export interface HeatmapVisualMapParams {
   seriesIndex: number;
   scheme?: HeatmapColorScheme;
   placement?: HeatmapColorScalePlacement;
+  formatDisplayValue: DisplayProcessor;
 }
 
 /**
@@ -42,6 +44,7 @@ export function getHeatmapVisualMap({
   seriesIndex,
   scheme,
   placement = 'right',
+  formatDisplayValue,
 }: HeatmapVisualMapParams): ContinuousVisualMapOption {
   // Position/size the bar per placement. ECharts positions accept a number (px)
   // or a percent/keyword string, so plain px numbers are used here.
@@ -75,6 +78,7 @@ export function getHeatmapVisualMap({
     calculable: true,
     hoverLink: true,
     ...orientation,
+    formatter: (value) => formattedValueToString(formatDisplayValue(Number(value))),
     inRange: { color: getHeatmapColors(scheme) },
     textStyle: getThemeTextStyle(theme),
   };

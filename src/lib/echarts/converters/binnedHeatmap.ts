@@ -58,6 +58,12 @@ export interface BinnedHeatmapData {
    * each bucket at its midpoint (ordinal rows labelled by field name).
    */
   yLabelPlacement: 'bound' | 'center';
+  /**
+   * The value field of the first contributing frame, so the caller can build a
+   * display processor (unit, decimals) for the cell values from real field
+   * config rather than a synthetic field.
+   */
+  valueField: Field<number>;
 }
 
 /** Cells plus the bucket metadata derived from a single heatmap frame. */
@@ -66,6 +72,8 @@ interface FrameHeatmap {
   buckets: BinnedHeatmapBucket[];
   /** True for numeric/`le` bounds, false for ordinal (field-name) rows. */
   labelsAtBounds: boolean;
+  /** The frame's value field, used to derive the cell value display (unit, decimals). */
+  valueField?: Field<number>;
 }
 
 const EMPTY_FRAME_HEATMAP: FrameHeatmap = { cells: [], buckets: [], labelsAtBounds: true };
@@ -193,7 +201,7 @@ function rowsToCells(frame: FieldTypedDataFrame<number, EChartsFieldConfig>, ser
     }
   }
 
-  return { cells, buckets, labelsAtBounds: hasLe };
+  return { cells, buckets, labelsAtBounds: hasLe, valueField: rows[0]?.field };
 }
 
 /**
@@ -249,7 +257,7 @@ function cellsToCells(frame: NumericFrame): FrameHeatmap {
     }
   }
 
-  return { cells, buckets: Array.from(bucketByKey.values()), labelsAtBounds: true };
+  return { cells, buckets: Array.from(bucketByKey.values()), labelsAtBounds: true, valueField };
 }
 
 /**
@@ -269,6 +277,8 @@ export function frameToBinnedHeatmap(frames: DataFrame[], series: DataFrame[] = 
   // Bucket labels sit at their bounds unless every contributing frame is ordinal
   // (plain rows labelled by field name), in which case they sit at the center.
   let labelsAtBounds = true;
+  // The value field of the first frame that contributes cells
+  let valueField: Field<number> | undefined;
 
   for (const frame of frames) {
     const frameHeatmap =
@@ -282,6 +292,7 @@ export function frameToBinnedHeatmap(frames: DataFrame[], series: DataFrame[] = 
     }
 
     cells.push(...frameHeatmap.cells);
+    valueField ??= frameHeatmap.valueField;
     xIsTime = xIsTime && frameXIsTime(frame);
     labelsAtBounds = labelsAtBounds && frameHeatmap.labelsAtBounds;
     for (const bucket of frameHeatmap.buckets) {
@@ -292,7 +303,7 @@ export function frameToBinnedHeatmap(frames: DataFrame[], series: DataFrame[] = 
     }
   }
 
-  if (cells.length === 0) {
+  if (cells.length === 0 || !valueField) {
     return null;
   }
 
@@ -334,5 +345,6 @@ export function frameToBinnedHeatmap(frames: DataFrame[], series: DataFrame[] = 
     xIsTime,
     yBuckets,
     yLabelPlacement: labelsAtBounds ? 'bound' : 'center',
+    valueField,
   };
 }
