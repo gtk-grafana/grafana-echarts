@@ -1,4 +1,5 @@
 import { TooltipDisplayMode } from '@grafana/schema';
+import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
@@ -38,7 +39,8 @@ export function buildPanelChartOption(
 
   const chartModule = resolveChartModule(ctx.seriesType);
   if (!chartModule) {
-    throw new Error(`Invalid chart module ${chartModule} for ${ctx.seriesType}`);
+    debug('Invalid chart module', LOG_LEVELS.error, ctx);
+    throw new Error(`Invalid chart module for ${ctx.seriesType}`);
   }
 
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
@@ -55,8 +57,8 @@ export function buildPanelChartOption(
 
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
   if (!echartOption) {
-    console.error('Invalid chart option', ctx);
-    throw new Error(`Invalid chart option resolved for ${chartModule} for ${ctx.seriesType}`);
+    debug('Invalid chart option', LOG_LEVELS.error, ctx);
+    throw new Error(`Invalid chart option resolved for ${ctx.seriesType}`);
   }
 
   // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.

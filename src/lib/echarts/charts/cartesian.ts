@@ -58,11 +58,8 @@ function buildTimeOption(
 ): EChartCartesianSeriesOption | null {
   const { theme, options, formatValue, timeZone } = ctx;
 
-  const cartSeries = timeSeriesToEChartsOption(ctx);
-
-  if (!cartSeries || cartSeries.length === 0) {
-    return null;
-  }
+  // Support rendering time without series
+  const cartSeries = timeSeriesToEChartsOption(ctx) ?? [];
 
   const axisStyle = getCartesianAxisStyle(theme);
 
@@ -158,11 +155,10 @@ function buildMultiValueOption(
   isGrafanaLegend: boolean
 ): EChartMultiValueCartesianSeriesOption | null {
   const { theme, options, formatValue, timeRange, timeZone } = ctx;
+  // Hiding every series via the legend strips the value fields the candlestick/
+  // boxplot series is built from, so the converter yields no data. Keep the axes
+  // and render an empty plot (matches core Grafana) instead of dropping the panel.
   const multiValueData = multiValueCartesianToEChartsOption(ctx);
-
-  if (!multiValueData) {
-    return null;
-  }
 
   const axisStyle = getCartesianAxisStyle(theme);
 
@@ -187,11 +183,11 @@ function buildMultiValueOption(
   // timestamps (kept ISO for deterministic categories). Format them for display
   // via Grafana's timezone-aware formatter; non-time categories pass through.
   const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
-    data: multiValueData.categories,
+    data: multiValueData?.categories ?? [],
     axisLabel: { formatter: getTimeAxisLabelFormatter(timeRange, timeZone) },
   });
 
-  const baseSeries = multiValueData.series;
+  const baseSeries = multiValueData?.series;
   const seriesArray = Array.isArray(baseSeries) ? baseSeries : baseSeries ? [baseSeries] : [];
   // The multi-value series maps to a legend item by name; drop it when hidden
   // via the legend toggle. The legend keeps the item (greyed) so it can be

@@ -3,6 +3,7 @@ import { STACK_GROUP_ID } from 'editor/constants';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type CartesianOption, type ChartContext } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
+import { findCategoryField, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 
 /**
@@ -30,6 +31,15 @@ export function categoryCartesianToEChartsOption(
   const categorical = frameToCategorical(frames, theme);
 
   if (!categorical) {
+    // Hiding every series via the legend strips all numeric value fields,
+    // leaving a category frame with no series. Keep the category axis and render
+    // nothing (matches core Grafana) by reusing the category labels from the
+    // remaining frame (string field, else row indices).
+    const categoryFrame = frames.find((frame) => findCategoryField(frame)) ?? frames[0];
+    if (categoryFrame) {
+      return { categories: resolveCategoriesFromFrame(categoryFrame), series: [] };
+    }
+
     // We should bail for empty/invalid frames earlier then this
     debug('Categorical-x cartesian plots must have categorical data', LOG_LEVELS.warn, frames);
     throw new Error('Categorical-x cartesian plots must have categorical data');
