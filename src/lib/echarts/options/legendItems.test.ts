@@ -1,4 +1,12 @@
-import { createTheme, type DataFrame, type Field, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
+import {
+  createTheme,
+  type DataFrame,
+  type Field,
+  type FieldConfigSource,
+  FieldType,
+  type SystemConfigOverrideRule,
+  toDataFrame,
+} from '@grafana/data';
 import {
   buildPieLegendItems,
   buildRadarLegendItems,
@@ -10,19 +18,26 @@ const theme = createTheme();
 
 const fieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
 
-/** A byName `hideFrom` override for `name`, as the visibility toggle writes it. */
-const hiddenConfig = (name: string): FieldConfigSource => ({
-  defaults: {},
-  overrides: [
-    {
-      matcher: { id: 'byName', options: name },
-      properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
+/**
+ * The `hideSeriesFrom` system override the visibility toggle writes: a `byNames`
+ * `exclude` matcher keeping every name except the hidden ones.
+ */
+const hiddenConfig = (hiddenName: string, allNames: string[]): FieldConfigSource => {
+  const override: SystemConfigOverrideRule = {
+    __systemRef: 'hideSeriesFrom',
+    matcher: {
+      id: 'byNames',
+      options: {
+        mode: 'exclude',
+        names: allNames.filter((name) => name !== hiddenName),
+        prefix: 'All except:',
+        readOnly: true,
+      },
     },
-  ],
-});
-
-/** A numeric field flagged hidden from the viz via `custom.hideFrom.viz`. */
-const hiddenFieldConfig = { custom: { hideFrom: { viz: true, legend: false, tooltip: false } } };
+    properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: true } }],
+  };
+  return { defaults: {}, overrides: [override] };
+};
 
 const wideFrame = (): DataFrame =>
   toDataFrame({
@@ -69,7 +84,7 @@ describe('getCalcDisplayValues', () => {
 
 describe('buildTimeSeriesLegendItems', () => {
   it('builds one item per numeric field, with label and color', () => {
-    const items = buildTimeSeriesLegendItems([wideFrame()], theme, []);
+    const items = buildTimeSeriesLegendItems([wideFrame()], theme, [], fieldConfig);
 
     expect(items).toHaveLength(2);
     expect(items[0].label).toBe('cpu');
@@ -78,14 +93,14 @@ describe('buildTimeSeriesLegendItems', () => {
   });
 
   it('gives each item a stable, unique key', () => {
-    const items = buildTimeSeriesLegendItems([wideFrame()], theme, []);
+    const items = buildTimeSeriesLegendItems([wideFrame()], theme, [], fieldConfig);
 
     const keys = items.map((item) => item.getItemKey?.());
     expect(new Set(keys).size).toBe(items.length);
   });
 
   it('exposes the requested calcs lazily via getDisplayValues', () => {
-    const items = buildTimeSeriesLegendItems([wideFrame()], theme, ['mean']);
+    const items = buildTimeSeriesLegendItems([wideFrame()], theme, ['mean'], fieldConfig);
 
     expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ title: 'Mean', numeric: 20 })]);
     expect(items[1].getDisplayValues?.()).toEqual([expect.objectContaining({ title: 'Mean', numeric: 50 })]);
@@ -96,20 +111,20 @@ describe('buildTimeSeriesLegendItems', () => {
       fields: [{ name: 'cpu', type: FieldType.number, values: [1, 2], config: { displayName: 'cpu' } }],
     });
 
-    expect(buildTimeSeriesLegendItems([noTime], theme, [])).toHaveLength(0);
+    expect(buildTimeSeriesLegendItems([noTime], theme, [], fieldConfig)).toHaveLength(0);
   });
 });
 
 describe('buildRadarLegendItems', () => {
   it('builds one item per numeric field (one per polygon)', () => {
-    const items = buildRadarLegendItems([categoricalFrame()], theme, []);
+    const items = buildRadarLegendItems([categoricalFrame()], theme, [], fieldConfig);
 
     expect(items.map((item) => item.label)).toEqual(['q1', 'q2']);
     expect(items[0].color).toEqual(expect.any(String));
   });
 
   it('reduces each polygon across its axes for the calc columns', () => {
-    const items = buildRadarLegendItems([categoricalFrame()], theme, ['max']);
+    const items = buildRadarLegendItems([categoricalFrame()], theme, ['max'], fieldConfig);
 
     expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ title: 'Max', numeric: 30 })]);
     expect(items[1].getDisplayValues?.()).toEqual([expect.objectContaining({ title: 'Max', numeric: 60 })]);
@@ -117,7 +132,7 @@ describe('buildRadarLegendItems', () => {
 
   it('returns nothing when no frame has a numeric field', () => {
     const stringsOnly = toDataFrame({ fields: [{ name: 'category', type: FieldType.string, values: ['a'] }] });
-    expect(buildRadarLegendItems([stringsOnly], theme, [])).toHaveLength(0);
+    expect(buildRadarLegendItems([stringsOnly], theme, [], fieldConfig)).toHaveLength(0);
   });
 });
 
@@ -143,7 +158,12 @@ describe('buildPieLegendItems', () => {
   });
 
   it('keeps a hidden slice in the legend but marks it disabled', () => {
-    const items = buildPieLegendItems([categoricalFrame()], theme, [], hiddenConfig('south'));
+    const items = buildPieLegendItems(
+      [categoricalFrame()],
+      theme,
+      [],
+      hiddenConfig('south', ['north', 'south', 'east'])
+    );
 
     expect(items.map((item) => item.label)).toEqual(['north', 'south', 'east']);
     expect(items.map((item) => item.disabled ?? false)).toEqual([false, true, false]);
@@ -151,24 +171,17 @@ describe('buildPieLegendItems', () => {
 });
 
 describe('legend disabled state (per-field families)', () => {
-  const withHiddenField = (): DataFrame =>
-    toDataFrame({
-      fields: [
-        { name: 'time', type: FieldType.time, values: [1, 2, 3] },
-        { name: 'cpu', type: FieldType.number, values: [10, 20, 30], config: { displayName: 'cpu' } },
-        {
-          name: 'mem',
-          type: FieldType.number,
-          values: [40, 50, 60],
-          config: { displayName: 'mem', ...hiddenFieldConfig },
-        },
-      ],
-    });
-
-  it('marks time series items disabled when the field is hidden from the viz', () => {
-    const items = buildTimeSeriesLegendItems([withHiddenField()], theme, []);
+  it('marks time series items disabled when the field config hides them from the viz', () => {
+    const items = buildTimeSeriesLegendItems([wideFrame()], theme, [], hiddenConfig('mem', ['cpu', 'mem']));
 
     expect(items.map((item) => item.label)).toEqual(['cpu', 'mem']);
+    expect(items.map((item) => item.disabled ?? false)).toEqual([false, true]);
+  });
+
+  it('marks radar polygons disabled when the field config hides them from the viz', () => {
+    const items = buildRadarLegendItems([categoricalFrame()], theme, [], hiddenConfig('q2', ['q1', 'q2']));
+
+    expect(items.map((item) => item.label)).toEqual(['q1', 'q2']);
     expect(items.map((item) => item.disabled ?? false)).toEqual([false, true]);
   });
 });

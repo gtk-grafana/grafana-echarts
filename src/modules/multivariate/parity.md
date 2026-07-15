@@ -11,12 +11,12 @@ radar semantics rather than a core panel.
 
 ## Editor options
 
-| Area                         | ECharts Multivariate                   | Notes                                                                                            |
-| ---------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Legend                       | Grafana legend via `addLegendOptions`  | Governs the radar polygons (series); interactive show/hide + color persist as `byName` overrides |
-| Tooltip: mode                | `tooltip.mode` (Single/All/Hidden)     | Maps to the ECharts tooltip trigger                                                              |
-| Radar indicators (axes)      | derived from the categorical converter | Categories become indicators; series become polygons                                             |
-| Per-series area/line styling | none (ECharts defaults)                | Not exposed                                                                                      |
+| Area                         | ECharts Multivariate                   | Notes                                                                                                                                      |
+| ---------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Legend                       | Grafana legend via `addLegendOptions`  | Governs the radar polygons (series); interactive show/hide (via `hideSeriesFrom`) + color (via `byName`) persist as field-config overrides |
+| Tooltip: mode                | `tooltip.mode` (Single/All/Hidden)     | Maps to the ECharts tooltip trigger                                                                                                        |
+| Radar indicators (axes)      | derived from the categorical converter | Categories become indicators; series become polygons                                                                                       |
+| Per-series area/line styling | none (ECharts defaults)                | Not exposed                                                                                                                                |
 
 ## Standard (field-config) options
 

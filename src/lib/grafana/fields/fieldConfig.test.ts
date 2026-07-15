@@ -1,4 +1,11 @@
-import { type DataFrame, type Field, FieldType, toDataFrame } from '@grafana/data';
+import {
+  type DataFrame,
+  type Field,
+  type FieldConfigSource,
+  FieldMatcherID,
+  FieldType,
+  toDataFrame,
+} from '@grafana/data';
 import {
   getDefaultShortValueFieldConfig,
   isFieldHiddenFromViz,
@@ -63,20 +70,38 @@ describe('stripHiddenValueFields', () => {
       fields: [
         { name: 'time', type: FieldType.time, values: [1, 2] },
         { name: 'cpu', type: FieldType.number, values: [10, 20] },
-        { name: 'mem', type: FieldType.number, values: [30, 40], config: hiddenConfig },
+        { name: 'mem', type: FieldType.number, values: [30, 40] },
       ],
     });
 
+  // Hidden state is read from the field config (a byName custom.hideFrom override
+  // hiding 'mem'), not from the applied field-level `hideFrom.viz`.
+  const hideMem: FieldConfigSource = {
+    defaults: {},
+    overrides: [
+      {
+        matcher: { id: FieldMatcherID.byName, options: 'mem' },
+        properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
+      },
+    ],
+  };
+
   it('removes hidden numeric fields but keeps visible and non-numeric fields', () => {
-    const [stripped] = stripHiddenValueFields([frame()]);
+    const [stripped] = stripHiddenValueFields([frame()], hideMem);
 
     expect(stripped.fields.map((f) => f.name)).toEqual(['time', 'cpu']);
     expect(stripped.length).toBe(2);
   });
 
+  it('keeps all fields when nothing is hidden', () => {
+    const [stripped] = stripHiddenValueFields([frame()], { defaults: {}, overrides: [] });
+
+    expect(stripped.fields.map((f) => f.name)).toEqual(['time', 'cpu', 'mem']);
+  });
+
   it('does not mutate the input frames', () => {
     const input = [frame()];
-    stripHiddenValueFields(input);
+    stripHiddenValueFields(input, hideMem);
     expect(input[0].fields.map((f) => f.name)).toEqual(['time', 'cpu', 'mem']);
   });
 });

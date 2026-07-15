@@ -23,10 +23,9 @@
   "panels": [
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
-      "description": "Per-field family (cartesian). Persisted legend interactions exercised without clicking: a fixed-color override pins 'CPU' to red (byName color -> Fixed), and a hideFrom override hides 'Disk' from the viz (byName custom.hideFrom.viz). 'Disk' stays in the legend but greyed/disabled; the line is stripped from the plot.",
+      "description": "Per-field family (cartesian). Persisted legend interactions exercised without clicking: a fixed-color override pins 'CPU' to red (byName color -> Fixed), and the core 'hideSeriesFrom' system override (byNames exclude, keeping CPU+Memory) hides 'Disk' from the viz. Grafana applies it to the Disk field so it is stripped from the plot; 'Disk' stays in the legend but greyed/disabled.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -50,9 +49,15 @@
             ]
           },
           {
+            "__systemRef": "hideSeriesFrom",
             "matcher": {
-              "id": "byName",
-              "options": "Disk"
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": ["CPU", "Memory"],
+                "prefix": "All except:",
+                "readOnly": true
+              }
             },
             "properties": [
               {
@@ -60,7 +65,7 @@
                 "value": {
                   "viz": true,
                   "legend": false,
-                  "tooltip": false
+                  "tooltip": true
                 }
               }
             ]
@@ -89,8 +94,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "alias": "CPU",
@@ -102,8 +106,7 @@
         },
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "B",
           "alias": "Memory",
@@ -115,8 +118,7 @@
         },
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "C",
           "alias": "Disk",
@@ -132,10 +134,9 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
-      "description": "Row/series family (pie). Pie slices are rows of one field, so no field is named after a slice and Grafana's override engine ignores the byName rules; the converter reads them directly by category name. 'Sales' is pinned to a fixed purple color and 'Ops' is dropped from the pie via hideFrom.viz.",
+      "description": "Row/series family (pie). Pie slices are rows of one field, so no field is named after a slice and Grafana's override engine ignores these rules; the converter reads them directly by category name. 'Sales' is pinned to a fixed purple color (byName), and the 'hideSeriesFrom' byNames-exclude override (keeping every slice except 'Ops') drops 'Ops' from the pie.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -159,9 +160,15 @@
             ]
           },
           {
+            "__systemRef": "hideSeriesFrom",
             "matcher": {
-              "id": "byName",
-              "options": "Ops"
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": ["Sales", "Admin", "IT", "Support"],
+                "prefix": "All except:",
+                "readOnly": true
+              }
             },
             "properties": [
               {
@@ -169,7 +176,7 @@
                 "value": {
                   "viz": true,
                   "legend": false,
-                  "tooltip": false
+                  "tooltip": true
                 }
               }
             ]
@@ -197,8 +204,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content",

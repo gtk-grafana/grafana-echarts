@@ -51,7 +51,7 @@ export function getOverlayFrames(ctx: ChartContext): DataFrame[] {
  * binned heatmap cells are represented by the ECharts visualMap.
  */
 export function buildBinnedHeatmapLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[] {
-  return buildTimeSeriesLegendItems(getOverlayFrames(ctx), ctx.theme, calcs, ctx.timeZone);
+  return buildTimeSeriesLegendItems(getOverlayFrames(ctx), ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
 }
 
 /**

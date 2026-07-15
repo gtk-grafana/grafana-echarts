@@ -1,4 +1,11 @@
-import { createTheme, type DataFrame, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
+import {
+  createTheme,
+  type DataFrame,
+  type FieldConfigSource,
+  FieldType,
+  type SystemConfigOverrideRule,
+  toDataFrame,
+} from '@grafana/data';
 import { pieToEChartsOption } from 'lib/echarts/converters/pie';
 
 const theme = createTheme();
@@ -80,16 +87,17 @@ describe('pieToEChartsOption', () => {
     expect(pieToEChartsOption([noNumeric], theme, fieldConfig)).toBeNull();
   });
 
-  it('drops slices hidden via a byName hideFrom override, keeping palette colors stable', () => {
-    const hidden: FieldConfigSource = {
-      defaults: {},
-      overrides: [
-        {
-          matcher: { id: 'byName', options: 'Admin' },
-          properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
-        },
-      ],
+  it('drops slices hidden via a hideSeriesFrom override, keeping palette colors stable', () => {
+    // Isolate: hide all except the kept names (drops 'Admin').
+    const hideOverride: SystemConfigOverrideRule = {
+      __systemRef: 'hideSeriesFrom',
+      matcher: {
+        id: 'byNames',
+        options: { mode: 'exclude', names: ['Sales', 'IT'], prefix: 'All except:', readOnly: true },
+      },
+      properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: true } }],
     };
+    const hidden: FieldConfigSource = { defaults: {}, overrides: [hideOverride] };
 
     const all = pieToEChartsOption([tableFrame()], theme, fieldConfig);
     const result = pieToEChartsOption([tableFrame()], theme, hidden);

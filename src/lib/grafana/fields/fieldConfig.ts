@@ -1,6 +1,13 @@
-import { type DataFrame, type Field, type FieldConfig } from '@grafana/data';
+import {
+  type DataFrame,
+  type Field,
+  type FieldConfig,
+  type FieldConfigSource,
+  getFieldDisplayName,
+} from '@grafana/data';
 import type { EChartsFieldConfig } from 'editor/types';
 import { sampleByStride } from 'lib/grafana/sampling';
+import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import { isNumberField } from 'lib/grafana/narrowing';
 import { type ConfigTypedField } from 'lib/grafana/types';
 
@@ -22,15 +29,38 @@ export function isFieldHiddenFromViz(field: Field): boolean {
 }
 
 /**
- * Drop numeric value fields flagged `hideFrom.viz` so per-field chart families
- * (cartesian, radar, heatmap overlays) skip them consistently across series,
- * axis, and tooltip building. Non-numeric fields (time/category) are retained
- * and frames stay square (whole columns are removed, so row counts are unchanged).
+ * Drop numeric value fields hidden via the legend visibility toggle so per-field
+ * chart families (cartesian, radar, heatmap overlays) skip them consistently
+ * across series, axis, and tooltip building. Non-numeric fields (time/category)
+ * are retained and frames stay square (whole columns are removed, so row counts
+ * are unchanged).
+ *
+ * The hidden set is read from `fieldConfig` (the source of truth) rather than
+ * from Grafana-applied `hideFrom.viz` on the fields, so un-toggling a series
+ * restores it immediately (see `getHiddenSeriesNames`).
  */
-export function stripHiddenValueFields(frames: DataFrame[]): DataFrame[] {
+export function stripHiddenValueFields(frames: DataFrame[], fieldConfig: FieldConfigSource): DataFrame[] {
+  // Display names of every numeric value field, matching the legend universe the
+  // overrides target.
+  const seriesNames: string[] = [];
+  for (const frame of frames) {
+    for (const field of frame.fields) {
+      if (isNumberField(field)) {
+        seriesNames.push(getFieldDisplayName(field, frame, frames));
+      }
+    }
+  }
+
+  const hidden = getHiddenSeriesNames(fieldConfig, seriesNames);
+  if (hidden.size === 0) {
+    return frames;
+  }
+
   return frames.map((frame) => ({
     ...frame,
-    fields: frame.fields.filter((field) => !(isNumberField(field) && isFieldHiddenFromViz(field))),
+    fields: frame.fields.filter(
+      (field) => !(isNumberField(field) && hidden.has(getFieldDisplayName(field, frame, frames)))
+    ),
   }));
 }
 

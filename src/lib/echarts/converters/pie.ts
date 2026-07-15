@@ -41,7 +41,7 @@ export function pieToEChartsOption(
   }
 
   const [firstSeries] = categorical.series;
-  const hidden = getHiddenSeriesNames(fieldConfig);
+  const hidden = getHiddenSeriesNames(fieldConfig, categorical.categories);
 
   const slices: EChartPieDataItem[] = [];
   categorical.categories.forEach((name, row) => {

@@ -1,4 +1,4 @@
-import { type PanelProps } from '@grafana/data';
+import { type FieldConfigSource, type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import {
   PanelContextProvider,
@@ -21,6 +21,15 @@ import { type PanelOptions } from 'types';
 import { EChart } from './EChart';
 
 interface Props extends PanelProps<PanelOptions> {}
+
+// `PanelProps` types `onFieldConfigChange` with a single argument, but the
+// runtime implementation (scenes `VizPanel.onFieldConfigChange`) takes a second
+// `replace` flag. Without `replace: true` the update is lodash-deep-merged into
+// the current config, and merging cannot remove or shrink `overrides` (empty or
+// shorter arrays contribute nothing), so visibility un-toggles would never land.
+// Core passes `true` for its own legend visibility toggles; we mirror that.
+// https://github.com/grafana/scenes/blob/main/packages/scenes/src/components/VizPanel/VizPanel.tsx
+type FieldConfigChangeHandler = (config: FieldConfigSource, replace?: boolean) => void;
 
 export const Panel: React.FC<Props> = ({
   options,
@@ -81,11 +90,19 @@ export const Panel: React.FC<Props> = ({
   );
 
   // Persist a legend visibility toggle as `byName` `hideFrom` overrides. The
-  // isolate/append semantics need the full set of legend series names.
+  // isolate/append semantics need the full set of legend series names. Must
+  // replace (not merge) the field config so override removals take effect; see
+  // `FieldConfigChangeHandler`.
   const onToggleSeriesVisibility = useCallback(
     (label: string | string[] | null, mode: SeriesVisibilityChangeMode) => {
       const seriesNames = legendItems.map((item) => item.fieldName ?? item.label);
-      onFieldConfigChange(toggleSeriesVisibilityConfig(fieldConfig, label, mode, seriesNames));
+
+      // @todo Remove after https://github.com/grafana/grafana/compare/gtk-grafana/onFieldConfigChange/broken-types?expand=1 is merged and grafana/data is updated
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      (onFieldConfigChange as FieldConfigChangeHandler)(
+        toggleSeriesVisibilityConfig(fieldConfig, label, mode, seriesNames),
+        true
+      );
     },
     [fieldConfig, onFieldConfigChange, legendItems]
   );

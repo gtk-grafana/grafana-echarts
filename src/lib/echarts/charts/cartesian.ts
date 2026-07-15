@@ -196,7 +196,8 @@ function buildMultiValueOption(
   // The multi-value series maps to a legend item by name; drop it when hidden
   // via the legend toggle. The legend keeps the item (greyed) so it can be
   // toggled back (see `buildMultiValueCartesianLegendItems`).
-  const hidden = getHiddenSeriesNames(ctx.fieldConfig);
+  const seriesNames = seriesArray.map((chartSeries) => String(chartSeries.name ?? ''));
+  const hidden = getHiddenSeriesNames(ctx.fieldConfig, seriesNames);
   const visibleSeries = seriesArray.filter((chartSeries) => !hidden.has(String(chartSeries.name ?? '')));
   const series = attachThresholdMarks(visibleSeries, cartesianThresholdMarks(ctx));
 
@@ -295,7 +296,7 @@ export const cartesianChartModule: ChartModule = {
       return buildMultiValueCartesianLegendItems({ ...ctx, seriesType });
     }
     return framesHaveTimeField(ctx.frames)
-      ? buildTimeSeriesLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone)
-      : buildCategoryCartesianLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone);
+      ? buildTimeSeriesLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone)
+      : buildCategoryCartesianLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
   },
 };

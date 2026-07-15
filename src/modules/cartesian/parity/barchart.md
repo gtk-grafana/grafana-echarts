@@ -54,7 +54,8 @@ override is `bar`.
 - Bar geometry (width, radius, group spacing, orientation) is ECharts-managed and
   not exposed as options.
 - Interactive legend: clicking a legend item shows/hides its series and the legend
-  color picker sets a fixed color; both persist as `byName` field-config overrides.
+  color picker sets a fixed color; color persists as a `byName` override and
+  visibility as the core `hideSeriesFrom` system override.
   **Hide in area** registers all three toggles but only `viz` is honored.
 
 ## ECharts API support

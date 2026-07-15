@@ -4,10 +4,10 @@
 
 The legend visibility + color work registered `commonOptionsBuilder.addHideFrom`
 in all four modules (cartesian, part-to-whole, multivariate, heatmap) so the
-legend show/hide toggle's `byName` `custom.hideFrom` override is applied by
-Grafana's field-override engine. Registering it also adds the standard **Hide in
-area** field-config switch (three toggles: **viz**, **legend**, **tooltip**) to
-each editor. Two parts of that switch's advertised behavior are **not**
+legend show/hide toggle's `hideSeriesFrom` `custom.hideFrom` override is applied
+by Grafana's field-override engine. Registering it also adds the standard **Hide
+in area** field-config switch (three toggles: **viz**, **legend**, **tooltip**)
+to each editor. Two parts of that switch's advertised behavior are **not**
 implemented.
 
 ## Gap 1 — only the `viz` sub-toggle is honored
@@ -16,8 +16,8 @@ The plugin reads `custom.hideFrom.viz` only:
 
 - `isFieldHiddenFromViz` (`src/lib/grafana/fields/fieldConfig.ts`) checks
   `custom.hideFrom.viz`.
-- `getHiddenSeriesNames` (`src/lib/grafana/fields/seriesConfig.ts`) matches
-  `hideFrom.viz` on `byName` overrides.
+- `getHiddenSeriesNames` (`src/lib/grafana/fields/seriesConfig.ts`) reads only
+  `hideFrom.viz` on the `hideSeriesFrom` (byNames) override.
 
 Nothing consumes `hideFrom.legend` or `hideFrom.tooltip`. Core Grafana panels
 honor all three (hide from the graph, drop from the legend, drop from the
@@ -38,9 +38,9 @@ For per-field families (cartesian/radar/heatmap overlay) the switch works for
 
 For **pie** (part-to-whole) slices are _rows of a single value field_, so:
 
-- Per-slice hiding correctly flows through the legend click → a `byName`
-  override matching the **category name**, read directly by the converter
-  (`src/lib/echarts/converters/pie.ts` via `getHiddenSeriesNames`).
+- Per-slice hiding correctly flows through the legend click → the
+  `hideSeriesFrom` byNames override, interpreted by **category name** directly in
+  the converter (`src/lib/echarts/converters/pie.ts` via `getHiddenSeriesNames`).
 - But the editor **Hide in area > viz** switch targets the underlying **value
   field**, which `stripHiddenValueFields` then removes — blanking the whole pie
   (no numeric field left) rather than hiding one slice.

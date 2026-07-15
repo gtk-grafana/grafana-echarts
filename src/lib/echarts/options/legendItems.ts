@@ -18,7 +18,6 @@ import {
   resolveCategoriesFromFrame,
 } from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
-import { isFieldHiddenFromViz } from 'lib/grafana/fields/fieldConfig';
 import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
 
@@ -43,25 +42,30 @@ export function buildTimeSeriesLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
   calcs: string[],
+  fieldConfig: FieldConfigSource,
   timeZone?: string
 ): VizLegendItem[] {
-  const items: VizLegendItem[] = [];
-
+  const refs: Array<{ frame: DataFrame; frameIndex: number; field: Field; fieldIndex: number; label: string }> = [];
   forEachTimeSeriesField(series, ({ frame, frameIndex, field, fieldIndex }) => {
-    const label = getFieldDisplayName(field, frame, series);
-    items.push({
-      label,
-      fieldName: label,
-      color: getSeriesColor(field, theme),
-      yAxis: 1,
-      // Kept in the legend (greyed) when hidden from the viz so it can be toggled back.
-      disabled: isFieldHiddenFromViz(field),
-      getItemKey: () => `${frameIndex}-${fieldIndex}`,
-      getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
-    });
+    refs.push({ frame, frameIndex, field, fieldIndex, label: getFieldDisplayName(field, frame, series) });
   });
 
-  return items;
+  // Hidden state comes from `fieldConfig` so legend greys with the chart on toggle. See `getHiddenSeriesNames`.
+  const hidden = getHiddenSeriesNames(
+    fieldConfig,
+    refs.map((ref) => ref.label)
+  );
+
+  return refs.map(({ field, frameIndex, fieldIndex, label }) => ({
+    label,
+    fieldName: label,
+    color: getSeriesColor(field, theme),
+    yAxis: 1,
+    // Kept in the legend when hidden from the viz so it can be toggled back.
+    disabled: hidden.has(label),
+    getItemKey: () => `${frameIndex}-${fieldIndex}`,
+    getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
+  }));
 }
 
 /**
@@ -74,6 +78,7 @@ export function buildCategoryCartesianLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
   calcs: string[],
+  fieldConfig: FieldConfigSource,
   timeZone?: string
 ): VizLegendItem[] {
   const frame = findCategoricalFrame(series);
@@ -81,25 +86,25 @@ export function buildCategoryCartesianLegendItems(
     return [];
   }
 
-  const items: VizLegendItem[] = [];
-  frame.fields.forEach((field, fieldIndex) => {
-    if (field.type !== FieldType.number) {
-      return;
-    }
+  const numericFields = frame.fields
+    .map((field, fieldIndex) => ({ field, fieldIndex, label: getFieldDisplayName(field, frame, series) }))
+    .filter(({ field }) => field.type === FieldType.number);
 
-    const label = getFieldDisplayName(field, frame, series);
-    items.push({
-      label,
-      fieldName: label,
-      color: getSeriesColor(field, theme),
-      yAxis: 1,
-      disabled: isFieldHiddenFromViz(field),
-      getItemKey: () => `series-${fieldIndex}`,
-      getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
-    });
-  });
+  // Hidden state from `fieldConfig` keeps the legend in lockstep with the chart.
+  const hidden = getHiddenSeriesNames(
+    fieldConfig,
+    numericFields.map(({ label }) => label)
+  );
 
-  return items;
+  return numericFields.map(({ field, fieldIndex, label }) => ({
+    label,
+    fieldName: label,
+    color: getSeriesColor(field, theme),
+    yAxis: 1,
+    disabled: hidden.has(label),
+    getItemKey: () => `series-${fieldIndex}`,
+    getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
+  }));
 }
 
 /**
@@ -118,8 +123,9 @@ export function buildMultiValueCartesianLegendItems(ctx: ChartContext<MultiValue
   // The series maps to a legend item by name; keep it (greyed) when hidden so it
   // can be toggled back. The converter already applied any color override, so
   // the swatch reflects it.
-  const hidden = getHiddenSeriesNames(ctx.fieldConfig);
   const series = Array.isArray(data.series) ? data.series : data.series ? [data.series] : [];
+  const seriesNames = series.map((chartSeries) => chartSeries.name?.toString() ?? '');
+  const hidden = getHiddenSeriesNames(ctx.fieldConfig, seriesNames);
   return series.map((chartSeries, index) => {
     const label = chartSeries.name?.toString() ?? '';
     return {
@@ -138,6 +144,7 @@ export function buildRadarLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
   calcs: string[],
+  fieldConfig: FieldConfigSource,
   timeZone?: string
 ): VizLegendItem[] {
   const frame = findCategoricalFrame(series);
@@ -145,24 +152,25 @@ export function buildRadarLegendItems(
     return [];
   }
 
-  const items: VizLegendItem[] = [];
-  frame.fields.forEach((field, fieldIndex) => {
-    if (field.type !== FieldType.number) {
-      return;
-    }
+  const numericFields = frame.fields
+    .map((field, fieldIndex) => ({ field, fieldIndex, label: getFieldDisplayName(field, frame, series) }))
+    .filter(({ field }) => field.type === FieldType.number);
 
-    items.push({
-      label: getFieldDisplayName(field, frame, series),
-      fieldName: getFieldDisplayName(field, frame, series),
-      color: getSeriesColor(field, theme),
-      yAxis: 1,
-      disabled: isFieldHiddenFromViz(field),
-      getItemKey: () => `polygon-${fieldIndex}`,
-      getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
-    });
-  });
+  // Hidden state from `fieldConfig` keeps the legend in lockstep with the chart.
+  const hidden = getHiddenSeriesNames(
+    fieldConfig,
+    numericFields.map(({ label }) => label)
+  );
 
-  return items;
+  return numericFields.map(({ field, fieldIndex, label }) => ({
+    label,
+    fieldName: label,
+    color: getSeriesColor(field, theme),
+    yAxis: 1,
+    disabled: hidden.has(label),
+    getItemKey: () => `polygon-${fieldIndex}`,
+    getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
+  }));
 }
 
 export function buildPieLegendItems(
@@ -185,8 +193,8 @@ export function buildPieLegendItems(
   // Slices are rows of one field, so hidden/color state is read by name from the
   // panel field config (not from Grafana's field-override engine); the legend
   // keeps every slice so a hidden one can be toggled back.
-  const hidden = getHiddenSeriesNames(fieldConfig);
   const categories = resolveCategoriesFromFrame(frame);
+  const hidden = getHiddenSeriesNames(fieldConfig, categories);
   const items: VizLegendItem[] = [];
 
   for (let row = 0; row < frame.length; row++) {

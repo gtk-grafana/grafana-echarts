@@ -27,12 +27,14 @@ export function buildPanelChartOption(
   rawCtx: ChartContext,
   { isGrafanaLegend }: { isGrafanaLegend: boolean }
 ): ECBasicOption {
-  // Drop value fields hidden via the legend visibility toggle (`hideFrom.viz`)
-  // before building. Doing it once here keeps series, axes, and tooltip
-  // formatters consistent for the per-field families (cartesian/radar/heatmap
-  // overlays). The DOM legend is built separately in `Panel.tsx` from the
-  // original frames, so hidden series remain in the legend (greyed).
-  const ctx: ChartContext = { ...rawCtx, frames: stripHiddenValueFields(rawCtx.frames) };
+  // Drop value fields hidden via the legend visibility toggle before building.
+  // The hidden set is read from `fieldConfig` (see `stripHiddenValueFields` /
+  // `getHiddenSeriesNames`), not from Grafana-applied `hideFrom.viz`, so an
+  // un-toggle restores the series immediately. Doing it once here keeps series,
+  // axes, and tooltip formatters consistent for the per-field families
+  // (cartesian/radar/heatmap overlays). The DOM legend is built separately in
+  // `Panel.tsx` from the original frames, so hidden series remain (greyed).
+  const ctx: ChartContext = { ...rawCtx, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 
   const chartModule = resolveChartModule(ctx.seriesType);
   if (!chartModule) {

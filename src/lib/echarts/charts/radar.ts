@@ -42,6 +42,6 @@ export const radarChartModule: ChartModule = {
   },
 
   buildLegendItems(ctx, calcs) {
-    return buildRadarLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone);
+    return buildRadarLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
   },
 };

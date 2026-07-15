@@ -65,7 +65,27 @@ describe('toggleSeriesVisibilityConfig', () => {
       names
     );
 
-    expect(getHiddenSeriesNames(result)).toEqual(new Set(['mem', 'disk']));
+    expect(getHiddenSeriesNames(result, names)).toEqual(new Set(['mem', 'disk']));
+  });
+
+  it('writes a single hideSeriesFrom byNames-exclude system override (core shape)', () => {
+    const result = toggleSeriesVisibilityConfig(
+      emptyConfig(),
+      'cpu',
+      SeriesVisibilityChangeMode.ToggleSelection,
+      names
+    );
+
+    expect(result.overrides).toEqual([
+      {
+        __systemRef: 'hideSeriesFrom',
+        matcher: {
+          id: FieldMatcherID.byNames,
+          options: { mode: 'exclude', names: ['cpu'], prefix: 'All except:', readOnly: true },
+        },
+        properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: true } }],
+      },
+    ]);
   });
 
   it('restores all series when clicking the already-isolated series', () => {
@@ -78,7 +98,27 @@ describe('toggleSeriesVisibilityConfig', () => {
 
     const restored = toggleSeriesVisibilityConfig(isolated, 'cpu', SeriesVisibilityChangeMode.ToggleSelection, names);
 
-    expect(getHiddenSeriesNames(restored)).toEqual(new Set());
+    expect(restored.overrides).toEqual([]);
+    expect(getHiddenSeriesNames(restored, names)).toEqual(new Set());
+  });
+
+  it('re-isolates a different series on plain click (replaces the override)', () => {
+    const isolatedCpu = toggleSeriesVisibilityConfig(
+      emptyConfig(),
+      'cpu',
+      SeriesVisibilityChangeMode.ToggleSelection,
+      names
+    );
+
+    const isolatedMem = toggleSeriesVisibilityConfig(
+      isolatedCpu,
+      'mem',
+      SeriesVisibilityChangeMode.ToggleSelection,
+      names
+    );
+
+    expect(isolatedMem.overrides).toHaveLength(1);
+    expect(getHiddenSeriesNames(isolatedMem, names)).toEqual(new Set(['cpu', 'disk']));
   });
 
   it('toggles a single series on append (ctrl/cmd click)', () => {
@@ -88,10 +128,10 @@ describe('toggleSeriesVisibilityConfig', () => {
       SeriesVisibilityChangeMode.AppendToSelection,
       names
     );
-    expect(getHiddenSeriesNames(hidden)).toEqual(new Set(['mem']));
+    expect(getHiddenSeriesNames(hidden, names)).toEqual(new Set(['mem']));
 
     const shown = toggleSeriesVisibilityConfig(hidden, 'mem', SeriesVisibilityChangeMode.AppendToSelection, names);
-    expect(getHiddenSeriesNames(shown)).toEqual(new Set());
+    expect(getHiddenSeriesNames(shown, names)).toEqual(new Set());
   });
 
   it('preserves unrelated color overrides when toggling visibility', () => {
@@ -100,6 +140,6 @@ describe('toggleSeriesVisibilityConfig', () => {
     const result = toggleSeriesVisibilityConfig(withColor, 'mem', SeriesVisibilityChangeMode.AppendToSelection, names);
 
     expect(getSeriesColorOverride(result, 'cpu')).toBe('#ff0000');
-    expect(getHiddenSeriesNames(result)).toEqual(new Set(['mem']));
+    expect(getHiddenSeriesNames(result, names)).toEqual(new Set(['mem']));
   });
 });
