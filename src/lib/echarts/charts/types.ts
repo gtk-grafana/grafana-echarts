@@ -20,6 +20,8 @@ import {
   type RadarComponentOption,
   type RadarSeriesOption,
   type ScatterSeriesOption,
+  type SunburstSeriesOption,
+  type TreemapSeriesOption,
   type VisualMapComponentOption,
 } from 'echarts';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
@@ -82,6 +84,9 @@ export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;
 export type EChartPieSeriesOption = ComposeOption<PieSeriesOption>;
 // Radar needs both the series and the `radar` coordinate component.
 export type EChartRadarSeriesOption = ComposeOption<RadarSeriesOption | RadarComponentOption>;
+// Hierarchy families render a value-weighted tree; no cartesian axis component.
+export type EChartTreemapSeriesOption = ComposeOption<TreemapSeriesOption>;
+export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
 /**
  * @todo revisit
  * A single pie slice data item. ECharts types a pie series' `data` as
@@ -109,6 +114,8 @@ export type EChartBuildOption =
   | EChartScatterSeriesOption
   | EChartPieSeriesOption
   | EChartRadarSeriesOption
+  | EChartTreemapSeriesOption
+  | EChartSunburstSeriesOption
   | EChartCandlestickSeriesOption
   | EChartBoxPlotSeriesOption
   | EChartEffectScatterSeriesOption

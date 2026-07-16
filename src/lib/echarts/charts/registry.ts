@@ -1,14 +1,16 @@
 import {
   cartesianTimeSeriesTypes,
   heatmapSeriesTypes,
+  hierarchySeriesTypes,
   multiValueSeriesTypes,
   pieSeriesTypes,
   radarSeriesTypes,
 } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
-import { isMultiValueSeriesType, isCartesianSingleValueSeriesType } from './narrowing';
+import { isHierarchySeriesType, isMultiValueSeriesType, isCartesianSingleValueSeriesType } from './narrowing';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
+import { hierarchyChartModule } from './hierarchy';
 import { pieChartModule } from './pie';
 import { radarChartModule } from './radar';
 import { type ChartModule } from './types';
@@ -23,6 +25,7 @@ export const supportedChartSeriesTypes: SeriesType[] = [
   ...heatmapSeriesTypes,
   ...radarSeriesTypes,
   ...pieSeriesTypes,
+  ...hierarchySeriesTypes,
 ];
 
 /**
@@ -49,7 +52,12 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (pieSeriesTypes.includes(seriesType)) {
     return pieModule;
   }
+  // Treemap and sunburst share the hierarchy module; the module picks the render
+  // variant from the type.
+  if (isHierarchySeriesType(seriesType)) {
+    return hierarchyChartModule;
+  }
   throw new Error(`Cannot resolve chart module, invalid ${seriesType}!`);
 }
 
-export { cartesianChartModule, heatmapChartModule, pieChartModule, radarChartModule };
+export { cartesianChartModule, heatmapChartModule, hierarchyChartModule, pieChartModule, radarChartModule };

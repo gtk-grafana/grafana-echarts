@@ -34,6 +34,9 @@ export type TimeAxisSupportsSeriesType = Extract<
 export type CartesianSingleValueSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter'>;
 export type MultiValueSeriesType = Extract<SeriesType, 'candlestick' | 'boxplot'>;
 export type HeatmapSeriesType = Extract<SeriesType, 'heatmap'>;
+// Hierarchy charts (treemap/sunburst) render a value-weighted tree rather than a
+// cartesian axis. See echarts/converters/hierarchy.ts.
+export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
 
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s

@@ -3,6 +3,7 @@ import {
   categoricalAxisSeriesTypes,
   categoricalOnlySeriesType,
   heatmapSeriesTypes,
+  hierarchySeriesTypes,
   multiValueSeriesTypes,
   supportsTimeAxisSeriesTypes,
 } from 'editor/constants';
@@ -11,6 +12,7 @@ import {
   type CategoricalAxisSeriesType,
   type CategoricalOnlySeriesType,
   type HeatmapSeriesType,
+  type HierarchySeriesType,
   type MultiValueSeriesType,
   type SeriesType,
   type TimeAxisSupportsSeriesType,
@@ -43,4 +45,9 @@ export function isMultiValueSeriesType(type: SeriesType): type is MultiValueSeri
 // Heatmap is its own beast
 export function isHeatmapSeriesType(type: SeriesType): type is HeatmapSeriesType {
   return heatmapSeriesTypes.some((t) => t === type);
+}
+
+// Hierarchy charts like treemap and sunburst render a value-weighted tree
+export function isHierarchySeriesType(type: SeriesType): type is HierarchySeriesType {
+  return hierarchySeriesTypes.some((t) => t === type);
 }
