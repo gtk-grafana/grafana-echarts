@@ -7,6 +7,8 @@
 // the nested `.svg` logos referenced by each nested `plugin.json`.
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import type { Configuration } from 'webpack';
+// https://github.com/webpack-contrib/webpack-bundle-analyzer
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 
 import baseConfig, { type Env } from './/.config/webpack/webpack.config.ts';
 
@@ -49,6 +51,9 @@ const config = async (env: Env): Promise<Configuration> => {
         { from: '*/img/**', to: '[path][name][ext]', noErrorOnMissing: true },
       ],
     }),
+    // Enabled via `pnpm run build:analyze` (passes `--env analyze`). Writes a
+    // static report so the build stays non-interactive and CI-friendly.
+    ...(env.analyze ? [new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false })] : []),
   ];
 
   return base;
