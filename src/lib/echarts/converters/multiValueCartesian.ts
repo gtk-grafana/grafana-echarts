@@ -17,15 +17,51 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
 //   (see https://echarts.apache.org/en/option.html#series-boxplot.data)
 
 /** ECharts candlestick data order: `[open, close, low, high]`. */
-const CANDLESTICK_FIELDS = ['open', 'high', 'low', 'close'];
+export const CANDLESTICK_FIELDS = ['open', 'high', 'low', 'close'];
 /** ECharts boxplot data order (also the plugin's positional convention). */
-const BOXPLOT_FIELDS = ['min', 'q1', 'median', 'q3', 'max'];
+export const BOXPLOT_FIELDS = ['min', 'q1', 'median', 'q3', 'max'];
 
 /** First numeric field whose name matches `name` (case-insensitive).
  * @todo is this safe?
  */
 function findNumericFieldByName(frame: DataFrame, name: string): Field<number> | undefined {
   return frame.fields.find((field) => isNumberField(field) && field.name.toLowerCase() === name);
+}
+
+/** Whether `frame` has a numeric field for every `name` (case-insensitive). */
+function frameHasNumericFieldsNamed(frame: DataFrame, names: string[]): boolean {
+  return names.every((name) => findNumericFieldByName(frame, name) !== undefined);
+}
+
+/**
+ * The multi-value series type a frame's fields describe, by name convention:
+ * OHLC (`open`/`high`/`low`/`close`) → candlestick; five-number summary
+ * (`min`/`q1`/`median`/`q3`/`max`) → boxplot. `undefined` when neither is fully
+ * present.
+ *
+ * Detection is intentionally name-based, not "N numeric fields": a plain
+ * multi-series frame (e.g. four metric columns) must never be mistaken for a
+ * candlestick/boxplot. The names mirror what `buildCandlestick`/`buildBoxplot`
+ * map, so detection and rendering stay in agreement. Only the first frame with a
+ * numeric field is inspected, matching the converter's single-frame model.
+ */
+export function resolveMultiValueSeriesType(frames: DataFrame[]): MultiValueSeriesType | undefined {
+  const frame = findCategoricalFrame(frames);
+  if (!frame) {
+    return undefined;
+  }
+  if (frameHasNumericFieldsNamed(frame, CANDLESTICK_FIELDS)) {
+    return 'candlestick';
+  }
+  if (frameHasNumericFieldsNamed(frame, BOXPLOT_FIELDS)) {
+    return 'boxplot';
+  }
+  return undefined;
+}
+
+/** Whether the data is shaped for a multi-value cartesian type (candlestick/boxplot). */
+export function framesLookMultiValue(frames: DataFrame[]): boolean {
+  return resolveMultiValueSeriesType(frames) !== undefined;
 }
 
 /** Positional dimension array for one row: `field.values[row] ?? null` per field. */

@@ -9,7 +9,8 @@ import {
   VizLegend,
 } from '@grafana/ui';
 import { seriesTypePath } from 'editor/constants';
-import { resolveChartModule, resolveSeriesType } from 'lib/echarts/charts/registry';
+import { type ChartFamily, resolveSeriesType } from 'lib/echarts/charts/autoSeriesType';
+import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
@@ -17,7 +18,10 @@ import React, { useCallback, useMemo } from 'react';
 import { type PanelOptions } from 'types';
 import { EChart } from './EChart';
 
-interface Props extends PanelProps<PanelOptions> {}
+interface Props extends PanelProps<PanelOptions> {
+  /** The nested plugin's chart family, used to resolve an `'Auto'` series type. */
+  family: ChartFamily;
+}
 
 export const Panel: React.FC<Props> = ({
   options,
@@ -30,17 +34,21 @@ export const Panel: React.FC<Props> = ({
   eventBus,
   timeRange,
   onChangeTimeRange,
+  family,
 }) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
-  // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel
-  // that never went through a suggestion); resolve it to a concrete type once,
-  // from the data, so both the chart module and the ChartContext below see a
-  // real series type (downstream axis/build code throws on a non-concrete one).
+  // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel).
+  // Resolve it to a concrete type once — from the data and scoped to this panel's
+  // family — so both the chart module and the ChartContext below see a real
+  // series type (downstream axis/build code throws on a non-concrete one).
   const rawSeriesType = options[seriesTypePath];
-  const seriesType = useMemo(() => resolveSeriesType(rawSeriesType, data.series), [rawSeriesType, data.series]);
+  const seriesType = useMemo(
+    () => resolveSeriesType(rawSeriesType, data.series, family),
+    [rawSeriesType, data.series, family]
+  );
 
-  const chartModule = useMemo(() => resolveChartModule(seriesType, data.series), [seriesType, data.series]);
+  const chartModule = useMemo(() => resolveChartModule(seriesType), [seriesType]);
 
   const resolvedLegend = useMemo(() => resolveLegendOptions(chartModule, options), [chartModule, options]);
 

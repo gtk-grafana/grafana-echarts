@@ -1,7 +1,7 @@
 import { type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type TooltipDisplayMode } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
-import { type SeriesType } from 'editor/types';
+import { type SeriesTypeOption } from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -25,10 +25,11 @@ export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
  * @todo we probably want to build options around echarts API instead of using Grafana's
  */
 export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
-  // Optional: never set by an options editor. It is populated by a Visualization
-  // Suggestion or persisted dashboard JSON, and is `undefined` on a freshly
-  // added panel — which `resolveSeriesType`/`resolveChartModule` treat as `'Auto'`.
-  [seriesTypePath]?: SeriesType;
+  // Optional, and may be `'Auto'`: set by the cartesian panel's Series type
+  // picker (default `'Auto'`), a Visualization Suggestion, or persisted dashboard
+  // JSON; `undefined` on legacy panels. `resolveSeriesType` / `resolveChartModule`
+  // resolve `'Auto'`/`undefined` to a concrete type from the data.
+  [seriesTypePath]?: SeriesTypeOption;
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
 

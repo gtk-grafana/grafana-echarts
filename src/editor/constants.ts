@@ -114,7 +114,10 @@ export const cartesianSeriesTypeOptions: Array<SelectableValue<SeriesType>> = [
  * cannot be overlaid per field; non-cartesian types (pie/radar) use other
  * coordinate systems; and heatmap is detected from the frame type.
  */
-export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cartesianTimeSeriesTypes.map((type) => ({
+export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = [
+  ...cartesianTimeSeriesTypes,
+  ...multiValueSeriesTypes,
+].map((type) => ({
   value: type,
   label: type,
 }));
@@ -128,6 +131,26 @@ export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cart
 export const cartesianOverrideOptionsWithAuto: Array<SelectableValue<SeriesTypeOption>> = [
   { value: 'Auto', label: 'Auto' },
   ...cartesianOverrideOptions,
+];
+/** Multi-value cartesian render types (candlestick/boxplot) as select options. */
+export const multiValueSeriesTypeOptions: Array<SelectableValue<SeriesType>> = multiValueSeriesTypes.map((type) => ({
+  value: type,
+  label: type,
+}));
+/**
+ * Panel-level series type options for the cartesian family: every render type
+ * (single- and multi-value) plus the `'Auto'` default. Used as the static option
+ * list for the panel-level picker; the picker narrows this to the applicable
+ * subset from the data via `getOptions` (see the cartesian module).
+ */
+export const cartesianSeriesTypeOptionsWithAuto: Array<SelectableValue<SeriesTypeOption>> = [
+  { value: 'Auto', label: 'Auto' },
+  ...cartesianSeriesTypeOptions,
+];
+/** Multi-value cartesian options (candlestick/boxplot) with the `'Auto'` default. */
+export const multiValueSeriesTypeOptionsWithAuto: Array<SelectableValue<SeriesTypeOption>> = [
+  { value: 'Auto', label: 'Auto' },
+  ...multiValueSeriesTypeOptions,
 ];
 /**
  * Grafana dataplane frame types that carry a heatmap. A frame tagged with one

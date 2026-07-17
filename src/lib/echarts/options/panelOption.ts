@@ -26,7 +26,7 @@ export function buildPanelChartOption(
   ctx: ChartContext,
   { isGrafanaLegend }: { isGrafanaLegend: boolean }
 ): ECBasicOption {
-  const chartModule = resolveChartModule(ctx.seriesType, ctx.frames);
+  const chartModule = resolveChartModule(ctx.seriesType);
   if (!chartModule) {
     throw new Error(`Invalid chart module ${chartModule} for ${ctx.seriesType}`);
   }

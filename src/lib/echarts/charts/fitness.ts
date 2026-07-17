@@ -65,9 +65,3 @@ export const scorePartToWhole = (summary: PanelDataSummary): VisualizationSugges
 /** Multivariate (radar): several numeric metrics to place around the axes. */
 export const scoreMultivariate = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined =>
   summary.fieldCountByType(FieldType.number) >= 2 ? VisualizationSuggestionScore.OK : undefined;
-
-// Boolean adapters used by the resolver's precedence checks.
-export const fitsHeatmap = (summary: PanelDataSummary): boolean => scoreHeatmap(summary) != null;
-export const fitsCartesian = (summary: PanelDataSummary): boolean => scoreCartesian(summary) != null;
-export const fitsPartToWhole = (summary: PanelDataSummary): boolean => scorePartToWhole(summary) != null;
-export const fitsMultivariate = (summary: PanelDataSummary): boolean => scoreMultivariate(summary) != null;

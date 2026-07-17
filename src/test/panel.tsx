@@ -26,6 +26,7 @@ import {
   setupECharts,
 } from 'test/canvas';
 import { type PanelOptions } from 'types';
+import { type ChartFamily } from 'lib/echarts/charts/autoSeriesType';
 import { Panel } from 'lib/components/Panel';
 
 // Shared harness for the canvas integration tests: render the real <Panel />
@@ -74,7 +75,8 @@ export const getComponent = (
   seriesType: SeriesType,
   panelOptionsOverrides?: Partial<PanelOptions>,
   panelDataOverrides?: Partial<PanelData>,
-  panelPropsOverrides?: Partial<PanelProps<PanelOptions>>
+  panelPropsOverrides?: Partial<PanelProps<PanelOptions>>,
+  family: ChartFamily = 'cartesian'
 ) => {
   const defaultOptions = {
     legend: {
@@ -126,7 +128,7 @@ export const getComponent = (
 
   return (
     <div style={{ height, width }}>
-      <Panel {...props} />
+      <Panel {...props} family={family} />
     </div>
   );
 };
