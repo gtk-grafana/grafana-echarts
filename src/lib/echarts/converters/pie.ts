@@ -1,7 +1,8 @@
-import { type GrafanaTheme2 } from '@grafana/data';
+import { type FieldConfigSource, type GrafanaTheme2 } from '@grafana/data';
 import { type EChartsFieldConfig } from 'editor/types';
 import type { EChartPieDataItem } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
+import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
@@ -22,10 +23,16 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
  *   through and effectively contribute nothing to the pie.
  *
  * Returns `null` when no usable categorical data can be derived.
+ *
+ * Slices are rows of a single field, so per-slice legend interactions cannot use
+ * Grafana's field-override engine: hidden slices are read from `fieldConfig` by
+ * category name and dropped, and a per-slice color override wins over the
+ * palette (see `lib/grafana/fields/seriesConfig.ts`).
  */
 export function pieToEChartsOption(
   series: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>,
-  theme: GrafanaTheme2
+  theme: GrafanaTheme2,
+  fieldConfig: FieldConfigSource
 ): EChartPieDataItem[] | null {
   const categorical = frameToCategorical(series, theme);
 
@@ -34,12 +41,23 @@ export function pieToEChartsOption(
   }
 
   const [firstSeries] = categorical.series;
+  const hidden = getHiddenSeriesNames(fieldConfig, categorical.categories);
 
-  return categorical.categories.map((name, row) => ({
-    name,
-    // ECharts pie values are numeric-only; map Grafana nulls to undefined so
-    // missing points render as empty slices instead of failing the type.
-    value: firstSeries.values[row] ?? undefined,
-    itemStyle: { color: getPaletteColorByIndex(row, theme) },
-  }));
+  const slices: EChartPieDataItem[] = [];
+  categorical.categories.forEach((name, row) => {
+    if (hidden.has(name)) {
+      return;
+    }
+    slices.push({
+      name,
+      // ECharts pie values are numeric-only; map Grafana nulls to undefined so
+      // missing points render as empty slices instead of failing the type.
+      value: firstSeries.values[row] ?? undefined,
+      // Palette color is keyed by the original row so visible slices keep stable
+      // colors when others are hidden; a fixed-color override wins.
+      itemStyle: { color: getSeriesColorOverride(fieldConfig, name) ?? getPaletteColorByIndex(row, theme) },
+    });
+  });
+
+  return slices;
 }

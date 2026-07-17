@@ -1,4 +1,4 @@
-import { type AxisPlacement, type GraphFieldConfig } from '@grafana/schema';
+import { type AxisPlacement, type GraphFieldConfig, type HideableFieldConfig } from '@grafana/schema';
 
 export type SeriesType =
   | 'line'
@@ -42,7 +42,10 @@ export type HeatmapSeriesType = Extract<SeriesType, 'heatmap'>;
  * mix cartesian types (e.g. a `line` over `bar` columns). The override is only
  * honored for cartesian types; the panel-level `seriesType` is the fallback.
  */
-export interface EChartsFieldConfig {
+// Extends `HideableFieldConfig` so `custom.hideFrom` is typed for the non-graph
+// families (pie/radar/heatmap); the legend visibility toggle writes it as a
+// `byName` override (see `addHideFrom` in the modules and `seriesConfig.ts`).
+export interface EChartsFieldConfig extends HideableFieldConfig {
   seriesType?: SeriesType;
   // Per-field override for stacking, honored only when the field renders as
   // `bar`. Overrides the panel-level `stackSeries` default.

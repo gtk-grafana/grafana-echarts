@@ -19,8 +19,8 @@ export const pieChartModule: ChartModule = {
   },
 
   buildOption(ctx: ChartContext<'pie'>, { isGrafanaLegend }): EChartPieSeriesOption | null {
-    const { frames, theme, options, seriesType } = ctx;
-    const slices = pieToEChartsOption(frames, theme);
+    const { frames, theme, options, seriesType, fieldConfig } = ctx;
+    const slices = pieToEChartsOption(frames, theme, fieldConfig);
 
     if (!slices) {
       return null;
@@ -42,6 +42,6 @@ export const pieChartModule: ChartModule = {
   },
 
   buildLegendItems(ctx, calcs) {
-    return buildPieLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone);
+    return buildPieLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
   },
 };

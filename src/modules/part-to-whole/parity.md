@@ -13,17 +13,18 @@ values come from the categorical converter (first numeric field per category).
 
 ## Panel options
 
-| Core Grafana option                        | ECharts equivalent                        | Status        |
-| ------------------------------------------ | ----------------------------------------- | ------------- |
-| Value / calculation (data reduce)          | none (converter uses first numeric field) | Not supported |
-| Fields to include, limit                   | none                                      | Not supported |
-| Pie chart type (Pie / Donut)               | none (pie only)                           | Not supported |
-| Slice sorting (asc/desc/none)              | none                                      | Not supported |
-| Labels (Percent / Name / Value)            | none                                      | Not supported |
-| Tooltip: mode                              | `tooltip.mode`                            | Supported     |
-| Tooltip: hide zeros, sort                  | none                                      | Not supported |
-| Legend: visibility, mode, placement, width | Grafana legend via `addLegendOptions`     | Supported     |
-| Legend values (Percent / Value)            | none                                      | Not supported |
+| Core Grafana option                           | ECharts equivalent                                                                                             | Status        |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- |
+| Value / calculation (data reduce)             | none (converter uses first numeric field)                                                                      | Not supported |
+| Fields to include, limit                      | none                                                                                                           | Not supported |
+| Pie chart type (Pie / Donut)                  | none (pie only)                                                                                                | Not supported |
+| Slice sorting (asc/desc/none)                 | none                                                                                                           | Not supported |
+| Labels (Percent / Name / Value)               | none                                                                                                           | Not supported |
+| Tooltip: mode                                 | `tooltip.mode`                                                                                                 | Supported     |
+| Tooltip: hide zeros, sort                     | none                                                                                                           | Not supported |
+| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions`                                                                          | Supported     |
+| Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by category | Supported     |
+| Legend values (Percent / Value)               | none                                                                                                           | Not supported |
 
 ## Standard (field-config) options
 
@@ -46,14 +47,14 @@ High-level [ECharts option](https://echarts.apache.org/en/option.html) component
 used by this module. See [echarts.ts](../../lib/echarts/echarts.ts) for the
 registered runtime surface.
 
-| ECharts API                                                                                              | Status          | Notes                                                                            |
-| -------------------------------------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------- |
-| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; donut (radius/center), sorting, and slice labels not exposed. |
-| `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden.                   |
-| `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                            |
-| `animation`                                                                                              | Supported       | ECharts defaults (enabled).                                                      |
-| `color` / `textStyle`                                                                                    | Supported       | Derived from the Grafana theme.                                                  |
-| `grid` / `xAxis` / `yAxis`                                                                               | Not implemented | Pie has no cartesian coordinate system.                                          |
-| `visualMap` / `markLine` / `markArea` / `axisPointer` / `brush` / `dataZoom`                             | Not implemented | Cartesian-oriented components; N/A for pie.                                      |
-| `toolbox` / `dataset` / `title` / `graphic` / `timeline` / `aria`                                        | Not implemented | Not registered.                                                                  |
-| Other coordinate systems (`polar` / `radar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | —                                                                                |
+| ECharts API                                                                                              | Status          | Notes                                                                                                                                                                   |
+| -------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; donut (radius/center), sorting, and slice labels not exposed.                                                                                        |
+| `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive per-slice show/hide (via `hideSeriesFrom`) + color (via `byName`) read directly by category. |
+| `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                                                                                                                   |
+| `animation`                                                                                              | Supported       | ECharts defaults (enabled).                                                                                                                                             |
+| `color` / `textStyle`                                                                                    | Supported       | Derived from the Grafana theme.                                                                                                                                         |
+| `grid` / `xAxis` / `yAxis`                                                                               | Not implemented | Pie has no cartesian coordinate system.                                                                                                                                 |
+| `visualMap` / `markLine` / `markArea` / `axisPointer` / `brush` / `dataZoom`                             | Not implemented | Cartesian-oriented components; N/A for pie.                                                                                                                             |
+| `toolbox` / `dataset` / `title` / `graphic` / `timeline` / `aria`                                        | Not implemented | Not registered.                                                                                                                                                         |
+| Other coordinate systems (`polar` / `radar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | —                                                                                                                                                                       |

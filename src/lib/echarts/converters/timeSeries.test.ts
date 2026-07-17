@@ -30,6 +30,7 @@ const makeContext = (
   options: { [seriesTypePath]: seriesType, stackSeries } as PanelOptions,
   seriesType,
   formatValue,
+  fieldConfig: { defaults: {}, overrides: [] },
 });
 
 const run = (frames: DataFrame[], seriesType: CartesianSingleValueSeriesType, stackSeries?: boolean) =>

@@ -11,12 +11,12 @@ radar semantics rather than a core panel.
 
 ## Editor options
 
-| Area                         | ECharts Multivariate                   | Notes                                                |
-| ---------------------------- | -------------------------------------- | ---------------------------------------------------- |
-| Legend                       | Grafana legend via `addLegendOptions`  | Governs the radar polygons (series)                  |
-| Tooltip: mode                | `tooltip.mode` (Single/All/Hidden)     | Maps to the ECharts tooltip trigger                  |
-| Radar indicators (axes)      | derived from the categorical converter | Categories become indicators; series become polygons |
-| Per-series area/line styling | none (ECharts defaults)                | Not exposed                                          |
+| Area                         | ECharts Multivariate                   | Notes                                                                                                                                      |
+| ---------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Legend                       | Grafana legend via `addLegendOptions`  | Governs the radar polygons (series); interactive show/hide (via `hideSeriesFrom`) + color (via `byName`) persist as field-config overrides |
+| Tooltip: mode                | `tooltip.mode` (Single/All/Hidden)     | Maps to the ECharts tooltip trigger                                                                                                        |
+| Radar indicators (axes)      | derived from the categorical converter | Categories become indicators; series become polygons                                                                                       |
+| Per-series area/line styling | none (ECharts defaults)                | Not exposed                                                                                                                                |
 
 ## Standard (field-config) options
 
@@ -38,15 +38,15 @@ High-level [ECharts option](https://echarts.apache.org/en/option.html) component
 used by this module. See [echarts.ts](../../lib/echarts/echarts.ts) for the
 registered runtime surface.
 
-| ECharts API                                                                                    | Status          | Notes                                                              |
-| ---------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------ |
-| `series` (radar)                                                                               | Supported       | `seriesType: radar`; per-series area/line styling not exposed.     |
-| `radar` (coordinate system)                                                                    | Supported       | Indicators derived from the categorical converter.                 |
-| `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden.     |
-| `tooltip`                                                                                      | Supported       | Grafana-styled; `dataIndex` selects the polygon's field formatter. |
-| `animation`                                                                                    | Supported       | ECharts defaults (enabled).                                        |
-| `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                    |
-| `grid` / `xAxis` / `yAxis`                                                                     | Not implemented | Radar uses the `radar` coordinate system, not cartesian.           |
-| `visualMap` / `markLine` / `markArea` / `axisPointer` / `brush` / `dataZoom`                   | Not implemented | Cartesian-oriented components; N/A for radar.                      |
-| `toolbox` / `dataset` / `title` / `graphic` / `timeline` / `aria`                              | Not implemented | Not registered.                                                    |
-| Other coordinate systems (`polar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | —                                                                  |
+| ECharts API                                                                                    | Status          | Notes                                                                                                                           |
+| ---------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `series` (radar)                                                                               | Supported       | `seriesType: radar`; per-series area/line styling not exposed.                                                                  |
+| `radar` (coordinate system)                                                                    | Supported       | Indicators derived from the categorical converter.                                                                              |
+| `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive show/hide + color persist as field-config overrides. |
+| `tooltip`                                                                                      | Supported       | Grafana-styled; `dataIndex` selects the polygon's field formatter.                                                              |
+| `animation`                                                                                    | Supported       | ECharts defaults (enabled).                                                                                                     |
+| `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                                                                                 |
+| `grid` / `xAxis` / `yAxis`                                                                     | Not implemented | Radar uses the `radar` coordinate system, not cartesian.                                                                        |
+| `visualMap` / `markLine` / `markArea` / `axisPointer` / `brush` / `dataZoom`                   | Not implemented | Cartesian-oriented components; N/A for radar.                                                                                   |
+| `toolbox` / `dataset` / `title` / `graphic` / `timeline` / `aria`                              | Not implemented | Not registered.                                                                                                                 |
+| Other coordinate systems (`polar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | —                                                                                                                               |

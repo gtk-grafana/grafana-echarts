@@ -24,6 +24,13 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         },
       },
     },
+    // Register `custom.hideFrom` so the legend visibility toggle's `byName`
+    // override is applied by Grafana. Each radar polygon is a numeric field, so
+    // the chart strips fields flagged `hideFrom.viz` (see
+    // `lib/grafana/fields/seriesConfig.ts`).
+    useCustomConfig: (builder) => {
+      commonOptionsBuilder.addHideFrom(builder);
+    },
   })
   .setPanelOptions((builder) => {
     commonOptionsBuilder.addLegendOptions(builder);
