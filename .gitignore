@@ -53,3 +53,4 @@ ci/
 # Local provisionining
 provisioning/dashboards/local/*
 !provisioning/dashboards/local/.gitkeep
+.cursor/plans/local
