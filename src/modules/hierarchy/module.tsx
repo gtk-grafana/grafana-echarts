@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { hierarchySeriesTypeOptions, seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
-import { LazyPanel } from 'lib/components/LazyPanel';
+import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
 import { hierarchySuggestionsSupplier } from './suggestions';
 
@@ -12,7 +12,7 @@ import { hierarchySuggestionsSupplier } from './suggestions';
 // model, reconstructed from a flame-graph nested-set frame or a flat categorical
 // frame (see echarts/converters/hierarchy.ts). The panel-level `seriesType`
 // picks the render variant.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('hierarchy'))
   .useFieldConfig({
     standardOptions: {
       [FieldConfigProperty.Color]: {

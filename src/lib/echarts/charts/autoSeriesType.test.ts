@@ -79,6 +79,11 @@ describe('resolveAutoSeriesType', () => {
       expect(resolveAutoSeriesType('multivariate', [timeNumberFrame()])).toBe('radar');
       expect(resolveAutoSeriesType('multivariate', [])).toBe('radar');
     });
+
+    it('hierarchy stays treemap', () => {
+      expect(resolveAutoSeriesType('hierarchy', [multiNumericFrame()])).toBe('treemap');
+      expect(resolveAutoSeriesType('hierarchy', [])).toBe('treemap');
+    });
   });
 });
 
