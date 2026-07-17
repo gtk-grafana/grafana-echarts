@@ -10,7 +10,11 @@ import {
 import { seriesTypePath } from 'editor/constants';
 import { type MultiValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
-import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
+import {
+  framesLookMultiValue,
+  multiValueCartesianToEChartsOption,
+  resolveMultiValueSeriesType,
+} from 'lib/echarts/converters/multiValueCartesian';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -232,5 +236,54 @@ describe('multiValueCartesianToEChartsOption', () => {
     });
 
     expect(run([frame], 'candlestick')).toBeNull();
+  });
+});
+
+describe('resolveMultiValueSeriesType', () => {
+  it('detects candlestick from OHLC field names', () => {
+    expect(resolveMultiValueSeriesType([ohlcFrame()])).toBe('candlestick');
+    expect(framesLookMultiValue([ohlcFrame()])).toBe(true);
+  });
+
+  it('detects candlestick case-insensitively', () => {
+    expect(resolveMultiValueSeriesType([ohlcFrame(['Open', 'HIGH', 'Low', 'Close'])])).toBe('candlestick');
+  });
+
+  it('detects boxplot from a five-number summary (categorical, no time field)', () => {
+    const frame = toDataFrame({
+      fields: [
+        { name: 'category', type: FieldType.string, values: ['a', 'b'] },
+        { name: 'min', type: FieldType.number, values: [1, 2] },
+        { name: 'q1', type: FieldType.number, values: [3, 4] },
+        { name: 'median', type: FieldType.number, values: [5, 6] },
+        { name: 'q3', type: FieldType.number, values: [7, 8] },
+        { name: 'max', type: FieldType.number, values: [9, 10] },
+      ],
+    });
+
+    expect(resolveMultiValueSeriesType([frame])).toBe('boxplot');
+    expect(framesLookMultiValue([frame])).toBe(true);
+  });
+
+  it('does not treat a plain multi-series numeric frame as multi-value (name-based, not count-based)', () => {
+    const frame = toDataFrame({
+      fields: [
+        { name: 'time', type: FieldType.time, values: [0, 1] },
+        { name: 'cpu', type: FieldType.number, values: [1, 2] },
+        { name: 'mem', type: FieldType.number, values: [3, 4] },
+        { name: 'net', type: FieldType.number, values: [5, 6] },
+        { name: 'disk', type: FieldType.number, values: [7, 8] },
+        { name: 'io', type: FieldType.number, values: [9, 10] },
+      ],
+    });
+
+    expect(resolveMultiValueSeriesType([frame])).toBeUndefined();
+    expect(framesLookMultiValue([frame])).toBe(false);
+  });
+
+  it('returns undefined when no frame has a numeric field', () => {
+    const frame = toDataFrame({ fields: [{ name: 'category', type: FieldType.string, values: ['a'] }] });
+
+    expect(resolveMultiValueSeriesType([frame])).toBeUndefined();
   });
 });

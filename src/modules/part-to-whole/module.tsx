@@ -2,14 +2,14 @@ import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/dat
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { type EChartsFieldConfig } from 'editor/types';
-import { LazyPanel } from 'lib/components/LazyPanel';
+import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
 import { partToWholeSuggestionsSupplier } from './suggestions';
 
 // Part-to-whole family panel: pie built from the categorical model
 // (one value per category). The family is fixed to `pie`; the shared Panel
 // resolves the pie chart module. funnel/gauge render types are roadmap.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('part-to-whole'))
   .useFieldConfig({
     standardOptions: {
       [FieldConfigProperty.Color]: {

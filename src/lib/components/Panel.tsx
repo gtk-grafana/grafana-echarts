@@ -2,15 +2,14 @@ import { type FieldConfigSource, type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import {
   PanelContextProvider,
-  type SeriesVisibilityChangeMode,
   SeriesVisibilityChangeBehavior,
+  type SeriesVisibilityChangeMode,
   usePanelContext,
   useTheme2,
   VizLayout,
   VizLegend,
 } from '@grafana/ui';
 import { seriesTypePath } from 'editor/constants';
-import { isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
@@ -19,8 +18,13 @@ import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useCallback, useMemo } from 'react';
 import { type PanelOptions } from 'types';
 import { EChart } from './EChart';
+import { isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
+import { type ChartFamily, resolveSeriesType } from 'lib/echarts/charts/autoSeriesType';
 
-interface Props extends PanelProps<PanelOptions> {}
+interface Props extends PanelProps<PanelOptions> {
+  /** The nested plugin's chart family, used to resolve an `'Auto'` series type. */
+  family: ChartFamily;
+}
 
 // `PanelProps` types `onFieldConfigChange` with a single argument, but the
 // runtime implementation (scenes `VizPanel.onFieldConfigChange`) takes a second
@@ -32,6 +36,7 @@ interface Props extends PanelProps<PanelOptions> {}
 type FieldConfigChangeHandler = (config: FieldConfigSource, replace?: boolean) => void;
 
 export const Panel: React.FC<Props> = ({
+  family,
   options,
   data,
   width,
@@ -46,7 +51,15 @@ export const Panel: React.FC<Props> = ({
 }) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
-  const seriesType = options[seriesTypePath];
+  // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel).
+  // Resolve it to a concrete type once — from the data and scoped to this panel's
+  // family — so both the chart module and the ChartContext below see a real
+  // series type (downstream axis/build code throws on a non-concrete one).
+  const rawSeriesType = options[seriesTypePath];
+  const seriesType = useMemo(
+    () => resolveSeriesType(rawSeriesType, data.series, family),
+    [rawSeriesType, data.series, family]
+  );
 
   const chartModule = useMemo(() => resolveChartModule(seriesType), [seriesType]);
 

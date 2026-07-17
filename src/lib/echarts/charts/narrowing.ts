@@ -13,6 +13,7 @@ import {
   type HeatmapSeriesType,
   type MultiValueSeriesType,
   type SeriesType,
+  type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
@@ -30,8 +31,10 @@ export function isTimeAxisSupportedForSeriesType(type: SeriesType): type is Time
   return supportsTimeAxisSeriesTypes.some((t) => t === type);
 }
 
-// Single value cartesian like line, bar, scatter
-export function isCartesianSingleValueSeriesType(type: SeriesType): type is CartesianSingleValueSeriesType {
+// Single value cartesian like line, bar, scatter. Accepts the wider
+// `SeriesTypeOption` so callers holding a per-field override (which may be the
+// `'Auto'` sentinel) can narrow directly; `'Auto'` simply never matches.
+export function isCartesianSingleValueSeriesType(type: SeriesTypeOption): type is CartesianSingleValueSeriesType {
   return cartesianTimeSeriesTypes.some((t) => t === type);
 }
 

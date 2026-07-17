@@ -2,7 +2,7 @@ import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/dat
 import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { type EChartsFieldConfig } from 'editor/types';
-import { LazyPanel } from 'lib/components/LazyPanel';
+import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
 import { multivariateSuggestionsSupplier } from './suggestions';
 
@@ -10,7 +10,7 @@ import { multivariateSuggestionsSupplier } from './suggestions';
 // (categories -> indicators, series -> polygons). The family is fixed to
 // `radar`; the shared Panel resolves the radar chart module. parallel is
 // roadmap.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('multivariate'))
   .useFieldConfig({
     standardOptions: {
       [FieldConfigProperty.Color]: {

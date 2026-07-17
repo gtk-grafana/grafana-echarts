@@ -26,14 +26,15 @@ export const supportedChartSeriesTypes: SeriesType[] = [
 ];
 
 /**
- * Resolve the chart module for the active series type.
+ * Resolve the chart module for a concrete series type.
  *
- * Each nested panel fixes its own family via `seriesType`, so routing keys off
- * that identity alone: only the heatmap panel (`seriesType === 'heatmap'`) uses
- * the composite heatmap module. Heatmap-tagged frames no longer force any panel
- * into heatmap rendering — that data-driven detection now lives in each panel's
- * Visualization Suggestions supplier, keeping cross-family mixing (heatmap +
- * line) contained to the composite heatmap panel that owns both layers.
+ * Routing keys off the (already-resolved) series type alone: each nested panel
+ * fixes its own family, and `'Auto'`/unset values are resolved to a concrete
+ * type upstream — scoped to the panel's family — before they reach here (see
+ * `resolveSeriesType`/`resolveAutoSeriesType`). Only the heatmap panel
+ * (`seriesType === 'heatmap'`) uses the composite heatmap module; heatmap-tagged
+ * frames no longer force any other panel into heatmap rendering (that data-driven
+ * detection lives in each panel's Visualization Suggestions supplier).
  */
 export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (seriesType === 'heatmap') {
