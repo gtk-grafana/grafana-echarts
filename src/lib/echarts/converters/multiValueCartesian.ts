@@ -5,6 +5,7 @@ import { type ChartContext, type MultiValueCartesianOption } from 'lib/echarts/c
 import { findCategoricalFrame, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { getSeriesColor } from 'lib/echarts/style';
+import { getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 import { filterUnsupportedFields } from 'lib/grafana/filtering';
 import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
@@ -227,6 +228,15 @@ export function multiValueCartesianToEChartsOption(
       : buildBoxplot(frame, theme, rows, zlevel);
   if (!built) {
     return null;
+  }
+
+  // The single series maps to one legend item by name (not to a Grafana field),
+  // so honor a fixed-color override read by name here. This colors both the
+  // chart and the legend (which reads `itemStyle.color`). Visibility is applied
+  // in `buildMultiValueOption` so the legend keeps the item to toggle it back.
+  const colorOverride = getSeriesColorOverride(ctx.fieldConfig, String(built.name ?? ''));
+  if (colorOverride) {
+    built.itemStyle = { ...built.itemStyle, color: colorOverride };
   }
 
   return { categories: resolveMultiValueCategories(frame, rows), series: [built] };

@@ -71,6 +71,7 @@ const makeContext = (
   } as PanelOptions,
   seriesType: 'heatmap',
   formatValue,
+  fieldConfig: { defaults: {}, overrides: [] },
 });
 
 // Heatmap-rows cell frame: bucket-per-field over time (see heatmap converter).

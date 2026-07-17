@@ -56,6 +56,7 @@ describe('cartesianChartModule threshold overlays', () => {
     options: { [seriesTypePath]: 'line' } as PanelOptions,
     seriesType: 'line',
     formatValue,
+    fieldConfig: { defaults: {}, overrides: [] },
   });
 
   const seriesArray = (result: unknown): Array<Record<string, unknown>> => {
@@ -126,6 +127,7 @@ describe('cartesianChartModule axis Min/Max', () => {
       options: { [seriesTypePath]: seriesType } as PanelOptions,
       seriesType,
       formatValue,
+      fieldConfig: { defaults: {}, overrides: [] },
     }) as ChartContext;
 
   const firstYAxis = (result: unknown): Record<string, unknown> => {

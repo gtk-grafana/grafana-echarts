@@ -29,6 +29,7 @@ const makeContext = (
   options: { [seriesTypePath]: seriesType, stackSeries } as PanelOptions,
   seriesType,
   formatValue,
+  fieldConfig: { defaults: {}, overrides: [] },
 });
 
 /** Run the converter, normalizing the ECharts `Arrayable` series into an array. */
@@ -120,11 +121,16 @@ describe('categoryCartesianToEChartsOption', () => {
     });
   });
 
-  it('throws when no frame has a numeric field', () => {
+  it('keeps the category axis with no series when every series is hidden', () => {
+    // Hiding all series strips the numeric value fields, leaving only the
+    // category (string) field. The axis should still render its labels.
     const frame = toDataFrame({
       fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }],
     });
 
-    expect(() => run([frame], 'bar')).toThrow();
+    const result = run([frame], 'bar');
+
+    expect(result.categories).toEqual(['a', 'b']);
+    expect(result.series).toEqual([]);
   });
 });

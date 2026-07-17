@@ -51,7 +51,7 @@ export function getOverlayFrames(ctx: ChartContext): DataFrame[] {
  * binned heatmap cells are represented by the ECharts visualMap.
  */
 export function buildBinnedHeatmapLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[] {
-  return buildTimeSeriesLegendItems(getOverlayFrames(ctx), ctx.theme, calcs, ctx.timeZone);
+  return buildTimeSeriesLegendItems(getOverlayFrames(ctx), ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
 }
 
 /**
@@ -65,16 +65,22 @@ export function buildBinnedHeatmapOption(
 ): EChartBinnedHeatmapOption | null {
   const { theme, options, seriesType, formatValue, timeZone } = ctx;
   const placement = options.heatmapColorScale?.placement ?? 'right';
-  const { overlayFrames, heatmap } = splitFrames(ctx);
+  const { overlayFrames, heatmapSourceFrames, heatmap } = splitFrames(ctx);
   const cartSeries = timeSeriesToEChartsOption({ ...ctx, seriesType, frames: overlayFrames }) ?? [];
 
-  // no heatmap frames: show empty panel
+  const axisStyle = getCartesianAxisStyle(theme);
+
   if (heatmap === null) {
     debug('Binned heatmap has empty frame', LOG_LEVELS.info);
-    return null;
+    // No heatmap source frames at all: genuinely empty panel (skip the layer).
+    if (heatmapSourceFrames.length === 0) {
+      return null;
+    }
+    // Source frames present but no cells means every series was hidden via the
+    // legend (its numeric fields are stripped). Keep the axes and render an empty
+    // plot (matches core Grafana), mirroring the cartesian family.
+    return buildEmptyBinnedHeatmapOption(ctx, axisStyle, isGrafanaLegend, placement);
   }
-
-  const axisStyle = getCartesianAxisStyle(theme);
 
   // Overlay value axes: one per distinct unit, honoring per-field Left/Right/Hidden
   // placement (see `buildCartesianYAxes`). They default to the right (`autoSide`)
@@ -122,6 +128,37 @@ export function buildBinnedHeatmapOption(
       scheme: options.heatmapColorScheme,
       formatDisplayValue,
     }),
+  };
+}
+
+/**
+ * The binned heatmap with every series hidden: keep a time x-axis (anchored to
+ * the dashboard range) and a plain value y-axis, but draw no cells, overlays, or
+ * visualMap. Mirrors the empty-plot behavior of the cartesian family
+ * (see `buildTimeOption`).
+ */
+function buildEmptyBinnedHeatmapOption(
+  ctx: ChartContext<HeatmapSeriesType>,
+  axisStyle: CartesianAxisOption | TimeAxisBaseOption,
+  isGrafanaLegend: boolean,
+  placement: HeatmapColorScalePlacement
+): EChartBinnedHeatmapOption {
+  const { options, timeRange, timeZone } = ctx;
+
+  const xAxis = mergeAxisStyle<XAXisOption>(cartesianTimeDefaultOptions.xAxis, axisStyle, {
+    ...getTimeAxisBounds(timeRange),
+    axisLabel: { formatter: getTimeAxisLabelFormatter(timeRange, timeZone) },
+  });
+  const yAxis = mergeAxisStyle<YAXisOption>(cartesianTimeDefaultOptions.yAxis, axisStyle, {
+    zlevel: options.zLevel?.axis,
+  });
+
+  return {
+    ...cartesianTimeDefaultOptions,
+    grid: getHeatmapGrid(placement, isGrafanaLegend ? undefined : options.legend),
+    xAxis,
+    yAxis,
+    series: [],
   };
 }
 
@@ -210,5 +247,5 @@ function splitFrames(ctx: ChartContext) {
   // returns null when there are no frames, otherwise throw
   const heatmap = frameToBinnedHeatmap(heatmapSourceFrames, ctx.frames);
 
-  return { overlayFrames, heatmap };
+  return { overlayFrames, heatmapSourceFrames, heatmap };
 }

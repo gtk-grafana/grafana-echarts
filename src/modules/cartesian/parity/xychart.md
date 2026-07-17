@@ -18,14 +18,14 @@ other cartesian render types; it has no X/Y field-mapping editor.
 
 ## Panel options
 
-| Core Grafana option                            | ECharts equivalent                        | Status        |
-| ---------------------------------------------- | ----------------------------------------- | ------------- |
-| Series mapping (auto/manual)                   | none (fields plotted vs time/first field) | Not supported |
-| Series editor (per-series X/Y/size/color/name) | none                                      | Not supported |
-| Point size / size field                        | none                                      | Not supported |
-| Color by field                                 | none (Color field config)                 | Partial       |
-| Tooltip: mode                                  | `tooltip.mode`                            | Supported     |
-| Legend                                         | Grafana legend via `addLegendOptions`     | Supported     |
+| Core Grafana option                            | ECharts equivalent                                                                                     | Status        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------- |
+| Series mapping (auto/manual)                   | none (fields plotted vs time/first field)                                                              | Not supported |
+| Series editor (per-series X/Y/size/color/name) | none                                                                                                   | Not supported |
+| Point size / size field                        | none                                                                                                   | Not supported |
+| Color by field                                 | none (Color field config)                                                                              | Partial       |
+| Tooltip: mode                                  | `tooltip.mode`                                                                                         | Supported     |
+| Legend                                         | Grafana legend via `addLegendOptions`; interactive show/hide + color persist as field-config overrides | Supported     |
 
 ## Standard (field-config) options
 
@@ -47,20 +47,20 @@ High-level [ECharts option](https://echarts.apache.org/en/option.html) component
 used by this render path. See [echarts.ts](../../../lib/echarts/echarts.ts) for
 the registered runtime surface.
 
-| ECharts API                                                                                    | Status          | Notes                                                                                    |
-| ---------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------- |
-| `series` (scatter / effectScatter)                                                             | Supported       | `seriesType: scatter` / `effectScatter`; no `dataset` / `encode` X/Y field mapping.      |
-| `grid`                                                                                         | Supported       | Single cartesian grid; spacing adapts to stacked y-axes and legend.                      |
-| `xAxis` / `yAxis`                                                                              | Supported       | X follows the data (time or category); one y-axis per field unit.                        |
-| `tooltip`                                                                                      | Supported       | Grafana-styled; mode maps to `trigger` (item / axis / none).                             |
-| `axisPointer`                                                                                  | Partial         | Crosshair via `tooltip.axisPointer`; shared on the time axis, per-item on category axes. |
-| `brush`                                                                                        | Partial         | `lineX` drag maps to the dashboard time range; time axis only.                           |
-| `markLine` / `markArea`                                                                        | Supported       | Threshold lines / regions on the shared value axis.                                      |
-| `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden.                           |
-| `animation`                                                                                    | Supported       | ECharts defaults (enabled).                                                              |
-| `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                                          |
-| `visualMap`                                                                                    | Not implemented | Registered for the heatmap family only.                                                  |
-| `dataZoom`                                                                                     | Not implemented | Range zoom is delegated to `brush` -> dashboard time range.                              |
-| `dataset`                                                                                      | Not implemented | No `dataset` / `encode` X/Y mapping; fields plot vs time/first field.                    |
-| `toolbox` / `title` / `graphic` / `timeline` / `aria`                                          | Not implemented | Not registered.                                                                          |
-| Other coordinate systems (`polar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | Cartesian `grid` only.                                                                   |
+| ECharts API                                                                                    | Status          | Notes                                                                                                                           |
+| ---------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `series` (scatter / effectScatter)                                                             | Supported       | `seriesType: scatter` / `effectScatter`; no `dataset` / `encode` X/Y field mapping.                                             |
+| `grid`                                                                                         | Supported       | Single cartesian grid; spacing adapts to stacked y-axes and legend.                                                             |
+| `xAxis` / `yAxis`                                                                              | Supported       | X follows the data (time or category); one y-axis per field unit.                                                               |
+| `tooltip`                                                                                      | Supported       | Grafana-styled; mode maps to `trigger` (item / axis / none).                                                                    |
+| `axisPointer`                                                                                  | Partial         | Crosshair via `tooltip.axisPointer`; shared on the time axis, per-item on category axes.                                        |
+| `brush`                                                                                        | Partial         | `lineX` drag maps to the dashboard time range; time axis only.                                                                  |
+| `markLine` / `markArea`                                                                        | Supported       | Threshold lines / regions on the shared value axis.                                                                             |
+| `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive show/hide + color persist as field-config overrides. |
+| `animation`                                                                                    | Supported       | ECharts defaults (enabled).                                                                                                     |
+| `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                                                                                 |
+| `visualMap`                                                                                    | Not implemented | Registered for the heatmap family only.                                                                                         |
+| `dataZoom`                                                                                     | Not implemented | Range zoom is delegated to `brush` -> dashboard time range.                                                                     |
+| `dataset`                                                                                      | Not implemented | No `dataset` / `encode` X/Y mapping; fields plot vs time/first field.                                                           |
+| `toolbox` / `title` / `graphic` / `timeline` / `aria`                                          | Not implemented | Not registered.                                                                                                                 |
+| Other coordinate systems (`polar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | Cartesian `grid` only.                                                                                                          |

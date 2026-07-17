@@ -102,6 +102,13 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
           options: getGraphFieldOptions().thresholdsDisplayModes,
         },
       });
+
+      // Register the standard `custom.hideFrom` field config ("Hide in area"
+      // switches). Required so the legend visibility toggle's `byName` override
+      // is applied by Grafana's field-override engine (unregistered override
+      // properties are skipped); the chart then strips fields flagged
+      // `hideFrom.viz`. See `lib/grafana/fields/seriesConfig.ts`.
+      commonOptionsBuilder.addHideFrom(builder);
     },
   })
   .setPanelOptions((builder) => {
