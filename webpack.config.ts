@@ -53,7 +53,7 @@ const config = async (env: Env): Promise<Configuration> => {
     }),
     // Enabled via `pnpm run build:analyze` (passes `--env analyze`). Writes a
     // static report so the build stays non-interactive and CI-friendly.
-    ...(env.analyze ? [new BundleAnalyzerPlugin()] : []),
+    ...(env.analyze ? [new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false })] : []),
   ];
 
   return base;

@@ -54,3 +54,4 @@ ci/
 provisioning/dashboards/local/*
 !provisioning/dashboards/local/.gitkeep
 .cursor/plans/local
+.air
