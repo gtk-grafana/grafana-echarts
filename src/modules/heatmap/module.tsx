@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { cartesianOverrideOptions, heatmapLegendCategoryName, seriesCategoryName } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
-import { LazyPanel } from 'lib/components/LazyPanel';
+import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { heatmapColorSchemeDefault, heatmapLayoutDefault } from 'lib/echarts/options/constants';
 import { heatmapColorSchemeOptions, heatmapLayoutOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
@@ -17,7 +17,7 @@ import { heatmapSuggestionsSupplier } from './suggestions';
 // is allowed: a numeric frame whose field is overridden to a cartesian type
 // (line/bar/scatter) via the per-field override below is drawn as a cartesian
 // overlay on top of the heatmap cells (see `frameHasCartesianOverride`).
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('heatmap'))
   .useFieldConfig({
     standardOptions: {
       [FieldConfigProperty.Color]: {
@@ -40,6 +40,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         path: 'seriesType',
         name: 'Series type',
         description: 'Draw matching fields as a cartesian overlay on the heatmap (cartesian types only).',
+        hideFromDefaults: true,
         settings: {
           options: cartesianOverrideOptions,
           allowCustomValue: false,

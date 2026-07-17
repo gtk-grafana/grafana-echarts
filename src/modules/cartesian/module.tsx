@@ -1,8 +1,10 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectFieldConfigSettings } from '@grafana/data';
 import { GraphThresholdsStyleMode, TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder, getGraphFieldOptions } from '@grafana/ui';
 import {
-  cartesianOverrideOptions,
+  cartesianOverrideOptionsWithAuto,
+  cartesianSeriesTypeOptionsWithAuto,
+  multiValueSeriesTypeOptionsWithAuto,
   seriesTypePath,
   stackSeriesName,
   stackSeriesPath,
@@ -10,8 +12,9 @@ import {
   thresholdsStyleModeName,
   thresholdsStyleModePath,
 } from 'editor/constants';
-import { type EChartsGraphFieldConfig } from 'editor/types';
-import { LazyPanel } from 'lib/components/LazyPanel';
+import { type EChartsGraphFieldConfig, type SeriesTypeOption } from 'editor/types';
+import { makeLazyPanel } from 'lib/components/LazyPanel';
+import { framesLookMultiValue } from 'lib/echarts/converters/multiValueCartesian';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
 
@@ -24,7 +27,7 @@ import { cartesianSuggestionsSupplier } from './suggestions';
 // per-field override below (e.g. one field as `bar`, others as `line`).
 // Cross-family mixing (e.g. heatmap + line) is reserved for the composite
 // heatmap panel, so heatmap frames never route here.
-export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(LazyPanel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(makeLazyPanel('cartesian'))
   // Standard field config options (Color scheme, Unit, Decimals, Min, Max,
   // Display name, No value, Thresholds, Value mappings, Data links). Grafana
   // includes the full set by default and applies them to every field in
@@ -47,13 +50,14 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
     // types, e.g. drawing one field as `bar` and another as `line`. Unset
     // fields fall back to the panel-level series type.
     useCustomConfig: (builder) => {
-      builder.addSelect({
+      builder.addSelect<SeriesTypeOption, SelectFieldConfigSettings<SeriesTypeOption>>({
         path: seriesTypePath,
         defaultValue: 'Auto',
         name: 'Series type',
         description: 'Sets series renderer (bar, line, scatter)',
+        hideFromDefaults: true,
         settings: {
-          options: cartesianOverrideOptions,
+          options: cartesianOverrideOptionsWithAuto,
           allowCustomValue: false,
           isClearable: true,
         },
@@ -108,6 +112,30 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
     },
   })
   .setPanelOptions((builder) => {
+    // Panel-level series type: the base render type applied to every field (the
+    // per-field override above can still switch individual single-value fields).
+    // 'Auto' resolves the best type from the data (see `resolveAutoSeriesType`).
+    // Options are data-aware: when the frames are shaped for a multi-value type
+    // (candlestick OHLC / boxplot five-number summary) only candlestick/boxplot
+    // are offered; otherwise the single-value render types. This is the only
+    // control that writes the panel-level `options.seriesType`, so it also lets a
+    // provisioned candlestick/boxplot panel switch to another cartesian type.
+    builder.addSelect<SeriesTypeOption, SelectFieldConfigSettings<SeriesTypeOption>>({
+      path: seriesTypePath,
+      name: 'Series type',
+      description: 'Base render type for the panel. Auto picks the best fit from the data.',
+      defaultValue: 'Auto',
+
+      settings: {
+        options: cartesianSeriesTypeOptionsWithAuto,
+        getOptions: (context) =>
+          Promise.resolve(
+            framesLookMultiValue(context.data) ? multiValueSeriesTypeOptionsWithAuto : cartesianOverrideOptionsWithAuto
+          ),
+        allowCustomValue: false,
+      },
+    });
+
     // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,
     // Width, Limit, Values), registered in their own category.
     commonOptionsBuilder.addLegendOptions(builder);
