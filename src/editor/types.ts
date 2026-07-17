@@ -36,6 +36,15 @@ export type MultiValueSeriesType = Extract<SeriesType, 'candlestick' | 'boxplot'
 export type HeatmapSeriesType = Extract<SeriesType, 'heatmap'>;
 
 /**
+ * Series-type *selection* value: the concrete `SeriesType` plus the `'Auto'`
+ * sentinel. `'Auto'` defers the concrete type to the panel-level auto-resolver
+ * (`resolveAutoSeriesType`, which inspects the frame data) or, as a per-field
+ * override, to the panel-level fallback. Kept separate so the base `SeriesType`
+ * stays limited to real ECharts series types.
+ */
+export type SeriesTypeOption = SeriesType | 'Auto';
+
+/**
  * Per-field custom field config, registered via `useFieldConfig`'s
  * `useCustomConfig`. It lets a Grafana field override (by name, regex, type or
  * query) set the ECharts series type for matching fields, so a single panel can
@@ -43,7 +52,7 @@ export type HeatmapSeriesType = Extract<SeriesType, 'heatmap'>;
  * honored for cartesian types; the panel-level `seriesType` is the fallback.
  */
 export interface EChartsFieldConfig {
-  seriesType?: SeriesType;
+  seriesType?: SeriesTypeOption;
   // Per-field override for stacking, honored only when the field renders as
   // `bar`. Overrides the panel-level `stackSeries` default.
   stackSeries?: boolean;

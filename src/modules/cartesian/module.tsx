@@ -1,8 +1,8 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
+import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectFieldConfigSettings } from '@grafana/data';
 import { GraphThresholdsStyleMode, TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder, getGraphFieldOptions } from '@grafana/ui';
 import {
-  cartesianOverrideOptions,
+  cartesianOverrideOptionsWithAuto,
   seriesTypePath,
   stackSeriesName,
   stackSeriesPath,
@@ -10,7 +10,7 @@ import {
   thresholdsStyleModeName,
   thresholdsStyleModePath,
 } from 'editor/constants';
-import { type EChartsGraphFieldConfig } from 'editor/types';
+import { type EChartsGraphFieldConfig, type SeriesTypeOption } from 'editor/types';
 import { LazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
@@ -47,13 +47,13 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(Laz
     // types, e.g. drawing one field as `bar` and another as `line`. Unset
     // fields fall back to the panel-level series type.
     useCustomConfig: (builder) => {
-      builder.addSelect({
+      builder.addSelect<SeriesTypeOption, SelectFieldConfigSettings<SeriesTypeOption>>({
         path: seriesTypePath,
         defaultValue: 'Auto',
         name: 'Series type',
         description: 'Sets series renderer (bar, line, scatter)',
         settings: {
-          options: cartesianOverrideOptions,
+          options: cartesianOverrideOptionsWithAuto,
           allowCustomValue: false,
           isClearable: true,
         },

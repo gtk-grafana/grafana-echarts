@@ -9,7 +9,7 @@ import {
   VizLegend,
 } from '@grafana/ui';
 import { seriesTypePath } from 'editor/constants';
-import { resolveChartModule } from 'lib/echarts/charts/registry';
+import { resolveChartModule, resolveSeriesType } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
@@ -33,9 +33,14 @@ export const Panel: React.FC<Props> = ({
 }) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
-  const seriesType = options[seriesTypePath];
+  // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel
+  // that never went through a suggestion); resolve it to a concrete type once,
+  // from the data, so both the chart module and the ChartContext below see a
+  // real series type (downstream axis/build code throws on a non-concrete one).
+  const rawSeriesType = options[seriesTypePath];
+  const seriesType = useMemo(() => resolveSeriesType(rawSeriesType, data.series), [rawSeriesType, data.series]);
 
-  const chartModule = useMemo(() => resolveChartModule(seriesType), [seriesType]);
+  const chartModule = useMemo(() => resolveChartModule(seriesType, data.series), [seriesType, data.series]);
 
   const resolvedLegend = useMemo(() => resolveLegendOptions(chartModule, options), [chartModule, options]);
 

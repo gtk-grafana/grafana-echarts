@@ -25,7 +25,10 @@ export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
  * @todo we probably want to build options around echarts API instead of using Grafana's
  */
 export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig {
-  [seriesTypePath]: SeriesType;
+  // Optional: never set by an options editor. It is populated by a Visualization
+  // Suggestion or persisted dashboard JSON, and is `undefined` on a freshly
+  // added panel — which `resolveSeriesType`/`resolveChartModule` treat as `'Auto'`.
+  [seriesTypePath]?: SeriesType;
   tooltip?: { mode: TooltipDisplayMode };
   heatmapColorScheme?: HeatmapColorScheme;
 

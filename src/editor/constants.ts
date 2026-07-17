@@ -6,6 +6,7 @@ import {
   type HeatmapSeriesType,
   type MultiValueSeriesType,
   type SeriesType,
+  type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
@@ -117,6 +118,17 @@ export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cart
   value: type,
   label: type,
 }));
+/**
+ * Per-field override options for the cartesian family, prefixed with the
+ * `'Auto'` default. `'Auto'` is not a real series type: it defers to the
+ * panel-level series type (see `resolveFieldSeriesType`). Kept separate from
+ * `cartesianOverrideOptions` because the heatmap panel reuses the plain list and
+ * has no `'Auto'` default.
+ */
+export const cartesianOverrideOptionsWithAuto: Array<SelectableValue<SeriesTypeOption>> = [
+  { value: 'Auto', label: 'Auto' },
+  ...cartesianOverrideOptions,
+];
 /**
  * Grafana dataplane frame types that carry a heatmap. A frame tagged with one
  * of these (`frame.meta.type`) is rendered as the custom-series heatmap cell
