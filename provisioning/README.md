@@ -28,6 +28,9 @@ transform.
 - **`pie-labels.json`** — the "Labels" option (Grafana Pie chart parity): eight
   panels over the same data, one per combination of the Name / Value / Percent
   slice-label content.
+- **`pie-sort.json`** — the "Slice sorting" option (Grafana Pie chart parity):
+  Descending / Ascending / None over the same data, with Name + Value labels so
+  the slice order is visible.
 
 The `legend-visibility-color.json` pie panel is converted the same way: a Rows to
 fields transform reshapes its long CSV to wide, and it keeps its byName-color

@@ -1,5 +1,6 @@
 import { type ReduceDataOptions } from '@grafana/data';
-import { TooltipDisplayMode } from '@grafana/schema';
+import { type SortOrder, TooltipDisplayMode } from '@grafana/schema';
+import { PIE_SORT_DEFAULT } from 'editor/constants';
 import { resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
@@ -10,6 +11,7 @@ import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
 import { type ChartContext, type ChartModule, type EChartPieDataItem, type EChartPieSeriesOption } from './types';
 
 const resolveReduceOptions = (ctx: ChartContext): ReduceDataOptions | undefined => ctx.options.reduceOptions;
+const resolveSort = (ctx: ChartContext): SortOrder => ctx.options.sort ?? PIE_SORT_DEFAULT;
 
 export const pieChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
@@ -29,7 +31,8 @@ export const pieChartModule: ChartModule = {
       ctx.fieldConfig,
       resolveReduceOptions(ctx),
       ctx.replaceVariables,
-      ctx.timeZone
+      ctx.timeZone,
+      resolveSort(ctx)
     ).filter((slice) => !slice.hidden);
     const formatters = visible.map((slice) => getValueFormatter(slice.field, ctx.theme, ctx.timeZone));
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
@@ -43,7 +46,8 @@ export const pieChartModule: ChartModule = {
       ctx.fieldConfig,
       resolveReduceOptions(ctx),
       ctx.replaceVariables,
-      ctx.timeZone
+      ctx.timeZone,
+      resolveSort(ctx)
     );
 
     // No numeric-like field at all → no usable data. (Distinct from "all slices
@@ -104,7 +108,8 @@ export const pieChartModule: ChartModule = {
       ctx.fieldConfig,
       resolveReduceOptions(ctx),
       ctx.replaceVariables,
-      ctx.timeZone
+      ctx.timeZone,
+      resolveSort(ctx)
     );
   },
 };

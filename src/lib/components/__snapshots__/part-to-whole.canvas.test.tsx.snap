@@ -49,7 +49,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "value": "#000004",
+      "value": "#fcffa4",
     },
     "type": "strokeStyle",
   },
@@ -83,22 +83,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 213.87569673164526,
-      "y": 33.49240941660905,
+      "x": 296.50759058339094,
+      "y": 116.12430326835468,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 216.01041930574453,
-      "y": 18.64508778839506,
+      "x": 311.3549122116049,
+      "y": 113.9895806942554,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 246.01041930574453,
-      "y": 18.64508778839506,
+      "x": 341.3549122116049,
+      "y": 113.9895806942554,
     },
     "type": "lineTo",
   },
@@ -111,85 +111,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 213.87569673164526,
-            "y": 33.49240941660905,
+            "x": 296.50759058339094,
+            "y": 116.12430326835468,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 216.01041930574453,
-            "y": 18.64508778839506,
+            "x": 311.3549122116049,
+            "y": 113.9895806942554,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 246.01041930574453,
-            "y": 18.64508778839506,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#781c6d",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 273.68558349954014,
-      "y": 66.15107844033466,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 285.02182711485403,
-      "y": 56.32816743115537,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 315.02182711485403,
-      "y": 56.32816743115537,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 273.68558349954014,
-            "y": 66.15107844033466,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 285.02182711485403,
-            "y": 56.32816743115537,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 315.02182711485403,
-            "y": 56.32816743115537,
+            "x": 341.3549122116049,
+            "y": 113.9895806942554,
           },
           "type": "lineTo",
         },
@@ -209,22 +146,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 263.84892155966537,
-      "y": 203.68558349954014,
+      "x": 136.1510784403347,
+      "y": 203.68558349954017,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 273.67183256884465,
-      "y": 215.021827114854,
+      "x": 126.3281674311554,
+      "y": 215.02182711485403,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 303.67183256884465,
-      "y": 215.021827114854,
+      "x": 96.3281674311554,
+      "y": 215.02182711485403,
     },
     "type": "lineTo",
   },
@@ -237,22 +174,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 263.84892155966537,
-            "y": 203.68558349954014,
+            "x": 136.1510784403347,
+            "y": 203.68558349954017,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 273.67183256884465,
-            "y": 215.021827114854,
+            "x": 126.3281674311554,
+            "y": 215.02182711485403,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 303.67183256884465,
-            "y": 215.021827114854,
+            "x": 96.3281674311554,
+            "y": 215.02182711485403,
           },
           "type": "lineTo",
         },
@@ -262,7 +199,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "value": "#fcffa4",
+      "value": "#781c6d",
     },
     "type": "strokeStyle",
   },
@@ -272,22 +209,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 103.49240941660906,
-      "y": 116.12430326835465,
+      "x": 126.31441650045981,
+      "y": 66.1510784403347,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 88.64508778839507,
-      "y": 113.98958069425537,
+      "x": 114.97817288514594,
+      "y": 56.32816743115542,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 58.645087788395074,
-      "y": 113.98958069425537,
+      "x": 84.97817288514594,
+      "y": 56.32816743115542,
     },
     "type": "lineTo",
   },
@@ -300,22 +237,85 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 103.49240941660906,
-            "y": 116.12430326835465,
+            "x": 126.31441650045981,
+            "y": 66.1510784403347,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 88.64508778839507,
-            "y": 113.98958069425537,
+            "x": 114.97817288514594,
+            "y": 56.32816743115542,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 58.645087788395074,
-            "y": 113.98958069425537,
+            "x": 84.97817288514594,
+            "y": 56.32816743115542,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#000004",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 186.12430326835477,
+      "y": 33.49240941660905,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 183.9895806942555,
+      "y": 18.64508778839506,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 153.9895806942555,
+      "y": 18.64508778839506,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 186.12430326835477,
+            "y": 33.49240941660905,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 183.9895806942555,
+            "y": 18.64508778839506,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 153.9895806942555,
+            "y": 18.64508778839506,
           },
           "type": "lineTo",
         },
@@ -331,7 +331,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "value": "#000004",
+      "value": "#fcffa4",
     },
     "type": "fillStyle",
   },
@@ -355,7 +355,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.997988312529216,
+      "endAngle": 7.568382301829956,
       "radius": 97.5,
       "startAngle": 4.71238898038469,
       "x": 200,
@@ -392,89 +392,9 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.997988312529216,
+            "endAngle": 7.568382301829956,
             "radius": 97.5,
             "startAngle": 4.71238898038469,
-            "x": 200,
-            "y": 130,
-          },
-          "type": "arc",
-        },
-        {
-          "props": {
-            "x": 200,
-            "y": 130,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {},
-          "type": "closePath",
-        },
-      ],
-    },
-    "type": "fill",
-  },
-  {
-    "props": {
-      "value": "#781c6d",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 227.46892429203936,
-      "y": 36.449435072586496,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "anticlockwise": false,
-      "endAngle": 6.14038563825133,
-      "radius": 97.5,
-      "startAngle": 4.997988309673223,
-      "x": 200,
-      "y": 130,
-    },
-    "type": "arc",
-  },
-  {
-    "props": {
-      "x": 200,
-      "y": 130,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {},
-    "type": "closePath",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 227.46892429203936,
-            "y": 36.449435072586496,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "anticlockwise": false,
-            "endAngle": 6.14038563825133,
-            "radius": 97.5,
-            "startAngle": 4.997988309673223,
             "x": 200,
             "y": 130,
           },
@@ -507,17 +427,17 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 296.50759058339094,
-      "y": 116.12430326835468,
+      "x": 227.46892429203942,
+      "y": 223.5505649274135,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 8.139580951839044,
+      "endAngle": 3.284392322518051,
       "radius": 97.5,
-      "startAngle": 6.1403856268273564,
+      "startAngle": 1.285196997506364,
       "x": 200,
       "y": 130,
     },
@@ -544,17 +464,17 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 296.50759058339094,
-            "y": 116.12430326835468,
+            "x": 227.46892429203942,
+            "y": 223.5505649274135,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 8.139580951839044,
+            "endAngle": 3.284392322518051,
             "radius": 97.5,
-            "startAngle": 6.1403856268273564,
+            "startAngle": 1.285196997506364,
             "x": 200,
             "y": 130,
           },
@@ -577,7 +497,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "value": "#fcffa4",
+      "value": "#781c6d",
     },
     "type": "fillStyle",
   },
@@ -587,17 +507,17 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 172.53107570796064,
-      "y": 223.55056492741352,
+      "x": 103.49240941660906,
+      "y": 116.12430326835465,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.712388977528696,
+      "endAngle": 4.426789662520129,
       "radius": 97.5,
-      "startAngle": 1.8563956560834292,
+      "startAngle": 3.2843923339420233,
       "x": 200,
       "y": 130,
     },
@@ -624,17 +544,97 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 172.53107570796064,
-            "y": 223.55056492741352,
+            "x": 103.49240941660906,
+            "y": 116.12430326835465,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.712388977528696,
+            "endAngle": 4.426789662520129,
             "radius": 97.5,
-            "startAngle": 1.8563956560834292,
+            "startAngle": 3.2843923339420233,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#000004",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 172.53107570796058,
+      "y": 36.44943507258651,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.712388983240683,
+      "radius": 97.5,
+      "startAngle": 4.426789651096157,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 172.53107570796058,
+            "y": 36.44943507258651,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.712388983240683,
+            "radius": 97.5,
+            "startAngle": 4.426789651096157,
             "x": 200,
             "y": 130,
           },
@@ -661,8 +661,8 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 251.01041930574453,
-      "f": 18.64508778839506,
+      "e": 346.3549122116049,
+      "f": 113.9895806942554,
     },
     "type": "setTransform",
   },
@@ -747,7 +747,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   {
     "props": {
       "maxWidth": null,
-      "text": "Sales",
+      "text": "Ops",
       "x": 0,
       "y": 0,
     },
@@ -759,84 +759,8 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 320.02182711485403,
-      "f": 56.32816743115537,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "left",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "Admin",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 308.67183256884465,
-      "f": 215.021827114854,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "left",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "IT",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 53.645087788395074,
-      "f": 113.98958069425537,
+      "e": 91.3281674311554,
+      "f": 215.02182711485403,
     },
     "type": "setTransform",
   },
@@ -861,7 +785,83 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   {
     "props": {
       "maxWidth": null,
-      "text": "Ops",
+      "text": "IT",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 79.97817288514594,
+      "f": 56.32816743115542,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Admin",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 148.9895806942555,
+      "f": 18.64508778839506,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Sales",
       "x": 0,
       "y": 0,
     },
@@ -918,7 +918,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "value": "#000004",
+      "value": "#fcffa4",
     },
     "type": "strokeStyle",
   },
@@ -952,22 +952,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 213.87569673164526,
-      "y": 33.49240941660905,
+      "x": 296.50759058339094,
+      "y": 116.12430326835468,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 216.01041930574453,
-      "y": 18.64508778839506,
+      "x": 311.3549122116049,
+      "y": 113.9895806942554,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 246.01041930574453,
-      "y": 18.64508778839506,
+      "x": 341.3549122116049,
+      "y": 113.9895806942554,
     },
     "type": "lineTo",
   },
@@ -980,85 +980,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 213.87569673164526,
-            "y": 33.49240941660905,
+            "x": 296.50759058339094,
+            "y": 116.12430326835468,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 216.01041930574453,
-            "y": 18.64508778839506,
+            "x": 311.3549122116049,
+            "y": 113.9895806942554,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 246.01041930574453,
-            "y": 18.64508778839506,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#781c6d",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 273.68558349954014,
-      "y": 66.15107844033466,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 285.02182711485403,
-      "y": 56.32816743115537,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 315.02182711485403,
-      "y": 56.32816743115537,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 273.68558349954014,
-            "y": 66.15107844033466,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 285.02182711485403,
-            "y": 56.32816743115537,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 315.02182711485403,
-            "y": 56.32816743115537,
+            "x": 341.3549122116049,
+            "y": 113.9895806942554,
           },
           "type": "lineTo",
         },
@@ -1078,22 +1015,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 263.84892155966537,
-      "y": 203.68558349954014,
+      "x": 136.1510784403347,
+      "y": 203.68558349954017,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 273.67183256884465,
-      "y": 215.021827114854,
+      "x": 126.3281674311554,
+      "y": 215.02182711485403,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 303.67183256884465,
-      "y": 215.021827114854,
+      "x": 96.3281674311554,
+      "y": 215.02182711485403,
     },
     "type": "lineTo",
   },
@@ -1106,22 +1043,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 263.84892155966537,
-            "y": 203.68558349954014,
+            "x": 136.1510784403347,
+            "y": 203.68558349954017,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 273.67183256884465,
-            "y": 215.021827114854,
+            "x": 126.3281674311554,
+            "y": 215.02182711485403,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 303.67183256884465,
-            "y": 215.021827114854,
+            "x": 96.3281674311554,
+            "y": 215.02182711485403,
           },
           "type": "lineTo",
         },
@@ -1131,7 +1068,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "value": "#fcffa4",
+      "value": "#781c6d",
     },
     "type": "strokeStyle",
   },
@@ -1141,22 +1078,22 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 103.49240941660906,
-      "y": 116.12430326835465,
+      "x": 126.31441650045981,
+      "y": 66.1510784403347,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 88.64508778839507,
-      "y": 113.98958069425537,
+      "x": 114.97817288514594,
+      "y": 56.32816743115542,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 58.645087788395074,
-      "y": 113.98958069425537,
+      "x": 84.97817288514594,
+      "y": 56.32816743115542,
     },
     "type": "lineTo",
   },
@@ -1169,22 +1106,85 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 103.49240941660906,
-            "y": 116.12430326835465,
+            "x": 126.31441650045981,
+            "y": 66.1510784403347,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 88.64508778839507,
-            "y": 113.98958069425537,
+            "x": 114.97817288514594,
+            "y": 56.32816743115542,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 58.645087788395074,
-            "y": 113.98958069425537,
+            "x": 84.97817288514594,
+            "y": 56.32816743115542,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#000004",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 186.12430326835477,
+      "y": 33.49240941660905,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 183.9895806942555,
+      "y": 18.64508778839506,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 153.9895806942555,
+      "y": 18.64508778839506,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 186.12430326835477,
+            "y": 33.49240941660905,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 183.9895806942555,
+            "y": 18.64508778839506,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 153.9895806942555,
+            "y": 18.64508778839506,
           },
           "type": "lineTo",
         },
@@ -1200,7 +1200,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "value": "#000004",
+      "value": "#fcffa4",
     },
     "type": "fillStyle",
   },
@@ -1224,7 +1224,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.997988312529216,
+      "endAngle": 7.568382301829956,
       "radius": 97.5,
       "startAngle": 4.71238898038469,
       "x": 200,
@@ -1261,89 +1261,9 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.997988312529216,
+            "endAngle": 7.568382301829956,
             "radius": 97.5,
             "startAngle": 4.71238898038469,
-            "x": 200,
-            "y": 130,
-          },
-          "type": "arc",
-        },
-        {
-          "props": {
-            "x": 200,
-            "y": 130,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {},
-          "type": "closePath",
-        },
-      ],
-    },
-    "type": "fill",
-  },
-  {
-    "props": {
-      "value": "#781c6d",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 227.46892429203936,
-      "y": 36.449435072586496,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "anticlockwise": false,
-      "endAngle": 6.14038563825133,
-      "radius": 97.5,
-      "startAngle": 4.997988309673223,
-      "x": 200,
-      "y": 130,
-    },
-    "type": "arc",
-  },
-  {
-    "props": {
-      "x": 200,
-      "y": 130,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {},
-    "type": "closePath",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 227.46892429203936,
-            "y": 36.449435072586496,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "anticlockwise": false,
-            "endAngle": 6.14038563825133,
-            "radius": 97.5,
-            "startAngle": 4.997988309673223,
             "x": 200,
             "y": 130,
           },
@@ -1376,17 +1296,17 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 296.50759058339094,
-      "y": 116.12430326835468,
+      "x": 227.46892429203942,
+      "y": 223.5505649274135,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 8.139580951839044,
+      "endAngle": 3.284392322518051,
       "radius": 97.5,
-      "startAngle": 6.1403856268273564,
+      "startAngle": 1.285196997506364,
       "x": 200,
       "y": 130,
     },
@@ -1413,17 +1333,17 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 296.50759058339094,
-            "y": 116.12430326835468,
+            "x": 227.46892429203942,
+            "y": 223.5505649274135,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 8.139580951839044,
+            "endAngle": 3.284392322518051,
             "radius": 97.5,
-            "startAngle": 6.1403856268273564,
+            "startAngle": 1.285196997506364,
             "x": 200,
             "y": 130,
           },
@@ -1446,7 +1366,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "value": "#fcffa4",
+      "value": "#781c6d",
     },
     "type": "fillStyle",
   },
@@ -1456,17 +1376,17 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   },
   {
     "props": {
-      "x": 172.53107570796064,
-      "y": 223.55056492741352,
+      "x": 103.49240941660906,
+      "y": 116.12430326835465,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.712388977528696,
+      "endAngle": 4.426789662520129,
       "radius": 97.5,
-      "startAngle": 1.8563956560834292,
+      "startAngle": 3.2843923339420233,
       "x": 200,
       "y": 130,
     },
@@ -1493,17 +1413,97 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
         },
         {
           "props": {
-            "x": 172.53107570796064,
-            "y": 223.55056492741352,
+            "x": 103.49240941660906,
+            "y": 116.12430326835465,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.712388977528696,
+            "endAngle": 4.426789662520129,
             "radius": 97.5,
-            "startAngle": 1.8563956560834292,
+            "startAngle": 3.2843923339420233,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#000004",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 172.53107570796058,
+      "y": 36.44943507258651,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.712388983240683,
+      "radius": 97.5,
+      "startAngle": 4.426789651096157,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 172.53107570796058,
+            "y": 36.44943507258651,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.712388983240683,
+            "radius": 97.5,
+            "startAngle": 4.426789651096157,
             "x": 200,
             "y": 130,
           },
@@ -1530,8 +1530,8 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 251.01041930574453,
-      "f": 18.64508778839506,
+      "e": 346.3549122116049,
+      "f": 113.9895806942554,
     },
     "type": "setTransform",
   },
@@ -1616,7 +1616,7 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   {
     "props": {
       "maxWidth": null,
-      "text": "Sales",
+      "text": "Ops",
       "x": 0,
       "y": 0,
     },
@@ -1628,84 +1628,8 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 320.02182711485403,
-      "f": 56.32816743115537,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "left",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "Admin",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 308.67183256884465,
-      "f": 215.021827114854,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "left",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "IT",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 53.645087788395074,
-      "f": 113.98958069425537,
+      "e": 91.3281674311554,
+      "f": 215.02182711485403,
     },
     "type": "setTransform",
   },
@@ -1730,7 +1654,83 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
   {
     "props": {
       "maxWidth": null,
-      "text": "Ops",
+      "text": "IT",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 79.97817288514594,
+      "f": 56.32816743115542,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Admin",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 148.9895806942555,
+      "f": 18.64508778839506,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Sales",
       "x": 0,
       "y": 0,
     },
@@ -4965,69 +4965,6 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 160.53362404556668,
-      "y": 219.15523074404177,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 154.4618738987308,
-      "y": 232.87142008927896,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 124.4618738987308,
-      "y": 232.87142008927896,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 160.53362404556668,
-            "y": 219.15523074404177,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 154.4618738987308,
-            "y": 232.87142008927896,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 124.4618738987308,
-            "y": 232.87142008927896,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
       "value": "#5794f2",
     },
     "type": "strokeStyle",
@@ -5038,22 +4975,22 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "x": 120.0332051767967,
-      "y": 74.21862563808861,
+      "x": 146.81034713197158,
+      "y": 211.71359022695452,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 107.73062135784234,
-      "y": 65.63687573625609,
+      "x": 138.62732361381336,
+      "y": 224.28491180033214,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 77.73062135784234,
-      "y": 65.63687573625609,
+      "x": 108.62732361381336,
+      "y": 224.28491180033214,
     },
     "type": "lineTo",
   },
@@ -5066,22 +5003,85 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
         },
         {
           "props": {
-            "x": 120.0332051767967,
-            "y": 74.21862563808861,
+            "x": 146.81034713197158,
+            "y": 211.71359022695452,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 107.73062135784234,
-            "y": 65.63687573625609,
+            "x": 138.62732361381336,
+            "y": 224.28491180033214,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 77.73062135784234,
-            "y": 65.63687573625609,
+            "x": 108.62732361381336,
+            "y": 224.28491180033214,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 129.96093836547146,
+      "y": 62.1709513161602,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 119.18569811400553,
+      "y": 51.73571305710792,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 89.18569811400553,
+      "y": 51.73571305710792,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 129.96093836547146,
+            "y": 62.1709513161602,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 119.18569811400553,
+            "y": 51.73571305710792,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 89.18569811400553,
+            "y": 51.73571305710792,
           },
           "type": "lineTo",
         },
@@ -5183,7 +5183,7 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "value": "#f2cc0c",
+      "value": "#5794f2",
     },
     "type": "fillStyle",
   },
@@ -5201,7 +5201,7 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 2.7889649054760017,
+      "endAngle": 3.1095355844137362,
       "radius": 97.5,
       "startAngle": 1.1861115107873326,
       "x": 200,
@@ -5238,7 +5238,7 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 2.7889649054760017,
+            "endAngle": 3.1095355844137362,
             "radius": 97.5,
             "startAngle": 1.1861115107873326,
             "x": 200,
@@ -5263,7 +5263,7 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "value": "#5794f2",
+      "value": "#f2cc0c",
     },
     "type": "fillStyle",
   },
@@ -5273,17 +5273,17 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "x": 108.49932885014842,
-      "y": 163.67309280607765,
+      "x": 102.55009392043294,
+      "y": 133.1250288132365,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.712388973973276,
+      "endAngle": 4.712388985513821,
       "radius": 97.5,
-      "startAngle": 2.7889649003468726,
+      "startAngle": 3.109535590825151,
       "x": 200,
       "y": 130,
     },
@@ -5310,17 +5310,17 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
         },
         {
           "props": {
-            "x": 108.49932885014842,
-            "y": 163.67309280607765,
+            "x": 102.55009392043294,
+            "y": 133.1250288132365,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.712388973973276,
+            "endAngle": 4.712388985513821,
             "radius": 97.5,
-            "startAngle": 2.7889649003468726,
+            "startAngle": 3.109535590825151,
             "x": 200,
             "y": 130,
           },
@@ -5445,46 +5445,8 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 119.4618738987308,
-      "f": 232.87142008927896,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "Admin",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 72.73062135784234,
-      "f": 65.63687573625609,
+      "e": 103.62732361381336,
+      "f": 224.28491180033214,
     },
     "type": "setTransform",
   },
@@ -5510,6 +5472,44 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
     "props": {
       "maxWidth": null,
       "text": "IT",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 84.18569811400553,
+      "f": 51.73571305710792,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Admin",
       "x": 0,
       "y": 0,
     },
@@ -5653,69 +5653,6 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 160.53362404556668,
-      "y": 219.15523074404177,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 154.4618738987308,
-      "y": 232.87142008927896,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 124.4618738987308,
-      "y": 232.87142008927896,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 160.53362404556668,
-            "y": 219.15523074404177,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 154.4618738987308,
-            "y": 232.87142008927896,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 124.4618738987308,
-            "y": 232.87142008927896,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
       "value": "#5794f2",
     },
     "type": "strokeStyle",
@@ -5726,22 +5663,22 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "x": 120.0332051767967,
-      "y": 74.21862563808861,
+      "x": 146.81034713197158,
+      "y": 211.71359022695452,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 107.73062135784234,
-      "y": 65.63687573625609,
+      "x": 138.62732361381336,
+      "y": 224.28491180033214,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 77.73062135784234,
-      "y": 65.63687573625609,
+      "x": 108.62732361381336,
+      "y": 224.28491180033214,
     },
     "type": "lineTo",
   },
@@ -5754,22 +5691,85 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
         },
         {
           "props": {
-            "x": 120.0332051767967,
-            "y": 74.21862563808861,
+            "x": 146.81034713197158,
+            "y": 211.71359022695452,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 107.73062135784234,
-            "y": 65.63687573625609,
+            "x": 138.62732361381336,
+            "y": 224.28491180033214,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 77.73062135784234,
-            "y": 65.63687573625609,
+            "x": 108.62732361381336,
+            "y": 224.28491180033214,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 129.96093836547146,
+      "y": 62.1709513161602,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 119.18569811400553,
+      "y": 51.73571305710792,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 89.18569811400553,
+      "y": 51.73571305710792,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 129.96093836547146,
+            "y": 62.1709513161602,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 119.18569811400553,
+            "y": 51.73571305710792,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 89.18569811400553,
+            "y": 51.73571305710792,
           },
           "type": "lineTo",
         },
@@ -5871,7 +5871,7 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "value": "#f2cc0c",
+      "value": "#5794f2",
     },
     "type": "fillStyle",
   },
@@ -5889,7 +5889,7 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 2.7889649054760017,
+      "endAngle": 3.1095355844137362,
       "radius": 97.5,
       "startAngle": 1.1861115107873326,
       "x": 200,
@@ -5926,7 +5926,7 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 2.7889649054760017,
+            "endAngle": 3.1095355844137362,
             "radius": 97.5,
             "startAngle": 1.1861115107873326,
             "x": 200,
@@ -5951,7 +5951,7 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "value": "#5794f2",
+      "value": "#f2cc0c",
     },
     "type": "fillStyle",
   },
@@ -5961,17 +5961,17 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
   },
   {
     "props": {
-      "x": 108.49932885014842,
-      "y": 163.67309280607765,
+      "x": 102.55009392043294,
+      "y": 133.1250288132365,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.712388973973276,
+      "endAngle": 4.712388985513821,
       "radius": 97.5,
-      "startAngle": 2.7889649003468726,
+      "startAngle": 3.109535590825151,
       "x": 200,
       "y": 130,
     },
@@ -5998,17 +5998,17 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
         },
         {
           "props": {
-            "x": 108.49932885014842,
-            "y": 163.67309280607765,
+            "x": 102.55009392043294,
+            "y": 133.1250288132365,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.712388973973276,
+            "endAngle": 4.712388985513821,
             "radius": 97.5,
-            "startAngle": 2.7889649003468726,
+            "startAngle": 3.109535590825151,
             "x": 200,
             "y": 130,
           },
@@ -6133,46 +6133,8 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 119.4618738987308,
-      "f": 232.87142008927896,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "right",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "Admin",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 72.73062135784234,
-      "f": 65.63687573625609,
+      "e": 103.62732361381336,
+      "f": 224.28491180033214,
     },
     "type": "setTransform",
   },
@@ -6198,6 +6160,44 @@ exports[`part-to-whole canvas renders reducers All values with limit — one sli
     "props": {
       "maxWidth": null,
       "text": "IT",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 84.18569811400553,
+      "f": 51.73571305710792,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Admin",
       "x": 0,
       "y": 0,
     },
@@ -6259,7 +6259,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "value": "#73bf69",
+      "value": "#f2cc0c",
     },
     "type": "strokeStyle",
   },
@@ -6293,22 +6293,22 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "x": 289.73375289799304,
-      "y": 91.8672897522098,
+      "x": 295.87815349087293,
+      "y": 147.70959297049507,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 303.5389456515304,
-      "y": 86.00071894485745,
+      "x": 310.6286386433149,
+      "y": 150.4341457351866,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 333.5389456515304,
-      "y": 86.00071894485745,
+      "x": 340.6286386433149,
+      "y": 150.4341457351866,
     },
     "type": "lineTo",
   },
@@ -6321,22 +6321,22 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
         },
         {
           "props": {
-            "x": 289.73375289799304,
-            "y": 91.8672897522098,
+            "x": 295.87815349087293,
+            "y": 147.70959297049507,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 303.5389456515304,
-            "y": 86.00071894485745,
+            "x": 310.6286386433149,
+            "y": 150.4341457351866,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 333.5389456515304,
-            "y": 86.00071894485745,
+            "x": 340.6286386433149,
+            "y": 150.4341457351866,
           },
           "type": "lineTo",
         },
@@ -6346,7 +6346,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "value": "#f2cc0c",
+      "value": "#73bf69",
     },
     "type": "strokeStyle",
   },
@@ -6356,22 +6356,22 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "x": 120.70425027828239,
-      "y": 186.73124426690043,
+      "x": 102.56504728390166,
+      "y": 133.56089724812165,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 108.50490416724891,
-      "y": 195.45912800026971,
+      "x": 87.57505455834807,
+      "y": 134.10872759398652,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 78.50490416724891,
-      "y": 195.45912800026971,
+      "x": 57.57505455834807,
+      "y": 134.10872759398652,
     },
     "type": "lineTo",
   },
@@ -6384,22 +6384,22 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
         },
         {
           "props": {
-            "x": 120.70425027828239,
-            "y": 186.73124426690043,
+            "x": 102.56504728390166,
+            "y": 133.56089724812165,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 108.50490416724891,
-            "y": 195.45912800026971,
+            "x": 87.57505455834807,
+            "y": 134.10872759398652,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 78.50490416724891,
-            "y": 195.45912800026971,
+            "x": 57.57505455834807,
+            "y": 134.10872759398652,
           },
           "type": "lineTo",
         },
@@ -6478,7 +6478,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "value": "#73bf69",
+      "value": "#f2cc0c",
     },
     "type": "fillStyle",
   },
@@ -6502,7 +6502,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 7.050318397009653,
+      "endAngle": 8.219283105322134,
       "radius": 97.5,
       "startAngle": 4.71238898038469,
       "x": 200,
@@ -6539,7 +6539,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 7.050318397009653,
+            "endAngle": 8.219283105322134,
             "radius": 97.5,
             "startAngle": 4.71238898038469,
             "x": 200,
@@ -6564,7 +6564,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "value": "#f2cc0c",
+      "value": "#73bf69",
     },
     "type": "fillStyle",
   },
@@ -6574,17 +6574,17 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "x": 270.19058869140457,
-      "y": 197.6722340340118,
+      "x": 165.16998824438951,
+      "y": 221.0665706014234,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.274027225726555,
+      "endAngle": 4.274027215498113,
       "radius": 97.5,
-      "startAngle": 0.7671331007891103,
+      "startAngle": 1.93609779887315,
       "x": 200,
       "y": 130,
     },
@@ -6611,17 +6611,17 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
         },
         {
           "props": {
-            "x": 270.19058869140457,
-            "y": 197.6722340340118,
+            "x": 165.16998824438951,
+            "y": 221.0665706014234,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.274027225726555,
+            "endAngle": 4.274027215498113,
             "radius": 97.5,
-            "startAngle": 0.7671331007891103,
+            "startAngle": 1.93609779887315,
             "x": 200,
             "y": 130,
           },
@@ -6728,8 +6728,8 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 338.5389456515304,
-      "f": 86.00071894485745,
+      "e": 345.6286386433149,
+      "f": 150.4341457351866,
     },
     "type": "setTransform",
   },
@@ -6814,7 +6814,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   {
     "props": {
       "maxWidth": null,
-      "text": "A",
+      "text": "B",
       "x": 0,
       "y": 0,
     },
@@ -6826,8 +6826,8 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 73.50490416724891,
-      "f": 195.45912800026971,
+      "e": 52.57505455834807,
+      "f": 134.10872759398652,
     },
     "type": "setTransform",
   },
@@ -6852,7 +6852,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   {
     "props": {
       "maxWidth": null,
-      "text": "B",
+      "text": "A",
       "x": 0,
       "y": 0,
     },
@@ -6947,7 +6947,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "value": "#73bf69",
+      "value": "#f2cc0c",
     },
     "type": "strokeStyle",
   },
@@ -6981,22 +6981,22 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "x": 289.73375289799304,
-      "y": 91.8672897522098,
+      "x": 295.87815349087293,
+      "y": 147.70959297049507,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 303.5389456515304,
-      "y": 86.00071894485745,
+      "x": 310.6286386433149,
+      "y": 150.4341457351866,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 333.5389456515304,
-      "y": 86.00071894485745,
+      "x": 340.6286386433149,
+      "y": 150.4341457351866,
     },
     "type": "lineTo",
   },
@@ -7009,22 +7009,22 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
         },
         {
           "props": {
-            "x": 289.73375289799304,
-            "y": 91.8672897522098,
+            "x": 295.87815349087293,
+            "y": 147.70959297049507,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 303.5389456515304,
-            "y": 86.00071894485745,
+            "x": 310.6286386433149,
+            "y": 150.4341457351866,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 333.5389456515304,
-            "y": 86.00071894485745,
+            "x": 340.6286386433149,
+            "y": 150.4341457351866,
           },
           "type": "lineTo",
         },
@@ -7034,7 +7034,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "value": "#f2cc0c",
+      "value": "#73bf69",
     },
     "type": "strokeStyle",
   },
@@ -7044,22 +7044,22 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "x": 120.70425027828239,
-      "y": 186.73124426690043,
+      "x": 102.56504728390166,
+      "y": 133.56089724812165,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 108.50490416724891,
-      "y": 195.45912800026971,
+      "x": 87.57505455834807,
+      "y": 134.10872759398652,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 78.50490416724891,
-      "y": 195.45912800026971,
+      "x": 57.57505455834807,
+      "y": 134.10872759398652,
     },
     "type": "lineTo",
   },
@@ -7072,22 +7072,22 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
         },
         {
           "props": {
-            "x": 120.70425027828239,
-            "y": 186.73124426690043,
+            "x": 102.56504728390166,
+            "y": 133.56089724812165,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 108.50490416724891,
-            "y": 195.45912800026971,
+            "x": 87.57505455834807,
+            "y": 134.10872759398652,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 78.50490416724891,
-            "y": 195.45912800026971,
+            "x": 57.57505455834807,
+            "y": 134.10872759398652,
           },
           "type": "lineTo",
         },
@@ -7166,7 +7166,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "value": "#73bf69",
+      "value": "#f2cc0c",
     },
     "type": "fillStyle",
   },
@@ -7190,7 +7190,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 7.050318397009653,
+      "endAngle": 8.219283105322134,
       "radius": 97.5,
       "startAngle": 4.71238898038469,
       "x": 200,
@@ -7227,7 +7227,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 7.050318397009653,
+            "endAngle": 8.219283105322134,
             "radius": 97.5,
             "startAngle": 4.71238898038469,
             "x": 200,
@@ -7252,7 +7252,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "value": "#f2cc0c",
+      "value": "#73bf69",
     },
     "type": "fillStyle",
   },
@@ -7262,17 +7262,17 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   },
   {
     "props": {
-      "x": 270.19058869140457,
-      "y": 197.6722340340118,
+      "x": 165.16998824438951,
+      "y": 221.0665706014234,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.274027225726555,
+      "endAngle": 4.274027215498113,
       "radius": 97.5,
-      "startAngle": 0.7671331007891103,
+      "startAngle": 1.93609779887315,
       "x": 200,
       "y": 130,
     },
@@ -7299,17 +7299,17 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
         },
         {
           "props": {
-            "x": 270.19058869140457,
-            "y": 197.6722340340118,
+            "x": 165.16998824438951,
+            "y": 221.0665706014234,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.274027225726555,
+            "endAngle": 4.274027215498113,
             "radius": 97.5,
-            "startAngle": 0.7671331007891103,
+            "startAngle": 1.93609779887315,
             "x": 200,
             "y": 130,
           },
@@ -7416,8 +7416,8 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 338.5389456515304,
-      "f": 86.00071894485745,
+      "e": 345.6286386433149,
+      "f": 150.4341457351866,
     },
     "type": "setTransform",
   },
@@ -7502,7 +7502,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   {
     "props": {
       "maxWidth": null,
-      "text": "A",
+      "text": "B",
       "x": 0,
       "y": 0,
     },
@@ -7514,8 +7514,8 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 73.50490416724891,
-      "f": 195.45912800026971,
+      "e": 52.57505455834807,
+      "f": 134.10872759398652,
     },
     "type": "setTransform",
   },
@@ -7540,7 +7540,7 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
   {
     "props": {
       "maxWidth": null,
-      "text": "B",
+      "text": "A",
       "x": 0,
       "y": 0,
     },
@@ -10341,6 +10341,1387 @@ exports[`part-to-whole canvas renders reducers multi-frame — one slice per ser
     "props": {
       "maxWidth": null,
       "text": "C",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`part-to-whole canvas renders sort ascending (smallest first) 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 223.33327726803685,
+      "y": 35.333172800959915,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 226.9230122323502,
+      "y": 20.769045539569134,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 256.9230122323502,
+      "y": 20.769045539569134,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 223.33327726803685,
+            "y": 35.333172800959915,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 226.9230122323502,
+            "y": 20.769045539569134,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 256.9230122323502,
+            "y": 20.769045539569134,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 296.78911522456025,
+      "y": 118.24767367510594,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 311.6797483360311,
+      "y": 116.4396234712761,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 341.6797483360311,
+      "y": 116.4396234712761,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 296.78911522456025,
+            "y": 118.24767367510594,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 311.6797483360311,
+            "y": 116.4396234712761,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 341.6797483360311,
+            "y": 116.4396234712761,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 108.83591633817207,
+      "y": 164.57397648664727,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 94.81067269789085,
+      "y": 169.8930497922853,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 64.81067269789085,
+      "y": 169.8930497922853,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 108.83591633817207,
+            "y": 164.57397648664727,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 94.81067269789085,
+            "y": 169.8930497922853,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 64.81067269789085,
+            "y": 169.8930497922853,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": "round",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 199.99999999999997,
+      "y": 32.5,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.195710927090811,
+      "radius": 97.5,
+      "startAngle": 4.71238898038469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 199.99999999999997,
+            "y": 32.5,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.195710927090811,
+            "radius": 97.5,
+            "startAngle": 4.71238898038469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 245.3105092742674,
+      "y": 43.66803749881201,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 7.128998701832251,
+      "radius": 97.5,
+      "startAngle": 5.195710915007763,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 245.3105092742674,
+            "y": 43.66803749881201,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 7.128998701832251,
+            "radius": 97.5,
+            "startAngle": 5.195710915007763,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 264.65445917847757,
+      "y": 202.9797979466823,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.7123889828013,
+      "radius": 97.5,
+      "startAngle": 0.8458134091523235,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 264.65445917847757,
+            "y": 202.9797979466823,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.7123889828013,
+            "radius": 97.5,
+            "startAngle": 0.8458134091523235,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 261.9230122323502,
+      "f": 20.769045539569134,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "C",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 346.6797483360311,
+      "f": 116.4396234712761,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "B",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 59.81067269789085,
+      "f": 169.8930497922853,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "A",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 223.33327726803685,
+      "y": 35.333172800959915,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 226.9230122323502,
+      "y": 20.769045539569134,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 256.9230122323502,
+      "y": 20.769045539569134,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 223.33327726803685,
+            "y": 35.333172800959915,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 226.9230122323502,
+            "y": 20.769045539569134,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 256.9230122323502,
+            "y": 20.769045539569134,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 296.78911522456025,
+      "y": 118.24767367510594,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 311.6797483360311,
+      "y": 116.4396234712761,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 341.6797483360311,
+      "y": 116.4396234712761,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 296.78911522456025,
+            "y": 118.24767367510594,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 311.6797483360311,
+            "y": 116.4396234712761,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 341.6797483360311,
+            "y": 116.4396234712761,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 108.83591633817207,
+      "y": 164.57397648664727,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 94.81067269789085,
+      "y": 169.8930497922853,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 64.81067269789085,
+      "y": 169.8930497922853,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 108.83591633817207,
+            "y": 164.57397648664727,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 94.81067269789085,
+            "y": 169.8930497922853,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 64.81067269789085,
+            "y": 169.8930497922853,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": "round",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 199.99999999999997,
+      "y": 32.5,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.195710927090811,
+      "radius": 97.5,
+      "startAngle": 4.71238898038469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 199.99999999999997,
+            "y": 32.5,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.195710927090811,
+            "radius": 97.5,
+            "startAngle": 4.71238898038469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 245.3105092742674,
+      "y": 43.66803749881201,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 7.128998701832251,
+      "radius": 97.5,
+      "startAngle": 5.195710915007763,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 245.3105092742674,
+            "y": 43.66803749881201,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 7.128998701832251,
+            "radius": 97.5,
+            "startAngle": 5.195710915007763,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 264.65445917847757,
+      "y": 202.9797979466823,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.7123889828013,
+      "radius": 97.5,
+      "startAngle": 0.8458134091523235,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 264.65445917847757,
+            "y": 202.9797979466823,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.7123889828013,
+            "radius": 97.5,
+            "startAngle": 0.8458134091523235,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 261.9230122323502,
+      "f": 20.769045539569134,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "C",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 346.6797483360311,
+      "f": 116.4396234712761,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "B",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 59.81067269789085,
+      "f": 169.8930497922853,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "A",
       "x": 0,
       "y": 0,
     },

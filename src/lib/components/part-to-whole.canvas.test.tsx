@@ -126,6 +126,22 @@ describe('part-to-whole canvas renders', () => {
     });
   });
 
+  describe('sort', () => {
+    // Slices default to Descending (largest first); ascending reverses the order,
+    // so this guards that the `sort` option reorders the rendered slices.
+    it('ascending (smallest first)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        sort: 'asc',
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
   describe('labels', () => {
     // Slice-label content (Name / Value / Percent) rendered on the slices via the
     // "Labels" option. Exercises getPieContentLabel's formatter during a real
