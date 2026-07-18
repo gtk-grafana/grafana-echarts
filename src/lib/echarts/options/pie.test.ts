@@ -2,7 +2,7 @@ import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/d
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
-import { getPieContentLabel } from 'lib/echarts/options/pie';
+import { getPieContentLabel, getPieRadius } from 'lib/echarts/options/pie';
 
 const theme = createTheme();
 
@@ -93,5 +93,19 @@ describe('getPieContentLabel', () => {
     // Value line falls back to the field's "No value" text; percent is 0% of total.
     expect(renderLabel(['percent'], model, 0)).toBe('0%');
     expect(renderLabel(['name', 'percent'], model, 0)).toBe('A\n0%');
+  });
+});
+
+describe('getPieRadius', () => {
+  it('uses a single outer radius for a pie', () => {
+    expect(getPieRadius('pie')).toBe('75%');
+  });
+
+  it('uses an [inner, outer] radius (a hole) for a donut', () => {
+    expect(getPieRadius('donut')).toEqual(['50%', '75%']);
+  });
+
+  it('defaults an unset type to a pie', () => {
+    expect(getPieRadius(undefined)).toBe('75%');
   });
 });

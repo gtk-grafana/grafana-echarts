@@ -1,7 +1,7 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type OptionsWithTooltip } from '@grafana/schema';
-import { type seriesTypePath } from 'editor/constants';
-import { type PieLabel, type SeriesTypeOption } from 'editor/types';
+import { type editorModePath, type seriesTypePath } from 'editor/constants';
+import { type EditorMode, type PieChartType, type PieLabel, type SeriesTypeOption } from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -30,6 +30,13 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   // JSON; `undefined` on legacy panels. `resolveSeriesType` / `resolveChartModule`
   // resolve `'Auto'`/`undefined` to a concrete type from the data.
   [seriesTypePath]?: SeriesTypeOption;
+
+  /**
+   * Editor surface tier (Default / Advanced / API). Gates editor option
+   * visibility via `showIf: isAdvancedEditorMode`; `'api'` is JSON-only. Defaults
+   * to `EDITOR_MODE_DEFAULT` (`default`) when unset. See `docs/options-modes.md`.
+   */
+  [editorModePath]?: EditorMode;
   heatmapColorScheme?: HeatmapColorScheme;
 
   /**
@@ -54,6 +61,13 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Defaults (Calculate, `PIE_CALC_DEFAULT` = sum) are applied when unset.
    */
   reduceOptions?: ReduceDataOptions;
+
+  /**
+   * Pie (part-to-whole) chart type (Grafana Pie chart "Pie chart type" parity):
+   * `pie` (full disc) or `donut` (a pie with a hole). Defaults to `PIE_TYPE_DEFAULT`
+   * (`pie`) when unset. Rendered as the ECharts series radius; see `getPieRadius`.
+   */
+  pieType?: PieChartType;
 
   /**
    * Pie (part-to-whole) slice-label content (Grafana Pie chart "Labels" parity):

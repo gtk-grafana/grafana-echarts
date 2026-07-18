@@ -13,3 +13,5 @@ exports[`part-to-whole canvas renders reducers Calculate mean — same fields, d
 exports[`part-to-whole canvas renders reducers Calculate sum — one slice per numeric field 1`] = `[]`;
 
 exports[`part-to-whole canvas renders reducers multi-frame — one slice per series 1`] = `[]`;
+
+exports[`part-to-whole canvas renders type donut (inner hole) 1`] = `[]`;

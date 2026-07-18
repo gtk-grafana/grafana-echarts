@@ -3,9 +3,11 @@ import {
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
   type CategoricalOnlySeriesType,
+  type EditorMode,
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type MultiValueSeriesType,
+  type PieChartType,
   type PieLabel,
   type SeriesType,
   type SeriesTypeOption,
@@ -13,6 +15,23 @@ import {
 } from 'editor/types';
 
 export const seriesTypePath = 'seriesType';
+
+/**
+ * Shared editor-mode option: tiers the editor surface (Default / Advanced / API).
+ * See `docs/options-modes.md` and `lib/grafana/editor/common/editor-mode.ts`.
+ */
+export const editorModePath = 'editorMode';
+export const editorModeName = 'Editor mode';
+/** Default tier for a fresh/unset panel: critical/parity-only options. */
+export const EDITOR_MODE_DEFAULT: EditorMode = 'default';
+/**
+ * Editor-mode radio options. Only Default + Advanced are offered in the UI;
+ * `'api'` is intentionally omitted so it's settable only via dashboard JSON.
+ */
+export const editorModeOptions: Array<SelectableValue<EditorMode>> = [
+  { value: 'default', label: 'Default' },
+  { value: 'advanced', label: 'Advanced' },
+];
 /**
  * Stack series option: panel option path and per-field custom config key share
  * the same name. Only meaningful for `bar` series.
@@ -94,6 +113,21 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
  * of the total), unlike Grafana stat/gauge which default to `lastNotNull`.
  */
 export const PIE_CALC_DEFAULT: string = ReducerID.sum;
+/**
+ * Editor category for pie chart-shape options. Named "Pie" (not core's "Pie
+ * chart") so future ECharts-specific shape options (rose type, radius, center)
+ * can join it.
+ */
+export const pieTypeCategoryName = 'Pie';
+/** Panel option path for the pie chart type (Pie / Donut). Matches core's `pieType`. */
+export const pieTypePath = 'pieType';
+/** Pie chart type options (Grafana Pie chart "Pie chart type" parity). */
+export const pieTypeOptions: Array<SelectableValue<PieChartType>> = [
+  { value: 'pie', label: 'Pie' },
+  { value: 'donut', label: 'Donut' },
+];
+/** Default pie chart type: a full pie (matches core Grafana). */
+export const PIE_TYPE_DEFAULT: PieChartType = 'pie';
 /**
  * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
  * chart") so future ECharts-specific label options can join it.

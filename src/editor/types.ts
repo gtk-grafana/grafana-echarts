@@ -48,6 +48,16 @@ export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
 export type SeriesTypeOption = SeriesType | 'Auto';
 
 /**
+ * Editor surface tier, controlling how many options the panel editor exposes:
+ * `default` (critical/parity-only options, tracked per module in `parity.md`),
+ * `advanced` (Default plus high-value ECharts-only and less-common core options,
+ * gated via `showIf: isAdvancedEditorMode`), and `api` (JSON-only, never shown in
+ * the editor UI; reserved for future full ECharts-API access). See
+ * `docs/options-modes.md`.
+ */
+export type EditorMode = 'default' | 'advanced' | 'api';
+
+/**
  * Pie (part-to-whole) slice-label content, matching core Grafana's
  * `PieChartLabels` (`@grafana/schema` doesn't re-export the raw enum, so the
  * string values are mirrored here): `name` (slice name), `value` (formatted slice
@@ -55,6 +65,14 @@ export type SeriesTypeOption = SeriesType | 'Auto';
  * holds the selected set; an empty set hides the labels. See `getPieContentLabel`.
  */
 export type PieLabel = 'name' | 'value' | 'percent';
+
+/**
+ * Pie (part-to-whole) chart shape, matching core Grafana's `PieChartType`
+ * (`@grafana/schema` doesn't re-export the raw enum, so the string values are
+ * mirrored here): `pie` (full disc) or `donut` (a pie with a hole). The panel's
+ * `pieType` selects it; rendered as the ECharts series radius. See `getPieRadius`.
+ */
+export type PieChartType = 'pie' | 'donut';
 
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s
