@@ -128,6 +128,16 @@ export type EChartBuildOption =
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
+  /**
+   * When true, the panel must NOT pre-strip numeric value fields hidden via the
+   * legend toggle before this module builds. Row/series families (the pie) read
+   * hidden slices by *category name* internally, so the shared
+   * `stripHiddenValueFields` — which hides by *numeric field name* — would wrongly
+   * drop the single value field a pie needs, leaving no data (see
+   * `buildPanelChartOption` / `resolvePieSlices`). Per-field families leave this
+   * unset and rely on the pre-strip.
+   */
+  readsHiddenSeriesInternally?: boolean;
   // @todo replace null with reason why chart cannot render?
   buildOption(ctx: ChartContext, base: BaseOptionParts): EChartBuildOption | null;
   buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];

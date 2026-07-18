@@ -48,6 +48,16 @@ export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
 export type SeriesTypeOption = SeriesType | 'Auto';
 
 /**
+ * How the pie (part-to-whole) family maps frames to slices:
+ * - `wide` (Grafana's pie default): each numeric field is one slice, reduced to a
+ *   single value by the chosen calculation.
+ * - `long`: the first string field is the category and one numeric field holds the
+ *   values; rows sharing a category are aggregated by the chosen calculation.
+ * See `resolvePieSlices`.
+ */
+export type PieFormat = 'wide' | 'long';
+
+/**
  * Per-field custom field config, registered via `useFieldConfig`'s
  * `useCustomConfig`. It lets a Grafana field override (by name, regex, type or
  * query) set the ECharts series type for matching fields, so a single panel can

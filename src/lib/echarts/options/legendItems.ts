@@ -10,16 +10,13 @@ import {
   reduceField,
 } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
-import type { MultiValueSeriesType } from 'editor/types';
+import type { MultiValueSeriesType, PieFormat } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
-import {
-  findCategoricalFrame,
-  forEachTimeSeriesField,
-  resolveCategoriesFromFrame,
-} from 'lib/echarts/converters/frames';
+import { findCategoricalFrame, forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
-import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
-import { getPaletteColorByIndex, getSeriesColor } from 'lib/echarts/style';
+import { resolvePieSlices } from 'lib/echarts/converters/pie';
+import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
+import { getSeriesColor } from 'lib/echarts/style';
 
 /**
  * Reduce a field down to per-series calc columns for the table legend.
@@ -173,44 +170,29 @@ export function buildRadarLegendItems(
   }));
 }
 
+/**
+ * Legend items for the pie, from the shared slice resolver so the legend matches
+ * the rendered slices in both wide and long modes (same names, colors, hidden
+ * state). Every slice is kept — a hidden one is marked `disabled` (greyed) so it
+ * can be toggled back — and each carries a single-value `field` whose calc
+ * columns resolve to that slice's value.
+ */
 export function buildPieLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
   calcs: string[],
   fieldConfig: FieldConfigSource,
+  format: PieFormat,
+  calc: string,
   timeZone?: string
 ): VizLegendItem[] {
-  const frame = findCategoricalFrame(series);
-  if (!frame) {
-    return [];
-  }
-
-  const valueField = frame.fields.find((field) => field.type === FieldType.number);
-  if (!valueField) {
-    return [];
-  }
-
-  // Slices are rows of one field, so hidden/color state is read by name from the
-  // panel field config (not from Grafana's field-override engine); the legend
-  // keeps every slice so a hidden one can be toggled back.
-  const categories = resolveCategoriesFromFrame(frame);
-  const hidden = getHiddenSeriesNames(fieldConfig, categories);
-  const items: VizLegendItem[] = [];
-
-  for (let row = 0; row < frame.length; row++) {
-    const sliceField: Field = { ...valueField, values: [valueField.values[row] ?? null], state: undefined };
-    const label = categories[row] ?? String(row);
-
-    items.push({
-      label,
-      fieldName: label,
-      color: getSeriesColorOverride(fieldConfig, label) ?? getPaletteColorByIndex(row, theme),
-      yAxis: 1,
-      disabled: hidden.has(label),
-      getItemKey: () => `slice-${row}`,
-      getDisplayValues: () => getCalcDisplayValues(calcs, sliceField, theme, timeZone),
-    });
-  }
-
-  return items;
+  return resolvePieSlices(series, theme, fieldConfig, format, calc).map((slice, index) => ({
+    label: slice.name,
+    fieldName: slice.name,
+    color: slice.color,
+    yAxis: 1,
+    disabled: slice.hidden,
+    getItemKey: () => `slice-${index}`,
+    getDisplayValues: () => getCalcDisplayValues(calcs, slice.field, theme, timeZone),
+  }));
 }
