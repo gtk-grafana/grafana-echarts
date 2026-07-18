@@ -2,6 +2,7 @@ import {
   isCategoricalAxisSeriesType,
   isCategoricalOnlySeriesType,
   isHeatmapSeriesType,
+  isHierarchySeriesType,
   isTimeAxisSupportedForSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { supportedChartSeriesTypes } from 'lib/echarts/charts/registry';
@@ -40,6 +41,12 @@ export const panelTypeToAxis = (ctx: ChartContext, hasTimeField = true): ECharts
 
   // Check for series types that cannot support a time axis first in case someone is sending a time to pie or radar
   if (isCategoricalOnlySeriesType(seriesType)) {
+    return 'category';
+  }
+
+  // Hierarchy charts (treemap/sunburst) use their own non-cartesian layout; like
+  // pie/radar, ECharts treats them as categorical for tooltip purposes.
+  if (isHierarchySeriesType(seriesType)) {
     return 'category';
   }
 

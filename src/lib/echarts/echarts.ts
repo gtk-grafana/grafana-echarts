@@ -10,6 +10,8 @@ import {
   PieChart,
   RadarChart,
   ScatterChart,
+  SunburstChart,
+  TreemapChart,
 } from 'echarts/charts';
 import {
   AxisPointerComponent,
@@ -56,6 +58,8 @@ registerEChartsModules([
   BoxplotChart, // multi-value cartesian: [min, Q1, median, Q3, max]
   PieChart,
   RadarChart,
+  TreemapChart, // hierarchy family: nested rectangles sized by value
+  SunburstChart, // hierarchy family: radial rings sized by value
   CustomChart, // binned heatmap cells are drawn as a custom series
   HeatmapChart, // native series for the matrix heatmap layout (category x category grid)
   // ToolboxComponent,

@@ -5,16 +5,18 @@ import {
   dateTime,
   EventBusSrv,
   FieldColorModeId,
+  LoadingState,
   type PanelData,
   type PanelProps,
   type TimeRange,
-  LoadingState,
 } from '@grafana/data';
-import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions, type VizTooltipOptions } from '@grafana/schema';
 import { waitFor } from '@testing-library/react';
 import { type EChartsType } from 'echarts';
 import { seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
+import { Panel } from 'lib/components/Panel';
+import { type ChartFamily } from 'lib/echarts/charts/autoSeriesType';
 import React from 'react';
 import {
   DEFAULT_LAYER_SELECTOR,
@@ -26,8 +28,6 @@ import {
   setupECharts,
 } from 'test/canvas';
 import { type PanelOptions } from 'types';
-import { type ChartFamily } from 'lib/echarts/charts/autoSeriesType';
-import { Panel } from 'lib/components/Panel';
 
 // Shared harness for the canvas integration tests: render the real <Panel />
 // (React glue + ECharts init + buildPanelChartOption) into a jest-canvas-mock
@@ -86,7 +86,7 @@ export const getComponent = (
       calcs: [],
     } as VizLegendOptions,
     width,
-    tooltip: { mode: TooltipDisplayMode.Single },
+    tooltip: { mode: TooltipDisplayMode.Single } as VizTooltipOptions,
   };
 
   const options: PanelOptions = {
@@ -151,6 +151,20 @@ export const getCanvasEvents = async (container: HTMLElement) => {
   const { chartInstanceDom, chart } = setupECharts(container);
   await waitForFinished(chart);
   const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
+  return { defaultEvents, seriesEvents };
+};
+
+/**
+ * Render-settled series-layer draw calls, read tolerantly. Axis-less charts
+ * (pie, hierarchy) paint nothing on the default grid layer, so zrender never
+ * creates that canvas; only the series layer is required. Reads both layers
+ * without asserting either exists (unlike `getCanvasEvents`).
+ */
+export const getSeriesCanvasEvents = async (container: HTMLElement) => {
+  const { chartInstanceDom, chart } = getChart(container);
+  await waitForFinished(chart);
+  const defaultEvents = readCanvasLayer(chartInstanceDom, DEFAULT_LAYER_SELECTOR);
+  const seriesEvents = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
   return { defaultEvents, seriesEvents };
 };
 

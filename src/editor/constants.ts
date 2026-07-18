@@ -4,6 +4,7 @@ import {
   type CategoricalAxisSeriesType,
   type CategoricalOnlySeriesType,
   type HeatmapSeriesType,
+  type HierarchySeriesType,
   type MultiValueSeriesType,
   type SeriesType,
   type SeriesTypeOption,
@@ -92,6 +93,22 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
  * as a heatmap regardless of the selected type. See echarts/converters/heatmap.ts.
  */
 export const heatmapSeriesTypes: HeatmapSeriesType[] = ['heatmap'];
+/**
+ * Hierarchy types built from a value-weighted tree: treemap (nested rectangles)
+ * and sunburst (radial rings). Both consume the same tree model, reconstructed
+ * from a flame-graph nested-set frame or a flat categorical frame. Selecting the
+ * hierarchy panel picks between these render variants. See
+ * echarts/converters/hierarchy.ts.
+ */
+export const hierarchySeriesTypes: HierarchySeriesType[] = ['treemap', 'sunburst'];
+/**
+ * Hierarchy render types offered by the hierarchy family panel, selected per
+ * panel via the panel-level `seriesType`.
+ */
+export const hierarchySeriesTypeOptions: Array<SelectableValue<HierarchySeriesType>> = [
+  { value: 'treemap', label: 'Treemap' },
+  { value: 'sunburst', label: 'Sunburst' },
+];
 /**
  * Cartesian render types offered by the cartesian family panel. These are the
  * in-family render variants selected per panel: the single-value time/category

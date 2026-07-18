@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "panel",
+  "suggestions": true,
+  "name": "ECharts Hierarchy",
+  "id": "grafana-echartshierarchy-panel",
+  "info": {
+    "keywords": ["panel", "echarts", "treemap", "sunburst", "hierarchy", "flame graph"],
+    "description": "Hierarchy ECharts panel (treemap/sunburst) built from flame-graph nested-set or categorical data.",
+    "author": {
+      "name": "Grafana"
+    },
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=13.0.0",
+    "plugins": []
+  }
+}
