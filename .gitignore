@@ -52,6 +52,9 @@ ci/
 
 # Local provisionining
 provisioning/dashboards/local/*
+provisioning/dashboards/gdev/*
 !provisioning/dashboards/local/.gitkeep
+!provisioning/dashboards/gdev/.gitkeep
+
 .cursor/plans/local
 .air

@@ -7,6 +7,8 @@ import {
   getDisplayProcessor,
   getFieldDisplayName,
   type GrafanaTheme2,
+  type InterpolateFunction,
+  type ReduceDataOptions,
   reduceField,
 } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
@@ -183,16 +185,19 @@ export function buildPieLegendItems(
   calcs: string[],
   fieldConfig: FieldConfigSource,
   format: PieFormat,
-  calc: string,
+  reduceOptions: ReduceDataOptions | undefined,
+  replaceVariables: InterpolateFunction,
   timeZone?: string
 ): VizLegendItem[] {
-  return resolvePieSlices(series, theme, fieldConfig, format, calc).map((slice, index) => ({
-    label: slice.name,
-    fieldName: slice.name,
-    color: slice.color,
-    yAxis: 1,
-    disabled: slice.hidden,
-    getItemKey: () => `slice-${index}`,
-    getDisplayValues: () => getCalcDisplayValues(calcs, slice.field, theme, timeZone),
-  }));
+  return resolvePieSlices(series, theme, fieldConfig, format, reduceOptions, replaceVariables, timeZone).map(
+    (slice, index) => ({
+      label: slice.name,
+      fieldName: slice.name,
+      color: slice.color,
+      yAxis: 1,
+      disabled: slice.hidden,
+      getItemKey: () => `slice-${index}`,
+      getDisplayValues: () => getCalcDisplayValues(calcs, slice.field, theme, timeZone),
+    })
+  );
 }

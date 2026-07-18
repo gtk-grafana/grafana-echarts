@@ -1,16 +1,9 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { commonOptionsBuilder } from '@grafana/ui';
-import {
-  PIE_CALC_DEFAULT,
-  PIE_FORMAT_DEFAULT,
-  pieCalcOptions,
-  pieCalcPath,
-  pieCategoryName,
-  pieFormatOptions,
-  pieFormatPath,
-} from 'editor/constants';
+import { PIE_CALC_DEFAULT, PIE_FORMAT_DEFAULT, pieCategoryName, pieFormatOptions, pieFormatPath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
+import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { type PanelOptions } from 'types';
 import { partToWholeSuggestionsSupplier } from './suggestions';
 
@@ -55,18 +48,13 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
       category: [pieCategoryName],
     });
 
-    // Reducer collapsing each slice to a single value: every numeric field in
-    // wide mode, each category group in long mode.
-    builder.addSelect({
-      path: pieCalcPath,
-      name: 'Calculation',
-      description: 'How each slice is reduced to a single value (wide: per field; long: per category group).',
-      defaultValue: PIE_CALC_DEFAULT,
-      settings: {
-        options: pieCalcOptions,
-      },
-      category: [pieCategoryName],
-    });
+    // Grafana's standard reduce options (Show / Limit / Calculation / Fields)
+    // replace the old bespoke "Calculation" select. `resolvePieSlices` feeds
+    // these to `getFieldDisplayValues`: `calcs[0]` reduces each slice, `values`
+    // switches Calculate vs. All values, `fields` selects which numeric fields
+    // become slices. Default reducer is Sum (part-to-whole), not Grafana's
+    // stat/gauge `lastNotNull`.
+    addStandardDataReduceOptions(builder, true, PIE_CALC_DEFAULT);
 
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder);

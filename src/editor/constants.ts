@@ -101,24 +101,12 @@ export const pieFormatOptions: Array<SelectableValue<PieFormat>> = [
     description: 'First string field is the category; rows sharing a category are aggregated',
   },
 ];
-/** Panel option path for the pie slice-reducing calculation. */
-export const pieCalcPath = 'pieCalc';
-/** Sum matches Grafana's core pie default reducer. */
-export const PIE_CALC_DEFAULT: string = ReducerID.sum;
 /**
- * Curated slice reducers for the pie Calculation select. A pie shows one value
- * per slice, so only single-value reducers are offered. Labels mirror Grafana's
- * reducer names.
+ * Default slice reducer, passed to `addStandardDataReduceOptions` as the pie's
+ * default `reduceOptions.calcs`. Sum suits a part-to-whole (each slice is a share
+ * of the total), unlike Grafana stat/gauge which default to `lastNotNull`.
  */
-export const pieCalcOptions: Array<SelectableValue<string>> = [
-  { value: ReducerID.sum, label: 'Total' },
-  { value: ReducerID.mean, label: 'Mean' },
-  { value: ReducerID.last, label: 'Last' },
-  { value: ReducerID.first, label: 'First' },
-  { value: ReducerID.min, label: 'Min' },
-  { value: ReducerID.max, label: 'Max' },
-  { value: ReducerID.count, label: 'Count' },
-];
+export const PIE_CALC_DEFAULT: string = ReducerID.sum;
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to
  * render as a heatmap (each numeric field becomes a bucket row), even when the

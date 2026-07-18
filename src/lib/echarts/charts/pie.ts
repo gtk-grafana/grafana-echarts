@@ -1,5 +1,6 @@
+import { type ReduceDataOptions } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { PIE_CALC_DEFAULT, PIE_FORMAT_DEFAULT } from 'editor/constants';
+import { PIE_FORMAT_DEFAULT } from 'editor/constants';
 import { type PieFormat } from 'editor/types';
 import { resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
@@ -11,7 +12,7 @@ import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
 import { type ChartContext, type ChartModule, type EChartPieDataItem, type EChartPieSeriesOption } from './types';
 
 const resolveFormat = (ctx: ChartContext): PieFormat => ctx.options.pieFormat ?? PIE_FORMAT_DEFAULT;
-const resolveCalc = (ctx: ChartContext): string => ctx.options.pieCalc ?? PIE_CALC_DEFAULT;
+const resolveReduceOptions = (ctx: ChartContext): ReduceDataOptions | undefined => ctx.options.reduceOptions;
 
 export const pieChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
@@ -30,7 +31,9 @@ export const pieChartModule: ChartModule = {
       ctx.theme,
       ctx.fieldConfig,
       resolveFormat(ctx),
-      resolveCalc(ctx)
+      resolveReduceOptions(ctx),
+      ctx.replaceVariables,
+      ctx.timeZone
     ).filter((slice) => !slice.hidden);
     const formatters = visible.map((slice) => getValueFormatter(slice.field, ctx.theme, ctx.timeZone));
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
@@ -38,7 +41,15 @@ export const pieChartModule: ChartModule = {
 
   buildOption(ctx: ChartContext<'pie'>, { isGrafanaLegend }): EChartPieSeriesOption | null {
     const { theme, options, seriesType } = ctx;
-    const slices = resolvePieSlices(ctx.frames, theme, ctx.fieldConfig, resolveFormat(ctx), resolveCalc(ctx));
+    const slices = resolvePieSlices(
+      ctx.frames,
+      theme,
+      ctx.fieldConfig,
+      resolveFormat(ctx),
+      resolveReduceOptions(ctx),
+      ctx.replaceVariables,
+      ctx.timeZone
+    );
 
     // No numeric-like field at all → no usable data. (Distinct from "all slices
     // hidden", which still renders an empty pie rather than throwing.)
@@ -90,7 +101,8 @@ export const pieChartModule: ChartModule = {
       calcs,
       ctx.fieldConfig,
       resolveFormat(ctx),
-      resolveCalc(ctx),
+      resolveReduceOptions(ctx),
+      ctx.replaceVariables,
       ctx.timeZone
     );
   },

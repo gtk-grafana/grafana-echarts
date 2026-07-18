@@ -71,6 +71,7 @@ const makeContext = (
   } as PanelOptions,
   seriesType: 'heatmap',
   formatValue,
+  replaceVariables: (value: string) => value,
   fieldConfig: { defaults: {}, overrides: [] },
 });
 

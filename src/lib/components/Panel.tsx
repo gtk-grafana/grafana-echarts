@@ -48,6 +48,7 @@ export const Panel: React.FC<Props> = ({
   timeRange,
   onChangeTimeRange,
   onFieldConfigChange,
+  replaceVariables,
 }) => {
   const theme = useTheme2();
   const panelContext = usePanelContext();
@@ -82,8 +83,9 @@ export const Panel: React.FC<Props> = ({
       seriesType,
       formatValue,
       fieldConfig,
+      replaceVariables,
     }),
-    [data.series, theme, timeZone, timeRange, options, seriesType, formatValue, fieldConfig]
+    [data.series, theme, timeZone, timeRange, options, seriesType, formatValue, fieldConfig, replaceVariables]
   );
 
   const legendItems = useMemo(() => {

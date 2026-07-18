@@ -18,6 +18,11 @@ const theme = createTheme();
 
 const fieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
 
+// The pie legend now reduces via `getFieldDisplayValues`, so `buildPieLegendItems`
+// takes the panel's `reduceOptions` (calc) + `replaceVariables` instead of a calc.
+const reduce = (calc: string) => ({ calcs: [calc], values: false });
+const noopReplace = (value: string) => value;
+
 /**
  * The `hideSeriesFrom` system override the visibility toggle writes: a `byNames`
  * `exclude` matcher keeping every name except the hidden ones.
@@ -139,14 +144,14 @@ describe('buildRadarLegendItems', () => {
 describe('buildPieLegendItems', () => {
   describe('wide format', () => {
     it('builds one item per numeric field, labeled by field', () => {
-      const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig, 'wide', 'sum');
+      const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig, 'wide', reduce('sum'), noopReplace);
 
       expect(items.map((item) => item.label)).toEqual(['q1', 'q2']);
       expect(items[0].color).toEqual(expect.any(String));
     });
 
     it('shows each field reduced by the pie calc in the calc columns', () => {
-      const items = buildPieLegendItems([categoricalFrame()], theme, ['last'], fieldConfig, 'wide', 'sum');
+      const items = buildPieLegendItems([categoricalFrame()], theme, ['last'], fieldConfig, 'wide', reduce('sum'), noopReplace);
 
       // q1 sum = 60, q2 sum = 150; any legend reducer resolves to that slice value.
       expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ numeric: 60 })]);
@@ -160,7 +165,8 @@ describe('buildPieLegendItems', () => {
         [],
         hiddenConfig('q2', ['q1', 'q2']),
         'wide',
-        'sum'
+        reduce('sum'),
+        noopReplace
       );
 
       expect(items.map((item) => item.label)).toEqual(['q1', 'q2']);
@@ -170,19 +176,19 @@ describe('buildPieLegendItems', () => {
 
   describe('long format', () => {
     it('builds one item per category row (one per slice), labeled by category', () => {
-      const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig, 'long', 'sum');
+      const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig, 'long', reduce('sum'), noopReplace);
 
       expect(items.map((item) => item.label)).toEqual(['north', 'south', 'east']);
     });
 
     it('colors slices by palette index, independent of the field color', () => {
-      const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig, 'long', 'sum');
+      const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig, 'long', reduce('sum'), noopReplace);
 
       expect(items[0].color).not.toBe(items[1].color);
     });
 
     it('shows each slice value in the calc columns', () => {
-      const items = buildPieLegendItems([categoricalFrame()], theme, ['last'], fieldConfig, 'long', 'sum');
+      const items = buildPieLegendItems([categoricalFrame()], theme, ['last'], fieldConfig, 'long', reduce('sum'), noopReplace);
 
       // A slice is a single value, so any reducer resolves to that slice's value.
       expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ numeric: 10 })]);
@@ -196,7 +202,8 @@ describe('buildPieLegendItems', () => {
         [],
         hiddenConfig('south', ['north', 'south', 'east']),
         'long',
-        'sum'
+        reduce('sum'),
+        noopReplace
       );
 
       expect(items.map((item) => item.label)).toEqual(['north', 'south', 'east']);

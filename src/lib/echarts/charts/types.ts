@@ -2,6 +2,7 @@ import {
   type DataFrame,
   type FieldConfigSource,
   type GrafanaTheme2,
+  type InterpolateFunction,
   type TimeRange,
   type ValueFormatter,
 } from '@grafana/data';
@@ -44,6 +45,10 @@ export interface ChartContext<T = SeriesType> {
   // (pie slices, candlestick/boxplot) read legend color/visibility overrides
   // from here by name, since they do not map to Grafana fields.
   fieldConfig: FieldConfigSource;
+  // The panel's variable interpolation function (from `PanelProps`). Required by
+  // Grafana's `getFieldDisplayValues`, which the pie resolver uses to reduce
+  // slices and to interpolate field display-name templates.
+  replaceVariables: InterpolateFunction;
 }
 
 export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;

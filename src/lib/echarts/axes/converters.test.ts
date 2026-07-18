@@ -28,6 +28,7 @@ const makeContext = (seriesType: SeriesType, heatmapLayout?: HeatmapLayout): Cha
   } as PanelOptions,
   seriesType,
   formatValue,
+  replaceVariables: (value: string) => value,
   fieldConfig: { defaults: {}, overrides: [] },
 });
 

@@ -1,4 +1,4 @@
-import { type StandardOptionConfig } from '@grafana/data';
+import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type OptionsWithTooltip } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
 import { type PieFormat, type SeriesTypeOption } from 'editor/types';
@@ -54,11 +54,13 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   pieFormat?: PieFormat;
 
   /**
-   * Reducer id (`ReducerID`) that collapses each pie slice's values to a single
-   * number — every numeric field in `wide` mode, each category group in `long`
-   * mode. Defaults to `PIE_CALC_DEFAULT` (sum) when unset.
+   * Grafana's standard reduce options (added via `addStandardDataReduceOptions`)
+   * driving `getFieldDisplayValues` in the pie slice resolver: `calcs[0]` is the
+   * reducer per slice, `values` toggles Calculate vs. All values, `limit` caps
+   * All-values rows, and `fields` selects which numeric fields become slices.
+   * Defaults (Calculate, `PIE_CALC_DEFAULT` = sum) are applied when unset.
    */
-  pieCalc?: string;
+  reduceOptions?: ReduceDataOptions;
 
   // @internal
   animation?: {

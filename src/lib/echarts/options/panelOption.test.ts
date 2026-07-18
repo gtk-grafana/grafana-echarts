@@ -124,6 +124,7 @@ const makeContext = (
   options: { [seriesTypePath]: seriesType, legend, ...extraOptions } as PanelOptions,
   seriesType,
   formatValue,
+  replaceVariables: (value: string) => value,
   fieldConfig,
 });
 

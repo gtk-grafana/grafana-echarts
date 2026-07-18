@@ -12,6 +12,12 @@ import { resolvePieSlices } from 'lib/echarts/converters/pie';
 const theme = createTheme();
 const emptyConfig: FieldConfigSource = { defaults: {}, overrides: [] };
 
+// The pie now reduces via Grafana's `getFieldDisplayValues`, which needs the
+// panel's `reduceOptions` (calc + Calculate/All-values) and `replaceVariables`.
+// A slice is one value, so tests exercise a single Calculate calc.
+const reduce = (calc: string) => ({ calcs: [calc], values: false });
+const noopReplace = (value: string) => value;
+
 // Wide: several numeric fields (plus an ignored time field). Each numeric field
 // is one slice, reduced to a single value.
 const wideFrame = (): DataFrame =>
@@ -76,7 +82,7 @@ const colorConfig = (name: string, color: string): FieldConfigSource => ({
 describe('resolvePieSlices', () => {
   describe('wide format (Grafana default)', () => {
     it('builds one slice per numeric field, reduced by the calc', () => {
-      const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, 'wide', 'sum');
+      const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, 'wide', reduce('sum'), noopReplace);
 
       expect(slices.map((slice) => ({ name: slice.name, value: slice.value }))).toEqual([
         { name: 'A', value: 60 },
@@ -86,32 +92,32 @@ describe('resolvePieSlices', () => {
     });
 
     it('honors the chosen calculation', () => {
-      const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, 'wide', 'max');
+      const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, 'wide', reduce('max'), noopReplace);
       expect(slices.map((slice) => slice.value)).toEqual([30, 3, 5]);
     });
 
     it('ignores time/label fields as slices', () => {
-      const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, 'wide', 'sum');
+      const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, 'wide', reduce('sum'), noopReplace);
       expect(slices.map((slice) => slice.name)).not.toContain('time');
     });
 
     it('coerces a numeric-string field into a slice', () => {
       // 'category' is a genuine label (excluded); 'value' is numeric text.
-      const slices = resolvePieSlices([numericStringFrame()], theme, emptyConfig, 'wide', 'sum');
+      const slices = resolvePieSlices([numericStringFrame()], theme, emptyConfig, 'wide', reduce('sum'), noopReplace);
       expect(slices.map((slice) => ({ name: slice.name, value: slice.value }))).toEqual([{ name: 'value', value: 83 }]);
     });
 
     it('marks slices visible with string colors, and lets a fixed-color override win', () => {
-      const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, 'wide', 'sum');
+      const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, 'wide', reduce('sum'), noopReplace);
       expect(slices.every((slice) => slice.hidden === false)).toBe(true);
       expect(slices.every((slice) => typeof slice.color === 'string')).toBe(true);
 
-      const overridden = resolvePieSlices([wideFrame()], theme, colorConfig('B', '#123456'), 'wide', 'sum');
+      const overridden = resolvePieSlices([wideFrame()], theme, colorConfig('B', '#123456'), 'wide', reduce('sum'), noopReplace);
       expect(overridden.find((slice) => slice.name === 'B')!.color).toBe('#123456');
     });
 
     it('flags a field hidden via a hideSeriesFrom override', () => {
-      const slices = resolvePieSlices([wideFrame()], theme, hideConfig(['A', 'C']), 'wide', 'sum');
+      const slices = resolvePieSlices([wideFrame()], theme, hideConfig(['A', 'C']), 'wide', reduce('sum'), noopReplace);
       expect(slices.map((slice) => [slice.name, slice.hidden])).toEqual([
         ['A', false],
         ['B', true],
@@ -124,11 +130,11 @@ describe('resolvePieSlices', () => {
         fields: [{ name: 'A', type: FieldType.number, values: [null, null], config: { displayName: 'A' } }],
       });
       // Sum of nothing is 0 (a finite value renders an empty slice).
-      expect(resolvePieSlices([frame], theme, emptyConfig, 'wide', 'sum')).toEqual([
+      expect(resolvePieSlices([frame], theme, emptyConfig, 'wide', reduce('sum'), noopReplace)).toEqual([
         expect.objectContaining({ name: 'A', value: 0 }),
       ]);
       // A non-finite reduction (mean of all-null → null) collapses to undefined.
-      expect(resolvePieSlices([frame], theme, emptyConfig, 'wide', 'mean')).toEqual([
+      expect(resolvePieSlices([frame], theme, emptyConfig, 'wide', reduce('mean'), noopReplace)).toEqual([
         expect.objectContaining({ name: 'A', value: undefined }),
       ]);
     });
@@ -136,7 +142,7 @@ describe('resolvePieSlices', () => {
 
   describe('long format', () => {
     it('builds one slice per distinct category, aggregating duplicates by the calc', () => {
-      const slices = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', 'sum');
+      const slices = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', reduce('sum'), noopReplace);
 
       // Two 'Sales' rows (43, 7) aggregate to 50; first-seen category order.
       expect(slices.map((slice) => ({ name: slice.name, value: slice.value }))).toEqual([
@@ -147,21 +153,21 @@ describe('resolvePieSlices', () => {
     });
 
     it('honors the chosen calculation per category group', () => {
-      const slices = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', 'mean');
+      const slices = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', reduce('mean'), noopReplace);
       // Sales mean(43, 7) = 25; single-row groups equal their value.
       expect(slices.map((slice) => slice.value)).toEqual([25, 10, 30]);
     });
 
     it('colors slices by palette index (distinct), letting an override win', () => {
-      const slices = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', 'sum');
+      const slices = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', reduce('sum'), noopReplace);
       expect(slices[0].color).not.toBe(slices[1].color);
 
-      const overridden = resolvePieSlices([longFrame()], theme, colorConfig('Admin', '#abcdef'), 'long', 'sum');
+      const overridden = resolvePieSlices([longFrame()], theme, colorConfig('Admin', '#abcdef'), 'long', reduce('sum'), noopReplace);
       expect(overridden.find((slice) => slice.name === 'Admin')!.color).toBe('#abcdef');
     });
 
     it('coerces a numeric-string value field without a transform', () => {
-      const slices = resolvePieSlices([numericStringFrame()], theme, emptyConfig, 'long', 'sum');
+      const slices = resolvePieSlices([numericStringFrame()], theme, emptyConfig, 'long', reduce('sum'), noopReplace);
       expect(slices.map((slice) => ({ name: slice.name, value: slice.value }))).toEqual([
         { name: 'Sales', value: 43 },
         { name: 'Admin', value: 10 },
@@ -170,7 +176,7 @@ describe('resolvePieSlices', () => {
     });
 
     it('keeps a year-like string field as the category, not the value', () => {
-      const slices = resolvePieSlices([yearFrame()], theme, emptyConfig, 'long', 'sum');
+      const slices = resolvePieSlices([yearFrame()], theme, emptyConfig, 'long', reduce('sum'), noopReplace);
       expect(slices.map((slice) => ({ name: slice.name, value: slice.value }))).toEqual([
         { name: '2021', value: 40 },
         { name: '2022', value: 20 },
@@ -182,7 +188,7 @@ describe('resolvePieSlices', () => {
         fields: [{ name: 'v', type: FieldType.number, values: [5, 6], config: { displayName: 'v' } }],
       });
       expect(
-        resolvePieSlices([frame], theme, emptyConfig, 'long', 'sum').map((slice) => ({
+        resolvePieSlices([frame], theme, emptyConfig, 'long', reduce('sum'), noopReplace).map((slice) => ({
           name: slice.name,
           value: slice.value,
         }))
@@ -193,8 +199,8 @@ describe('resolvePieSlices', () => {
     });
 
     it('flags a hidden category and keeps palette colors stable', () => {
-      const all = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', 'sum');
-      const slices = resolvePieSlices([longFrame()], theme, hideConfig(['Sales', 'IT']), 'long', 'sum');
+      const all = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', reduce('sum'), noopReplace);
+      const slices = resolvePieSlices([longFrame()], theme, hideConfig(['Sales', 'IT']), 'long', reduce('sum'), noopReplace);
 
       expect(slices.map((slice) => [slice.name, slice.hidden])).toEqual([
         ['Sales', false],
@@ -207,15 +213,15 @@ describe('resolvePieSlices', () => {
   });
 
   it('returns an empty array when no frame has a numeric-like field', () => {
-    expect(resolvePieSlices([], theme, emptyConfig, 'wide', 'sum')).toEqual([]);
+    expect(resolvePieSlices([], theme, emptyConfig, 'wide', reduce('sum'), noopReplace)).toEqual([]);
 
     const labelsOnly = toDataFrame({ fields: [{ name: 'category', type: FieldType.string, values: ['a', 'b'] }] });
-    expect(resolvePieSlices([labelsOnly], theme, emptyConfig, 'long', 'sum')).toEqual([]);
-    expect(resolvePieSlices([labelsOnly], theme, emptyConfig, 'wide', 'sum')).toEqual([]);
+    expect(resolvePieSlices([labelsOnly], theme, emptyConfig, 'long', reduce('sum'), noopReplace)).toEqual([]);
+    expect(resolvePieSlices([labelsOnly], theme, emptyConfig, 'wide', reduce('sum'), noopReplace)).toEqual([]);
   });
 
   it('exposes a single-value slice field whose calc columns resolve to the slice value', () => {
-    const [sales] = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', 'sum');
+    const [sales] = resolvePieSlices([longFrame()], theme, emptyConfig, 'long', reduce('sum'), noopReplace);
     // The slice field holds the reduced value regardless of the reducer used.
     expect(reduceField({ field: sales.field, reducers: ['last'] }).last).toBe(50);
   });

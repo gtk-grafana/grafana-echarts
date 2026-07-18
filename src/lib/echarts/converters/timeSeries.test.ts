@@ -30,6 +30,7 @@ const makeContext = (
   options: { [seriesTypePath]: seriesType, stackSeries } as PanelOptions,
   seriesType,
   formatValue,
+  replaceVariables: (value: string) => value,
   fieldConfig: { defaults: {}, overrides: [] },
 });
 
