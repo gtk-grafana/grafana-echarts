@@ -77,6 +77,10 @@ export const pieChartModule: ChartModule = {
         {
           type: seriesType,
           data,
+          // Place the series on its own canvas layer (see the panel's
+          // `zLevel.series`), matching the other families so layered canvas
+          // capture can isolate it (also what the canvas tests read).
+          zlevel: options.zLevel?.series,
           // Pie vs donut (inner hole) from the panel's "Pie chart type" option.
           radius: getPieRadius(options.pieType),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the

@@ -2,7 +2,7 @@ import { FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from
 import { render } from '@testing-library/react';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
-import { getSeriesCanvasEvents, getComponent, height, width } from 'test/panel';
+import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 
 // Part-to-whole (pie) canvas snapshots, split out of `Panel.canvas.test.tsx`
 // (mirrors `axis.canvas.test.tsx`). The pie is built from the shared slice
@@ -33,13 +33,15 @@ const renderPie = async (
 };
 
 describe('part-to-whole canvas renders', () => {
-  // Wide: each numeric field is one slice. Sum and mean weight the fields
-  // differently, so the two reducers yield visibly different slice sizes.
+  // Wide: each numeric field is one slice. The fields have uneven non-null
+  // counts, so Sum and Mean produce different *proportions* (not just scaled
+  // values) — the pie is proportional, so this makes the two reducer snapshots
+  // genuinely differ. Sum → 120 / 60 / 15; Mean → 40 / 60 / 7.5.
   const wideFrame = toDataFrame({
     fields: [
       { name: 'A', type: FieldType.number, values: [30, 40, 50], config: { displayName: 'A' } },
-      { name: 'B', type: FieldType.number, values: [10, 20, 30], config: { displayName: 'B' } },
-      { name: 'C', type: FieldType.number, values: [5, 15, 25], config: { displayName: 'C' } },
+      { name: 'B', type: FieldType.number, values: [60, null, null], config: { displayName: 'B' } },
+      { name: 'C', type: FieldType.number, values: [5, 10, null], config: { displayName: 'C' } },
     ],
   });
 
