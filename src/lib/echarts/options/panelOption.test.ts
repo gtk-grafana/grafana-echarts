@@ -283,8 +283,10 @@ describe('buildPanelChartOption for the pie (row/series family)', () => {
       });
 
     expect(build).not.toThrow();
+    // Slices are ordered by the default sort (Descending): Support 48, Sales 43,
+    // IT 30, Admin 25. 'Ops' (22) is hidden and dropped from the chart data.
     const names = pieData(build()).map((slice) => slice.name);
-    expect(names).toEqual(['Sales', 'Admin', 'IT', 'Support']);
+    expect(names).toEqual(['Support', 'Sales', 'IT', 'Admin']);
     expect(names).not.toContain('Ops');
   });
 

@@ -1,4 +1,5 @@
 import { DataFrameType, ReducerID, type SelectableValue } from '@grafana/data';
+import { SortOrder } from '@grafana/schema';
 import {
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
@@ -110,6 +111,16 @@ export const pieTypeOptions: Array<SelectableValue<PieChartType>> = [
 ];
 /** Default pie chart type: a full pie (matches core Grafana). */
 export const PIE_TYPE_DEFAULT: PieChartType = 'pie';
+/** Panel option path for pie slice sorting. Matches core's `sort`. */
+export const pieSortPath = 'sort';
+/** Pie slice sort options (Grafana Pie chart "Slice sorting" parity). */
+export const pieSortOptions: Array<SelectableValue<SortOrder>> = [
+  { value: SortOrder.Descending, label: 'Descending' },
+  { value: SortOrder.Ascending, label: 'Ascending' },
+  { value: SortOrder.None, label: 'None' },
+];
+/** Default slice sort: descending by value (largest first), matching core Grafana. */
+export const PIE_SORT_DEFAULT: SortOrder = SortOrder.Descending;
 /**
  * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
  * chart") so future ECharts-specific label options can join it.
