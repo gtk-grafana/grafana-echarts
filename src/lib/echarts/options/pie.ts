@@ -1,8 +1,8 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { type PieSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { PIE_LABELS_DEFAULT } from 'editor/constants';
-import { type PieLabel } from 'editor/types';
+import { PIE_LABELS_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
+import { type PieChartType, type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
 import { getValueFormatter } from 'lib/echarts/style';
@@ -12,6 +12,24 @@ import { formatTooltipValue } from 'lib/echarts/tooltip/template';
 export const pieDefaultOptions: ECBasicOption = {
   ...createBaseOptions({ includeLegend: true }),
 };
+
+/**
+ * Outer slice radius, shared by pie and donut so both fill the panel the same;
+ * matches ECharts' own default so a plain pie is unchanged.
+ */
+const PIE_OUTER_RADIUS = '75%';
+/** Donut inner (hole) radius, as a fraction of the panel — a pie with the middle cut out. */
+const DONUT_INNER_RADIUS = '50%';
+
+/**
+ * ECharts pie `series.radius` for the chart type (Grafana Pie chart "Pie chart
+ * type": Pie / Donut). A donut is a pie with an inner hole (`[inner, outer]`); a
+ * plain pie keeps a single outer radius. Unset falls back to `PIE_TYPE_DEFAULT`.
+ * https://echarts.apache.org/en/option.html#series-pie.radius
+ */
+export function getPieRadius(pieType: PieChartType | undefined): PieSeriesOption['radius'] {
+  return (pieType ?? PIE_TYPE_DEFAULT) === 'donut' ? [DONUT_INNER_RADIUS, PIE_OUTER_RADIUS] : PIE_OUTER_RADIUS;
+}
 
 /**
  * Themed pie slice label: Grafana's font family and primary text color, with the

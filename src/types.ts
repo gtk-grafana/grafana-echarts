@@ -1,7 +1,7 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type OptionsWithTooltip } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
-import { type PieLabel, type SeriesTypeOption } from 'editor/types';
+import { type PieChartType, type PieLabel, type SeriesTypeOption } from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -54,6 +54,13 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Defaults (Calculate, `PIE_CALC_DEFAULT` = sum) are applied when unset.
    */
   reduceOptions?: ReduceDataOptions;
+
+  /**
+   * Pie (part-to-whole) chart type (Grafana Pie chart "Pie chart type" parity):
+   * `pie` (full disc) or `donut` (a pie with a hole). Defaults to `PIE_TYPE_DEFAULT`
+   * (`pie`) when unset. Rendered as the ECharts series radius; see `getPieRadius`.
+   */
+  pieType?: PieChartType;
 
   /**
    * Pie (part-to-whole) slice-label content (Grafana Pie chart "Labels" parity):

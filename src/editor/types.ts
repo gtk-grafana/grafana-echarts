@@ -57,6 +57,14 @@ export type SeriesTypeOption = SeriesType | 'Auto';
 export type PieLabel = 'name' | 'value' | 'percent';
 
 /**
+ * Pie (part-to-whole) chart shape, matching core Grafana's `PieChartType`
+ * (`@grafana/schema` doesn't re-export the raw enum, so the string values are
+ * mirrored here): `pie` (full disc) or `donut` (a pie with a hole). The panel's
+ * `pieType` selects it; rendered as the ECharts series radius. See `getPieRadius`.
+ */
+export type PieChartType = 'pie' | 'donut';
+
+/**
  * Per-field custom field config, registered via `useFieldConfig`'s
  * `useCustomConfig`. It lets a Grafana field override (by name, regex, type or
  * query) set the ECharts series type for matching fields, so a single panel can

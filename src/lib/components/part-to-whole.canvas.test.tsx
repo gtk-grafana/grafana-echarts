@@ -108,10 +108,26 @@ describe('part-to-whole canvas renders', () => {
     });
   });
 
+  describe('type', () => {
+    // Donut = a pie with an inner hole (series radius [inner, outer]). The reducer
+    // cases above cover the default pie, so this guards the donut radius path.
+    it('donut (inner hole)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        pieType: 'donut',
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
   describe('labels', () => {
     // Slice-label content (Name / Value / Percent) rendered on the slices via the
     // "Labels" option. Exercises getPieContentLabel's formatter during a real
-    // render (default is no labels, covered by the reducer cases above).
+    // render (the default Name label is covered by the reducer cases above).
     it('name + value + percent labels', async () => {
       const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
         reduceOptions: { calcs: ['sum'], values: false },

@@ -6,6 +6,7 @@ import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
+import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
 import { type PanelOptions } from 'types';
 import { partToWholeSuggestionsSupplier } from './suggestions';
 
@@ -47,6 +48,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // fields transform (see provisioning/dashboards/part-to-whole). Default
     // reducer is Sum (part-to-whole), not Grafana's stat/gauge `lastNotNull`.
     addStandardDataReduceOptions(builder, true, PIE_CALC_DEFAULT);
+
+    // Pie vs donut chart type — Grafana Pie chart parity. Rendered by `getPieRadius`.
+    addPieTypeOptions(builder);
 
     // Slice-label content (Name / Value / Percent) — Grafana Pie chart parity.
     // Rendered by `getPieContentLabel`.

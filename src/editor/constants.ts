@@ -6,6 +6,7 @@ import {
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type MultiValueSeriesType,
+  type PieChartType,
   type PieLabel,
   type SeriesType,
   type SeriesTypeOption,
@@ -94,6 +95,21 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
  * of the total), unlike Grafana stat/gauge which default to `lastNotNull`.
  */
 export const PIE_CALC_DEFAULT: string = ReducerID.sum;
+/**
+ * Editor category for pie chart-shape options. Named "Pie" (not core's "Pie
+ * chart") so future ECharts-specific shape options (rose type, radius, center)
+ * can join it.
+ */
+export const pieTypeCategoryName = 'Pie';
+/** Panel option path for the pie chart type (Pie / Donut). Matches core's `pieType`. */
+export const pieTypePath = 'pieType';
+/** Pie chart type options (Grafana Pie chart "Pie chart type" parity). */
+export const pieTypeOptions: Array<SelectableValue<PieChartType>> = [
+  { value: 'pie', label: 'Pie' },
+  { value: 'donut', label: 'Donut' },
+];
+/** Default pie chart type: a full pie (matches core Grafana). */
+export const PIE_TYPE_DEFAULT: PieChartType = 'pie';
 /**
  * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
  * chart") so future ECharts-specific label options can join it.

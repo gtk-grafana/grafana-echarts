@@ -133,7 +133,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Core Grafana piechart reference with the Last reducer and a donut layout, legend on the right showing percent. Compare with the ECharts panel to its right (same data + reduceOptions; ECharts donut/label options are not yet exposed, so only the shared reduce/legend/tooltip settings match).",
+      "description": "Core Grafana piechart reference with the Last reducer and a donut layout, legend on the right showing percent. Compare with the ECharts donut to its right (same data, reducer, donut type, and legend placement).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -190,7 +190,7 @@
         "type": "datasource",
         "uid": "-- Dashboard --"
       },
-      "description": "ECharts part-to-whole over the *exact same* five series as the core donut to its left, via the -- Dashboard -- datasource (reusing panel 3's query results), with the Last reducer and the legend on the right. Slice values, names, and colors come from Grafana's getFieldDisplayValues, matching the core reference.",
+      "description": "ECharts part-to-whole over the *exact same* five series as the core donut to its left, via the -- Dashboard -- datasource (reusing panel 3's query results): Last reducer, Donut chart type, legend on the right. Slice values, names, colors, and the donut shape match the core reference.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -208,6 +208,7 @@
       "id": 4,
       "options": {
         "seriesType": "pie",
+        "pieType": "donut",
         "reduceOptions": {
           "values": false,
           "calcs": ["last"]
@@ -232,7 +233,7 @@
           "panelId": 3
         }
       ],
-      "title": "ECharts part-to-whole — last, right legend",
+      "title": "ECharts part-to-whole — last, donut, right legend",
       "type": "grafana-echartsparttowhole-panel"
     }
   ],
