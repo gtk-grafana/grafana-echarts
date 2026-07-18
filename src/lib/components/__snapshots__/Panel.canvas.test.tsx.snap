@@ -23948,7 +23948,3 @@ exports[`Panel canvas renders hierarchy treemap renders a treemap from a nested-
   },
 ]
 `;
-
-exports[`Panel canvas renders part-to-whole renders a long pie (one slice per aggregated category) 1`] = `[]`;
-
-exports[`Panel canvas renders part-to-whole renders a wide pie (one slice per numeric field) 1`] = `[]`;

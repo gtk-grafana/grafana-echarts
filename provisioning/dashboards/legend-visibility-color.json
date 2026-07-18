@@ -136,7 +136,7 @@
       "datasource": {
         "type": "grafana-testdata-datasource"
       },
-      "description": "Row/series family (pie). Pie slices are rows of one field, so no field is named after a slice and Grafana's override engine ignores these rules; the converter reads them directly by category name. 'Sales' is pinned to a fixed purple color (byName), and the 'hideSeriesFrom' byNames-exclude override (keeping every slice except 'Ops') drops 'Ops' from the pie.",
+      "description": "Row/series family (pie). The long CSV is reshaped to wide with a Rows to fields transform, so each category becomes a field and the pie's Calculate (Sum) reducer draws one slice per category. 'Sales' is pinned to a fixed purple color (byName), and the 'hideSeriesFrom' byNames-exclude override (keeping every slice except 'Ops') drops 'Ops' from the pie. Slices come from the standard reduceOptions.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -191,7 +191,7 @@
       },
       "id": 2,
       "options": {
-        "pieFormat": "long",
+        "seriesType": "pie",
         "reduceOptions": {
           "calcs": ["sum"],
           "values": false
@@ -214,6 +214,24 @@
           "refId": "A",
           "scenarioId": "csv_content",
           "csvContent": "category,value\nSales,43\nAdmin,25\nIT,30\nSupport,48\nOps,22"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [{ "targetField": "value", "destinationType": "number" }]
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              { "fieldName": "category", "handlerKey": "field.name" },
+              { "fieldName": "value", "handlerKey": "field.value" }
+            ]
+          }
         }
       ],
       "title": "Pie \u2014 fixed-color override (Sales) + hidden slice (Ops)",

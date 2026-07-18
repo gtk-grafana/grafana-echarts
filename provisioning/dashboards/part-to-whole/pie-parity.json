@@ -1,0 +1,255 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Core Grafana piechart reference. Five random_walk series (one frame per series) reduced to a single value each with Calculate → Mean, so there is one slice per series. Compare with the ECharts part-to-whole panel to its right, which uses the same data and reduceOptions.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["mean"],
+          "fields": ""
+        },
+        "pieType": "pie",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "values": []
+        },
+        "displayLabels": ["name"]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 5,
+          "startValue": 50,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "title": "Core piechart — mean, one slice per series",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "ECharts part-to-whole over the *exact same* five random_walk series as the core piechart to its left, via the -- Dashboard -- datasource (reusing panel 1's query results). `reduceOptions` (Calculate → Mean) is fed to Grafana's getFieldDisplayValues, so each series becomes one slice — the multi-series case the reduce-options rewrite unlocks (previously only the first frame rendered).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "pie",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["mean"]
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "refId": "A",
+          "panelId": 1
+        }
+      ],
+      "title": "ECharts part-to-whole — mean, one slice per series",
+      "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Core Grafana piechart reference with the Last reducer and a donut layout, legend on the right showing percent. Compare with the ECharts panel to its right (same data + reduceOptions; ECharts donut/label options are not yet exposed, so only the shared reduce/legend/tooltip settings match).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["last"],
+          "fields": ""
+        },
+        "pieType": "donut",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["percent"]
+        },
+        "displayLabels": ["name", "percent"]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 5,
+          "startValue": 50,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "title": "Core piechart — last, donut, percent legend",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "description": "ECharts part-to-whole over the *exact same* five series as the core donut to its left, via the -- Dashboard -- datasource (reusing panel 3's query results), with the Last reducer and the legend on the right. Slice values, names, and colors come from Grafana's getFieldDisplayValues, matching the core reference.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "pie",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["last"]
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "right",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "refId": "A",
+          "panelId": 3
+        }
+      ],
+      "title": "ECharts part-to-whole — last, right legend",
+      "type": "grafana-echartsparttowhole-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "part-to-whole", "pie", "parity"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Part-to-whole — core pie parity (multi-series)",
+  "uid": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+  "version": 1,
+  "weekStart": ""
+}

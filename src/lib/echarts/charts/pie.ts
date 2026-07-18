@@ -1,7 +1,5 @@
 import { type ReduceDataOptions } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
-import { PIE_FORMAT_DEFAULT } from 'editor/constants';
-import { type PieFormat } from 'editor/types';
 import { resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
@@ -11,7 +9,6 @@ import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
 import { type ChartContext, type ChartModule, type EChartPieDataItem, type EChartPieSeriesOption } from './types';
 
-const resolveFormat = (ctx: ChartContext): PieFormat => ctx.options.pieFormat ?? PIE_FORMAT_DEFAULT;
 const resolveReduceOptions = (ctx: ChartContext): ReduceDataOptions | undefined => ctx.options.reduceOptions;
 
 export const pieChartModule: ChartModule = {
@@ -30,7 +27,6 @@ export const pieChartModule: ChartModule = {
       ctx.frames,
       ctx.theme,
       ctx.fieldConfig,
-      resolveFormat(ctx),
       resolveReduceOptions(ctx),
       ctx.replaceVariables,
       ctx.timeZone
@@ -45,7 +41,6 @@ export const pieChartModule: ChartModule = {
       ctx.frames,
       theme,
       ctx.fieldConfig,
-      resolveFormat(ctx),
       resolveReduceOptions(ctx),
       ctx.replaceVariables,
       ctx.timeZone
@@ -100,7 +95,6 @@ export const pieChartModule: ChartModule = {
       ctx.theme,
       calcs,
       ctx.fieldConfig,
-      resolveFormat(ctx),
       resolveReduceOptions(ctx),
       ctx.replaceVariables,
       ctx.timeZone

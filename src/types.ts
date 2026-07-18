@@ -1,7 +1,7 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type OptionsWithTooltip } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
-import { type PieFormat, type SeriesTypeOption } from 'editor/types';
+import { type SeriesTypeOption } from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -45,13 +45,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Bar series stacking
    */
   stackSeries?: boolean;
-
-  /**
-   * Pie (part-to-whole) frame shape: `wide` (each numeric field is a slice,
-   * Grafana's default) or `long` (first string field is the category, rows
-   * aggregated per category). Defaults to `PIE_FORMAT_DEFAULT` when unset.
-   */
-  pieFormat?: PieFormat;
 
   /**
    * Grafana's standard reduce options (added via `addStandardDataReduceOptions`)

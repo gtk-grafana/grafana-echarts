@@ -12,7 +12,7 @@ import {
   reduceField,
 } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
-import type { MultiValueSeriesType, PieFormat } from 'editor/types';
+import type { MultiValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { findCategoricalFrame, forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
@@ -174,22 +174,20 @@ export function buildRadarLegendItems(
 
 /**
  * Legend items for the pie, from the shared slice resolver so the legend matches
- * the rendered slices in both wide and long modes (same names, colors, hidden
- * state). Every slice is kept — a hidden one is marked `disabled` (greyed) so it
- * can be toggled back — and each carries a single-value `field` whose calc
- * columns resolve to that slice's value.
+ * the rendered slices (same names, colors, hidden state). Every slice is kept — a
+ * hidden one is marked `disabled` (greyed) so it can be toggled back — and each
+ * carries a single-value `field` whose calc columns resolve to that slice's value.
  */
 export function buildPieLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
   calcs: string[],
   fieldConfig: FieldConfigSource,
-  format: PieFormat,
   reduceOptions: ReduceDataOptions | undefined,
   replaceVariables: InterpolateFunction,
   timeZone?: string
 ): VizLegendItem[] {
-  return resolvePieSlices(series, theme, fieldConfig, format, reduceOptions, replaceVariables, timeZone).map(
+  return resolvePieSlices(series, theme, fieldConfig, reduceOptions, replaceVariables, timeZone).map(
     (slice, index) => ({
       label: slice.name,
       fieldName: slice.name,

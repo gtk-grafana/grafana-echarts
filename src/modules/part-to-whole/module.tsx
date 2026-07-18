@@ -1,11 +1,15 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
+import { initPluginTranslations } from '@grafana/i18n';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { PIE_CALC_DEFAULT, PIE_FORMAT_DEFAULT, pieCategoryName, pieFormatOptions, pieFormatPath } from 'editor/constants';
+import { PIE_CALC_DEFAULT } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { type PanelOptions } from 'types';
 import { partToWholeSuggestionsSupplier } from './suggestions';
+
+// Needs to be called at each top-level module to prevent panels from breaking when calling grafana/i18n methods (like t())
+initPluginTranslations('grafana-echarts-app');
 
 // Part-to-whole family panel: pie built from the categorical model
 // (one value per category). The family is fixed to `pie`; the shared Panel
@@ -33,27 +37,14 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     },
   })
   .setPanelOptions((builder) => {
-    // Frame shape: `wide` (each numeric field is a slice, matching Grafana's core
-    // pie default) vs `long` (first string field is the category, rows aggregated
-    // per category). See `resolvePieSlices`.
-    builder.addRadio({
-      path: pieFormatPath,
-      name: 'Format',
-      description:
-        'Wide draws one slice per numeric field (Grafana default); Long uses the first string field as the category and aggregates rows per category.',
-      defaultValue: PIE_FORMAT_DEFAULT,
-      settings: {
-        options: pieFormatOptions,
-      },
-      category: [pieCategoryName],
-    });
-
-    // Grafana's standard reduce options (Show / Limit / Calculation / Fields)
-    // replace the old bespoke "Calculation" select. `resolvePieSlices` feeds
-    // these to `getFieldDisplayValues`: `calcs[0]` reduces each slice, `values`
-    // switches Calculate vs. All values, `fields` selects which numeric fields
-    // become slices. Default reducer is Sum (part-to-whole), not Grafana's
-    // stat/gauge `lastNotNull`.
+    // Grafana's standard reduce options (Show / Limit / Calculation / Fields).
+    // `resolvePieSlices` feeds these to `getFieldDisplayValues`: `calcs[0]` reduces
+    // each slice, `values` switches Calculate vs. All values, `limit` caps
+    // All-values rows, and `fields` selects which numeric fields become slices.
+    // Multi-frame responses (one frame per series) yield one slice per series.
+    // Long-shaped data is reshaped to wide upstream with a Group by / Rows to
+    // fields transform (see provisioning/dashboards/part-to-whole). Default
+    // reducer is Sum (part-to-whole), not Grafana's stat/gauge `lastNotNull`.
     addStandardDataReduceOptions(builder, true, PIE_CALC_DEFAULT);
 
     commonOptionsBuilder.addLegendOptions(builder);

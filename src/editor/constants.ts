@@ -6,7 +6,6 @@ import {
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type MultiValueSeriesType,
-  type PieFormat,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -83,24 +82,11 @@ export const heatmapLegendCategoryName = 'Heatmap legend';
  */
 export const radarSeriesTypes: SeriesType[] = ['radar'];
 /**
- * Pie (and pie-like) types built from the categorical model. See
- * echarts/converters/pie.ts (`resolvePieSlices`) for wide vs long mapping.
+ * Pie (and pie-like) types built from the categorical model. Slices come from
+ * Grafana's standard reduce options via `getFieldDisplayValues`; see
+ * echarts/converters/pie.ts (`resolvePieSlices`).
  */
 export const pieSeriesTypes: SeriesType[] = ['pie'];
-/** Editor category grouping the pie (part-to-whole) format + calculation options. */
-export const pieCategoryName = 'Pie';
-/** Panel option path for the pie wide/long format radio. */
-export const pieFormatPath = 'pieFormat';
-/** Wide matches Grafana's core pie default (each numeric field is a slice). */
-export const PIE_FORMAT_DEFAULT: PieFormat = 'wide';
-export const pieFormatOptions: Array<SelectableValue<PieFormat>> = [
-  { value: 'wide', label: 'Wide', description: 'Each numeric field is a slice (Grafana default)' },
-  {
-    value: 'long',
-    label: 'Long',
-    description: 'First string field is the category; rows sharing a category are aggregated',
-  },
-];
 /**
  * Default slice reducer, passed to `addStandardDataReduceOptions` as the pie's
  * default `reduceOptions.calcs`. Sum suits a part-to-whole (each slice is a share

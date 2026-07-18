@@ -2,29 +2,38 @@
 
 Compares the ECharts **Part-to-whole** module ([module.tsx](./module.tsx)),
 rendering `seriesType: pie`, against core Grafana's **Pie chart** panel
-([`public/app/plugins/panel/piechart/module.tsx`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/piechart/module.tsx)).
+([
+`public/app/plugins/panel/piechart/module.tsx`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/piechart/module.tsx)).
 
 ## Design difference
 
 Core Pie chart adds data-reduction options (which value/calculation per slice)
 plus pie-specific display options (type, sorting, labels, legend values). This
-module currently exposes only the shared Grafana legend and a tooltip mode; slice
-values come from the categorical converter (first numeric field per category).
+module now shares core's data-reduction model: it registers the standard **Value
+options** (`addStandardDataReduceOptions`) and resolves slices through Grafana's
+`getFieldDisplayValues` (see `resolvePieSlices`), so reduction, multi-frame
+handling, display name, color, and unit/decimals formatting are all owned by
+Grafana. Multiple series/frames (e.g. one frame per Prometheus series) each become
+a slice. Pie-specific _display_ options (type, sorting, labels, legend values)
+remain unexposed.
+
+Long-shaped data is reshaped to wide upstream with a Grafana transform (**Rows to fields** or **Group
+by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 
 ## Panel options
 
-| Core Grafana option                           | ECharts equivalent                                                                                             | Status        |
-| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- |
-| Value / calculation (data reduce)             | none (converter uses first numeric field)                                                                      | Not supported |
-| Fields to include, limit                      | none                                                                                                           | Not supported |
-| Pie chart type (Pie / Donut)                  | none (pie only)                                                                                                | Not supported |
-| Slice sorting (asc/desc/none)                 | none                                                                                                           | Not supported |
-| Labels (Percent / Name / Value)               | none                                                                                                           | Not supported |
-| Tooltip: mode                                 | `tooltip.mode`                                                                                                 | Supported     |
-| Tooltip: hide zeros, sort                     | none                                                                                                           | Not supported |
-| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions`                                                                          | Supported     |
-| Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by category | Supported     |
-| Legend values (Percent / Value)               | none                                                                                                           | Not supported |
+| Core Grafana option                           | ECharts equivalent                                                                                         | Status        |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------- |
+| Value / calculation (data reduce)             | `reduceOptions` (Calculate/All values + Calculation) via `addStandardDataReduceOptions`                    | Supported     |
+| Fields to include, limit                      | `reduceOptions.fields` / `reduceOptions.limit`                                                             | Supported     |
+| Pie chart type (Pie / Donut)                  | none (pie only)                                                                                            | Not supported |
+| Slice sorting (asc/desc/none)                 | none                                                                                                       | Not supported |
+| Labels (Percent / Name / Value)               | none                                                                                                       | Not supported |
+| Tooltip: mode                                 | `tooltip.mode`                                                                                             | Supported     |
+| Tooltip: hide zeros, sort                     | none                                                                                                       | Not supported |
+| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions`                                                                      | Supported     |
+| Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by name | Supported     |
+| Legend values (Percent / Value)               | none                                                                                                       | Not supported |
 
 ## Standard (field-config) options
 

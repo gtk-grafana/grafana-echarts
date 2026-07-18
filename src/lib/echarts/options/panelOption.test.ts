@@ -229,13 +229,16 @@ describe('buildPanelChartOption with no series hidden', () => {
 // opts out of the pre-strip (`readsHiddenSeriesInternally`) and reads hidden
 // slices itself.
 describe('buildPanelChartOption for the pie (row/series family)', () => {
-  // A pie source frame: a category label field plus one numeric value field.
-  // Slices are the category rows (long format), not the numeric fields.
+  // A wide pie source frame: each numeric field is one slice (Grafana's default),
+  // named after the field so the legend visibility/color overrides target it.
   const pieFrame = (): DataFrame =>
     toDataFrame({
       fields: [
-        { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT', 'Support', 'Ops'] },
-        { name: 'value', type: FieldType.number, values: [43, 25, 30, 48, 22], config: { displayName: 'value' } },
+        { name: 'Sales', type: FieldType.number, values: [43], config: { displayName: 'Sales' } },
+        { name: 'Admin', type: FieldType.number, values: [25], config: { displayName: 'Admin' } },
+        { name: 'IT', type: FieldType.number, values: [30], config: { displayName: 'IT' } },
+        { name: 'Support', type: FieldType.number, values: [48], config: { displayName: 'Support' } },
+        { name: 'Ops', type: FieldType.number, values: [22], config: { displayName: 'Ops' } },
       ],
     });
 
@@ -275,7 +278,7 @@ describe('buildPanelChartOption for the pie (row/series family)', () => {
 
   it('builds without throwing and drops the hidden slice', () => {
     const build = () =>
-      buildPanelChartOption(makeContext([pieFrame()], 'pie', pieLegendFieldConfig, { pieFormat: 'long' }), {
+      buildPanelChartOption(makeContext([pieFrame()], 'pie', pieLegendFieldConfig), {
         isGrafanaLegend: true,
       });
 
@@ -286,10 +289,9 @@ describe('buildPanelChartOption for the pie (row/series family)', () => {
   });
 
   it('applies the fixed-color override to the matching slice', () => {
-    const option = buildPanelChartOption(
-      makeContext([pieFrame()], 'pie', pieLegendFieldConfig, { pieFormat: 'long' }),
-      { isGrafanaLegend: true }
-    );
+    const option = buildPanelChartOption(makeContext([pieFrame()], 'pie', pieLegendFieldConfig), {
+      isGrafanaLegend: true,
+    });
 
     expect(pieData(option).find((slice) => slice.name === 'Sales')?.itemStyle?.color).toBe('purple');
   });

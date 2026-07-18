@@ -525,68 +525,7 @@ describe('Panel canvas renders', () => {
     });
   });
 
-  // Part-to-whole family: a pie built from the shared slice resolver. Wide maps
-  // each numeric field to one slice (reduced by the calc); long aggregates rows
-  // per category. Rendered with family 'part-to-whole' so the panel resolves the
-  // pie chart module. Like hierarchy, the pie is axis-less, so only the series
-  // layer paints.
-  describe('part-to-whole', () => {
-    // Wide: each numeric field is one slice (Grafana's default), summed.
-    const wideFrame = toDataFrame({
-      fields: [
-        { name: 'A', type: FieldType.number, values: [30, 40, 50], config: { displayName: 'A' } },
-        { name: 'B', type: FieldType.number, values: [10, 20, 30], config: { displayName: 'B' } },
-        { name: 'C', type: FieldType.number, values: [5, 15, 25], config: { displayName: 'C' } },
-      ],
-    });
-
-    // Long: a category label + a value field, with a duplicate category to
-    // exercise aggregation (two 'Sales' rows sum to one slice).
-    const longFrame = toDataFrame({
-      fields: [
-        { name: 'category', type: FieldType.string, values: ['Sales', 'Sales', 'Admin', 'IT'] },
-        { name: 'value', type: FieldType.number, values: [43, 7, 10, 30], config: { displayName: 'value' } },
-      ],
-    });
-
-    it('renders a wide pie (one slice per numeric field)', async () => {
-      const { container } = render(
-        getComponent(
-          [wideFrame],
-          'pie',
-          { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
-          undefined,
-          undefined,
-          'part-to-whole'
-        )
-      );
-
-      const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
-
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
-    });
-
-    it('renders a long pie (one slice per aggregated category)', async () => {
-      const { container } = render(
-        getComponent(
-          [longFrame],
-          'pie',
-          { pieFormat: 'long', zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
-          undefined,
-          undefined,
-          'part-to-whole'
-        )
-      );
-
-      const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
-
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
-    });
-  });
+  // Part-to-whole (pie) canvas snapshots live in `part-to-whole.canvas.test.tsx`
+  // (mirrors the axis snapshots living in `axis.canvas.test.tsx`), where reducer
+  // modes, color schemes, and byName overrides are covered.
 });
