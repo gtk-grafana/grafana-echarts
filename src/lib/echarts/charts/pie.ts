@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
-import { getPieLabelStyle, pieDefaultOptions } from 'lib/echarts/options/pie';
+import { getPieContentLabel, pieDefaultOptions } from 'lib/echarts/options/pie';
 import { getValueFormatter } from 'lib/echarts/style';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
@@ -77,8 +77,9 @@ export const pieChartModule: ChartModule = {
         {
           type: seriesType,
           data,
-          // Grafana-styled labels: theme font/color and no default text shadow/stroke.
-          label: getPieLabelStyle(theme),
+          // Grafana-styled slice labels; content (Name/Value/Percent) from the
+          // panel's "Labels" option. No selection → labels hidden (core parity).
+          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone),
           // Dedicated pie tooltip (Single slice / All slices). Skipped in None
           // mode, where the panel disables the tooltip entirely.
           ...(tooltipMode === TooltipDisplayMode.None

@@ -6,6 +6,7 @@ import {
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type MultiValueSeriesType,
+  type PieLabel,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -93,6 +94,29 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
  * of the total), unlike Grafana stat/gauge which default to `lastNotNull`.
  */
 export const PIE_CALC_DEFAULT: string = ReducerID.sum;
+/**
+ * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
+ * chart") so future ECharts-specific label options can join it.
+ */
+export const pieLabelsCategoryName = 'Labels';
+/** Panel option path for the pie slice-label content multi-select. */
+export const pieLabelsPath = 'displayLabels';
+/**
+ * Pie slice-label content options (Grafana Pie chart "Labels" parity). Order
+ * mirrors core: Percent, Name, Value.
+ */
+export const pieLabelOptions: Array<SelectableValue<PieLabel>> = [
+  { value: 'percent', label: 'Percent' },
+  { value: 'name', label: 'Name' },
+  { value: 'value', label: 'Value' },
+];
+/**
+ * Default slice labels for a fresh/unset panel: the slice name. Applied both as
+ * the editor default and as the render fallback when `displayLabels` is unset.
+ * An explicit empty selection (the user deselecting every label) is distinct and
+ * hides the labels — see `getPieContentLabel`.
+ */
+export const PIE_LABELS_DEFAULT: PieLabel[] = ['name'];
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to
  * render as a heatmap (each numeric field becomes a bucket row), even when the

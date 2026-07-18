@@ -1,7 +1,12 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { type PieSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { PIE_LABELS_DEFAULT } from 'editor/constants';
+import { type PieLabel } from 'editor/types';
+import { type PieSliceModel } from 'lib/echarts/converters/pie';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
+import { getValueFormatter } from 'lib/echarts/style';
+import { formatTooltipValue } from 'lib/echarts/tooltip/template';
 
 /** Base option for pie charts. Series data is merged at render time. */
 export const pieDefaultOptions: ECBasicOption = {
@@ -21,5 +26,62 @@ export function getPieLabelStyle(theme: GrafanaTheme2): PieSeriesOption['label']
     textShadowBlur: 0,
     textShadowColor: 'transparent',
     textBorderWidth: 0,
+  };
+}
+
+/** Slice's share of the visible total, as a percentage string (one decimal, no trailing `.0`). */
+function sliceShare(value: number | undefined, total: number): string {
+  if (value == null || total <= 0) {
+    return '0%';
+  }
+  return `${Math.round((value / total) * 1000) / 10}%`;
+}
+
+/**
+ * ECharts pie `series.label` for the selected slice-label content (Grafana Pie
+ * chart "Labels": Name / Value / Percent). Mirrors core: each selected label is a
+ * line, in Name → Value → Percent order; the value formats with the slice field's
+ * unit/decimals (like the tooltip) and the percent is the slice's share of the
+ * visible total (so labels and tooltip agree). `slices` are the visible slices in
+ * render (dataIndex) order.
+ *
+ * An unset `labels` (`undefined`) falls back to `PIE_LABELS_DEFAULT` (the slice
+ * name); an explicit empty selection (the user deselecting every label) hides the
+ * label.
+ */
+export function getPieContentLabel(
+  labels: PieLabel[] | undefined,
+  slices: PieSliceModel[],
+  theme: GrafanaTheme2,
+  timeZone?: string
+): PieSeriesOption['label'] {
+  const style = getPieLabelStyle(theme);
+  const selected = labels ?? PIE_LABELS_DEFAULT;
+  if (selected.length === 0) {
+    return { ...style, show: false };
+  }
+
+  // Precompute each slice's label lines once; the formatter closure indexes them
+  // by dataIndex on every draw.
+  const formatters = slices.map((slice) => getValueFormatter(slice.field, theme, timeZone));
+  const total = slices.reduce((sum, slice) => sum + (slice.value ?? 0), 0);
+  const lines = slices.map((slice, index) => {
+    const parts: string[] = [];
+    if (selected.includes('name')) {
+      parts.push(slice.name);
+    }
+    if (selected.includes('value')) {
+      parts.push(formatTooltipValue(slice.value ?? null, formatters[index]));
+    }
+    if (selected.includes('percent')) {
+      parts.push(sliceShare(slice.value, total));
+    }
+    return parts.join('\n');
+  });
+
+  return {
+    ...style,
+    show: true,
+    formatter: (params) => (typeof params.dataIndex === 'number' ? (lines[params.dataIndex] ?? '') : ''),
   };
 }

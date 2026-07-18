@@ -28,7 +28,7 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 | Fields to include, limit                      | `reduceOptions.fields` / `reduceOptions.limit`                                                             | Supported     |
 | Pie chart type (Pie / Donut)                  | none (pie only)                                                                                            | Not supported |
 | Slice sorting (asc/desc/none)                 | none                                                                                                       | Not supported |
-| Labels (Percent / Name / Value)               | none                                                                                                       | Not supported |
+| Labels (Percent / Name / Value)               | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                      | Supported     |
 | Tooltip: mode                                 | `tooltip.mode`                                                                                             | Supported     |
 | Tooltip: hide zeros, sort                     | none                                                                                                       | Not supported |
 | Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions`                                                                      | Supported     |
@@ -45,8 +45,9 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 
 ## Notes / gaps
 
-- Donut rendering, slice labels, sorting, and legend values are the main missing
-  pie-specific options.
+- Slice labels (Name / Value / Percent) are supported via the "Labels" option.
+  Donut rendering, sorting, and legend values are the main missing pie-specific
+  options.
 - ECharts-only roadmap: this module's family also covers funnel/gauge render
   types (not yet implemented).
 
@@ -58,7 +59,7 @@ registered runtime surface.
 
 | ECharts API                                                                                              | Status          | Notes                                                                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; donut (radius/center), sorting, and slice labels not exposed.                                                                                        |
+| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; donut (radius/center) and sorting not exposed.                                                        |
 | `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive per-slice show/hide (via `hideSeriesFrom`) + color (via `byName`) read directly by category. |
 | `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                                                                                                                   |
 | `animation`                                                                                              | Supported       | ECharts defaults (enabled).                                                                                                                                             |

@@ -4,6 +4,8 @@ exports[`part-to-whole canvas renders color by-value color scheme (All values) 1
 
 exports[`part-to-whole canvas renders color byName fixed-color override 1`] = `[]`;
 
+exports[`part-to-whole canvas renders labels name + value + percent labels 1`] = `[]`;
+
 exports[`part-to-whole canvas renders reducers All values with limit — one slice per row, capped 1`] = `[]`;
 
 exports[`part-to-whole canvas renders reducers Calculate mean — same fields, different slice sizes 1`] = `[]`;

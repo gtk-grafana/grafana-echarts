@@ -1,7 +1,7 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type OptionsWithTooltip } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
-import { type SeriesTypeOption } from 'editor/types';
+import { type PieLabel, type SeriesTypeOption } from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -54,6 +54,13 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Defaults (Calculate, `PIE_CALC_DEFAULT` = sum) are applied when unset.
    */
   reduceOptions?: ReduceDataOptions;
+
+  /**
+   * Pie (part-to-whole) slice-label content (Grafana Pie chart "Labels" parity):
+   * which of Name / Value / Percent render on each slice. Empty/unset hides the
+   * labels (matching core). See `getPieContentLabel`.
+   */
+  displayLabels?: PieLabel[];
 
   // @internal
   animation?: {

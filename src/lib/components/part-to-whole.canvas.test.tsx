@@ -108,6 +108,23 @@ describe('part-to-whole canvas renders', () => {
     });
   });
 
+  describe('labels', () => {
+    // Slice-label content (Name / Value / Percent) rendered on the slices via the
+    // "Labels" option. Exercises getPieContentLabel's formatter during a real
+    // render (default is no labels, covered by the reducer cases above).
+    it('name + value + percent labels', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name', 'value', 'percent'],
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
   describe('color', () => {
     // A byName fixed-color override pins slice 'B' — applied to the frames via the
     // harness `fieldConfig` (as real Grafana does), so it reaches the converter.

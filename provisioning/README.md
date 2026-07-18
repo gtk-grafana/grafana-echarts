@@ -25,6 +25,9 @@ transform.
   slice per Calculate) and **Group by** (sum per category, → one slice per All
   values), with a core `piechart` reference. This is the documented replacement
   for the removed `long` format.
+- **`pie-labels.json`** — the "Labels" option (Grafana Pie chart parity): eight
+  panels over the same data, one per combination of the Name / Value / Percent
+  slice-label content.
 
 The `legend-visibility-color.json` pie panel is converted the same way: a Rows to
 fields transform reshapes its long CSV to wide, and it keeps its byName-color

@@ -48,6 +48,15 @@ export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
 export type SeriesTypeOption = SeriesType | 'Auto';
 
 /**
+ * Pie (part-to-whole) slice-label content, matching core Grafana's
+ * `PieChartLabels` (`@grafana/schema` doesn't re-export the raw enum, so the
+ * string values are mirrored here): `name` (slice name), `value` (formatted slice
+ * value), `percent` (share of the visible total). The panel's `displayLabels`
+ * holds the selected set; an empty set hides the labels. See `getPieContentLabel`.
+ */
+export type PieLabel = 'name' | 'value' | 'percent';
+
+/**
  * Per-field custom field config, registered via `useFieldConfig`'s
  * `useCustomConfig`. It lets a Grafana field override (by name, regex, type or
  * query) set the ECharts series type for matching fields, so a single panel can
