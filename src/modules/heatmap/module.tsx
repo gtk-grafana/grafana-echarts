@@ -1,5 +1,4 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
-import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { cartesianOverrideOptions, heatmapLegendCategoryName, seriesCategoryName } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
@@ -101,20 +100,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // legend in the editor UI because the field config is applied to the data frame after the panel options are already
     // built. So we don't have the field config override that we want to know if a field has been selected to render as a cartesian series.
     commonOptionsBuilder.addLegendOptions(builder);
-
-    builder.addRadio({
-      path: 'tooltip.mode',
-      name: 'Tooltip mode',
-      category: ['Tooltip'],
-      defaultValue: TooltipDisplayMode.Single,
-      settings: {
-        options: [
-          { value: TooltipDisplayMode.Single, label: 'Single' },
-          { value: TooltipDisplayMode.Multi, label: 'All' },
-          { value: TooltipDisplayMode.None, label: 'Hidden' },
-        ],
-      },
-    });
+    commonOptionsBuilder.addTooltipOptions(builder);
 
     return builder;
   })

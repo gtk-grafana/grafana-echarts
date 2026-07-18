@@ -1,11 +1,11 @@
-import { DataFrameType, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
+import { DataFrameType, FieldColorModeId, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
 import { GraphThresholdsStyleMode } from '@grafana/schema';
 import { render } from '@testing-library/react';
 import { cartesianTimeSeriesTypes } from 'editor/constants';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
-import { getCanvasEvents, getComponent, height, width } from 'test/panel';
+import { getCanvasEvents, getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 
 // Integration test: render the real <Panel /> (React glue + ECharts init +
 // buildPanelChartOption) into a jest-canvas-mock canvas and snapshot the emitted
@@ -368,6 +368,154 @@ describe('Panel canvas renders', () => {
         );
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+  });
+
+  // Hierarchy family: a value-weighted tree rendered as a treemap (nested
+  // rectangles) or sunburst (radial rings). The tree is reconstructed from a
+  // flame-graph nested-set frame or a flat categorical frame (see
+  // lib/echarts/converters/hierarchy). Rendered with family 'hierarchy' so the
+  // panel resolves the hierarchy chart module.
+  describe('hierarchy', () => {
+    // Flame-graph nested-set frame: rows are a depth-first traversal, so the
+    // converter rebuilds total > render > draw with an io sibling under total.
+    const nestedSetFrame = toDataFrame({
+      fields: [
+        { name: 'level', type: FieldType.number, values: [0, 1, 2, 1] },
+        { name: 'value', type: FieldType.number, values: [100, 60, 40, 30] },
+        { name: 'self', type: FieldType.number, values: [10, 20, 40, 30] },
+        { name: 'label', type: FieldType.string, values: ['total', 'render', 'draw', 'io'] },
+      ],
+    });
+
+    // Flat categorical frame: each category becomes a single top-level node.
+    const categoricalFrame = toDataFrame({
+      fields: [
+        { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT'] },
+        { name: 'value', type: FieldType.number, values: [43, 10, 30], config: { displayName: 'value' } },
+      ],
+    });
+
+    describe('treemap', () => {
+      it('renders a treemap from a nested-set frame', async () => {
+        const { container } = render(
+          getComponent(
+            [nestedSetFrame],
+            'treemap',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('renders a treemap from a flat categorical frame', async () => {
+        const { container } = render(
+          getComponent(
+            [categoricalFrame],
+            'treemap',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+    describe('sunburst', () => {
+      it('nested-set frame', async () => {
+        const { container } = render(
+          getComponent(
+            [nestedSetFrame],
+            'sunburst',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+      // The value field's Color scheme drives node colors. A by-value scheme
+      // (continuous here) colors every node from its value, so this render differs
+      // from the classic-palette sunburst above — this snapshot guards that the
+      // scheme is actually applied (previously it was ignored). The color mode is
+      // set on the field (not via panel fieldConfig), which is what Grafana applies
+      // to frames before the panel renders; the canvas harness doesn't run that.
+      it('color-scheme', async () => {
+        const infernoFrame = toDataFrame({
+          fields: [
+            { name: 'level', type: FieldType.number, values: [0, 1, 2, 1] },
+            {
+              name: 'value',
+              type: FieldType.number,
+              values: [100, 60, 40, 30],
+              config: { color: { mode: FieldColorModeId.ContinuousInferno } },
+            },
+            { name: 'self', type: FieldType.number, values: [10, 20, 40, 30] },
+            { name: 'label', type: FieldType.string, values: ['total', 'render', 'draw', 'io'] },
+          ],
+        });
+
+        const { container } = render(
+          getComponent(
+            [infernoFrame],
+            'sunburst',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('flat categorical frame', async () => {
+        const { container } = render(
+          getComponent(
+            [categoricalFrame],
+            'sunburst',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
 
         expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
           width,

@@ -1,5 +1,5 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectFieldConfigSettings } from '@grafana/data';
-import { GraphThresholdsStyleMode, TooltipDisplayMode } from '@grafana/schema';
+import { GraphThresholdsStyleMode } from '@grafana/schema';
 import { commonOptionsBuilder, getGraphFieldOptions } from '@grafana/ui';
 import {
   cartesianOverrideOptionsWithAuto,
@@ -139,24 +139,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
     // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,
     // Width, Limit, Values), registered in their own category.
     commonOptionsBuilder.addLegendOptions(builder);
-
-    // Tooltip mode maps to the ECharts native tooltip trigger (see
-    // `tooltipTriggerForMode`): Single hovers a single item, All shares the x
-    // axis, Hidden disables the tooltip. The richer Core Grafana tooltip options
-    // (sort, hide zeros, size) are omitted because ECharts renders its own box.
-    builder.addRadio({
-      path: 'tooltip.mode',
-      name: 'Tooltip mode',
-      category: ['Tooltip'],
-      defaultValue: TooltipDisplayMode.Single,
-      settings: {
-        options: [
-          { value: TooltipDisplayMode.Single, label: 'Single' },
-          { value: TooltipDisplayMode.Multi, label: 'All' },
-          { value: TooltipDisplayMode.None, label: 'Hidden' },
-        ],
-      },
-    });
+    commonOptionsBuilder.addTooltipOptions(builder);
 
     return builder;
   })

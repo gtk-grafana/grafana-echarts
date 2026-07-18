@@ -26,7 +26,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Treemap from flat categorical data: each category (string field) becomes a top-level tile sized by the first numeric field. This exercises the categorical fallback path of the hierarchy converter (single-level tree).",
+      "description": "Treemap from flat categorical data: each category (string field) becomes a top-level tile sized by the first numeric field. This exercises the categorical fallback path of the hierarchy converter (single-level tree). Tooltip mode is 'All', so hovering any tile lists every top-level node with its value (like core Grafana's pie); switch to 'Single' for just the hovered node.",
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -43,7 +43,7 @@
           "calcs": []
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi"
         }
       },
       "targets": [
@@ -219,6 +219,44 @@
         }
       ],
       "title": "Sunburst (flame-graph nested set)",
+      "type": "grafana-echartshierarchy-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Treemap from Grafana TestData's built-in Flame Graph scenario — a real flame-graph frame. Unlike the CSV panels above, this frame carries meta.preferredVisualisationType = 'flamegraph', so the converter detects it via the canonical meta signal rather than the field-shape fallback, and its 'label' is an enum field resolved through the display processor. See data-plane/flame-graph.md.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "treemap",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "flame_graph"
+        }
+      ],
+      "title": "Treemap (TestData flame graph)",
       "type": "grafana-echartshierarchy-panel"
     }
   ],

@@ -46,6 +46,8 @@ export interface ChartContext<T = SeriesType> {
   fieldConfig: FieldConfigSource;
 }
 
+export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
+
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
   /** True when the panel renders a Grafana DOM legend instead of ECharts' native legend. */

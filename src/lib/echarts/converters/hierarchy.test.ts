@@ -104,6 +104,40 @@ describe('frameToHierarchy (nested set)', () => {
       roots: [{ name: 'root', value: 10, children: [{ name: 'child', value: 4 }] }],
     });
   });
+
+  it('reconstructs the TestData flame_graph shape (meta signal + enum label + self)', () => {
+    // Mirrors Grafana TestData's built-in `flame_graph` scenario frame, which the
+    // hierarchy provisioning dashboard renders: detected via the meta signal, with
+    // an enum `label` resolved through its display processor and `self` retained.
+    const frame = toDataFrame({
+      meta: { preferredVisualisationType: 'flamegraph' },
+      fields: [
+        { name: 'level', type: FieldType.number, values: [0, 1, 2, 1] },
+        { name: 'value', type: FieldType.number, values: [100, 60, 40, 30], config: { unit: 'short' } },
+        { name: 'self', type: FieldType.number, values: [10, 20, 40, 30], config: { unit: 'short' } },
+        {
+          name: 'label',
+          type: FieldType.enum,
+          values: [0, 1, 2, 3],
+          config: { type: { enum: { text: ['total', 'render', 'draw', 'io'] } } },
+        },
+      ],
+    });
+
+    expect(frameToHierarchy([frame], theme)).toEqual({
+      roots: [
+        {
+          name: 'total',
+          value: 100,
+          self: 10,
+          children: [
+            { name: 'render', value: 60, self: 20, children: [{ name: 'draw', value: 40, self: 40 }] },
+            { name: 'io', value: 30, self: 30 },
+          ],
+        },
+      ],
+    });
+  });
 });
 
 describe('frameToHierarchy (flat categorical)', () => {

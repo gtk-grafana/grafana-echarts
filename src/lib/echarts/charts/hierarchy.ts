@@ -1,18 +1,18 @@
 import { type VizLegendItem } from '@grafana/ui';
-import { frameToHierarchy } from 'lib/echarts/converters/hierarchy';
-import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
+import { frameToHierarchy, getHierarchyValueField } from 'lib/echarts/converters/hierarchy';
 import {
   getSunburstSeries,
   getTreemapSeries,
   hierarchyDefaultOptions,
   type HierarchySeriesContext,
+  makeHierarchyColorResolver,
 } from 'lib/echarts/options/hierarchy';
-import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import {
-  type ChartContext,
   type ChartModule,
   type EChartSunburstSeriesOption,
   type EChartTreemapSeriesOption,
+  type HierarchyChartContext,
 } from './types';
 
 /**
@@ -32,15 +32,17 @@ export const hierarchyChartModule: ChartModule = {
     return () => ctx.formatValue;
   },
 
-  buildOption(ctx: ChartContext, _base): EChartTreemapSeriesOption | EChartSunburstSeriesOption | null {
+  buildOption(ctx: HierarchyChartContext, _base): EChartTreemapSeriesOption | EChartSunburstSeriesOption | null {
     const data = frameToHierarchy(ctx.frames, ctx.theme);
     if (!data) {
       return null;
     }
 
-    const seriesCtx: HierarchySeriesContext = { theme: ctx.theme, formatValue: ctx.formatValue };
+    const seriesCtx: HierarchySeriesContext = {
+      ...ctx,
+      valueField: getHierarchyValueField(ctx.frames),
+    };
 
-    // Branch so each option keeps its narrow series type (treemap vs sunburst).
     if (ctx.seriesType === 'sunburst') {
       return { ...hierarchyDefaultOptions, series: [getSunburstSeries(data, seriesCtx)] };
     }
@@ -54,11 +56,14 @@ export const hierarchyChartModule: ChartModule = {
     }
 
     // Only top-level nodes are listed; deeper nodes inherit derived shades and
-    // would overwhelm a flat legend.
+    // would overwhelm a flat legend. Swatch color mirrors the chart via the shared
+    // resolver: a fixed-color override wins, then the field's by-value color
+    // scheme, then the classic palette by position.
+    const resolveColor = makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, getHierarchyValueField(ctx.frames));
     return data.roots.map((root, index) => ({
       label: root.name,
       fieldName: root.name,
-      color: getPaletteColorByIndex(index, ctx.theme),
+      color: resolveColor(root.name, root.value, index, 0),
       yAxis: 1,
       getItemKey: () => `hierarchy-${index}`,
       getDisplayValues: () => [],

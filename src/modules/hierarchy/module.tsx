@@ -1,5 +1,4 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
-import { TooltipDisplayMode } from '@grafana/schema';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { hierarchySeriesTypeOptions, seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
@@ -40,20 +39,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     });
 
     commonOptionsBuilder.addLegendOptions(builder);
-
-    builder.addRadio({
-      path: 'tooltip.mode',
-      name: 'Tooltip mode',
-      category: ['Tooltip'],
-      defaultValue: TooltipDisplayMode.Single,
-      settings: {
-        options: [
-          { value: TooltipDisplayMode.Single, label: 'Single' },
-          { value: TooltipDisplayMode.Multi, label: 'All' },
-          { value: TooltipDisplayMode.None, label: 'Hidden' },
-        ],
-      },
-    });
+    commonOptionsBuilder.addTooltipOptions(builder, true);
 
     return builder;
   })

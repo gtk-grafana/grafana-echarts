@@ -1,5 +1,6 @@
 import { type DataFrame, type Field, FieldType, getDisplayProcessor, type GrafanaTheme2 } from '@grafana/data';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
+import { findCategoricalFrame } from 'lib/echarts/converters/frames';
 
 /**
  * A single node in the chart-agnostic hierarchy model. `value` is the cumulative
@@ -40,6 +41,22 @@ export function isFlameGraphFrame(frame: DataFrame): boolean {
   const hasValue = frame.fields.some((field) => field.name === VALUE_FIELD && field.type === FieldType.number);
   const hasLabel = frame.fields.some((field) => field.name === LABEL_FIELD);
   return hasLevel && hasValue && hasLabel;
+}
+
+/**
+ * The numeric field that sizes the hierarchy's nodes: the flame-graph `value`
+ * field, or (flat path) the first numeric field of the categorical frame — the
+ * same selection `frameToHierarchy` uses. Exposed so the chart can color nodes by
+ * that field's configured color scheme. Returns `undefined` when there is no
+ * usable numeric field (matching `frameToHierarchy` returning `null`).
+ */
+export function getHierarchyValueField(frames: DataFrame[]): Field | undefined {
+  const flameFrame = frames.find(isFlameGraphFrame);
+  if (flameFrame) {
+    return flameFrame.fields.find((field) => field.name === VALUE_FIELD && field.type === FieldType.number);
+  }
+  const frame = findCategoricalFrame(frames);
+  return frame?.fields.find((field) => field.type === FieldType.number);
 }
 
 /**
