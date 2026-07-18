@@ -191,6 +191,8 @@
       },
       "id": 2,
       "options": {
+        "pieFormat": "long",
+        "pieCalc": "sum",
         "legend": {
           "showLegend": true,
           "displayMode": "list",
@@ -209,24 +211,6 @@
           "refId": "A",
           "scenarioId": "csv_content",
           "csvContent": "category,value\nSales,43\nAdmin,25\nIT,30\nSupport,48\nOps,22"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "convertFieldType",
-          "options": {
-            "fields": {},
-            "conversions": [
-              {
-                "targetField": "category",
-                "destinationType": "string"
-              },
-              {
-                "targetField": "value",
-                "destinationType": "number"
-              }
-            ]
-          }
         }
       ],
       "title": "Pie \u2014 fixed-color override (Sales) + hidden slice (Ops)",

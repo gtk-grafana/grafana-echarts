@@ -116,6 +116,8 @@ export interface TooltipRow {
   color?: string;
   label: string;
   value: string;
+  /** Render the row bold to highlight it (e.g. the hovered slice in a pie "All" tooltip). */
+  emphasis?: boolean;
 }
 
 /**
@@ -155,9 +157,13 @@ export function buildTooltipShell(theme: GrafanaTheme2): TooltipShell {
       header.textContent = text;
       root.appendChild(header);
     },
-    appendRow({ color, label, value }) {
+    appendRow({ color, label, value, emphasis }) {
       const row = document.createElement('div');
       row.className = styles.row;
+      // Bold the whole row (cascades to its cells) to highlight the hovered slice.
+      if (emphasis) {
+        row.style.fontWeight = String(theme.typography.fontWeightBold);
+      }
 
       const iconCell = document.createElement('div');
       iconCell.className = styles.iconCell;

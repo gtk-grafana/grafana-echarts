@@ -28,6 +28,12 @@ export function buildPanelChartOption(
   rawCtx: ChartContext,
   { isGrafanaLegend }: { isGrafanaLegend: boolean }
 ): ECBasicOption {
+  const chartModule = resolveChartModule(rawCtx.seriesType);
+  if (!chartModule) {
+    debug('Invalid chart module', LOG_LEVELS.error, rawCtx);
+    throw new Error(`Invalid chart module for ${rawCtx.seriesType}`);
+  }
+
   // Drop value fields hidden via the legend visibility toggle before building.
   // The hidden set is read from `fieldConfig` (see `stripHiddenValueFields` /
   // `getHiddenSeriesNames`), not from Grafana-applied `hideFrom.viz`, so an
@@ -35,13 +41,14 @@ export function buildPanelChartOption(
   // axes, and tooltip formatters consistent for the per-field families
   // (cartesian/radar/heatmap overlays). The DOM legend is built separately in
   // `Panel.tsx` from the original frames, so hidden series remain (greyed).
-  const ctx: ChartContext = { ...rawCtx, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
-
-  const chartModule = resolveChartModule(ctx.seriesType);
-  if (!chartModule) {
-    debug('Invalid chart module', LOG_LEVELS.error, ctx);
-    throw new Error(`Invalid chart module for ${ctx.seriesType}`);
-  }
+  //
+  // Row/series families that read hidden slices by name internally (the pie)
+  // opt out via `readsHiddenSeriesInternally`: they hide by *category* name, and
+  // this pre-strip hides by *numeric field* name, so it would drop the single
+  // value field the pie needs — leaving no data and throwing below.
+  const ctx: ChartContext = chartModule.readsHiddenSeriesInternally
+    ? rawCtx
+    : { ...rawCtx, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
   const hasTimeField = framesHaveTimeField(ctx.frames);
