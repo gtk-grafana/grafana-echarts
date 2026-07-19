@@ -1,8 +1,14 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { type PieSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { PIE_LABELS_DEFAULT, PIE_ROSE_TYPE_DEFAULT, PIE_START_ANGLE_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
-import { type PieChartType, type PieLabel, type PieRoseType } from 'editor/types';
+import {
+  PIE_LABEL_POSITION_DEFAULT,
+  PIE_LABELS_DEFAULT,
+  PIE_ROSE_TYPE_DEFAULT,
+  PIE_START_ANGLE_DEFAULT,
+  PIE_TYPE_DEFAULT,
+} from 'editor/constants';
+import { type PieChartType, type PieLabel, type PieLabelPosition, type PieRoseType } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
 import { getValueFormatter } from 'lib/echarts/style';
@@ -113,17 +119,24 @@ function sliceShare(value: number | undefined, total: number): string {
  * An unset `labels` (`undefined`) falls back to `PIE_LABELS_DEFAULT` (the slice
  * name); an explicit empty selection (the user deselecting every label) hides the
  * label.
+ *
+ * `position` places the labels (Advanced-only): `outside` (leader lines, ECharts'
+ * default), `inside` (on the slice), or `center` (the donut hole). Unset falls
+ * back to `PIE_LABEL_POSITION_DEFAULT` (`outside`), so a default panel is
+ * unchanged. See https://echarts.apache.org/en/option.html#series-pie.label.position.
  */
 export function getPieContentLabel(
   labels: PieLabel[] | undefined,
   slices: PieSliceModel[],
   theme: GrafanaTheme2,
-  timeZone?: string
+  timeZone?: string,
+  position?: PieLabelPosition
 ): PieSeriesOption['label'] {
   const style = getPieLabelStyle(theme);
+  const resolvedPosition = position ?? PIE_LABEL_POSITION_DEFAULT;
   const selected = labels ?? PIE_LABELS_DEFAULT;
   if (selected.length === 0) {
-    return { ...style, show: false };
+    return { ...style, position: resolvedPosition, show: false };
   }
 
   // Precompute each slice's label lines once; the formatter closure indexes them
@@ -146,6 +159,7 @@ export function getPieContentLabel(
 
   return {
     ...style,
+    position: resolvedPosition,
     show: true,
     formatter: (params) => (typeof params.dataIndex === 'number' ? (lines[params.dataIndex] ?? '') : ''),
   };

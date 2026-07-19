@@ -10,6 +10,7 @@ import {
   type MultiValueSeriesType,
   type PieChartType,
   type PieLabel,
+  type PieLabelPosition,
   type PieRoseType,
   type SeriesType,
   type SeriesTypeOption,
@@ -201,6 +202,20 @@ export const pieLabelOptions: Array<SelectableValue<PieLabel>> = [
  * hides the labels — see `getPieContentLabel`.
  */
 export const PIE_LABELS_DEFAULT: PieLabel[] = ['name'];
+/** Panel option path for the pie slice-label placement. */
+export const pieLabelPositionPath = 'labelPosition';
+/**
+ * Pie slice-label placement options. `outside` (ECharts default) draws leader
+ * lines; `inside` places labels on the slices (fits dense pies); `center` puts a
+ * single readout in the donut hole (a KPI-style value). See `getPieContentLabel`.
+ */
+export const pieLabelPositionOptions: Array<SelectableValue<PieLabelPosition>> = [
+  { value: 'outside', label: 'Outside' },
+  { value: 'inside', label: 'Inside' },
+  { value: 'center', label: 'Center' },
+];
+/** Default slice-label placement: outside (leader lines), matching ECharts' own default. */
+export const PIE_LABEL_POSITION_DEFAULT: PieLabelPosition = 'outside';
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to
  * render as a heatmap (each numeric field becomes a bucket row), even when the

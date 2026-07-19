@@ -66,6 +66,9 @@ export type EditorMode = 'default' | 'advanced' | 'api';
  */
 export type PieLabel = 'name' | 'value' | 'percent';
 
+/** Pie slice-label placement: outside (leader lines), inside the slice, or center (donut hole). */
+export type PieLabelPosition = 'outside' | 'inside' | 'center';
+
 /**
  * Pie (part-to-whole) chart shape, matching core Grafana's `PieChartType`
  * (`@grafana/schema` doesn't re-export the raw enum, so the string values are

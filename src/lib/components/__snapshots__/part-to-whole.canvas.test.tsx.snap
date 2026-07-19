@@ -3124,6 +3124,2106 @@ exports[`part-to-whole canvas renders color byName fixed-color override 1`] = `
 ]
 `;
 
+exports[`part-to-whole canvas renders label position center on a donut (single readout in the hole) 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "round",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 199.99999999999997,
+      "y": 32.5,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 8.578964554033666,
+      "radius": 97.5,
+      "startAngle": 4.71238898038469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 156.89702721434833,
+      "y": 178.65319863112157,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": -1.5707963292115066,
+      "radius": 65,
+      "startAngle": 2.29577924443747,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 199.99999999999997,
+            "y": 32.5,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 8.578964554033666,
+            "radius": 97.5,
+            "startAngle": 4.71238898038469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 156.89702721434833,
+            "y": 178.65319863112157,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": -1.5707963292115066,
+            "radius": 65,
+            "startAngle": 2.29577924443747,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 135.34554082152246,
+      "y": 202.97979794668237,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.229067031261958,
+      "radius": 97.5,
+      "startAngle": 2.29577924443747,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 169.79299381715504,
+      "y": 72.44535833254136,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 2.2957792589371273,
+      "radius": 65,
+      "startAngle": 4.2290670457616155,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 135.34554082152246,
+            "y": 202.97979794668237,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.229067031261958,
+            "radius": 97.5,
+            "startAngle": 2.29577924443747,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 169.79299381715504,
+            "y": 72.44535833254136,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 2.2957792589371273,
+            "radius": 65,
+            "startAngle": 4.2290670457616155,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 154.68949072573258,
+      "y": 43.66803749881204,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.712388992467737,
+      "radius": 97.5,
+      "startAngle": 4.2290670457616155,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 199.99999999999997,
+      "y": 65,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 4.229067033678568,
+      "radius": 65,
+      "startAngle": 4.71238898038469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 154.68949072573258,
+            "y": 43.66803749881204,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.712388992467737,
+            "radius": 97.5,
+            "startAngle": 4.2290670457616155,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 199.99999999999997,
+            "y": 65,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 4.229067033678568,
+            "radius": 65,
+            "startAngle": 4.71238898038469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 200,
+      "f": 130,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "120",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "round",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 199.99999999999997,
+      "y": 32.5,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 8.578964554033666,
+      "radius": 97.5,
+      "startAngle": 4.71238898038469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 156.89702721434833,
+      "y": 178.65319863112157,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": -1.5707963292115066,
+      "radius": 65,
+      "startAngle": 2.29577924443747,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 199.99999999999997,
+            "y": 32.5,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 8.578964554033666,
+            "radius": 97.5,
+            "startAngle": 4.71238898038469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 156.89702721434833,
+            "y": 178.65319863112157,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": -1.5707963292115066,
+            "radius": 65,
+            "startAngle": 2.29577924443747,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 135.34554082152246,
+      "y": 202.97979794668237,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.229067031261958,
+      "radius": 97.5,
+      "startAngle": 2.29577924443747,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 169.79299381715504,
+      "y": 72.44535833254136,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 2.2957792589371273,
+      "radius": 65,
+      "startAngle": 4.2290670457616155,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 135.34554082152246,
+            "y": 202.97979794668237,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.229067031261958,
+            "radius": 97.5,
+            "startAngle": 2.29577924443747,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 169.79299381715504,
+            "y": 72.44535833254136,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 2.2957792589371273,
+            "radius": 65,
+            "startAngle": 4.2290670457616155,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 154.68949072573258,
+      "y": 43.66803749881204,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.712388992467737,
+      "radius": 97.5,
+      "startAngle": 4.2290670457616155,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 199.99999999999997,
+      "y": 65,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 4.229067033678568,
+      "radius": 65,
+      "startAngle": 4.71238898038469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 154.68949072573258,
+            "y": 43.66803749881204,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.712388992467737,
+            "radius": 97.5,
+            "startAngle": 4.2290670457616155,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 199.99999999999997,
+            "y": 65,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 4.229067033678568,
+            "radius": 65,
+            "startAngle": 4.71238898038469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 200,
+      "f": 130,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "120",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`part-to-whole canvas renders label position inside (labels on the slices) 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "round",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 199.99999999999997,
+      "y": 32.5,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 8.578964554033666,
+      "radius": 97.5,
+      "startAngle": 4.71238898038469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 199.99999999999997,
+            "y": 32.5,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 8.578964554033666,
+            "radius": 97.5,
+            "startAngle": 4.71238898038469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 135.34554082152246,
+      "y": 202.97979794668237,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.229067031261958,
+      "radius": 97.5,
+      "startAngle": 2.29577924443747,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 135.34554082152246,
+            "y": 202.97979794668237,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.229067031261958,
+            "radius": 97.5,
+            "startAngle": 2.29577924443747,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 154.68949072573258,
+      "y": 43.66803749881204,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.712388992467737,
+      "radius": 97.5,
+      "startAngle": 4.2290670457616155,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 154.68949072573258,
+            "y": 43.66803749881204,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.712388992467737,
+            "radius": 97.5,
+            "startAngle": 4.2290670457616155,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 248.38709055897021,
+      "f": 148.3508029044512,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "A",
+      "x": 0,
+      "y": -0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "120",
+      "x": 0,
+      "y": 0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 148.62731576542572,
+      "f": 123.76222679678699,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "B",
+      "x": 0,
+      "y": -0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "60",
+      "x": 0,
+      "y": 0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 187.61541437311885,
+      "f": 79.75376094820183,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "C",
+      "x": 0,
+      "y": -0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "15",
+      "x": 0,
+      "y": 0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "round",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 199.99999999999997,
+      "y": 32.5,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 8.578964554033666,
+      "radius": 97.5,
+      "startAngle": 4.71238898038469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 199.99999999999997,
+            "y": 32.5,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 8.578964554033666,
+            "radius": 97.5,
+            "startAngle": 4.71238898038469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 135.34554082152246,
+      "y": 202.97979794668237,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.229067031261958,
+      "radius": 97.5,
+      "startAngle": 2.29577924443747,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 135.34554082152246,
+            "y": 202.97979794668237,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.229067031261958,
+            "radius": 97.5,
+            "startAngle": 2.29577924443747,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 154.68949072573258,
+      "y": 43.66803749881204,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.712388992467737,
+      "radius": 97.5,
+      "startAngle": 4.2290670457616155,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 130,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 154.68949072573258,
+            "y": 43.66803749881204,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.712388992467737,
+            "radius": 97.5,
+            "startAngle": 4.2290670457616155,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 130,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 248.38709055897021,
+      "f": 148.3508029044512,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "A",
+      "x": 0,
+      "y": -0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "120",
+      "x": 0,
+      "y": 0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 148.62731576542572,
+      "f": 123.76222679678699,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "B",
+      "x": 0,
+      "y": -0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "60",
+      "x": 0,
+      "y": 0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 187.61541437311885,
+      "f": 79.75376094820183,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "C",
+      "x": 0,
+      "y": -0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "15",
+      "x": 0,
+      "y": 0.5,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
 exports[`part-to-whole canvas renders labels name + value + percent labels 1`] = `
 [
   {
