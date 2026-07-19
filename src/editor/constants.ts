@@ -10,6 +10,7 @@ import {
   type MultiValueSeriesType,
   type PieChartType,
   type PieLabel,
+  type PieRoseType,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -129,6 +130,20 @@ export const pieTypeOptions: Array<SelectableValue<PieChartType>> = [
 ];
 /** Default pie chart type: a full pie (matches core Grafana). */
 export const PIE_TYPE_DEFAULT: PieChartType = 'pie';
+/** Panel option path for the pie rose (Nightingale) type. Maps to ECharts `series.roseType`. */
+export const pieRoseTypePath = 'roseType';
+/**
+ * Pie rose (Nightingale) type options. ECharts-only shape option (no core Pie
+ * chart equivalent), so gated behind Advanced editor mode. `'none'` maps to
+ * ECharts' `false`; see `getPieRoseType`.
+ */
+export const pieRoseTypeOptions: Array<SelectableValue<PieRoseType>> = [
+  { value: 'none', label: 'None' },
+  { value: 'radius', label: 'Radius' },
+  { value: 'area', label: 'Area' },
+];
+/** Default rose type: none (a plain pie, angle-only) — keeps existing renders unchanged. */
+export const PIE_ROSE_TYPE_DEFAULT: PieRoseType = 'none';
 /** Panel option path for pie slice sorting. Matches core's `sort`. */
 export const pieSortPath = 'sort';
 /** Pie slice sort options (Grafana Pie chart "Slice sorting" parity). */

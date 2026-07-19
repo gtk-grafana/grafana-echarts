@@ -1,8 +1,8 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { type PieSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { PIE_LABELS_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
-import { type PieChartType, type PieLabel } from 'editor/types';
+import { PIE_LABELS_DEFAULT, PIE_ROSE_TYPE_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
+import { type PieChartType, type PieLabel, type PieRoseType } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
 import { getValueFormatter } from 'lib/echarts/style';
@@ -29,6 +29,22 @@ const DONUT_INNER_RADIUS = '50%';
  */
 export function getPieRadius(pieType: PieChartType | undefined): PieSeriesOption['radius'] {
   return (pieType ?? PIE_TYPE_DEFAULT) === 'donut' ? [DONUT_INNER_RADIUS, PIE_OUTER_RADIUS] : PIE_OUTER_RADIUS;
+}
+
+/**
+ * ECharts pie `series.roseType` for the rose (Nightingale) rendering. `radius`
+ * encodes each slice's value as its radius, `area` as its area; `none` (the
+ * default) is a plain pie. The UI's `'none'` sentinel collapses to `undefined`
+ * so ECharts falls back to its own default (a plain pie — equivalent to `false`),
+ * keeping default renders (and snapshots) unchanged. `@types/echarts` types this
+ * as `'radius' | 'area' | undefined` (it does not accept the runtime `false`), so
+ * `undefined` is the type-safe "off" value. Unset falls back to
+ * `PIE_ROSE_TYPE_DEFAULT`.
+ * https://echarts.apache.org/en/option.html#series-pie.roseType
+ */
+export function getPieRoseType(roseType: PieRoseType | undefined): PieSeriesOption['roseType'] {
+  const value = roseType ?? PIE_ROSE_TYPE_DEFAULT;
+  return value === 'none' ? undefined : value;
 }
 
 /**

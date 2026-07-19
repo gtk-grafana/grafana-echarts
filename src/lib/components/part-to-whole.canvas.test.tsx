@@ -159,6 +159,44 @@ describe('part-to-whole canvas renders', () => {
     });
   });
 
+  describe('rose type', () => {
+    // Rose (Nightingale) rendering encodes each slice's value as its radius or
+    // area on top of the angle. Uses a near-equal frame so slices barely differ
+    // by angle alone; radius vs. area then reshape them visibly and differently
+    // (area scales by sqrt of value). The default `none` is covered by the
+    // reducer cases above, so these guard the two opted-in rose paths.
+    const nearEqualFrame = toDataFrame({
+      fields: [
+        { name: 'category', type: FieldType.string, values: ['A', 'B', 'C', 'D'] },
+        { name: 'value', type: FieldType.number, values: [30, 28, 26, 24] },
+      ],
+    });
+
+    it('radius (value as slice radius)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([nearEqualFrame], {
+        reduceOptions: { calcs: [], values: true },
+        roseType: 'radius',
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+
+    it('area (value as slice area)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([nearEqualFrame], {
+        reduceOptions: { calcs: [], values: true },
+        roseType: 'area',
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
   describe('color', () => {
     // A byName fixed-color override pins slice 'B' — applied to the frames via the
     // harness `fieldConfig` (as real Grafana does), so it reaches the converter.

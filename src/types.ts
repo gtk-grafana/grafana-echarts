@@ -1,7 +1,13 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type OptionsWithTooltip, type SortOrder } from '@grafana/schema';
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
-import { type EditorMode, type PieChartType, type PieLabel, type SeriesTypeOption } from 'editor/types';
+import {
+  type EditorMode,
+  type PieChartType,
+  type PieLabel,
+  type PieRoseType,
+  type SeriesTypeOption,
+} from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -68,6 +74,15 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * (`pie`) when unset. Rendered as the ECharts series radius; see `getPieRadius`.
    */
   pieType?: PieChartType;
+
+  /**
+   * Pie (part-to-whole) rose (Nightingale) rendering (ECharts-only, Advanced):
+   * `none` (plain pie), `radius` (value → slice radius), or `area` (value → slice
+   * area). Defaults to `PIE_ROSE_TYPE_DEFAULT` (`none`) when unset; the `'none'`
+   * sentinel maps to ECharts' `false` so the key is emitted only when opted in,
+   * leaving default renders unchanged. See `getPieRoseType`.
+   */
+  roseType?: PieRoseType;
 
   /**
    * Pie (part-to-whole) slice-label content (Grafana Pie chart "Labels" parity):

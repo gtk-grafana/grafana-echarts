@@ -2,7 +2,7 @@ import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/d
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
-import { getPieContentLabel, getPieRadius } from 'lib/echarts/options/pie';
+import { getPieContentLabel, getPieRadius, getPieRoseType } from 'lib/echarts/options/pie';
 
 const theme = createTheme();
 
@@ -107,5 +107,26 @@ describe('getPieRadius', () => {
 
   it('defaults an unset type to a pie', () => {
     expect(getPieRadius(undefined)).toBe('75%');
+  });
+});
+
+describe('getPieRoseType', () => {
+  // `none` maps to `undefined` (ECharts' own default = a plain pie). The
+  // `@types/echarts` `roseType` union is `'radius' | 'area' | undefined` and does
+  // not accept the runtime `false`, so `undefined` is the type-safe "off" value.
+  it('maps the none sentinel to undefined (a plain pie)', () => {
+    expect(getPieRoseType('none')).toBeUndefined();
+  });
+
+  it('passes through the radius rose type', () => {
+    expect(getPieRoseType('radius')).toBe('radius');
+  });
+
+  it('passes through the area rose type', () => {
+    expect(getPieRoseType('area')).toBe('area');
+  });
+
+  it('defaults an unset rose type to undefined (a plain pie)', () => {
+    expect(getPieRoseType(undefined)).toBeUndefined();
   });
 });

@@ -75,6 +75,14 @@ export type PieLabel = 'name' | 'value' | 'percent';
 export type PieChartType = 'pie' | 'donut';
 
 /**
+ * Pie (part-to-whole) rose (Nightingale) rendering: `none` (a plain pie, angle
+ * only), `radius` (slice value encoded as its radius), or `area` (slice value
+ * encoded as its area). ECharts-only, so gated behind Advanced editor mode. The
+ * `'none'` sentinel maps to ECharts' `false`; see `getPieRoseType`.
+ */
+export type PieRoseType = 'none' | 'radius' | 'area';
+
+/**
  * Per-field custom field config, registered via `useFieldConfig`'s
  * `useCustomConfig`. It lets a Grafana field override (by name, regex, type or
  * query) set the ECharts series type for matching fields, so a single panel can
