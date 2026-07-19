@@ -99,6 +99,15 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    */
   sort?: SortOrder;
 
+  /**
+   * Pie (part-to-whole) minimum slice angle in degrees (ECharts `series.minAngle`,
+   * Advanced-only). Small long-tail slices are enlarged to at least this angle so
+   * they stay visible and clickable. Defaults to `PIE_MIN_ANGLE_DEFAULT` (`0`, no
+   * minimum) and is omitted from the series when 0, so existing renders are
+   * unchanged. See `getPieMinAngle`.
+   */
+  minAngle?: number;
+
   // @internal
   animation?: {
     // https://echarts.apache.org/en/option.html#animation

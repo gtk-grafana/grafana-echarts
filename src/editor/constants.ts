@@ -155,6 +155,13 @@ export const pieSortOptions: Array<SelectableValue<SortOrder>> = [
 /** Default slice sort: descending by value (largest first), matching core Grafana. */
 export const PIE_SORT_DEFAULT: SortOrder = SortOrder.Descending;
 /**
+ * Panel option path for the pie minimum slice angle (ECharts `series.minAngle`,
+ * degrees). Advanced-only; keeps tiny long-tail slices visible and clickable.
+ */
+export const pieMinAnglePath = 'minAngle';
+/** Default min slice angle: `0` — ECharts' own default (no minimum). */
+export const PIE_MIN_ANGLE_DEFAULT = 0;
+/**
  * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
  * chart") so future ECharts-specific label options can join it.
  */

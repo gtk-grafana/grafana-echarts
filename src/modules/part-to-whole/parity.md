@@ -52,10 +52,12 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 - ECharts-only roadmap: this module's family also covers funnel/gauge render
   types (not yet implemented).
 - Editor options are tiered via the shared `editorMode` option (Default =
-  parity-only, Advanced = ECharts extras, API = JSON-only). The pie parity options
-  above are Default; the ECharts-only **Rose type** (Nightingale: Radius / Area,
-  `roseType` via `getPieRoseType`) is the first Advanced-gated pie option. See
-  [docs/options-modes.md](../../../docs/options-modes.md).
+  parity-only, Advanced = ECharts extras, API = JSON-only). The core-parity pie
+  options (type, sorting, labels, legend, reduce options) are Default. ECharts-only
+  extras are gated behind Advanced: **Rose type** (Nightingale: Radius / Area,
+  `roseType` via `getPieRoseType`) and **Min slice angle** (`minAngle`, degrees,
+  via `getPieMinAngle`, enlarges tiny long-tail slices so they stay
+  visible/clickable). See [docs/options-modes.md](../../../docs/options-modes.md).
 
 ## ECharts API support
 
@@ -65,7 +67,7 @@ registered runtime surface.
 
 | ECharts API                                                                                              | Status          | Notes                                                                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; pie/donut via `radius`; sorting via the resolver; rose (Nightingale) type (Radius/Area) via `roseType` (Advanced); center offset not exposed. |
+| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; pie/donut via `radius`; sorting via the resolver; rose (Nightingale) type (Radius/Area) via `roseType` (Advanced); min slice angle via `minAngle` (Advanced); center offset not exposed. |
 | `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive per-slice show/hide (via `hideSeriesFrom`) + color (via `byName`) read directly by category. |
 | `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                                                                                                                   |
 | `animation`                                                                                              | Supported       | ECharts defaults (enabled).                                                                                                                                             |
