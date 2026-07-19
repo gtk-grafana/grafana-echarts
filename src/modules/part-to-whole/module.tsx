@@ -6,6 +6,7 @@ import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
+import { addPieAngleOptions } from 'lib/grafana/editor/pie/angle-inputs';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
 import { addPieMinAngleOptions } from 'lib/grafana/editor/pie/min-angle-input';
 import { addPieRoseTypeOptions } from 'lib/grafana/editor/pie/rose-type-select';
@@ -76,6 +77,10 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Min slice angle (degrees) — Advanced-only ECharts extra. Enlarges tiny
     // long-tail slices so they stay visible/clickable. Rendered by `getPieMinAngle`.
     addPieMinAngleOptions(builder);
+    // Advanced-only arc range (Start / End angle) — ECharts extras beyond core
+    // parity, gated behind Advanced via `showIf: isAdvancedEditorMode`. Reshapes
+    // the arc into half-pie / semicircle-donut layouts; applied by `getPieAngles`.
+    addPieAngleOptions(builder);
 
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder);

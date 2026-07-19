@@ -155,12 +155,29 @@ export const pieSortOptions: Array<SelectableValue<SortOrder>> = [
 /** Default slice sort: descending by value (largest first), matching core Grafana. */
 export const PIE_SORT_DEFAULT: SortOrder = SortOrder.Descending;
 /**
- * Panel option path for the pie minimum slice angle (ECharts `series.minAngle`,
+* Panel option path for the pie minimum slice angle (ECharts `series.minAngle`,
  * degrees). Advanced-only; keeps tiny long-tail slices visible and clickable.
  */
 export const pieMinAnglePath = 'minAngle';
 /** Default min slice angle: `0` — ECharts' own default (no minimum). */
 export const PIE_MIN_ANGLE_DEFAULT = 0;
+/**
+ * Panel option path for the pie arc start angle (degrees). Matches ECharts
+ * `series.startAngle`. Advanced-only (shares the "Pie" shape category).
+ */
+export const pieStartAnglePath = 'startAngle';
+/**
+ * Panel option path for the pie arc end angle (degrees). Matches ECharts
+ * `series.endAngle`. Advanced-only (shares the "Pie" shape category).
+ */
+export const pieEndAnglePath = 'endAngle';
+/**
+ * Default pie arc start angle (degrees), matching ECharts' own `series.startAngle`
+ * default (90 = top). `getPieAngles` omits `startAngle` at this value so the
+ * full-pie render (and its snapshots) stays unchanged.
+ * https://echarts.apache.org/en/option.html#series-pie.startAngle
+ */
+export const PIE_START_ANGLE_DEFAULT = 90;
 /**
  * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
  * chart") so future ECharts-specific label options can join it.

@@ -5,6 +5,7 @@ import { resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
 import {
+  getPieAngles,
   getPieContentLabel,
   getPieMinAngle,
   getPieRadius,
@@ -99,6 +100,9 @@ export const pieChartModule: ChartModule = {
           // Advanced-only min slice angle (degrees): enlarge tiny long-tail slices
           // so they stay visible/clickable. Omitted (undefined) at the default 0.
           minAngle: getPieMinAngle(options.minAngle),
+          // Advanced arc range (Start / End angle). Omitted at the defaults
+          // (start 90 / end auto), keeping the full-pie render unchanged.
+          ...getPieAngles(options.startAngle, options.endAngle),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the
           // panel's "Labels" option. No selection → labels hidden (core parity).
           label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone),
