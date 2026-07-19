@@ -7,6 +7,11 @@ import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieAngleOptions } from 'lib/grafana/editor/pie/angle-inputs';
+import { addPieAnimationTextStyleOptions } from 'lib/grafana/editor/pie/animation-text-style';
+import { addPieBorderRadiusOptions } from 'lib/grafana/editor/pie/border-radius-input';
+import { addPieClockwiseOverlapOptions } from 'lib/grafana/editor/pie/clockwise-overlap';
+import { addPieEmphasisOptions } from 'lib/grafana/editor/pie/emphasis';
+import { addPieLabelColorOptions } from 'lib/grafana/editor/pie/label-color';
 import { addPieLabelFontSizeOptions } from 'lib/grafana/editor/pie/label-font-size-input';
 import { addPieLabelOverflowOptions } from 'lib/grafana/editor/pie/label-overflow';
 import { addPieLabelPositionOptions } from 'lib/grafana/editor/pie/label-position-select';
@@ -16,9 +21,11 @@ import { addPieMinShowLabelAngleOptions } from 'lib/grafana/editor/pie/min-show-
 import { addPiePercentPrecisionOptions } from 'lib/grafana/editor/pie/percent-precision-input';
 import { addPieRadiusCenterOptions } from 'lib/grafana/editor/pie/radius-center-inputs';
 import { addPieRoseTypeOptions } from 'lib/grafana/editor/pie/rose-type-select';
+import { addPieSelectionOptions } from 'lib/grafana/editor/pie/selection';
 import { addPieSliceBorderOptions } from 'lib/grafana/editor/pie/slice-border';
 import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
 import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
+import { addPieZeroSumOptions } from 'lib/grafana/editor/pie/zero-sum';
 import { type PanelOptions } from 'types';
 import { partToWholeSuggestionsSupplier } from './suggestions';
 
@@ -104,6 +111,18 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Pie category:
     addPieSliceBorderOptions(builder);
     addPieRadiusCenterOptions(builder);
+
+    // Advanced (Tier 3) interactivity & polish options. Each builder gates its
+    // controls behind `showIf: isAdvancedEditorMode`, so Default hides them and
+    // each omits its ECharts key at the default (existing snapshots unchanged).
+    // See `.air/plans/pie-advanced-tier3-interactivity.plan.md`.
+    addPieSelectionOptions(builder); // Select / explode (selectedMode/selectedOffset)
+    addPieBorderRadiusOptions(builder); // Rounded corners (itemStyle.borderRadius)
+    addPieEmphasisOptions(builder); // Emphasis (emphasis.focus/scale)
+    addPieZeroSumOptions(builder); // Zero-sum / empty (stillShowZeroSum/showEmptyCircle)
+    addPieClockwiseOverlapOptions(builder); // Clockwise / avoidLabelOverlap
+    addPieLabelColorOptions(builder); // Label color (label.color)
+    addPieAnimationTextStyleOptions(builder); // Animation + label text shadow/stroke
 
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder);

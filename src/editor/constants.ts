@@ -9,10 +9,12 @@ import {
   type HierarchySeriesType,
   type MultiValueSeriesType,
   type PieChartType,
+  type PieEmphasisFocus,
   type PieLabel,
   type PieLabelOverflow,
   type PieLabelPosition,
   type PieRoseType,
+  type PieSelectedMode,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -297,6 +299,82 @@ export const pieOuterRadiusPath = 'outerRadius';
 export const pieInnerRadiusPath = 'innerRadius';
 export const pieCenterXPath = 'centerX';
 export const pieCenterYPath = 'centerY';
+
+/* --------------------------------------------------------------------------
+ * Advanced pie options (Tier 3 — interactivity & polish). Each is gated behind
+ * the shared Advanced editor mode (`showIf: isAdvancedEditorMode`) and omits its
+ * key at the ECharts default so existing snapshots stay stable. See the
+ * `.air/plans/pie-advanced-tier3-interactivity.plan.md` plan.
+ * -------------------------------------------------------------------------- */
+
+/** Panel option path for the pie slice-selection mode (Advanced). */
+export const pieSelectedModePath = 'selectedMode';
+/** Panel option path for the selected-slice explode offset in px (Advanced). */
+export const pieSelectedOffsetPath = 'selectedOffset';
+/** Pie slice-selection mode options (Off / Single / Multiple). */
+export const pieSelectedModeOptions: Array<SelectableValue<PieSelectedMode>> = [
+  { value: 'off', label: 'Off' },
+  { value: 'single', label: 'Single' },
+  { value: 'multiple', label: 'Multiple' },
+];
+/** Default slice-selection mode: off (no selection; ECharts `selectedMode: false`). */
+export const PIE_SELECTED_MODE_DEFAULT: PieSelectedMode = 'off';
+
+/** Panel option path for the pie slice corner radius in px (Advanced). */
+export const pieBorderRadiusPath = 'sliceBorderRadius';
+/** Default slice corner radius: 0 (square corners; omitted). */
+export const PIE_BORDER_RADIUS_DEFAULT = 0;
+
+/** Panel option path for the pie hover emphasis focus (Advanced). */
+export const pieEmphasisFocusPath = 'emphasisFocus';
+/** Panel option path for the pie hover emphasis scale toggle (Advanced). */
+export const pieEmphasisScalePath = 'emphasisScale';
+/** Pie emphasis focus options (None / Self / Series). */
+export const pieEmphasisFocusOptions: Array<SelectableValue<PieEmphasisFocus>> = [
+  { value: 'none', label: 'None' },
+  { value: 'self', label: 'Self' },
+  { value: 'series', label: 'Series' },
+];
+/** Default emphasis focus: none (ECharts default; omitted). */
+export const PIE_EMPHASIS_FOCUS_DEFAULT: PieEmphasisFocus = 'none';
+
+/** Panel option path for the pie slice-label color (Advanced). No default → theme color. */
+export const pieLabelColorPath = 'labelColor';
+
+/** Panel option path for the pie zero-sum rendering toggle (Advanced). */
+export const pieStillShowZeroSumPath = 'stillShowZeroSum';
+/** Panel option path for the pie empty-circle rendering toggle (Advanced). */
+export const pieShowEmptyCirclePath = 'showEmptyCircle';
+/** Default zero-sum rendering: true (matches ECharts; only `false` is emitted). */
+export const PIE_STILL_SHOW_ZERO_SUM_DEFAULT = true;
+/** Default empty-circle rendering: true (matches ECharts; only `false` is emitted). */
+export const PIE_SHOW_EMPTY_CIRCLE_DEFAULT = true;
+
+/** Panel option path for the pie clockwise slice direction (Advanced). */
+export const pieClockwisePath = 'clockwise';
+/** Panel option path for the pie avoid-label-overlap toggle (Advanced). */
+export const pieAvoidLabelOverlapPath = 'avoidLabelOverlap';
+/** Default slice direction: clockwise (matches ECharts; only `false` is emitted). */
+export const PIE_CLOCKWISE_DEFAULT = true;
+/** Default avoid-label-overlap: true (matches ECharts; only `false` is emitted). */
+export const PIE_AVOID_LABEL_OVERLAP_DEFAULT = true;
+
+/**
+ * Panel option path for the pie animation toggle (Advanced). Reuses the existing
+ * `@internal animation.enabled` shape (see `PanelOptions`), consumed in
+ * `buildPanelChartOption`.
+ */
+export const pieAnimationEnabledPath = 'animation.enabled';
+/** Default animation: enabled (matches ECharts). */
+export const PIE_ANIMATION_ENABLED_DEFAULT = true;
+/** Panel option path for the pie slice-label text-shadow re-enable toggle (Advanced). */
+export const pieLabelTextShadowPath = 'labelTextShadow';
+/** Panel option path for the pie slice-label text-stroke re-enable toggle (Advanced). */
+export const pieLabelTextStrokePath = 'labelTextStroke';
+/** Default label text shadow: off (keeps `getPieLabelStyle`'s zeroed style). */
+export const PIE_LABEL_TEXT_SHADOW_DEFAULT = false;
+/** Default label text stroke: off (keeps `getPieLabelStyle`'s zeroed style). */
+export const PIE_LABEL_TEXT_STROKE_DEFAULT = false;
 
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to

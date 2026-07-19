@@ -6,13 +6,18 @@ import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legen
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
 import {
   getPieAngles,
+  getPieBorderRadius,
   getPieCenter,
   getPieContentLabel,
+  getPieEmphasis,
+  getPieEmptyState,
   getPieItemStyle,
   getPieMinAngle,
   getPieMinShowLabelAngle,
+  getPieOrientation,
   getPieRadius,
   getPieRoseType,
+  getPieSelection,
   pieDefaultOptions,
 } from 'lib/echarts/options/pie';
 import { getValueFormatter } from 'lib/echarts/style';
@@ -66,16 +71,22 @@ export const pieChartModule: ChartModule = {
       return null;
     }
 
+    // Advanced "Rounded corners": resolved once and merged into every slice's
+    // itemStyle (preserving the per-slice color). 0/unset → omitted.
+    const borderRadius = getPieBorderRadius(options.sliceBorderRadius);
     const visible = slices.filter((slice) => !slice.hidden);
-    // Advanced-only slice separation border, merged into each slice's itemStyle
-    // (empty object at the default, so the per-slice color is preserved unchanged).
-    const borderStyle = getPieItemStyle(options.sliceBorderWidth, options.sliceBorderColor);
     const data: EChartPieDataItem[] = visible.map((slice) => ({
       name: slice.name,
       // ECharts pie values are numeric-only; undefined renders an empty slice.
       value: slice.value,
-      itemStyle: { color: slice.color, ...borderStyle },
+      // Per-slice color, plus Advanced-only rounded corners (Tier 3) and slice
+      // separation border (Tier 2). All extras omitted at their defaults.
+      itemStyle: getPieItemStyle(slice.color, borderRadius, options.sliceBorderWidth, options.sliceBorderColor),
     }));
+
+    // Advanced "Emphasis" (hover state): omitted entirely at the `none`/unset
+    // default so the default hover behavior is unchanged.
+    const emphasis = getPieEmphasis(options.emphasisFocus, options.emphasisScale);
 
     const legend = isGrafanaLegend
       ? { show: false }
@@ -119,16 +130,30 @@ export const pieChartModule: ChartModule = {
           ...getPieAngles(options.startAngle, options.endAngle),
           // Advanced-only: hide labels on slices below this central angle.
           ...(minShowLabelAngle != null ? { minShowLabelAngle } : {}),
+          // Advanced "Select / explode": selectedMode (+ selectedOffset). `off`
+          // maps to `selectedMode: false` (the ECharts default), so unchanged.
+          ...getPieSelection(options.selectedMode, options.selectedOffset),
+          // Advanced "Emphasis": hover focus/scale. Omitted at defaults.
+          ...(emphasis ? { emphasis } : {}),
+          // Advanced "Zero-sum / empty": stillShowZeroSum / showEmptyCircle.
+          // Each key emitted only when it differs from the ECharts `true` default.
+          ...getPieEmptyState(options.stillShowZeroSum, options.showEmptyCircle),
+          // Advanced "Clockwise / avoid overlap": clockwise / avoidLabelOverlap.
+          // Each key emitted only when it differs from the ECharts `true` default.
+          ...getPieOrientation(options.clockwise, options.avoidLabelOverlap),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the
           // panel's "Labels" option. No selection → labels hidden (core parity).
-          // Advanced-only placement (Outside/Inside/Center) plus font size /
-          // overflow / percent precision threaded in.
+          // Advanced-only placement (Outside/Inside/Center), legibility (font size /
+          // overflow / percent precision) and color / text shadow / stroke threaded in.
           label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone, {
             fontSize: options.labelFontSize,
             overflow: options.labelOverflow,
             width: options.labelWidth,
             percentPrecision: options.percentPrecision,
             position: options.labelPosition,
+            color: options.labelColor,
+            textShadow: options.labelTextShadow,
+            textStroke: options.labelTextStroke,
           }),
           // Dedicated pie tooltip (Single slice / All slices). Skipped in None
           // mode, where the panel disables the tooltip entirely.
