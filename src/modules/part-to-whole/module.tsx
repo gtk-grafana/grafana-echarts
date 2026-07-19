@@ -6,9 +6,16 @@ import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
+import { addPieAnimationTextStyleOptions } from 'lib/grafana/editor/pie/animation-text-style';
+import { addPieBorderRadiusOptions } from 'lib/grafana/editor/pie/border-radius-input';
+import { addPieClockwiseOverlapOptions } from 'lib/grafana/editor/pie/clockwise-overlap';
+import { addPieEmphasisOptions } from 'lib/grafana/editor/pie/emphasis';
+import { addPieLabelColorOptions } from 'lib/grafana/editor/pie/label-color';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
+import { addPieSelectionOptions } from 'lib/grafana/editor/pie/selection';
 import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
 import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
+import { addPieZeroSumOptions } from 'lib/grafana/editor/pie/zero-sum';
 import { type PanelOptions } from 'types';
 import { partToWholeSuggestionsSupplier } from './suggestions';
 
@@ -67,6 +74,18 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Slice-label content (Name / Value / Percent) — Grafana Pie chart parity.
     // Rendered by `getPieContentLabel`.
     addPieLabelOptions(builder);
+
+    // Advanced (Tier 3) interactivity & polish options. Each builder gates its
+    // controls behind `showIf: isAdvancedEditorMode`, so Default hides them and
+    // each omits its ECharts key at the default (existing snapshots unchanged).
+    // See `.air/plans/pie-advanced-tier3-interactivity.plan.md`.
+    addPieSelectionOptions(builder); // Select / explode (selectedMode/selectedOffset)
+    addPieBorderRadiusOptions(builder); // Rounded corners (itemStyle.borderRadius)
+    addPieEmphasisOptions(builder); // Emphasis (emphasis.focus/scale)
+    addPieZeroSumOptions(builder); // Zero-sum / empty (stillShowZeroSum/showEmptyCircle)
+    addPieClockwiseOverlapOptions(builder); // Clockwise / avoidLabelOverlap
+    addPieLabelColorOptions(builder); // Label color (label.color)
+    addPieAnimationTextStyleOptions(builder); // Animation + label text shadow/stroke
 
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder);

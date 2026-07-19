@@ -2,7 +2,17 @@ import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/d
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
-import { getPieContentLabel, getPieRadius } from 'lib/echarts/options/pie';
+import {
+  getPieBorderRadius,
+  getPieContentLabel,
+  getPieEmphasis,
+  getPieEmptyState,
+  getPieItemStyle,
+  getPieLabelStyle,
+  getPieOrientation,
+  getPieRadius,
+  getPieSelection,
+} from 'lib/echarts/options/pie';
 
 const theme = createTheme();
 
@@ -107,5 +117,117 @@ describe('getPieRadius', () => {
 
   it('defaults an unset type to a pie', () => {
     expect(getPieRadius(undefined)).toBe('75%');
+  });
+});
+
+// --- Advanced (Tier 3) pie option builders ---------------------------------
+
+describe('getPieSelection', () => {
+  it('maps "off" (and unset) to selectedMode: false with no offset', () => {
+    expect(getPieSelection('off', undefined)).toEqual({ selectedMode: false });
+    expect(getPieSelection(undefined, undefined)).toEqual({ selectedMode: false });
+  });
+
+  it('emits the mode and offset when a selection mode is chosen', () => {
+    expect(getPieSelection('single', 20)).toEqual({ selectedMode: 'single', selectedOffset: 20 });
+    expect(getPieSelection('multiple', 12)).toEqual({ selectedMode: 'multiple', selectedOffset: 12 });
+  });
+
+  it('omits the offset when it is unset or zero', () => {
+    expect(getPieSelection('single', undefined)).toEqual({ selectedMode: 'single' });
+    expect(getPieSelection('single', 0)).toEqual({ selectedMode: 'single' });
+  });
+
+  it('ignores the offset when the mode is off', () => {
+    expect(getPieSelection('off', 20)).toEqual({ selectedMode: false });
+  });
+});
+
+describe('getPieBorderRadius', () => {
+  it('returns the radius when positive', () => {
+    expect(getPieBorderRadius(8)).toBe(8);
+  });
+
+  it('returns undefined for 0 or unset (square corners, key omitted)', () => {
+    expect(getPieBorderRadius(0)).toBeUndefined();
+    expect(getPieBorderRadius(undefined)).toBeUndefined();
+  });
+});
+
+describe('getPieItemStyle', () => {
+  it('keeps the slice color and omits borderRadius at the default', () => {
+    expect(getPieItemStyle('#111111', undefined)).toEqual({ color: '#111111' });
+  });
+
+  it('merges a non-zero borderRadius without clobbering the color', () => {
+    expect(getPieItemStyle('#111111', 12)).toEqual({ color: '#111111', borderRadius: 12 });
+  });
+});
+
+describe('getPieEmphasis', () => {
+  it('emits focus + scale when configured', () => {
+    expect(getPieEmphasis('self', true)).toEqual({ focus: 'self', scale: true });
+  });
+
+  it('omits focus at the "none" default', () => {
+    expect(getPieEmphasis('none', undefined)).toBeUndefined();
+    expect(getPieEmphasis(undefined, undefined)).toBeUndefined();
+  });
+
+  it('emits scale without focus when focus is none', () => {
+    expect(getPieEmphasis('none', false)).toEqual({ scale: false });
+  });
+});
+
+describe('getPieEmptyState', () => {
+  it('omits both keys at the ECharts true defaults', () => {
+    expect(getPieEmptyState(undefined, undefined)).toEqual({});
+    expect(getPieEmptyState(true, true)).toEqual({});
+  });
+
+  it('emits only the keys set to false', () => {
+    expect(getPieEmptyState(false, undefined)).toEqual({ stillShowZeroSum: false });
+    expect(getPieEmptyState(undefined, false)).toEqual({ showEmptyCircle: false });
+    expect(getPieEmptyState(false, false)).toEqual({ stillShowZeroSum: false, showEmptyCircle: false });
+  });
+});
+
+describe('getPieOrientation', () => {
+  it('omits both keys at the ECharts true defaults', () => {
+    expect(getPieOrientation(undefined, undefined)).toEqual({});
+    expect(getPieOrientation(true, true)).toEqual({});
+  });
+
+  it('emits only the keys set to false', () => {
+    expect(getPieOrientation(false, undefined)).toEqual({ clockwise: false });
+    expect(getPieOrientation(undefined, false)).toEqual({ avoidLabelOverlap: false });
+  });
+});
+
+describe('getPieLabelStyle', () => {
+  it('zeroes the text shadow/stroke and uses the theme color by default', () => {
+    expect(getPieLabelStyle(theme)).toMatchObject({
+      color: theme.colors.text.primary,
+      textShadowBlur: 0,
+      textShadowColor: 'transparent',
+      textBorderWidth: 0,
+    });
+  });
+
+  it('overrides the theme color with an explicit label color', () => {
+    expect(getPieLabelStyle(theme, undefined, '#ff0000')).toMatchObject({ color: '#ff0000' });
+    // Unset keeps the theme color.
+    expect(getPieLabelStyle(theme, undefined, undefined)).toMatchObject({ color: theme.colors.text.primary });
+  });
+
+  it('re-enables a non-zero text shadow when the switch is on', () => {
+    const style = getPieLabelStyle(theme, { textShadow: true });
+    expect(style?.textShadowBlur).toBeGreaterThan(0);
+    expect(style?.textShadowColor).not.toBe('transparent');
+  });
+
+  it('re-enables a non-zero text stroke when the switch is on', () => {
+    const style = getPieLabelStyle(theme, { textStroke: true });
+    expect(style?.textBorderWidth).toBeGreaterThan(0);
   });
 });

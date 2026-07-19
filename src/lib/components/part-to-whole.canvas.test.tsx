@@ -209,4 +209,114 @@ describe('part-to-whole canvas renders', () => {
       });
     });
   });
+
+  // --- Advanced (Tier 3) interactivity & polish -----------------------------
+  // Each block exercises one Advanced option's ECharts wiring during a real
+  // render. Emphasis is a hover-only state (not fired by the static render), so
+  // it is verified by unit assertion in `options/pie.test.ts` instead.
+
+  describe('select / explode', () => {
+    // A static `selectedOffset` pushes the first slice outward even without a
+    // click, so the exploded slice is visible in the snapshot.
+    it('single selection with an explode offset', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        selectedMode: 'single',
+        selectedOffset: 20,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('rounded corners', () => {
+    // A non-zero itemStyle.borderRadius rounds each slice's corners.
+    it('slice border radius', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        sliceBorderRadius: 12,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('empty circle', () => {
+    // An all-zero frame: `showEmptyCircle` draws the placeholder ring, while
+    // `stillShowZeroSum: false` suppresses the even zero-sum pie. The two options
+    // produce visibly different renders on the same empty data.
+    const zeroFrame = toDataFrame({
+      fields: [
+        { name: 'A', type: FieldType.number, values: [0], config: { displayName: 'A' } },
+        { name: 'B', type: FieldType.number, values: [0], config: { displayName: 'B' } },
+      ],
+    });
+
+    it('show empty circle on a zero-sum frame', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([zeroFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        showEmptyCircle: true,
+        stillShowZeroSum: false,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('clockwise', () => {
+    // Counter-clockwise layout reverses the rendered slice order.
+    it('counter-clockwise slice order', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        clockwise: false,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('label color', () => {
+    // An explicit label color overrides the theme text color in getPieLabelStyle.
+    it('name labels tinted with a custom color', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name'],
+        labelColor: '#ff0000',
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('label text shadow', () => {
+    // Re-enables the ECharts label drop shadow that getPieLabelStyle zeroes by
+    // default; visible labels are needed for the shadow to paint.
+    it('text shadow on visible labels', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name'],
+        labelTextShadow: true,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
 });

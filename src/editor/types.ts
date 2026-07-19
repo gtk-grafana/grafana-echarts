@@ -75,6 +75,24 @@ export type PieLabel = 'name' | 'value' | 'percent';
 export type PieChartType = 'pie' | 'donut';
 
 /**
+ * Pie (part-to-whole) slice-selection mode (Advanced), mapping to the ECharts
+ * `series.selectedMode`: `off` (no selection; rendered as `false`), `single` (one
+ * slice at a time), or `multiple`. A selected slice is offset outward by
+ * `selectedOffset` (explode). See `getPieSelection`.
+ * https://echarts.apache.org/en/option.html#series-pie.selectedMode
+ */
+export type PieSelectedMode = 'off' | 'single' | 'multiple';
+
+/**
+ * Pie (part-to-whole) emphasis focus (Advanced), mapping to the ECharts
+ * `series.emphasis.focus`: `none` (no fade; the ECharts default, omitted), `self`
+ * (fade all but the hovered slice), or `series` (highlight the whole series). See
+ * `getPieEmphasis`.
+ * https://echarts.apache.org/en/option.html#series-pie.emphasis.focus
+ */
+export type PieEmphasisFocus = 'none' | 'self' | 'series';
+
+/**
  * Per-field custom field config, registered via `useFieldConfig`'s
  * `useCustomConfig`. It lets a Grafana field override (by name, regex, type or
  * query) set the ECharts series type for matching fields, so a single panel can

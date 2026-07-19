@@ -4,7 +4,17 @@ import { PIE_SORT_DEFAULT } from 'editor/constants';
 import { resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
-import { getPieContentLabel, getPieRadius, pieDefaultOptions } from 'lib/echarts/options/pie';
+import {
+  getPieBorderRadius,
+  getPieContentLabel,
+  getPieEmphasis,
+  getPieEmptyState,
+  getPieItemStyle,
+  getPieOrientation,
+  getPieRadius,
+  getPieSelection,
+  pieDefaultOptions,
+} from 'lib/echarts/options/pie';
 import { getValueFormatter } from 'lib/echarts/style';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
@@ -56,13 +66,20 @@ export const pieChartModule: ChartModule = {
       return null;
     }
 
+    // Advanced "Rounded corners": resolved once and merged into every slice's
+    // itemStyle (preserving the per-slice color). 0/unset → omitted.
+    const borderRadius = getPieBorderRadius(options.sliceBorderRadius);
     const visible = slices.filter((slice) => !slice.hidden);
     const data: EChartPieDataItem[] = visible.map((slice) => ({
       name: slice.name,
       // ECharts pie values are numeric-only; undefined renders an empty slice.
       value: slice.value,
-      itemStyle: { color: slice.color },
+      itemStyle: getPieItemStyle(slice.color, borderRadius),
     }));
+
+    // Advanced "Emphasis" (hover state): omitted entirely at the `none`/unset
+    // default so the default hover behavior is unchanged.
+    const emphasis = getPieEmphasis(options.emphasisFocus, options.emphasisScale);
 
     const legend = isGrafanaLegend
       ? { show: false }
@@ -87,9 +104,25 @@ export const pieChartModule: ChartModule = {
           zlevel: options.zLevel?.series,
           // Pie vs donut (inner hole) from the panel's "Pie chart type" option.
           radius: getPieRadius(options.pieType),
+          // Advanced "Select / explode": selectedMode (+ selectedOffset). `off`
+          // maps to `selectedMode: false` (the ECharts default), so unchanged.
+          ...getPieSelection(options.selectedMode, options.selectedOffset),
+          // Advanced "Emphasis": hover focus/scale. Omitted at defaults.
+          ...(emphasis ? { emphasis } : {}),
+          // Advanced "Zero-sum / empty": stillShowZeroSum / showEmptyCircle.
+          // Each key emitted only when it differs from the ECharts `true` default.
+          ...getPieEmptyState(options.stillShowZeroSum, options.showEmptyCircle),
+          // Advanced "Clockwise / avoid overlap": clockwise / avoidLabelOverlap.
+          // Each key emitted only when it differs from the ECharts `true` default.
+          ...getPieOrientation(options.clockwise, options.avoidLabelOverlap),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the
           // panel's "Labels" option. No selection → labels hidden (core parity).
-          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone),
+          // Advanced label color / text shadow / text stroke thread through here.
+          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone, {
+            color: options.labelColor,
+            textShadow: options.labelTextShadow,
+            textStroke: options.labelTextStroke,
+          }),
           // Dedicated pie tooltip (Single slice / All slices). Skipped in None
           // mode, where the panel disables the tooltip entirely.
           ...(tooltipMode === TooltipDisplayMode.None

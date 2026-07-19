@@ -35,6 +35,22 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 | Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by name | Supported     |
 | Legend values (Percent / Value)               | none                                                                                                       | Not supported |
 
+## Advanced pie options (ECharts-only, Tier 3)
+
+Gated behind the shared **Advanced** editor mode (`showIf: isAdvancedEditorMode`);
+hidden in Default. Each omits its ECharts key at the default so existing renders
+are unchanged. See `.air/plans/pie-advanced-tier3-interactivity.plan.md`.
+
+| ECharts option / option group          | ECharts equivalent                                                                                 | Status   |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- | -------- |
+| Select / explode                       | `selectedMode` + `selectedOffset` (Pie category); rendered by `getPieSelection`                    | Advanced |
+| Rounded corners                        | `itemStyle.borderRadius` (Pie category); rendered by `getPieBorderRadius` / `getPieItemStyle`      | Advanced |
+| Emphasis (hover)                       | `emphasis.focus` + `emphasis.scale` (Pie category); rendered by `getPieEmphasis`                   | Advanced |
+| Label color                            | `label.color` (Labels category, `addColorPicker`); overrides the theme color in `getPieLabelStyle` | Advanced |
+| Zero-sum / empty circle                | `stillShowZeroSum` + `showEmptyCircle` (Pie category); rendered by `getPieEmptyState`              | Advanced |
+| Clockwise / avoid label overlap        | `clockwise` + `avoidLabelOverlap` (Pie category); rendered by `getPieOrientation`                  | Advanced |
+| Animation + label text shadow / stroke | `animation.enabled` (Pie) + `label.textShadowBlur` / `label.textBorderWidth` re-enable (Labels)    | Advanced |
+
 ## Standard (field-config) options
 
 | Option                                                                       | Core Pie                                     | ECharts Part-to-whole                     |
@@ -52,8 +68,11 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 - ECharts-only roadmap: this module's family also covers funnel/gauge render
   types (not yet implemented).
 - Editor options are tiered via the shared `editorMode` option (Default =
-  parity-only, Advanced = ECharts extras, API = JSON-only); all current pie
-  options are Default/parity. See [docs/options-modes.md](../../../docs/options-modes.md).
+  parity-only, Advanced = ECharts extras, API = JSON-only). The core-parity pie
+  options above are Default; the ECharts-only Tier 3 interactivity/polish options
+  (select/explode, rounded corners, emphasis, label color, zero-sum/empty,
+  clockwise/avoid-overlap, animation + label text shadow/stroke) are Advanced. See
+  [docs/options-modes.md](../../../docs/options-modes.md).
 
 ## ECharts API support
 
@@ -61,14 +80,14 @@ High-level [ECharts option](https://echarts.apache.org/en/option.html) component
 used by this module. See [echarts.ts](../../lib/echarts/echarts.ts) for the
 registered runtime surface.
 
-| ECharts API                                                                                              | Status          | Notes                                                                                                                                                                   |
-| -------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; pie/donut via `radius`; sorting via the resolver; center offset not exposed.                          |
-| `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive per-slice show/hide (via `hideSeriesFrom`) + color (via `byName`) read directly by category. |
-| `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                                                                                                                   |
-| `animation`                                                                                              | Supported       | ECharts defaults (enabled).                                                                                                                                             |
-| `color` / `textStyle`                                                                                    | Supported       | Derived from the Grafana theme.                                                                                                                                         |
-| `grid` / `xAxis` / `yAxis`                                                                               | Not implemented | Pie has no cartesian coordinate system.                                                                                                                                 |
-| `visualMap` / `markLine` / `markArea` / `axisPointer` / `brush` / `dataZoom`                             | Not implemented | Cartesian-oriented components; N/A for pie.                                                                                                                             |
-| `toolbox` / `dataset` / `title` / `graphic` / `timeline` / `aria`                                        | Not implemented | Not registered.                                                                                                                                                         |
-| Other coordinate systems (`polar` / `radar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | —                                                                                                                                                                       |
+| ECharts API                                                                                              | Status          | Notes                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; pie/donut via `radius`; sorting via the resolver. Advanced adds `selectedMode`/`selectedOffset`, `itemStyle.borderRadius`, `emphasis`, `stillShowZeroSum`/`showEmptyCircle`, `clockwise`/`avoidLabelOverlap`, and label color/text-style. Center offset not exposed. |
+| `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive per-slice show/hide (via `hideSeriesFrom`) + color (via `byName`) read directly by category.                                                                                                                                                                |
+| `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                                                                                                                                                                                                                                                                                  |
+| `animation`                                                                                              | Supported       | ECharts defaults (enabled); toggleable via the Advanced "Animation" switch (`animation.enabled`).                                                                                                                                                                                                                                      |
+| `color` / `textStyle`                                                                                    | Supported       | Derived from the Grafana theme.                                                                                                                                                                                                                                                                                                        |
+| `grid` / `xAxis` / `yAxis`                                                                               | Not implemented | Pie has no cartesian coordinate system.                                                                                                                                                                                                                                                                                                |
+| `visualMap` / `markLine` / `markArea` / `axisPointer` / `brush` / `dataZoom`                             | Not implemented | Cartesian-oriented components; N/A for pie.                                                                                                                                                                                                                                                                                            |
+| `toolbox` / `dataset` / `title` / `graphic` / `timeline` / `aria`                                        | Not implemented | Not registered.                                                                                                                                                                                                                                                                                                                        |
+| Other coordinate systems (`polar` / `radar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | —                                                                                                                                                                                                                                                                                                                                      |
