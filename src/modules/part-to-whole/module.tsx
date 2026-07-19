@@ -7,6 +7,7 @@ import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
+import { addPieMinAngleOptions } from 'lib/grafana/editor/pie/min-angle-input';
 import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
 import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
 import { type PanelOptions } from 'types';
@@ -67,6 +68,10 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Slice-label content (Name / Value / Percent) — Grafana Pie chart parity.
     // Rendered by `getPieContentLabel`.
     addPieLabelOptions(builder);
+
+    // Min slice angle (degrees) — Advanced-only ECharts extra. Enlarges tiny
+    // long-tail slices so they stay visible/clickable. Rendered by `getPieMinAngle`.
+    addPieMinAngleOptions(builder);
 
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder);

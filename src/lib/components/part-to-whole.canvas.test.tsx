@@ -142,6 +142,33 @@ describe('part-to-whole canvas renders', () => {
     });
   });
 
+  describe('min slice angle', () => {
+    // A long-tail frame: two dominant slices plus two hairline slices that, at
+    // their true share, would be near-invisible. `minAngle: 10` enlarges the tiny
+    // slices to at least 10°, so this guards that getPieMinAngle reaches the series
+    // and reshapes the render (the default 0 is covered by the reducer cases above).
+    const longTailFrame = toDataFrame({
+      fields: [
+        { name: 'Big', type: FieldType.number, values: [100], config: { displayName: 'Big' } },
+        { name: 'Mid', type: FieldType.number, values: [50], config: { displayName: 'Mid' } },
+        { name: 'Tiny', type: FieldType.number, values: [2], config: { displayName: 'Tiny' } },
+        { name: 'Sliver', type: FieldType.number, values: [1], config: { displayName: 'Sliver' } },
+      ],
+    });
+
+    it('enlarges tiny long-tail slices', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([longTailFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        minAngle: 10,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
   describe('labels', () => {
     // Slice-label content (Name / Value / Percent) rendered on the slices via the
     // "Labels" option. Exercises getPieContentLabel's formatter during a real

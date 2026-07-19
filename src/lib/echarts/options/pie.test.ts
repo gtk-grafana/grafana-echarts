@@ -2,7 +2,7 @@ import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/d
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
-import { getPieContentLabel, getPieRadius } from 'lib/echarts/options/pie';
+import { getPieContentLabel, getPieMinAngle, getPieRadius } from 'lib/echarts/options/pie';
 
 const theme = createTheme();
 
@@ -107,5 +107,24 @@ describe('getPieRadius', () => {
 
   it('defaults an unset type to a pie', () => {
     expect(getPieRadius(undefined)).toBe('75%');
+  });
+});
+
+describe('getPieMinAngle', () => {
+  it('returns a positive value unchanged', () => {
+    expect(getPieMinAngle(5)).toBe(5);
+    expect(getPieMinAngle(0.5)).toBe(0.5);
+  });
+
+  it('omits the default 0 (returns undefined, so the key is dropped)', () => {
+    expect(getPieMinAngle(0)).toBeUndefined();
+  });
+
+  it('omits a negative value', () => {
+    expect(getPieMinAngle(-10)).toBeUndefined();
+  });
+
+  it('omits an unset value', () => {
+    expect(getPieMinAngle(undefined)).toBeUndefined();
   });
 });

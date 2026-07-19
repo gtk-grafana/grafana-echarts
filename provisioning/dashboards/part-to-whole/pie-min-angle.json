@@ -1,0 +1,245 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Min slice angle = 0 (ECharts default, no minimum). Same long-tail data and All-values reducer across all three panels; only the Advanced-only \"Min slice angle\" option (minAngle) differs. The tiny Tiny/Sliver/Speck slices are hairlines here. Requires Advanced editor mode for the control to be visible.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "pie",
+        "editorMode": "advanced",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "minAngle": 0,
+        "displayLabels": ["name", "value"],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nBig,100\nMid,50\nTiny,2\nSliver,1\nSpeck,0.5"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Min slice angle: 0 (default, no minimum)",
+      "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Min slice angle = 10. Same long-tail data and All-values reducer across all three panels; only the Advanced-only \"Min slice angle\" option (minAngle) differs. Tiny slices are enlarged to at least 10 degrees so they stay visible and clickable. Requires Advanced editor mode for the control to be visible.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "pie",
+        "editorMode": "advanced",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "minAngle": 10,
+        "displayLabels": ["name", "value"],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nBig,100\nMid,50\nTiny,2\nSliver,1\nSpeck,0.5"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Min slice angle: 10 degrees",
+      "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Min slice angle = 20. Same long-tail data and All-values reducer across all three panels; only the Advanced-only \"Min slice angle\" option (minAngle) differs. A larger floor gives even the smallest slices a clearly clickable wedge. Requires Advanced editor mode for the control to be visible.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "pie",
+        "editorMode": "advanced",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "minAngle": 20,
+        "displayLabels": ["name", "value"],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nBig,100\nMid,50\nTiny,2\nSliver,1\nSpeck,0.5"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Min slice angle: 20 degrees",
+      "type": "grafana-echartsparttowhole-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "part-to-whole", "pie", "min-angle"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Part-to-whole — min slice angle",
+  "uid": "f5e6f708-192a-43b4-c5d6-e7f001020304",
+  "version": 1,
+  "weekStart": ""
+}

@@ -32,6 +32,18 @@ export function getPieRadius(pieType: PieChartType | undefined): PieSeriesOption
 }
 
 /**
+ * ECharts pie `series.minAngle` (degrees): the minimum angle of a slice, so tiny
+ * long-tail slices are enlarged enough to stay visible and clickable. Returns the
+ * value only when it is a positive finite number; `0`, negatives, and `undefined`
+ * return `undefined` so the key is dropped at the ECharts default (`0`), keeping
+ * existing renders/snapshots unchanged (the "omit when default" trick `getPieRadius`
+ * relies on). https://echarts.apache.org/en/option.html#series-pie.minAngle
+ */
+export function getPieMinAngle(minAngle: number | undefined): PieSeriesOption['minAngle'] {
+  return typeof minAngle === 'number' && minAngle > 0 ? minAngle : undefined;
+}
+
+/**
  * Themed pie slice label: Grafana's font family and primary text color, with the
  * default text shadow/stroke zeroed out. ECharts' default label draws a blurred
  * shadow and a contrast stroke ("awful text shadow") in its own font; clearing
