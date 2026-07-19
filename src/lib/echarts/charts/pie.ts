@@ -6,8 +6,11 @@ import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legen
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
 import {
   getPieAngles,
+  getPieCenter,
   getPieContentLabel,
+  getPieItemStyle,
   getPieMinAngle,
+  getPieMinShowLabelAngle,
   getPieRadius,
   getPieRoseType,
   pieDefaultOptions,
@@ -64,11 +67,14 @@ export const pieChartModule: ChartModule = {
     }
 
     const visible = slices.filter((slice) => !slice.hidden);
+    // Advanced-only slice separation border, merged into each slice's itemStyle
+    // (empty object at the default, so the per-slice color is preserved unchanged).
+    const borderStyle = getPieItemStyle(options.sliceBorderWidth, options.sliceBorderColor);
     const data: EChartPieDataItem[] = visible.map((slice) => ({
       name: slice.name,
       // ECharts pie values are numeric-only; undefined renders an empty slice.
       value: slice.value,
-      itemStyle: { color: slice.color },
+      itemStyle: { color: slice.color, ...borderStyle },
     }));
 
     const legend = isGrafanaLegend
@@ -81,6 +87,11 @@ export const pieChartModule: ChartModule = {
 
     const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
 
+    // Advanced-only center override and min-angle-to-show-label; both omitted at
+    // their defaults so the ECharts default (centered, all labels shown) stands.
+    const center = getPieCenter(options.centerX, options.centerY);
+    const minShowLabelAngle = getPieMinShowLabelAngle(options.minShowLabelAngle);
+
     return {
       ...pieDefaultOptions,
       legend,
@@ -92,8 +103,11 @@ export const pieChartModule: ChartModule = {
           // `zLevel.series`), matching the other families so layered canvas
           // capture can isolate it (also what the canvas tests read).
           zlevel: options.zLevel?.series,
-          // Pie vs donut (inner hole) from the panel's "Pie chart type" option.
-          radius: getPieRadius(options.pieType),
+          // Pie vs donut (inner hole) from the panel's "Pie chart type" option,
+          // with Advanced-only inner/outer radius overrides.
+          radius: getPieRadius(options.pieType, options.innerRadius, options.outerRadius),
+          // Advanced-only center offset (percentages).
+          ...(center ? { center } : {}),
           // Rose (Nightingale) rendering from the Advanced "Rose type" option;
           // `none`/unset → `false`, so a plain pie is unchanged. See `getPieRoseType`.
           roseType: getPieRoseType(options.roseType),
@@ -103,11 +117,19 @@ export const pieChartModule: ChartModule = {
           // Advanced arc range (Start / End angle). Omitted at the defaults
           // (start 90 / end auto), keeping the full-pie render unchanged.
           ...getPieAngles(options.startAngle, options.endAngle),
+          // Advanced-only: hide labels on slices below this central angle.
+          ...(minShowLabelAngle != null ? { minShowLabelAngle } : {}),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the
           // panel's "Labels" option. No selection → labels hidden (core parity).
-          // Placement (Advanced "Label position": outside/inside/center) threads
-          // through as `label.position`.
-          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone, options.labelPosition),
+          // Advanced-only placement (Outside/Inside/Center) plus font size /
+          // overflow / percent precision threaded in.
+          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone, {
+            fontSize: options.labelFontSize,
+            overflow: options.labelOverflow,
+            width: options.labelWidth,
+            percentPrecision: options.percentPrecision,
+            position: options.labelPosition,
+          }),
           // Dedicated pie tooltip (Single slice / All slices). Skipped in None
           // mode, where the panel disables the tooltip entirely.
           ...(tooltipMode === TooltipDisplayMode.None

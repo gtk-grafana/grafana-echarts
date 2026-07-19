@@ -7,10 +7,16 @@ import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieAngleOptions } from 'lib/grafana/editor/pie/angle-inputs';
+import { addPieLabelFontSizeOptions } from 'lib/grafana/editor/pie/label-font-size-input';
+import { addPieLabelOverflowOptions } from 'lib/grafana/editor/pie/label-overflow';
 import { addPieLabelPositionOptions } from 'lib/grafana/editor/pie/label-position-select';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
 import { addPieMinAngleOptions } from 'lib/grafana/editor/pie/min-angle-input';
+import { addPieMinShowLabelAngleOptions } from 'lib/grafana/editor/pie/min-show-label-angle-input';
+import { addPiePercentPrecisionOptions } from 'lib/grafana/editor/pie/percent-precision-input';
+import { addPieRadiusCenterOptions } from 'lib/grafana/editor/pie/radius-center-inputs';
 import { addPieRoseTypeOptions } from 'lib/grafana/editor/pie/rose-type-select';
+import { addPieSliceBorderOptions } from 'lib/grafana/editor/pie/slice-border';
 import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
 import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
 import { type PanelOptions } from 'types';
@@ -86,6 +92,18 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Advanced via `showIf: isAdvancedEditorMode`. Threaded into
     // `getPieContentLabel` as `label.position`.
     addPieLabelPositionOptions(builder);
+
+    // Advanced-only pie legibility options (Tier 2). Each builder gates its own
+    // controls behind `showIf: isAdvancedEditorMode`, so they are hidden in
+    // Default mode and each omits its key at the default (stable snapshots).
+    // Labels category:
+    addPieLabelFontSizeOptions(builder);
+    addPieLabelOverflowOptions(builder);
+    addPieMinShowLabelAngleOptions(builder);
+    addPiePercentPrecisionOptions(builder);
+    // Pie category:
+    addPieSliceBorderOptions(builder);
+    addPieRadiusCenterOptions(builder);
 
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder);

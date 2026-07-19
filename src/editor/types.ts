@@ -70,6 +70,15 @@ export type PieLabel = 'name' | 'value' | 'percent';
 export type PieLabelPosition = 'outside' | 'inside' | 'center';
 
 /**
+ * Pie (part-to-whole) slice-label overflow handling, mirroring ECharts'
+ * `label.overflow`: `none` (no handling — the default), `truncate` (clip with an
+ * ellipsis at `label.width`), `break` (wrap at word boundaries), `breakAll` (wrap
+ * at any character). Advanced-only; drives `getPieLabelStyle`.
+ * https://echarts.apache.org/en/option.html#series-pie.label.overflow
+ */
+export type PieLabelOverflow = 'none' | 'truncate' | 'break' | 'breakAll';
+
+/**
  * Pie (part-to-whole) chart shape, matching core Grafana's `PieChartType`
  * (`@grafana/schema` doesn't re-export the raw enum, so the string values are
  * mirrored here): `pie` (full disc) or `donut` (a pie with a hole). The panel's

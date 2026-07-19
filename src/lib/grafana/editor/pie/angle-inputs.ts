@@ -1,10 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import {
-  PIE_START_ANGLE_DEFAULT,
-  pieEndAnglePath,
-  pieStartAnglePath,
-  pieTypeCategoryName,
-} from 'editor/constants';
+import { PIE_START_ANGLE_DEFAULT, pieEndAnglePath, pieStartAnglePath, pieTypeCategoryName } from 'editor/constants';
 import { isAdvancedEditorMode } from 'lib/grafana/editor/common/editor-mode';
 import { type PanelOptions } from 'types';
 

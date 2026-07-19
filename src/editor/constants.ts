@@ -10,6 +10,7 @@ import {
   type MultiValueSeriesType,
   type PieChartType,
   type PieLabel,
+  type PieLabelOverflow,
   type PieLabelPosition,
   type PieRoseType,
   type SeriesType,
@@ -156,7 +157,7 @@ export const pieSortOptions: Array<SelectableValue<SortOrder>> = [
 /** Default slice sort: descending by value (largest first), matching core Grafana. */
 export const PIE_SORT_DEFAULT: SortOrder = SortOrder.Descending;
 /**
-* Panel option path for the pie minimum slice angle (ECharts `series.minAngle`,
+ * Panel option path for the pie minimum slice angle (ECharts `series.minAngle`,
  * degrees). Advanced-only; keeps tiny long-tail slices visible and clickable.
  */
 export const pieMinAnglePath = 'minAngle';
@@ -216,6 +217,87 @@ export const pieLabelPositionOptions: Array<SelectableValue<PieLabelPosition>> =
 ];
 /** Default slice-label placement: outside (leader lines), matching ECharts' own default. */
 export const PIE_LABEL_POSITION_DEFAULT: PieLabelPosition = 'outside';
+
+/* ---------------------------------------------------------------------------
+ * Advanced-gated pie legibility options (Tier 2). Each is shown only in the
+ * Advanced editor mode (`showIf: isAdvancedEditorMode`) and omits its key at the
+ * default so existing snapshots stay stable. See the `pie-legibility.json` demo.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Panel option path for the pie slice-label font size (ECharts `label.fontSize`).
+ * Fixed to the theme size today; this overrides it. Advanced-only.
+ */
+export const pieLabelFontSizePath = 'labelFontSize';
+/**
+ * Default slice-label font size: `undefined`, so the theme's font size is used
+ * and no `fontSize` is written to the ECharts label (keeps snapshots stable).
+ */
+export const PIE_LABEL_FONT_SIZE_DEFAULT: number | undefined = undefined;
+
+/** Panel option path for the pie slice-label overflow handling (ECharts `label.overflow`). */
+export const pieLabelOverflowPath = 'labelOverflow';
+/** Panel option path for the pie slice-label wrap/clip width (ECharts `label.width`). */
+export const pieLabelWidthPath = 'labelWidth';
+/**
+ * Pie slice-label overflow options (ECharts `label.overflow`): `none` (no
+ * handling), `truncate` (ellipsis), `break` (wrap at word), `breakAll` (wrap at
+ * any character). `none` is the default and is not written to the label.
+ * https://echarts.apache.org/en/option.html#series-pie.label.overflow
+ */
+export const pieLabelOverflowOptions: Array<SelectableValue<PieLabelOverflow>> = [
+  { value: 'none', label: 'None' },
+  { value: 'truncate', label: 'Truncate' },
+  { value: 'break', label: 'Break (word)' },
+  { value: 'breakAll', label: 'Break (any char)' },
+];
+/** Default slice-label overflow: `none` (no overflow handling), matching today's behavior. */
+export const PIE_LABEL_OVERFLOW_DEFAULT: PieLabelOverflow = 'none';
+
+/**
+ * Panel option path for the minimum slice angle (degrees) below which the slice
+ * label is hidden (ECharts `series.minShowLabelAngle`). Declutters many-slice
+ * pies. Advanced-only.
+ */
+export const pieMinShowLabelAnglePath = 'minShowLabelAngle';
+/** Default min angle to show a slice label: `0` (never hidden), not written to the series. */
+export const PIE_MIN_SHOW_LABEL_ANGLE_DEFAULT = 0;
+
+/**
+ * Panel option path for the number of decimal places in the slice percent label
+ * (used by `sliceShare`). Advanced-only.
+ */
+export const piePercentPrecisionPath = 'percentPrecision';
+/**
+ * Default percent precision: `1` decimal, reproducing today's `33.3%` output
+ * (with a trailing `.0` dropped).
+ */
+export const PIE_PERCENT_PRECISION_DEFAULT = 1;
+
+/**
+ * Panel option path for the slice separation border width (ECharts
+ * `itemStyle.borderWidth`). Advanced-only.
+ */
+export const pieBorderWidthPath = 'sliceBorderWidth';
+/**
+ * Panel option path for the slice separation border color (ECharts
+ * `itemStyle.borderColor`). Advanced-only.
+ */
+export const pieBorderColorPath = 'sliceBorderColor';
+/** Default slice border width: `0` (no separator), so no border keys are written. */
+export const PIE_BORDER_WIDTH_DEFAULT = 0;
+
+/**
+ * Panel option paths for the custom pie radius/center overrides (percentages).
+ * `outerRadius`/`innerRadius` extend `getPieRadius`; `centerX`/`centerY` drive
+ * `series.center` via `getPieCenter`. All Advanced-only; unset falls back to the
+ * `getPieRadius` defaults (and no `center`).
+ */
+export const pieOuterRadiusPath = 'outerRadius';
+export const pieInnerRadiusPath = 'innerRadius';
+export const pieCenterXPath = 'centerX';
+export const pieCenterYPath = 'centerY';
+
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to
  * render as a heatmap (each numeric field becomes a bucket row), even when the
