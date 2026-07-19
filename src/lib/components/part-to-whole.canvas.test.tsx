@@ -142,6 +142,38 @@ describe('part-to-whole canvas renders', () => {
     });
   });
 
+  describe('start/end angle', () => {
+    // Advanced arc range: start 180 / end 360 renders a half-pie (bottom
+    // semicircle), and combined with donut a semicircle donut. Guards that
+    // getPieAngles threads startAngle/endAngle into the series.
+    it('half-pie (start 180 / end 360)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        startAngle: 180,
+        endAngle: 360,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+
+    it('semicircle donut (donut + start 180 / end 360)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        pieType: 'donut',
+        startAngle: 180,
+        endAngle: 360,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
   describe('labels', () => {
     // Slice-label content (Name / Value / Percent) rendered on the slices via the
     // "Labels" option. Exercises getPieContentLabel's formatter during a real

@@ -1,7 +1,7 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { type PieSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { PIE_LABELS_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
+import { PIE_LABELS_DEFAULT, PIE_START_ANGLE_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
 import { type PieChartType, type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
@@ -29,6 +29,25 @@ const DONUT_INNER_RADIUS = '50%';
  */
 export function getPieRadius(pieType: PieChartType | undefined): PieSeriesOption['radius'] {
   return (pieType ?? PIE_TYPE_DEFAULT) === 'donut' ? [DONUT_INNER_RADIUS, PIE_OUTER_RADIUS] : PIE_OUTER_RADIUS;
+}
+
+/**
+ * ECharts pie arc range (`series.startAngle` / `series.endAngle`, degrees) for
+ * the Advanced "Start angle" / "End angle" options. Together they enable half-pie
+ * / semicircle-donut layouts. Each key is spread only when it differs from its
+ * ECharts default (start ≠ 90; end defined), so the default full pie leaves both
+ * keys absent and its render/snapshots are unchanged.
+ * https://echarts.apache.org/en/option.html#series-pie.startAngle
+ * https://echarts.apache.org/en/option.html#series-pie.endAngle
+ */
+export function getPieAngles(
+  startAngle: number | undefined,
+  endAngle: number | undefined
+): Pick<PieSeriesOption, 'startAngle' | 'endAngle'> {
+  return {
+    ...(typeof startAngle === 'number' && startAngle !== PIE_START_ANGLE_DEFAULT ? { startAngle } : {}),
+    ...(typeof endAngle === 'number' ? { endAngle } : {}),
+  };
 }
 
 /**

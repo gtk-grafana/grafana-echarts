@@ -4,7 +4,7 @@ import { PIE_SORT_DEFAULT } from 'editor/constants';
 import { resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
-import { getPieContentLabel, getPieRadius, pieDefaultOptions } from 'lib/echarts/options/pie';
+import { getPieAngles, getPieContentLabel, getPieRadius, pieDefaultOptions } from 'lib/echarts/options/pie';
 import { getValueFormatter } from 'lib/echarts/style';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
@@ -87,6 +87,9 @@ export const pieChartModule: ChartModule = {
           zlevel: options.zLevel?.series,
           // Pie vs donut (inner hole) from the panel's "Pie chart type" option.
           radius: getPieRadius(options.pieType),
+          // Advanced arc range (Start / End angle). Omitted at the defaults
+          // (start 90 / end auto), keeping the full-pie render unchanged.
+          ...getPieAngles(options.startAngle, options.endAngle),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the
           // panel's "Labels" option. No selection → labels hidden (core parity).
           label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone),

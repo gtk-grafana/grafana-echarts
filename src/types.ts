@@ -84,6 +84,21 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    */
   sort?: SortOrder;
 
+  /**
+   * Pie (part-to-whole) arc start angle in degrees (Advanced-only; ECharts
+   * `series.startAngle`). 90 = top. Defaults to `PIE_START_ANGLE_DEFAULT` (`90`)
+   * when unset. Together with `endAngle` this enables half-pie / semicircle-donut
+   * (gauge-like) layouts. See `getPieAngles`.
+   */
+  startAngle?: number;
+
+  /**
+   * Pie (part-to-whole) arc end angle in degrees (Advanced-only; ECharts
+   * `series.endAngle`). Unset → `'auto'` (a full 360° sweep). E.g. start 180 /
+   * end 360 renders a half-pie. See `getPieAngles`.
+   */
+  endAngle?: number;
+
   // @internal
   animation?: {
     // https://echarts.apache.org/en/option.html#animation

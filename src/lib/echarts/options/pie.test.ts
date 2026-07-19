@@ -2,7 +2,7 @@ import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/d
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
-import { getPieContentLabel, getPieRadius } from 'lib/echarts/options/pie';
+import { getPieAngles, getPieContentLabel, getPieRadius } from 'lib/echarts/options/pie';
 
 const theme = createTheme();
 
@@ -107,5 +107,31 @@ describe('getPieRadius', () => {
 
   it('defaults an unset type to a pie', () => {
     expect(getPieRadius(undefined)).toBe('75%');
+  });
+});
+
+describe('getPieAngles', () => {
+  it('omits startAngle at the ECharts default (90) — keeps the full pie unchanged', () => {
+    expect(getPieAngles(90, undefined)).toEqual({});
+  });
+
+  it('omits both when unset', () => {
+    expect(getPieAngles(undefined, undefined)).toEqual({});
+  });
+
+  it('returns both angles for a half-pie (start 180 / end 360)', () => {
+    expect(getPieAngles(180, 360)).toEqual({ startAngle: 180, endAngle: 360 });
+  });
+
+  it('returns only endAngle when start is at the default', () => {
+    expect(getPieAngles(90, 270)).toEqual({ endAngle: 270 });
+  });
+
+  it('returns only endAngle when start is unset', () => {
+    expect(getPieAngles(undefined, 270)).toEqual({ endAngle: 270 });
+  });
+
+  it('returns only startAngle when set away from the default and end is unset', () => {
+    expect(getPieAngles(180, undefined)).toEqual({ startAngle: 180 });
   });
 });

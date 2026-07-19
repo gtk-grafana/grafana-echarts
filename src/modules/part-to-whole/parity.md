@@ -29,6 +29,7 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 | Pie chart type (Pie / Donut)                  | `pieType` radio in a "Pie" category; rendered as the series radius by `getPieRadius`                       | Supported     |
 | Slice sorting (asc/desc/none)                 | `sort` select in the "Pie" category; orders the shared slice model in `resolvePieSlices` (default desc)    | Supported     |
 | Labels (Percent / Name / Value)               | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                      | Supported     |
+| Arc start / end angle (ECharts-only)          | `startAngle` / `endAngle` number inputs in the "Pie" category (Advanced); half-pie / semicircle donut via `getPieAngles` | Advanced      |
 | Tooltip: mode                                 | `tooltip.mode`                                                                                             | Supported     |
 | Tooltip: hide zeros, sort                     | none                                                                                                       | Not supported |
 | Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions`                                                                      | Supported     |
@@ -52,8 +53,11 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 - ECharts-only roadmap: this module's family also covers funnel/gauge render
   types (not yet implemented).
 - Editor options are tiered via the shared `editorMode` option (Default =
-  parity-only, Advanced = ECharts extras, API = JSON-only); all current pie
-  options are Default/parity. See [docs/options-modes.md](../../../docs/options-modes.md).
+  parity-only, Advanced = ECharts extras, API = JSON-only). The core-parity pie
+  options are Default; the first ECharts-only extras are the Advanced **Start
+  angle** / **End angle** inputs (`startAngle` / `endAngle`), which enable
+  half-pie / semicircle-donut layouts via `getPieAngles`. See
+  [docs/options-modes.md](../../../docs/options-modes.md).
 
 ## ECharts API support
 
@@ -63,7 +67,7 @@ registered runtime surface.
 
 | ECharts API                                                                                              | Status          | Notes                                                                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; pie/donut via `radius`; sorting via the resolver; center offset not exposed.                          |
+| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; pie/donut via `radius`; sorting via the resolver; arc range via `startAngle`/`endAngle` (Advanced); center offset not exposed. |
 | `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive per-slice show/hide (via `hideSeriesFrom`) + color (via `byName`) read directly by category. |
 | `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                                                                                                                   |
 | `animation`                                                                                              | Supported       | ECharts defaults (enabled).                                                                                                                                             |
