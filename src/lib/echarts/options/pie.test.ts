@@ -94,6 +94,23 @@ describe('getPieContentLabel', () => {
     expect(renderLabel(['percent'], model, 0)).toBe('0%');
     expect(renderLabel(['name', 'percent'], model, 0)).toBe('A\n0%');
   });
+
+  it('defaults an unset position to outside (ECharts default, unchanged render)', () => {
+    expect(getPieContentLabel(['name'], slices(), theme)).toMatchObject({ position: 'outside' });
+    expect(getPieContentLabel(['name'], slices(), theme, undefined, undefined)).toMatchObject({ position: 'outside' });
+  });
+
+  it('threads the label position through (inside / center)', () => {
+    expect(getPieContentLabel(['name'], slices(), theme, undefined, 'inside')).toMatchObject({ position: 'inside' });
+    expect(getPieContentLabel(['value'], slices(), theme, undefined, 'center')).toMatchObject({ position: 'center' });
+  });
+
+  it('sets the position even on an empty (hidden) selection', () => {
+    expect(getPieContentLabel([], slices(), theme, undefined, 'center')).toMatchObject({
+      show: false,
+      position: 'center',
+    });
+  });
 });
 
 describe('getPieRadius', () => {

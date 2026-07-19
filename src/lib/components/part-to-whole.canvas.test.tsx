@@ -159,6 +159,39 @@ describe('part-to-whole canvas renders', () => {
     });
   });
 
+  describe('label position', () => {
+    // Placement of the slice labels (ECharts `label.position`). The reducer/labels
+    // cases above cover the default `outside`, so these guard the Advanced-only
+    // `inside` (labels drawn on the slices) and `center` (a single donut-hole
+    // readout) paths through getPieContentLabel.
+    it('inside (labels on the slices)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name', 'value'],
+        labelPosition: 'inside',
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+
+    it('center on a donut (single readout in the hole)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        pieType: 'donut',
+        displayLabels: ['value'],
+        labelPosition: 'center',
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
   describe('color', () => {
     // A byName fixed-color override pins slice 'B' — applied to the frames via the
     // harness `fieldConfig` (as real Grafana does), so it reaches the converter.

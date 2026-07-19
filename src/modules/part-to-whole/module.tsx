@@ -6,6 +6,7 @@ import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
+import { addPieLabelPositionOptions } from 'lib/grafana/editor/pie/label-position-select';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
 import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
 import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
@@ -42,8 +43,8 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
   })
   .setPanelOptions((builder) => {
     // Editor mode (Default / Advanced) — tiers the editor surface. Registered
-    // first so it renders at the top. All pie options below are core-parity, so
-    // none is gated yet; the first advanced-only pie option should pass
+    // first so it renders at the top. The core-parity pie options below are always
+    // shown; ECharts-only options (e.g. label position) gate on Advanced via
     // `showIf: isAdvancedEditorMode`. See docs/options-modes.md.
     addEditorModeOption(builder);
 
@@ -67,6 +68,11 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Slice-label content (Name / Value / Percent) — Grafana Pie chart parity.
     // Rendered by `getPieContentLabel`.
     addPieLabelOptions(builder);
+
+    // Slice-label placement (Outside / Inside / Center) — ECharts-only, gated to
+    // Advanced via `showIf: isAdvancedEditorMode`. Threaded into
+    // `getPieContentLabel` as `label.position`.
+    addPieLabelPositionOptions(builder);
 
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder);

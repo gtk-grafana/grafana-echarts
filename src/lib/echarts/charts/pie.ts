@@ -89,7 +89,9 @@ export const pieChartModule: ChartModule = {
           radius: getPieRadius(options.pieType),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the
           // panel's "Labels" option. No selection → labels hidden (core parity).
-          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone),
+          // Placement (Advanced "Label position": outside/inside/center) threads
+          // through as `label.position`.
+          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone, options.labelPosition),
           // Dedicated pie tooltip (Single slice / All slices). Skipped in None
           // mode, where the panel disables the tooltip entirely.
           ...(tooltipMode === TooltipDisplayMode.None

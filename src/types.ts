@@ -1,7 +1,13 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type OptionsWithTooltip, type SortOrder } from '@grafana/schema';
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
-import { type EditorMode, type PieChartType, type PieLabel, type SeriesTypeOption } from 'editor/types';
+import {
+  type EditorMode,
+  type PieChartType,
+  type PieLabel,
+  type PieLabelPosition,
+  type SeriesTypeOption,
+} from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -75,6 +81,15 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * labels (matching core). See `getPieContentLabel`.
    */
   displayLabels?: PieLabel[];
+
+  /**
+   * Pie (part-to-whole) slice-label placement (ECharts-only, Advanced): `outside`
+   * (leader lines, the default), `inside` (on the slice — fits dense pies), or
+   * `center` (the donut hole — a KPI-style readout). Defaults to
+   * `PIE_LABEL_POSITION_DEFAULT` (`outside`) when unset. Threaded through
+   * `getPieContentLabel` as the ECharts `label.position`.
+   */
+  labelPosition?: PieLabelPosition;
 
   /**
    * Pie (part-to-whole) slice sorting (Grafana Pie chart "Slice sorting" parity):
