@@ -1,0 +1,251 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced legibility: larger label font size (labelFontSize) + slice separation border (sliceBorderWidth/sliceBorderColor). Requires Advanced editor mode (editorMode=advanced) for the controls to appear.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "pie",
+        "editorMode": "advanced",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "displayLabels": ["name", "value", "percent"],
+        "labelFontSize": 20,
+        "sliceBorderWidth": 2,
+        "sliceBorderColor": "#000000",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nSales,43\nAdmin,25\nIT,30\nSupport,48\nOps,22"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Font size + slice border",
+      "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced legibility: label overflow handling for long category names (labelOverflow=truncate + labelWidth). Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "pie",
+        "editorMode": "advanced",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "displayLabels": ["name"],
+        "labelOverflow": "truncate",
+        "labelWidth": 100,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nEngineering & Platform,43\nCustomer Support Operations,25\nSales and Marketing,30\nFinance,22"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Label overflow (truncate)",
+      "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced legibility: percent precision on near-equal shares (percentPrecision=2) + custom radius/center (innerRadius/outerRadius/centerX). Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "pie",
+        "editorMode": "advanced",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "displayLabels": ["name", "percent"],
+        "percentPrecision": 2,
+        "innerRadius": 40,
+        "outerRadius": 60,
+        "centerX": 50,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nAlpha,101\nBravo,99\nCharlie,100"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Percent precision + custom radius/center",
+      "type": "grafana-echartsparttowhole-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "part-to-whole", "pie", "legibility"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Part-to-whole — legibility (Advanced)",
+  "uid": "f5e6f7a8-1920-43b4-c5d6-e7f011223344",
+  "version": 1,
+  "weekStart": ""
+}

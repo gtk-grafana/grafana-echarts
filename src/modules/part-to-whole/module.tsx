@@ -6,7 +6,13 @@ import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
+import { addPieLabelFontSizeOptions } from 'lib/grafana/editor/pie/label-font-size-input';
+import { addPieLabelOverflowOptions } from 'lib/grafana/editor/pie/label-overflow';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
+import { addPieMinShowLabelAngleOptions } from 'lib/grafana/editor/pie/min-show-label-angle-input';
+import { addPiePercentPrecisionOptions } from 'lib/grafana/editor/pie/percent-precision-input';
+import { addPieRadiusCenterOptions } from 'lib/grafana/editor/pie/radius-center-inputs';
+import { addPieSliceBorderOptions } from 'lib/grafana/editor/pie/slice-border';
 import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
 import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
 import { type PanelOptions } from 'types';
@@ -67,6 +73,18 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Slice-label content (Name / Value / Percent) — Grafana Pie chart parity.
     // Rendered by `getPieContentLabel`.
     addPieLabelOptions(builder);
+
+    // Advanced-only pie legibility options (Tier 2). Each builder gates its own
+    // controls behind `showIf: isAdvancedEditorMode`, so they are hidden in
+    // Default mode and each omits its key at the default (stable snapshots).
+    // Labels category:
+    addPieLabelFontSizeOptions(builder);
+    addPieLabelOverflowOptions(builder);
+    addPieMinShowLabelAngleOptions(builder);
+    addPiePercentPrecisionOptions(builder);
+    // Pie category:
+    addPieSliceBorderOptions(builder);
+    addPieRadiusCenterOptions(builder);
 
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder);

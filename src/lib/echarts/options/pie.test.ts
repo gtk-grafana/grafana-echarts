@@ -2,7 +2,15 @@ import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/d
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
-import { getPieContentLabel, getPieRadius } from 'lib/echarts/options/pie';
+import {
+  getPieCenter,
+  getPieContentLabel,
+  getPieItemStyle,
+  getPieLabelStyle,
+  getPieMinShowLabelAngle,
+  getPieRadius,
+  type PieLabelOptions,
+} from 'lib/echarts/options/pie';
 
 const theme = createTheme();
 
@@ -26,8 +34,13 @@ const makeSlice = (name: string, value: number | undefined, config: FieldConfig 
 const slices = (): PieSliceModel[] => [makeSlice('A', 60), makeSlice('B', 20), makeSlice('C', 20)];
 
 /** Render the label content ECharts would draw for the slice at `index`. */
-const renderLabel = (labels: PieLabel[] | undefined, model: PieSliceModel[], index: number): string => {
-  const label = getPieContentLabel(labels, model, theme);
+const renderLabel = (
+  labels: PieLabel[] | undefined,
+  model: PieSliceModel[],
+  index: number,
+  labelOptions?: PieLabelOptions
+): string => {
+  const label = getPieContentLabel(labels, model, theme, undefined, labelOptions);
   const formatter = label?.formatter;
   if (typeof formatter !== 'function') {
     return '';
@@ -70,6 +83,16 @@ describe('getPieContentLabel', () => {
     expect(renderLabel(['percent'], model, 1)).toBe('66.7%');
   });
 
+  it('honors a custom percent precision (Advanced `percentPrecision`)', () => {
+    const model = [makeSlice('A', 1), makeSlice('B', 2)]; // total 3 → 33.333…%
+    // Default (unset) keeps the one-decimal output.
+    expect(renderLabel(['percent'], model, 0)).toBe('33.3%');
+    // Two decimals distinguishes near-equal shares.
+    expect(renderLabel(['percent'], model, 0, { percentPrecision: 2 })).toBe('33.33%');
+    // Zero decimals rounds to a whole percent.
+    expect(renderLabel(['percent'], model, 0, { percentPrecision: 0 })).toBe('33%');
+  });
+
   it('stacks multiple selected labels in Name → Value → Percent order (one per line)', () => {
     const model = slices();
     expect(renderLabel(['name', 'value'], model, 0)).toBe('A\n60');
@@ -107,5 +130,82 @@ describe('getPieRadius', () => {
 
   it('defaults an unset type to a pie', () => {
     expect(getPieRadius(undefined)).toBe('75%');
+  });
+
+  it('honors an outer radius override on a pie', () => {
+    expect(getPieRadius('pie', undefined, 60)).toBe('60%');
+  });
+
+  it('carves a hole when an inner radius is set on a plain pie', () => {
+    expect(getPieRadius('pie', 40, 60)).toEqual(['40%', '60%']);
+  });
+
+  it('honors radius overrides on a donut, keeping defaults for the unset side', () => {
+    expect(getPieRadius('donut', 30)).toEqual(['30%', '75%']);
+    expect(getPieRadius('donut', undefined, 90)).toEqual(['50%', '90%']);
+  });
+});
+
+describe('getPieCenter', () => {
+  it('returns undefined when neither coordinate is set (default centered)', () => {
+    expect(getPieCenter()).toBeUndefined();
+    expect(getPieCenter(undefined, undefined)).toBeUndefined();
+  });
+
+  it('builds a percentage [x, y] pair from the overrides', () => {
+    expect(getPieCenter(30, 40)).toEqual(['30%', '40%']);
+  });
+
+  it('keeps the unset axis centered at 50%', () => {
+    expect(getPieCenter(30)).toEqual(['30%', '50%']);
+    expect(getPieCenter(undefined, 40)).toEqual(['50%', '40%']);
+  });
+});
+
+describe('getPieMinShowLabelAngle', () => {
+  it('returns the angle when positive', () => {
+    expect(getPieMinShowLabelAngle(5)).toBe(5);
+  });
+
+  it('returns undefined for 0 or unset (all labels shown)', () => {
+    expect(getPieMinShowLabelAngle(0)).toBeUndefined();
+    expect(getPieMinShowLabelAngle(undefined)).toBeUndefined();
+  });
+});
+
+describe('getPieItemStyle', () => {
+  it('returns the border keys when a width is set', () => {
+    expect(getPieItemStyle(2, '#000000')).toEqual({ borderWidth: 2, borderColor: '#000000' });
+  });
+
+  it('omits the color when unset but keeps the width', () => {
+    expect(getPieItemStyle(2, undefined)).toEqual({ borderWidth: 2 });
+  });
+
+  it('returns an empty object for a 0/unset width (no separator)', () => {
+    expect(getPieItemStyle(0, '#000000')).toEqual({});
+    expect(getPieItemStyle(undefined, '#000000')).toEqual({});
+  });
+});
+
+describe('getPieLabelStyle', () => {
+  it('includes the font size when set', () => {
+    expect(getPieLabelStyle(theme, 20)).toMatchObject({ fontSize: 20 });
+  });
+
+  it('omits the font size when unset', () => {
+    expect(getPieLabelStyle(theme)).not.toHaveProperty('fontSize');
+  });
+
+  it('spreads overflow and width when overflow is set', () => {
+    expect(getPieLabelStyle(theme, undefined, 'truncate', 120)).toMatchObject({ overflow: 'truncate', width: 120 });
+  });
+
+  it('omits overflow/width for none or unset', () => {
+    const none = getPieLabelStyle(theme, undefined, 'none', 120);
+    expect(none).not.toHaveProperty('overflow');
+    const unset = getPieLabelStyle(theme);
+    expect(unset).not.toHaveProperty('overflow');
+    expect(unset).not.toHaveProperty('width');
   });
 });

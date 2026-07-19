@@ -209,4 +209,130 @@ describe('part-to-whole canvas renders', () => {
       });
     });
   });
+
+  // Long category names, one row per category — exercises label overflow/width.
+  const longNamesFrame = toDataFrame({
+    fields: [
+      {
+        name: 'category',
+        type: FieldType.string,
+        values: ['Engineering & Platform', 'Customer Support Operations', 'Sales and Marketing', 'Finance'],
+      },
+      { name: 'value', type: FieldType.number, values: [43, 25, 30, 22] },
+    ],
+  });
+
+  // A dominant slice plus several tiny ones — exercises min-show-label-angle.
+  const longTailFrame = toDataFrame({
+    fields: [
+      { name: 'category', type: FieldType.string, values: ['Major', 'Tiny1', 'Tiny2', 'Tiny3', 'Tiny4'] },
+      { name: 'value', type: FieldType.number, values: [200, 3, 2, 2, 1] },
+    ],
+  });
+
+  // Near-equal slices — exercises percent precision (33.33% vs 33.3%).
+  const nearEqualFrame = toDataFrame({
+    fields: [
+      { name: 'category', type: FieldType.string, values: ['A', 'B', 'C'] },
+      { name: 'value', type: FieldType.number, values: [1, 1, 1] },
+    ],
+  });
+
+  describe('label font size', () => {
+    // Advanced-only label.fontSize override; larger labels with all content shown.
+    it('enlarged slice labels', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name', 'value', 'percent'],
+        labelFontSize: 24,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('label overflow', () => {
+    // Advanced-only label.overflow + label.width; long names truncate at 80px.
+    it('truncated long labels', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([longNamesFrame], {
+        reduceOptions: { calcs: [], values: true },
+        displayLabels: ['name'],
+        labelOverflow: 'truncate',
+        labelWidth: 80,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('min show label angle', () => {
+    // Advanced-only series.minShowLabelAngle; tiny-slice labels are hidden.
+    it('hides labels on tiny slices', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([longTailFrame], {
+        reduceOptions: { calcs: [], values: true },
+        displayLabels: ['name'],
+        minShowLabelAngle: 10,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('percent precision', () => {
+    // Advanced-only percentPrecision; near-equal shares to two decimals.
+    it('two-decimal percent labels', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([nearEqualFrame], {
+        reduceOptions: { calcs: [], values: true },
+        displayLabels: ['percent'],
+        percentPrecision: 2,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('slice separation', () => {
+    // Advanced-only itemStyle.borderWidth/borderColor; a border between slices.
+    it('bordered slices', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        sliceBorderWidth: 2,
+        sliceBorderColor: '#000000',
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
+
+  describe('custom radius/center', () => {
+    // Advanced-only radius + center overrides; a smaller off-center donut.
+    it('custom inner/outer radius and center', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        innerRadius: 40,
+        outerRadius: 60,
+        centerX: 30,
+      });
+
+      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        width,
+        height,
+      });
+    });
+  });
 });

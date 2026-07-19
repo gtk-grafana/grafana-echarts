@@ -4,7 +4,14 @@ import { PIE_SORT_DEFAULT } from 'editor/constants';
 import { resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
-import { getPieContentLabel, getPieRadius, pieDefaultOptions } from 'lib/echarts/options/pie';
+import {
+  getPieCenter,
+  getPieContentLabel,
+  getPieItemStyle,
+  getPieMinShowLabelAngle,
+  getPieRadius,
+  pieDefaultOptions,
+} from 'lib/echarts/options/pie';
 import { getValueFormatter } from 'lib/echarts/style';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
@@ -57,11 +64,14 @@ export const pieChartModule: ChartModule = {
     }
 
     const visible = slices.filter((slice) => !slice.hidden);
+    // Advanced-only slice separation border, merged into each slice's itemStyle
+    // (empty object at the default, so the per-slice color is preserved unchanged).
+    const borderStyle = getPieItemStyle(options.sliceBorderWidth, options.sliceBorderColor);
     const data: EChartPieDataItem[] = visible.map((slice) => ({
       name: slice.name,
       // ECharts pie values are numeric-only; undefined renders an empty slice.
       value: slice.value,
-      itemStyle: { color: slice.color },
+      itemStyle: { color: slice.color, ...borderStyle },
     }));
 
     const legend = isGrafanaLegend
@@ -74,6 +84,11 @@ export const pieChartModule: ChartModule = {
 
     const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
 
+    // Advanced-only center override and min-angle-to-show-label; both omitted at
+    // their defaults so the ECharts default (centered, all labels shown) stands.
+    const center = getPieCenter(options.centerX, options.centerY);
+    const minShowLabelAngle = getPieMinShowLabelAngle(options.minShowLabelAngle);
+
     return {
       ...pieDefaultOptions,
       legend,
@@ -85,11 +100,22 @@ export const pieChartModule: ChartModule = {
           // `zLevel.series`), matching the other families so layered canvas
           // capture can isolate it (also what the canvas tests read).
           zlevel: options.zLevel?.series,
-          // Pie vs donut (inner hole) from the panel's "Pie chart type" option.
-          radius: getPieRadius(options.pieType),
+          // Pie vs donut (inner hole) from the panel's "Pie chart type" option,
+          // with Advanced-only inner/outer radius overrides.
+          radius: getPieRadius(options.pieType, options.innerRadius, options.outerRadius),
+          // Advanced-only center offset (percentages).
+          ...(center ? { center } : {}),
+          // Advanced-only: hide labels on slices below this central angle.
+          ...(minShowLabelAngle != null ? { minShowLabelAngle } : {}),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the
           // panel's "Labels" option. No selection → labels hidden (core parity).
-          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone),
+          // Advanced-only font size / overflow / percent precision threaded in.
+          label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone, {
+            fontSize: options.labelFontSize,
+            overflow: options.labelOverflow,
+            width: options.labelWidth,
+            percentPrecision: options.percentPrecision,
+          }),
           // Dedicated pie tooltip (Single slice / All slices). Skipped in None
           // mode, where the panel disables the tooltip entirely.
           ...(tooltipMode === TooltipDisplayMode.None

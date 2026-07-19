@@ -29,6 +29,12 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 | Pie chart type (Pie / Donut)                  | `pieType` radio in a "Pie" category; rendered as the series radius by `getPieRadius`                       | Supported     |
 | Slice sorting (asc/desc/none)                 | `sort` select in the "Pie" category; orders the shared slice model in `resolvePieSlices` (default desc)    | Supported     |
 | Labels (Percent / Name / Value)               | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                      | Supported     |
+| Label font size (ECharts-only)                | `labelFontSize` number input ("Labels", Advanced); threads into `getPieLabelStyle`                         | Advanced      |
+| Label overflow / width (ECharts-only)         | `labelOverflow` select + `labelWidth` ("Labels", Advanced); `label.overflow`/`label.width` via `getPieLabelStyle` | Advanced |
+| Min angle to show label (ECharts-only)        | `minShowLabelAngle` number input ("Labels", Advanced); `series.minShowLabelAngle` via `getPieMinShowLabelAngle` | Advanced |
+| Percent precision (ECharts-only)              | `percentPrecision` number input ("Labels", Advanced); decimals in `sliceShare` (default 1 = `33.3%`)       | Advanced      |
+| Slice separation border (ECharts-only)        | `sliceBorderWidth` + `sliceBorderColor` (color picker) ("Pie", Advanced); `itemStyle` border via `getPieItemStyle` | Advanced |
+| Custom radius / center (ECharts-only)         | `outerRadius`/`innerRadius`/`centerX`/`centerY` ("Pie", Advanced); `series.radius`/`center` via `getPieRadius`/`getPieCenter` | Advanced |
 | Tooltip: mode                                 | `tooltip.mode`                                                                                             | Supported     |
 | Tooltip: hide zeros, sort                     | none                                                                                                       | Not supported |
 | Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions`                                                                      | Supported     |
@@ -52,8 +58,13 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 - ECharts-only roadmap: this module's family also covers funnel/gauge render
   types (not yet implemented).
 - Editor options are tiered via the shared `editorMode` option (Default =
-  parity-only, Advanced = ECharts extras, API = JSON-only); all current pie
-  options are Default/parity. See [docs/options-modes.md](../../../docs/options-modes.md).
+  parity-only, Advanced = ECharts extras, API = JSON-only). The parity options
+  above are Default; the Advanced tier adds six ECharts-only legibility options —
+  label font size, label overflow/width, min-angle-to-show-label, percent
+  precision, slice separation border, and custom radius/center — each gated behind
+  `showIf: isAdvancedEditorMode` and omitted at its default. See
+  [docs/options-modes.md](../../../docs/options-modes.md) and the
+  `pie-legibility.json` demo.
 
 ## ECharts API support
 
@@ -63,7 +74,7 @@ registered runtime surface.
 
 | ECharts API                                                                                              | Status          | Notes                                                                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; pie/donut via `radius`; sorting via the resolver; center offset not exposed.                          |
+| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; pie/donut via `radius`; sorting via the resolver. Advanced adds `label.fontSize`/`overflow`/`width`, `minShowLabelAngle`, percent precision, `itemStyle` border, and custom `radius`/`center`. |
 | `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive per-slice show/hide (via `hideSeriesFrom`) + color (via `byName`) read directly by category. |
 | `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                                                                                                                   |
 | `animation`                                                                                              | Supported       | ECharts defaults (enabled).                                                                                                                                             |

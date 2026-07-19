@@ -1,7 +1,13 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
 import { type OptionsWithLegend, type OptionsWithTooltip, type SortOrder } from '@grafana/schema';
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
-import { type EditorMode, type PieChartType, type PieLabel, type SeriesTypeOption } from 'editor/types';
+import {
+  type EditorMode,
+  type PieChartType,
+  type PieLabel,
+  type PieLabelOverflow,
+  type SeriesTypeOption,
+} from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -83,6 +89,68 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * the shared slice model so chart, legend, and tooltip agree. See `resolvePieSlices`.
    */
   sort?: SortOrder;
+
+  /**
+   * Advanced-only: pie slice-label font size (ECharts `label.fontSize`). Unset
+   * uses the theme font size. See `getPieLabelStyle`.
+   */
+  labelFontSize?: number;
+
+  /**
+   * Advanced-only: pie slice-label overflow handling (ECharts `label.overflow`).
+   * Unset / `none` leaves long names unwrapped. See `getPieLabelStyle`.
+   */
+  labelOverflow?: PieLabelOverflow;
+
+  /**
+   * Advanced-only: pie slice-label wrap/clip width in px (ECharts `label.width`),
+   * paired with `labelOverflow`. See `getPieLabelStyle`.
+   */
+  labelWidth?: number;
+
+  /**
+   * Advanced-only: minimum slice angle (degrees) below which the slice label is
+   * hidden (ECharts `series.minShowLabelAngle`). `0`/unset shows all labels.
+   */
+  minShowLabelAngle?: number;
+
+  /**
+   * Advanced-only: number of decimal places in the slice percent label. Unset
+   * uses `PIE_PERCENT_PRECISION_DEFAULT` (`1`), reproducing today's `33.3%`.
+   * See `sliceShare`.
+   */
+  percentPrecision?: number;
+
+  /**
+   * Advanced-only: slice separation border width in px (ECharts
+   * `itemStyle.borderWidth`). `0`/unset draws no separator. See `getPieItemStyle`.
+   */
+  sliceBorderWidth?: number;
+
+  /**
+   * Advanced-only: slice separation border color (ECharts `itemStyle.borderColor`),
+   * paired with `sliceBorderWidth`. See `getPieItemStyle`.
+   */
+  sliceBorderColor?: string;
+
+  /**
+   * Advanced-only: custom pie outer radius as a percentage of the panel (ECharts
+   * `series.radius`). Unset uses the `getPieRadius` default. See `getPieRadius`.
+   */
+  outerRadius?: number;
+
+  /**
+   * Advanced-only: custom pie inner (hole) radius as a percentage of the panel.
+   * Unset uses the pie/donut default. See `getPieRadius`.
+   */
+  innerRadius?: number;
+
+  /**
+   * Advanced-only: custom pie center x/y as a percentage of the panel (ECharts
+   * `series.center`). Unset leaves the ECharts default (centered). See `getPieCenter`.
+   */
+  centerX?: number;
+  centerY?: number;
 
   // @internal
   animation?: {

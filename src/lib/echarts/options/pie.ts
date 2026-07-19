@@ -1,8 +1,8 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { type PieSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { PIE_LABELS_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
-import { type PieChartType, type PieLabel } from 'editor/types';
+import { PIE_LABELS_DEFAULT, PIE_PERCENT_PRECISION_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
+import { type PieChartType, type PieLabel, type PieLabelOverflow } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/pie';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
 import { getValueFormatter } from 'lib/echarts/style';
@@ -25,10 +25,69 @@ const DONUT_INNER_RADIUS = '50%';
  * ECharts pie `series.radius` for the chart type (Grafana Pie chart "Pie chart
  * type": Pie / Donut). A donut is a pie with an inner hole (`[inner, outer]`); a
  * plain pie keeps a single outer radius. Unset falls back to `PIE_TYPE_DEFAULT`.
+ *
+ * The optional `innerRadius`/`outerRadius` (percentages, Advanced-only) override
+ * the defaults: an `outerRadius` shrinks/grows the disc, and an `innerRadius`
+ * carves a hole even for a plain pie. When neither is set, the pie-vs-donut
+ * default logic (and existing snapshots) are unchanged.
  * https://echarts.apache.org/en/option.html#series-pie.radius
  */
-export function getPieRadius(pieType: PieChartType | undefined): PieSeriesOption['radius'] {
-  return (pieType ?? PIE_TYPE_DEFAULT) === 'donut' ? [DONUT_INNER_RADIUS, PIE_OUTER_RADIUS] : PIE_OUTER_RADIUS;
+export function getPieRadius(
+  pieType: PieChartType | undefined,
+  innerRadius?: number,
+  outerRadius?: number
+): PieSeriesOption['radius'] {
+  const isDonut = (pieType ?? PIE_TYPE_DEFAULT) === 'donut';
+  const outer = outerRadius != null ? `${outerRadius}%` : PIE_OUTER_RADIUS;
+  if (isDonut || innerRadius != null) {
+    const inner = innerRadius != null ? `${innerRadius}%` : DONUT_INNER_RADIUS;
+    return [inner, outer];
+  }
+  return outer;
+}
+
+/**
+ * ECharts pie `series.center` (`[x, y]` percentages) when the panel overrides the
+ * center. Returns `undefined` when neither coordinate is set, so the ECharts
+ * default (centered) is left untouched and existing snapshots stay stable. A
+ * single provided axis keeps the other centered at `50%`. Advanced-only.
+ * https://echarts.apache.org/en/option.html#series-pie.center
+ */
+export function getPieCenter(centerX?: number, centerY?: number): PieSeriesOption['center'] | undefined {
+  if (centerX == null && centerY == null) {
+    return undefined;
+  }
+  return [`${centerX ?? 50}%`, `${centerY ?? 50}%`];
+}
+
+/**
+ * ECharts pie `series.minShowLabelAngle`: hide the label on slices whose central
+ * angle is below `angle` degrees (declutters many-slice pies). Returns `undefined`
+ * for `0`/unset so nothing is written and all labels show (existing behavior).
+ * https://echarts.apache.org/en/option.html#series-pie.minShowLabelAngle
+ */
+export function getPieMinShowLabelAngle(angle: number | undefined): number | undefined {
+  return angle != null && angle > 0 ? angle : undefined;
+}
+
+/**
+ * ECharts pie per-slice `itemStyle` border for slice separation
+ * (`borderWidth`/`borderColor`). Returns the border keys only when
+ * `borderWidth > 0`; otherwise an empty object so the per-slice `{ color }` is
+ * left untouched and existing snapshots stay stable. Advanced-only.
+ * https://echarts.apache.org/en/option.html#series-pie.itemStyle.borderWidth
+ */
+export function getPieItemStyle(
+  borderWidth: number | undefined,
+  borderColor: string | undefined
+): Pick<NonNullable<PieSeriesOption['itemStyle']>, 'borderWidth' | 'borderColor'> {
+  if (borderWidth == null || borderWidth <= 0) {
+    return {};
+  }
+  return {
+    borderWidth,
+    ...(borderColor ? { borderColor } : {}),
+  };
 }
 
 /**
@@ -38,21 +97,37 @@ export function getPieRadius(pieType: PieChartType | undefined): PieSeriesOption
  * them and applying the theme makes labels match the rest of Grafana.
  * https://echarts.apache.org/en/option.html#series-pie.label
  */
-export function getPieLabelStyle(theme: GrafanaTheme2): PieSeriesOption['label'] {
+export function getPieLabelStyle(
+  theme: GrafanaTheme2,
+  fontSize?: number,
+  overflow?: PieLabelOverflow,
+  width?: number
+): PieSeriesOption['label'] {
   return {
     ...getThemeTextStyle(theme),
     textShadowBlur: 0,
     textShadowColor: 'transparent',
     textBorderWidth: 0,
+    // Advanced-only overrides; omitted at the default so the theme size / no-wrap
+    // behavior (and existing snapshots) are unchanged. `overflow: 'none'` is the
+    // ECharts default, so it is treated as unset.
+    ...(fontSize ? { fontSize } : {}),
+    ...(overflow && overflow !== 'none' ? { overflow } : {}),
+    ...(width ? { width } : {}),
   };
 }
 
-/** Slice's share of the visible total, as a percentage string (one decimal, no trailing `.0`). */
-function sliceShare(value: number | undefined, total: number): string {
+/**
+ * Slice's share of the visible total, as a percentage string. `precision` decimal
+ * places (default `PIE_PERCENT_PRECISION_DEFAULT` = 1, no trailing `.0` because the
+ * rounded number is stringified). Advanced `percentPrecision` overrides it.
+ */
+function sliceShare(value: number | undefined, total: number, precision: number = PIE_PERCENT_PRECISION_DEFAULT): string {
   if (value == null || total <= 0) {
     return '0%';
   }
-  return `${Math.round((value / total) * 1000) / 10}%`;
+  const factor = Math.pow(10, precision);
+  return `${Math.round((value / total) * 100 * factor) / factor}%`;
 }
 
 /**
@@ -66,14 +141,27 @@ function sliceShare(value: number | undefined, total: number): string {
  * An unset `labels` (`undefined`) falls back to `PIE_LABELS_DEFAULT` (the slice
  * name); an explicit empty selection (the user deselecting every label) hides the
  * label.
+ *
+ * `labelOptions` carries the Advanced-only legibility overrides (font size,
+ * overflow/width, percent precision); all default to unset, leaving the styling
+ * and `33.3%` percent output unchanged.
  */
+export interface PieLabelOptions {
+  fontSize?: number;
+  overflow?: PieLabelOverflow;
+  width?: number;
+  percentPrecision?: number;
+}
+
 export function getPieContentLabel(
   labels: PieLabel[] | undefined,
   slices: PieSliceModel[],
   theme: GrafanaTheme2,
-  timeZone?: string
+  timeZone?: string,
+  labelOptions: PieLabelOptions = {}
 ): PieSeriesOption['label'] {
-  const style = getPieLabelStyle(theme);
+  const { fontSize, overflow, width, percentPrecision } = labelOptions;
+  const style = getPieLabelStyle(theme, fontSize, overflow, width);
   const selected = labels ?? PIE_LABELS_DEFAULT;
   if (selected.length === 0) {
     return { ...style, show: false };
@@ -92,7 +180,7 @@ export function getPieContentLabel(
       parts.push(formatTooltipValue(slice.value ?? null, formatters[index]));
     }
     if (selected.includes('percent')) {
-      parts.push(sliceShare(slice.value, total));
+      parts.push(sliceShare(slice.value, total, percentPrecision));
     }
     return parts.join('\n');
   });
