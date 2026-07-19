@@ -143,7 +143,7 @@ export const pieLabelOptions: Array<SelectableValue<PieLabel>> = [
  * An explicit empty selection (the user deselecting every label) is distinct and
  * hides the labels — see `getPieContentLabel`.
  */
-export const PIE_LABELS_DEFAULT: PieLabel[] = ['name'];
+export const PIE_LABELS_DEFAULT: PieLabel = 'name';
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to
  * render as a heatmap (each numeric field becomes a bucket row), even when the

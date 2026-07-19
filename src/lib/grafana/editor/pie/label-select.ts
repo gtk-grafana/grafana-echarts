@@ -22,10 +22,7 @@ export function addPieLabelOptions(builder: PanelOptionsEditorBuilder<PanelOptio
     name: 'Labels',
     category: [pieLabelsCategoryName],
     description: 'Select the labels to be displayed on the pie slices',
-    // Cast: addMultiSelect types `defaultValue` as a single `PieLabel`, but the
-    // option holds a `PieLabel[]`. See the doc comment above.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    defaultValue: [PIE_LABELS_DEFAULT] as unknown as PieLabel,
+    defaultValue: PIE_LABELS_DEFAULT,
     settings: {
       options: pieLabelOptions,
     },
