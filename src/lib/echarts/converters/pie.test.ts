@@ -8,6 +8,7 @@ import {
   type SystemConfigOverrideRule,
   toDataFrame,
 } from '@grafana/data';
+import { SortOrder } from '@grafana/schema';
 import { resolvePieSlices } from 'lib/echarts/converters/pie';
 
 const theme = createTheme();
@@ -217,5 +218,100 @@ describe('resolvePieSlices', () => {
     const [a] = resolvePieSlices([wideFrame()], theme, emptyConfig, calculate('sum'), noopReplace);
     // The slice field holds the reduced value regardless of the reducer used.
     expect(reduceField({ field: a.field, reducers: ['last'] }).last).toBe(60);
+  });
+
+  describe('slice sorting', () => {
+    // wideFrame sums: A=60, B=6, C=15 (data order A, B, C).
+    it('orders slices largest-first when descending', () => {
+      const slices = resolvePieSlices(
+        [wideFrame()],
+        theme,
+        emptyConfig,
+        calculate('sum'),
+        noopReplace,
+        undefined,
+        SortOrder.Descending
+      );
+      expect(slices.map((slice) => slice.name)).toEqual(['A', 'C', 'B']);
+    });
+
+    it('orders slices smallest-first when ascending', () => {
+      const slices = resolvePieSlices(
+        [wideFrame()],
+        theme,
+        emptyConfig,
+        calculate('sum'),
+        noopReplace,
+        undefined,
+        SortOrder.Ascending
+      );
+      expect(slices.map((slice) => slice.name)).toEqual(['B', 'C', 'A']);
+    });
+
+    it('keeps data order when sorting is none (the default)', () => {
+      const none = resolvePieSlices(
+        [wideFrame()],
+        theme,
+        emptyConfig,
+        calculate('sum'),
+        noopReplace,
+        undefined,
+        SortOrder.None
+      );
+      expect(none.map((slice) => slice.name)).toEqual(['A', 'B', 'C']);
+      // Omitting the sort argument defaults to data order too.
+      const unset = resolvePieSlices([wideFrame()], theme, emptyConfig, calculate('sum'), noopReplace);
+      expect(unset.map((slice) => slice.name)).toEqual(['A', 'B', 'C']);
+    });
+
+    it('sorts hidden slices alongside the rest', () => {
+      // Hidden slices stay in the model (greyed in the legend) and are ordered too.
+      const slices = resolvePieSlices(
+        [wideFrame()],
+        theme,
+        hideConfig(['A', 'B']),
+        calculate('sum'),
+        noopReplace,
+        undefined,
+        SortOrder.Descending
+      );
+      expect(slices.map((slice) => [slice.name, slice.hidden])).toEqual([
+        ['A', false],
+        ['C', true],
+        ['B', false],
+      ]);
+    });
+
+    it('pushes non-finite slice values to the end regardless of direction', () => {
+      // B is all-null → mean is non-finite → value undefined.
+      const frame = toDataFrame({
+        fields: [
+          { name: 'A', type: FieldType.number, values: [10], config: { displayName: 'A' } },
+          { name: 'B', type: FieldType.number, values: [null], config: { displayName: 'B' } },
+          { name: 'C', type: FieldType.number, values: [30], config: { displayName: 'C' } },
+        ],
+      });
+      const desc = resolvePieSlices(
+        [frame],
+        theme,
+        emptyConfig,
+        calculate('mean'),
+        noopReplace,
+        undefined,
+        SortOrder.Descending
+      );
+      expect(desc.map((slice) => slice.name)).toEqual(['C', 'A', 'B']);
+
+      const asc = resolvePieSlices(
+        [frame],
+        theme,
+        emptyConfig,
+        calculate('mean'),
+        noopReplace,
+        undefined,
+        SortOrder.Ascending
+      );
+      expect(asc.map((slice) => slice.name)).toEqual(['A', 'C', 'B']);
+    });
   });
 });

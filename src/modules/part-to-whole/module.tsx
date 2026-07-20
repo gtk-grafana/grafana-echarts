@@ -6,6 +6,7 @@ import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
+import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
 import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
 import { type PanelOptions } from 'types';
 import { partToWholeSuggestionsSupplier } from './suggestions';
@@ -51,6 +52,10 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
 
     // Pie vs donut chart type — Grafana Pie chart parity. Rendered by `getPieRadius`.
     addPieTypeOptions(builder);
+
+    // Slice sorting (Descending / Ascending / None) — Grafana Pie chart parity.
+    // Applied by `resolvePieSlices` to the shared slice model.
+    addPieSortOptions(builder);
 
     // Slice-label content (Name / Value / Percent) — Grafana Pie chart parity.
     // Rendered by `getPieContentLabel`.

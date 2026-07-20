@@ -1,5 +1,5 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
-import { type OptionsWithLegend, type OptionsWithTooltip } from '@grafana/schema';
+import { type OptionsWithLegend, type OptionsWithTooltip, type SortOrder } from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
 import { type PieChartType, type PieLabel, type SeriesTypeOption } from 'editor/types';
 
@@ -68,6 +68,14 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * labels (matching core). See `getPieContentLabel`.
    */
   displayLabels?: PieLabel[];
+
+  /**
+   * Pie (part-to-whole) slice sorting (Grafana Pie chart "Slice sorting" parity):
+   * order slices by value — `desc` (largest first), `asc` (smallest first), or
+   * `none` (data order). Defaults to `PIE_SORT_DEFAULT` (`desc`) when unset. Sorts
+   * the shared slice model so chart, legend, and tooltip agree. See `resolvePieSlices`.
+   */
+  sort?: SortOrder;
 
   // @internal
   animation?: {

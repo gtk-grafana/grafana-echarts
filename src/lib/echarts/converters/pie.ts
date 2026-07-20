@@ -9,6 +9,7 @@ import {
   type InterpolateFunction,
   type ReduceDataOptions,
 } from '@grafana/data';
+import { SortOrder } from '@grafana/schema';
 import { PIE_CALC_DEFAULT } from 'editor/constants';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
@@ -54,6 +55,12 @@ export interface PieSliceModel {
  * `fieldConfig` (pie slices are not Grafana fields, so the override engine cannot
  * target them) and a per-slice fixed-color override always wins.
  *
+ * The full slice set (including hidden slices) is ordered by `sort` (Grafana Pie
+ * chart "Slice sorting"): `desc` largest-first, `asc` smallest-first, `none` data
+ * order; non-finite values sort to the end. Sorting the shared model keeps the
+ * chart, legend, and tooltip in the same order. Defaults to `none` here; the panel
+ * passes its own default (`desc`) via `PIE_SORT_DEFAULT`.
+ *
  * Returns an empty array when no frame yields a numeric slice (`getFieldDisplayValues`
  * emits a "No data" placeholder in that case, which is filtered out).
  */
@@ -63,7 +70,8 @@ export function resolvePieSlices(
   fieldConfig: FieldConfigSource,
   reduceOptions: ReduceDataOptions | undefined,
   replaceVariables: InterpolateFunction,
-  timeZone?: string
+  timeZone?: string,
+  sort: SortOrder = SortOrder.None
 ): PieSliceModel[] {
   const data = series.map(coerceNumericStringFields);
 
@@ -82,7 +90,7 @@ export function resolvePieSlices(
   const names = displays.map((display) => display.display.title ?? '');
   const hidden = getHiddenSeriesNames(fieldConfig, names);
 
-  return displays.map((display, index) => {
+  const slices = displays.map((display, index) => {
     const name = names[index];
     const numeric = display.display.numeric;
     const value = typeof numeric === 'number' && Number.isFinite(numeric) ? numeric : undefined;
@@ -98,6 +106,34 @@ export function resolvePieSlices(
       field: toSliceField(display, name, value),
     };
   });
+
+  // Order the whole set (hidden included, matching core) by value. `Array.sort` is
+  // stable, so `none` keeps data order and equal values keep their relative order.
+  return slices.sort(comparePieSlicesByValue(sort));
+}
+
+/**
+ * Comparator ordering pie slices by value for the `sort` option, mirroring core
+ * Grafana (`comparePieChartItemsByValue`): non-finite (`undefined`) values sort to
+ * the end regardless of direction; then `desc` is largest-first, `asc` is
+ * smallest-first, and `none` leaves finite values in their original (stable) order.
+ */
+function comparePieSlicesByValue(sort: SortOrder): (a: PieSliceModel, b: PieSliceModel) => number {
+  return (a, b) => {
+    if (a.value === undefined) {
+      return 1;
+    }
+    if (b.value === undefined) {
+      return -1;
+    }
+    if (sort === SortOrder.Descending) {
+      return b.value - a.value;
+    }
+    if (sort === SortOrder.Ascending) {
+      return a.value - b.value;
+    }
+    return 0;
+  };
 }
 
 /**
