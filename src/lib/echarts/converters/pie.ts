@@ -63,6 +63,10 @@ export interface PieSliceModel {
  *
  * Returns an empty array when no frame yields a numeric slice (`getFieldDisplayValues`
  * emits a "No data" placeholder in that case, which is filtered out).
+ *
+ * The result is memoized per `series` reference (see `sliceModelCache`): the chart
+ * option, tooltip, and legend paths all resolve slices with identical inputs in one
+ * render, so this runs the underlying `getFieldDisplayValues` reduction just once.
  */
 export function resolvePieSlices(
   series: DataFrame[],
@@ -72,6 +76,33 @@ export function resolvePieSlices(
   replaceVariables: InterpolateFunction,
   timeZone?: string,
   sort: SortOrder = SortOrder.None
+): PieSliceModel[] {
+  const deps: readonly unknown[] = [theme, fieldConfig, reduceOptions, replaceVariables, timeZone, sort];
+  const cached = sliceModelCache.get(series);
+  if (cached && cached.deps.every((dep, index) => Object.is(dep, deps[index]))) {
+    return cached.slices;
+  }
+  const slices = computePieSlices(series, theme, fieldConfig, reduceOptions, replaceVariables, timeZone, sort);
+  sliceModelCache.set(series, { deps, slices });
+  return slices;
+}
+
+/**
+ * Last resolved slice model per source-frame array. Keyed on `series` via a
+ * `WeakMap` so separate panels keep independent entries and stale frames are
+ * garbage-collected; the remaining inputs are compared by identity (all are
+ * render-stable) to invalidate the entry on any real change.
+ */
+const sliceModelCache = new WeakMap<DataFrame[], { deps: readonly unknown[]; slices: PieSliceModel[] }>();
+
+function computePieSlices(
+  series: DataFrame[],
+  theme: GrafanaTheme2,
+  fieldConfig: FieldConfigSource,
+  reduceOptions: ReduceDataOptions | undefined,
+  replaceVariables: InterpolateFunction,
+  timeZone: string | undefined,
+  sort: SortOrder
 ): PieSliceModel[] {
   const displays = getFieldDisplayValues({
     data: series,
