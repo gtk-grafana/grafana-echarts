@@ -290,11 +290,15 @@ describe('buildPanelChartOption for the pie (row/series family)', () => {
     expect(names).not.toContain('Ops');
   });
 
-  it('applies the fixed-color override to the matching slice', () => {
+  it('applies the fixed-color override to the matching slice (theme-resolved)', () => {
     const option = buildPanelChartOption(makeContext([pieFrame()], 'pie', pieLegendFieldConfig), {
       isGrafanaLegend: true,
     });
 
-    expect(pieData(option).find((slice) => slice.name === 'Sales')?.itemStyle?.color).toBe('purple');
+    // The override stores the Grafana color name 'purple'; the slice must carry the
+    // theme-resolved CSS color so ECharts can render it.
+    expect(pieData(option).find((slice) => slice.name === 'Sales')?.itemStyle?.color).toBe(
+      createTheme().visualization.getColorByName('purple')
+    );
   });
 });

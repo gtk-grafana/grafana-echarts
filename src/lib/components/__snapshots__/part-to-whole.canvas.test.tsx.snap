@@ -1879,7 +1879,7 @@ exports[`part-to-whole canvas renders color byName fixed-color override 1`] = `
   },
   {
     "props": {
-      "value": "#800080",
+      "value": "#b877d9",
     },
     "type": "strokeStyle",
   },
@@ -2097,7 +2097,7 @@ exports[`part-to-whole canvas renders color byName fixed-color override 1`] = `
   },
   {
     "props": {
-      "value": "#800080",
+      "value": "#b877d9",
     },
     "type": "fillStyle",
   },
@@ -2567,7 +2567,7 @@ exports[`part-to-whole canvas renders color byName fixed-color override 1`] = `
   },
   {
     "props": {
-      "value": "#800080",
+      "value": "#b877d9",
     },
     "type": "strokeStyle",
   },
@@ -2785,7 +2785,7 @@ exports[`part-to-whole canvas renders color byName fixed-color override 1`] = `
   },
   {
     "props": {
-      "value": "#800080",
+      "value": "#b877d9",
     },
     "type": "fillStyle",
   },

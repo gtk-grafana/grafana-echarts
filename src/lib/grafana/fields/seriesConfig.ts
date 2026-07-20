@@ -154,6 +154,16 @@ function overrideHidesViz(rule: ConfigOverrideRule): boolean {
 }
 
 /**
+ * Whether a manual per-series `byName` `custom.hideFrom.viz` override targets
+ * `name`. Exposed so row/series families can also match a slice by its underlying
+ * field name (mirroring Grafana's `byName` matcher, which matches the field name
+ * or its display name), not just the display title.
+ */
+export function isSeriesHiddenByName(fieldConfig: FieldConfigSource, name: string): boolean {
+  return fieldConfig.overrides.some((rule) => matcherName(rule) === name && overrideHidesViz(rule));
+}
+
+/**
  * Series names currently hidden from the viz, resolved against `seriesNames` (the
  * full legend universe) straight from `fieldConfig` — the source of truth passed
  * fresh on every render.
@@ -191,9 +201,8 @@ export function getHiddenSeriesNames(fieldConfig: FieldConfigSource, seriesNames
   }
 
   // Manual per-series "Hide in area" overrides (byName custom.hideFrom.viz).
-  for (const rule of fieldConfig.overrides) {
-    const name = matcherName(rule);
-    if (name !== undefined && seriesNames.includes(name) && overrideHidesViz(rule)) {
+  for (const name of seriesNames) {
+    if (isSeriesHiddenByName(fieldConfig, name)) {
       hidden.add(name);
     }
   }

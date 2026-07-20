@@ -17,7 +17,7 @@ import { SortOrder } from '@grafana/schema';
 import { PIE_CALC_DEFAULT } from 'editor/constants';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { getPaletteColorByIndex, getValueFormatter } from 'lib/echarts/style';
-import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
+import { getHiddenSeriesNames, getSeriesColorOverride, isSeriesHiddenByName } from 'lib/grafana/fields/seriesConfig';
 
 /**
  * Resolve every pie slice (visible and hidden) from Grafana frames using
@@ -102,19 +102,45 @@ function computePieSlices(
   const names = displays.map((display) => display.display.title ?? '');
   const hidden = getHiddenSeriesNames(fieldConfig, names);
 
+  // The slice's underlying field name, used as an extra override-match alias.
+  // Grafana's `byName` matcher matches a field by its raw name OR its display
+  // name, but the display name can be dynamic (labels / multi-frame) and only
+  // becomes stable once a `displayName` override pins it — which is why color and
+  // visibility overrides otherwise appeared to work only when a displayName
+  // override was also defined. Matching the raw field name too closes that gap.
+  const fieldNames = displays.map(sourceFieldName);
+  // Only alias when the raw name uniquely identifies one slice: in "All values"
+  // mode every row shares the value field's name, so it must not match (it would
+  // hit every row).
+  const aliasFor = (index: number): string | undefined => {
+    const fieldName = fieldNames[index];
+    const unique =
+      fieldName !== '' && fieldNames.indexOf(fieldName) === index && fieldNames.lastIndexOf(fieldName) === index;
+    return unique ? fieldName : undefined;
+  };
+
   const slices = displays.map((display, index) => {
     const name = names[index];
+    const alias = aliasFor(index);
     const numeric = display.display.numeric;
     const value = typeof numeric === 'number' && Number.isFinite(numeric) ? numeric : undefined;
+    // A fixed-color override (matched by display name, then the raw field-name
+    // alias) always wins. Its `fixedColor` is a Grafana color that may be a named
+    // palette token (e.g. `dark-red`) rather than a CSS color, so it must run
+    // through the theme to become renderable — `getColorByName` resolves names and
+    // passes hex/rgb through unchanged.
+    const override =
+      getSeriesColorOverride(fieldConfig, name) ?? (alias ? getSeriesColorOverride(fieldConfig, alias) : undefined);
     return {
       name,
       value,
-      // A fixed-color override always wins; otherwise the display processor's
-      // color (the field's Color scheme / palette), falling back to the classic
-      // palette by slice position so slices stay distinct and stable.
-      color:
-        getSeriesColorOverride(fieldConfig, name) ?? (display.display.color || getPaletteColorByIndex(index, theme)),
-      hidden: hidden.has(name),
+      // Override, else the display processor's color (the field's Color scheme /
+      // palette, already theme-resolved), falling back to the classic palette by
+      // slice position so slices stay distinct and stable.
+      color: override
+        ? theme.visualization.getColorByName(override)
+        : display.display.color || getPaletteColorByIndex(index, theme),
+      hidden: hidden.has(name) || (alias !== undefined && isSeriesHiddenByName(fieldConfig, alias)),
       field: toSliceField(display, name, value),
     };
   });
@@ -171,6 +197,14 @@ function normalizePieReduceOptions(reduceOptions: ReduceDataOptions | undefined)
  */
 function toSliceField(display: FieldDisplay, name: string, value: number | undefined): Field {
   return { name, type: FieldType.number, config: display.field, values: [value ?? null], state: undefined };
+}
+
+/** The raw name of the source field a slice was reduced from (`''` when unavailable). */
+function sourceFieldName(display: FieldDisplay): string {
+  if (display.colIndex === undefined) {
+    return '';
+  }
+  return display.view?.dataFrame.fields[display.colIndex]?.name ?? '';
 }
 
 /**

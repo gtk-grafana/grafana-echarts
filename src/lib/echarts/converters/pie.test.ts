@@ -120,6 +120,21 @@ describe('resolvePieSlices', () => {
       expect(overridden.find((slice) => slice.name === 'B')!.color).toBe('#123456');
     });
 
+    it('resolves a named override color through the theme (not a raw Grafana color name)', () => {
+      // Grafana color pickers store palette names (e.g. `dark-red`), which ECharts
+      // cannot render; the slice color must be the theme-resolved CSS color.
+      const slices = resolvePieSlices(
+        [wideFrame()],
+        theme,
+        colorConfig('B', 'dark-red'),
+        calculate('sum'),
+        noopReplace
+      );
+      const color = slices.find((slice) => slice.name === 'B')!.color;
+      expect(color).toBe(theme.visualization.getColorByName('dark-red'));
+      expect(color).toMatch(/^#/);
+    });
+
     it('flags a field hidden via a hideSeriesFrom override', () => {
       const slices = resolvePieSlices([wideFrame()], theme, hideConfig(['A', 'C']), calculate('sum'), noopReplace);
       expect(slices.map((slice) => [slice.name, slice.hidden])).toEqual([
@@ -202,6 +217,77 @@ describe('resolvePieSlices', () => {
     const [a] = resolvePieSlices([wideFrame()], theme, emptyConfig, calculate('sum'), noopReplace);
     // The slice field holds the reduced value regardless of the reducer used.
     expect(reduceField({ field: a.field, reducers: ['last'] }).last).toBe(60);
+  });
+
+  describe('override matching by field name (byName parity)', () => {
+    // Frames whose display name (from the frame name) differs from the raw field
+    // name, and NO `displayName` override is defined — the case where overrides
+    // previously only worked once a displayName override pinned the title.
+    const distinctNameFrames = (): DataFrame[] => [
+      toDataFrame({ name: 'Sales', fields: [{ name: 'sales_total', type: FieldType.number, values: [43] }] }),
+      toDataFrame({ name: 'Admin', fields: [{ name: 'admin_total', type: FieldType.number, values: [25] }] }),
+    ];
+
+    const hideByName = (name: string): FieldConfigSource => ({
+      defaults: {},
+      overrides: [
+        {
+          matcher: { id: 'byName', options: name },
+          properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: true } }],
+        },
+      ],
+    });
+
+    // sales_total reduces to 43, admin_total to 25 — identify slices by value
+    // since the display name is compound (frame + field name).
+    it('applies a fixed-color override targeting the raw field name', () => {
+      const slices = resolvePieSlices(
+        distinctNameFrames(),
+        theme,
+        colorConfig('sales_total', '#abcdef'),
+        calculate('sum'),
+        noopReplace
+      );
+      expect(slices.find((slice) => slice.value === 43)?.color).toBe('#abcdef');
+      expect(slices.find((slice) => slice.value === 25)?.color).not.toBe('#abcdef');
+    });
+
+    it('applies a hideFrom override targeting the raw field name', () => {
+      const slices = resolvePieSlices(
+        distinctNameFrames(),
+        theme,
+        hideByName('sales_total'),
+        calculate('sum'),
+        noopReplace
+      );
+      expect(slices.find((slice) => slice.value === 43)?.hidden).toBe(true);
+      expect(slices.find((slice) => slice.value === 25)?.hidden).toBe(false);
+    });
+
+    it('still matches by display name when that is what the override targets', () => {
+      const displayName = resolvePieSlices(
+        distinctNameFrames(),
+        theme,
+        emptyConfig,
+        calculate('sum'),
+        noopReplace
+      ).find((slice) => slice.value === 43)!.name;
+      const slices = resolvePieSlices(
+        distinctNameFrames(),
+        theme,
+        colorConfig(displayName, '#abcdef'),
+        calculate('sum'),
+        noopReplace
+      );
+      expect(slices.find((slice) => slice.value === 43)?.color).toBe('#abcdef');
+    });
+
+    it('does not alias by the shared value-field name in All values mode', () => {
+      // Every row shares the 'value' field name; a byName 'value' override must
+      // not hide (or recolor) every row.
+      const slices = resolvePieSlices([rowsFrame()], theme, hideByName('value'), allValues(), noopReplace);
+      expect(slices.every((slice) => slice.hidden === false)).toBe(true);
+    });
   });
 
   describe('slice sorting', () => {

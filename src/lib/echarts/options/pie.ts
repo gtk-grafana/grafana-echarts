@@ -3,8 +3,8 @@ import { type PieSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { PIE_LABELS_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
 import { type PieChartType, type PieLabel } from 'editor/types';
-import { formatPieShare, getPieSliceFormatters, getPieSliceTotal, } from 'lib/echarts/converters/pie';
-import { PieSliceModel } from 'lib/echarts/converters/types';
+import { formatPieShare, getPieSliceFormatters, getPieSliceTotal } from 'lib/echarts/converters/pie';
+import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
 import { formatTooltipValue } from 'lib/echarts/tooltip/template';
 
