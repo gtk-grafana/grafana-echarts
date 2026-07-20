@@ -15,6 +15,7 @@ import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 
 /**
+ * @todo move to types
  * One resolved pie slice, shared by the chart, DOM legend, and tooltip so all
  * three agree on the same slice set, values, colors, and hidden state (rather
  * than each re-deriving the selection and drifting).

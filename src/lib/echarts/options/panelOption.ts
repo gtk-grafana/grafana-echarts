@@ -1,18 +1,19 @@
 import { TooltipDisplayMode } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { pieSeriesTypes } from 'editor/constants';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
-import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
 import {
   getCrosshairAxisPointer,
   getNoTooltipOption,
   getTooltipOption,
   grafanaTooltipModeToEChartsTrigger,
 } from 'lib/echarts/tooltip';
+import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
 
 /**
  * Assemble the full ECharts option a panel feeds to `setOption`.
@@ -35,18 +36,8 @@ export function buildPanelChartOption(
   }
 
   // Drop value fields hidden via the legend visibility toggle before building.
-  // The hidden set is read from `fieldConfig` (see `stripHiddenValueFields` /
-  // `getHiddenSeriesNames`), not from Grafana-applied `hideFrom.viz`, so an
-  // un-toggle restores the series immediately. Doing it once here keeps series,
-  // axes, and tooltip formatters consistent for the per-field families
-  // (cartesian/radar/heatmap overlays). The DOM legend is built separately in
-  // `Panel.tsx` from the original frames, so hidden series remain (greyed).
-  //
-  // Row/series families that read hidden slices by name internally (the pie)
-  // opt out via `readsHiddenSeriesInternally`: they hide by *category* name, and
-  // this pre-strip hides by *numeric field* name, so it would drop the single
-  // value field the pie needs — leaving no data and throwing below.
-  const ctx: ChartContext = chartModule.readsHiddenSeriesInternally
+  // The pie is excluded: it hides slices by *category* name and reads hidden state internally (see `resolvePieSlices`)
+  const ctx: ChartContext = pieSeriesTypes.includes(rawCtx.seriesType)
     ? rawCtx
     : { ...rawCtx, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 

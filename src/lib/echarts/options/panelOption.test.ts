@@ -225,9 +225,9 @@ describe('buildPanelChartOption with no series hidden', () => {
 // Legend Visibility & Color dashboard). A pie hides slices by *category* name,
 // but the shared pre-strip hides by *numeric field* name — with an exclude-mode
 // `hideSeriesFrom` keeping only slice names, it dropped the pie's single `value`
-// field, so the converter returned null and the build threw. The pie module now
-// opts out of the pre-strip (`readsHiddenSeriesInternally`) and reads hidden
-// slices itself.
+// field, so the converter returned null and the build threw. The pie series type
+// is now excluded from the pre-strip (see `pieSeriesTypes` in
+// `buildPanelChartOption`) and reads hidden slices itself.
 describe('buildPanelChartOption for the pie (row/series family)', () => {
   // A wide pie source frame: each numeric field is one slice (Grafana's default),
   // named after the field so the legend visibility/color overrides target it.

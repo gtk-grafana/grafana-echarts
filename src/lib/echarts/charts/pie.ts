@@ -16,11 +16,6 @@ const resolveSort = (ctx: ChartContext): SortOrder => ctx.options.sort ?? PIE_SO
 export const pieChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  // The pie reads hidden slices by category name in `resolvePieSlices`, so the
-  // panel must not pre-strip numeric value fields (which would drop the pie's
-  // only value field). See `buildPanelChartOption`.
-  readsHiddenSeriesInternally: true,
-
   getTooltipValueFormatter(ctx) {
     // Per-slice formatter (by dataIndex) so each slice honors its own field's
     // unit/decimals. This is only the fallback for the generic tooltip path; the
