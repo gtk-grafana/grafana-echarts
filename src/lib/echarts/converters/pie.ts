@@ -13,7 +13,6 @@ import { SortOrder } from '@grafana/schema';
 import { PIE_CALC_DEFAULT } from 'editor/constants';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
-import { getNumericValues, isNumericStringField } from 'lib/grafana/narrowing';
 
 /**
  * One resolved pie slice, shared by the chart, DOM legend, and tooltip so all
@@ -49,11 +48,12 @@ export interface PieSliceModel {
  * - **All values** (`values: true`): each row becomes a slice, capped by
  *   `reduceOptions.limit`.
  *
- * Numeric-text value fields are pre-coerced to numbers (see `isNumericStringField`
- * / `getNumericValues`) because `getFieldDisplayValues`' default matcher is
- * numeric-only and would otherwise skip them. Hidden slices are read by name from
- * `fieldConfig` (pie slices are not Grafana fields, so the override engine cannot
- * target them) and a per-slice fixed-color override always wins.
+ * `getFieldDisplayValues`' default matcher is numeric-only, so value fields that
+ * arrive as text (e.g. a datasource emitting `"12.5"`) must be converted to a
+ * numeric field upstream with a "Convert field type" transform. Hidden slices are
+ * read by name from `fieldConfig` (pie slices are not Grafana fields, so the
+ * override engine cannot target them) and a per-slice fixed-color override always
+ * wins.
  *
  * The full slice set (including hidden slices) is ordered by `sort` (Grafana Pie
  * chart "Slice sorting"): `desc` largest-first, `asc` smallest-first, `none` data
@@ -73,10 +73,8 @@ export function resolvePieSlices(
   timeZone?: string,
   sort: SortOrder = SortOrder.None
 ): PieSliceModel[] {
-  const data = series.map(coerceNumericStringFields);
-
   const displays = getFieldDisplayValues({
-    data,
+    data: series,
     reduceOptions: normalizePieReduceOptions(reduceOptions),
     fieldConfig,
     replaceVariables,
@@ -133,33 +131,6 @@ function comparePieSlicesByValue(sort: SortOrder): (a: PieSliceModel, b: PieSlic
       return a.value - b.value;
     }
     return 0;
-  };
-}
-
-/**
- * Coerce numeric-text fields (e.g. a value column that arrived as `"12.5"`) to
- * real number fields so `getFieldDisplayValues`' numeric-only matcher picks them
- * up. Only touched frames are copied; the coerced field's cached display/calcs are
- * cleared so the reducer runs against the fresh numeric values. Genuine label
- * fields (including year-like strings mixed with words) are left untouched.
- */
-function coerceNumericStringFields(frame: DataFrame): DataFrame {
-  if (!frame.fields.some(isNumericStringField)) {
-    return frame;
-  }
-  return {
-    ...frame,
-    fields: frame.fields.map((field) =>
-      isNumericStringField(field)
-        ? {
-            ...field,
-            type: FieldType.number,
-            values: getNumericValues(field),
-            display: undefined,
-            state: field.state ? { ...field.state, calcs: undefined } : field.state,
-          }
-        : field
-    ),
   };
 }
 

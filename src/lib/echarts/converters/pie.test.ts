@@ -51,16 +51,6 @@ const rowsFrame = (): DataFrame =>
     ],
   });
 
-// A value column that arrived as text (no convertFieldType transform); the label
-// column stays a genuine category and is excluded from the slices.
-const numericStringFrame = (): DataFrame =>
-  toDataFrame({
-    fields: [
-      { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT'] },
-      { name: 'value', type: FieldType.string, values: ['43', '10', '30'] },
-    ],
-  });
-
 // The `hideSeriesFrom` system override the visibility toggle writes: keep the
 // listed names, hide the rest (exclude mode).
 const hideConfig = (keep: string[]): FieldConfigSource => {
@@ -113,12 +103,6 @@ describe('resolvePieSlices', () => {
         { name: 'B', value: 3 },
         { name: 'C', value: 10 },
       ]);
-    });
-
-    it('coerces a numeric-string field into a slice', () => {
-      // 'category' is a genuine label (excluded); 'value' is numeric text.
-      const slices = resolvePieSlices([numericStringFrame()], theme, emptyConfig, calculate('sum'), noopReplace);
-      expect(slices.map((slice) => ({ name: slice.name, value: slice.value }))).toEqual([{ name: 'value', value: 83 }]);
     });
 
     it('marks slices visible with string colors, and lets a fixed-color override win', () => {
