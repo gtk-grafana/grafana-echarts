@@ -6,34 +6,28 @@ import {
   pieEmphasisScalePath,
   pieTypeCategoryName,
 } from 'editor/constants';
-import { isAdvancedEditorMode } from 'lib/grafana/editor/common/editor-mode';
+import { addAdvancedBooleanSwitch, addAdvancedSelect } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
- * Register the Advanced "Emphasis" pie options: the ECharts `emphasis.focus`
- * (None / Self / Series) and `emphasis.scale` toggle governing the slice hover
- * state. Both live in the plugin-owned "Pie" category, gated behind Advanced
- * (`showIf: isAdvancedEditorMode`). Rendered by `getPieEmphasis`.
- * https://echarts.apache.org/en/option.html#series-pie.emphasis
+ * Register the Advanced "Emphasis" pie options in the "Pie" category: the ECharts
+ * `emphasis.focus` (None / Self / Series) and `emphasis.scale` toggle governing
+ * the slice hover state. Rendered by `getPieEmphasis`.
  */
 export function addPieEmphasisOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
-  builder.addSelect({
+  addAdvancedSelect(builder, {
     path: pieEmphasisFocusPath,
     name: 'Emphasis focus',
-    category: [pieTypeCategoryName],
+    category: pieTypeCategoryName,
     description: 'On hover, fade the other slices (Self) or highlight the whole series',
     defaultValue: PIE_EMPHASIS_FOCUS_DEFAULT,
-    settings: {
-      options: pieEmphasisFocusOptions,
-    },
-    showIf: isAdvancedEditorMode,
+    settings: { options: pieEmphasisFocusOptions },
   });
 
-  builder.addBooleanSwitch({
+  addAdvancedBooleanSwitch(builder, {
     path: pieEmphasisScalePath,
     name: 'Emphasis scale',
-    category: [pieTypeCategoryName],
+    category: pieTypeCategoryName,
     description: 'Enlarge the hovered slice',
-    showIf: isAdvancedEditorMode,
   });
 }

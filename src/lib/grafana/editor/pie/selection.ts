@@ -6,39 +6,31 @@ import {
   pieSelectedOffsetPath,
   pieTypeCategoryName,
 } from 'editor/constants';
-import { isAdvancedEditorMode } from 'lib/grafana/editor/common/editor-mode';
+import { addAdvancedNumberInput, addAdvancedSelect } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
- * Register the Advanced "Select / explode" pie options: the ECharts
- * `series.selectedMode` (Off / Single / Multiple) plus the `series.selectedOffset`
- * explode distance. Both live in the plugin-owned "Pie" category and are gated
- * behind Advanced (`showIf: isAdvancedEditorMode`); the offset also hides unless a
- * selection mode is chosen. Rendered by `getPieSelection`.
- * https://echarts.apache.org/en/option.html#series-pie.selectedMode
+ * Register the Advanced "Select / explode" pie options in the "Pie" category: the
+ * ECharts `series.selectedMode` (Off / Single / Multiple) plus the
+ * `series.selectedOffset` explode distance, which only shows once a selection mode
+ * is chosen. Rendered by `getPieSelection`.
  */
 export function addPieSelectionOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
-  builder.addSelect({
+  addAdvancedSelect(builder, {
     path: pieSelectedModePath,
     name: 'Slice selection',
-    category: [pieTypeCategoryName],
+    category: pieTypeCategoryName,
     description: 'Allow selecting slices; a selected slice explodes outward by the offset below',
     defaultValue: PIE_SELECTED_MODE_DEFAULT,
-    settings: {
-      options: pieSelectedModeOptions,
-    },
-    showIf: isAdvancedEditorMode,
+    settings: { options: pieSelectedModeOptions },
   });
 
-  builder.addNumberInput({
+  addAdvancedNumberInput(builder, {
     path: pieSelectedOffsetPath,
     name: 'Selected offset',
-    category: [pieTypeCategoryName],
+    category: pieTypeCategoryName,
     description: 'How far (px) a selected slice is pushed outward',
-    settings: {
-      min: 0,
-      max: 50,
-    },
-    showIf: (options) => isAdvancedEditorMode(options) && (options.selectedMode ?? PIE_SELECTED_MODE_DEFAULT) !== 'off',
+    settings: { min: 0, max: 50 },
+    showIf: (options) => (options.selectedMode ?? PIE_SELECTED_MODE_DEFAULT) !== 'off',
   });
 }

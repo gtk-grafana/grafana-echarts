@@ -6,33 +6,29 @@ import {
   pieClockwisePath,
   pieTypeCategoryName,
 } from 'editor/constants';
-import { isAdvancedEditorMode } from 'lib/grafana/editor/common/editor-mode';
+import { addAdvancedBooleanSwitch } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
- * Register the Advanced "Clockwise / avoid overlap" pie options: the ECharts
- * `series.clockwise` (slice layout direction) and `series.avoidLabelOverlap`
- * (nudge labels apart). Both live in the plugin-owned "Pie" category, gated
- * behind Advanced (`showIf: isAdvancedEditorMode`). Defaults match ECharts
+ * Register the Advanced "Clockwise / avoid overlap" pie options in the "Pie"
+ * category: the ECharts `series.clockwise` (slice layout direction) and
+ * `series.avoidLabelOverlap` (nudge labels apart). Defaults match ECharts
  * (`true`); only the `false` override is emitted by `getPieOrientation`.
- * https://echarts.apache.org/en/option.html#series-pie.clockwise
  */
 export function addPieClockwiseOverlapOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
-  builder.addBooleanSwitch({
+  addAdvancedBooleanSwitch(builder, {
     path: pieClockwisePath,
     name: 'Clockwise',
-    category: [pieTypeCategoryName],
+    category: pieTypeCategoryName,
     description: 'Lay slices out clockwise (off = counter-clockwise)',
     defaultValue: PIE_CLOCKWISE_DEFAULT,
-    showIf: isAdvancedEditorMode,
   });
 
-  builder.addBooleanSwitch({
+  addAdvancedBooleanSwitch(builder, {
     path: pieAvoidLabelOverlapPath,
     name: 'Avoid label overlap',
-    category: [pieTypeCategoryName],
+    category: pieTypeCategoryName,
     description: 'Adjust label positions to keep them from overlapping',
     defaultValue: PIE_AVOID_LABEL_OVERLAP_DEFAULT,
-    showIf: isAdvancedEditorMode,
   });
 }
