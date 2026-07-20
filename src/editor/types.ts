@@ -108,7 +108,6 @@ export type PieRoseType = 'none' | 'radius' | 'area';
  * `series.selectedMode`: `off` (no selection; rendered as `false`), `single` (one
  * slice at a time), or `multiple`. A selected slice is offset outward by
  * `selectedOffset` (explode). See `getPieSelection`.
- * https://echarts.apache.org/en/option.html#series-pie.selectedMode
  */
 export type PieSelectedMode = 'off' | 'single' | 'multiple';
 
@@ -117,7 +116,6 @@ export type PieSelectedMode = 'off' | 'single' | 'multiple';
  * `series.emphasis.focus`: `none` (no fade; the ECharts default, omitted), `self`
  * (fade all but the hovered slice), or `series` (highlight the whole series). See
  * `getPieEmphasis`.
- * https://echarts.apache.org/en/option.html#series-pie.emphasis.focus
  */
 export type PieEmphasisFocus = 'none' | 'self' | 'series';
 

@@ -180,7 +180,6 @@ export const pieEndAnglePath = 'endAngle';
  * Default pie arc start angle (degrees), matching ECharts' own `series.startAngle`
  * default (90 = top). `getPieAngles` omits `startAngle` at this value so the
  * full-pie render stays unchanged.
- * https://echarts.apache.org/en/option.html#series-pie.startAngle
  */
 export const PIE_START_ANGLE_DEFAULT = 90;
 /**
@@ -274,7 +273,6 @@ export const pieLabelWidthPath = 'labelWidth';
  * Pie slice-label overflow options (ECharts `label.overflow`): `none` (no
  * handling), `truncate` (ellipsis), `break` (wrap at word), `breakAll` (wrap at
  * any character). `none` is the default and is not written to the label.
- * https://echarts.apache.org/en/option.html#series-pie.label.overflow
  */
 export const pieLabelOverflowOptions: Array<SelectableValue<PieLabelOverflow>> = [
   { value: 'none', label: 'None' },

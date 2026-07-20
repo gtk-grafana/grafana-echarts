@@ -215,7 +215,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Pie (part-to-whole) slice-selection mode (Advanced): `off` / `single` /
    * `multiple`. A selected slice explodes outward by `selectedOffset`. Omits its
    * key at the `off` default. See `getPieSelection`.
-   * https://echarts.apache.org/en/option.html#series-pie.selectedMode
    */
   selectedMode?: PieSelectedMode;
 
@@ -231,21 +230,18 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * corners via the ECharts `itemStyle.borderRadius`. Defaults to
    * `PIE_BORDER_RADIUS_DEFAULT` (0 = square corners), which omits the key. See
    * `getPieBorderRadius` / `getPieItemStyle`.
-   * https://echarts.apache.org/en/option.html#series-pie.itemStyle.borderRadius
    */
   sliceBorderRadius?: number;
 
   /**
    * Pie (part-to-whole) hover emphasis focus (Advanced): `none` (default) / `self`
    * / `series`. Omits its key at the `none` default. See `getPieEmphasis`.
-   * https://echarts.apache.org/en/option.html#series-pie.emphasis.focus
    */
   emphasisFocus?: PieEmphasisFocus;
 
   /**
    * Pie (part-to-whole) hover emphasis scale (Advanced): whether the hovered slice
    * enlarges. Unset omits the key (ECharts default enlarges). See `getPieEmphasis`.
-   * https://echarts.apache.org/en/option.html#series-pie.emphasis.scale
    */
   emphasisScale?: boolean;
 
@@ -253,7 +249,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Pie (part-to-whole) slice-label color (Advanced): overrides the theme text
    * color used by `getPieLabelStyle`. Unset keeps the theme color. See
    * `getPieContentLabel`.
-   * https://echarts.apache.org/en/option.html#series-pie.label.color
    */
   labelColor?: string;
 
@@ -261,7 +256,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Pie (part-to-whole) zero-sum rendering (Advanced): when every slice is 0,
    * still draw an even pie (`stillShowZeroSum`). ECharts default is `true`; only
    * the `false` override is emitted. See `getPieEmptyState`.
-   * https://echarts.apache.org/en/option.html#series-pie.stillShowZeroSum
    */
   stillShowZeroSum?: boolean;
 
@@ -269,7 +263,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Pie (part-to-whole) empty-circle rendering (Advanced): draw a placeholder
    * circle when there's no data. ECharts default is `true`; only the `false`
    * override is emitted. See `getPieEmptyState`.
-   * https://echarts.apache.org/en/option.html#series-pie.showEmptyCircle
    */
   showEmptyCircle?: boolean;
 
@@ -277,7 +270,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Pie (part-to-whole) slice direction (Advanced): lay slices out clockwise.
    * ECharts default is `true`; only the `false` override is emitted. See
    * `getPieOrientation`.
-   * https://echarts.apache.org/en/option.html#series-pie.clockwise
    */
   clockwise?: boolean;
 
@@ -285,7 +277,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Pie (part-to-whole) label de-clutter (Advanced): adjust label positions to
    * avoid overlap. ECharts default is `true`; only the `false` override is
    * emitted. See `getPieOrientation`.
-   * https://echarts.apache.org/en/option.html#series-pie.avoidLabelOverlap
    */
   avoidLabelOverlap?: boolean;
 

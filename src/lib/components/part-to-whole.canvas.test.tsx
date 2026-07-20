@@ -376,7 +376,7 @@ describe('part-to-whole canvas renders', () => {
     });
   });
 
-  // --- Advanced (Tier 3) interactivity & polish -----------------------------
+  // --- Advanced interactivity & polish --------------------------------------
   // Each block exercises one Advanced option's ECharts wiring during a real
   // render. Emphasis is a hover-only state (not fired by the static render), so
   // it is verified by unit assertion in `options/pie.test.ts` instead.

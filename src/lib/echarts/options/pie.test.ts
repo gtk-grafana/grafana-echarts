@@ -308,7 +308,7 @@ describe('getPieAngles', () => {
   });
 });
 
-// --- Advanced (Tier 3) pie option builders ---------------------------------
+// --- Advanced pie option builders -------------------------------------------
 
 describe('getPieSelection', () => {
   it('maps "off" (and unset) to selectedMode: false with no offset', () => {
