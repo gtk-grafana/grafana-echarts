@@ -50,7 +50,9 @@ export function buildPanelChartOption(
     tooltipMode,
     // Per-series resolver so each row honors its field's unit/decimals overrides.
     chartModule.getTooltipValueFormatter(ctx),
-    ctx.theme
+    ctx.theme,
+    // Common tooltip parity: hide zero-value rows and sort by value (Multi only).
+    { sort: ctx.options.tooltip?.sort, hideZeros: ctx.options.tooltip?.hideZeros }
   );
 
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });

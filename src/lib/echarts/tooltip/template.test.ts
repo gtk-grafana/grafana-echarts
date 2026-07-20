@@ -1,6 +1,8 @@
 import { createTheme, type ValueFormatter } from '@grafana/data';
+import { SortOrder } from '@grafana/schema';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import {
+  applyTooltipRowOptions,
   buildTooltipContent,
   formatTooltipValue,
   indexedFormatterResolver,
@@ -63,6 +65,58 @@ describe('indexedFormatterResolver', () => {
   });
 });
 
+describe('applyTooltipRowOptions', () => {
+  const rows = [
+    { name: 'a', v: 3 },
+    { name: 'b', v: 0 },
+    { name: 'c', v: 1 },
+    { name: 'd', v: undefined },
+  ];
+  const getValue = (row: { v?: number }) => row.v;
+
+  it('returns the rows unchanged with no options', () => {
+    expect(applyTooltipRowOptions(rows, getValue)).toEqual(rows);
+  });
+
+  it('hides only rows whose value is exactly zero, keeping nulls', () => {
+    const result = applyTooltipRowOptions(rows, getValue, { hideZeros: true });
+    expect(result.map((r) => r.name)).toEqual(['a', 'c', 'd']);
+  });
+
+  it('sorts ascending by value with nulls last', () => {
+    const result = applyTooltipRowOptions(rows, getValue, { sort: SortOrder.Ascending });
+    expect(result.map((r) => r.name)).toEqual(['b', 'c', 'a', 'd']);
+  });
+
+  it('sorts descending by value with nulls last', () => {
+    const result = applyTooltipRowOptions(rows, getValue, { sort: SortOrder.Descending });
+    expect(result.map((r) => r.name)).toEqual(['a', 'c', 'b', 'd']);
+  });
+
+  it('keeps original order for equal values (stable) and leaves None unsorted', () => {
+    const ties = [
+      { name: 'a', v: 5 },
+      { name: 'b', v: 5 },
+      { name: 'c', v: 5 },
+    ];
+    expect(applyTooltipRowOptions(ties, getValue, { sort: SortOrder.Ascending }).map((r) => r.name)).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
+    expect(applyTooltipRowOptions(ties, getValue, { sort: SortOrder.None }).map((r) => r.name)).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
+  });
+
+  it('combines hideZeros and sort', () => {
+    const result = applyTooltipRowOptions(rows, getValue, { hideZeros: true, sort: SortOrder.Descending });
+    expect(result.map((r) => r.name)).toEqual(['a', 'c', 'd']);
+  });
+});
+
 describe('buildTooltipContent', () => {
   it('renders an axis (multi) tooltip: shared header and one row per series', () => {
     const el = buildTooltipContent(
@@ -122,5 +176,24 @@ describe('buildTooltipContent', () => {
 
     expect(el.textContent).toContain('10 B');
     expect(el.textContent).toContain('20%');
+  });
+
+  it('sorts rows by value and hides zeros when row options are given (axis mode)', () => {
+    const el = buildTooltipContent(
+      asParams([
+        { seriesName: 'A', value: [1000, 10], color: '#ff0000', axisValueLabel: 'x' },
+        { seriesName: 'Z', value: [1000, 0], color: '#0000ff' },
+        { seriesName: 'B', value: [1000, 30], color: '#00ff00' },
+      ]),
+      resolveValue,
+      theme,
+      { sort: SortOrder.Descending, hideZeros: true }
+    );
+
+    // Zero-value series Z is dropped; the rest are ordered B (30) then A (10).
+    const labels = Array.from(el.querySelectorAll('div'))
+      .map((div) => div.textContent ?? '')
+      .filter((text) => text === 'A' || text === 'B' || text === 'Z');
+    expect(labels).toEqual(['B', 'A']);
   });
 });

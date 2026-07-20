@@ -67,6 +67,7 @@ export const pieChartModule: ChartModule = {
         );
 
     const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
+    const hideZeros = options.tooltip?.hideZeros ?? false;
 
     return {
       ...pieDefaultOptions,
@@ -88,7 +89,7 @@ export const pieChartModule: ChartModule = {
           // mode, where the panel disables the tooltip entirely.
           ...(tooltipMode === TooltipDisplayMode.None
             ? {}
-            : { tooltip: { formatter: buildPieTooltip(visible, tooltipMode, theme, ctx.timeZone) } }),
+            : { tooltip: { formatter: buildPieTooltip(visible, tooltipMode, theme, ctx.timeZone, hideZeros) } }),
         },
       ],
     };

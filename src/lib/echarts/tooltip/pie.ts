@@ -20,12 +20,17 @@ import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/templ
  * chart draws), so they stay consistent whichever slice is hovered. `slices` are
  * the visible slices in render order; each carries its source field so values
  * format with that field's unit/decimals.
+ *
+ * `hideZeros` drops zero-value slices from the "All" list (common tooltip parity).
+ * Unlike the cartesian tooltip, pie rows are not re-sorted by the tooltip's `sort`
+ * option: the pie's own slice `sort` already governs slice/legend/tooltip order.
  */
 export function buildPieTooltip(
   slices: PieSliceModel[],
   mode: TooltipDisplayMode,
   theme: GrafanaTheme2,
-  timeZone?: string
+  timeZone?: string,
+  hideZeros = false
 ): (params: TopLevelFormatterParams) => HTMLElement {
   // Precompute per-slice formatters and the whole once; the formatter closure is
   // reused on every hover.
@@ -47,6 +52,11 @@ export function buildPieTooltip(
 
     if (mode === TooltipDisplayMode.Multi) {
       slices.forEach((slice, index) => {
+        // Skip zero-value slices when hiding zeros; nulls ("No value") are kept.
+        // Iterate by original index so `rowValue`/formatters and emphasis stay aligned.
+        if (hideZeros && slice.value === 0) {
+          return;
+        }
         shell.appendRow({
           color: slice.color,
           label: slice.name,

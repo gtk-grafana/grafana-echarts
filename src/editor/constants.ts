@@ -1,5 +1,5 @@
 import { DataFrameType, ReducerID, type SelectableValue } from '@grafana/data';
-import { SortOrder } from '@grafana/schema';
+import { type OptionsWithTooltip, SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import {
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
@@ -121,6 +121,15 @@ export const pieSortOptions: Array<SelectableValue<SortOrder>> = [
 ];
 /** Default slice sort: descending by value (largest first), matching core Grafana. */
 export const PIE_SORT_DEFAULT: SortOrder = SortOrder.Descending;
+/**
+ * Default tooltip options passed to `commonOptionsBuilder.addTooltipOptions`.
+ * The builder only renders the "Hide zeros" switch when `tooltip.hideZeros` is
+ * defined here (mirrors core's exported `optsWithHideZeros`), so this is what
+ * opts every family into the full common-tooltip control set.
+ */
+export const TOOLTIP_DEFAULT_OPTIONS: Partial<OptionsWithTooltip> = {
+  tooltip: { mode: TooltipDisplayMode.Single, sort: SortOrder.None, hideZeros: false },
+};
 /**
  * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
  * chart") so future ECharts-specific label options can join it.

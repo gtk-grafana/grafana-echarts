@@ -1,9 +1,10 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { PIE_CALC_DEFAULT } from 'editor/constants';
+import { PIE_CALC_DEFAULT, TOOLTIP_DEFAULT_OPTIONS } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
+import { removeOption } from 'lib/grafana/editor/common/removeOption';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
 import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
@@ -62,7 +63,11 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     addPieLabelOptions(builder);
 
     commonOptionsBuilder.addLegendOptions(builder);
-    commonOptionsBuilder.addTooltipOptions(builder);
+    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
+    // The pie's own slice `sort` already governs tooltip row order (see
+    // `buildPieTooltip`), so the common tooltip's "Values sort order" control
+    // would be a no-op here. Drop it, keeping mode / hide-zeros / max size.
+    removeOption(builder, 'tooltip.sort');
 
     return builder;
   })

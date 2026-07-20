@@ -1,5 +1,6 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { commonOptionsBuilder } from '@grafana/ui';
+import { TOOLTIP_DEFAULT_OPTIONS } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { type PanelOptions } from 'types';
@@ -33,7 +34,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
   })
   .setPanelOptions((builder) => {
     commonOptionsBuilder.addLegendOptions(builder);
-    commonOptionsBuilder.addTooltipOptions(builder);
+    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
     return builder;
   })
   // Advertise fitness for multi-metric numeric data (opts in via `"suggestions": true`).

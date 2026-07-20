@@ -103,5 +103,42 @@ describe('buildPieTooltip', () => {
       expect(el.textContent).toContain('33%');
       expect(el.textContent).toContain('67%');
     });
+
+    it('drops zero-value slices when hideZeros is set, keeping slice order and emphasis', () => {
+      const withZero: PieSliceModel[] = [
+        slice('A', 30, '#aaaaaa'),
+        slice('Z', 0, '#000000'),
+        slice('B', 50, '#bbbbbb'),
+      ];
+      const el = buildPieTooltip(
+        withZero,
+        TooltipDisplayMode.Multi,
+        theme,
+        undefined,
+        true
+      )(asParams({ dataIndex: 2, name: 'B', value: 50 }));
+
+      // Two swatches remain (A and B); the zero slice Z is gone.
+      expect(el.querySelectorAll('span')).toHaveLength(2);
+      expect(el.textContent).not.toContain('Z');
+      // Emphasis still lands on the hovered slice B, whose original index (2) is unchanged.
+      const boldRows = Array.from(el.querySelectorAll('div')).filter((div) => div.style.fontWeight !== '');
+      expect(boldRows).toHaveLength(1);
+      expect(boldRows[0].textContent).toContain('B');
+    });
+
+    it('keeps null-valued slices even when hideZeros is set', () => {
+      const withNull: PieSliceModel[] = [slice('A', 30, '#aaaaaa'), slice('N', undefined, '#999999')];
+      const el = buildPieTooltip(
+        withNull,
+        TooltipDisplayMode.Multi,
+        theme,
+        undefined,
+        true
+      )(asParams({ dataIndex: 0, name: 'A', value: 30 }));
+
+      expect(el.textContent).toContain('N');
+      expect(el.querySelectorAll('span')).toHaveLength(2);
+    });
   });
 });
