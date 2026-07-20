@@ -158,6 +158,8 @@ export function buildTooltipShell(theme: GrafanaTheme2): TooltipShell {
       header.textContent = text;
       root.appendChild(header);
     },
+    // @todo can we find a more maintainable way to use html templates to hand off to eCharts? i.e. converting an html template without losing potential interactability?
+    // @todo we probably need react overlay to support click to pin functionality anyway, so I guess this is fine as a temporary measure
     appendRow({ color, label, value, emphasis }) {
       const row = document.createElement('div');
       row.className = styles.row;
@@ -173,8 +175,7 @@ export function buildTooltipShell(theme: GrafanaTheme2): TooltipShell {
       if (color) {
         const marker = document.createElement('span');
         marker.className = styles.marker;
-        // Color is only ever a CSS value, never markup.
-        marker.style.background = String(color);
+        marker.style.background = color;
         iconCell.appendChild(marker);
       }
       row.appendChild(iconCell);
