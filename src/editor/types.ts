@@ -57,6 +57,15 @@ export type SeriesTypeOption = SeriesType | 'Auto';
 export type PieLabel = 'name' | 'value' | 'percent';
 
 /**
+ * Pie (part-to-whole) legend values, matching core Grafana's `PieChartLegendValues`
+ * (`@grafana/schema` doesn't re-export the raw enum, so the string values are
+ * mirrored here): `value` (formatted slice value) and `percent` (share of the
+ * visible total). Stored on the legend options as `legend.values` (core parity);
+ * an empty/unset set shows slice names only. See `buildPieLegendItems`.
+ */
+export type PieLegendValue = 'value' | 'percent';
+
+/**
  * Pie (part-to-whole) chart shape, matching core Grafana's `PieChartType`
  * (`@grafana/schema` doesn't re-export the raw enum, so the string values are
  * mirrored here): `pie` (full disc) or `donut` (a pie with a hole). The panel's

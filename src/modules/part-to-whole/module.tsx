@@ -7,6 +7,7 @@ import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { removeOption } from 'lib/grafana/editor/common/removeOption';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
+import { addPieLegendValueOptions } from 'lib/grafana/editor/pie/legend-values-select';
 import { addPieSortOptions } from 'lib/grafana/editor/pie/sort-select';
 import { addPieTypeOptions } from 'lib/grafana/editor/pie/type-select';
 import { type PanelOptions } from 'types';
@@ -62,7 +63,14 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Rendered by `getPieContentLabel`.
     addPieLabelOptions(builder);
 
-    commonOptionsBuilder.addLegendOptions(builder);
+    // Standard legend options, but without the reducer "Values" stats-picker
+    // (`includeLegendCalcs: false`): an arbitrary reducer over a single-value
+    // slice is meaningless. The pie's own Percent / Value control replaces it.
+    commonOptionsBuilder.addLegendOptions(builder, false);
+    // Legend values (Percent / Value) — Grafana Pie chart parity. Rendered by
+    // `buildPieLegendItems`.
+    addPieLegendValueOptions(builder);
+
     commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
     // The pie's own slice `sort` already governs tooltip row order (see
     // `buildPieTooltip`), so the common tooltip's "Values sort order" control

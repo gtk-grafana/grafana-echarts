@@ -14,8 +14,8 @@ options** (`addStandardDataReduceOptions`) and resolves slices through Grafana's
 `getFieldDisplayValues` (see `resolvePieSlices`), so reduction, multi-frame
 handling, display name, color, and unit/decimals formatting are all owned by
 Grafana. Multiple series/frames (e.g. one frame per Prometheus series) each become
-a slice. Pie-specific _display_ options (type, sorting, labels, legend values)
-remain unexposed.
+a slice. Pie-specific _display_ options (type, sorting, labels, legend values) are
+all supported.
 
 Long-shaped data is reshaped to wide upstream with a Grafana transform (**Rows to fields** or **Group
 by**) — see the `provisioning/dashboards/part-to-whole/` demos.
@@ -31,9 +31,9 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 | Labels (Percent / Name / Value)               | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                      | Supported     |
 | Tooltip: mode                                 | `tooltip.mode`                                                                                             | Supported     |
 | Tooltip: hide zeros, sort                     | none                                                                                                       | Not supported |
-| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions`                                                                      | Supported     |
+| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions` (reducer "Values" stats-picker dropped)                              | Supported     |
 | Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by name | Supported     |
-| Legend values (Percent / Value)               | none                                                                                                       | Not supported |
+| Legend values (Percent / Value)               | `legend.values` multi-select in the "Legend" category; rendered by `buildPieLegendItems`                   | Supported     |
 
 ## Standard (field-config) options
 
@@ -46,9 +46,9 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 ## Notes / gaps
 
 - Slice labels (Name / Value / Percent) are supported via the "Labels" option,
-  donut rendering via the "Pie" > Pie chart type option, and slice sorting via the
-  "Pie" > Slice sorting option. Legend values (Percent / Value) are the main
-  missing pie-specific option.
+  donut rendering via the "Pie" > Pie chart type option, slice sorting via the
+  "Pie" > Slice sorting option, and legend values (Percent / Value) via the
+  "Legend" > Legend values option.
 - ECharts-only roadmap: this module's family also covers funnel/gauge render
   types (not yet implemented).
 

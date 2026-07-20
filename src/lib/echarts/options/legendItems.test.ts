@@ -149,19 +149,58 @@ describe('buildPieLegendItems', () => {
     expect(items[0].color).toEqual(expect.any(String));
   });
 
-  it('shows each field reduced by the pie calc in the calc columns', () => {
-    const items = buildPieLegendItems([categoricalFrame()], theme, ['last'], fieldConfig, reduce('sum'), noopReplace);
+  it('shows no value columns when no legend values are selected', () => {
+    const items = buildPieLegendItems([categoricalFrame()], theme, [], fieldConfig, reduce('sum'), noopReplace);
 
-    // q1 sum = 60, q2 sum = 150; any legend reducer resolves to that slice value.
-    expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ numeric: 60 })]);
-    expect(items[1].getDisplayValues?.()).toEqual([expect.objectContaining({ numeric: 150 })]);
+    expect(items[0].getDisplayValues?.()).toEqual([]);
+    expect(items[1].getDisplayValues?.()).toEqual([]);
   });
 
-  it('keeps a hidden field in the legend but marks it disabled', () => {
+  it('shows the formatted slice value in the Value column', () => {
+    // q1 sum = 60, q2 sum = 150.
+    const items = buildPieLegendItems([categoricalFrame()], theme, ['value'], fieldConfig, reduce('sum'), noopReplace);
+
+    // Always titled — the table legend renders a `?` header for a title-less column.
+    expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ numeric: 60, title: 'Value' })]);
+    expect(items[1].getDisplayValues?.()).toEqual([expect.objectContaining({ numeric: 150, title: 'Value' })]);
+  });
+
+  it('shows each slice share of the visible total in the Percent column', () => {
+    // q1 sum = 60, q2 sum = 150; total 210 → ~28.6% / ~71.4% (whole-number default).
     const items = buildPieLegendItems(
       [categoricalFrame()],
       theme,
-      [],
+      ['percent'],
+      fieldConfig,
+      reduce('sum'),
+      noopReplace
+    );
+
+    expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ text: '29%', title: 'Percent' })]);
+    expect(items[1].getDisplayValues?.()).toEqual([expect.objectContaining({ text: '71%', title: 'Percent' })]);
+  });
+
+  it('titles both columns when Value and Percent are shown together', () => {
+    const items = buildPieLegendItems(
+      [categoricalFrame()],
+      theme,
+      ['value', 'percent'],
+      fieldConfig,
+      reduce('sum'),
+      noopReplace
+    );
+
+    const columns = items[0].getDisplayValues?.();
+    expect(columns).toHaveLength(2);
+    expect(columns?.[0]).toMatchObject({ numeric: 60, title: 'Value' });
+    expect(columns?.[1]).toMatchObject({ title: 'Percent' });
+  });
+
+  it('keeps a hidden field in the legend but marks it disabled, showing "-" for its percent', () => {
+    const items = buildPieLegendItems(
+      [categoricalFrame()],
+      theme,
+      ['percent'],
       hiddenConfig('q2', ['q1', 'q2']),
       reduce('sum'),
       noopReplace
@@ -169,6 +208,9 @@ describe('buildPieLegendItems', () => {
 
     expect(items.map((item) => item.label)).toEqual(['q1', 'q2']);
     expect(items.map((item) => item.disabled ?? false)).toEqual([false, true]);
+    // q1 is the only visible slice, so its share is 100%; the hidden q2 shows "-".
+    expect(items[0].getDisplayValues?.()).toEqual([expect.objectContaining({ text: '100%' })]);
+    expect(items[1].getDisplayValues?.()).toEqual([expect.objectContaining({ text: '-' })]);
   });
 });
 

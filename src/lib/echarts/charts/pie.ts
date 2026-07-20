@@ -1,6 +1,6 @@
 import { type ReduceDataOptions } from '@grafana/data';
 import { type SortOrder, TooltipDisplayMode } from '@grafana/schema';
-import { PIE_SORT_DEFAULT } from 'editor/constants';
+import { PIE_LEGEND_VALUES_DEFAULT, PIE_SORT_DEFAULT } from 'editor/constants';
 import { getPieSliceFormatters, resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
@@ -95,11 +95,14 @@ export const pieChartModule: ChartModule = {
     };
   },
 
-  buildLegendItems(ctx, calcs) {
+  // The pie legend's value columns come from its own Percent / Value option
+  // (`legend.values`), not the generic reducer `calcs` — a reducer over a
+  // single-value slice is meaningless — so the `calcs` param is ignored here.
+  buildLegendItems(ctx) {
     return buildPieLegendItems(
       ctx.frames,
       ctx.theme,
-      calcs,
+      ctx.options.legend?.values ?? PIE_LEGEND_VALUES_DEFAULT,
       ctx.fieldConfig,
       resolveReduceOptions(ctx),
       ctx.replaceVariables,

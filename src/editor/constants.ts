@@ -9,6 +9,7 @@ import {
   type MultiValueSeriesType,
   type PieChartType,
   type PieLabel,
+  type PieLegendValue,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -153,6 +154,28 @@ export const pieLabelOptions: Array<SelectableValue<PieLabel>> = [
  * hides the labels — see `getPieContentLabel`.
  */
 export const PIE_LABELS_DEFAULT: PieLabel = 'name';
+/**
+ * Editor category for the pie "Legend values" control. Uses the same "Legend"
+ * name as `commonOptionsBuilder.addLegendOptions` so the control joins the
+ * standard Legend section rather than a separate one.
+ */
+export const pieLegendCategoryName = 'Legend';
+/**
+ * Panel option path for the pie legend values multi-select. Nested under
+ * `legend` to match core Grafana's pie JSON (`legend.values`).
+ */
+export const pieLegendValuesPath = 'legend.values';
+/** Pie legend value options (Grafana Pie chart "Legend values" parity). */
+export const pieLegendValueOptions: Array<SelectableValue<PieLegendValue>> = [
+  { value: 'percent', label: 'Percent' },
+  { value: 'value', label: 'Value' },
+];
+/**
+ * Default legend values for a fresh/unset panel: none (slice names only),
+ * matching the standard legend's empty `calcs` default. The user opts into
+ * Percent / Value. See `buildPieLegendItems`.
+ */
+export const PIE_LEGEND_VALUES_DEFAULT: PieLegendValue[] = [];
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to
  * render as a heatmap (each numeric field becomes a bucket row), even when the

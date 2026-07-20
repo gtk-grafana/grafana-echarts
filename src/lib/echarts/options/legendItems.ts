@@ -1,5 +1,6 @@
 import {
   type DataFrame,
+  type DisplayValue,
   type Field,
   type FieldConfigSource,
   fieldReducers,
@@ -13,11 +14,12 @@ import {
 } from '@grafana/data';
 import { type SortOrder } from '@grafana/schema';
 import { type VizLegendItem } from '@grafana/ui';
-import type { MultiValueSeriesType } from 'editor/types';
+import type { MultiValueSeriesType, PieLegendValue } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { findCategoricalFrame, forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
-import { resolvePieSlices } from 'lib/echarts/converters/pie';
+import { formatPieShare, getPieSliceTotal, resolvePieSlices } from 'lib/echarts/converters/pie';
+import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import { getSeriesColor } from 'lib/echarts/style';
 
@@ -174,31 +176,70 @@ export function buildRadarLegendItems(
 }
 
 /**
+ * The pie legend's value columns for one slice (Grafana Pie chart "Legend values"
+ * parity): a Value and/or Percent `DisplayValue`, in that order, matching the
+ * selected `values`. The value formats with the slice field's unit/decimals (like
+ * the slice labels and tooltip); the percent is the slice's share of the visible
+ * total, through the same `formatPieShare` those surfaces use, so all three agree.
+ * A hidden slice contributes `0` to the total and shows `-` for its percent. Each
+ * column is always titled ("Value" / "Percent") — the table legend renders a `?`
+ * header for a title-less column, so titling both is simpler than conditionally
+ * dropping them; the list legend ignores the titles.
+ */
+function getPieLegendDisplayValues(
+  slice: PieSliceModel,
+  total: number,
+  values: PieLegendValue[],
+  theme: GrafanaTheme2,
+  timeZone?: string
+): DisplayValue[] {
+  const out: DisplayValue[] = [];
+
+  if (values.includes('value')) {
+    const display = slice.field.display ?? getDisplayProcessor({ field: slice.field, theme, timeZone });
+    out.push({ ...display(slice.value ?? null), title: 'Value' });
+  }
+
+  if (values.includes('percent')) {
+    const percent = slice.hidden || total <= 0 ? 0 : ((slice.value ?? 0) / total) * 100;
+    out.push({
+      numeric: percent,
+      text: slice.hidden ? '-' : formatPieShare(slice.value, total, slice.field.config.decimals),
+      title: 'Percent',
+    });
+  }
+
+  return out;
+}
+
+/**
  * Legend items for the pie, from the shared slice resolver so the legend matches
  * the rendered slices (same names, colors, hidden state, and `sort` order). Every
  * slice is kept — a hidden one is marked `disabled` (greyed) so it can be toggled
- * back — and each carries a single-value `field` whose calc columns resolve to
- * that slice's value.
+ * back. Each item's value columns show the selected `values` (Percent / Value); an
+ * empty selection shows slice names only. Percentages are of the *visible* total
+ * (hidden slices excluded), matching the chart and tooltip.
  */
 export function buildPieLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
-  calcs: string[],
+  values: PieLegendValue[],
   fieldConfig: FieldConfigSource,
   reduceOptions: ReduceDataOptions | undefined,
   replaceVariables: InterpolateFunction,
   timeZone?: string,
   sort?: SortOrder
 ): VizLegendItem[] {
-  return resolvePieSlices(series, theme, fieldConfig, reduceOptions, replaceVariables, timeZone, sort).map(
-    (slice, index) => ({
-      label: slice.name,
-      fieldName: slice.name,
-      color: slice.color,
-      yAxis: 1,
-      disabled: slice.hidden,
-      getItemKey: () => `slice-${index}`,
-      getDisplayValues: () => getCalcDisplayValues(calcs, slice.field, theme, timeZone),
-    })
-  );
+  const slices = resolvePieSlices(series, theme, fieldConfig, reduceOptions, replaceVariables, timeZone, sort);
+  const total = getPieSliceTotal(slices.filter((slice) => !slice.hidden));
+
+  return slices.map((slice, index) => ({
+    label: slice.name,
+    fieldName: slice.name,
+    color: slice.color,
+    yAxis: 1,
+    disabled: slice.hidden,
+    getItemKey: () => `slice-${index}`,
+    getDisplayValues: () => getPieLegendDisplayValues(slice, total, values, theme, timeZone),
+  }));
 }

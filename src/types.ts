@@ -1,7 +1,12 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
-import { type OptionsWithLegend, type OptionsWithTooltip, type SortOrder } from '@grafana/schema';
+import {
+  type OptionsWithLegend,
+  type OptionsWithTooltip,
+  type SortOrder,
+  type VizLegendOptions,
+} from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
-import { type PieChartType, type PieLabel, type SeriesTypeOption } from 'editor/types';
+import { type PieChartType, type PieLabel, type PieLegendValue, type SeriesTypeOption } from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -24,7 +29,21 @@ export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
  *
  * @todo we probably want to build options around echarts API instead of using Grafana's
  */
+/**
+ * The standard Core Grafana `legend` (`VizLegendOptions`) plus the pie's
+ * `values` (Percent / Value), mirroring core Grafana's `PieChartLegendOptions`.
+ * A subtype of `VizLegendOptions`, so it satisfies `OptionsWithLegend` for the
+ * other chart families (which ignore `values`); only the pie reads it. See
+ * `addPieLegendValueOptions` and `buildPieLegendItems`.
+ */
+export interface PieChartLegendOptions extends VizLegendOptions {
+  values?: PieLegendValue[];
+}
+
 export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, OptionsWithTooltip {
+  // Widen the inherited `legend` (`VizLegendOptions`) with the pie's `values`.
+  legend: PieChartLegendOptions;
+
   // Optional, and may be `'Auto'`: set by the cartesian panel's Series type
   // picker (default `'Auto'`), a Visualization Suggestion, or persisted dashboard
   // JSON; `undefined` on legacy panels. `resolveSeriesType` / `resolveChartModule`
