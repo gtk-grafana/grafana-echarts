@@ -298,4 +298,32 @@ describe('resolvePieSlices', () => {
       expect(asc.map((slice) => slice.name)).toEqual(['A', 'C', 'B']);
     });
   });
+
+  // The chart option, tooltip, and legend paths all resolve slices with identical
+  // inputs in a single render; the resolver memoizes per `series` reference so the
+  // underlying `getFieldDisplayValues` reduction runs once.
+  describe('memoization', () => {
+    it('returns the identical model for repeated calls with the same frames and inputs', () => {
+      const frames = [wideFrame()];
+      const reduce = calculate('sum');
+      const first = resolvePieSlices(frames, theme, emptyConfig, reduce, noopReplace);
+      const second = resolvePieSlices(frames, theme, emptyConfig, reduce, noopReplace);
+      expect(second).toBe(first);
+    });
+
+    it('recomputes when an input changes', () => {
+      const frames = [wideFrame()];
+      const sum = resolvePieSlices(frames, theme, emptyConfig, calculate('sum'), noopReplace);
+      const max = resolvePieSlices(frames, theme, emptyConfig, calculate('max'), noopReplace);
+      expect(max).not.toBe(sum);
+      expect(max.map((slice) => slice.value)).not.toEqual(sum.map((slice) => slice.value));
+    });
+
+    it('keeps a separate entry per frames reference', () => {
+      const reduce = calculate('sum');
+      const a = resolvePieSlices([wideFrame()], theme, emptyConfig, reduce, noopReplace);
+      const b = resolvePieSlices([wideFrame()], theme, emptyConfig, reduce, noopReplace);
+      expect(b).not.toBe(a);
+    });
+  });
 });

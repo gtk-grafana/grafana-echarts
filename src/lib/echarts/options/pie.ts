@@ -100,6 +100,6 @@ export function getPieContentLabel(
   return {
     ...style,
     show: true,
-    formatter: (params) => (typeof params.dataIndex === 'number' ? (lines[params.dataIndex] ?? '') : ''),
+    formatter: (params) => lines[params.dataIndex],
   };
 }
