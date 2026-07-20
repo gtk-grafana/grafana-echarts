@@ -1,11 +1,10 @@
 import { type ReduceDataOptions } from '@grafana/data';
 import { type SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import { PIE_SORT_DEFAULT } from 'editor/constants';
-import { resolvePieSlices } from 'lib/echarts/converters/pie';
+import { getPieSliceFormatters, resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
 import { getPieContentLabel, getPieRadius, pieDefaultOptions } from 'lib/echarts/options/pie';
-import { getValueFormatter } from 'lib/echarts/style';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
 import { type ChartContext, type ChartModule, type EChartPieDataItem, type EChartPieSeriesOption } from './types';
@@ -29,7 +28,7 @@ export const pieChartModule: ChartModule = {
       ctx.timeZone,
       resolveSort(ctx)
     ).filter((slice) => !slice.hidden);
-    const formatters = visible.map((slice) => getValueFormatter(slice.field, ctx.theme, ctx.timeZone));
+    const formatters = getPieSliceFormatters(visible, ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
   },
 

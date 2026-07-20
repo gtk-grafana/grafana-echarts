@@ -1,8 +1,12 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { type PieSliceModel } from 'lib/echarts/converters/pie';
-import { getValueFormatter } from 'lib/echarts/style';
+import {
+  formatPieShare,
+  getPieSliceFormatters,
+  getPieSliceTotal,
+  type PieSliceModel,
+} from 'lib/echarts/converters/pie';
 import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
 
 /**
@@ -29,19 +33,14 @@ export function buildPieTooltip(
 ): (params: TopLevelFormatterParams) => HTMLElement {
   // Precompute per-slice formatters and the whole once; the formatter closure is
   // reused on every hover.
-  const formatters = slices.map((slice) => getValueFormatter(slice.field, theme, timeZone));
-  const total = slices.reduce((sum, slice) => sum + (slice.value ?? 0), 0);
+  const formatters = getPieSliceFormatters(slices, theme, timeZone);
+  const total = getPieSliceTotal(slices);
 
-  const share = (value: number | undefined): string => {
-    if (value == null || total <= 0) {
-      return '0%';
-    }
-    // One decimal place, dropping a trailing `.0` (25, 33.3).
-    return `${Math.round((value / total) * 1000) / 10}%`;
+  const rowValue = (index: number): string => {
+    const slice = slices[index];
+    const value = formatTooltipValue(slice.value ?? null, formatters[index]);
+    return `${value} (${formatPieShare(slice.value, total, slice.field.config.decimals)})`;
   };
-
-  const rowValue = (index: number): string =>
-    `${formatTooltipValue(slices[index].value ?? null, formatters[index])} (${share(slices[index].value)})`;
 
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;

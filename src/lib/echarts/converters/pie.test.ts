@@ -9,7 +9,7 @@ import {
   toDataFrame,
 } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
-import { resolvePieSlices } from 'lib/echarts/converters/pie';
+import { formatPieShare, resolvePieSlices } from 'lib/echarts/converters/pie';
 
 const theme = createTheme();
 const emptyConfig: FieldConfigSource = { defaults: {}, overrides: [] };
@@ -325,5 +325,25 @@ describe('resolvePieSlices', () => {
       const b = resolvePieSlices([wideFrame()], theme, emptyConfig, reduce, noopReplace);
       expect(b).not.toBe(a);
     });
+  });
+});
+
+// Shared share formatter used by both the slice labels and the tooltip (via
+// Grafana's `percent` value formatter), so a single rule keeps them in agreement.
+describe('formatPieShare', () => {
+  it("formats a share with Grafana's percent formatter, whole number by default", () => {
+    expect(formatPieShare(25, 100)).toBe('25%');
+    expect(formatPieShare(1, 3)).toBe('33%');
+  });
+
+  it('honors the provided decimals', () => {
+    expect(formatPieShare(1, 3, 1)).toBe('33.3%');
+    expect(formatPieShare(25, 100, 2)).toBe('25.00%');
+  });
+
+  it('returns 0% for empty values or a non-positive total', () => {
+    expect(formatPieShare(undefined, 100)).toBe('0%');
+    expect(formatPieShare(10, 0)).toBe('0%');
+    expect(formatPieShare(10, -5)).toBe('0%');
   });
 });

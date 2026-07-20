@@ -3,9 +3,13 @@ import { type PieSeriesOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { PIE_LABELS_DEFAULT, PIE_TYPE_DEFAULT } from 'editor/constants';
 import { type PieChartType, type PieLabel } from 'editor/types';
-import { type PieSliceModel } from 'lib/echarts/converters/pie';
+import {
+  formatPieShare,
+  getPieSliceFormatters,
+  getPieSliceTotal,
+  type PieSliceModel,
+} from 'lib/echarts/converters/pie';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
-import { getValueFormatter } from 'lib/echarts/style';
 import { formatTooltipValue } from 'lib/echarts/tooltip/template';
 
 /** Base option for pie charts. Series data is merged at render time. */
@@ -47,14 +51,6 @@ export function getPieLabelStyle(theme: GrafanaTheme2): PieSeriesOption['label']
   };
 }
 
-/** Slice's share of the visible total, as a percentage string (one decimal, no trailing `.0`). */
-function sliceShare(value: number | undefined, total: number): string {
-  if (value == null || total <= 0) {
-    return '0%';
-  }
-  return `${Math.round((value / total) * 1000) / 10}%`;
-}
-
 /**
  * ECharts pie `series.label` for the selected slice-label content (Grafana Pie
  * chart "Labels": Name / Value / Percent). Mirrors core: each selected label is a
@@ -81,8 +77,8 @@ export function getPieContentLabel(
 
   // Precompute each slice's label lines once; the formatter closure indexes them
   // by dataIndex on every draw.
-  const formatters = slices.map((slice) => getValueFormatter(slice.field, theme, timeZone));
-  const total = slices.reduce((sum, slice) => sum + (slice.value ?? 0), 0);
+  const formatters = getPieSliceFormatters(slices, theme, timeZone);
+  const total = getPieSliceTotal(slices);
   const lines = slices.map((slice, index) => {
     const parts: string[] = [];
     if (selected.includes('name')) {
@@ -92,7 +88,7 @@ export function getPieContentLabel(
       parts.push(formatTooltipValue(slice.value ?? null, formatters[index]));
     }
     if (selected.includes('percent')) {
-      parts.push(sliceShare(slice.value, total));
+      parts.push(formatPieShare(slice.value, total, slice.field.config.decimals));
     }
     return parts.join('\n');
   });

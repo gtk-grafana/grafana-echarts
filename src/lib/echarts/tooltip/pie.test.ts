@@ -91,7 +91,7 @@ describe('buildPieTooltip', () => {
       expect(boldRows[0].textContent).toContain('B');
     });
 
-    it('computes percentages from the total, rounded to one decimal', () => {
+    it('computes percentages from the total, whole number by default (core Grafana)', () => {
       const thirds: PieSliceModel[] = [slice('x', 1, '#111111'), slice('y', 2, '#222222')];
       const el = buildPieTooltip(
         thirds,
@@ -99,8 +99,8 @@ describe('buildPieTooltip', () => {
         theme
       )(asParams({ dataIndex: 0, name: 'x', value: 1 }));
 
-      expect(el.textContent).toContain('33.3%');
-      expect(el.textContent).toContain('66.7%');
+      expect(el.textContent).toContain('33%');
+      expect(el.textContent).toContain('67%');
     });
   });
 });

@@ -1,17 +1,21 @@
 import {
   type DataFrame,
+  type DecimalCount,
   type Field,
   type FieldConfigSource,
   type FieldDisplay,
   FieldType,
+  formattedValueToString,
   getFieldDisplayValues,
+  getValueFormat,
   type GrafanaTheme2,
   type InterpolateFunction,
   type ReduceDataOptions,
+  type ValueFormatter,
 } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
 import { PIE_CALC_DEFAULT } from 'editor/constants';
-import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { getPaletteColorByIndex, getValueFormatter } from 'lib/echarts/style';
 import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 
 /**
@@ -189,4 +193,40 @@ function normalizePieReduceOptions(reduceOptions: ReduceDataOptions | undefined)
  */
 function toSliceField(display: FieldDisplay, name: string, value: number | undefined): Field {
   return { name, type: FieldType.number, config: display.field, values: [value ?? null], state: undefined };
+}
+
+/**
+ * Per-slice value formatters in render (dataIndex) order, each honoring its own
+ * field's unit/decimals. Shared by the slice labels, the pie tooltip, and the
+ * generic tooltip resolver so every surface formats a slice value identically.
+ */
+export function getPieSliceFormatters(
+  slices: PieSliceModel[],
+  theme: GrafanaTheme2,
+  timeZone?: string
+): ValueFormatter[] {
+  return slices.map((slice) => getValueFormatter(slice.field, theme, timeZone));
+}
+
+/**
+ * Sum of the slices' values (non-finite treated as `0`) — the denominator for
+ * percentage shares. Callers pass the visible slices so shares are of the drawn
+ * total, keeping labels and tooltip in agreement.
+ */
+export function getPieSliceTotal(slices: PieSliceModel[]): number {
+  return slices.reduce((sum, slice) => sum + (slice.value ?? 0), 0);
+}
+
+/** Grafana's `percent` value formatter (input already scaled to 0–100). */
+const percentValueFormat = getValueFormat('percent');
+
+/**
+ * A slice value's share of `total` as a percentage string, rendered through
+ * Grafana's `percent` value formatter (like every other value) and the slice
+ * field's own `decimals` (defaulting to 0, matching core Grafana's pie). Empty
+ * values or a non-positive total render as `0`.
+ */
+export function formatPieShare(value: number | undefined, total: number, decimals?: DecimalCount): string {
+  const percent = value != null && total > 0 ? (value / total) * 100 : 0;
+  return formattedValueToString(percentValueFormat(percent, decimals ?? 0));
 }
