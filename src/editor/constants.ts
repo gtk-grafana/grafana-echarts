@@ -1,5 +1,5 @@
 import { DataFrameType, ReducerID, type SelectableValue } from '@grafana/data';
-import { SortOrder } from '@grafana/schema';
+import { type OptionsWithTooltip, SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import {
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
@@ -13,6 +13,7 @@ import {
   type PieLabel,
   type PieLabelOverflow,
   type PieLabelPosition,
+  type PieLegendValue,
   type PieRoseType,
   type PieSelectedMode,
   type SeriesType,
@@ -178,10 +179,19 @@ export const pieEndAnglePath = 'endAngle';
 /**
  * Default pie arc start angle (degrees), matching ECharts' own `series.startAngle`
  * default (90 = top). `getPieAngles` omits `startAngle` at this value so the
- * full-pie render (and its snapshots) stays unchanged.
+ * full-pie render stays unchanged.
  * https://echarts.apache.org/en/option.html#series-pie.startAngle
  */
 export const PIE_START_ANGLE_DEFAULT = 90;
+/**
+ * Default tooltip options passed to `commonOptionsBuilder.addTooltipOptions`.
+ * The builder only renders the "Hide zeros" switch when `tooltip.hideZeros` is
+ * defined here (mirrors core's exported `optsWithHideZeros`), so this is what
+ * opts every family into the full common-tooltip control set.
+ */
+export const TOOLTIP_DEFAULT_OPTIONS: Partial<OptionsWithTooltip> = {
+  tooltip: { mode: TooltipDisplayMode.Single, sort: SortOrder.None, hideZeros: false },
+};
 /**
  * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
  * chart") so future ECharts-specific label options can join it.
@@ -204,7 +214,29 @@ export const pieLabelOptions: Array<SelectableValue<PieLabel>> = [
  * An explicit empty selection (the user deselecting every label) is distinct and
  * hides the labels — see `getPieContentLabel`.
  */
-export const PIE_LABELS_DEFAULT: PieLabel[] = ['name'];
+export const PIE_LABELS_DEFAULT: PieLabel = 'name';
+/**
+ * Editor category for the pie "Legend values" control. Uses the same "Legend"
+ * name as `commonOptionsBuilder.addLegendOptions` so the control joins the
+ * standard Legend section rather than a separate one.
+ */
+export const pieLegendCategoryName = 'Legend';
+/**
+ * Panel option path for the pie legend values multi-select. Nested under
+ * `legend` to match core Grafana's pie JSON (`legend.values`).
+ */
+export const pieLegendValuesPath = 'legend.values';
+/** Pie legend value options (Grafana Pie chart "Legend values" parity). */
+export const pieLegendValueOptions: Array<SelectableValue<PieLegendValue>> = [
+  { value: 'percent', label: 'Percent' },
+  { value: 'value', label: 'Value' },
+];
+/**
+ * Default legend values for a fresh/unset panel: none (slice names only),
+ * matching the standard legend's empty `calcs` default. The user opts into
+ * Percent / Value. See `buildPieLegendItems`.
+ */
+export const PIE_LEGEND_VALUES_DEFAULT: PieLegendValue[] = [];
 /** Panel option path for the pie slice-label placement. */
 export const pieLabelPositionPath = 'labelPosition';
 /**
@@ -220,11 +252,8 @@ export const pieLabelPositionOptions: Array<SelectableValue<PieLabelPosition>> =
 /** Default slice-label placement: outside (leader lines), matching ECharts' own default. */
 export const PIE_LABEL_POSITION_DEFAULT: PieLabelPosition = 'outside';
 
-/* ---------------------------------------------------------------------------
- * Advanced-gated pie legibility options (Tier 2). Each is shown only in the
- * Advanced editor mode (`showIf: isAdvancedEditorMode`) and omits its key at the
- * default so existing snapshots stay stable. See the `pie-legibility.json` demo.
- * ------------------------------------------------------------------------- */
+/* Advanced-gated pie legibility options: shown only in the Advanced editor mode,
+ * each omitted at its default. See the `pie-legibility.json` demo. */
 
 /**
  * Panel option path for the pie slice-label font size (ECharts `label.fontSize`).
@@ -233,7 +262,7 @@ export const PIE_LABEL_POSITION_DEFAULT: PieLabelPosition = 'outside';
 export const pieLabelFontSizePath = 'labelFontSize';
 /**
  * Default slice-label font size: `undefined`, so the theme's font size is used
- * and no `fontSize` is written to the ECharts label (keeps snapshots stable).
+ * and no `fontSize` is written to the ECharts label.
  */
 export const PIE_LABEL_FONT_SIZE_DEFAULT: number | undefined = undefined;
 
@@ -266,17 +295,6 @@ export const pieMinShowLabelAnglePath = 'minShowLabelAngle';
 export const PIE_MIN_SHOW_LABEL_ANGLE_DEFAULT = 0;
 
 /**
- * Panel option path for the number of decimal places in the slice percent label
- * (used by `sliceShare`). Advanced-only.
- */
-export const piePercentPrecisionPath = 'percentPrecision';
-/**
- * Default percent precision: `1` decimal, reproducing today's `33.3%` output
- * (with a trailing `.0` dropped).
- */
-export const PIE_PERCENT_PRECISION_DEFAULT = 1;
-
-/**
  * Panel option path for the slice separation border width (ECharts
  * `itemStyle.borderWidth`). Advanced-only.
  */
@@ -300,12 +318,8 @@ export const pieInnerRadiusPath = 'innerRadius';
 export const pieCenterXPath = 'centerX';
 export const pieCenterYPath = 'centerY';
 
-/* --------------------------------------------------------------------------
- * Advanced pie options (Tier 3 — interactivity & polish). Each is gated behind
- * the shared Advanced editor mode (`showIf: isAdvancedEditorMode`) and omits its
- * key at the ECharts default so existing snapshots stay stable. See the
- * `.air/plans/pie-advanced-tier3-interactivity.plan.md` plan.
- * -------------------------------------------------------------------------- */
+/* Advanced pie interactivity & polish options: gated behind the Advanced editor
+ * mode; each omits its ECharts key at the default. */
 
 /** Panel option path for the pie slice-selection mode (Advanced). */
 export const pieSelectedModePath = 'selectedMode';

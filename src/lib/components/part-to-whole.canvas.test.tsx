@@ -360,14 +360,6 @@ describe('part-to-whole canvas renders', () => {
     ],
   });
 
-  // Near-equal slices — exercises percent precision (33.33% vs 33.3%).
-  const nearEqualFrame = toDataFrame({
-    fields: [
-      { name: 'category', type: FieldType.string, values: ['A', 'B', 'C'] },
-      { name: 'value', type: FieldType.number, values: [1, 1, 1] },
-    ],
-  });
-
   describe('label font size', () => {
     // Advanced-only label.fontSize override; larger labels with all content shown.
     it('enlarged slice labels', async () => {
@@ -501,22 +493,6 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: [], values: true },
         displayLabels: ['name'],
         minShowLabelAngle: 10,
-      });
-
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
-    });
-  });
-
-  describe('percent precision', () => {
-    // Advanced-only percentPrecision; near-equal shares to two decimals.
-    it('two-decimal percent labels', async () => {
-      const { defaultEvents, seriesEvents } = await renderPie([nearEqualFrame], {
-        reduceOptions: { calcs: [], values: true },
-        displayLabels: ['percent'],
-        percentPrecision: 2,
       });
 
       expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {

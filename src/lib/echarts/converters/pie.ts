@@ -1,41 +1,23 @@
 import {
   type DataFrame,
+  type DecimalCount,
   type Field,
   type FieldConfigSource,
   type FieldDisplay,
   FieldType,
+  formattedValueToString,
   getFieldDisplayValues,
+  getValueFormat,
   type GrafanaTheme2,
   type InterpolateFunction,
   type ReduceDataOptions,
+  type ValueFormatter,
 } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
 import { PIE_CALC_DEFAULT } from 'editor/constants';
-import { getPaletteColorByIndex } from 'lib/echarts/style';
-import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
-import { getNumericValues, isNumericStringField } from 'lib/grafana/narrowing';
-
-/**
- * One resolved pie slice, shared by the chart, DOM legend, and tooltip so all
- * three agree on the same slice set, values, colors, and hidden state (rather
- * than each re-deriving the selection and drifting).
- */
-export interface PieSliceModel {
-  /** Slice label: the reduced field's display name (Calculate) or a row name (All values). */
-  name: string;
-  /** Reduced slice value; `undefined` when the reduction is non-finite (empty/all-null). */
-  value: number | undefined;
-  /** Resolved slice/swatch color (a fixed-color override always wins). */
-  color: string;
-  /** Hidden via the legend visibility toggle; kept in the model so the legend can grey it. */
-  hidden: boolean;
-  /**
-   * A single-value numeric field carrying this slice's value plus the source
-   * field's unit/decimals config, for the legend's calc columns
-   * (`getCalcDisplayValues`) — a slice is one value, so any reducer resolves to it.
-   */
-  field: Field;
-}
+import { type PieSliceModel } from 'lib/echarts/converters/types';
+import { getPaletteColorByIndex, getValueFormatter } from 'lib/echarts/style';
+import { getHiddenSeriesNames, getSeriesColorOverride, isSeriesHiddenByName } from 'lib/grafana/fields/seriesConfig';
 
 /**
  * Resolve every pie slice (visible and hidden) from Grafana frames using
@@ -49,11 +31,12 @@ export interface PieSliceModel {
  * - **All values** (`values: true`): each row becomes a slice, capped by
  *   `reduceOptions.limit`.
  *
- * Numeric-text value fields are pre-coerced to numbers (see `isNumericStringField`
- * / `getNumericValues`) because `getFieldDisplayValues`' default matcher is
- * numeric-only and would otherwise skip them. Hidden slices are read by name from
- * `fieldConfig` (pie slices are not Grafana fields, so the override engine cannot
- * target them) and a per-slice fixed-color override always wins.
+ * `getFieldDisplayValues`' default matcher is numeric-only, so value fields that
+ * arrive as text (e.g. a datasource emitting `"12.5"`) must be converted to a
+ * numeric field upstream with a "Convert field type" transform. Hidden slices are
+ * read by name from `fieldConfig` (pie slices are not Grafana fields, so the
+ * override engine cannot target them) and a per-slice fixed-color override always
+ * wins.
  *
  * The full slice set (including hidden slices) is ordered by `sort` (Grafana Pie
  * chart "Slice sorting"): `desc` largest-first, `asc` smallest-first, `none` data
@@ -63,6 +46,10 @@ export interface PieSliceModel {
  *
  * Returns an empty array when no frame yields a numeric slice (`getFieldDisplayValues`
  * emits a "No data" placeholder in that case, which is filtered out).
+ *
+ * The result is memoized per `series` reference (see `sliceModelCache`): the chart
+ * option, tooltip, and legend paths all resolve slices with identical inputs in one
+ * render, so this runs the underlying `getFieldDisplayValues` reduction just once.
  */
 export function resolvePieSlices(
   series: DataFrame[],
@@ -73,10 +60,35 @@ export function resolvePieSlices(
   timeZone?: string,
   sort: SortOrder = SortOrder.None
 ): PieSliceModel[] {
-  const data = series.map(coerceNumericStringFields);
+  const deps: readonly unknown[] = [theme, fieldConfig, reduceOptions, replaceVariables, timeZone, sort];
+  const cached = sliceModelCache.get(series);
+  if (cached && cached.deps.every((dep, index) => Object.is(dep, deps[index]))) {
+    return cached.slices;
+  }
+  const slices = computePieSlices(series, theme, fieldConfig, reduceOptions, replaceVariables, timeZone, sort);
+  sliceModelCache.set(series, { deps, slices });
+  return slices;
+}
 
+/**
+ * Last resolved slice model per source-frame array. Keyed on `series` via a
+ * `WeakMap` so separate panels keep independent entries and stale frames are
+ * garbage-collected; the remaining inputs are compared by identity (all are
+ * render-stable) to invalidate the entry on any real change.
+ */
+const sliceModelCache = new WeakMap<DataFrame[], { deps: readonly unknown[]; slices: PieSliceModel[] }>();
+
+function computePieSlices(
+  series: DataFrame[],
+  theme: GrafanaTheme2,
+  fieldConfig: FieldConfigSource,
+  reduceOptions: ReduceDataOptions | undefined,
+  replaceVariables: InterpolateFunction,
+  timeZone: string | undefined,
+  sort: SortOrder
+): PieSliceModel[] {
   const displays = getFieldDisplayValues({
-    data,
+    data: series,
     reduceOptions: normalizePieReduceOptions(reduceOptions),
     fieldConfig,
     replaceVariables,
@@ -90,19 +102,45 @@ export function resolvePieSlices(
   const names = displays.map((display) => display.display.title ?? '');
   const hidden = getHiddenSeriesNames(fieldConfig, names);
 
+  // The slice's underlying field name, used as an extra override-match alias.
+  // Grafana's `byName` matcher matches a field by its raw name OR its display
+  // name, but the display name can be dynamic (labels / multi-frame) and only
+  // becomes stable once a `displayName` override pins it — which is why color and
+  // visibility overrides otherwise appeared to work only when a displayName
+  // override was also defined. Matching the raw field name too closes that gap.
+  const fieldNames = displays.map(sourceFieldName);
+  // Only alias when the raw name uniquely identifies one slice: in "All values"
+  // mode every row shares the value field's name, so it must not match (it would
+  // hit every row).
+  const aliasFor = (index: number): string | undefined => {
+    const fieldName = fieldNames[index];
+    const unique =
+      fieldName !== '' && fieldNames.indexOf(fieldName) === index && fieldNames.lastIndexOf(fieldName) === index;
+    return unique ? fieldName : undefined;
+  };
+
   const slices = displays.map((display, index) => {
     const name = names[index];
+    const alias = aliasFor(index);
     const numeric = display.display.numeric;
     const value = typeof numeric === 'number' && Number.isFinite(numeric) ? numeric : undefined;
+    // A fixed-color override (matched by display name, then the raw field-name
+    // alias) always wins. Its `fixedColor` is a Grafana color that may be a named
+    // palette token (e.g. `dark-red`) rather than a CSS color, so it must run
+    // through the theme to become renderable — `getColorByName` resolves names and
+    // passes hex/rgb through unchanged.
+    const override =
+      getSeriesColorOverride(fieldConfig, name) ?? (alias ? getSeriesColorOverride(fieldConfig, alias) : undefined);
     return {
       name,
       value,
-      // A fixed-color override always wins; otherwise the display processor's
-      // color (the field's Color scheme / palette), falling back to the classic
-      // palette by slice position so slices stay distinct and stable.
-      color:
-        getSeriesColorOverride(fieldConfig, name) ?? (display.display.color || getPaletteColorByIndex(index, theme)),
-      hidden: hidden.has(name),
+      // Override, else the display processor's color (the field's Color scheme /
+      // palette, already theme-resolved), falling back to the classic palette by
+      // slice position so slices stay distinct and stable.
+      color: override
+        ? theme.visualization.getColorByName(override)
+        : display.display.color || getPaletteColorByIndex(index, theme),
+      hidden: hidden.has(name) || (alias !== undefined && isSeriesHiddenByName(fieldConfig, alias)),
       field: toSliceField(display, name, value),
     };
   });
@@ -137,33 +175,6 @@ function comparePieSlicesByValue(sort: SortOrder): (a: PieSliceModel, b: PieSlic
 }
 
 /**
- * Coerce numeric-text fields (e.g. a value column that arrived as `"12.5"`) to
- * real number fields so `getFieldDisplayValues`' numeric-only matcher picks them
- * up. Only touched frames are copied; the coerced field's cached display/calcs are
- * cleared so the reducer runs against the fresh numeric values. Genuine label
- * fields (including year-like strings mixed with words) are left untouched.
- */
-function coerceNumericStringFields(frame: DataFrame): DataFrame {
-  if (!frame.fields.some(isNumericStringField)) {
-    return frame;
-  }
-  return {
-    ...frame,
-    fields: frame.fields.map((field) =>
-      isNumericStringField(field)
-        ? {
-            ...field,
-            type: FieldType.number,
-            values: getNumericValues(field),
-            display: undefined,
-            state: field.state ? { ...field.state, calcs: undefined } : field.state,
-          }
-        : field
-    ),
-  };
-}
-
-/**
  * Normalize the panel's `reduceOptions` for a pie: a slice is one value, so only
  * the first calc is used (extra calcs would emit duplicate slices), defaulting to
  * Sum (part-to-whole) when unset. `values`/`limit`/`fields` pass through so
@@ -186,4 +197,48 @@ function normalizePieReduceOptions(reduceOptions: ReduceDataOptions | undefined)
  */
 function toSliceField(display: FieldDisplay, name: string, value: number | undefined): Field {
   return { name, type: FieldType.number, config: display.field, values: [value ?? null], state: undefined };
+}
+
+/** The raw name of the source field a slice was reduced from (`''` when unavailable). */
+function sourceFieldName(display: FieldDisplay): string {
+  if (display.colIndex === undefined) {
+    return '';
+  }
+  return display.view?.dataFrame.fields[display.colIndex]?.name ?? '';
+}
+
+/**
+ * Per-slice value formatters in render (dataIndex) order, each honoring its own
+ * field's unit/decimals. Shared by the slice labels, the pie tooltip, and the
+ * generic tooltip resolver so every surface formats a slice value identically.
+ */
+export function getPieSliceFormatters(
+  slices: PieSliceModel[],
+  theme: GrafanaTheme2,
+  timeZone?: string
+): ValueFormatter[] {
+  return slices.map((slice) => getValueFormatter(slice.field, theme, timeZone));
+}
+
+/**
+ * Sum of the slices' values (non-finite treated as `0`) — the denominator for
+ * percentage shares. Callers pass the visible slices so shares are of the drawn
+ * total, keeping labels and tooltip in agreement.
+ */
+export function getPieSliceTotal(slices: PieSliceModel[]): number {
+  return slices.reduce((sum, slice) => sum + (slice.value ?? 0), 0);
+}
+
+/** Grafana's `percent` value formatter (input already scaled to 0–100). */
+const percentValueFormat = getValueFormat('percent');
+
+/**
+ * A slice value's share of `total` as a percentage string, rendered through
+ * Grafana's `percent` value formatter (like every other value) and the slice
+ * field's own `decimals` (defaulting to 0, matching core Grafana's pie). Empty
+ * values or a non-positive total render as `0`.
+ */
+export function formatPieShare(value: number | undefined, total: number, decimals?: DecimalCount): string {
+  const percent = value != null && total > 0 ? (value / total) * 100 : 0;
+  return formattedValueToString(percentValueFormat(percent, decimals ?? 0));
 }

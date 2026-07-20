@@ -1,10 +1,11 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { PIE_CALC_DEFAULT } from 'editor/constants';
+import { PIE_CALC_DEFAULT, TOOLTIP_DEFAULT_OPTIONS } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
+import { removeOption } from 'lib/grafana/editor/common/removeOption';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieAngleOptions } from 'lib/grafana/editor/pie/angle-inputs';
 import { addPieAnimationTextStyleOptions } from 'lib/grafana/editor/pie/animation-text-style';
@@ -16,9 +17,9 @@ import { addPieLabelFontSizeOptions } from 'lib/grafana/editor/pie/label-font-si
 import { addPieLabelOverflowOptions } from 'lib/grafana/editor/pie/label-overflow';
 import { addPieLabelPositionOptions } from 'lib/grafana/editor/pie/label-position-select';
 import { addPieLabelOptions } from 'lib/grafana/editor/pie/label-select';
+import { addPieLegendValueOptions } from 'lib/grafana/editor/pie/legend-values-select';
 import { addPieMinAngleOptions } from 'lib/grafana/editor/pie/min-angle-input';
 import { addPieMinShowLabelAngleOptions } from 'lib/grafana/editor/pie/min-show-label-angle-input';
-import { addPiePercentPrecisionOptions } from 'lib/grafana/editor/pie/percent-precision-input';
 import { addPieRadiusCenterOptions } from 'lib/grafana/editor/pie/radius-center-inputs';
 import { addPieRoseTypeOptions } from 'lib/grafana/editor/pie/rose-type-select';
 import { addPieSelectionOptions } from 'lib/grafana/editor/pie/selection';
@@ -91,31 +92,25 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Min slice angle (degrees) — Advanced-only ECharts extra. Enlarges tiny
     // long-tail slices so they stay visible/clickable. Rendered by `getPieMinAngle`.
     addPieMinAngleOptions(builder);
-    // Advanced-only arc range (Start / End angle) — ECharts extras beyond core
-    // parity, gated behind Advanced via `showIf: isAdvancedEditorMode`. Reshapes
-    // the arc into half-pie / semicircle-donut layouts; applied by `getPieAngles`.
+    // Arc range (Start / End angle) — Advanced-only ECharts extra. Reshapes the arc
+    // into half-pie / semicircle-donut layouts; applied by `getPieAngles`.
     addPieAngleOptions(builder);
-    // Slice-label placement (Outside / Inside / Center) — ECharts-only, gated to
-    // Advanced via `showIf: isAdvancedEditorMode`. Threaded into
-    // `getPieContentLabel` as `label.position`.
+    // Slice-label placement (Outside / Inside / Center) — ECharts-only, Advanced.
+    // Threaded into `getPieContentLabel` as `label.position`.
     addPieLabelPositionOptions(builder);
 
-    // Advanced-only pie legibility options (Tier 2). Each builder gates its own
-    // controls behind `showIf: isAdvancedEditorMode`, so they are hidden in
-    // Default mode and each omits its key at the default (stable snapshots).
+    // Advanced pie legibility options. Each builder gates its own controls behind
+    // Advanced editor mode and omits its key at the default.
     // Labels category:
     addPieLabelFontSizeOptions(builder);
     addPieLabelOverflowOptions(builder);
     addPieMinShowLabelAngleOptions(builder);
-    addPiePercentPrecisionOptions(builder);
     // Pie category:
     addPieSliceBorderOptions(builder);
     addPieRadiusCenterOptions(builder);
 
-    // Advanced (Tier 3) interactivity & polish options. Each builder gates its
-    // controls behind `showIf: isAdvancedEditorMode`, so Default hides them and
-    // each omits its ECharts key at the default (existing snapshots unchanged).
-    // See `.air/plans/pie-advanced-tier3-interactivity.plan.md`.
+    // Advanced interactivity & polish options. Each builder gates its controls
+    // behind Advanced editor mode and omits its ECharts key at the default.
     addPieSelectionOptions(builder); // Select / explode (selectedMode/selectedOffset)
     addPieBorderRadiusOptions(builder); // Rounded corners (itemStyle.borderRadius)
     addPieEmphasisOptions(builder); // Emphasis (emphasis.focus/scale)
@@ -124,8 +119,19 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     addPieLabelColorOptions(builder); // Label color (label.color)
     addPieAnimationTextStyleOptions(builder); // Animation + label text shadow/stroke
 
-    commonOptionsBuilder.addLegendOptions(builder);
-    commonOptionsBuilder.addTooltipOptions(builder);
+    // Standard legend options, but without the reducer "Values" stats-picker
+    // (`includeLegendCalcs: false`): an arbitrary reducer over a single-value
+    // slice is meaningless. The pie's own Percent / Value control replaces it.
+    commonOptionsBuilder.addLegendOptions(builder, false);
+    // Legend values (Percent / Value) — Grafana Pie chart parity. Rendered by
+    // `buildPieLegendItems`.
+    addPieLegendValueOptions(builder);
+
+    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
+    // The pie's own slice `sort` already governs tooltip row order (see
+    // `buildPieTooltip`), so the common tooltip's "Values sort order" control
+    // would be a no-op here. Drop it, keeping mode / hide-zeros / max size.
+    removeOption(builder, 'tooltip.sort');
 
     return builder;
   })

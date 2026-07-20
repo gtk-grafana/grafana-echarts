@@ -165,7 +165,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Advanced legibility: percent precision on near-equal shares (percentPrecision=2) + custom radius/center (innerRadius/outerRadius/centerX). Requires Advanced editor mode.",
+      "description": "Advanced legibility: custom radius/center (innerRadius/outerRadius/centerX). Requires Advanced editor mode.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -189,7 +189,6 @@
           "calcs": []
         },
         "displayLabels": ["name", "percent"],
-        "percentPrecision": 2,
         "innerRadius": 40,
         "outerRadius": 60,
         "centerX": 50,
@@ -228,7 +227,7 @@
           }
         }
       ],
-      "title": "Percent precision + custom radius/center",
+      "title": "Custom radius/center",
       "type": "grafana-echartsparttowhole-panel"
     }
   ],

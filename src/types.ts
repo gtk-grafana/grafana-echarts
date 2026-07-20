@@ -1,5 +1,10 @@
 import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
-import { type OptionsWithLegend, type OptionsWithTooltip, type SortOrder } from '@grafana/schema';
+import {
+  type OptionsWithLegend,
+  type OptionsWithTooltip,
+  type SortOrder,
+  type VizLegendOptions,
+} from '@grafana/schema';
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
 import {
   type EditorMode,
@@ -8,6 +13,7 @@ import {
   type PieLabel,
   type PieLabelOverflow,
   type PieLabelPosition,
+  type PieLegendValue,
   type PieRoseType,
   type PieSelectedMode,
   type SeriesTypeOption,
@@ -23,6 +29,17 @@ export type { EChartsFieldConfig } from 'editor/types';
 export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
 
 /**
+ * The standard Core Grafana `legend` (`VizLegendOptions`) plus the pie's
+ * `values` (Percent / Value), mirroring core Grafana's `PieChartLegendOptions`.
+ * A subtype of `VizLegendOptions`, so it satisfies `OptionsWithLegend` for the
+ * other chart families (which ignore `values`); only the pie reads it. See
+ * `addPieLegendValueOptions` and `buildPieLegendItems`.
+ */
+export interface PieChartLegendOptions extends VizLegendOptions {
+  values?: PieLegendValue[];
+}
+
+/**
  * `OptionsWithLegend` contributes the standard Core Grafana `legend`
  * (VizLegendOptions) config, registered via `commonOptionsBuilder.addLegendOptions`.
  *
@@ -35,6 +52,9 @@ export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
  * @todo we probably want to build options around echarts API instead of using Grafana's
  */
 export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, OptionsWithTooltip {
+  // Widen the inherited `legend` (`VizLegendOptions`) with the pie's `values`.
+  legend: PieChartLegendOptions;
+
   // Optional, and may be `'Auto'`: set by the cartesian panel's Series type
   // picker (default `'Auto'`), a Visualization Suggestion, or persisted dashboard
   // JSON; `undefined` on legacy panels. `resolveSeriesType` / `resolveChartModule`
@@ -159,13 +179,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * hidden (ECharts `series.minShowLabelAngle`). `0`/unset shows all labels.
    */
   minShowLabelAngle?: number;
-
-  /**
-   * Advanced-only: number of decimal places in the slice percent label. Unset
-   * uses `PIE_PERCENT_PRECISION_DEFAULT` (`1`), reproducing today's `33.3%`.
-   * See `sliceShare`.
-   */
-  percentPrecision?: number;
 
   /**
    * Advanced-only: slice separation border width in px (ECharts

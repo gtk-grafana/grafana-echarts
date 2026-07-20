@@ -4,7 +4,6 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 import {
   PIE_LABEL_POSITION_DEFAULT,
   PIE_LABELS_DEFAULT,
-  PIE_PERCENT_PRECISION_DEFAULT,
   PIE_ROSE_TYPE_DEFAULT,
   PIE_START_ANGLE_DEFAULT,
   PIE_TYPE_DEFAULT,
@@ -19,9 +18,9 @@ import {
   type PieSelectedMode,
 } from 'editor/types';
 import { type EChartPieDataItem } from 'lib/echarts/charts/types';
-import { type PieSliceModel } from 'lib/echarts/converters/pie';
+import { formatPieShare, getPieSliceFormatters, getPieSliceTotal } from 'lib/echarts/converters/pie';
+import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
-import { getValueFormatter } from 'lib/echarts/style';
 import { formatTooltipValue } from 'lib/echarts/tooltip/template';
 
 /** Base option for pie charts. Series data is merged at render time. */
@@ -42,10 +41,9 @@ const DONUT_INNER_RADIUS = '50%';
  * type": Pie / Donut). A donut is a pie with an inner hole (`[inner, outer]`); a
  * plain pie keeps a single outer radius. Unset falls back to `PIE_TYPE_DEFAULT`.
  *
- * The optional `innerRadius`/`outerRadius` (percentages, Advanced-only) override
- * the defaults: an `outerRadius` shrinks/grows the disc, and an `innerRadius`
- * carves a hole even for a plain pie. When neither is set, the pie-vs-donut
- * default logic (and existing snapshots) are unchanged.
+ * The optional `innerRadius`/`outerRadius` (percentages, Advanced) override the
+ * defaults: an `outerRadius` shrinks/grows the disc, and an `innerRadius` carves a
+ * hole even for a plain pie. When neither is set the pie-vs-donut default stands.
  * https://echarts.apache.org/en/option.html#series-pie.radius
  */
 export function getPieRadius(
@@ -65,8 +63,8 @@ export function getPieRadius(
 /**
  * ECharts pie `series.center` (`[x, y]` percentages) when the panel overrides the
  * center. Returns `undefined` when neither coordinate is set, so the ECharts
- * default (centered) is left untouched and existing snapshots stay stable. A
- * single provided axis keeps the other centered at `50%`. Advanced-only.
+ * default (centered) is left untouched. A single provided axis keeps the other
+ * centered at `50%`. Advanced-only.
  * https://echarts.apache.org/en/option.html#series-pie.center
  */
 export function getPieCenter(centerX?: number, centerY?: number): PieSeriesOption['center'] | undefined {
@@ -79,7 +77,7 @@ export function getPieCenter(centerX?: number, centerY?: number): PieSeriesOptio
 /**
  * ECharts pie `series.minShowLabelAngle`: hide the label on slices whose central
  * angle is below `angle` degrees (declutters many-slice pies). Returns `undefined`
- * for `0`/unset so nothing is written and all labels show (existing behavior).
+ * for `0`/unset so nothing is written and all labels show.
  * https://echarts.apache.org/en/option.html#series-pie.minShowLabelAngle
  */
 export function getPieMinShowLabelAngle(angle: number | undefined): number | undefined {
@@ -89,12 +87,11 @@ export function getPieMinShowLabelAngle(angle: number | undefined): number | und
 /**
  * ECharts pie `series.roseType` for the rose (Nightingale) rendering. `radius`
  * encodes each slice's value as its radius, `area` as its area; `none` (the
- * default) is a plain pie. The UI's `'none'` sentinel collapses to `undefined`
- * so ECharts falls back to its own default (a plain pie — equivalent to `false`),
- * keeping default renders (and snapshots) unchanged. `@types/echarts` types this
- * as `'radius' | 'area' | undefined` (it does not accept the runtime `false`), so
- * `undefined` is the type-safe "off" value. Unset falls back to
- * `PIE_ROSE_TYPE_DEFAULT`.
+ * default) is a plain pie. The UI's `'none'` sentinel collapses to `undefined` so
+ * ECharts falls back to its own default (a plain pie — equivalent to `false`).
+ * `@types/echarts` types this as `'radius' | 'area' | undefined` (it does not
+ * accept the runtime `false`), so `undefined` is the type-safe "off" value. Unset
+ * falls back to `PIE_ROSE_TYPE_DEFAULT`.
  * https://echarts.apache.org/en/option.html#series-pie.roseType
  */
 export function getPieRoseType(roseType: PieRoseType | undefined): PieSeriesOption['roseType'] {
@@ -106,20 +103,19 @@ export function getPieRoseType(roseType: PieRoseType | undefined): PieSeriesOpti
  * ECharts pie `series.minAngle` (degrees): the minimum angle of a slice, so tiny
  * long-tail slices are enlarged enough to stay visible and clickable. Returns the
  * value only when it is a positive finite number; `0`, negatives, and `undefined`
- * return `undefined` so the key is dropped at the ECharts default (`0`), keeping
- * existing renders/snapshots unchanged (the "omit when default" trick `getPieRadius`
- * relies on). https://echarts.apache.org/en/option.html#series-pie.minAngle
+ * return `undefined` so the key is dropped at the ECharts default (`0`).
+ * https://echarts.apache.org/en/option.html#series-pie.minAngle
  */
 export function getPieMinAngle(minAngle: number | undefined): PieSeriesOption['minAngle'] {
   return typeof minAngle === 'number' && minAngle > 0 ? minAngle : undefined;
 }
 
 /**
- * ECharts pie arc range (`series.startAngle` / `series.endAngle`, degrees) for
- * the Advanced "Start angle" / "End angle" options. Together they enable half-pie
- * / semicircle-donut layouts. Each key is spread only when it differs from its
+ * ECharts pie arc range (`series.startAngle` / `series.endAngle`, degrees) for the
+ * Advanced "Start angle" / "End angle" options. Together they enable half-pie /
+ * semicircle-donut layouts. Each key is spread only when it differs from its
  * ECharts default (start ≠ 90; end defined), so the default full pie leaves both
- * keys absent and its render/snapshots are unchanged.
+ * keys absent.
  * https://echarts.apache.org/en/option.html#series-pie.startAngle
  * https://echarts.apache.org/en/option.html#series-pie.endAngle
  */
@@ -164,10 +160,9 @@ export interface PieLabelStyleOptions {
  * shadow and a contrast stroke ("awful text shadow") in its own font; clearing
  * them and applying the theme makes labels match the rest of Grafana.
  *
- * Advanced options (Tier 3) override this: `color` replaces the theme text color,
- * and the `textShadow` / `textStroke` switches re-enable the zeroed shadow/stroke.
- * With no options (the default) the output is unchanged — the flat, theme-colored
- * label — so existing snapshots stay stable.
+ * Advanced options override this: `color` replaces the theme text color, and the
+ * `textShadow` / `textStroke` switches re-enable the zeroed shadow/stroke. With no
+ * options (the default) the output is the flat, theme-colored label.
  * https://echarts.apache.org/en/option.html#series-pie.label
  */
 export function getPieLabelStyle(theme: GrafanaTheme2, opts: PieLabelStyleOptions = {}): PieSeriesOption['label'] {
@@ -182,9 +177,9 @@ export function getPieLabelStyle(theme: GrafanaTheme2, opts: PieLabelStyleOption
     textShadowColor: textShadow ? theme.colors.background.canvas : 'transparent',
     textBorderWidth: textStroke ? PIE_LABEL_TEXT_BORDER_WIDTH : 0,
     ...(textStroke ? { textBorderColor: theme.colors.background.canvas } : {}),
-    // Advanced-only legibility overrides; omitted at the default so the theme size /
-    // no-wrap behavior (and existing snapshots) are unchanged. `overflow: 'none'` is
-    // the ECharts default, so it is treated as unset.
+    // Advanced legibility overrides, omitted at the default so the theme size /
+    // no-wrap behavior stands. `overflow: 'none'` is the ECharts default, so it is
+    // treated as unset.
     ...(fontSize ? { fontSize } : {}),
     ...(overflow && overflow !== 'none' ? { overflow } : {}),
     ...(width ? { width } : {}),
@@ -212,7 +207,7 @@ export function getPieSelection(
 /**
  * Resolve the Advanced "Rounded corners" value into an ECharts
  * `itemStyle.borderRadius`. A radius of 0 (the default) or unset returns
- * `undefined` so the key is omitted (square corners; snapshot-stable).
+ * `undefined` so the key is omitted (square corners).
  * https://echarts.apache.org/en/option.html#series-pie.itemStyle.borderRadius
  */
 export function getPieBorderRadius(radius: number | undefined): number | undefined {
@@ -220,12 +215,12 @@ export function getPieBorderRadius(radius: number | undefined): number | undefin
 }
 
 /**
- * Per-slice ECharts `itemStyle`, composing the slice color with the Advanced
- * shape options: the "Rounded corners" border radius (Tier 3) and the slice
- * separation border (`borderWidth`/`borderColor`, Tier 2). Keeping this in one
- * builder lets shape contributions merge without clobbering `{ color }`; each
- * optional key is added only when set (radius non-zero, `borderWidth > 0`) so the
- * default per-slice item style (and existing snapshots) are unchanged.
+ * Per-slice ECharts `itemStyle`, composing the slice color with the Advanced shape
+ * options: the "Rounded corners" border radius and the slice separation border
+ * (`borderWidth`/`borderColor`). Keeping this in one builder lets shape
+ * contributions merge without clobbering `{ color }`; each optional key is added
+ * only when set (radius non-zero, `borderWidth > 0`) so the default per-slice item
+ * style is unchanged.
  * https://echarts.apache.org/en/option.html#series-pie.itemStyle.borderRadius
  */
 export function getPieItemStyle(
@@ -264,8 +259,8 @@ export function getPieEmphasis(
 
 /**
  * ECharts pie zero-sum / empty-circle keys for the Advanced "Zero-sum / empty"
- * option. Both ECharts defaults are `true`, so each key is emitted only when set
- * to `false`; leaving the defaults returns `{}` (snapshot-stable).
+ * option. Both ECharts defaults are `true`, so each key is emitted only when set to
+ * `false`; leaving the defaults returns `{}`.
  * https://echarts.apache.org/en/option.html#series-pie.stillShowZeroSum
  */
 export function getPieEmptyState(
@@ -281,7 +276,7 @@ export function getPieEmptyState(
 /**
  * ECharts pie clockwise / avoid-label-overlap keys for the Advanced "Clockwise /
  * avoid overlap" option. Both ECharts defaults are `true`, so each key is emitted
- * only when set to `false`; leaving the defaults returns `{}` (snapshot-stable).
+ * only when set to `false`; leaving the defaults returns `{}`.
  * https://echarts.apache.org/en/option.html#series-pie.clockwise
  */
 export function getPieOrientation(
@@ -295,43 +290,24 @@ export function getPieOrientation(
 }
 
 /**
- * Slice's share of the visible total, as a percentage string. `precision` decimal
- * places (default `PIE_PERCENT_PRECISION_DEFAULT` = 1, no trailing `.0` because the
- * rounded number is stringified). Advanced `percentPrecision` overrides it.
- */
-function sliceShare(
-  value: number | undefined,
-  total: number,
-  precision: number = PIE_PERCENT_PRECISION_DEFAULT
-): string {
-  if (value == null || total <= 0) {
-    return '0%';
-  }
-  const factor = Math.pow(10, precision);
-  return `${Math.round((value / total) * 100 * factor) / factor}%`;
-}
-
-/**
  * ECharts pie `series.label` for the selected slice-label content (Grafana Pie
  * chart "Labels": Name / Value / Percent). Mirrors core: each selected label is a
  * line, in Name → Value → Percent order; the value formats with the slice field's
  * unit/decimals (like the tooltip) and the percent is the slice's share of the
- * visible total (so labels and tooltip agree). `slices` are the visible slices in
- * render (dataIndex) order.
+ * visible total (so labels and tooltip agree), rendered with the field's `decimals`
+ * (whole numbers by default). `slices` are the visible slices in render (dataIndex)
+ * order.
  *
  * An unset `labels` (`undefined`) falls back to `PIE_LABELS_DEFAULT` (the slice
  * name); an explicit empty selection (the user deselecting every label) hides the
  * label.
  *
- * `labelOptions` carries the Advanced-only overrides: legibility (font size,
- * overflow/width, percent precision) and `position`. All default to unset, leaving
- * the styling and `33.3%` percent output unchanged. `position` places the labels:
- * `outside` (leader lines, ECharts' default), `inside` (on the slice), or `center`
- * (the donut hole); unset falls back to `PIE_LABEL_POSITION_DEFAULT` (`outside`).
- * See https://echarts.apache.org/en/option.html#series-pie.label.position.
+ * `labelOptions` carries the Advanced overrides: legibility (font size,
+ * overflow/width) and `position`. `position` places the labels: `outside` (leader
+ * lines, ECharts' default), `inside` (on the slice), or `center` (the donut hole);
+ * unset falls back to `PIE_LABEL_POSITION_DEFAULT` (`outside`).
  */
 export interface PieLabelOptions extends PieLabelStyleOptions {
-  percentPrecision?: number;
   position?: PieLabelPosition;
 }
 
@@ -342,7 +318,7 @@ export function getPieContentLabel(
   timeZone?: string,
   labelOptions: PieLabelOptions = {}
 ): PieSeriesOption['label'] {
-  const { percentPrecision, position, ...styleOptions } = labelOptions;
+  const { position, ...styleOptions } = labelOptions;
   const style = getPieLabelStyle(theme, styleOptions);
   const resolvedPosition = position ?? PIE_LABEL_POSITION_DEFAULT;
   const selected = labels ?? PIE_LABELS_DEFAULT;
@@ -352,8 +328,8 @@ export function getPieContentLabel(
 
   // Precompute each slice's label lines once; the formatter closure indexes them
   // by dataIndex on every draw.
-  const formatters = slices.map((slice) => getValueFormatter(slice.field, theme, timeZone));
-  const total = slices.reduce((sum, slice) => sum + (slice.value ?? 0), 0);
+  const formatters = getPieSliceFormatters(slices, theme, timeZone);
+  const total = getPieSliceTotal(slices);
   const lines = slices.map((slice, index) => {
     const parts: string[] = [];
     if (selected.includes('name')) {
@@ -363,7 +339,7 @@ export function getPieContentLabel(
       parts.push(formatTooltipValue(slice.value ?? null, formatters[index]));
     }
     if (selected.includes('percent')) {
-      parts.push(sliceShare(slice.value, total, percentPrecision));
+      parts.push(formatPieShare(slice.value, total, slice.field.config.decimals));
     }
     return parts.join('\n');
   });
@@ -372,6 +348,6 @@ export function getPieContentLabel(
     ...style,
     position: resolvedPosition,
     show: true,
-    formatter: (params) => (typeof params.dataIndex === 'number' ? (lines[params.dataIndex] ?? '') : ''),
+    formatter: (params) => lines[params.dataIndex],
   };
 }

@@ -1,7 +1,7 @@
 import { type ReduceDataOptions } from '@grafana/data';
 import { type SortOrder, TooltipDisplayMode } from '@grafana/schema';
-import { PIE_SORT_DEFAULT } from 'editor/constants';
-import { resolvePieSlices } from 'lib/echarts/converters/pie';
+import { PIE_LEGEND_VALUES_DEFAULT, PIE_SORT_DEFAULT } from 'editor/constants';
+import { getPieSliceFormatters, resolvePieSlices } from 'lib/echarts/converters/pie';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
 import {
@@ -20,7 +20,6 @@ import {
   getPieSelection,
   pieDefaultOptions,
 } from 'lib/echarts/options/pie';
-import { getValueFormatter } from 'lib/echarts/style';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
 import { type ChartContext, type ChartModule, type EChartPieDataItem, type EChartPieSeriesOption } from './types';
@@ -30,11 +29,6 @@ const resolveSort = (ctx: ChartContext): SortOrder => ctx.options.sort ?? PIE_SO
 
 export const pieChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
-
-  // The pie reads hidden slices by category name in `resolvePieSlices`, so the
-  // panel must not pre-strip numeric value fields (which would drop the pie's
-  // only value field). See `buildPanelChartOption`.
-  readsHiddenSeriesInternally: true,
 
   getTooltipValueFormatter(ctx) {
     // Per-slice formatter (by dataIndex) so each slice honors its own field's
@@ -49,7 +43,7 @@ export const pieChartModule: ChartModule = {
       ctx.timeZone,
       resolveSort(ctx)
     ).filter((slice) => !slice.hidden);
-    const formatters = visible.map((slice) => getValueFormatter(slice.field, ctx.theme, ctx.timeZone));
+    const formatters = getPieSliceFormatters(visible, ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
   },
 
@@ -71,21 +65,21 @@ export const pieChartModule: ChartModule = {
       return null;
     }
 
-    // Advanced "Rounded corners": resolved once and merged into every slice's
-    // itemStyle (preserving the per-slice color). 0/unset → omitted.
+    // Rounded corners (Advanced): resolved once and merged into every slice's
+    // itemStyle, preserving the per-slice color. 0/unset → omitted.
     const borderRadius = getPieBorderRadius(options.sliceBorderRadius);
     const visible = slices.filter((slice) => !slice.hidden);
     const data: EChartPieDataItem[] = visible.map((slice) => ({
       name: slice.name,
       // ECharts pie values are numeric-only; undefined renders an empty slice.
       value: slice.value,
-      // Per-slice color, plus Advanced-only rounded corners (Tier 3) and slice
-      // separation border (Tier 2). All extras omitted at their defaults.
+      // Per-slice color plus the Advanced rounded corners and slice-separation
+      // border; every extra is omitted at its default.
       itemStyle: getPieItemStyle(slice.color, borderRadius, options.sliceBorderWidth, options.sliceBorderColor),
     }));
 
-    // Advanced "Emphasis" (hover state): omitted entirely at the `none`/unset
-    // default so the default hover behavior is unchanged.
+    // Hover emphasis (Advanced): omitted at the `none`/unset default so the
+    // default hover behavior is unchanged.
     const emphasis = getPieEmphasis(options.emphasisFocus, options.emphasisScale);
 
     const legend = isGrafanaLegend
@@ -97,8 +91,9 @@ export const pieChartModule: ChartModule = {
         );
 
     const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
+    const hideZeros = options.tooltip?.hideZeros ?? false;
 
-    // Advanced-only center override and min-angle-to-show-label; both omitted at
+    // Center override and min-angle-to-show-label (Advanced): both omitted at
     // their defaults so the ECharts default (centered, all labels shown) stands.
     const center = getPieCenter(options.centerX, options.centerY);
     const minShowLabelAngle = getPieMinShowLabelAngle(options.minShowLabelAngle);
@@ -114,42 +109,38 @@ export const pieChartModule: ChartModule = {
           // `zLevel.series`), matching the other families so layered canvas
           // capture can isolate it (also what the canvas tests read).
           zlevel: options.zLevel?.series,
-          // Pie vs donut (inner hole) from the panel's "Pie chart type" option,
-          // with Advanced-only inner/outer radius overrides.
+          // Pie vs donut (inner hole) from the "Pie chart type" option, with the
+          // Advanced inner/outer radius overrides.
           radius: getPieRadius(options.pieType, options.innerRadius, options.outerRadius),
-          // Advanced-only center offset (percentages).
+          // Advanced center offset (percentages).
           ...(center ? { center } : {}),
-          // Rose (Nightingale) rendering from the Advanced "Rose type" option;
-          // `none`/unset → `false`, so a plain pie is unchanged. See `getPieRoseType`.
+          // Rose (Nightingale) rendering; `none`/unset keeps a plain pie.
           roseType: getPieRoseType(options.roseType),
-          // Advanced-only min slice angle (degrees): enlarge tiny long-tail slices
-          // so they stay visible/clickable. Omitted (undefined) at the default 0.
+          // Min slice angle (degrees): enlarge tiny long-tail slices so they stay
+          // visible/clickable. Omitted at the default 0.
           minAngle: getPieMinAngle(options.minAngle),
-          // Advanced arc range (Start / End angle). Omitted at the defaults
-          // (start 90 / end auto), keeping the full-pie render unchanged.
+          // Arc range (Start / End angle): omitted at the defaults, keeping the
+          // full-pie render.
           ...getPieAngles(options.startAngle, options.endAngle),
-          // Advanced-only: hide labels on slices below this central angle.
+          // Hide labels on slices below this central angle.
           ...(minShowLabelAngle != null ? { minShowLabelAngle } : {}),
-          // Advanced "Select / explode": selectedMode (+ selectedOffset). `off`
-          // maps to `selectedMode: false` (the ECharts default), so unchanged.
+          // Select / explode: `off` maps to `selectedMode: false` (unchanged).
           ...getPieSelection(options.selectedMode, options.selectedOffset),
-          // Advanced "Emphasis": hover focus/scale. Omitted at defaults.
+          // Hover emphasis focus/scale; omitted at defaults.
           ...(emphasis ? { emphasis } : {}),
-          // Advanced "Zero-sum / empty": stillShowZeroSum / showEmptyCircle.
-          // Each key emitted only when it differs from the ECharts `true` default.
+          // Zero-sum / empty circle: each key emitted only when it differs from
+          // the ECharts `true` default.
           ...getPieEmptyState(options.stillShowZeroSum, options.showEmptyCircle),
-          // Advanced "Clockwise / avoid overlap": clockwise / avoidLabelOverlap.
-          // Each key emitted only when it differs from the ECharts `true` default.
+          // Clockwise / avoid label overlap: each key emitted only when it differs
+          // from the ECharts `true` default.
           ...getPieOrientation(options.clockwise, options.avoidLabelOverlap),
           // Grafana-styled slice labels; content (Name/Value/Percent) from the
-          // panel's "Labels" option. No selection → labels hidden (core parity).
-          // Advanced-only placement (Outside/Inside/Center), legibility (font size /
-          // overflow / percent precision) and color / text shadow / stroke threaded in.
+          // "Labels" option. No selection → labels hidden (core parity). Advanced
+          // placement, legibility, and color / text shadow / stroke threaded in.
           label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone, {
             fontSize: options.labelFontSize,
             overflow: options.labelOverflow,
             width: options.labelWidth,
-            percentPrecision: options.percentPrecision,
             position: options.labelPosition,
             color: options.labelColor,
             textShadow: options.labelTextShadow,
@@ -159,17 +150,20 @@ export const pieChartModule: ChartModule = {
           // mode, where the panel disables the tooltip entirely.
           ...(tooltipMode === TooltipDisplayMode.None
             ? {}
-            : { tooltip: { formatter: buildPieTooltip(visible, tooltipMode, theme, ctx.timeZone) } }),
+            : { tooltip: { formatter: buildPieTooltip(visible, tooltipMode, theme, ctx.timeZone, hideZeros) } }),
         },
       ],
     };
   },
 
-  buildLegendItems(ctx, calcs) {
+  // The pie legend's value columns come from its own Percent / Value option
+  // (`legend.values`), not the generic reducer `calcs` — a reducer over a
+  // single-value slice is meaningless — so the `calcs` param is ignored here.
+  buildLegendItems(ctx) {
     return buildPieLegendItems(
       ctx.frames,
       ctx.theme,
-      calcs,
+      ctx.options.legend?.values ?? PIE_LEGEND_VALUES_DEFAULT,
       ctx.fieldConfig,
       resolveReduceOptions(ctx),
       ctx.replaceVariables,

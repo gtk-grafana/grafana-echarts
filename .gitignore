@@ -58,3 +58,4 @@ provisioning/dashboards/gdev/*
 
 .cursor/plans/local
 .air
+/.claude/worktrees

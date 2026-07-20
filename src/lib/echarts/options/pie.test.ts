@@ -1,7 +1,7 @@
 import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/data';
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
-import { type PieSliceModel } from 'lib/echarts/converters/pie';
+import { type PieSliceModel } from 'lib/echarts/converters/types';
 import {
   getPieAngles,
   getPieBorderRadius,
@@ -85,20 +85,16 @@ describe('getPieContentLabel', () => {
     expect(renderLabel(['percent'], model, 2)).toBe('20%');
   });
 
-  it('renders non-round percentages to one decimal (dropping a trailing .0)', () => {
+  it('rounds percent to a whole number by default (core Grafana)', () => {
     const model = [makeSlice('A', 1), makeSlice('B', 2)]; // total 3
-    expect(renderLabel(['percent'], model, 0)).toBe('33.3%');
-    expect(renderLabel(['percent'], model, 1)).toBe('66.7%');
+    expect(renderLabel(['percent'], model, 0)).toBe('33%');
+    expect(renderLabel(['percent'], model, 1)).toBe('67%');
   });
 
-  it('honors a custom percent precision (Advanced `percentPrecision`)', () => {
-    const model = [makeSlice('A', 1), makeSlice('B', 2)]; // total 3 → 33.333…%
-    // Default (unset) keeps the one-decimal output.
+  it("honors the slice field's decimals for the percent", () => {
+    const model = [makeSlice('A', 1, { decimals: 1 }), makeSlice('B', 2, { decimals: 1 })]; // total 3
     expect(renderLabel(['percent'], model, 0)).toBe('33.3%');
-    // Two decimals distinguishes near-equal shares.
-    expect(renderLabel(['percent'], model, 0, { percentPrecision: 2 })).toBe('33.33%');
-    // Zero decimals rounds to a whole percent.
-    expect(renderLabel(['percent'], model, 0, { percentPrecision: 0 })).toBe('33%');
+    expect(renderLabel(['percent'], model, 1)).toBe('66.7%');
   });
 
   it('stacks multiple selected labels in Name → Value → Percent order (one per line)', () => {

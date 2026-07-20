@@ -9,7 +9,7 @@ import {
   toDataFrame,
 } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
-import { resolvePieSlices } from 'lib/echarts/converters/pie';
+import { formatPieShare, resolvePieSlices } from 'lib/echarts/converters/pie';
 
 const theme = createTheme();
 const emptyConfig: FieldConfigSource = { defaults: {}, overrides: [] };
@@ -48,16 +48,6 @@ const rowsFrame = (): DataFrame =>
     fields: [
       { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT', 'Ops'] },
       { name: 'value', type: FieldType.number, values: [10, 20, 30, 40] },
-    ],
-  });
-
-// A value column that arrived as text (no convertFieldType transform); the label
-// column stays a genuine category and is excluded from the slices.
-const numericStringFrame = (): DataFrame =>
-  toDataFrame({
-    fields: [
-      { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT'] },
-      { name: 'value', type: FieldType.string, values: ['43', '10', '30'] },
     ],
   });
 
@@ -115,12 +105,6 @@ describe('resolvePieSlices', () => {
       ]);
     });
 
-    it('coerces a numeric-string field into a slice', () => {
-      // 'category' is a genuine label (excluded); 'value' is numeric text.
-      const slices = resolvePieSlices([numericStringFrame()], theme, emptyConfig, calculate('sum'), noopReplace);
-      expect(slices.map((slice) => ({ name: slice.name, value: slice.value }))).toEqual([{ name: 'value', value: 83 }]);
-    });
-
     it('marks slices visible with string colors, and lets a fixed-color override win', () => {
       const slices = resolvePieSlices([wideFrame()], theme, emptyConfig, calculate('sum'), noopReplace);
       expect(slices.every((slice) => slice.hidden === false)).toBe(true);
@@ -134,6 +118,21 @@ describe('resolvePieSlices', () => {
         noopReplace
       );
       expect(overridden.find((slice) => slice.name === 'B')!.color).toBe('#123456');
+    });
+
+    it('resolves a named override color through the theme (not a raw Grafana color name)', () => {
+      // Grafana color pickers store palette names (e.g. `dark-red`), which ECharts
+      // cannot render; the slice color must be the theme-resolved CSS color.
+      const slices = resolvePieSlices(
+        [wideFrame()],
+        theme,
+        colorConfig('B', 'dark-red'),
+        calculate('sum'),
+        noopReplace
+      );
+      const color = slices.find((slice) => slice.name === 'B')!.color;
+      expect(color).toBe(theme.visualization.getColorByName('dark-red'));
+      expect(color).toMatch(/^#/);
     });
 
     it('flags a field hidden via a hideSeriesFrom override', () => {
@@ -218,6 +217,77 @@ describe('resolvePieSlices', () => {
     const [a] = resolvePieSlices([wideFrame()], theme, emptyConfig, calculate('sum'), noopReplace);
     // The slice field holds the reduced value regardless of the reducer used.
     expect(reduceField({ field: a.field, reducers: ['last'] }).last).toBe(60);
+  });
+
+  describe('override matching by field name (byName parity)', () => {
+    // Frames whose display name (from the frame name) differs from the raw field
+    // name, and NO `displayName` override is defined — the case where overrides
+    // previously only worked once a displayName override pinned the title.
+    const distinctNameFrames = (): DataFrame[] => [
+      toDataFrame({ name: 'Sales', fields: [{ name: 'sales_total', type: FieldType.number, values: [43] }] }),
+      toDataFrame({ name: 'Admin', fields: [{ name: 'admin_total', type: FieldType.number, values: [25] }] }),
+    ];
+
+    const hideByName = (name: string): FieldConfigSource => ({
+      defaults: {},
+      overrides: [
+        {
+          matcher: { id: 'byName', options: name },
+          properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: true } }],
+        },
+      ],
+    });
+
+    // sales_total reduces to 43, admin_total to 25 — identify slices by value
+    // since the display name is compound (frame + field name).
+    it('applies a fixed-color override targeting the raw field name', () => {
+      const slices = resolvePieSlices(
+        distinctNameFrames(),
+        theme,
+        colorConfig('sales_total', '#abcdef'),
+        calculate('sum'),
+        noopReplace
+      );
+      expect(slices.find((slice) => slice.value === 43)?.color).toBe('#abcdef');
+      expect(slices.find((slice) => slice.value === 25)?.color).not.toBe('#abcdef');
+    });
+
+    it('applies a hideFrom override targeting the raw field name', () => {
+      const slices = resolvePieSlices(
+        distinctNameFrames(),
+        theme,
+        hideByName('sales_total'),
+        calculate('sum'),
+        noopReplace
+      );
+      expect(slices.find((slice) => slice.value === 43)?.hidden).toBe(true);
+      expect(slices.find((slice) => slice.value === 25)?.hidden).toBe(false);
+    });
+
+    it('still matches by display name when that is what the override targets', () => {
+      const displayName = resolvePieSlices(
+        distinctNameFrames(),
+        theme,
+        emptyConfig,
+        calculate('sum'),
+        noopReplace
+      ).find((slice) => slice.value === 43)!.name;
+      const slices = resolvePieSlices(
+        distinctNameFrames(),
+        theme,
+        colorConfig(displayName, '#abcdef'),
+        calculate('sum'),
+        noopReplace
+      );
+      expect(slices.find((slice) => slice.value === 43)?.color).toBe('#abcdef');
+    });
+
+    it('does not alias by the shared value-field name in All values mode', () => {
+      // Every row shares the 'value' field name; a byName 'value' override must
+      // not hide (or recolor) every row.
+      const slices = resolvePieSlices([rowsFrame()], theme, hideByName('value'), allValues(), noopReplace);
+      expect(slices.every((slice) => slice.hidden === false)).toBe(true);
+    });
   });
 
   describe('slice sorting', () => {
@@ -313,5 +383,53 @@ describe('resolvePieSlices', () => {
       );
       expect(asc.map((slice) => slice.name)).toEqual(['A', 'C', 'B']);
     });
+  });
+
+  // The chart option, tooltip, and legend paths all resolve slices with identical
+  // inputs in a single render; the resolver memoizes per `series` reference so the
+  // underlying `getFieldDisplayValues` reduction runs once.
+  describe('memoization', () => {
+    it('returns the identical model for repeated calls with the same frames and inputs', () => {
+      const frames = [wideFrame()];
+      const reduce = calculate('sum');
+      const first = resolvePieSlices(frames, theme, emptyConfig, reduce, noopReplace);
+      const second = resolvePieSlices(frames, theme, emptyConfig, reduce, noopReplace);
+      expect(second).toBe(first);
+    });
+
+    it('recomputes when an input changes', () => {
+      const frames = [wideFrame()];
+      const sum = resolvePieSlices(frames, theme, emptyConfig, calculate('sum'), noopReplace);
+      const max = resolvePieSlices(frames, theme, emptyConfig, calculate('max'), noopReplace);
+      expect(max).not.toBe(sum);
+      expect(max.map((slice) => slice.value)).not.toEqual(sum.map((slice) => slice.value));
+    });
+
+    it('keeps a separate entry per frames reference', () => {
+      const reduce = calculate('sum');
+      const a = resolvePieSlices([wideFrame()], theme, emptyConfig, reduce, noopReplace);
+      const b = resolvePieSlices([wideFrame()], theme, emptyConfig, reduce, noopReplace);
+      expect(b).not.toBe(a);
+    });
+  });
+});
+
+// Shared share formatter used by both the slice labels and the tooltip (via
+// Grafana's `percent` value formatter), so a single rule keeps them in agreement.
+describe('formatPieShare', () => {
+  it("formats a share with Grafana's percent formatter, whole number by default", () => {
+    expect(formatPieShare(25, 100)).toBe('25%');
+    expect(formatPieShare(1, 3)).toBe('33%');
+  });
+
+  it('honors the provided decimals', () => {
+    expect(formatPieShare(1, 3, 1)).toBe('33.3%');
+    expect(formatPieShare(25, 100, 2)).toBe('25.00%');
+  });
+
+  it('returns 0% for empty values or a non-positive total', () => {
+    expect(formatPieShare(undefined, 100)).toBe('0%');
+    expect(formatPieShare(10, 0)).toBe('0%');
+    expect(formatPieShare(10, -5)).toBe('0%');
   });
 });
