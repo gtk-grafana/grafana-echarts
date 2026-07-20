@@ -111,14 +111,20 @@ const allHiddenFieldConfig: FieldConfigSource = {
   overrides: [hideAllOverride],
 };
 
-const makeContext = (frames: DataFrame[], seriesType: SeriesType, fieldConfig: FieldConfigSource): ChartContext => ({
+const makeContext = (
+  frames: DataFrame[],
+  seriesType: SeriesType,
+  fieldConfig: FieldConfigSource,
+  extraOptions?: Partial<PanelOptions>
+): ChartContext => ({
   frames,
   theme: createTheme(),
   timeZone: 'utc',
   timeRange,
-  options: { [seriesTypePath]: seriesType, legend } as PanelOptions,
+  options: { [seriesTypePath]: seriesType, legend, ...extraOptions } as PanelOptions,
   seriesType,
   formatValue,
+  replaceVariables: (value: string) => value,
   fieldConfig,
 });
 
@@ -212,5 +218,87 @@ describe('buildPanelChartOption with no series hidden', () => {
     // Cell layer plus the cartesian overlay.
     expect(seriesArray(option)).toHaveLength(2);
     expect(option).toHaveProperty('visualMap');
+  });
+});
+
+// Regression for "Invalid chart option resolved for pie" (the provisioned
+// Legend Visibility & Color dashboard). A pie hides slices by *category* name,
+// but the shared pre-strip hides by *numeric field* name — with an exclude-mode
+// `hideSeriesFrom` keeping only slice names, it dropped the pie's single `value`
+// field, so the converter returned null and the build threw. The pie series type
+// is now excluded from the pre-strip (see `pieSeriesTypes` in
+// `buildPanelChartOption`) and reads hidden slices itself.
+describe('buildPanelChartOption for the pie (row/series family)', () => {
+  // A wide pie source frame: each numeric field is one slice (Grafana's default),
+  // named after the field so the legend visibility/color overrides target it.
+  const pieFrame = (): DataFrame =>
+    toDataFrame({
+      fields: [
+        { name: 'Sales', type: FieldType.number, values: [43], config: { displayName: 'Sales' } },
+        { name: 'Admin', type: FieldType.number, values: [25], config: { displayName: 'Admin' } },
+        { name: 'IT', type: FieldType.number, values: [30], config: { displayName: 'IT' } },
+        { name: 'Support', type: FieldType.number, values: [48], config: { displayName: 'Support' } },
+        { name: 'Ops', type: FieldType.number, values: [22], config: { displayName: 'Ops' } },
+      ],
+    });
+
+  // The `hideSeriesFrom` system override the visibility toggle writes: keep every
+  // slice except 'Ops' (exclude mode), so 'Ops' is hidden from the viz.
+  const pieHideOverride: SystemConfigOverrideRule = {
+    __systemRef: 'hideSeriesFrom',
+    matcher: {
+      id: FieldMatcherID.byNames,
+      options: {
+        mode: ByNamesMatcherMode.exclude,
+        names: ['Sales', 'Admin', 'IT', 'Support'],
+        prefix: 'All except:',
+        readOnly: true,
+      },
+    },
+    properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: true } }],
+  };
+
+  // Legend interactions as core writes them: a fixed-color override pins 'Sales'
+  // purple, plus the `hideSeriesFrom` override above.
+  const pieLegendFieldConfig: FieldConfigSource = {
+    defaults: {},
+    overrides: [
+      {
+        matcher: { id: FieldMatcherID.byName, options: 'Sales' },
+        properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'purple' } }],
+      },
+      pieHideOverride,
+    ],
+  };
+
+  const pieData = (option: PanelOption): Array<{ name?: string; itemStyle?: { color?: string } }> => {
+    const [series] = seriesArray(option);
+    return (series as { data?: Array<{ name?: string; itemStyle?: { color?: string } }> })?.data ?? [];
+  };
+
+  it('builds without throwing and drops the hidden slice', () => {
+    const build = () =>
+      buildPanelChartOption(makeContext([pieFrame()], 'pie', pieLegendFieldConfig), {
+        isGrafanaLegend: true,
+      });
+
+    expect(build).not.toThrow();
+    // Slices are ordered by the default sort (Descending): Support 48, Sales 43,
+    // IT 30, Admin 25. 'Ops' (22) is hidden and dropped from the chart data.
+    const names = pieData(build()).map((slice) => slice.name);
+    expect(names).toEqual(['Support', 'Sales', 'IT', 'Admin']);
+    expect(names).not.toContain('Ops');
+  });
+
+  it('applies the fixed-color override to the matching slice (theme-resolved)', () => {
+    const option = buildPanelChartOption(makeContext([pieFrame()], 'pie', pieLegendFieldConfig), {
+      isGrafanaLegend: true,
+    });
+
+    // The override stores the Grafana color name 'purple'; the slice must carry the
+    // theme-resolved CSS color so ECharts can render it.
+    expect(pieData(option).find((slice) => slice.name === 'Sales')?.itemStyle?.color).toBe(
+      createTheme().visualization.getColorByName('purple')
+    );
   });
 });

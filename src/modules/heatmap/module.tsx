@@ -1,6 +1,11 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { cartesianOverrideOptions, heatmapLegendCategoryName, seriesCategoryName } from 'editor/constants';
+import {
+  cartesianOverrideOptions,
+  heatmapLegendCategoryName,
+  seriesCategoryName,
+  TOOLTIP_DEFAULT_OPTIONS,
+} from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { heatmapColorSchemeDefault, heatmapLayoutDefault } from 'lib/echarts/options/constants';
@@ -100,7 +105,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // legend in the editor UI because the field config is applied to the data frame after the panel options are already
     // built. So we don't have the field config override that we want to know if a field has been selected to render as a cartesian series.
     commonOptionsBuilder.addLegendOptions(builder);
-    commonOptionsBuilder.addTooltipOptions(builder);
+    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
 
     return builder;
   })

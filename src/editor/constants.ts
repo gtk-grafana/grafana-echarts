@@ -1,4 +1,5 @@
-import { DataFrameType, type SelectableValue } from '@grafana/data';
+import { DataFrameType, ReducerID, type SelectableValue } from '@grafana/data';
+import { type OptionsWithTooltip, SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import {
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
@@ -6,6 +7,9 @@ import {
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type MultiValueSeriesType,
+  type PieChartType,
+  type PieLabel,
+  type PieLegendValue,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -82,10 +86,96 @@ export const heatmapLegendCategoryName = 'Heatmap legend';
  */
 export const radarSeriesTypes: SeriesType[] = ['radar'];
 /**
- * Pie (and pie-like) types built from the categorical model: each category is a
- * slice valued by the first numeric field. See echarts/converters/pie.ts.
+ * Pie (and pie-like) types built from the categorical model. Slices come from
+ * Grafana's standard reduce options via `getFieldDisplayValues`; see
+ * echarts/converters/pie.ts (`resolvePieSlices`).
  */
 export const pieSeriesTypes: SeriesType[] = ['pie'];
+/**
+ * Default slice reducer, passed to `addStandardDataReduceOptions` as the pie's
+ * default `reduceOptions.calcs`. Sum suits a part-to-whole (each slice is a share
+ * of the total), unlike Grafana stat/gauge which default to `lastNotNull`.
+ */
+export const PIE_CALC_DEFAULT: string = ReducerID.sum;
+/**
+ * Editor category for pie chart-shape options. Named "Pie" (not core's "Pie
+ * chart") so future ECharts-specific shape options (rose type, radius, center)
+ * can join it.
+ */
+export const pieTypeCategoryName = 'Pie';
+/** Panel option path for the pie chart type (Pie / Donut). Matches core's `pieType`. */
+export const pieTypePath = 'pieType';
+/** Pie chart type options (Grafana Pie chart "Pie chart type" parity). */
+export const pieTypeOptions: Array<SelectableValue<PieChartType>> = [
+  { value: 'pie', label: 'Pie' },
+  { value: 'donut', label: 'Donut' },
+];
+/** Default pie chart type: a full pie (matches core Grafana). */
+export const PIE_TYPE_DEFAULT: PieChartType = 'pie';
+/** Panel option path for pie slice sorting. Matches core's `sort`. */
+export const pieSortPath = 'sort';
+/** Pie slice sort options (Grafana Pie chart "Slice sorting" parity). */
+export const pieSortOptions: Array<SelectableValue<SortOrder>> = [
+  { value: SortOrder.Descending, label: 'Descending' },
+  { value: SortOrder.Ascending, label: 'Ascending' },
+  { value: SortOrder.None, label: 'None' },
+];
+/** Default slice sort: descending by value (largest first), matching core Grafana. */
+export const PIE_SORT_DEFAULT: SortOrder = SortOrder.Descending;
+/**
+ * Default tooltip options passed to `commonOptionsBuilder.addTooltipOptions`.
+ * The builder only renders the "Hide zeros" switch when `tooltip.hideZeros` is
+ * defined here (mirrors core's exported `optsWithHideZeros`), so this is what
+ * opts every family into the full common-tooltip control set.
+ */
+export const TOOLTIP_DEFAULT_OPTIONS: Partial<OptionsWithTooltip> = {
+  tooltip: { mode: TooltipDisplayMode.Single, sort: SortOrder.None, hideZeros: false },
+};
+/**
+ * Editor category for pie slice-label options. Named "Labels" (not core's "Pie
+ * chart") so future ECharts-specific label options can join it.
+ */
+export const pieLabelsCategoryName = 'Labels';
+/** Panel option path for the pie slice-label content multi-select. */
+export const pieLabelsPath = 'displayLabels';
+/**
+ * Pie slice-label content options (Grafana Pie chart "Labels" parity). Order
+ * mirrors core: Percent, Name, Value.
+ */
+export const pieLabelOptions: Array<SelectableValue<PieLabel>> = [
+  { value: 'percent', label: 'Percent' },
+  { value: 'name', label: 'Name' },
+  { value: 'value', label: 'Value' },
+];
+/**
+ * Default slice labels for a fresh/unset panel: the slice name. Applied both as
+ * the editor default and as the render fallback when `displayLabels` is unset.
+ * An explicit empty selection (the user deselecting every label) is distinct and
+ * hides the labels — see `getPieContentLabel`.
+ */
+export const PIE_LABELS_DEFAULT: PieLabel = 'name';
+/**
+ * Editor category for the pie "Legend values" control. Uses the same "Legend"
+ * name as `commonOptionsBuilder.addLegendOptions` so the control joins the
+ * standard Legend section rather than a separate one.
+ */
+export const pieLegendCategoryName = 'Legend';
+/**
+ * Panel option path for the pie legend values multi-select. Nested under
+ * `legend` to match core Grafana's pie JSON (`legend.values`).
+ */
+export const pieLegendValuesPath = 'legend.values';
+/** Pie legend value options (Grafana Pie chart "Legend values" parity). */
+export const pieLegendValueOptions: Array<SelectableValue<PieLegendValue>> = [
+  { value: 'percent', label: 'Percent' },
+  { value: 'value', label: 'Value' },
+];
+/**
+ * Default legend values for a fresh/unset panel: none (slice names only),
+ * matching the standard legend's empty `calcs` default. The user opts into
+ * Percent / Value. See `buildPieLegendItems`.
+ */
+export const PIE_LEGEND_VALUES_DEFAULT: PieLegendValue[] = [];
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to
  * render as a heatmap (each numeric field becomes a bucket row), even when the

@@ -1,7 +1,12 @@
-import { type StandardOptionConfig } from '@grafana/data';
-import { type OptionsWithLegend, type OptionsWithTooltip } from '@grafana/schema';
+import { type ReduceDataOptions, type StandardOptionConfig } from '@grafana/data';
+import {
+  type OptionsWithLegend,
+  type OptionsWithTooltip,
+  type SortOrder,
+  type VizLegendOptions,
+} from '@grafana/schema';
 import { type seriesTypePath } from 'editor/constants';
-import { type SeriesTypeOption } from 'editor/types';
+import { type PieChartType, type PieLabel, type PieLegendValue, type SeriesTypeOption } from 'editor/types';
 
 import {
   type HeatmapColorScalePlacement,
@@ -24,7 +29,21 @@ export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
  *
  * @todo we probably want to build options around echarts API instead of using Grafana's
  */
+/**
+ * The standard Core Grafana `legend` (`VizLegendOptions`) plus the pie's
+ * `values` (Percent / Value), mirroring core Grafana's `PieChartLegendOptions`.
+ * A subtype of `VizLegendOptions`, so it satisfies `OptionsWithLegend` for the
+ * other chart families (which ignore `values`); only the pie reads it. See
+ * `addPieLegendValueOptions` and `buildPieLegendItems`.
+ */
+export interface PieChartLegendOptions extends VizLegendOptions {
+  values?: PieLegendValue[];
+}
+
 export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, OptionsWithTooltip {
+  // Widen the inherited `legend` (`VizLegendOptions`) with the pie's `values`.
+  legend: PieChartLegendOptions;
+
   // Optional, and may be `'Auto'`: set by the cartesian panel's Series type
   // picker (default `'Auto'`), a Visualization Suggestion, or persisted dashboard
   // JSON; `undefined` on legacy panels. `resolveSeriesType` / `resolveChartModule`
@@ -45,6 +64,37 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Bar series stacking
    */
   stackSeries?: boolean;
+
+  /**
+   * Grafana's standard reduce options (added via `addStandardDataReduceOptions`)
+   * driving `getFieldDisplayValues` in the pie slice resolver: `calcs[0]` is the
+   * reducer per slice, `values` toggles Calculate vs. All values, `limit` caps
+   * All-values rows, and `fields` selects which numeric fields become slices.
+   * Defaults (Calculate, `PIE_CALC_DEFAULT` = sum) are applied when unset.
+   */
+  reduceOptions?: ReduceDataOptions;
+
+  /**
+   * Pie (part-to-whole) chart type (Grafana Pie chart "Pie chart type" parity):
+   * `pie` (full disc) or `donut` (a pie with a hole). Defaults to `PIE_TYPE_DEFAULT`
+   * (`pie`) when unset. Rendered as the ECharts series radius; see `getPieRadius`.
+   */
+  pieType?: PieChartType;
+
+  /**
+   * Pie (part-to-whole) slice-label content (Grafana Pie chart "Labels" parity):
+   * which of Name / Value / Percent render on each slice. Empty/unset hides the
+   * labels (matching core). See `getPieContentLabel`.
+   */
+  displayLabels?: PieLabel[];
+
+  /**
+   * Pie (part-to-whole) slice sorting (Grafana Pie chart "Slice sorting" parity):
+   * order slices by value — `desc` (largest first), `asc` (smallest first), or
+   * `none` (data order). Defaults to `PIE_SORT_DEFAULT` (`desc`) when unset. Sorts
+   * the shared slice model so chart, legend, and tooltip agree. See `resolvePieSlices`.
+   */
+  sort?: SortOrder;
 
   // @internal
   animation?: {

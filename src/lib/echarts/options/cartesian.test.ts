@@ -56,6 +56,7 @@ describe('cartesianChartModule threshold overlays', () => {
     options: { [seriesTypePath]: 'line' } as PanelOptions,
     seriesType: 'line',
     formatValue,
+    replaceVariables: (value: string) => value,
     fieldConfig: { defaults: {}, overrides: [] },
   });
 
@@ -127,6 +128,7 @@ describe('cartesianChartModule axis Min/Max', () => {
       options: { [seriesTypePath]: seriesType } as PanelOptions,
       seriesType,
       formatValue,
+      replaceVariables: (value: string) => value,
       fieldConfig: { defaults: {}, overrides: [] },
     }) as ChartContext;
 

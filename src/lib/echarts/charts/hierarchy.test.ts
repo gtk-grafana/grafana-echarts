@@ -44,6 +44,7 @@ const ctx = (fieldConfig: FieldConfigSource): ChartContext => ({
   options: { [seriesTypePath]: 'treemap' } as PanelOptions,
   seriesType: 'treemap',
   formatValue,
+  replaceVariables: (value: string) => value,
   fieldConfig,
 });
 

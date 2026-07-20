@@ -5,6 +5,7 @@ import {
   dateTime,
   EventBusSrv,
   FieldColorModeId,
+  type FieldConfigSource,
   LoadingState,
   type PanelData,
   type PanelProps,
@@ -45,11 +46,20 @@ export const defaultTimeRange: TimeRange = {
   raw: { from: 'now-3h', to: 'now' },
 };
 
+const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
+
 // Set the color palette. Note you can't set defaults in `applyFieldOverrides` and expect it to do its job in tests,
 // `applyFieldOverrides` copies defaults onto fields via the standard field-config registry.
 // Since grafana doesn't expose any way to mock the registry in plugins we're left with manually doing the work of applyFieldOverrides without any of the benefit
 // @todo create an issue for core Grafana to support registry mocking
-export const applyGrafanaFieldDefaults = (frames: DataFrame[]): DataFrame[] =>
+//
+// `fieldConfig` (defaults + byName/byType overrides) is applied to the frames the
+// same way real Grafana does before the panel renders, so byName color overrides
+// reach the converter's `getFieldDisplayValues` call.
+export const applyGrafanaFieldDefaults = (
+  frames: DataFrame[],
+  fieldConfig: FieldConfigSource = emptyFieldConfig
+): DataFrame[] =>
   applyFieldOverrides({
     data: frames.map((frame) => ({
       ...frame,
@@ -61,7 +71,7 @@ export const applyGrafanaFieldDefaults = (frames: DataFrame[]): DataFrame[] =>
         },
       })),
     })),
-    fieldConfig: { defaults: {}, overrides: [] },
+    fieldConfig,
     replaceVariables: (value) => value,
     theme,
     timeZone: 'utc',
@@ -76,7 +86,11 @@ export const getComponent = (
   panelOptionsOverrides?: Partial<PanelOptions>,
   panelDataOverrides?: Partial<PanelData>,
   panelPropsOverrides?: Partial<PanelProps<PanelOptions>>,
-  family: ChartFamily = 'cartesian'
+  family: ChartFamily = 'cartesian',
+  // Field config (defaults + byName/byType overrides) applied to the frames and
+  // passed to the panel, so overrides (e.g. a byName fixed color) reach the
+  // converter exactly as they do in real Grafana.
+  fieldConfig: FieldConfigSource = emptyFieldConfig
 ) => {
   const defaultOptions = {
     legend: {
@@ -97,7 +111,7 @@ export const getComponent = (
 
   const data: PanelData = {
     state: LoadingState.Done,
-    series: applyGrafanaFieldDefaults(frames),
+    series: applyGrafanaFieldDefaults(frames, fieldConfig),
     timeRange: defaultTimeRange,
     ...panelDataOverrides,
   };
@@ -112,7 +126,7 @@ export const getComponent = (
     id: 1,
     transparent: false,
     eventBus: new EventBusSrv(),
-    fieldConfig: { defaults: {}, overrides: [] },
+    fieldConfig,
     renderCounter: 0,
     title: 'Test panel',
     onChangeTimeRange: jest.fn(),

@@ -1,7 +1,7 @@
 import { createTheme, type ValueFormatter } from '@grafana/data';
-import { TooltipDisplayMode } from '@grafana/schema';
+import { SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import { getTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'lib/echarts/tooltip';
-import { type TooltipPositionCallback } from 'echarts/types/dist/shared';
+import { type TopLevelFormatterParams, type TooltipPositionCallback } from 'echarts/types/dist/shared';
 
 const theme = createTheme();
 // Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
@@ -61,6 +61,38 @@ describe('getTooltipOption', () => {
     expect(valueFormatter([1000, 42])).toBe('42');
     // Heatmap [xStart, yStart, xEnd, yEnd, value] tuple.
     expect(valueFormatter([1000, 10, 2000, 20, 7])).toBe('7');
+  });
+
+  const callFormatter = (mode: TooltipDisplayMode, params: unknown): string => {
+    const { formatter } = getTooltipOption(
+      mode === TooltipDisplayMode.Multi ? 'axis' : 'item',
+      mode,
+      resolveValue,
+      theme,
+      {
+        sort: SortOrder.Descending,
+        hideZeros: true,
+      }
+    ) as { formatter: (params: TopLevelFormatterParams) => HTMLElement };
+    return formatter(params as TopLevelFormatterParams).textContent ?? '';
+  };
+
+  it('applies sort and hideZeros to the rendered rows in Multi mode', () => {
+    const text = callFormatter(TooltipDisplayMode.Multi, [
+      { seriesName: 'A', value: [1, 10], color: '#f00', axisValueLabel: 'x' },
+      { seriesName: 'Z', value: [1, 0], color: '#00f' },
+      { seriesName: 'B', value: [1, 30], color: '#0f0' },
+    ]);
+    // Zero row dropped; remaining ordered by value descending (B before A).
+    expect(text).not.toContain('Z');
+    expect(text.indexOf('B')).toBeLessThan(text.indexOf('A'));
+  });
+
+  it('ignores sort/hideZeros in Single mode (row options gated on Multi)', () => {
+    const text = callFormatter(TooltipDisplayMode.Single, { seriesName: 'Z', name: 'Z', value: 0, color: '#00f' });
+    // A single zero-value item is still shown in Single mode.
+    expect(text).toContain('Z');
+    expect(text).toContain('0');
   });
 
   it('positions the tooltip beside the cursor with a gap', () => {

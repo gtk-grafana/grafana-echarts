@@ -45,6 +45,7 @@ const makeContext = (
   options: { [seriesTypePath]: seriesType } as PanelOptions,
   seriesType,
   formatValue,
+  replaceVariables: (value: string) => value,
   fieldConfig: { defaults: {}, overrides: [] },
 });
 
