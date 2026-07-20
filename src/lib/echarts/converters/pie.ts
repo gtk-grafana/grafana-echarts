@@ -15,31 +15,9 @@ import {
 } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
 import { PIE_CALC_DEFAULT } from 'editor/constants';
+import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { getPaletteColorByIndex, getValueFormatter } from 'lib/echarts/style';
 import { getHiddenSeriesNames, getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
-
-/**
- * @todo move to types
- * One resolved pie slice, shared by the chart, DOM legend, and tooltip so all
- * three agree on the same slice set, values, colors, and hidden state (rather
- * than each re-deriving the selection and drifting).
- */
-export interface PieSliceModel {
-  /** Slice label: the reduced field's display name (Calculate) or a row name (All values). */
-  name: string;
-  /** Reduced slice value; `undefined` when the reduction is non-finite (empty/all-null). */
-  value: number | undefined;
-  /** Resolved slice/swatch color (a fixed-color override always wins). */
-  color: string;
-  /** Hidden via the legend visibility toggle; kept in the model so the legend can grey it. */
-  hidden: boolean;
-  /**
-   * A single-value numeric field carrying this slice's value plus the source
-   * field's unit/decimals config, for the legend's calc columns
-   * (`getCalcDisplayValues`) — a slice is one value, so any reducer resolves to it.
-   */
-  field: Field;
-}
 
 /**
  * Resolve every pie slice (visible and hidden) from Grafana frames using

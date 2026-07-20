@@ -1,12 +1,8 @@
 import { type GrafanaTheme2 } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import {
-  formatPieShare,
-  getPieSliceFormatters,
-  getPieSliceTotal,
-  type PieSliceModel,
-} from 'lib/echarts/converters/pie';
+import { formatPieShare, getPieSliceFormatters, getPieSliceTotal, } from 'lib/echarts/converters/pie';
+import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
 
 /**

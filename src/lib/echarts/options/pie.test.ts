@@ -1,7 +1,8 @@
 import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/data';
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
-import { type PieSliceModel } from 'lib/echarts/converters/pie';
+
+import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { getPieContentLabel, getPieRadius } from 'lib/echarts/options/pie';
 
 const theme = createTheme();

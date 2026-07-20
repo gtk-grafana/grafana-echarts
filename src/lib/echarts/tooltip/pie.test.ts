@@ -1,7 +1,8 @@
 import { createTheme, type Field, FieldType, toDataFrame } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { type PieSliceModel } from 'lib/echarts/converters/pie';
+
+import { PieSliceModel } from 'lib/echarts/converters/types';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 
 const theme = createTheme();
