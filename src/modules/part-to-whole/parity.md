@@ -22,18 +22,20 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 
 ## Panel options
 
-| Core Grafana option                           | ECharts equivalent                                                                                         | Status        |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------- |
-| Value / calculation (data reduce)             | `reduceOptions` (Calculate/All values + Calculation) via `addStandardDataReduceOptions`                    | Supported     |
-| Fields to include, limit                      | `reduceOptions.fields` / `reduceOptions.limit`                                                             | Supported     |
-| Pie chart type (Pie / Donut)                  | `pieType` radio in a "Pie" category; rendered as the series radius by `getPieRadius`                       | Supported     |
-| Slice sorting (asc/desc/none)                 | `sort` select in the "Pie" category; orders the shared slice model in `resolvePieSlices` (default desc)    | Supported     |
-| Labels (Percent / Name / Value)               | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                      | Supported     |
-| Tooltip: mode                                 | `tooltip.mode`                                                                                             | Supported     |
-| Tooltip: hide zeros, sort                     | none                                                                                                       | Not supported |
-| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions` (reducer "Values" stats-picker dropped)                              | Supported     |
-| Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by name | Supported     |
-| Legend values (Percent / Value)               | `legend.values` multi-select in the "Legend" category; rendered by `buildPieLegendItems`                   | Supported     |
+| Core Grafana option                           | ECharts equivalent                                                                                         | Status          |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------- |
+| Value / calculation (data reduce)             | `reduceOptions` (Calculate/All values + Calculation) via `addStandardDataReduceOptions`                    | Supported       |
+| Fields to include, limit                      | `reduceOptions.fields` / `reduceOptions.limit`                                                             | Supported       |
+| Pie chart type (Pie / Donut)                  | `pieType` radio in a "Pie" category; rendered as the series radius by `getPieRadius`                       | Supported       |
+| Slice sorting (asc/desc/none)                 | `sort` select in the "Pie" category; orders the shared slice model in `resolvePieSlices` (default desc)    | Supported       |
+| Labels (Percent / Name / Value)               | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                      | Supported       |
+| Tooltip: mode                                 | `tooltip.mode`                                                                                             | Supported       |
+| Tooltip: sort                                 | none                                                                                                       | Not supported\* |
+| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions` (reducer "Values" stats-picker dropped)                              | Supported       |
+| Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by name | Supported       |
+| Legend values (Percent / Value)               | `legend.values` multi-select in the "Legend" category; rendered by `buildPieLegendItems`                   | Supported       |
+
+\* Tooltip sort in eCharts uses existing slice sorting instead of having two separate options.
 
 ## Standard (field-config) options
 
