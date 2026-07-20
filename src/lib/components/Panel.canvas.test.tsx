@@ -524,8 +524,4 @@ describe('Panel canvas renders', () => {
       });
     });
   });
-
-  // Part-to-whole (pie) canvas snapshots live in `part-to-whole.canvas.test.tsx`
-  // (mirrors the axis snapshots living in `axis.canvas.test.tsx`), where reducer
-  // modes, color schemes, and byName overrides are covered.
 });

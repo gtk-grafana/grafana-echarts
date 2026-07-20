@@ -83,6 +83,7 @@ const getTemplateStyles = (theme: GrafanaTheme2) => ({
   }),
   row: css({
     display: 'table-row',
+    fontWeight: theme.typography.fontWeightLight,
   }),
   iconCell: css({
     display: 'table-cell',
@@ -162,7 +163,9 @@ export function buildTooltipShell(theme: GrafanaTheme2): TooltipShell {
       row.className = styles.row;
       // Bold the whole row (cascades to its cells) to highlight the hovered slice.
       if (emphasis) {
+        // @todo direct style manipulation?
         row.style.fontWeight = String(theme.typography.fontWeightBold);
+        row.style.color = String(theme.colors.text.maxContrast);
       }
 
       const iconCell = document.createElement('div');
