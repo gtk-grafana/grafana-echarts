@@ -11,35 +11,38 @@ type of the family-fixed Cartesian panel, selected per field via `seriesType`.
 
 Core Bar chart adds many bar-specific panel options (orientation, bar/group
 width, radius, value labels, x-axis tick handling) on top of the graph field
-config. This module renders bars with ECharts defaults and exposes only per-field
-stacking.
+config. This module now exposes a curated set of these under the **Advanced**
+editor tier (plus a Default-tier "Show values"); orientation, group width, and
+3-way (percent) stacking remain deferred.
 
 ## Panel options
 
-| Core Grafana option                           | ECharts equivalent                     | Status        |
-| --------------------------------------------- | -------------------------------------- | ------------- |
-| X Axis field picker                           | none (x derived from time/first field) | Not supported |
-| Orientation (auto/horizontal/vertical)        | none (vertical)                        | Not supported |
-| Rotate x tick labels, max length, min spacing | none                                   | Not supported |
-| Show values (auto/always/never)               | none                                   | Not supported |
-| Stacking (none/normal/percent)                | per-field `stackSeries` (boolean)      | Partial       |
-| Group width, bar width, bar radius            | none                                   | Not supported |
-| Highlight full area on hover                  | none                                   | Not supported |
-| Color by field                                | none (Color field config)              | Partial       |
-| Tooltip: mode                                 | `tooltip.mode`                         | Supported     |
-| Legend                                        | Grafana legend via `addLegendOptions`  | Supported     |
-| Text size                                     | none                                   | Not supported |
+| Core Grafana option                           | ECharts equivalent                                        | Status        |
+| --------------------------------------------- | --------------------------------------------------------- | ------------- |
+| X Axis field picker                           | none (x derived from time/first field)                    | Not supported |
+| Orientation (auto/horizontal/vertical)        | none (vertical)                                           | Not supported |
+| Rotate x tick labels, max length, min spacing | `xAxis.axisLabel.rotate` (`xTickRotate`, Advanced)        | Partial       |
+| Show values (auto/always/never)               | `series.label` (`showValues` Default + position Advanced) | Supported     |
+| Stacking (none/normal/percent)                | per-field `stackSeries` (boolean)                         | Partial       |
+| Group width, bar width, bar radius            | `barWidth` / `itemStyle.borderRadius` (Advanced)          | Partial       |
+| Highlight full area on hover                  | none                                                      | Not supported |
+| Color by field                                | none (Color field config)                                 | Partial       |
+| Tooltip: mode                                 | `tooltip.mode`                                            | Supported     |
+| Legend                                        | Grafana legend via `addLegendOptions`                     | Supported     |
+| Animation                                     | `animation.enabled` (Advanced)                            | Supported     |
+| Text size                                     | none                                                      | Not supported |
 
 ## Graph styles (core custom field config)
 
-| Core Grafana option                     | ECharts equivalent                    | Status        |
-| --------------------------------------- | ------------------------------------- | ------------- |
-| Line width, fill opacity, gradient mode | none (ECharts defaults)               | Not supported |
-| Transform (constant / negative Y)       | none                                  | Not supported |
-| Show thresholds (thresholds style)      | per-field `thresholdsStyle.mode`      | Supported     |
-| Axis placement                          | per-field `axisPlacement`             | Supported     |
-| Axis: label, width, soft min/max, scale | none                                  | Not supported |
-| Hide in area                            | `custom.hideFrom` (via `addHideFrom`) | Partial       |
+| Core Grafana option                     | ECharts equivalent                                  | Status        |
+| --------------------------------------- | --------------------------------------------------- | ------------- |
+| Line width, fill opacity, gradient mode | `lineStyle.width` / `areaStyle.opacity` (Advanced)  | Partial       |
+| Point size                              | `symbolSize` / `showSymbol` (`pointSize`, Advanced) | Supported     |
+| Transform (constant / negative Y)       | none                                                | Not supported |
+| Show thresholds (thresholds style)      | per-field `thresholdsStyle.mode`                    | Supported     |
+| Axis placement                          | per-field `axisPlacement`                           | Supported     |
+| Axis: label, width, soft min/max, scale | none                                                | Not supported |
+| Hide in area                            | `custom.hideFrom` (via `addHideFrom`)               | Partial       |
 
 ## Standard (field-config) options
 
@@ -51,8 +54,12 @@ override is `bar`.
 
 - Core stacking is a three-way mode (none/normal/percent); this module exposes a
   boolean per-field stack (percent stacking is not supported).
-- Bar geometry (width, radius, group spacing, orientation) is ECharts-managed and
-  not exposed as options.
+- Bar geometry: width (`barWidth`) and corner radius (`itemStyle.borderRadius`) are
+  now exposed under the Advanced editor tier; group spacing and orientation remain
+  ECharts-managed / deferred.
+- Value labels, line width, fill opacity, point size, and x-tick rotation are
+  exposed under the Advanced tier (Show values is Default-tier). Each omits its
+  ECharts key at the default, so untouched panels render unchanged.
 - Interactive legend: clicking a legend item shows/hides its series and the legend
   color picker sets a fixed color; color persists as a `byName` override and
   visibility as the core `hideSeriesFrom` system override.

@@ -26,6 +26,13 @@ export type SeriesType =
   | 'custom';
 
 export type CategoricalOnlySeriesType = Extract<SeriesType, 'pie' | 'radar'>;
+/**
+ * Render types the multivariate family can host. `radar` today; `parallel`
+ * (parallel coordinates) is the roadmap second type (see
+ * `modules/multivariate/parity.md`). Both use the categorical model but different
+ * coordinate systems, so the family dispatches on the concrete type.
+ */
+export type MultivariateSeriesType = Extract<SeriesType, 'radar' | 'parallel'>;
 export type CategoricalAxisSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter' | 'boxplot'>;
 export type TimeAxisSupportsSeriesType = Extract<
   SeriesType,
@@ -46,6 +53,28 @@ export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
  * stays limited to real ECharts series types.
  */
 export type SeriesTypeOption = SeriesType | 'Auto';
+
+/**
+ * Radar (multivariate) grid shape (ECharts `radar.shape`): `polygon` (straight
+ * edges between axes, the default) or `circle` (a smooth ring). Advanced-only.
+ * See `getRadarComponent`.
+ */
+export type RadarShape = 'polygon' | 'circle';
+
+/**
+ * Cartesian "Show values" mode (Bar-chart parity): whether per-point value labels
+ * render. `always` draws them; `never` hides them; `auto` currently resolves to
+ * hidden (reserved for a future fit-based heuristic). Unset panels render no
+ * labels, so existing charts are unchanged. See `getCartesianValueLabel`.
+ */
+export type CartesianShowValues = 'auto' | 'always' | 'never';
+
+/**
+ * Placement of the cartesian value label relative to its point/bar (ECharts
+ * `series.label.position`), Advanced-only. Defaults to `top`. See
+ * `getCartesianValueLabel`.
+ */
+export type CartesianValueLabelPosition = 'top' | 'bottom' | 'inside' | 'left' | 'right';
 
 /**
  * Editor surface tier, controlling how many options the panel editor exposes:

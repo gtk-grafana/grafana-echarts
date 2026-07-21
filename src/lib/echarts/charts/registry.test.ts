@@ -1,8 +1,8 @@
 import {
   cartesianChartModule,
   heatmapChartModule,
+  multivariateChartModule,
   pieChartModule,
-  radarChartModule,
   resolveChartModule,
   supportedChartSeriesTypes,
 } from 'lib/echarts/charts/registry';
@@ -22,7 +22,8 @@ describe('resolveChartModule', () => {
 
   it('routes pie and radar to their modules', () => {
     expect(resolveChartModule('pie')).toBe(pieChartModule);
-    expect(resolveChartModule('radar')).toBe(radarChartModule);
+    // Radar routes to the (renamed) multivariate module.
+    expect(resolveChartModule('radar')).toBe(multivariateChartModule);
   });
 
   it('throws for unsupported concrete types', () => {

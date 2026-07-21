@@ -1,10 +1,11 @@
 import { debug, LOG_LEVELS } from 'development';
-import { STACK_GROUP_ID } from 'editor/constants';
+import { STACK_GROUP_ID } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type CartesianOption, type ChartContext } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { findCategoryField, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
+import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
 
 /**
  * Convert Grafana Numeric frames into an ECharts category-axis cartesian chart
@@ -46,15 +47,22 @@ export function categoryCartesianToEChartsOption(
   }
 
   const stacked = seriesType === 'bar' && options.stackSeries;
-  const echartsSeries: CartesianOption['series'] = categorical.series.map((field) => ({
-    name: field.name,
-    type: seriesType,
-    zlevel: options.zLevel?.series,
-    data: field.values,
-    itemStyle: { color: field.color },
-    lineStyle: { color: field.color },
-    ...(stacked ? { stack: STACK_GROUP_ID } : {}),
-  }));
+  // Per-series color plus the Advanced value-label / geometry / style options;
+  // every extra is omitted at its default so untouched panels are unchanged.
+  const echartsSeries: CartesianOption['series'] = categorical.series.map((field) =>
+    buildCartesianSeries(
+      {
+        name: field.name,
+        data: field.values,
+        color: field.color,
+        zlevel: options.zLevel?.series,
+        ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+      },
+      seriesType,
+      options,
+      theme
+    )
+  );
 
   return { categories: categorical.categories, series: echartsSeries };
 }

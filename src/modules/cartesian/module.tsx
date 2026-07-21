@@ -1,20 +1,30 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin, type SelectFieldConfigSettings } from '@grafana/data';
+import { PanelPlugin, type SelectFieldConfigSettings } from '@grafana/data';
 import { GraphThresholdsStyleMode } from '@grafana/schema';
 import { commonOptionsBuilder, getGraphFieldOptions } from '@grafana/ui';
 import {
   cartesianOverrideOptionsWithAuto,
   cartesianSeriesTypeOptionsWithAuto,
   multiValueSeriesTypeOptionsWithAuto,
-  seriesTypePath,
   stackSeriesName,
   stackSeriesPath,
   thresholdsCategoryName,
   thresholdsStyleModeName,
   thresholdsStyleModePath,
-  TOOLTIP_DEFAULT_OPTIONS,
-} from 'editor/constants';
+} from 'editor/cartesian';
+import { seriesTypePath } from 'editor/constants';
 import { type EChartsGraphFieldConfig, type SeriesTypeOption } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
+import { addCartesianBarRadiusOptions } from 'lib/grafana/editor/cartesian/bar-radius';
+import { addCartesianBarWidthOptions } from 'lib/grafana/editor/cartesian/bar-width';
+import { addCartesianFillOpacityOptions } from 'lib/grafana/editor/cartesian/fill-opacity';
+import { addCartesianLineWidthOptions } from 'lib/grafana/editor/cartesian/line-width';
+import { addCartesianPointSizeOptions } from 'lib/grafana/editor/cartesian/point-size';
+import { addCartesianValueLabelOptions } from 'lib/grafana/editor/cartesian/value-labels';
+import { addCartesianXTickRotateOptions } from 'lib/grafana/editor/cartesian/x-tick-rotate';
+import { addAnimationOption } from 'lib/grafana/editor/common/animation';
+import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
+import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { framesLookMultiValue } from 'lib/echarts/converters/multiValueCartesian';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
@@ -34,18 +44,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
   // includes the full set by default and applies them to every field in
   // `data.series` before the panel renders; here we only customize Color.
   .useFieldConfig({
-    standardOptions: {
-      [FieldConfigProperty.Color]: {
-        settings: {
-          byValueSupport: true,
-          bySeriesSupport: true,
-          preferThresholdsMode: false,
-        },
-        defaultValue: {
-          mode: FieldColorModeId.PaletteClassic,
-        },
-      },
-    },
+    standardOptions: STANDARD_COLOR_OPTIONS,
     // Per-field series type override. Combined with Grafana field overrides
     // (by name, regex, type, or query), this lets a single panel mix cartesian
     // types, e.g. drawing one field as `bar` and another as `line`. Unset
@@ -113,6 +112,13 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
     },
   })
   .setPanelOptions((builder) => {
+    // Editor mode (Default / Advanced) — tiers the editor surface. Registered
+    // first so it renders at the top. The core-parity controls below are always
+    // shown; ECharts-only options (bar/line geometry, value-label position, tick
+    // rotation, animation) gate on Advanced via `showIf: isAdvancedEditorMode`.
+    // See docs/options-modes.md.
+    addEditorModeOption(builder);
+
     // Panel-level series type: the base render type applied to every field (the
     // per-field override above can still switch individual single-value fields).
     // 'Auto' resolves the best type from the data (see `resolveAutoSeriesType`).
@@ -137,10 +143,24 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
       },
     });
 
-    // Standard Core Grafana "Legend" options (Visibility, Mode, Placement,
-    // Width, Limit, Values), registered in their own category.
-    commonOptionsBuilder.addLegendOptions(builder);
-    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
+    // Value labels — Default-tier "Show values" (Bar-chart parity) + Advanced
+    // placement. Rendered by `getCartesianValueLabel`.
+    addCartesianValueLabelOptions(builder);
+
+    // Advanced ECharts geometry / style options. Each builder gates its control
+    // behind Advanced editor mode and omits its ECharts key at the default so
+    // untouched panels render identically.
+    addCartesianBarWidthOptions(builder); // series.barWidth (bar)
+    addCartesianBarRadiusOptions(builder); // itemStyle.borderRadius (bar)
+    addCartesianLineWidthOptions(builder); // lineStyle.width (line)
+    addCartesianFillOpacityOptions(builder); // areaStyle.opacity (line → area)
+    addCartesianPointSizeOptions(builder); // symbolSize / showSymbol (line/scatter)
+    addCartesianXTickRotateOptions(builder); // xAxis.axisLabel.rotate
+    addAnimationOption(builder); // shared animation toggle
+
+    // Standard Core Grafana "Legend" (Visibility, Mode, Placement, Width, Limit,
+    // Values) + "Tooltip" options, registered in their own categories.
+    addCommonLegendAndTooltip(builder);
 
     return builder;
   })

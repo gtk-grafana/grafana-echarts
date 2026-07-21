@@ -28,7 +28,6 @@ import {
   type PieChartType,
   type PieEmphasisFocus,
   type PieLabel,
-  type PieLabelOverflow,
   type PieLabelPosition,
   type PieRoseType,
   type PieSelectedMode,
@@ -36,10 +35,15 @@ import {
 import { type EChartPieDataItem } from 'lib/echarts/charts/types';
 import { formatPieShare, getPieSliceFormatters, getPieSliceTotal } from 'lib/echarts/converters/pie';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
-import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
+import { createBaseOptions } from 'lib/echarts/options/base';
+import { applyAdvancedDefaults } from 'lib/echarts/options/editorMode';
+import {
+  getThemedLabelStyle,
+  resolveContrastLabelColor,
+  type ThemedLabelStyleOptions,
+} from 'lib/echarts/options/labels';
 import { getValueFormatter } from 'lib/echarts/style';
 import { formatTooltipValue } from 'lib/echarts/tooltip/template';
-import { isAdvancedEditorMode, isApiEditorMode } from 'lib/grafana/editor/common/editor-mode';
 import { type PanelOptions } from 'types';
 
 /** Base option for pie charts. Series data is merged at render time. */
@@ -99,10 +103,7 @@ export const ADVANCED_PIE_DEFAULTS: Partial<PanelOptions> = {
  * both the series build and the `animation` read.
  */
 export function applyPieEditorModeDefaults(options: PanelOptions): PanelOptions {
-  if (isAdvancedEditorMode(options) || isApiEditorMode(options)) {
-    return options;
-  }
-  return { ...options, ...ADVANCED_PIE_DEFAULTS };
+  return applyAdvancedDefaults(options, ADVANCED_PIE_DEFAULTS);
 }
 
 /**
@@ -207,61 +208,26 @@ export function getPieAngles(
   };
 }
 
-/** Re-enabled label text-shadow blur radius (px) when the Advanced switch is on. */
-const PIE_LABEL_TEXT_SHADOW_BLUR = 3;
-/** Re-enabled label text-stroke width (px) when the Advanced switch is on. */
-const PIE_LABEL_TEXT_BORDER_WIDTH = 2;
-
 /**
  * Advanced label-style overrides threaded through `getPieLabelStyle`: an explicit
  * `color` (overriding the theme text color) and switches that re-enable the
- * ECharts label text shadow / stroke this helper zeroes by default.
+ * ECharts label text shadow / stroke this helper zeroes by default. A thin alias
+ * over the shared `ThemedLabelStyleOptions` (the pie labels named the options
+ * first; the type is now family-agnostic — see `options/labels.ts`).
  */
-export interface PieLabelStyleOptions {
-  /** Override the theme text color (Advanced "Label color"). */
-  color?: string;
-  /** Re-enable the label drop shadow (Advanced "Label text shadow"). */
-  textShadow?: boolean;
-  /** Re-enable the label contrast stroke (Advanced "Label text stroke"). */
-  textStroke?: boolean;
-  /** Override the theme label font size (Advanced "Label font size"). */
-  fontSize?: number;
-  /** Label overflow handling (Advanced "Label overflow"); `none` is treated as unset. */
-  overflow?: PieLabelOverflow;
-  /** Label wrap/clip width in px (Advanced "Label width"), paired with `overflow`. */
-  width?: number;
-}
+export type PieLabelStyleOptions = ThemedLabelStyleOptions;
 
 /**
- * Themed pie slice label: Grafana's font family and primary text color, with the
- * default text shadow/stroke zeroed out. ECharts' default label draws a blurred
- * shadow and a contrast stroke ("awful text shadow") in its own font; clearing
- * them and applying the theme makes labels match the rest of Grafana.
- *
- * Advanced options override this: `color` replaces the theme text color, and the
- * `textShadow` / `textStroke` switches re-enable the zeroed shadow/stroke. With no
- * options (the default) the output is the flat, theme-colored label.
+ * Themed pie slice label — a thin wrapper over the shared `getThemedLabelStyle`
+ * (see `options/labels.ts`) that keeps the pie's `PieSeriesOption['label']`
+ * return type. ECharts' default label draws a blurred shadow and a contrast
+ * stroke ("awful text shadow") in its own font; the shared helper clears them
+ * and applies the theme so labels match the rest of Grafana, with the Advanced
+ * `color` / `textShadow` / `textStroke` overrides re-enabling each.
  * https://echarts.apache.org/en/option.html#series-pie.label
  */
 export function getPieLabelStyle(theme: GrafanaTheme2, opts: PieLabelStyleOptions = {}): PieSeriesOption['label'] {
-  const { color, textShadow = false, textStroke = false, fontSize, overflow, width } = opts;
-  return {
-    ...getThemeTextStyle(theme),
-    // An explicit label color overrides the theme text color from getThemeTextStyle.
-    ...(color ? { color } : {}),
-    // Default: zeroed (flat) shadow/stroke. The Advanced switches re-enable each,
-    // drawing a subtle drop shadow / contrast stroke against the panel background.
-    textShadowBlur: textShadow ? PIE_LABEL_TEXT_SHADOW_BLUR : 0,
-    textShadowColor: textShadow ? theme.colors.background.canvas : 'transparent',
-    textBorderWidth: textStroke ? PIE_LABEL_TEXT_BORDER_WIDTH : 0,
-    ...(textStroke ? { textBorderColor: theme.colors.background.canvas } : {}),
-    // Advanced legibility overrides, omitted at the default so the theme size /
-    // no-wrap behavior stands. `overflow: 'none'` is the ECharts default, so it is
-    // treated as unset.
-    ...(fontSize ? { fontSize } : {}),
-    ...(overflow && overflow !== 'none' ? { overflow } : {}),
-    ...(width ? { width } : {}),
-  };
+  return getThemedLabelStyle(theme, opts);
 }
 
 /**
@@ -288,7 +254,7 @@ export function resolvePieLabelColor(
     return resolvedLabelColor;
   }
   if (labelPosition === 'inside') {
-    return theme.colors.getContrastText(slice.color);
+    return resolveContrastLabelColor(theme, slice.color);
   }
   return undefined;
 }

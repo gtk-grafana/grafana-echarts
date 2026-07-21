@@ -1,12 +1,12 @@
+import { cartesianTimeSeriesTypes, multiValueSeriesTypes } from 'editor/cartesian';
 import {
-  cartesianTimeSeriesTypes,
   categoricalAxisSeriesTypes,
   categoricalOnlySeriesType,
   heatmapSeriesTypes,
   hierarchySeriesTypes,
-  multiValueSeriesTypes,
   supportsTimeAxisSeriesTypes,
 } from 'editor/constants';
+import { multivariateSeriesTypes } from 'editor/radar';
 import {
   type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
@@ -14,6 +14,7 @@ import {
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type MultiValueSeriesType,
+  type MultivariateSeriesType,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -53,4 +54,10 @@ export function isHeatmapSeriesType(type: SeriesType): type is HeatmapSeriesType
 // Hierarchy charts like treemap and sunburst render a value-weighted tree
 export function isHierarchySeriesType(type: SeriesType): type is HierarchySeriesType {
   return hierarchySeriesTypes.some((t) => t === type);
+}
+
+// Multivariate charts (radar today; parallel coordinates on the roadmap) share
+// the multivariate family panel and chart module.
+export function isMultivariateSeriesType(type: SeriesType): type is MultivariateSeriesType {
+  return multivariateSeriesTypes.some((t) => t === type);
 }
