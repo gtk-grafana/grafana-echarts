@@ -21,6 +21,7 @@ import {
   MarkAreaComponent,
   MarkLineComponent,
   RadarComponent,
+  TitleComponent,
   TooltipComponent,
   VisualMapContinuousComponent,
 } from 'echarts/components';
@@ -67,6 +68,7 @@ registerEChartsModules([
   GridComponent,
   TooltipComponent,
   LegendComponent,
+  TitleComponent, // centered donut-center readout for the pie (label position: center)
   AxisPointerComponent,
   BrushComponent, // drag-select on the time axis for range zoom
   RadarComponent, // radar coordinate system

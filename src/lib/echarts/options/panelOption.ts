@@ -1,11 +1,12 @@
 import { TooltipDisplayMode } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { pieSeriesTypes } from 'editor/constants';
+import { pieSeriesTypes } from 'editor/pie';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
+import { applyPieEditorModeDefaults } from 'lib/echarts/options/pie';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
 import {
   getCrosshairAxisPointer,
@@ -36,9 +37,12 @@ export function buildPanelChartOption(
   }
 
   // Drop value fields hidden via the legend visibility toggle before building.
-  // The pie is excluded: it hides slices by *category* name and reads hidden state internally (see `resolvePieSlices`)
+  // The pie is excluded: it hides slices by *category* name and reads hidden state internally (see `resolvePieSlices`).
+  // The pie also normalizes its options by editor mode here (before both the
+  // series build and the `animation` read below) so Default mode renders the
+  // plain pie regardless of any stored Advanced values (see `applyPieEditorModeDefaults`).
   const ctx: ChartContext = pieSeriesTypes.includes(rawCtx.seriesType)
-    ? rawCtx
+    ? { ...rawCtx, options: applyPieEditorModeDefaults(rawCtx.options) }
     : { ...rawCtx, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.

@@ -1,8 +1,10 @@
 import { FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
+import { SortOrder } from '@grafana/schema';
 import { render } from '@testing-library/react';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
+import { removeCanvasClear, roundCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
+import { type PanelOptions } from 'types';
 
 // Part-to-whole (pie) canvas snapshots, split out of `Panel.canvas.test.tsx`
 // (mirrors `axis.canvas.test.tsx`). The pie is built from the shared slice
@@ -15,15 +17,23 @@ import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 // Only the series-layer draw calls are committed; see `Panel.canvas.test.tsx` for
 // the layered-capture rationale.
 
-const pieOptions = (extra: Record<string, unknown> = {}) => ({
+// Render in Advanced editor mode so the advanced options these tests exercise
+// (rose type, angles, center label, borders, …) are respected as-is. In Default
+// (rose type, angles, center label, borders, …) are respected as-is. In Default
+// mode `applyPieEditorModeDefaults` resets every advanced option to its default —
+// including forcing `animation.enabled` back on, which would clobber the
+// `animation: { enabled: false }` these snapshots rely on for determinism. The
+// Default-mode reset itself is covered by the `applyPieEditorModeDefaults` unit tests.
+const pieOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
   zLevel: { series: SERIES_ZLEVEL },
   animation: { enabled: false },
+  editorMode: 'advanced',
   ...extra,
 });
 
 const renderPie = async (
   frames: Parameters<typeof getComponent>[0],
-  options: Record<string, unknown>,
+  options: Partial<PanelOptions>,
   fieldConfig?: FieldConfigSource
 ) => {
   const { container } = render(
@@ -61,10 +71,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['sum'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     it('Calculate mean — same fields, different slice sizes', async () => {
@@ -72,10 +85,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['mean'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     it('All values with limit — one slice per row, capped', async () => {
@@ -83,10 +99,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: [], values: true, limit: 3 },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     it('multi-frame — one slice per series', async () => {
@@ -103,10 +122,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['sum'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -119,10 +141,13 @@ describe('part-to-whole canvas renders', () => {
         pieType: 'donut',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -132,13 +157,84 @@ describe('part-to-whole canvas renders', () => {
     it('ascending (smallest first)', async () => {
       const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
         reduceOptions: { calcs: ['sum'], values: false },
-        sort: 'asc',
+        sort: SortOrder.Ascending,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('min slice angle', () => {
+    // A long-tail frame: two dominant slices plus two hairline slices that, at
+    // their true share, would be near-invisible. `minAngle: 10` enlarges the tiny
+    // slices to at least 10°, so this guards that getPieMinAngle reaches the series
+    // and reshapes the render (the default 0 is covered by the reducer cases above).
+    const longTailFrame = toDataFrame({
+      fields: [
+        { name: 'Big', type: FieldType.number, values: [100], config: { displayName: 'Big' } },
+        { name: 'Mid', type: FieldType.number, values: [50], config: { displayName: 'Mid' } },
+        { name: 'Tiny', type: FieldType.number, values: [2], config: { displayName: 'Tiny' } },
+        { name: 'Sliver', type: FieldType.number, values: [1], config: { displayName: 'Sliver' } },
+      ],
+    });
+
+    it('enlarges tiny long-tail slices', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([longTailFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        minAngle: 10,
       });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('start/end angle', () => {
+    // Advanced arc range: start 180 / end 360 renders a half-pie (bottom
+    // semicircle), and combined with donut a semicircle donut. Guards that
+    // getPieAngles threads startAngle/endAngle into the series.
+    it('half-pie (start 180 / end 360)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        startAngle: 180,
+        endAngle: 360,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+
+    it('semicircle donut (donut + start 180 / end 360)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        pieType: 'donut',
+        startAngle: 180,
+        endAngle: 360,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -152,10 +248,99 @@ describe('part-to-whole canvas renders', () => {
         displayLabels: ['name', 'value', 'percent'],
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('rose type', () => {
+    // Rose (Nightingale) rendering encodes each slice's value as its radius or
+    // area on top of the angle. Uses a near-equal frame so slices barely differ
+    // by angle alone; radius vs. area then reshape them visibly and differently
+    // (area scales by sqrt of value). The default `none` is covered by the
+    // reducer cases above, so these guard the two opted-in rose paths.
+    const nearEqualFrame = toDataFrame({
+      fields: [
+        { name: 'category', type: FieldType.string, values: ['A', 'B', 'C', 'D'] },
+        { name: 'value', type: FieldType.number, values: [30, 28, 26, 24] },
+      ],
+    });
+
+    it('radius (value as slice radius)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([nearEqualFrame], {
+        reduceOptions: { calcs: [], values: true },
+        roseType: 'radius',
       });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+
+    it('area (value as slice area)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([nearEqualFrame], {
+        reduceOptions: { calcs: [], values: true },
+        roseType: 'area',
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('label position', () => {
+    // Placement of the slice labels (ECharts `label.position`). The reducer/labels
+    // cases above cover the default `outside`, so these guard the Advanced-only
+    // `inside` (labels drawn on the slices) and `center` (a single donut-hole
+    // readout) paths through getPieContentLabel.
+    it('inside (labels on the slices)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name', 'value'],
+        labelPosition: 'inside',
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+
+    // No reducer → the donut center stays empty (the per-slice labels are hidden;
+    // the hovered slice value shows only on hover, which the static snapshot can't
+    // capture). This asserts the stacked-labels overlap is gone.
+    it('center on a donut without a reducer (empty until hover)', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        pieType: 'donut',
+        displayLabels: ['value'],
+        labelPosition: 'center',
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -178,10 +363,13 @@ describe('part-to-whole canvas renders', () => {
         fieldConfig
       );
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     // A by-value continuous scheme colors each slice from its value (set on the
@@ -203,10 +391,258 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: [], values: true },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  // Long category names, one row per category — exercises label overflow/width.
+  const longNamesFrame = toDataFrame({
+    fields: [
+      {
+        name: 'category',
+        type: FieldType.string,
+        values: ['Engineering & Platform', 'Customer Support Operations', 'Sales and Marketing', 'Finance'],
+      },
+      { name: 'value', type: FieldType.number, values: [43, 25, 30, 22] },
+    ],
+  });
+
+  // A dominant slice plus several tiny ones — exercises min-show-label-angle.
+  const longTailFrame = toDataFrame({
+    fields: [
+      { name: 'category', type: FieldType.string, values: ['Major', 'Tiny1', 'Tiny2', 'Tiny3', 'Tiny4'] },
+      { name: 'value', type: FieldType.number, values: [200, 3, 2, 2, 1] },
+    ],
+  });
+
+  describe('label font size', () => {
+    // Advanced-only label.fontSize override; larger labels with all content shown.
+    it('enlarged slice labels', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name', 'value', 'percent'],
+        labelFontSize: 24,
       });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  // --- Advanced interactivity & polish --------------------------------------
+  // Each block exercises one Advanced option's ECharts wiring during a real
+  // render. Emphasis is a hover-only state (not fired by the static render), so
+  // it is verified by unit assertion in `options/pie.test.ts` instead.
+
+  describe('select / explode', () => {
+    // A static `selectedOffset` pushes the first slice outward even without a
+    // click, so the exploded slice is visible in the snapshot.
+    it('single selection with an explode offset', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        selectedMode: 'single',
+        selectedOffset: 20,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('label overflow', () => {
+    // Advanced-only label.overflow + label.width; long names truncate at 80px.
+    it('truncated long labels', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([longNamesFrame], {
+        reduceOptions: { calcs: [], values: true },
+        displayLabels: ['name'],
+        labelOverflow: 'truncate',
+        labelWidth: 80,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('rounded corners', () => {
+    // A non-zero itemStyle.borderRadius rounds each slice's corners.
+    it('slice border radius', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        sliceBorderRadius: 12,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('empty circle', () => {
+    // An all-zero frame: `showEmptyCircle` draws the placeholder ring, while
+    // `stillShowZeroSum: false` suppresses the even zero-sum pie. The two options
+    // produce visibly different renders on the same empty data.
+    const zeroFrame = toDataFrame({
+      fields: [
+        { name: 'A', type: FieldType.number, values: [0], config: { displayName: 'A' } },
+        { name: 'B', type: FieldType.number, values: [0], config: { displayName: 'B' } },
+      ],
+    });
+
+    it('show empty circle on a zero-sum frame', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([zeroFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        showEmptyCircle: true,
+        stillShowZeroSum: false,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('clockwise', () => {
+    // Counter-clockwise layout reverses the rendered slice order.
+    it('counter-clockwise slice order', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        clockwise: false,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('label color', () => {
+    // An explicit label color overrides the theme text color in getPieLabelStyle.
+    it('name labels tinted with a custom color', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name'],
+        labelColor: '#ff0000',
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('min show label angle', () => {
+    // Advanced-only series.minShowLabelAngle; tiny-slice labels are hidden.
+    it('hides labels on tiny slices', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([longTailFrame], {
+        reduceOptions: { calcs: [], values: true },
+        displayLabels: ['name'],
+        minShowLabelAngle: 10,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('slice separation', () => {
+    // Advanced-only itemStyle.borderWidth/borderColor; a border between slices.
+    it('bordered slices', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        sliceBorderWidth: 2,
+        sliceBorderColor: '#000000',
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('custom radius/center', () => {
+    // Advanced-only radius + center overrides; a smaller off-center donut.
+    it('custom inner/outer radius and center', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        innerRadius: 40,
+        outerRadius: 60,
+        centerX: 30,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
+    });
+  });
+
+  describe('label text shadow', () => {
+    // Re-enables the ECharts label drop shadow that getPieLabelStyle zeroes by
+    // default; visible labels are needed for the shadow to paint.
+    it('text shadow on visible labels', async () => {
+      const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
+        reduceOptions: { calcs: ['sum'], values: false },
+        displayLabels: ['name'],
+        labelTextShadow: true,
+      });
+
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 });

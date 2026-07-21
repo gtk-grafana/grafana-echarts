@@ -48,6 +48,16 @@ export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
 export type SeriesTypeOption = SeriesType | 'Auto';
 
 /**
+ * Editor surface tier, controlling how many options the panel editor exposes:
+ * `default` (critical/parity-only options, tracked per module in `parity.md`),
+ * `advanced` (Default plus high-value ECharts-only and less-common core options,
+ * gated via `showIf: isAdvancedEditorMode`), and `api` (JSON-only, never shown in
+ * the editor UI; reserved for future full ECharts-API access). See
+ * `docs/options-modes.md`.
+ */
+export type EditorMode = 'default' | 'advanced' | 'api';
+
+/**
  * Pie (part-to-whole) slice-label content, matching core Grafana's
  * `PieChartLabels` (`@grafana/schema` doesn't re-export the raw enum, so the
  * string values are mirrored here): `name` (slice name), `value` (formatted slice
@@ -55,6 +65,18 @@ export type SeriesTypeOption = SeriesType | 'Auto';
  * holds the selected set; an empty set hides the labels. See `getPieContentLabel`.
  */
 export type PieLabel = 'name' | 'value' | 'percent';
+
+/** Pie slice-label placement: outside (leader lines), inside the slice, or center (donut hole). */
+export type PieLabelPosition = 'outside' | 'inside' | 'center';
+
+/**
+ * Pie (part-to-whole) slice-label overflow handling, mirroring ECharts'
+ * `label.overflow`: `none` (no handling — the default), `truncate` (clip with an
+ * ellipsis at `label.width`), `break` (wrap at word boundaries), `breakAll` (wrap
+ * at any character). Advanced-only; drives `getPieLabelStyle`.
+ * https://echarts.apache.org/en/option.html#series-pie.label.overflow
+ */
+export type PieLabelOverflow = 'none' | 'truncate' | 'break' | 'breakAll';
 
 /**
  * Pie (part-to-whole) legend values, matching core Grafana's `PieChartLegendValues`
@@ -72,6 +94,30 @@ export type PieLegendValue = 'value' | 'percent';
  * `pieType` selects it; rendered as the ECharts series radius. See `getPieRadius`.
  */
 export type PieChartType = 'pie' | 'donut';
+
+/**
+ * Pie (part-to-whole) rose (Nightingale) rendering: `none` (a plain pie, angle
+ * only), `radius` (slice value encoded as its radius), or `area` (slice value
+ * encoded as its area). ECharts-only, so gated behind Advanced editor mode. The
+ * `'none'` sentinel maps to ECharts' `false`; see `getPieRoseType`.
+ */
+export type PieRoseType = 'none' | 'radius' | 'area';
+
+/**
+ * Pie (part-to-whole) slice-selection mode (Advanced), mapping to the ECharts
+ * `series.selectedMode`: `off` (no selection; rendered as `false`), `single` (one
+ * slice at a time), or `multiple`. A selected slice is offset outward by
+ * `selectedOffset` (explode). See `getPieSelection`.
+ */
+export type PieSelectedMode = 'off' | 'single' | 'multiple';
+
+/**
+ * Pie (part-to-whole) emphasis focus (Advanced), mapping to the ECharts
+ * `series.emphasis.focus`: `none` (no fade; the ECharts default, omitted), `self`
+ * (fade all but the hovered slice), or `series` (highlight the whole series). See
+ * `getPieEmphasis`.
+ */
+export type PieEmphasisFocus = 'none' | 'self' | 'series';
 
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s

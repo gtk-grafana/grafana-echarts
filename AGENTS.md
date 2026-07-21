@@ -9,6 +9,7 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - This plugins should provide a simple user experience that aligns with core Grafana panels
 - Grafana and EChart APIs should be isolated from each other whenever possible, preferably in different directories
 - Any usage of Grafana or EChart APIs should contain links to the relevant documentation
+- Editor options are tiered via a shared `editorMode` option (Default / Advanced / API); see [docs/options-modes.md](docs/options-modes.md)
 
 ## Critical rules
 

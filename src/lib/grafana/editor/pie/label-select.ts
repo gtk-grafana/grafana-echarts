@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder, type SelectFieldConfigSettings } from '@grafana/data';
-import { PIE_LABELS_DEFAULT, pieLabelOptions, pieLabelsCategoryName, pieLabelsPath } from 'editor/constants';
+import { PIE_LABELS_DEFAULT, pieLabelOptions, pieLabelsCategoryName, pieLabelsPath } from 'editor/pie';
 import { type PieLabel } from 'editor/types';
 import { type PanelOptions } from 'types';
 

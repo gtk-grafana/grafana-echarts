@@ -14,7 +14,7 @@ import {
   type ValueFormatter,
 } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
-import { PIE_CALC_DEFAULT } from 'editor/constants';
+import { PIE_CALC_DEFAULT } from 'editor/pie';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { getPaletteColorByIndex, getValueFormatter } from 'lib/echarts/style';
 import { getHiddenSeriesNames, getSeriesColorOverride, isSeriesHiddenByName } from 'lib/grafana/fields/seriesConfig';

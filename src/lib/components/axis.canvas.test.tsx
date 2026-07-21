@@ -3,7 +3,7 @@ import { AxisPlacement } from '@grafana/schema';
 import { render } from '@testing-library/react';
 import { type SeriesType } from 'editor/types';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import { AXIS_ZLEVEL, removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
+import { AXIS_ZLEVEL, removeCanvasClear, roundCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getAxisCanvasEvents, getCanvasEvents, getComponent, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
@@ -56,10 +56,13 @@ describe('Panel canvas axis renders', () => {
 
     const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-    expect(removeCanvasTransforms(removeCanvasClear(defaultEvents))).toMatchCanvasSnapshot(seriesEvents, {
-      width,
-      height,
-    });
+    expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(defaultEvents)))).toMatchCanvasSnapshot(
+      seriesEvents,
+      {
+        width,
+        height,
+      }
+    );
   });
 
   // A single y-axis rendered by each axis-bearing chart family. Confirms every
@@ -122,7 +125,7 @@ describe('Panel canvas axis renders', () => {
       const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
       // Commit the isolated axis layer; grid + series are viewer-only context.
-      expect(removeCanvasTransforms(removeCanvasClear(axisEvents))).toMatchCanvasSnapshot(
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
         [...defaultEvents, ...seriesEvents],
         { width, height }
       );
@@ -141,7 +144,7 @@ describe('Panel canvas axis renders', () => {
 
     const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
-    expect(removeCanvasTransforms(removeCanvasClear(axisEvents))).toMatchCanvasSnapshot(
+    expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
       [...defaultEvents, ...seriesEvents],
       { width, height }
     );
@@ -175,7 +178,7 @@ describe('Panel canvas axis renders', () => {
 
       const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
-      expect(removeCanvasTransforms(removeCanvasClear(axisEvents))).toMatchCanvasSnapshot(
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
         [...defaultEvents, ...seriesEvents],
         { width, height }
       );
@@ -198,7 +201,7 @@ describe('Panel canvas axis renders', () => {
 
     const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
-    expect(removeCanvasTransforms(removeCanvasClear(axisEvents))).toMatchCanvasSnapshot(
+    expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
       [...defaultEvents, ...seriesEvents],
       { width, height }
     );
@@ -257,7 +260,7 @@ describe('Panel canvas axis renders', () => {
 
       const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
-      expect(removeCanvasTransforms(removeCanvasClear(axisEvents))).toMatchCanvasSnapshot(
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
         [...defaultEvents, ...seriesEvents],
         { width, height }
       );

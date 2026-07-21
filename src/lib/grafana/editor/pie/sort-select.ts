@@ -1,11 +1,11 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_SORT_DEFAULT, pieSortOptions, pieSortPath, pieTypeCategoryName } from 'editor/constants';
+import { PIE_SORT_DEFAULT, pieSortOptions, pieSortPath, pieTypeCategoryName } from 'editor/pie';
 import { type PanelOptions } from 'types';
 
 /**
  * Register the pie "Slice sorting" select (Descending / Ascending / None) —
  * Grafana Pie chart parity. Adapted from core's piechart module (`public/app/
- * plugins/panel/piechart/module.tsx`), placed in the plugin-owned "Pie" category
+ * plugins/panel/piechart/module.tsx`), placed in the "Advanced" category
  * alongside the chart type. The value orders the shared slice model by value; see
  * `resolvePieSlices`.
  */
