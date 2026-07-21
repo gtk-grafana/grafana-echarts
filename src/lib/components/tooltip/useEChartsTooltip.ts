@@ -23,11 +23,18 @@ export const TOOLTIP_MARKER_ATTR = 'data-echarts-tooltip';
 export interface EChartsTooltipState {
   /** The hovered content, or `null` when nothing is hovered. */
   model: TooltipModel | null;
-  /** Cursor position in window coordinates (for `VizTooltipContainer`). */
+  /** Cursor position in window coordinates. */
   position: { x: number; y: number } | null;
   visible: boolean;
   /** Whether the user has click-to-pinned the tooltip (freezes content, enables interaction). */
   pinned: boolean;
+  /**
+   * The chart element that was clicked to pin, when the click landed on one
+   * (ECharts element-level `click` params). Lets the overlay pick the clicked
+   * row's footer source in multi-row ("All") tooltips, mirroring core's
+   * hovered-series footer. `null` when pinned from an empty-grid click.
+   */
+  pinnedItem: { seriesIndex?: number; dataIndex?: number } | null;
 }
 
 export interface EChartsTooltipController {
@@ -40,7 +47,7 @@ export interface EChartsTooltipController {
   dismiss: () => void;
 }
 
-const HIDDEN: EChartsTooltipState = { model: null, position: null, visible: false, pinned: false };
+const HIDDEN: EChartsTooltipState = { model: null, position: null, visible: false, pinned: false, pinnedItem: null };
 
 /**
  * Bridges ECharts hover into React tooltip state. ECharts' (invisible) tooltip
@@ -120,7 +127,7 @@ export function useEChartsTooltip(
 
   const dismiss = useCallback(() => {
     cancelHide();
-    update({ pinned: false, visible: false, model: null });
+    update({ pinned: false, pinnedItem: null, visible: false, model: null });
   }, [cancelHide, update]);
 
   useEffect(() => {
@@ -173,18 +180,44 @@ export function useEChartsTooltip(
 
     // Click pins the current tooltip (freezes content + position and enables
     // interaction). Unpinning is handled by the outside-click / Escape effect
-    // below. Only a click over a shown tooltip pins; a drag still brushes the
-    // time axis (ECharts fires `click` only on a press without drag).
-    const onClick = () => {
+    // below. A drag still brushes the time axis (ZRender only synthesizes
+    // `click` on a press without movement).
+    //
+    // Two click sources cooperate:
+    // - the element-level chart `click` carries the clicked item's
+    //   `seriesIndex`/`dataIndex`, recorded so the overlay can pick that row's
+    //   footer source in "All" tooltips (core's hovered-series footer);
+    // - the ZRender canvas `click` catches empty-grid clicks, so an axis
+    //   tooltip can be pinned anywhere on the plot.
+    // On an element click both fire; whichever runs first pins, and the element
+    // handler still records the item on the same tick.
+    const pinWith = (pinnedItem: EChartsTooltipState['pinnedItem']) => {
       const cur = latestRef.current;
-      if (!cur.pinned && cur.visible && cur.model != null) {
-        cancelHide();
-        update({ pinned: true });
+      if (cur.pinned || !cur.visible || cur.model == null) {
+        return;
       }
+      cancelHide();
+      update({ pinned: true, pinnedItem });
     };
+
+    const onChartClick = (params: { seriesIndex?: number; dataIndex?: number }) => {
+      const cur = latestRef.current;
+      // The ZRender click may have pinned first (same user click); still record
+      // the element so the footer resolves. A click while already interactively
+      // pinned never reaches here un-dismissed (the outside-click handler runs
+      // on mousedown, before click).
+      if (cur.pinned && cur.pinnedItem == null) {
+        update({ pinnedItem: { seriesIndex: params.seriesIndex, dataIndex: params.dataIndex } });
+        return;
+      }
+      pinWith({ seriesIndex: params.seriesIndex, dataIndex: params.dataIndex });
+    };
+
+    const onZrClick = () => pinWith(null);
 
     zr.on('mousemove', onMove);
     zr.on('globalout', onGlobalOut);
+    zr.on('click', onZrClick);
     // ECharts' event typings for element events are permissive; the handlers
     // ignore the params, so cast to the shared handler shape (see the brush
     // handler in EChart.tsx for the same pattern).
@@ -193,7 +226,7 @@ export function useEChartsTooltip(
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     chart.on('mouseover', onMouseOver as (...args: unknown[]) => void);
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    chart.on('click', onClick as (...args: unknown[]) => void);
+    chart.on('click', onChartClick as (...args: unknown[]) => void);
 
     return () => {
       // On unmount EChart disposes the instance in its layout-effect cleanup,
@@ -202,9 +235,10 @@ export function useEChartsTooltip(
       if (!chart.isDisposed()) {
         zr.off('mousemove', onMove);
         zr.off('globalout', onGlobalOut);
+        zr.off('click', onZrClick);
         chart.off('mouseout', onMouseOut);
         chart.off('mouseover', onMouseOver);
-        chart.off('click', onClick);
+        chart.off('click', onChartClick);
       }
       cancelHide();
       if (rafIdRef.current != null) {

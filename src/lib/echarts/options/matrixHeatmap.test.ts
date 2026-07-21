@@ -143,13 +143,13 @@ describe('getMatrixHeatmapVisualMap', () => {
 describe('buildMatrixHeatmapTooltipModel', () => {
   const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as TopLevelFormatterParams;
   const text = (model: TooltipModel) =>
-    [model.header, ...model.rows.flatMap((row) => [row.label, row.value])].join(' ');
+    [model.header?.label, model.header?.value, ...model.rows.flatMap((row) => [row.label, row.value])].join(' ');
 
   it('maps cell indices back to their category labels and value', () => {
     const formatter = buildMatrixHeatmapTooltipModel(data, ctx);
     const model = formatter(asParams([1, 0, 3]));
     // X category header, then Value row and the Y category name.
-    expect(model.header).toBe('c2');
+    expect(model.header).toEqual({ label: '', value: 'c2' });
     expect(text(model)).toContain('Value');
     expect(text(model)).toContain('3');
     expect(text(model)).toContain('Name');

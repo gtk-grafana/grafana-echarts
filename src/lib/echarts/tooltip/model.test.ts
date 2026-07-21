@@ -76,10 +76,12 @@ describe('applyTooltipRowOptions', () => {
 });
 
 describe('buildTooltipModel', () => {
-  it('builds a single-item model with the item name as header', () => {
+  it('builds a single-item model with the item name as the header value (core composition)', () => {
     const model = buildTooltipModel(asParams({ seriesName: 'A', name: 'x', value: 5 }), resolveValue);
-    expect(model.header).toBe('x');
-    expect(model.rows).toEqual([{ color: undefined, label: 'A', value: '5' }]);
+    // The x value goes in `header.value` with an empty label, like core's
+    // TimeSeriesTooltip header item.
+    expect(model.header).toEqual({ label: '', value: 'x' });
+    expect(model.rows).toMatchObject([{ label: 'A', value: '5' }]);
   });
 
   it('builds an axis (All) model with the axis label as header and one row per series', () => {
@@ -90,8 +92,25 @@ describe('buildTooltipModel', () => {
       ]),
       resolveValue
     );
-    expect(model.header).toBe('x');
+    expect(model.header).toEqual({ label: '', value: 'x' });
     expect(model.rows.map((row) => `${row.label}:${row.value}`)).toEqual(['A:10', 'B:30']);
+  });
+
+  it('formats the header with the supplied time formatter, overriding axisValueLabel', () => {
+    const formatHeaderValue = (item: { value?: unknown }) =>
+      Array.isArray(item.value) ? `t${item.value[0]}` : undefined;
+    // Item-trigger (Single): no axisValueLabel at all — recovered from the tuple.
+    const single = buildTooltipModel(asParams({ seriesName: 'A', value: [1000, 5] }), resolveValue, {
+      formatHeaderValue,
+    });
+    expect(single.header).toEqual({ label: '', value: 't1000' });
+    // Axis-trigger: Grafana formatting wins over ECharts' axisValueLabel.
+    const multi = buildTooltipModel(
+      asParams([{ seriesName: 'A', value: [1000, 5], axisValueLabel: 'echarts-format' }]),
+      resolveValue,
+      { formatHeaderValue }
+    );
+    expect(multi.header).toEqual({ label: '', value: 't1000' });
   });
 
   it('applies sort and hideZeros to the rows', () => {
@@ -102,7 +121,7 @@ describe('buildTooltipModel', () => {
         { seriesName: 'B', value: [1, 30] },
       ]),
       resolveValue,
-      { sort: SortOrder.Descending, hideZeros: true }
+      { rowOptions: { sort: SortOrder.Descending, hideZeros: true } }
     );
     expect(model.rows.map((row) => row.label)).toEqual(['B', 'A']);
   });
@@ -112,35 +131,36 @@ describe('buildTooltipModel', () => {
     expect(model.rows[0].value).toBe('5 (25%)');
   });
 
-  it('resolves a footer source for a single hovered item, but not for a multi-row (All) tooltip', () => {
+  it('resolves a model-level source for a single item and per-row sources for All tooltips', () => {
     const field: Field = toDataFrame({ fields: [{ name: 'v', type: FieldType.number, values: [1, 2] }] }).fields[0];
-    const resolveField: TooltipFieldResolver = (item) => ({ field, rowIndex: item.dataIndex ?? 0 });
+    const resolveField: TooltipFieldResolver = (item) =>
+      item.seriesIndex != null || item.dataIndex != null ? { field, rowIndex: item.dataIndex ?? 0 } : undefined;
 
-    const single = buildTooltipModel(
-      asParams({ name: 'x', value: 5, dataIndex: 1 }),
-      resolveValue,
-      undefined,
-      resolveField
-    );
+    const single = buildTooltipModel(asParams({ name: 'x', value: 5, dataIndex: 1 }), resolveValue, { resolveField });
     expect(single.source).toEqual({ field, rowIndex: 1 });
 
     const all = buildTooltipModel(
       asParams([
-        { seriesName: 'A', value: [1, 10], axisValueLabel: 'x' },
-        { seriesName: 'B', value: [1, 30] },
+        { seriesName: 'A', seriesIndex: 0, dataIndex: 1, value: [1, 10], axisValueLabel: 'x' },
+        { seriesName: 'B', seriesIndex: 1, dataIndex: 1, value: [1, 30] },
       ]),
       resolveValue,
-      undefined,
-      resolveField
+      { resolveField }
     );
+    // No single focused item, so no model-level source — but every row carries
+    // its own, so the overlay can pick the clicked series' footer.
     expect(all.source).toBeUndefined();
+    expect(all.rows.map((row) => ({ seriesIndex: row.seriesIndex, source: row.source }))).toEqual([
+      { seriesIndex: 0, source: { field, rowIndex: 1 } },
+      { seriesIndex: 1, source: { field, rowIndex: 1 } },
+    ]);
   });
 });
 
 describe('toEmittingFormatter', () => {
   it('pushes the produced model to the sink and returns an empty string', () => {
     const emitted: TooltipModel[] = [];
-    const model: TooltipModel = { header: 'h', rows: [{ label: 'a', value: '1' }] };
+    const model: TooltipModel = { header: { label: '', value: 'h' }, rows: [{ label: 'a', value: '1' }] };
     const formatter = toEmittingFormatter(
       () => model,
       (produced) => emitted.push(produced)

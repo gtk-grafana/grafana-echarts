@@ -150,7 +150,8 @@ function buildHierarchyTooltipModel(ctx: HierarchySeriesContext): (params: TopLe
     if (hovered?.self != null) {
       rows.push({ label: 'Self', value: formatTooltipValue(hovered.self, ctx.formatValue) });
     }
-    return { header: hovered?.name ?? String(param?.name ?? ''), rows };
+    // Item chart: the hovered node's name is the header label.
+    return { header: { label: hovered?.name ?? String(param?.name ?? ''), value: '' }, rows };
   };
 }
 

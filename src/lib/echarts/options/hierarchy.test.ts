@@ -89,7 +89,7 @@ function captureTooltip(
 
 // Flatten a model to a searchable string (header + each row's label/value).
 const tooltipText = (model: TooltipModel) =>
-  [model.header, ...model.rows.flatMap((row) => [row.label, row.value])].join(' ');
+  [model.header?.label, model.header?.value, ...model.rows.flatMap((row) => [row.label, row.value])].join(' ');
 
 // total > render (a deeper child) and an io sibling, so we can assert both the
 // top-level coloring and that deeper nodes stay uncolored.
@@ -196,7 +196,7 @@ describe('hierarchy tooltip modes', () => {
     );
 
     const text = tooltipText(model);
-    expect(model.header).toBe('total');
+    expect(model.header).toEqual({ label: 'total', value: '' });
     expect(text).toContain('Value');
     expect(text).toContain('100');
     expect(text).toContain('Self');

@@ -202,8 +202,10 @@ export function buildBinnedHeatmapTooltipModel(
 
     const bucket = bucketLabels.get(`${yStart}:${yEnd}`) ?? `${formatBucketBound(yStart)} - ${formatBucketBound(yEnd)}`;
 
+    // Time-style header: the x (time/value) goes in `value`, matching core's
+    // heatmap tooltip composition.
     return {
-      header: formatX(xStart),
+      header: { label: '', value: formatX(xStart) },
       rows: [
         { label: 'Value', value: formatTooltipValue(value, ctx.formatValue) },
         { label: 'Name', value: bucket },

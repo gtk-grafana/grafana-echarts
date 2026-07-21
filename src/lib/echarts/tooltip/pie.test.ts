@@ -37,7 +37,7 @@ describe('buildPieTooltipModel', () => {
         theme
       )(asParams({ dataIndex: 0, name: 'A', value: 30 }));
 
-      expect(model.header).toBe('A');
+      expect(model.header).toEqual({ label: 'A', value: '' });
       expect(model.rows).toHaveLength(1);
       expect(model.rows[0].value).toBe('30 (30%)');
       expect(model.rows[0].color).toBe('#aaaaaa');
@@ -54,14 +54,14 @@ describe('buildPieTooltipModel', () => {
         theme
       )(asParams({ dataIndex: 2, name: 'C', value: 20 }));
 
-      expect(model.header).toBe('C');
-      expect(model.header).not.toContain('series');
+      expect(model.header).toEqual({ label: 'C', value: '' });
+      expect(model.header?.label).not.toContain('series');
     });
 
     it('resolves the hovered slice by name when dataIndex is absent', () => {
       const model = buildPieTooltipModel(slices, TooltipDisplayMode.Single, theme)(asParams({ name: 'B', value: 50 }));
 
-      expect(model.header).toBe('B');
+      expect(model.header).toEqual({ label: 'B', value: '' });
       expect(model.rows[0].value).toBe('50 (50%)');
     });
   });
@@ -74,7 +74,7 @@ describe('buildPieTooltipModel', () => {
         theme
       )(asParams({ dataIndex: 1, name: 'B', value: 50 }));
 
-      expect(model.header).toBe('B');
+      expect(model.header).toEqual({ label: 'B', value: '' });
       expect(values(model.rows)).toEqual(['30 (30%)', '50 (50%)', '20 (20%)']);
     });
 

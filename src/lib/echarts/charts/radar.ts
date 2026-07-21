@@ -19,6 +19,20 @@ export const radarChartModule: ChartModule = {
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
   },
 
+  getTooltipFieldResolver(ctx) {
+    // Same per-polygon field list as the value formatter above, keyed by
+    // `dataIndex`; a polygon reduces a whole field, so links resolve at row 0.
+    const frame = findCategoricalFrame(ctx.frames);
+    const fields = frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+    return (item) => {
+      if (item.dataIndex == null) {
+        return undefined;
+      }
+      const field = fields[item.dataIndex];
+      return field ? { field, rowIndex: 0 } : undefined;
+    };
+  },
+
   buildOption(ctx: ChartContext<'radar'>, { isGrafanaLegend }): EChartRadarSeriesOption | null {
     const { frames, theme, options, seriesType } = ctx;
     const radar = radarToEChartsOption(frames, theme);

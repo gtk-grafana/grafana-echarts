@@ -4,7 +4,7 @@ import { type TooltipModel } from 'lib/echarts/tooltip/model';
 import { type RefObject } from 'react';
 import { useEChartsTooltip } from './useEChartsTooltip';
 
-const model: TooltipModel = { header: 'x', rows: [{ label: 'A', value: '1' }] };
+const model: TooltipModel = { header: { label: '', value: 'x' }, rows: [{ label: 'A', value: '1' }] };
 
 /** Minimal ECharts stand-in that records handlers and lets tests emit events. */
 function createFakeChart() {
@@ -114,20 +114,22 @@ describe('useEChartsTooltip', () => {
     expect(result.current.state.visible).toBe(true);
   });
 
-  it('pins on click, freezes hover updates, and dismisses on Escape', () => {
+  it('pins on element click recording the clicked item, freezes hover, and dismisses on Escape', () => {
     const fake = createFakeChart();
     const { result } = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
 
     act(() => {
       result.current.reportTrigger('item');
       result.current.sink(model);
-      fake.emit('click');
+      fake.emit('click', { seriesIndex: 2, dataIndex: 5 });
     });
     expect(result.current.state.pinned).toBe(true);
+    // The clicked element is recorded so the overlay can pick that row's footer.
+    expect(result.current.state.pinnedItem).toEqual({ seriesIndex: 2, dataIndex: 5 });
 
     // A later hover is ignored while pinned.
     act(() => {
-      result.current.sink({ header: 'other', rows: [] });
+      result.current.sink({ header: { label: '', value: 'other' }, rows: [] });
     });
     expect(result.current.state.model).toEqual(model);
 
@@ -135,6 +137,36 @@ describe('useEChartsTooltip', () => {
       fireEvent.keyDown(document, { key: 'Escape' });
     });
     expect(result.current.state.pinned).toBe(false);
+    expect(result.current.state.pinnedItem).toBeNull();
     expect(result.current.state.visible).toBe(false);
+  });
+
+  it('pins from an empty-grid (canvas) click with no recorded item', () => {
+    const fake = createFakeChart();
+    const { result } = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+    act(() => {
+      result.current.reportTrigger('axis');
+      result.current.sink(model);
+      fake.emitZr('click');
+    });
+    expect(result.current.state.pinned).toBe(true);
+    expect(result.current.state.pinnedItem).toBeNull();
+  });
+
+  it('records the element when the canvas click pinned first (same user click)', () => {
+    const fake = createFakeChart();
+    const { result } = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+    act(() => {
+      result.current.reportTrigger('axis');
+      result.current.sink(model);
+      // ZRender's canvas click and the element-level chart click both fire for
+      // a click on an element; order is not guaranteed.
+      fake.emitZr('click');
+      fake.emit('click', { seriesIndex: 1, dataIndex: 3 });
+    });
+    expect(result.current.state.pinned).toBe(true);
+    expect(result.current.state.pinnedItem).toEqual({ seriesIndex: 1, dataIndex: 3 });
   });
 });

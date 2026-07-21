@@ -39,7 +39,7 @@ export function buildMatrixHeatmapTooltipModel(
     // Header is the X (column) category; then a Value row and the Y (row) label,
     // mirroring the binned heatmap tooltip layout.
     return {
-      header: data.xCategories[xIndex] ?? '',
+      header: { label: '', value: data.xCategories[xIndex] ?? '' },
       rows: [
         { label: 'Value', value: formatTooltipValue(value, ctx.formatValue) },
         { label: 'Name', value: data.yCategories[yIndex] ?? '' },

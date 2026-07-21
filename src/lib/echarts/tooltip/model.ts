@@ -11,17 +11,29 @@ import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/t
  * tooltip (see `lib/components/tooltip`).
  */
 export interface TooltipModel {
-  /** Header text: the shared axis (x/time) label, or the single hovered item's name. */
-  header?: string;
+  /**
+   * Header row, composed like core Grafana's panel tooltips (`VizTooltipItem`):
+   * time-axis charts put the formatted time in `value` with an empty `label`
+   * (matching `TimeSeriesTooltip`), while item charts (pie/hierarchy) put the
+   * item name in `label`.
+   */
+  header?: TooltipHeaderItem;
   rows: TooltipRow[];
   /**
    * Source field + row of the single hovered item (present only when one item is
    * focused, i.e. Single mode / a single hovered slice). The React footer reads
    * data links and label-based ad-hoc filters from it. Kept as raw `Field`/row so
    * the ECharts layer stays free of `@grafana/ui` (the footer resolves links
-   * there instead).
+   * there instead). In multi-row ("All") tooltips this is unset; each row carries
+   * its own `source` and the overlay picks the clicked row's (see `TooltipRow`).
    */
   source?: TooltipSource;
+}
+
+/** Header label/value pair; mirrors the `VizTooltipItem` core panels feed `VizTooltipHeader`. */
+export interface TooltipHeaderItem {
+  label: string;
+  value: string;
 }
 
 /** The hovered item's source field and its row index within that field's values. */
@@ -60,6 +72,10 @@ export interface TooltipRow {
   value: string;
   /** Render the row highlighted (e.g. the hovered slice in a pie "All" tooltip). */
   emphasis?: boolean;
+  /** ECharts series index of the row's item; lets the overlay match a clicked element to its row. */
+  seriesIndex?: number;
+  /** The row's source field + row index, for the pinned footer (data links / ad-hoc filters). */
+  source?: TooltipSource;
 }
 
 /**
@@ -178,45 +194,70 @@ export function applyTooltipRowOptions<T>(
   return result;
 }
 
-/** Header text: the shared axis (x/time) label, or the single item's name. */
-function getHeader(items: TooltipParam[]): string {
+/**
+ * Header text: the hovered x value. Axis triggers carry it as `axisValueLabel`;
+ * item triggers (Single mode) don't, so `formatHeaderValue` (supplied for time
+ * axes) recovers it from the item's `[x, value]` tuple with Grafana's time
+ * formatting. Falls back to the single item's `name` (category charts).
+ */
+function getHeaderText(items: TooltipParam[], formatHeaderValue?: (item: TooltipParam) => string | undefined): string {
   const [first] = items;
-  if (first?.axisValueLabel != null) {
+  if (first == null) {
+    return '';
+  }
+  const formatted = formatHeaderValue?.(first);
+  if (formatted != null) {
+    return formatted;
+  }
+  if (first.axisValueLabel != null) {
     return first.axisValueLabel;
   }
-  if (items.length === 1 && first?.name != null) {
+  if (items.length === 1 && first.name != null) {
     return String(first.name);
   }
   return '';
 }
 
 /** Row label for an item: prefer the series name, falling back to its name. */
-function getLabel(item: TooltipParam, header: string): string {
+function getLabel(item: TooltipParam, headerText: string): string {
   if (item.seriesName != null && item.seriesName !== '') {
     return item.seriesName;
   }
   const name = item.name != null ? String(item.name) : '';
   // Avoid repeating the header (used as the item name) as the row label.
-  return name === header ? '' : name;
+  return name === headerText ? '' : name;
+}
+
+/** Optional behaviors for {@link buildTooltipModel}, supplied by the panel option layer. */
+export interface TooltipModelOptions {
+  /** Multi-mode row shaping (hide zeros / sort); see {@link TooltipRowOptions}. */
+  rowOptions?: TooltipRowOptions;
+  /** Maps an item to its source field for the footer; see {@link TooltipFieldResolver}. */
+  resolveField?: TooltipFieldResolver;
+  /**
+   * Formats the hovered x value for the header (e.g. Grafana time formatting on
+   * time axes, where item-trigger params carry the raw `[time, value]` tuple).
+   */
+  formatHeaderValue?: (item: { value?: unknown }) => string | undefined;
 }
 
 /**
  * Generic VizTooltip content model for cartesian, pie, and radar charts. Consumes
  * ECharts' `tooltip.formatter` params (a single item, or an array in axis mode)
- * and returns a {@link TooltipModel}.
+ * and returns a {@link TooltipModel}. The header mirrors core Grafana's
+ * `TimeSeriesTooltip`: the x/time value goes in `header.value` (label empty).
  * https://echarts.apache.org/en/option.html#tooltip.formatter
  */
 export function buildTooltipModel(
   params: TopLevelFormatterParams,
   resolveValueFormatter: TooltipValueFormatterResolver,
-  rowOptions?: TooltipRowOptions,
-  resolveField?: TooltipFieldResolver
+  { rowOptions, resolveField, formatHeaderValue }: TooltipModelOptions = {}
 ): TooltipModel {
   const items = Array.isArray(params) ? params : [params];
 
   // Header is the shared axis label, invariant across rows, so derive it before
   // any hide/sort reshaping.
-  const header = getHeader(items);
+  const headerText = getHeaderText(items, formatHeaderValue);
 
   const ordered = rowOptions ? applyTooltipRowOptions(items, (item) => tooltipNumeric(item.value), rowOptions) : items;
 
@@ -232,17 +273,20 @@ export function buildTooltipModel(
 
     return {
       color: typeof item.color === 'string' ? item.color : undefined,
-      label: getLabel(item, header),
+      label: getLabel(item, headerText),
       value,
+      seriesIndex: item.seriesIndex,
+      // Every row carries its own source so the overlay can surface the clicked
+      // row's data links / ad-hoc filters, mirroring core's hovered-series footer.
+      source: resolveField?.({ seriesIndex: item.seriesIndex, dataIndex: item.dataIndex }),
     };
   });
 
-  // Footer source only when a single series is focused (Single mode / single
-  // item). "All" (axis) tooltips list many series with no single focus, so — like
-  // core Grafana — they carry no footer.
+  // Model-level source when a single item is focused (Single mode); the header
+  // composition mirrors core: x/time in `value`, empty `label`.
   const source = resolveField != null && items.length === 1 ? resolveField(items[0]) : undefined;
 
-  return { header: header || undefined, rows, source };
+  return { header: headerText ? { label: '', value: headerText } : undefined, rows, source };
 }
 
 /**

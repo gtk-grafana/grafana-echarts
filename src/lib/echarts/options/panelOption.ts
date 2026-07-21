@@ -1,3 +1,4 @@
+import { dateTimeFormat } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
@@ -58,7 +59,7 @@ export function buildPanelChartOption(
   const tooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
   // Per-series resolver so each row honors its field's unit/decimals overrides.
   const resolveValueFormatter = chartModule.getTooltipValueFormatter(ctx);
-  // Optional per-family field resolver so a single hovered item can surface its
+  // Optional per-family field resolver so hovered items can surface their
   // field's data links / ad-hoc filters in the tooltip footer.
   const resolveField = chartModule.getTooltipFieldResolver?.(ctx);
   // Common tooltip parity: hide zero-value rows and sort by value, but only in
@@ -67,10 +68,21 @@ export function buildPanelChartOption(
     tooltipMode === TooltipDisplayMode.Multi
       ? { sort: ctx.options.tooltip?.sort, hideZeros: ctx.options.tooltip?.hideZeros }
       : undefined;
+  // Header time formatting: item-trigger (Single) params carry the raw
+  // `[time, value]` tuple, and axis-trigger `axisValueLabel` uses ECharts' own
+  // time format — both are replaced with Grafana's, honoring the dashboard time
+  // zone (core tooltip parity).
+  const formatHeaderValue =
+    axisType === 'time'
+      ? (item: { value?: unknown }) => {
+          const time: unknown = Array.isArray(item.value) ? item.value[0] : undefined;
+          return typeof time === 'number' ? dateTimeFormat(time, { timeZone: ctx.timeZone }) : undefined;
+        }
+      : undefined;
   const tooltipOption = getSilentTooltipOption(
     grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
     tooltipMode,
-    (params) => buildTooltipModel(params, resolveValueFormatter, rowOptions, resolveField),
+    (params) => buildTooltipModel(params, resolveValueFormatter, { rowOptions, resolveField, formatHeaderValue }),
     sink
   );
 

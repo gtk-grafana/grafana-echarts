@@ -43,13 +43,17 @@ export function buildPieTooltipModel(
     return `${value} (${formatPieShare(slice.value, total, slice.field.config.decimals)})`;
   };
 
+  // Per-slice footer sources: pie slice fields carry a single value, so the row
+  // index is always 0.
+  const sliceSource = (index: number) => ({ field: slices[index].field, rowIndex: 0 });
+
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;
     const hoveredIndex = resolveHoveredIndex(param, slices);
-    const header = hoveredIndex >= 0 ? slices[hoveredIndex].name : String(param?.name ?? '');
-    // Footer source: the hovered slice's field (data links / ad-hoc filters). Pie
-    // slice fields carry a single value, so the row index is always 0.
-    const source = hoveredIndex >= 0 ? { field: slices[hoveredIndex].field, rowIndex: 0 } : undefined;
+    // Item chart: the hovered slice's name is the header label (core pie shows
+    // the name on the left; time-style headers put the value on the right).
+    const header = { label: hoveredIndex >= 0 ? slices[hoveredIndex].name : String(param?.name ?? ''), value: '' };
+    const source = hoveredIndex >= 0 ? sliceSource(hoveredIndex) : undefined;
 
     if (mode === TooltipDisplayMode.Multi) {
       const rows: TooltipRow[] = [];
@@ -64,6 +68,7 @@ export function buildPieTooltipModel(
           label: slice.name,
           value: rowValue(index),
           emphasis: index === hoveredIndex,
+          source: sliceSource(index),
         });
       });
       return { header, rows, source };
@@ -74,7 +79,7 @@ export function buildPieTooltipModel(
     if (hoveredIndex >= 0) {
       return {
         header,
-        rows: [{ color: slices[hoveredIndex].color, label: '', value: rowValue(hoveredIndex) }],
+        rows: [{ color: slices[hoveredIndex].color, label: '', value: rowValue(hoveredIndex), source }],
         source,
       };
     }

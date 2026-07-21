@@ -56,6 +56,7 @@ export const EChart: React.FC<Props> = ({
     sink: tooltipSink,
     reportTrigger: reportTooltipTrigger,
     state: tooltipState,
+    dismiss: dismissTooltip,
   } = useEChartsTooltip(chart, panelDOMRef);
 
   // Latest time-range setter, read from the brush handler (attached once per
@@ -172,6 +173,7 @@ export const EChart: React.FC<Props> = ({
       <div ref={panelDOMRef} style={{ width, height }} />
       <EChartsTooltip
         state={tooltipState}
+        dismiss={dismissTooltip}
         mode={chartContext.options.tooltip?.mode ?? TooltipDisplayMode.Single}
         maxWidth={chartContext.options.tooltip?.maxWidth}
         maxHeight={chartContext.options.tooltip?.maxHeight}

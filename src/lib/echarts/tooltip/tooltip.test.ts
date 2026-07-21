@@ -4,7 +4,7 @@ import { type TooltipModel } from 'lib/echarts/tooltip/model';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 const asParams = (params: unknown) => params as TopLevelFormatterParams;
-const produce = (): TooltipModel => ({ header: 'h', rows: [{ label: 'a', value: '1' }] });
+const produce = (): TooltipModel => ({ header: { label: '', value: 'h' }, rows: [{ label: 'a', value: '1' }] });
 const noop = () => undefined;
 
 describe('grafanaTooltipModeToEChartsTrigger', () => {
@@ -52,6 +52,6 @@ describe('getSilentTooltipOption', () => {
     const rendered = (option.formatter as (params: TopLevelFormatterParams) => string)(asParams({ dataIndex: 0 }));
 
     expect(rendered).toBe('');
-    expect(emitted).toEqual([{ header: 'h', rows: [{ label: 'a', value: '1' }] }]);
+    expect(emitted).toEqual([{ header: { label: '', value: 'h' }, rows: [{ label: 'a', value: '1' }] }]);
   });
 });

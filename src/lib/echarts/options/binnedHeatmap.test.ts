@@ -72,7 +72,7 @@ describe('buildBinnedHeatmapTooltipModel', () => {
   const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as unknown as TopLevelFormatterParams;
   // Flatten the model to a searchable string (header + each row's label/value).
   const text = (model: TooltipModel) =>
-    [model.header, ...model.rows.flatMap((row) => [row.label, row.value])].join(' ');
+    [model.header?.label, model.header?.value, ...model.rows.flatMap((row) => [row.label, row.value])].join(' ');
 
   it('formats the x header as time and shows the value and bucket name', () => {
     const formatter = buildBinnedHeatmapTooltipModel(
@@ -89,7 +89,7 @@ describe('buildBinnedHeatmapTooltipModel', () => {
     const model = formatter(asParams([0, 10, 60000, 20, 7]));
 
     // xStart = 0 -> unix epoch in the forced-UTC test timezone.
-    expect(model.header).toContain('1970-01-01 00:00:00');
+    expect(model.header?.value).toContain('1970-01-01 00:00:00');
     expect(text(model)).toContain('Value');
     expect(text(model)).toContain('7');
     expect(text(model)).toContain('Name');
