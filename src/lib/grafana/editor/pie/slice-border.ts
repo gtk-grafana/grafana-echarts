@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_BORDER_WIDTH_DEFAULT, pieBorderColorPath, pieBorderWidthPath } from 'editor/constants';
+import { PIE_BORDER_WIDTH_DEFAULT, pieBorderColorPath, pieBorderWidthPath } from 'editor/pie';
 import { addAdvancedColorPicker, addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

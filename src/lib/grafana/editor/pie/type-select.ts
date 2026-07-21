@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_TYPE_DEFAULT, pieTypeCategoryName, pieTypeOptions, pieTypePath } from 'editor/constants';
+import { PIE_TYPE_DEFAULT, pieTypeCategoryName, pieTypeOptions, pieTypePath } from 'editor/pie';
 import { type PanelOptions } from 'types';
 
 /**

@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder, type SelectFieldConfigSettings } from '@grafana/data';
-import { pieLegendCategoryName, pieLegendValueOptions, pieLegendValuesPath } from 'editor/constants';
+import { pieLegendCategoryName, pieLegendValueOptions, pieLegendValuesPath } from 'editor/pie';
 import { type PieLegendValue } from 'editor/types';
 import { type PanelOptions } from 'types';
 

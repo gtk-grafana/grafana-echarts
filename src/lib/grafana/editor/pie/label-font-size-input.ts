@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_LABEL_FONT_SIZE_DEFAULT, pieLabelFontSizePath } from 'editor/constants';
+import { PIE_LABEL_FONT_SIZE_DEFAULT, pieLabelFontSizePath } from 'editor/pie';
 import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

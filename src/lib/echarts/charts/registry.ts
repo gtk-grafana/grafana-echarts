@@ -3,9 +3,9 @@ import {
   heatmapSeriesTypes,
   hierarchySeriesTypes,
   multiValueSeriesTypes,
-  pieSeriesTypes,
   radarSeriesTypes,
 } from 'editor/constants';
+import { pieSeriesTypes } from 'editor/pie';
 import { type SeriesType } from 'editor/types';
 import { isHierarchySeriesType, isMultiValueSeriesType, isCartesianSingleValueSeriesType } from './narrowing';
 import { cartesianChartModule } from './cartesian';

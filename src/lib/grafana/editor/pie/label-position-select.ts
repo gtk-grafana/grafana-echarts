@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_LABEL_POSITION_DEFAULT, pieLabelPositionOptions, pieLabelPositionPath } from 'editor/constants';
+import { PIE_LABEL_POSITION_DEFAULT, pieLabelPositionOptions, pieLabelPositionPath } from 'editor/pie';
 import { addAdvancedRadio } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

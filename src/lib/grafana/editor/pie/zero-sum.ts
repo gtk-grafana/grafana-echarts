@@ -4,7 +4,7 @@ import {
   PIE_STILL_SHOW_ZERO_SUM_DEFAULT,
   pieShowEmptyCirclePath,
   pieStillShowZeroSumPath,
-} from 'editor/constants';
+} from 'editor/pie';
 import { addAdvancedBooleanSwitch } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

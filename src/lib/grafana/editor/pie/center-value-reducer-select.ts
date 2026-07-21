@@ -1,5 +1,5 @@
 import { fieldReducers, type PanelOptionsEditorBuilder, type SelectableValue } from '@grafana/data';
-import { pieCenterValueReducerPath } from 'editor/constants';
+import { pieCenterValueReducerPath } from 'editor/pie';
 import { addAdvancedSelect } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
