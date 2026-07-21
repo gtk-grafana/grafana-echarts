@@ -2,8 +2,7 @@ import { type DataFrame, DataFrameType, type Field, FieldType, toDataFrame } fro
 import { AxisPlacement } from '@grafana/schema';
 import { render } from '@testing-library/react';
 import { type SeriesType } from 'editor/types';
-import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import { AXIS_ZLEVEL, removeCanvasClear, roundCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
+import { AXIS_ZLEVEL, normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getAxisCanvasEvents, getCanvasEvents, getComponent, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
@@ -56,13 +55,10 @@ describe('Panel canvas axis renders', () => {
 
     const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-    expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(defaultEvents)))).toMatchCanvasSnapshot(
-      seriesEvents,
-      {
-        width,
-        height,
-      }
-    );
+    expect(normalizeCanvasEvents(defaultEvents)).toMatchCanvasSnapshot(seriesEvents, {
+      width,
+      height,
+    });
   });
 
   // A single y-axis rendered by each axis-bearing chart family. Confirms every
@@ -125,10 +121,10 @@ describe('Panel canvas axis renders', () => {
       const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
       // Commit the isolated axis layer; grid + series are viewer-only context.
-      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
-        [...defaultEvents, ...seriesEvents],
-        { width, height }
-      );
+      expect(normalizeCanvasEvents(axisEvents)).toMatchCanvasSnapshot([...defaultEvents, ...seriesEvents], {
+        width,
+        height,
+      });
     });
   });
 
@@ -144,10 +140,10 @@ describe('Panel canvas axis renders', () => {
 
     const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
-    expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
-      [...defaultEvents, ...seriesEvents],
-      { width, height }
-    );
+    expect(normalizeCanvasEvents(axisEvents)).toMatchCanvasSnapshot([...defaultEvents, ...seriesEvents], {
+      width,
+      height,
+    });
   });
 
   // Two series with distinct units get one y-axis each; the per-field
@@ -178,10 +174,10 @@ describe('Panel canvas axis renders', () => {
 
       const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
-      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
-        [...defaultEvents, ...seriesEvents],
-        { width, height }
-      );
+      expect(normalizeCanvasEvents(axisEvents)).toMatchCanvasSnapshot([...defaultEvents, ...seriesEvents], {
+        width,
+        height,
+      });
     });
   });
 
@@ -201,10 +197,10 @@ describe('Panel canvas axis renders', () => {
 
     const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
-    expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
-      [...defaultEvents, ...seriesEvents],
-      { width, height }
-    );
+    expect(normalizeCanvasEvents(axisEvents)).toMatchCanvasSnapshot([...defaultEvents, ...seriesEvents], {
+      width,
+      height,
+    });
   });
 
   // A binned heatmap with cartesian overlays: the bucket axis stays on the left
@@ -260,10 +256,10 @@ describe('Panel canvas axis renders', () => {
 
       const { defaultEvents, seriesEvents, axisEvents } = await getAxisCanvasEvents(container);
 
-      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(axisEvents)))).toMatchCanvasSnapshot(
-        [...defaultEvents, ...seriesEvents],
-        { width, height }
-      );
+      expect(normalizeCanvasEvents(axisEvents)).toMatchCanvasSnapshot([...defaultEvents, ...seriesEvents], {
+        width,
+        height,
+      });
     });
   });
 });

@@ -1,7 +1,6 @@
 import { FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
-import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
+import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
@@ -54,7 +53,7 @@ describe('part-to-whole funnel canvas renders', () => {
       reduceOptions: { calcs: ['sum'], values: false },
     });
 
-    expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+    expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
       width,
       height,
     });
@@ -66,7 +65,7 @@ describe('part-to-whole funnel canvas renders', () => {
       funnelOrient: 'horizontal',
     });
 
-    expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+    expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
       width,
       height,
     });
@@ -78,7 +77,7 @@ describe('part-to-whole funnel canvas renders', () => {
       displayLabels: ['name', 'value', 'percent'],
     });
 
-    expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+    expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
       width,
       height,
     });

@@ -2975,7 +2975,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 200.00000000000003,
+      "x": 200,
       "y": 144.375,
     },
     "type": "moveTo",
@@ -2989,7 +2989,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 200.00000000000003,
+            "x": 200,
             "y": 144.375,
           },
           "type": "moveTo",
@@ -3077,14 +3077,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 283.72093023255815,
+      "x": 283.72093,
       "y": 93.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 116.27906976744185,
+      "x": 116.27907,
       "y": 93.75,
     },
     "type": "lineTo",
@@ -3117,14 +3117,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 283.72093023255815,
+            "x": 283.72093,
             "y": 93.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 116.27906976744185,
+            "x": 116.27907,
             "y": 93.75,
           },
           "type": "lineTo",
@@ -3160,14 +3160,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 283.72093023255815,
+            "x": 283.72093,
             "y": 93.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 116.27906976744185,
+            "x": 116.27907,
             "y": 93.75,
           },
           "type": "lineTo",
@@ -3192,28 +3192,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 116.27906976744185,
+      "x": 116.27907,
       "y": 93.75,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 283.72093023255815,
+      "x": 283.72093,
       "y": 93.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 269.76744186046517,
+      "x": 269.767442,
       "y": 127.5,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 130.2325581395349,
+      "x": 130.232558,
       "y": 127.5,
     },
     "type": "lineTo",
@@ -3232,28 +3232,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 116.27906976744185,
+            "x": 116.27907,
             "y": 93.75,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 283.72093023255815,
+            "x": 283.72093,
             "y": 93.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 269.76744186046517,
+            "x": 269.767442,
             "y": 127.5,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 130.2325581395349,
+            "x": 130.232558,
             "y": 127.5,
           },
           "type": "lineTo",
@@ -3275,28 +3275,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 116.27906976744185,
+            "x": 116.27907,
             "y": 93.75,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 283.72093023255815,
+            "x": 283.72093,
             "y": 93.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 269.76744186046517,
+            "x": 269.767442,
             "y": 127.5,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 130.2325581395349,
+            "x": 130.232558,
             "y": 127.5,
           },
           "type": "lineTo",
@@ -3321,28 +3321,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 130.2325581395349,
+      "x": 130.232558,
       "y": 127.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 269.76744186046517,
+      "x": 269.767442,
       "y": 127.5,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 261.3953488372093,
+      "x": 261.395349,
       "y": 161.25,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 138.6046511627907,
+      "x": 138.604651,
       "y": 161.25,
     },
     "type": "lineTo",
@@ -3361,28 +3361,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 130.2325581395349,
+            "x": 130.232558,
             "y": 127.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 269.76744186046517,
+            "x": 269.767442,
             "y": 127.5,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 261.3953488372093,
+            "x": 261.395349,
             "y": 161.25,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 138.6046511627907,
+            "x": 138.604651,
             "y": 161.25,
           },
           "type": "lineTo",
@@ -3404,28 +3404,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 130.2325581395349,
+            "x": 130.232558,
             "y": 127.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 269.76744186046517,
+            "x": 269.767442,
             "y": 127.5,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 261.3953488372093,
+            "x": 261.395349,
             "y": 161.25,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 138.6046511627907,
+            "x": 138.604651,
             "y": 161.25,
           },
           "type": "lineTo",
@@ -3450,14 +3450,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 138.6046511627907,
+      "x": 138.604651,
       "y": 161.25,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 261.3953488372093,
+      "x": 261.395349,
       "y": 161.25,
     },
     "type": "lineTo",
@@ -3483,14 +3483,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 138.6046511627907,
+            "x": 138.604651,
             "y": 161.25,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 261.3953488372093,
+            "x": 261.395349,
             "y": 161.25,
           },
           "type": "lineTo",
@@ -3519,14 +3519,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 138.6046511627907,
+            "x": 138.604651,
             "y": 161.25,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 261.3953488372093,
+            "x": 261.395349,
             "y": 161.25,
           },
           "type": "lineTo",
@@ -3790,7 +3790,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
     "props": {
       "maxWidth": null,
       "text": "Admin",
-      "x": 200.00000000000003,
+      "x": 200,
       "y": 143.375,
     },
     "type": "fillText",
@@ -3817,7 +3817,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
     "props": {
       "maxWidth": null,
       "text": "25",
-      "x": 200.00000000000003,
+      "x": 200,
       "y": 144.375,
     },
     "type": "fillText",
@@ -3844,7 +3844,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
     "props": {
       "maxWidth": null,
       "text": "21%",
-      "x": 200.00000000000003,
+      "x": 200,
       "y": 145.375,
     },
     "type": "fillText",
@@ -4085,7 +4085,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 200.00000000000003,
+      "x": 200,
       "y": 144.375,
     },
     "type": "moveTo",
@@ -4099,7 +4099,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 200.00000000000003,
+            "x": 200,
             "y": 144.375,
           },
           "type": "moveTo",
@@ -4187,14 +4187,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 283.72093023255815,
+      "x": 283.72093,
       "y": 93.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 116.27906976744185,
+      "x": 116.27907,
       "y": 93.75,
     },
     "type": "lineTo",
@@ -4227,14 +4227,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 283.72093023255815,
+            "x": 283.72093,
             "y": 93.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 116.27906976744185,
+            "x": 116.27907,
             "y": 93.75,
           },
           "type": "lineTo",
@@ -4270,14 +4270,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 283.72093023255815,
+            "x": 283.72093,
             "y": 93.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 116.27906976744185,
+            "x": 116.27907,
             "y": 93.75,
           },
           "type": "lineTo",
@@ -4302,28 +4302,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 116.27906976744185,
+      "x": 116.27907,
       "y": 93.75,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 283.72093023255815,
+      "x": 283.72093,
       "y": 93.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 269.76744186046517,
+      "x": 269.767442,
       "y": 127.5,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 130.2325581395349,
+      "x": 130.232558,
       "y": 127.5,
     },
     "type": "lineTo",
@@ -4342,28 +4342,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 116.27906976744185,
+            "x": 116.27907,
             "y": 93.75,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 283.72093023255815,
+            "x": 283.72093,
             "y": 93.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 269.76744186046517,
+            "x": 269.767442,
             "y": 127.5,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 130.2325581395349,
+            "x": 130.232558,
             "y": 127.5,
           },
           "type": "lineTo",
@@ -4385,28 +4385,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 116.27906976744185,
+            "x": 116.27907,
             "y": 93.75,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 283.72093023255815,
+            "x": 283.72093,
             "y": 93.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 269.76744186046517,
+            "x": 269.767442,
             "y": 127.5,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 130.2325581395349,
+            "x": 130.232558,
             "y": 127.5,
           },
           "type": "lineTo",
@@ -4431,28 +4431,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 130.2325581395349,
+      "x": 130.232558,
       "y": 127.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 269.76744186046517,
+      "x": 269.767442,
       "y": 127.5,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 261.3953488372093,
+      "x": 261.395349,
       "y": 161.25,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 138.6046511627907,
+      "x": 138.604651,
       "y": 161.25,
     },
     "type": "lineTo",
@@ -4471,28 +4471,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 130.2325581395349,
+            "x": 130.232558,
             "y": 127.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 269.76744186046517,
+            "x": 269.767442,
             "y": 127.5,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 261.3953488372093,
+            "x": 261.395349,
             "y": 161.25,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 138.6046511627907,
+            "x": 138.604651,
             "y": 161.25,
           },
           "type": "lineTo",
@@ -4514,28 +4514,28 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 130.2325581395349,
+            "x": 130.232558,
             "y": 127.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 269.76744186046517,
+            "x": 269.767442,
             "y": 127.5,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 261.3953488372093,
+            "x": 261.395349,
             "y": 161.25,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 138.6046511627907,
+            "x": 138.604651,
             "y": 161.25,
           },
           "type": "lineTo",
@@ -4560,14 +4560,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "x": 138.6046511627907,
+      "x": 138.604651,
       "y": 161.25,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 261.3953488372093,
+      "x": 261.395349,
       "y": 161.25,
     },
     "type": "lineTo",
@@ -4593,14 +4593,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 138.6046511627907,
+            "x": 138.604651,
             "y": 161.25,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 261.3953488372093,
+            "x": 261.395349,
             "y": 161.25,
           },
           "type": "lineTo",
@@ -4629,14 +4629,14 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
         },
         {
           "props": {
-            "x": 138.6046511627907,
+            "x": 138.604651,
             "y": 161.25,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 261.3953488372093,
+            "x": 261.395349,
             "y": 161.25,
           },
           "type": "lineTo",
@@ -4900,7 +4900,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
     "props": {
       "maxWidth": null,
       "text": "Admin",
-      "x": 200.00000000000003,
+      "x": 200,
       "y": 143.375,
     },
     "type": "fillText",
@@ -4927,7 +4927,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
     "props": {
       "maxWidth": null,
       "text": "25",
-      "x": 200.00000000000003,
+      "x": 200,
       "y": 144.375,
     },
     "type": "fillText",
@@ -4954,7 +4954,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
     "props": {
       "maxWidth": null,
       "text": "21%",
-      "x": 200.00000000000003,
+      "x": 200,
       "y": 145.375,
     },
     "type": "fillText",
