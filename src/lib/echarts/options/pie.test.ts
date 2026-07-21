@@ -22,6 +22,7 @@ import {
   getPieRoseType,
   getPieSelection,
   type PieLabelOptions,
+  resolvePieLabelColor,
 } from 'lib/echarts/options/pie';
 import { type PanelOptions } from 'types';
 
@@ -155,11 +156,13 @@ describe('getPieContentLabel', () => {
 });
 
 describe('getPieCenterEmphasisLabel', () => {
-  it('shows the hovered slice value at center with an opaque background', () => {
+  it('shows the hovered slice value centered in the hole (boxless)', () => {
     const label = getPieCenterEmphasisLabel(['name', 'value'], slices(), theme);
-    expect(label).toMatchObject({ show: true, position: 'center' });
-    // Opaque background so the hovered value covers the static center title.
-    expect(label?.backgroundColor).toBe(theme.colors.background.primary);
+    expect(label).toMatchObject({ show: true, position: 'center', align: 'center', verticalAlign: 'middle' });
+    // No box styling: the readout must not draw a tooltip-like background.
+    expect(label).not.toHaveProperty('backgroundColor');
+    expect(label).not.toHaveProperty('padding');
+    expect(label).not.toHaveProperty('borderRadius');
   });
 
   it('formats the per-slice content by dataIndex (matching the slice label lines)', () => {
@@ -179,12 +182,23 @@ describe('getPieCenterTitle', () => {
     expect(getPieCenterTitle('mean', [], theme)).toBeUndefined();
   });
 
-  it('renders the reducer name and the reduced value, centered', () => {
+  it('renders the reducer name and the reduced value, centered on both axes', () => {
     const title = getPieCenterTitle('mean', slices(), theme); // (60+20+20)/3 = 33.33…
-    expect(title).toMatchObject({ left: 'center', top: 'center' });
+    // Anchor the block's middle on the pie center (default 50%/50%).
+    expect(title).toMatchObject({ left: '50%', top: '50%', textAlign: 'center', textVerticalAlign: 'middle' });
     // Two-line rich text: reducer display name then the aggregate value.
     expect(title?.text).toContain('Mean');
     expect(title?.text).toContain('33.3');
+  });
+
+  it('tracks the pie center offset (centerX/centerY)', () => {
+    const title = getPieCenterTitle('mean', slices(), theme, undefined, 30, 40);
+    expect(title).toMatchObject({ left: '30%', top: '40%' });
+  });
+
+  it('falls back to 50% for an unset center offset', () => {
+    const title = getPieCenterTitle('mean', slices(), theme, undefined, undefined, undefined);
+    expect(title).toMatchObject({ left: '50%', top: '50%' });
   });
 
   it('reduces with a different reducer (sum = 100)', () => {
@@ -196,6 +210,36 @@ describe('getPieCenterTitle', () => {
     const empty = [makeSlice('A', undefined), makeSlice('B', undefined)];
     // Mean of no finite values is non-finite → nothing drawn until hover.
     expect(getPieCenterTitle('mean', empty, theme)).toBeUndefined();
+  });
+});
+
+describe('resolvePieLabelColor', () => {
+  // A slice with a known fill so the contrast result is deterministic.
+  const coloredSlice = (color: string): PieSliceModel => ({ ...makeSlice('A', 60), color });
+
+  it('returns undefined at center (series theme color stands)', () => {
+    expect(resolvePieLabelColor(theme, coloredSlice('#ffffff'), 'center', undefined)).toBeUndefined();
+  });
+
+  it('returns undefined for an unset position', () => {
+    expect(resolvePieLabelColor(theme, coloredSlice('#ffffff'), undefined, undefined)).toBeUndefined();
+  });
+
+  it('returns undefined outside without an explicit color (series theme color stands)', () => {
+    expect(resolvePieLabelColor(theme, coloredSlice('#ffffff'), 'outside', undefined)).toBeUndefined();
+  });
+
+  it('uses the per-slice contrast color inside without an explicit color', () => {
+    const slice = coloredSlice('#ffffff');
+    expect(resolvePieLabelColor(theme, slice, 'inside', undefined)).toBe(theme.colors.getContrastText(slice.color));
+  });
+
+  it('lets an explicit color win over the inside contrast color', () => {
+    expect(resolvePieLabelColor(theme, coloredSlice('#ffffff'), 'inside', '#ff0000')).toBe('#ff0000');
+  });
+
+  it('applies an explicit color at outside too', () => {
+    expect(resolvePieLabelColor(theme, coloredSlice('#ffffff'), 'outside', '#ff0000')).toBe('#ff0000');
   });
 });
 

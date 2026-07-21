@@ -23,6 +23,7 @@ import {
   getPieSelection,
   type PieLabelStyleOptions,
   pieDefaultOptions,
+  resolvePieLabelColor,
 } from 'lib/echarts/options/pie';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
@@ -141,22 +142,35 @@ export const pieChartModule: ChartModule = {
     // itemStyle, preserving the per-slice color. 0/unset → omitted.
     const borderRadius = getPieBorderRadius(options.sliceBorderRadius);
     const visible = slices.filter((slice) => !slice.hidden);
-    const data: EChartPieDataItem[] = visible.map((slice) => ({
-      name: slice.name,
-      // ECharts pie values are numeric-only; undefined renders an empty slice.
-      value: slice.value,
-      // Per-slice color plus the Advanced rounded corners and slice-separation
-      // border; every extra is omitted at its default.
-      itemStyle: getPieItemStyle(slice.color, borderRadius, options.sliceBorderWidth, options.sliceBorderColor),
-    }));
+
+    // Advanced "Label color" stores a Grafana color token (e.g. `dark-red`), which
+    // ECharts cannot use as a raw canvas fill — resolve it to a concrete color once.
+    const resolvedLabelColor = options.labelColor ? theme.visualization.getColorByName(options.labelColor) : undefined;
+
+    const data: EChartPieDataItem[] = visible.map((slice) => {
+      // Per-slice label color: explicit "Label color" wins; else an `inside` label
+      // gets a per-slice contrast color. Applied to both the normal and emphasis
+      // label so it survives hover (ECharts otherwise reverts to the slice color).
+      const labelColor = resolvePieLabelColor(theme, slice, options.labelPosition, resolvedLabelColor);
+      return {
+        name: slice.name,
+        // ECharts pie values are numeric-only; undefined renders an empty slice.
+        value: slice.value,
+        // Per-slice color plus the Advanced rounded corners and slice-separation
+        // border; every extra is omitted at its default.
+        itemStyle: getPieItemStyle(slice.color, borderRadius, options.sliceBorderWidth, options.sliceBorderColor),
+        ...(labelColor ? { label: { color: labelColor }, emphasis: { label: { color: labelColor } } } : {}),
+      };
+    });
 
     // Advanced label style overrides, shared by the slice content label and (at
-    // center) the hover emphasis label.
+    // center) the hover emphasis label. The resolved (non-token) label color is
+    // used so the series-level label color is a valid canvas fill.
     const labelStyleOptions: PieLabelStyleOptions = {
       fontSize: options.labelFontSize,
       overflow: options.labelOverflow,
       width: options.labelWidth,
-      color: options.labelColor,
+      color: resolvedLabelColor,
       textShadow: options.labelTextShadow,
       textStroke: options.labelTextStroke,
     };
@@ -166,12 +180,18 @@ export const pieChartModule: ChartModule = {
     // chosen reducer drives the persistent center `title`. Both are absent for the
     // other positions, keeping their render unchanged.
     const isCenterLabel = options.labelPosition === 'center';
-    const centerEmphasisLabel = isCenterLabel
-      ? getPieCenterEmphasisLabel(options.displayLabels, visible, theme, ctx.timeZone, labelStyleOptions)
-      : undefined;
+    // A reducer drives the persistent center title; the hovered slice's detail then
+    // comes from the normal tooltip, so the boxless hover readout is only added when
+    // no reducer is set. Edge case: a reducer set but with a non-finite aggregate
+    // yields no title (getPieCenterTitle returns undefined) and, being gated off
+    // here, no hover readout either — an empty hole, consistent with tooltip-only.
     const centerTitle = isCenterLabel
-      ? getPieCenterTitle(options.centerValueReducer, visible, theme, ctx.timeZone)
+      ? getPieCenterTitle(options.centerValueReducer, visible, theme, ctx.timeZone, options.centerX, options.centerY)
       : undefined;
+    const centerEmphasisLabel =
+      isCenterLabel && !options.centerValueReducer
+        ? getPieCenterEmphasisLabel(options.displayLabels, visible, theme, ctx.timeZone, labelStyleOptions)
+        : undefined;
 
     // Hover emphasis (Advanced): focus/scale omitted at the `none`/unset default so
     // the default hover behavior is unchanged. At center, the emphasis label (the
