@@ -1,11 +1,27 @@
-import { type GrafanaTheme2 } from '@grafana/data';
-import { type PieSeriesOption } from 'echarts';
+import { type Field, fieldReducers, FieldType, type GrafanaTheme2, reduceField } from '@grafana/data';
+import { type PieSeriesOption, type TitleComponentOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import {
+  PIE_ANIMATION_ENABLED_DEFAULT,
+  PIE_AVOID_LABEL_OVERLAP_DEFAULT,
+  PIE_BORDER_RADIUS_DEFAULT,
+  PIE_BORDER_WIDTH_DEFAULT,
+  PIE_CLOCKWISE_DEFAULT,
+  PIE_EMPHASIS_FOCUS_DEFAULT,
+  PIE_EMPHASIS_SCALE_DEFAULT,
+  PIE_LABEL_FONT_SIZE_DEFAULT,
+  PIE_LABEL_OVERFLOW_DEFAULT,
   PIE_LABEL_POSITION_DEFAULT,
+  PIE_LABEL_TEXT_SHADOW_DEFAULT,
+  PIE_LABEL_TEXT_STROKE_DEFAULT,
   PIE_LABELS_DEFAULT,
+  PIE_MIN_ANGLE_DEFAULT,
+  PIE_MIN_SHOW_LABEL_ANGLE_DEFAULT,
   PIE_ROSE_TYPE_DEFAULT,
+  PIE_SELECTED_MODE_DEFAULT,
+  PIE_SHOW_EMPTY_CIRCLE_DEFAULT,
   PIE_START_ANGLE_DEFAULT,
+  PIE_STILL_SHOW_ZERO_SUM_DEFAULT,
   PIE_TYPE_DEFAULT,
 } from 'editor/constants';
 import {
@@ -21,12 +37,73 @@ import { type EChartPieDataItem } from 'lib/echarts/charts/types';
 import { formatPieShare, getPieSliceFormatters, getPieSliceTotal } from 'lib/echarts/converters/pie';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
+import { getValueFormatter } from 'lib/echarts/style';
 import { formatTooltipValue } from 'lib/echarts/tooltip/template';
+import { isAdvancedEditorMode, isApiEditorMode } from 'lib/grafana/editor/common/editor-mode';
+import { type PanelOptions } from 'types';
 
 /** Base option for pie charts. Series data is merged at render time. */
 export const pieDefaultOptions: ECBasicOption = {
   ...createBaseOptions({ includeLegend: true }),
 };
+
+/**
+ * Default values for every Advanced-gated pie option, keyed by its `PanelOptions`
+ * path. In Default editor mode these are spread over the stored options (see
+ * `applyPieEditorModeDefaults`) so a panel renders exactly like an untouched pie
+ * even if advanced values were configured earlier and then the user switched back
+ * to Default — the render path itself never reads `editorMode`, so this is what
+ * keeps hidden advanced values from leaking into the chart. Options whose default
+ * is "unset" are set to `undefined` so any stored value is cleared. `animation` is
+ * included (per the shared `@internal animation.enabled`) so Default mode restores
+ * animation too.
+ */
+export const ADVANCED_PIE_DEFAULTS: Partial<PanelOptions> = {
+  roseType: PIE_ROSE_TYPE_DEFAULT,
+  minAngle: PIE_MIN_ANGLE_DEFAULT,
+  startAngle: PIE_START_ANGLE_DEFAULT,
+  endAngle: undefined,
+  labelPosition: PIE_LABEL_POSITION_DEFAULT,
+  centerValueReducer: undefined,
+  labelFontSize: PIE_LABEL_FONT_SIZE_DEFAULT,
+  labelOverflow: PIE_LABEL_OVERFLOW_DEFAULT,
+  labelWidth: undefined,
+  minShowLabelAngle: PIE_MIN_SHOW_LABEL_ANGLE_DEFAULT,
+  sliceBorderWidth: PIE_BORDER_WIDTH_DEFAULT,
+  sliceBorderColor: undefined,
+  outerRadius: undefined,
+  innerRadius: undefined,
+  centerX: undefined,
+  centerY: undefined,
+  selectedMode: PIE_SELECTED_MODE_DEFAULT,
+  selectedOffset: undefined,
+  sliceBorderRadius: PIE_BORDER_RADIUS_DEFAULT,
+  emphasisFocus: PIE_EMPHASIS_FOCUS_DEFAULT,
+  emphasisScale: PIE_EMPHASIS_SCALE_DEFAULT,
+  labelColor: undefined,
+  stillShowZeroSum: PIE_STILL_SHOW_ZERO_SUM_DEFAULT,
+  showEmptyCircle: PIE_SHOW_EMPTY_CIRCLE_DEFAULT,
+  clockwise: PIE_CLOCKWISE_DEFAULT,
+  avoidLabelOverlap: PIE_AVOID_LABEL_OVERLAP_DEFAULT,
+  labelTextShadow: PIE_LABEL_TEXT_SHADOW_DEFAULT,
+  labelTextStroke: PIE_LABEL_TEXT_STROKE_DEFAULT,
+  animation: { enabled: PIE_ANIMATION_ENABLED_DEFAULT },
+};
+
+/**
+ * Normalize the pie's panel options for rendering by editor mode. Advanced and
+ * API modes render the stored options as-is; Default mode spreads
+ * `ADVANCED_PIE_DEFAULTS` over them so advanced options are forced back to their
+ * defaults (the controls are hidden, so their stored values must not affect the
+ * render). Applied once in `buildPanelChartOption` for pie series types, before
+ * both the series build and the `animation` read.
+ */
+export function applyPieEditorModeDefaults(options: PanelOptions): PanelOptions {
+  if (isAdvancedEditorMode(options) || isApiEditorMode(options)) {
+    return options;
+  }
+  return { ...options, ...ADVANCED_PIE_DEFAULTS };
+}
 
 /**
  * Outer slice radius, shared by pie and donut so both fill the panel the same;
@@ -198,6 +275,11 @@ export function getPieSelection(
   offset: number | undefined
 ): Pick<PieSeriesOption, 'selectedMode' | 'selectedOffset'> {
   const selectedMode: PieSeriesOption['selectedMode'] = !mode || mode === 'off' ? false : mode;
+  // Unlike the omit-at-default sibling helpers (`getPieEmptyState`,
+  // `getPieOrientation`), this always emits `selectedMode` — including the `false`
+  // default. That is intentional and harmless: ECharts' pie `selectedMode` default
+  // is already `false`, and emitting it keeps the "off" path explicit (a single
+  // spread that sets the mode either way) rather than conditionally dropping the key.
   return {
     selectedMode,
     ...(selectedMode && offset ? { selectedOffset: offset } : {}),
@@ -306,9 +388,44 @@ export function getPieOrientation(
  * overflow/width) and `position`. `position` places the labels: `outside` (leader
  * lines, ECharts' default), `inside` (on the slice), or `center` (the donut hole);
  * unset falls back to `PIE_LABEL_POSITION_DEFAULT` (`outside`).
+ *
+ * At `center` the per-slice base label is hidden (`show: false`): drawing every
+ * slice's content stacked in the donut hole is unreadable, so the center is driven
+ * instead by a persistent `title` readout (see `getPieCenterTitle`) and the hovered
+ * slice's value via an emphasis label (see `getPieCenterEmphasisLabel`).
  */
 export interface PieLabelOptions extends PieLabelStyleOptions {
   position?: PieLabelPosition;
+}
+
+/**
+ * Each visible slice's label text (Name / Value / Percent lines, in that order),
+ * indexed by dataIndex. Shared by the slice content label and the center emphasis
+ * label so both format a slice identically. An empty selection yields empty
+ * strings.
+ */
+export function buildPieLabelLines(
+  labels: PieLabel[] | undefined,
+  slices: PieSliceModel[],
+  theme: GrafanaTheme2,
+  timeZone?: string
+): string[] {
+  const selected = labels ?? PIE_LABELS_DEFAULT;
+  const formatters = getPieSliceFormatters(slices, theme, timeZone);
+  const total = getPieSliceTotal(slices);
+  return slices.map((slice, index) => {
+    const parts: string[] = [];
+    if (selected.includes('name')) {
+      parts.push(slice.name);
+    }
+    if (selected.includes('value')) {
+      parts.push(formatTooltipValue(slice.value ?? null, formatters[index]));
+    }
+    if (selected.includes('percent')) {
+      parts.push(formatPieShare(slice.value, total, slice.field.config.decimals));
+    }
+    return parts.join('\n');
+  });
 }
 
 export function getPieContentLabel(
@@ -322,32 +439,97 @@ export function getPieContentLabel(
   const style = getPieLabelStyle(theme, styleOptions);
   const resolvedPosition = position ?? PIE_LABEL_POSITION_DEFAULT;
   const selected = labels ?? PIE_LABELS_DEFAULT;
-  if (selected.length === 0) {
+  // Center: the base slice labels are hidden; the readout comes from the title +
+  // emphasis label instead (see this function's doc).
+  if (resolvedPosition === 'center' || selected.length === 0) {
     return { ...style, position: resolvedPosition, show: false };
   }
 
   // Precompute each slice's label lines once; the formatter closure indexes them
   // by dataIndex on every draw.
-  const formatters = getPieSliceFormatters(slices, theme, timeZone);
-  const total = getPieSliceTotal(slices);
-  const lines = slices.map((slice, index) => {
-    const parts: string[] = [];
-    if (selected.includes('name')) {
-      parts.push(slice.name);
-    }
-    if (selected.includes('value')) {
-      parts.push(formatTooltipValue(slice.value ?? null, formatters[index]));
-    }
-    if (selected.includes('percent')) {
-      parts.push(formatPieShare(slice.value, total, slice.field.config.decimals));
-    }
-    return parts.join('\n');
-  });
-
+  const lines = buildPieLabelLines(labels, slices, theme, timeZone);
   return {
     ...style,
     position: resolvedPosition,
     show: true,
     formatter: (params) => lines[params.dataIndex],
+  };
+}
+
+/**
+ * ECharts pie `emphasis.label` for the center readout: when `labelPosition` is
+ * `center`, hovering a slice shows that slice's content in the donut hole. Drawn
+ * with an opaque theme background so it cleanly covers the persistent center
+ * `title` (the reduced readout) underneath. Returns `undefined` when the position
+ * is not `center`, so no center emphasis label is added.
+ */
+export function getPieCenterEmphasisLabel(
+  labels: PieLabel[] | undefined,
+  slices: PieSliceModel[],
+  theme: GrafanaTheme2,
+  timeZone?: string,
+  styleOptions: PieLabelStyleOptions = {}
+): NonNullable<PieSeriesOption['emphasis']>['label'] | undefined {
+  const lines = buildPieLabelLines(labels, slices, theme, timeZone);
+  return {
+    ...getPieLabelStyle(theme, styleOptions),
+    show: true,
+    position: 'center',
+    // Opaque background + padding so the hovered value hides the static title
+    // readout beneath it rather than overlapping it.
+    backgroundColor: theme.colors.background.primary,
+    padding: [4, 8],
+    borderRadius: 4,
+    formatter: (params) => lines[params.dataIndex],
+  };
+}
+
+/**
+ * ECharts `title` for the persistent donut-center readout, shown with
+ * `labelPosition: 'center'` when a `centerValueReducer` is chosen. The reducer
+ * aggregates the visible slice values into one number, formatted with the first
+ * visible slice's unit/decimals; the title renders the reducer's display name
+ * (e.g. "Mean") above the value. Returns `undefined` when there is no reducer, no
+ * visible slice, or the aggregate is non-finite (so nothing is drawn until a slice
+ * is hovered).
+ */
+export function getPieCenterTitle(
+  reducerId: string | undefined,
+  slices: PieSliceModel[],
+  theme: GrafanaTheme2,
+  timeZone?: string
+): TitleComponentOption | undefined {
+  if (!reducerId || slices.length === 0) {
+    return undefined;
+  }
+  // Reduce across the visible values, borrowing the first slice's field config
+  // (unit/decimals) — part-to-whole slices share a unit. `state` is cleared so no
+  // stale calc cache leaks in.
+  const field: Field = {
+    name: 'center',
+    type: FieldType.number,
+    config: slices[0].field.config,
+    values: slices.map((slice) => slice.value ?? null),
+    state: undefined,
+  };
+  // `FieldCalcs` values are typed `any`; treat as unknown and narrow to a finite number.
+  const aggregate: unknown = reduceField({ field, reducers: [reducerId] })[reducerId];
+  if (typeof aggregate !== 'number' || !Number.isFinite(aggregate)) {
+    return undefined;
+  }
+  const valueText = formatTooltipValue(aggregate, getValueFormatter(field, theme, timeZone));
+  const reducerName = fieldReducers.getIfExists(reducerId)?.name ?? reducerId;
+  return {
+    left: 'center',
+    top: 'center',
+    textAlign: 'center',
+    // Two lines: the reducer name (muted) above the aggregate value (prominent).
+    text: `{name|${reducerName}}\n{value|${valueText}}`,
+    textStyle: {
+      rich: {
+        name: { fontSize: 11, color: theme.colors.text.secondary, padding: [0, 0, 2, 0] },
+        value: { fontSize: 18, fontWeight: 'bold', color: theme.colors.text.primary },
+      },
+    },
   };
 }

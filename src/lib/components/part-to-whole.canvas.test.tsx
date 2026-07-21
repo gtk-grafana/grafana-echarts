@@ -1,8 +1,10 @@
 import { FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
+import { SortOrder } from '@grafana/schema';
 import { render } from '@testing-library/react';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
+import { type PanelOptions } from 'types';
 
 // Part-to-whole (pie) canvas snapshots, split out of `Panel.canvas.test.tsx`
 // (mirrors `axis.canvas.test.tsx`). The pie is built from the shared slice
@@ -15,15 +17,23 @@ import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 // Only the series-layer draw calls are committed; see `Panel.canvas.test.tsx` for
 // the layered-capture rationale.
 
-const pieOptions = (extra: Record<string, unknown> = {}) => ({
+// Render in Advanced editor mode so the advanced options these tests exercise
+// (rose type, angles, center label, borders, …) are respected as-is. In Default
+// (rose type, angles, center label, borders, …) are respected as-is. In Default
+// mode `applyPieEditorModeDefaults` resets every advanced option to its default —
+// including forcing `animation.enabled` back on, which would clobber the
+// `animation: { enabled: false }` these snapshots rely on for determinism. The
+// Default-mode reset itself is covered by the `applyPieEditorModeDefaults` unit tests.
+const pieOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
   zLevel: { series: SERIES_ZLEVEL },
   animation: { enabled: false },
+  editorMode: 'advanced',
   ...extra,
 });
 
 const renderPie = async (
   frames: Parameters<typeof getComponent>[0],
-  options: Record<string, unknown>,
+  options: Partial<PanelOptions>,
   fieldConfig?: FieldConfigSource
 ) => {
   const { container } = render(
@@ -132,7 +142,7 @@ describe('part-to-whole canvas renders', () => {
     it('ascending (smallest first)', async () => {
       const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
         reduceOptions: { calcs: ['sum'], values: false },
-        sort: 'asc',
+        sort: SortOrder.Ascending,
       });
 
       expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
@@ -274,7 +284,10 @@ describe('part-to-whole canvas renders', () => {
       });
     });
 
-    it('center on a donut (single readout in the hole)', async () => {
+    // No reducer → the donut center stays empty (the per-slice labels are hidden;
+    // the hovered slice value shows only on hover, which the static snapshot can't
+    // capture). This asserts the stacked-labels overlap is gone.
+    it('center on a donut without a reducer (empty until hover)', async () => {
       const { defaultEvents, seriesEvents } = await renderPie([wideFrame], {
         reduceOptions: { calcs: ['sum'], values: false },
         pieType: 'donut',

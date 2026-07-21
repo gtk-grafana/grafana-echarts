@@ -8,9 +8,19 @@ clutters the editor for users who only need critical, parity-level controls. The
 shared `editorMode` option tiers the surface so the default experience stays
 close to a core Grafana panel while power users can opt into the full set.
 
-The only consumer is the `showIf` clause of editor builder options; the mode
-changes nothing about rendering. It is built generically on the shared
-`PanelOptions` and is wired into **pie** (part-to-whole) first.
+The primary consumer is the `showIf` clause of editor builder options. It is
+built generically on the shared `PanelOptions` and is wired into **pie**
+(part-to-whole) first.
+
+Because `showIf` only hides a control — it does not clear the stored value — a
+render path that read the options directly would keep applying advanced settings
+even after the user switched back to Default. The pie therefore normalizes its
+options by mode before rendering: in Default mode `applyPieEditorModeDefaults`
+(`lib/echarts/options/pie.ts`, called from `buildPanelChartOption`) spreads
+`ADVANCED_PIE_DEFAULTS` over the stored options, forcing every advanced option
+back to its default (including the shared `animation.enabled`). Advanced and API
+modes render the stored options as-is. New families that gate options behind
+Advanced should apply the same normalization.
 
 ## Default
 

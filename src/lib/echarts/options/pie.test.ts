@@ -3,9 +3,13 @@ import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
 import {
+  ADVANCED_PIE_DEFAULTS,
+  applyPieEditorModeDefaults,
   getPieAngles,
   getPieBorderRadius,
   getPieCenter,
+  getPieCenterEmphasisLabel,
+  getPieCenterTitle,
   getPieContentLabel,
   getPieEmphasis,
   getPieEmptyState,
@@ -19,6 +23,7 @@ import {
   getPieSelection,
   type PieLabelOptions,
 } from 'lib/echarts/options/pie';
+import { type PanelOptions } from 'types';
 
 const theme = createTheme();
 
@@ -127,12 +132,17 @@ describe('getPieContentLabel', () => {
     expect(getPieContentLabel(['name'], slices(), theme, undefined, undefined)).toMatchObject({ position: 'outside' });
   });
 
-  it('threads the label position through (inside / center)', () => {
+  it('threads the inside label position through (still shown)', () => {
     expect(getPieContentLabel(['name'], slices(), theme, undefined, { position: 'inside' })).toMatchObject({
       position: 'inside',
+      show: true,
     });
+  });
+
+  it('hides the base slice label at center (readout comes from title + emphasis)', () => {
     expect(getPieContentLabel(['value'], slices(), theme, undefined, { position: 'center' })).toMatchObject({
       position: 'center',
+      show: false,
     });
   });
 
@@ -141,6 +151,82 @@ describe('getPieContentLabel', () => {
       show: false,
       position: 'center',
     });
+  });
+});
+
+describe('getPieCenterEmphasisLabel', () => {
+  it('shows the hovered slice value at center with an opaque background', () => {
+    const label = getPieCenterEmphasisLabel(['name', 'value'], slices(), theme);
+    expect(label).toMatchObject({ show: true, position: 'center' });
+    // Opaque background so the hovered value covers the static center title.
+    expect(label?.backgroundColor).toBe(theme.colors.background.primary);
+  });
+
+  it('formats the per-slice content by dataIndex (matching the slice label lines)', () => {
+    const label = getPieCenterEmphasisLabel(['name', 'value'], slices(), theme);
+    const formatter = label?.formatter;
+    const rendered = typeof formatter === 'function' ? formatter({ dataIndex: 0 } as CallbackDataParams) : '';
+    expect(rendered).toBe('A\n60');
+  });
+});
+
+describe('getPieCenterTitle', () => {
+  it('returns undefined without a reducer', () => {
+    expect(getPieCenterTitle(undefined, slices(), theme)).toBeUndefined();
+  });
+
+  it('returns undefined for no visible slices', () => {
+    expect(getPieCenterTitle('mean', [], theme)).toBeUndefined();
+  });
+
+  it('renders the reducer name and the reduced value, centered', () => {
+    const title = getPieCenterTitle('mean', slices(), theme); // (60+20+20)/3 = 33.33…
+    expect(title).toMatchObject({ left: 'center', top: 'center' });
+    // Two-line rich text: reducer display name then the aggregate value.
+    expect(title?.text).toContain('Mean');
+    expect(title?.text).toContain('33.3');
+  });
+
+  it('reduces with a different reducer (sum = 100)', () => {
+    const title = getPieCenterTitle('sum', slices(), theme);
+    expect(title?.text).toContain('100');
+  });
+
+  it('returns undefined when every slice value is non-finite', () => {
+    const empty = [makeSlice('A', undefined), makeSlice('B', undefined)];
+    // Mean of no finite values is non-finite → nothing drawn until hover.
+    expect(getPieCenterTitle('mean', empty, theme)).toBeUndefined();
+  });
+});
+
+describe('applyPieEditorModeDefaults', () => {
+  const withMode = (editorMode: PanelOptions['editorMode'], extra: Partial<PanelOptions> = {}): PanelOptions =>
+    ({ editorMode, ...extra }) as PanelOptions;
+
+  it('forces advanced options back to their defaults in Default mode', () => {
+    const resolved = applyPieEditorModeDefaults(withMode('default', { roseType: 'radius', startAngle: 180 }));
+    expect(resolved.roseType).toBe(ADVANCED_PIE_DEFAULTS.roseType);
+    expect(resolved.startAngle).toBe(ADVANCED_PIE_DEFAULTS.startAngle);
+  });
+
+  it('resets the shared animation option in Default mode', () => {
+    const resolved = applyPieEditorModeDefaults(withMode('default', { animation: { enabled: false } }));
+    expect(resolved.animation).toEqual({ enabled: true });
+  });
+
+  it('defaults an unset editor mode to Default (advanced values reset)', () => {
+    const resolved = applyPieEditorModeDefaults(withMode(undefined, { roseType: 'area' }));
+    expect(resolved.roseType).toBe(ADVANCED_PIE_DEFAULTS.roseType);
+  });
+
+  it('passes stored advanced values through untouched in Advanced mode', () => {
+    const options = withMode('advanced', { roseType: 'radius', startAngle: 180 });
+    expect(applyPieEditorModeDefaults(options)).toBe(options);
+  });
+
+  it('passes stored advanced values through untouched in API mode', () => {
+    const options = withMode('api', { roseType: 'radius' });
+    expect(applyPieEditorModeDefaults(options)).toBe(options);
   });
 });
 

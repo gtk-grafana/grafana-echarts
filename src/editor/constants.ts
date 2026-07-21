@@ -40,6 +40,13 @@ export const editorModeOptions: Array<SelectableValue<EditorMode>> = [
   { value: 'advanced', label: 'Advanced' },
 ];
 /**
+ * Single category every Advanced-gated option lives under, so the Advanced tier
+ * adds one clearly-labelled section rather than scattering ECharts-only controls
+ * through the core-parity categories. Baked into the `addAdvanced*` helpers (see
+ * `lib/grafana/editor/common/advanced-options.ts`).
+ */
+export const advancedOptionsCategoryName = 'Advanced';
+/**
  * Stack series option: panel option path and per-field custom config key share
  * the same name. Only meaningful for `bar` series.
  */
@@ -250,6 +257,13 @@ export const pieLabelPositionOptions: Array<SelectableValue<PieLabelPosition>> =
 ];
 /** Default slice-label placement: outside (leader lines), matching ECharts' own default. */
 export const PIE_LABEL_POSITION_DEFAULT: PieLabelPosition = 'outside';
+/**
+ * Panel option path for the center-readout reducer (Advanced). Only meaningful
+ * with `labelPosition: 'center'`: the chosen Grafana reducer (a `ReducerID`)
+ * aggregates the visible slice values into the persistent donut-center readout;
+ * unset leaves the center empty until a slice is hovered. See `getPieCenterTitle`.
+ */
+export const pieCenterValueReducerPath = 'centerValueReducer';
 
 /* Advanced-gated pie legibility options: shown only in the Advanced editor mode,
  * each omitted at its default. See the `pie-legibility.json` demo. */
@@ -349,6 +363,11 @@ export const pieEmphasisFocusOptions: Array<SelectableValue<PieEmphasisFocus>> =
 ];
 /** Default emphasis focus: none (ECharts default; omitted). */
 export const PIE_EMPHASIS_FOCUS_DEFAULT: PieEmphasisFocus = 'none';
+/**
+ * Default emphasis scale: `true` — matches ECharts (the hovered slice enlarges).
+ * The switch defaults on so its state matches the actual hover behavior.
+ */
+export const PIE_EMPHASIS_SCALE_DEFAULT = true;
 
 /** Panel option path for the pie slice-label color (Advanced). No default → theme color. */
 export const pieLabelColorPath = 'labelColor';

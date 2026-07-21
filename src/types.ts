@@ -125,6 +125,15 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   labelPosition?: PieLabelPosition;
 
   /**
+   * Pie (part-to-whole) center-readout reducer (Advanced): a Grafana `ReducerID`
+   * that aggregates the visible slice values into the persistent donut-center
+   * readout, shown only with `labelPosition: 'center'`. Unset leaves the center
+   * empty until a slice is hovered (which shows that slice's value). See
+   * `getPieCenterTitle`.
+   */
+  centerValueReducer?: string;
+
+  /**
    * Pie (part-to-whole) slice sorting (Grafana Pie chart "Slice sorting" parity):
    * order slices by value — `desc` (largest first), `asc` (smallest first), or
    * `none` (data order). Defaults to `PIE_SORT_DEFAULT` (`desc`) when unset. Sorts
@@ -241,7 +250,9 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
 
   /**
    * Pie (part-to-whole) hover emphasis scale (Advanced): whether the hovered slice
-   * enlarges. Unset omits the key (ECharts default enlarges). See `getPieEmphasis`.
+   * enlarges. Defaults to `PIE_EMPHASIS_SCALE_DEFAULT` (`true`, matching ECharts)
+   * so the switch state matches the actual hover behavior; set `false` to disable
+   * the enlarge. See `getPieEmphasis`.
    */
   emphasisScale?: boolean;
 

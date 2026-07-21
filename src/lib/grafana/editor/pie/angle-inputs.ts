@@ -1,11 +1,11 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_START_ANGLE_DEFAULT, pieEndAnglePath, pieStartAnglePath, pieTypeCategoryName } from 'editor/constants';
+import { PIE_START_ANGLE_DEFAULT, pieEndAnglePath, pieStartAnglePath } from 'editor/constants';
 import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
  * Register the pie "Start angle" / "End angle" number inputs (degrees) in the
- * "Pie" category. They set the ECharts `series.startAngle` / `series.endAngle`
+ * "Advanced" category. They set the ECharts `series.startAngle` / `series.endAngle`
  * (see `getPieAngles`), enabling half-pie and semicircle-donut layouts. Both are
  * ECharts-only extras, gated behind Advanced mode.
  */
@@ -13,7 +13,6 @@ export function addPieAngleOptions(builder: PanelOptionsEditorBuilder<PanelOptio
   addAdvancedNumberInput(builder, {
     path: pieStartAnglePath,
     name: 'Start angle',
-    category: pieTypeCategoryName,
     description: 'Angle (degrees) where the arc begins. 90 = top; e.g. start 180 / end 360 = half-pie',
     defaultValue: PIE_START_ANGLE_DEFAULT,
     settings: { min: 0, max: 360 },
@@ -22,7 +21,6 @@ export function addPieAngleOptions(builder: PanelOptionsEditorBuilder<PanelOptio
   addAdvancedNumberInput(builder, {
     path: pieEndAnglePath,
     name: 'End angle',
-    category: pieTypeCategoryName,
     description: 'Angle (degrees) where the arc ends. Unset sweeps a full 360°; e.g. start 180 / end 360 = half-pie',
     settings: { min: 0, max: 360 },
   });

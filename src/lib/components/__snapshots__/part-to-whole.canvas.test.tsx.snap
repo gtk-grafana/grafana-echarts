@@ -11724,7 +11724,7 @@ exports[`part-to-whole canvas renders label overflow truncated long labels 1`] =
 ]
 `;
 
-exports[`part-to-whole canvas renders label position center on a donut (single readout in the hole) 1`] = `
+exports[`part-to-whole canvas renders label position center on a donut without a reducer (empty until hover) 1`] = `
 [
   {
     "props": {},
@@ -12100,104 +12100,6 @@ exports[`part-to-whole canvas renders label position center on a donut (single r
       ],
     },
     "type": "fill",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 200,
-      "f": 130,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "#ccccdc",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 2,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "120",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
   },
   {
     "props": {},
@@ -12577,104 +12479,6 @@ exports[`part-to-whole canvas renders label position center on a donut (single r
       ],
     },
     "type": "fill",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 200,
-      "f": 130,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "#ccccdc",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
-      "value": 1,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 2,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {
-      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
-    },
-    "type": "font",
-  },
-  {
-    "props": {
-      "value": "center",
-    },
-    "type": "textAlign",
-  },
-  {
-    "props": {
-      "value": "middle",
-    },
-    "type": "textBaseline",
-  },
-  {
-    "props": {
-      "maxWidth": null,
-      "text": "120",
-      "x": 0,
-      "y": 0,
-    },
-    "type": "fillText",
   },
   {
     "props": {},

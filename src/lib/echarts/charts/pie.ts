@@ -8,6 +8,8 @@ import {
   getPieAngles,
   getPieBorderRadius,
   getPieCenter,
+  getPieCenterEmphasisLabel,
+  getPieCenterTitle,
   getPieContentLabel,
   getPieEmphasis,
   getPieEmptyState,
@@ -18,6 +20,7 @@ import {
   getPieRadius,
   getPieRoseType,
   getPieSelection,
+  type PieLabelStyleOptions,
   pieDefaultOptions,
 } from 'lib/echarts/options/pie';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
@@ -78,9 +81,34 @@ export const pieChartModule: ChartModule = {
       itemStyle: getPieItemStyle(slice.color, borderRadius, options.sliceBorderWidth, options.sliceBorderColor),
     }));
 
-    // Hover emphasis (Advanced): omitted at the `none`/unset default so the
-    // default hover behavior is unchanged.
-    const emphasis = getPieEmphasis(options.emphasisFocus, options.emphasisScale);
+    // Advanced label style overrides, shared by the slice content label and (at
+    // center) the hover emphasis label.
+    const labelStyleOptions: PieLabelStyleOptions = {
+      fontSize: options.labelFontSize,
+      overflow: options.labelOverflow,
+      width: options.labelWidth,
+      color: options.labelColor,
+      textShadow: options.labelTextShadow,
+      textStroke: options.labelTextStroke,
+    };
+
+    // Center label readout (Advanced): with `labelPosition: 'center'` the per-slice
+    // labels are hidden; the hovered slice value shows via an emphasis label, and a
+    // chosen reducer drives the persistent center `title`. Both are absent for the
+    // other positions, keeping their render unchanged.
+    const isCenterLabel = options.labelPosition === 'center';
+    const centerEmphasisLabel = isCenterLabel
+      ? getPieCenterEmphasisLabel(options.displayLabels, visible, theme, ctx.timeZone, labelStyleOptions)
+      : undefined;
+    const centerTitle = isCenterLabel
+      ? getPieCenterTitle(options.centerValueReducer, visible, theme, ctx.timeZone)
+      : undefined;
+
+    // Hover emphasis (Advanced): focus/scale omitted at the `none`/unset default so
+    // the default hover behavior is unchanged. At center, the emphasis label (the
+    // hovered slice's value) is merged in on top.
+    const baseEmphasis = getPieEmphasis(options.emphasisFocus, options.emphasisScale);
+    const emphasis = centerEmphasisLabel ? { ...(baseEmphasis ?? {}), label: centerEmphasisLabel } : baseEmphasis;
 
     const legend = isGrafanaLegend
       ? { show: false }
@@ -101,6 +129,9 @@ export const pieChartModule: ChartModule = {
     return {
       ...pieDefaultOptions,
       legend,
+      // Persistent donut-center readout (Advanced, center label + a chosen
+      // reducer). Absent otherwise, so no title is drawn.
+      ...(centerTitle ? { title: centerTitle } : {}),
       series: [
         {
           type: seriesType,
@@ -138,13 +169,8 @@ export const pieChartModule: ChartModule = {
           // "Labels" option. No selection → labels hidden (core parity). Advanced
           // placement, legibility, and color / text shadow / stroke threaded in.
           label: getPieContentLabel(options.displayLabels, visible, theme, ctx.timeZone, {
-            fontSize: options.labelFontSize,
-            overflow: options.labelOverflow,
-            width: options.labelWidth,
+            ...labelStyleOptions,
             position: options.labelPosition,
-            color: options.labelColor,
-            textShadow: options.labelTextShadow,
-            textStroke: options.labelTextStroke,
           }),
           // Dedicated pie tooltip (Single slice / All slices). Skipped in None
           // mode, where the panel disables the tooltip entirely.

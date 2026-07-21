@@ -10,6 +10,7 @@ import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standard
 import { addPieAngleOptions } from 'lib/grafana/editor/pie/angle-inputs';
 import { addPieAnimationTextStyleOptions } from 'lib/grafana/editor/pie/animation-text-style';
 import { addPieBorderRadiusOptions } from 'lib/grafana/editor/pie/border-radius-input';
+import { addPieCenterValueReducerOptions } from 'lib/grafana/editor/pie/center-value-reducer-select';
 import { addPieClockwiseOverlapOptions } from 'lib/grafana/editor/pie/clockwise-overlap';
 import { addPieEmphasisOptions } from 'lib/grafana/editor/pie/emphasis';
 import { addPieLabelColorOptions } from 'lib/grafana/editor/pie/label-color';
@@ -98,6 +99,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Slice-label placement (Outside / Inside / Center) — ECharts-only, Advanced.
     // Threaded into `getPieContentLabel` as `label.position`.
     addPieLabelPositionOptions(builder);
+    // Center-readout reducer — shown only with center labels; drives the persistent
+    // donut-center `title` (see `getPieCenterTitle`).
+    addPieCenterValueReducerOptions(builder);
 
     // Advanced pie legibility options. Each builder gates its own controls behind
     // Advanced editor mode and omits its key at the default.

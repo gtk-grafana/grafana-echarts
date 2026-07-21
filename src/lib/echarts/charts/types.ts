@@ -22,6 +22,7 @@ import {
   type RadarSeriesOption,
   type ScatterSeriesOption,
   type SunburstSeriesOption,
+  type TitleComponentOption,
   type TreemapSeriesOption,
   type VisualMapComponentOption,
 } from 'echarts';
@@ -88,7 +89,9 @@ export type EChartMatrixHeatmapOption = ComposeOption<
 export type EChartBarSeriesOption = ComposeOption<BarSeriesOption>;
 export type EChartLineSeriesOption = ComposeOption<LineSeriesOption>;
 export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;
-export type EChartPieSeriesOption = ComposeOption<PieSeriesOption>;
+// Pie can add a centered `title` (the donut-center readout when label position
+// is `center`), so the compose option pulls in the title component too.
+export type EChartPieSeriesOption = ComposeOption<PieSeriesOption | TitleComponentOption>;
 // Radar needs both the series and the `radar` coordinate component.
 export type EChartRadarSeriesOption = ComposeOption<RadarSeriesOption | RadarComponentOption>;
 // Hierarchy families render a value-weighted tree; no cartesian axis component.
