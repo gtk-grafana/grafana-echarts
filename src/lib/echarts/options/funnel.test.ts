@@ -9,8 +9,9 @@ import {
   getFunnelOrient,
   getFunnelSeries,
   getFunnelSize,
+  resolveFunnelLabelColor,
 } from 'lib/echarts/options/funnel';
-import { ADVANCED_FUNNEL_DEFAULTS, applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
+import { applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -63,14 +64,42 @@ describe('getFunnelOrient', () => {
 });
 
 describe('getFunnelAlign', () => {
-  it('omits the center default', () => {
+  it('omits the center default (vertical)', () => {
     expect(getFunnelAlign('center')).toBeUndefined();
     expect(getFunnelAlign(undefined)).toBeUndefined();
+    expect(getFunnelAlign('center', 'vertical')).toBeUndefined();
   });
 
-  it('emits left / right', () => {
+  it('emits left / right for a vertical funnel', () => {
     expect(getFunnelAlign('left')).toBe('left');
     expect(getFunnelAlign('right')).toBe('right');
+    expect(getFunnelAlign('left', 'vertical')).toBe('left');
+  });
+
+  it('forces center (undefined) for a horizontal funnel, ignoring any stored left/right', () => {
+    expect(getFunnelAlign('left', 'horizontal')).toBeUndefined();
+    expect(getFunnelAlign('right', 'horizontal')).toBeUndefined();
+    expect(getFunnelAlign('center', 'horizontal')).toBeUndefined();
+  });
+});
+
+describe('resolveFunnelLabelColor', () => {
+  const slice = makeSlice('A', 60);
+
+  it('returns a per-slice contrast color for on-trapezoid placements (inside/center)', () => {
+    expect(resolveFunnelLabelColor(theme, slice, 'inside')).toBe(theme.colors.getContrastText(slice.color));
+    expect(resolveFunnelLabelColor(theme, slice, 'center')).toBe(theme.colors.getContrastText(slice.color));
+  });
+
+  it('defaults an unset position to inside (contrast color)', () => {
+    expect(resolveFunnelLabelColor(theme, slice, undefined)).toBe(theme.colors.getContrastText(slice.color));
+  });
+
+  it('leaves outside placements to the theme color (undefined)', () => {
+    expect(resolveFunnelLabelColor(theme, slice, 'left')).toBeUndefined();
+    expect(resolveFunnelLabelColor(theme, slice, 'right')).toBeUndefined();
+    expect(resolveFunnelLabelColor(theme, slice, 'top')).toBeUndefined();
+    expect(resolveFunnelLabelColor(theme, slice, 'bottom')).toBeUndefined();
   });
 });
 
@@ -154,18 +183,46 @@ describe('getFunnelSeries', () => {
     expect(series).not.toHaveProperty('gap');
   });
 
-  it('emits the layout options when set away from their defaults', () => {
+  it('emits the layout options when set away from their defaults (vertical)', () => {
     const series = getFunnelSeries(
       slices(),
-      opts({ funnelOrient: 'horizontal', funnelAlign: 'left', funnelGap: 4, funnelMinSize: 10, funnelMaxSize: 90 }),
+      opts({ funnelAlign: 'left', funnelGap: 4, funnelMinSize: 10, funnelMaxSize: 90 }),
       theme,
       undefined
     );
-    expect(series.orient).toBe('horizontal');
     expect(series.funnelAlign).toBe('left');
     expect(series.gap).toBe(4);
     expect(series.minSize).toBe('10%');
     expect(series.maxSize).toBe('90%');
+  });
+
+  it('emits horizontal orient but forces center alignment (drops a stored left/right)', () => {
+    const series = getFunnelSeries(
+      slices(),
+      opts({ funnelOrient: 'horizontal', funnelAlign: 'left', funnelGap: 4 }),
+      theme,
+      undefined
+    );
+    expect(series.orient).toBe('horizontal');
+    expect(series).not.toHaveProperty('funnelAlign');
+    expect(series.gap).toBe(4);
+  });
+
+  it('sets a per-slice contrast label color for on-trapezoid labels (inside default)', () => {
+    const model = slices();
+    const series = getFunnelSeries(model, opts(), theme, undefined);
+    // Inside is the default position, so every slice carries a contrast label color
+    // on both its normal and emphasis label (mirrors the pie).
+    const first = series.data?.[0] as { label?: { color?: string }; emphasis?: { label?: { color?: string } } };
+    const expected = theme.colors.getContrastText(model[0].color);
+    expect(first.label?.color).toBe(expected);
+    expect(first.emphasis?.label?.color).toBe(expected);
+  });
+
+  it('omits the per-slice label color for outside placements (theme color stands)', () => {
+    const series = getFunnelSeries(slices(), opts({ funnelLabelPosition: 'left' }), theme, undefined);
+    expect(series.data?.[0]).not.toHaveProperty('label');
+    expect(series.data?.[0]).not.toHaveProperty('emphasis');
   });
 
   it('threads the series zlevel and tooltip when provided', () => {
@@ -177,14 +234,15 @@ describe('getFunnelSeries', () => {
 });
 
 describe('applyPartToWholeEditorModeDefaults (funnel keys)', () => {
-  it('forces funnel advanced options back to their defaults in Default mode', () => {
+  it('leaves funnel layout options untouched in Default mode (they are not Advanced-gated)', () => {
+    // The funnel's layout options live in the always-visible "Funnel" category, so
+    // unlike the pie's Advanced extras they must survive the Default-mode reset.
     const resolved = applyPartToWholeEditorModeDefaults(
       opts({ editorMode: 'default', funnelOrient: 'horizontal', funnelGap: 8, funnelMinSize: 20 })
     );
-    expect(resolved.funnelOrient).toBe(ADVANCED_FUNNEL_DEFAULTS.funnelOrient);
-    expect(resolved.funnelGap).toBe(ADVANCED_FUNNEL_DEFAULTS.funnelGap);
-    // "Unset" defaults clear any stored value.
-    expect(resolved.funnelMinSize).toBeUndefined();
+    expect(resolved.funnelOrient).toBe('horizontal');
+    expect(resolved.funnelGap).toBe(8);
+    expect(resolved.funnelMinSize).toBe(20);
   });
 
   it('passes stored funnel options through untouched in Advanced mode', () => {

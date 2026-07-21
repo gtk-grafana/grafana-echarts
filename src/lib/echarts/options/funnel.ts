@@ -26,12 +26,21 @@ export function getFunnelOrient(orient: FunnelOrient | undefined): FunnelSeriesO
 }
 
 /**
- * ECharts funnel `series.funnelAlign` for the cross-axis alignment. Returns
- * `undefined` at the default (`center`) so the key is omitted; `left` / `right`
- * are emitted.
+ * ECharts funnel `series.funnelAlign` for the cross-axis alignment. `funnelAlign`
+ * only applies to a vertical funnel; a horizontal funnel only supports center
+ * alignment, so when `orient` is horizontal any stored `left`/`right` is ignored
+ * (it would otherwise break the layout) and `undefined` is returned. For a vertical
+ * funnel, `center` (the default) returns `undefined` so the key is omitted, and
+ * `left` / `right` are emitted.
  * https://echarts.apache.org/en/option.html#series-funnel.funnelAlign
  */
-export function getFunnelAlign(align: FunnelAlign | undefined): FunnelSeriesOption['funnelAlign'] | undefined {
+export function getFunnelAlign(
+  align: FunnelAlign | undefined,
+  orient?: FunnelOrient
+): FunnelSeriesOption['funnelAlign'] | undefined {
+  if ((orient ?? FUNNEL_ORIENT_DEFAULT) === 'horizontal') {
+    return undefined;
+  }
   const value = align ?? FUNNEL_ALIGN_DEFAULT;
   return value === FUNNEL_ALIGN_DEFAULT ? undefined : value;
 }
@@ -102,6 +111,28 @@ export function getFunnelLabel(
   };
 }
 
+/**
+ * Per-slice funnel label color for the on-trapezoid placements. Mirrors the pie's
+ * `resolvePieLabelColor` inside-label behavior: when the label sits on the segment
+ * (`inside` for a vertical funnel, `center` for a horizontal one) it must contrast
+ * with the slice fill, so the color is chosen per slice via Grafana core's
+ * `theme.colors.getContrastText(slice.color)`. Outside placements
+ * (`left`/`right`/`top`/`bottom`) sit on the panel background, so `undefined`
+ * leaves the series-level theme label color to stand. Unset falls back to the
+ * vertical default (`inside`), matching `getFunnelLabel`.
+ */
+export function resolveFunnelLabelColor(
+  theme: GrafanaTheme2,
+  slice: PieSliceModel,
+  position: FunnelLabelPosition | undefined
+): string | undefined {
+  const resolved = position ?? FUNNEL_LABEL_POSITION_DEFAULT;
+  if (resolved === 'inside' || resolved === 'center') {
+    return theme.colors.getContrastText(slice.color);
+  }
+  return undefined;
+}
+
 /** Extras threaded from the chart module into the funnel series build. */
 export interface FunnelSeriesExtras {
   /** Canvas layer for the series (see the panel's `zLevel.series`). */
@@ -130,16 +161,26 @@ export function getFunnelSeries(
   timeZone: string | undefined,
   { zlevel, tooltip }: FunnelSeriesExtras = {}
 ): FunnelSeriesOption {
-  const data: NonNullable<FunnelSeriesOption['data']> = visible.map((slice) => ({
-    name: slice.name,
-    // ECharts funnel values are numeric; undefined renders an empty trapezoid.
-    value: slice.value,
-    // Per-slice color (Advanced pie shape extras are pie-only, so no borders here).
-    itemStyle: getPieItemStyle(slice.color, undefined),
-  }));
+  const position = options.funnelLabelPosition;
+  const data: NonNullable<FunnelSeriesOption['data']> = visible.map((slice) => {
+    // On-trapezoid labels (inside/center) get a per-slice contrast color, applied to
+    // both the normal and emphasis label so it survives hover (ECharts otherwise
+    // reverts the label to the slice color on emphasis) — mirrors the pie.
+    const labelColor = resolveFunnelLabelColor(theme, slice, position);
+    return {
+      name: slice.name,
+      // ECharts funnel values are numeric; undefined renders an empty trapezoid.
+      value: slice.value,
+      // Per-slice color (Advanced pie shape extras are pie-only, so no borders here).
+      itemStyle: getPieItemStyle(slice.color, undefined),
+      ...(labelColor ? { label: { color: labelColor }, emphasis: { label: { color: labelColor } } } : {}),
+    };
+  });
 
   const orient = getFunnelOrient(options.funnelOrient);
-  const funnelAlign = getFunnelAlign(options.funnelAlign);
+  // Horizontal funnels force center alignment (see getFunnelAlign); a stored
+  // left/right is ignored so the layout can't break.
+  const funnelAlign = getFunnelAlign(options.funnelAlign, options.funnelOrient);
   const gap = getFunnelGap(options.funnelGap);
 
   return {
@@ -156,7 +197,8 @@ export function getFunnelSeries(
     ...(gap != null ? { gap } : {}),
     ...getFunnelSize(options.funnelMinSize, options.funnelMaxSize),
     // Grafana-styled labels; content (Name/Value/Percent) reuses the pie builder.
-    label: getFunnelLabel(options.displayLabels, visible, theme, timeZone, options.funnelLabelPosition),
+    // Per-slice contrast color for on-trapezoid labels is set on `data` above.
+    label: getFunnelLabel(options.displayLabels, visible, theme, timeZone, position),
     ...(tooltip ? { tooltip } : {}),
   };
 }

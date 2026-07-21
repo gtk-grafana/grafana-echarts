@@ -2,12 +2,6 @@ import { type Field, fieldReducers, FieldType, type GrafanaTheme2, reduceField }
 import { type PieSeriesOption, type TitleComponentOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import {
-  FUNNEL_ALIGN_DEFAULT,
-  FUNNEL_GAP_DEFAULT,
-  FUNNEL_LABEL_POSITION_DEFAULT,
-  FUNNEL_ORIENT_DEFAULT,
-} from 'editor/funnel';
-import {
   PIE_ANIMATION_ENABLED_DEFAULT,
   PIE_AVOID_LABEL_OVERLAP_DEFAULT,
   PIE_BORDER_RADIUS_DEFAULT,
@@ -97,35 +91,21 @@ export const ADVANCED_PIE_DEFAULTS: Partial<PanelOptions> = {
 };
 
 /**
- * Default values for every Advanced-gated funnel option, keyed by its
- * `PanelOptions` path. Merged with `ADVANCED_PIE_DEFAULTS` in
- * `applyPartToWholeEditorModeDefaults` so Default mode renders a plain funnel
- * regardless of stored Advanced values. Options whose default is "unset" are set
- * to `undefined` so any stored value is cleared. See `getFunnelSeries`.
- */
-export const ADVANCED_FUNNEL_DEFAULTS: Partial<PanelOptions> = {
-  funnelOrient: FUNNEL_ORIENT_DEFAULT,
-  funnelAlign: FUNNEL_ALIGN_DEFAULT,
-  funnelGap: FUNNEL_GAP_DEFAULT,
-  funnelMinSize: undefined,
-  funnelMaxSize: undefined,
-  funnelLabelPosition: FUNNEL_LABEL_POSITION_DEFAULT,
-};
-
-/**
  * Normalize the part-to-whole panel options for rendering by editor mode.
- * Advanced and API modes render the stored options as-is; Default mode spreads
- * the combined pie + funnel advanced defaults over them so every advanced option
- * is forced back to its default (the controls are hidden, so their stored values
- * must not affect the render — for whichever variant is selected). Applied once
- * in `buildPanelChartOption` for the part-to-whole series types, before both the
- * series build and the `animation` read.
+ * Advanced and API modes render the stored options as-is; Default mode spreads the
+ * pie advanced defaults over them so every Advanced-gated pie option is forced back
+ * to its default (the controls are hidden, so their stored values must not affect
+ * the render). The funnel's layout options are *not* Advanced-gated — they live in
+ * the always-visible "Funnel" category (see `funnelCategoryName`) and so are left
+ * untouched here, applying in every mode. Applied once in `buildPanelChartOption`
+ * for the part-to-whole series types, before both the series build and the
+ * `animation` read.
  */
 export function applyPartToWholeEditorModeDefaults(options: PanelOptions): PanelOptions {
   if (isAdvancedEditorMode(options) || isApiEditorMode(options)) {
     return options;
   }
-  return { ...options, ...ADVANCED_PIE_DEFAULTS, ...ADVANCED_FUNNEL_DEFAULTS };
+  return { ...options, ...ADVANCED_PIE_DEFAULTS };
 }
 
 /**

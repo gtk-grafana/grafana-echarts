@@ -148,13 +148,16 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     addPieLabelColorOptions(builder, isPieVariant); // Label color (label.color)
     addPieAnimationTextStyleOptions(builder, isPieVariant); // Animation + label text shadow/stroke
 
-    // --- Funnel-only Advanced options (shown only when the funnel variant is
-    // selected; each gates on `isFunnelVariant` internally) ---
+    // --- Funnel-only options (shown whenever the funnel variant is selected; each
+    // gates on `isFunnelVariant` internally). Unlike the pie's ECharts-only extras,
+    // these are NOT Advanced-gated: they live in a dedicated always-visible "Funnel"
+    // category (see `funnelCategoryName`) as the funnel's first-class layout
+    // controls, so they render in Default mode too. ---
     addFunnelOrientOptions(builder); // orient (vertical / horizontal)
-    addFunnelAlignOptions(builder); // funnelAlign (center / left / right)
+    addFunnelAlignOptions(builder); // funnelAlign (center / left / right; vertical only, hidden when horizontal)
     addFunnelGapOptions(builder); // gap between segments
     addFunnelSizeOptions(builder); // minSize / maxSize
-    addFunnelLabelPositionOptions(builder); // label.position
+    addFunnelLabelPositionOptions(builder); // label.position (choices depend on orient)
 
     // Standard legend options, but without the reducer "Values" stats-picker
     // (`includeLegendCalcs: false`): an arbitrary reducer over a single-value

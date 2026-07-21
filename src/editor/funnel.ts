@@ -30,6 +30,29 @@ export const isFunnelVariant = (options: { seriesType?: SeriesTypeOption }): boo
  */
 export const isPieVariant = (options: { seriesType?: SeriesTypeOption }): boolean => !isFunnelVariant(options);
 
+/**
+ * Editor category grouping the funnel layout options (orientation, alignment,
+ * gap, size, label position). Unlike the pie's ECharts-only extras — which live in
+ * the shared "Advanced" category and gate on Advanced editor mode — the funnel is
+ * an entirely ECharts type with no core-parity baseline, so its primary controls
+ * get a dedicated always-visible category (gated only on `isFunnelVariant`),
+ * mirroring the pie's "Pie" category.
+ */
+export const funnelCategoryName = 'Funnel';
+
+/**
+ * Whether the funnel is laid out horizontally (`funnelOrient === 'horizontal'`).
+ * Composed with `isFunnelVariant` as a control's `showIf` to reveal the
+ * orientation-specific label placements, and consumed at render to force center
+ * alignment. Unset falls back to the vertical default. Typed on the minimal
+ * `funnelOrient` shape so it satisfies the builders' predicate.
+ */
+export const isFunnelHorizontal = (options: { funnelOrient?: FunnelOrient }): boolean =>
+  (options.funnelOrient ?? FUNNEL_ORIENT_DEFAULT) === 'horizontal';
+
+/** Whether the funnel is laid out vertically (the default). Inverse of `isFunnelHorizontal`. */
+export const isFunnelVertical = (options: { funnelOrient?: FunnelOrient }): boolean => !isFunnelHorizontal(options);
+
 /** Panel option path for the funnel layout direction. Maps to ECharts `series.orient`. */
 export const funnelOrientPath = 'funnelOrient';
 /** Funnel layout-direction options (Vertical / Horizontal). */
@@ -71,21 +94,39 @@ export const funnelMaxSizePath = 'funnelMaxSize';
 /** Panel option path for the funnel slice-label placement. Maps to ECharts `label.position`. */
 export const funnelLabelPositionPath = 'funnelLabelPosition';
 /**
- * Funnel slice-label placement options. `inside` (the plugin default) draws the
- * label on the trapezoid; `left`/`right` place it outside with a leader line;
- * `top`/`bottom` sit above/below. See `getFunnelLabel`.
+ * Funnel slice-label placements for the vertical orient (the default): `left`/
+ * `right` place the label outside with a leader line; `inside` draws it on the
+ * trapezoid (the plugin default). A vertical funnel stacks top-to-bottom, so
+ * `top`/`bottom` would collide with adjacent segments and are not offered. See
+ * `funnelLabelPositionHorizontalOptions` for the horizontal counterpart and
+ * `getFunnelLabel` for rendering.
  */
-export const funnelLabelPositionOptions: Array<SelectableValue<FunnelLabelPosition>> = [
-  { value: 'inside', label: 'Inside' },
+export const funnelLabelPositionVerticalOptions: Array<SelectableValue<FunnelLabelPosition>> = [
   { value: 'left', label: 'Left' },
   { value: 'right', label: 'Right' },
-  { value: 'top', label: 'Top' },
-  { value: 'bottom', label: 'Bottom' },
+  { value: 'inside', label: 'Inside' },
 ];
 /**
- * Default funnel slice-label placement: inside the trapezoid. Unlike ECharts'
- * `'outer'` funnel default, `inside` keeps labels attached without leader-line
- * room, giving a clean out-of-box part-to-whole read. Always emitted (like the
- * pie label position); see `getFunnelLabel`.
+ * Funnel slice-label placements for the horizontal orient: `top`/`bottom` place
+ * the label outside (above/below); `center` draws it on the trapezoid (the
+ * on-segment placement, analogous to the vertical `inside`). A horizontal funnel
+ * runs left-to-right, so `left`/`right` would collide with adjacent segments and
+ * are not offered. See `getFunnelLabel`.
+ */
+export const funnelLabelPositionHorizontalOptions: Array<SelectableValue<FunnelLabelPosition>> = [
+  { value: 'top', label: 'Top' },
+  { value: 'bottom', label: 'Bottom' },
+  { value: 'center', label: 'Center' },
+];
+/**
+ * Default funnel slice-label placement for the vertical orient: inside the
+ * trapezoid. Unlike ECharts' `'outer'` funnel default, `inside` keeps labels
+ * attached without leader-line room, giving a clean out-of-box part-to-whole read.
+ * Always emitted (like the pie label position); see `getFunnelLabel`.
  */
 export const FUNNEL_LABEL_POSITION_DEFAULT: FunnelLabelPosition = 'inside';
+/**
+ * Default funnel slice-label placement for the horizontal orient: `center` (on the
+ * trapezoid), the horizontal analogue of the vertical `inside` default.
+ */
+export const FUNNEL_LABEL_POSITION_HORIZONTAL_DEFAULT: FunnelLabelPosition = 'center';

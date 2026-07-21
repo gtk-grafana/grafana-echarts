@@ -22,25 +22,25 @@ by**) — see the `provisioning/dashboards/part-to-whole/` demos.
 
 ## Panel options
 
-| Core Grafana option                           | ECharts equivalent                                                                                                       | Status          |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------- |
-| Value / calculation (data reduce)             | `reduceOptions` (Calculate/All values + Calculation) via `addStandardDataReduceOptions`                                  | Supported       |
-| Fields to include, limit                      | `reduceOptions.fields` / `reduceOptions.limit`                                                                           | Supported       |
-| Pie chart type (Pie / Donut)                  | `pieType` radio in a "Pie" category; rendered as the series radius by `getPieRadius`                                     | Supported       |
-| Slice sorting (asc/desc/none)                 | `sort` select in the "Pie" category; orders the shared slice model in `resolvePieSlices` (default desc)                  | Supported       |
-| Labels (Percent / Name / Value)               | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                                    | Supported       |
-| Arc start / end angle (ECharts-only)          | `startAngle` / `endAngle` number inputs in the "Pie" category (Advanced); half-pie / semicircle donut via `getPieAngles` | Advanced        |
-| Label font size (ECharts-only)                | `labelFontSize` number input ("Labels", Advanced); threads into `getPieLabelStyle`                                       | Advanced        |
-| Label overflow / width (ECharts-only)         | `labelOverflow` select + `labelWidth` ("Labels", Advanced); `label.overflow`/`label.width` via `getPieLabelStyle`        | Advanced        |
-| Min angle to show label (ECharts-only)        | `minShowLabelAngle` number input ("Labels", Advanced); `series.minShowLabelAngle` via `getPieMinShowLabelAngle`          | Advanced        |
-| Slice separation border (ECharts-only)        | `sliceBorderWidth` + `sliceBorderColor` (color picker) ("Pie", Advanced); `itemStyle` border via `getPieItemStyle`       | Advanced        |
-| Custom radius / center (ECharts-only)         | `outerRadius`/`innerRadius`/`centerX`/`centerY` ("Pie", Advanced); `radius`/`center` via `getPieRadius`/`getPieCenter`   | Advanced        |
-| Tooltip: mode                                 | `tooltip.mode`                                                                                                           | Supported       |
-| Tooltip: hide zeros                           | `tooltip.hideZeros` via `addTooltipOptions`; drops zero-value slices from the "All" tooltip                              | Supported       |
-| Tooltip: sort                                 | none                                                                                                                     | Not supported\* |
-| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions` (reducer "Values" stats-picker dropped)                                            | Supported       |
-| Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by name               | Supported       |
-| Legend values (Percent / Value)               | `legend.values` multi-select in the "Legend" category; rendered by `buildPieLegendItems`                                 | Supported       |
+| Core Grafana option                           | ECharts equivalent                                                                                                                     | Status          |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| Value / calculation (data reduce)             | `reduceOptions` (Calculate/All values + Calculation) via `addStandardDataReduceOptions`                                                | Supported       |
+| Fields to include, limit                      | `reduceOptions.fields` / `reduceOptions.limit`                                                                                         | Supported       |
+| Pie chart type (Pie / Donut)                  | `pieType` radio in a "Pie" category; rendered as the series radius by `getPieRadius`                                                   | Supported       |
+| Slice sorting (asc/desc/none)                 | `sort` select in the default (top) section, shared by pie + funnel; orders the shared slice model in `resolvePieSlices` (default desc) | Supported       |
+| Labels (Percent / Name / Value)               | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                                                  | Supported       |
+| Arc start / end angle (ECharts-only)          | `startAngle` / `endAngle` number inputs in the "Pie" category (Advanced); half-pie / semicircle donut via `getPieAngles`               | Advanced        |
+| Label font size (ECharts-only)                | `labelFontSize` number input ("Labels", Advanced); threads into `getPieLabelStyle`                                                     | Advanced        |
+| Label overflow / width (ECharts-only)         | `labelOverflow` select + `labelWidth` ("Labels", Advanced); `label.overflow`/`label.width` via `getPieLabelStyle`                      | Advanced        |
+| Min angle to show label (ECharts-only)        | `minShowLabelAngle` number input ("Labels", Advanced); `series.minShowLabelAngle` via `getPieMinShowLabelAngle`                        | Advanced        |
+| Slice separation border (ECharts-only)        | `sliceBorderWidth` + `sliceBorderColor` (color picker) ("Pie", Advanced); `itemStyle` border via `getPieItemStyle`                     | Advanced        |
+| Custom radius / center (ECharts-only)         | `outerRadius`/`innerRadius`/`centerX`/`centerY` ("Pie", Advanced); `radius`/`center` via `getPieRadius`/`getPieCenter`                 | Advanced        |
+| Tooltip: mode                                 | `tooltip.mode`                                                                                                                         | Supported       |
+| Tooltip: hide zeros                           | `tooltip.hideZeros` via `addTooltipOptions`; drops zero-value slices from the "All" tooltip                                            | Supported       |
+| Tooltip: sort                                 | none                                                                                                                                   | Not supported\* |
+| Legend: visibility, mode, placement, width    | Grafana legend via `addLegendOptions` (reducer "Values" stats-picker dropped)                                                          | Supported       |
+| Legend: slice show/hide + color (interactive) | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by name                             | Supported       |
+| Legend values (Percent / Value)               | `legend.values` multi-select in the "Legend" category; rendered by `buildPieLegendItems`                                               | Supported       |
 
 \* Tooltip sort in eCharts uses existing slice sorting instead of having two separate options.
 

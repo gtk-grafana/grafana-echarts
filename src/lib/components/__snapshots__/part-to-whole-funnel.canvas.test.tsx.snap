@@ -592,7 +592,7 @@ exports[`part-to-whole funnel canvas renders default vertical funnel — one seg
   },
   {
     "props": {
-      "value": "#ccccdc",
+      "value": "#000000",
     },
     "type": "fillStyle",
   },
@@ -673,6 +673,12 @@ exports[`part-to-whole funnel canvas renders default vertical funnel — one seg
       "y": 127.5,
     },
     "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -1295,7 +1301,7 @@ exports[`part-to-whole funnel canvas renders default vertical funnel — one seg
   },
   {
     "props": {
-      "value": "#ccccdc",
+      "value": "#000000",
     },
     "type": "fillStyle",
   },
@@ -1376,6 +1382,12 @@ exports[`part-to-whole funnel canvas renders default vertical funnel — one seg
       "y": 127.5,
     },
     "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -2003,7 +2015,7 @@ exports[`part-to-whole funnel canvas renders horizontal orient 1`] = `
   },
   {
     "props": {
-      "value": "#ccccdc",
+      "value": "#000000",
     },
     "type": "fillStyle",
   },
@@ -2084,6 +2096,12 @@ exports[`part-to-whole funnel canvas renders horizontal orient 1`] = `
       "y": 127.5,
     },
     "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -2706,7 +2724,7 @@ exports[`part-to-whole funnel canvas renders horizontal orient 1`] = `
   },
   {
     "props": {
-      "value": "#ccccdc",
+      "value": "#000000",
     },
     "type": "fillStyle",
   },
@@ -2787,6 +2805,12 @@ exports[`part-to-whole funnel canvas renders horizontal orient 1`] = `
       "y": 127.5,
     },
     "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -3578,7 +3602,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "value": "#ccccdc",
+      "value": "#000000",
     },
     "type": "fillStyle",
   },
@@ -3689,6 +3713,12 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
     },
     "type": "font",
@@ -3767,6 +3797,12 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
       "y": 111.625,
     },
     "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -4688,7 +4724,7 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
-      "value": "#ccccdc",
+      "value": "#000000",
     },
     "type": "fillStyle",
   },
@@ -4799,6 +4835,12 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
   },
   {
     "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
     },
     "type": "font",
@@ -4877,6 +4919,12 @@ exports[`part-to-whole funnel canvas renders name + value + percent labels (All 
       "y": 111.625,
     },
     "type": "fillText",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "fillStyle",
   },
   {
     "props": {

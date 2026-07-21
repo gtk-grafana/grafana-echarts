@@ -12,10 +12,12 @@ import { type PanelOptions } from 'types';
 // part-to-whole module and picks the funnel variant. Like the pie, the funnel is
 // axis-less, so only the series layer paints.
 
-// Advanced editor mode so the funnel layout options these tests exercise (orient,
-// labels, …) are respected as-is; in Default mode `applyPartToWholeEditorModeDefaults`
-// resets them (and forces `animation.enabled` back on, which would break the
-// `animation: { enabled: false }` these snapshots rely on for determinism).
+// Advanced editor mode purely for snapshot determinism: the funnel layout options
+// these tests exercise (orient, labels, …) live in the always-visible "Funnel"
+// category and so are respected in any mode, but in Default mode
+// `applyPartToWholeEditorModeDefaults` still forces `animation.enabled` back on (a
+// pie advanced default), which would break the `animation: { enabled: false }`
+// these snapshots rely on.
 const funnelOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
   zLevel: { series: SERIES_ZLEVEL },
   animation: { enabled: false },

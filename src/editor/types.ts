@@ -141,22 +141,28 @@ export type FunnelOrient = 'vertical' | 'horizontal';
 
 /**
  * Funnel (part-to-whole) cross-axis alignment, mapping to the ECharts funnel
- * `series.funnelAlign`. For the default vertical orient this is the horizontal
- * alignment of the narrowing trapezoids: `center` (the default), `left`, or
- * `right`. See `getFunnelAlign`.
+ * `series.funnelAlign`. Only meaningful for the vertical orient, where it sets the
+ * horizontal alignment of the narrowing trapezoids: `center` (the default),
+ * `left`, or `right`. A horizontal funnel only supports center alignment, so the
+ * option is hidden and the value is forced to center at render (a stored
+ * `left`/`right` would otherwise break the layout). See `getFunnelAlign`.
  * https://echarts.apache.org/en/option.html#series-funnel.funnelAlign
  */
 export type FunnelAlign = 'left' | 'center' | 'right';
 
 /**
  * Funnel (part-to-whole) slice-label placement, a subset of the ECharts funnel
- * `label.position`: `inside` (on the trapezoid — the plugin default, a clean
- * part-to-whole read), `left`/`right` (outside with a leader line), or
- * `top`/`bottom`. Reuses the pie Name/Value/Percent label content. See
+ * `label.position`. The offered choices depend on the funnel orientation (see
+ * `funnelLabelPositionVerticalOptions` / `funnelLabelPositionHorizontalOptions`):
+ * a vertical funnel takes `inside` (on the trapezoid — the plugin default, a clean
+ * part-to-whole read) or `left`/`right` (outside with a leader line); a horizontal
+ * funnel takes `center` (on the trapezoid) or `top`/`bottom` (outside). The
+ * on-trapezoid placements (`inside`, `center`) get a per-slice contrast color; see
+ * `resolveFunnelLabelColor`. Reuses the pie Name/Value/Percent label content. See
  * `getFunnelLabel`.
  * https://echarts.apache.org/en/option.html#series-funnel.label.position
  */
-export type FunnelLabelPosition = 'inside' | 'left' | 'right' | 'top' | 'bottom';
+export type FunnelLabelPosition = 'inside' | 'left' | 'right' | 'top' | 'bottom' | 'center';
 
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s

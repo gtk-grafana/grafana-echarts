@@ -40,8 +40,9 @@ export function buildPanelChartOption(
   // The part-to-whole family (pie/funnel) is excluded: it hides slices by
   // *category* name and reads hidden state internally (see `resolvePieSlices`).
   // It also normalizes its options by editor mode here (before both the series
-  // build and the `animation` read below) so Default mode renders the plain
-  // pie/funnel regardless of any stored Advanced values (see
+  // build and the `animation` read below) so Default mode drops any stored pie
+  // Advanced values (and resets the shared `animation`); the funnel's layout
+  // options are Default-visible and pass through untouched (see
   // `applyPartToWholeEditorModeDefaults`).
   const ctx: ChartContext = partToWholeSeriesTypes.includes(rawCtx.seriesType)
     ? { ...rawCtx, options: applyPartToWholeEditorModeDefaults(rawCtx.options) }
