@@ -265,6 +265,35 @@ export function getPieLabelStyle(theme: GrafanaTheme2, opts: PieLabelStyleOption
 }
 
 /**
+ * Per-slice pie label color for the Advanced "Label color" / "Label position"
+ * options. Resolved once per slice and applied to both the slice's normal and
+ * emphasis label so the color survives hover (ECharts otherwise reverts the label
+ * to the slice color on emphasis).
+ *
+ * An explicit `resolvedLabelColor` (the Advanced "Label color", already resolved
+ * from its Grafana color token via `theme.visualization.getColorByName`) wins at
+ * any position. With no explicit color, `inside` labels sit on the slice fill, so
+ * the color is chosen per-slice for contrast via Grafana core's
+ * `theme.colors.getContrastText(slice.color)`; `outside` / `center` labels sit on
+ * the panel background, so `undefined` leaves the series-level theme color to
+ * stand. Returns `undefined` when nothing overrides the series label color.
+ */
+export function resolvePieLabelColor(
+  theme: GrafanaTheme2,
+  slice: PieSliceModel,
+  labelPosition: PieLabelPosition | undefined,
+  resolvedLabelColor: string | undefined
+): string | undefined {
+  if (resolvedLabelColor) {
+    return resolvedLabelColor;
+  }
+  if (labelPosition === 'inside') {
+    return theme.colors.getContrastText(slice.color);
+  }
+  return undefined;
+}
+
+/**
  * ECharts pie `series.selectedMode` / `series.selectedOffset` for the Advanced
  * "Select / explode" option. `off` (or unset) maps to `false` (matching ECharts'
  * default, so nothing changes); `single` / `multiple` allow selecting slices,
@@ -459,10 +488,12 @@ export function getPieContentLabel(
 
 /**
  * ECharts pie `emphasis.label` for the center readout: when `labelPosition` is
- * `center`, hovering a slice shows that slice's content in the donut hole. Drawn
- * with an opaque theme background so it cleanly covers the persistent center
- * `title` (the reduced readout) underneath. Returns `undefined` when the position
- * is not `center`, so no center emphasis label is added.
+ * `center` and no `centerValueReducer` is set, hovering a slice shows that slice's
+ * content centered in the donut hole (a boxless readout). Only used in the
+ * no-reducer case — when a reducer drives the persistent center `title`, the
+ * hovered slice's detail comes from the normal tooltip instead, so this label is
+ * not added (the caller gates it). Returns the emphasis label config for the
+ * hovered slice, aligned dead-center in the hole.
  */
 export function getPieCenterEmphasisLabel(
   labels: PieLabel[] | undefined,
@@ -476,11 +507,9 @@ export function getPieCenterEmphasisLabel(
     ...getPieLabelStyle(theme, styleOptions),
     show: true,
     position: 'center',
-    // Opaque background + padding so the hovered value hides the static title
-    // readout beneath it rather than overlapping it.
-    backgroundColor: theme.colors.background.primary,
-    padding: [4, 8],
-    borderRadius: 4,
+    // Center the readout in the donut hole (no box, so it must self-align).
+    align: 'center',
+    verticalAlign: 'middle',
     formatter: (params) => lines[params.dataIndex],
   };
 }
@@ -493,12 +522,20 @@ export function getPieCenterEmphasisLabel(
  * (e.g. "Mean") above the value. Returns `undefined` when there is no reducer, no
  * visible slice, or the aggregate is non-finite (so nothing is drawn until a slice
  * is hovered).
+ *
+ * `centerX`/`centerY` (the Advanced center offset, percentages) track the title to
+ * the pie center so it stays in the hole when the pie is repositioned; unset falls
+ * back to `50%` (panel center, matching the pie's own default). The anchor is
+ * centered on both axes (`textAlign`/`textVerticalAlign: 'center'/'middle'`) so the
+ * text block's middle — not its corner — sits at the pie center.
  */
 export function getPieCenterTitle(
   reducerId: string | undefined,
   slices: PieSliceModel[],
   theme: GrafanaTheme2,
-  timeZone?: string
+  timeZone?: string,
+  centerX?: number,
+  centerY?: number
 ): TitleComponentOption | undefined {
   if (!reducerId || slices.length === 0) {
     return undefined;
@@ -521,9 +558,14 @@ export function getPieCenterTitle(
   const valueText = formatTooltipValue(aggregate, getValueFormatter(field, theme, timeZone));
   const reducerName = fieldReducers.getIfExists(reducerId)?.name ?? reducerId;
   return {
-    left: 'center',
-    top: 'center',
+    // Anchor the text block's center on the pie center (tracks centerX/centerY).
+    // `top: 'center'` is invalid for a title (only 'middle'), and pairing
+    // `left: 'center'` with `textAlign: 'center'` double-shifts the block; using an
+    // explicit percentage with both align axes centers it correctly.
+    left: `${centerX ?? 50}%`,
+    top: `${centerY ?? 50}%`,
     textAlign: 'center',
+    textVerticalAlign: 'middle',
     // Two lines: the reducer name (muted) above the aggregate value (prominent).
     text: `{name|${reducerName}}\n{value|${valueText}}`,
     textStyle: {

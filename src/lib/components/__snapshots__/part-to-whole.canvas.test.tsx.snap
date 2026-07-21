@@ -12841,7 +12841,7 @@ exports[`part-to-whole canvas renders label position inside (labels on the slice
   },
   {
     "props": {
-      "value": "#ccccdc",
+      "value": "#000000",
     },
     "type": "fillStyle",
   },
@@ -12998,6 +12998,12 @@ exports[`part-to-whole canvas renders label position inside (labels on the slice
       "f": 79.75376094820183,
     },
     "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -13409,7 +13415,7 @@ exports[`part-to-whole canvas renders label position inside (labels on the slice
   },
   {
     "props": {
-      "value": "#ccccdc",
+      "value": "#000000",
     },
     "type": "fillStyle",
   },
@@ -13566,6 +13572,12 @@ exports[`part-to-whole canvas renders label position inside (labels on the slice
       "f": 79.75376094820183,
     },
     "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
