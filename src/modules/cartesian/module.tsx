@@ -15,6 +15,8 @@ import {
 } from 'editor/constants';
 import { type EChartsGraphFieldConfig, type SeriesTypeOption } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
+import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
+import { addPerformanceOptions } from 'lib/grafana/editor/common/performance-options';
 import { framesLookMultiValue } from 'lib/echarts/converters/multiValueCartesian';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
@@ -113,6 +115,11 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
     },
   })
   .setPanelOptions((builder) => {
+    // Editor mode (Default / Advanced) — tiers the editor surface. Registered
+    // first so it renders at the top; the Advanced-gated Performance options
+    // below only appear once Advanced is selected. See docs/options-modes.md.
+    addEditorModeOption(builder);
+
     // Panel-level series type: the base render type applied to every field (the
     // per-field override above can still switch individual single-value fields).
     // 'Auto' resolves the best type from the data (see `resolveAutoSeriesType`).
@@ -141,6 +148,12 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
     // Width, Limit, Values), registered in their own category.
     commonOptionsBuilder.addLegendOptions(builder);
     commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
+
+    // Advanced-gated performance overrides (Show points / Downsampling /
+    // Animation). ECharts' big-data levers are auto-tuned above density
+    // thresholds; these let power users override the auto behavior. Cartesian
+    // only — the time-series fast path doesn't apply to the other families.
+    addPerformanceOptions(builder);
 
     return builder;
   })

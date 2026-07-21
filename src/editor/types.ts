@@ -70,6 +70,16 @@ export type SeriesTypeOption = SeriesType | 'Auto';
 export type EditorMode = 'default' | 'advanced' | 'api';
 
 /**
+ * Point-marker visibility for dense cartesian line series (Advanced, ECharts
+ * `series.showSymbol`): `auto` hides per-point symbols once a series exceeds the
+ * density threshold and keeps them below it (the render-cost lever behind the
+ * 500-series regression), `always` forces symbols on, `never` forces them off.
+ * Unset resolves to `auto`. See `getSeriesPerfOptions` in
+ * `lib/echarts/options/performance.ts`.
+ */
+export type ShowPointsMode = 'auto' | 'always' | 'never';
+
+/**
  * Pie (part-to-whole) slice-label content, matching core Grafana's
  * `PieChartLabels` (`@grafana/schema` doesn't re-export the raw enum, so the
  * string values are mirrored here): `name` (slice name), `value` (formatted slice

@@ -12,7 +12,7 @@ import {
   DISABLE_TIME_BRUSH_ACTION,
   ENABLE_TIME_BRUSH_ACTION,
 } from 'lib/echarts/timeBrush';
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 interface Props {
   chartContext: ChartContext;
@@ -56,7 +56,11 @@ export const EChart: React.FC<Props> = ({
       return;
     }
 
-    const instance = init(dom);
+    // `useDirtyRect` repaints only changed regions instead of the whole canvas,
+    // cutting per-frame draw work on dense charts (cartesian is low-risk for the
+    // rare dirty-rect artifact; single-flag revert if needed).
+    // https://echarts.apache.org/en/api.html#echarts.init
+    const instance = init(dom, undefined, { useDirtyRect: true });
     setChart(instance);
 
     return () => {
@@ -65,12 +69,19 @@ export const EChart: React.FC<Props> = ({
     };
   }, []);
 
+  // Build the ECharts option only when its inputs change. `chartContext` is
+  // memoized upstream (Panel.tsx) so this recomputes on genuine data/option
+  // changes and is skipped on incidental re-renders (resize, hover, legend),
+  // avoiding the per-render option+series reallocation that drove GC churn.
+  const option = useMemo(
+    () => buildPanelChartOption(chartContext, { isGrafanaLegend }),
+    [chartContext, isGrafanaLegend]
+  );
+
   useEffect(() => {
     if (!chart) {
       return;
     }
-
-    const option = buildPanelChartOption(chartContext, { isGrafanaLegend });
 
     if (!option) {
       debug('No echart option', LOG_LEVELS.error, chartContext);
@@ -78,11 +89,11 @@ export const EChart: React.FC<Props> = ({
     }
 
     // `notMerge` replaces the previous option outright (removing any components
-    // the new option omits) instead of merging into it. This effect rebuilds the
-    // whole option on every change and the panel switches across chart families
-    // with different structures (grid/axes, visualMap, radar), so a merge would
-    // leave stale components behind. Replacing in place also keeps the instance
-    // warm for transitions, unlike a full chart.clear() + setOption reset.
+    // the new option omits) instead of merging into it. The option is rebuilt
+    // whole on every change and the panel switches across chart families with
+    // different structures (grid/axes, visualMap, radar), so a merge would leave
+    // stale components behind. Replacing in place also keeps the instance warm
+    // for transitions, unlike a full chart.clear() + setOption reset.
     // https://echarts.apache.org/en/api.html#echartsInstance.setOption
     chart.setOption(option, { notMerge: true });
 
@@ -90,7 +101,7 @@ export const EChart: React.FC<Props> = ({
     // `notMerge` recreates the brush component, so the cursor must be re-armed.
     // A `brush` option is only present for time-axis charts (see panelOption).
     chart.dispatchAction('brush' in option ? ENABLE_TIME_BRUSH_ACTION : DISABLE_TIME_BRUSH_ACTION);
-  }, [chart, chartContext, isGrafanaLegend]);
+  }, [chart, option, chartContext]);
 
   useEffect(() => {
     if (!chart) {

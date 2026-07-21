@@ -17,6 +17,7 @@ import {
 import {
   AxisPointerComponent,
   BrushComponent,
+  DatasetComponent,
   GridComponent,
   LegendComponent,
   MarkAreaComponent,
@@ -68,6 +69,7 @@ registerEChartsModules([
   // ToolboxComponent,
   // Components
   GridComponent,
+  DatasetComponent, // columnar time-series `dataset` + per-series `encode` (zero-copy ingestion)
   TooltipComponent,
   LegendComponent,
   TitleComponent, // centered donut-center readout for the pie (label position: center)
