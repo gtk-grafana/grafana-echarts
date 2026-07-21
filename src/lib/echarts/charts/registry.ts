@@ -1,29 +1,29 @@
-import {
-  cartesianTimeSeriesTypes,
-  heatmapSeriesTypes,
-  hierarchySeriesTypes,
-  multiValueSeriesTypes,
-  radarSeriesTypes,
-} from 'editor/constants';
+import { cartesianTimeSeriesTypes, multiValueSeriesTypes } from 'editor/cartesian';
+import { heatmapSeriesTypes, hierarchySeriesTypes } from 'editor/constants';
 import { pieSeriesTypes } from 'editor/pie';
+import { multivariateSeriesTypes } from 'editor/radar';
 import { type SeriesType } from 'editor/types';
-import { isHierarchySeriesType, isMultiValueSeriesType, isCartesianSingleValueSeriesType } from './narrowing';
+import {
+  isCartesianSingleValueSeriesType,
+  isHierarchySeriesType,
+  isMultiValueSeriesType,
+  isMultivariateSeriesType,
+} from './narrowing';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
 import { hierarchyChartModule } from './hierarchy';
+import { multivariateChartModule, radarChartModule } from './multivariate';
 import { pieChartModule } from './pie';
-import { radarChartModule } from './radar';
 import { type ChartModule } from './types';
 
 const pieModule = pieChartModule;
-const radarModule = radarChartModule;
 
 /** All series types with a registered chart module. */
 export const supportedChartSeriesTypes: SeriesType[] = [
   ...cartesianTimeSeriesTypes,
   ...multiValueSeriesTypes,
   ...heatmapSeriesTypes,
-  ...radarSeriesTypes,
+  ...multivariateSeriesTypes,
   ...pieSeriesTypes,
   ...hierarchySeriesTypes,
 ];
@@ -47,8 +47,8 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (isCartesianSingleValueSeriesType(seriesType) || isMultiValueSeriesType(seriesType)) {
     return cartesianChartModule;
   }
-  if (radarSeriesTypes.includes(seriesType)) {
-    return radarModule;
+  if (isMultivariateSeriesType(seriesType)) {
+    return multivariateChartModule;
   }
   if (pieSeriesTypes.includes(seriesType)) {
     return pieModule;
@@ -61,4 +61,11 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   throw new Error(`Cannot resolve chart module, invalid ${seriesType}!`);
 }
 
-export { cartesianChartModule, heatmapChartModule, hierarchyChartModule, pieChartModule, radarChartModule };
+export {
+  cartesianChartModule,
+  heatmapChartModule,
+  hierarchyChartModule,
+  multivariateChartModule,
+  pieChartModule,
+  radarChartModule,
+};

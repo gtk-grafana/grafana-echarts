@@ -1,7 +1,7 @@
 import { DataFrameType, FieldColorModeId, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
 import { GraphThresholdsStyleMode } from '@grafana/schema';
 import { render } from '@testing-library/react';
-import { cartesianTimeSeriesTypes } from 'editor/constants';
+import { cartesianTimeSeriesTypes } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { removeCanvasClear, roundCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
@@ -19,6 +19,12 @@ import { getCanvasEvents, getComponent, getSeriesCanvasEvents, height, width } f
 // snapshots live in `axis.canvas.test.tsx`. See `test/canvas.ts`.
 
 describe('Panel canvas renders', () => {
+  // Cartesian panels render in Advanced editor mode so `applyCartesianEditorModeDefaults`
+  // passes the stored options through as-is. In Default mode it resets every advanced
+  // option to its default — including forcing `animation.enabled` back on, which would
+  // clobber the `animation: { enabled: false }` these snapshots rely on for determinism
+  // (same reason the pie canvas tests use Advanced mode). The Default-mode reset itself
+  // is covered by the `applyCartesianEditorModeDefaults` unit tests.
   describe('cartesian', () => {
     const frame = toDataFrame({
       fields: [
@@ -33,6 +39,7 @@ describe('Panel canvas renders', () => {
           getComponent([frame], seriesType, {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
@@ -61,6 +68,7 @@ describe('Panel canvas renders', () => {
             stackSeries: true,
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -107,6 +115,7 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'line', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -140,6 +149,7 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'candlestick', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -174,6 +184,7 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'boxplot', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -186,6 +197,89 @@ describe('Panel canvas renders', () => {
             height,
           }
         );
+      });
+    });
+
+    // Advanced (Bar-chart-parity / ECharts) options. Each case sets one option in
+    // Advanced editor mode and snapshots the series layer, proving the option
+    // reaches the render and changes it (the default renders above cover the
+    // omit-at-default baseline).
+    describe('advanced options', () => {
+      const barFrame = toDataFrame({
+        fields: [
+          { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT'] },
+          { name: 'Budget', type: FieldType.number, values: [43, 10, 30], config: { displayName: 'Budget' } },
+        ],
+      });
+      const lineFrame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497, 1783144294497, 1783147894497] },
+          { name: 'cpu', type: FieldType.number, values: [10, 40, 20, 50], config: { displayName: 'cpu' } },
+        ],
+      });
+
+      const renderCartesian = async (
+        frames: Parameters<typeof getComponent>[0],
+        seriesType: CartesianSingleValueSeriesType,
+        extra: Record<string, unknown>
+      ) => {
+        const { container } = render(
+          getComponent(frames, seriesType, {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+            ...extra,
+          })
+        );
+        return getCanvasEvents(container);
+      };
+
+      it('shows value labels (Always)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([barFrame], 'bar', { showValues: 'always' });
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('narrows the bars (bar width)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([barFrame], 'bar', { barWidth: 30 });
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('rounds the bar corners (bar radius)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([barFrame], 'bar', { barRadius: 10 });
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('thickens the line (line width)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([lineFrame], 'line', { lineWidth: 6 });
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('fills the area under the line (fill opacity)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([lineFrame], 'line', { fillOpacity: 40 });
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('enlarges the points (point size)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([lineFrame], 'line', { pointSize: 12 });
+        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
       });
     });
   });
@@ -214,6 +308,7 @@ describe('Panel canvas renders', () => {
             heatmapLayout: 'matrix',
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -247,6 +342,7 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'heatmap', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -280,6 +376,7 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'heatmap', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -312,6 +409,7 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'heatmap', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -361,6 +459,7 @@ describe('Panel canvas renders', () => {
           getComponent([heatmapFrame, overlayFrame(overlaySeriesType as CartesianSingleValueSeriesType)], 'heatmap', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
@@ -394,6 +493,7 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'heatmap', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 

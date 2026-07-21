@@ -1,11 +1,12 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
+import { PanelPlugin } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { TOOLTIP_DEFAULT_OPTIONS } from 'editor/constants';
 import { PIE_CALC_DEFAULT } from 'editor/pie';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
+import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { removeOption } from 'lib/grafana/editor/common/removeOption';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addPieAngleOptions } from 'lib/grafana/editor/pie/angle-inputs';
@@ -40,18 +41,7 @@ initPluginTranslations('grafana-echarts-app');
 // resolves the pie chart module. funnel/gauge render types are roadmap.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('part-to-whole'))
   .useFieldConfig({
-    standardOptions: {
-      [FieldConfigProperty.Color]: {
-        settings: {
-          byValueSupport: true,
-          bySeriesSupport: true,
-          preferThresholdsMode: false,
-        },
-        defaultValue: {
-          mode: FieldColorModeId.PaletteClassic,
-        },
-      },
-    },
+    standardOptions: STANDARD_COLOR_OPTIONS,
     // Register `custom.hideFrom` so the legend visibility toggle's `byName`
     // override is applied by Grafana (unregistered override properties are
     // skipped). Pie slices are rows of one field, so the converter reads the
@@ -124,15 +114,15 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     addPieLabelColorOptions(builder); // Label color (label.color)
     addPieAnimationTextStyleOptions(builder); // Animation + label text shadow/stroke
 
-    // Standard legend options, but without the reducer "Values" stats-picker
-    // (`includeLegendCalcs: false`): an arbitrary reducer over a single-value
-    // slice is meaningless. The pie's own Percent / Value control replaces it.
-    commonOptionsBuilder.addLegendOptions(builder, false);
-    // Legend values (Percent / Value) — Grafana Pie chart parity. Rendered by
+    // Shared Legend + Tooltip pair, but without the legend's reducer "Values"
+    // stats-picker (`includeLegendCalcs: false`): an arbitrary reducer over a
+    // single-value slice is meaningless. The pie's own Percent / Value control
+    // replaces it.
+    addCommonLegendAndTooltip(builder, { includeLegendCalcs: false });
+    // Legend values (Percent / Value) — Grafana Pie chart parity. Registered in
+    // the same "Legend" category (after the standard legend options). Rendered by
     // `buildPieLegendItems`.
     addPieLegendValueOptions(builder);
-
-    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
     // The pie's own slice `sort` already governs tooltip row order (see
     // `buildPieTooltip`), so the common tooltip's "Values sort order" control
     // would be a no-op here. Drop it, keeping mode / hide-zeros / max size.

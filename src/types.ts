@@ -7,6 +7,8 @@ import {
 } from '@grafana/schema';
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
 import {
+  type CartesianShowValues,
+  type CartesianValueLabelPosition,
   type EditorMode,
   type PieChartType,
   type PieEmphasisFocus,
@@ -16,6 +18,7 @@ import {
   type PieLegendValue,
   type PieRoseType,
   type PieSelectedMode,
+  type RadarShape,
   type SeriesTypeOption,
 } from 'editor/types';
 
@@ -304,6 +307,92 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * the zeroed (flat) style.
    */
   labelTextStroke?: boolean;
+
+  /**
+   * Cartesian "Show values" mode (Default tier, Bar-chart parity): whether
+   * per-point value labels render (`auto` / `always` / `never`). Unset renders no
+   * labels, so existing charts are unchanged. See `getCartesianValueLabel`.
+   */
+  showValues?: CartesianShowValues;
+
+  /**
+   * Cartesian value-label placement (Advanced; ECharts `series.label.position`).
+   * Defaults to `top`. Only meaningful when `showValues` draws labels. See
+   * `getCartesianValueLabel`.
+   */
+  valueLabelPosition?: CartesianValueLabelPosition;
+
+  /**
+   * Cartesian bar width as a percentage of the category band (Advanced; ECharts
+   * `series.barWidth`). Unset uses ECharts' auto width; `bar` series only. See
+   * `getBarWidth`.
+   */
+  barWidth?: number;
+
+  /**
+   * Cartesian bar corner radius in px (Advanced; ECharts `itemStyle.borderRadius`).
+   * `0` (default) draws square corners and omits the key; `bar` series only. See
+   * `getCartesianItemStyle`.
+   */
+  barRadius?: number;
+
+  /**
+   * Cartesian line width in px (Advanced; ECharts `lineStyle.width`). Unset uses
+   * ECharts' default stroke; `line` series only. See `getCartesianLineStyle`.
+   */
+  lineWidth?: number;
+
+  /**
+   * Cartesian line fill opacity 0–100 (Advanced; ECharts `areaStyle.opacity`). A
+   * non-zero value turns a line into an area chart; `0` (default) is a plain line;
+   * `line` series only. See `getCartesianAreaStyle`.
+   */
+  fillOpacity?: number;
+
+  /**
+   * Cartesian point (symbol) size in px (Advanced; ECharts `symbolSize`). `0`
+   * hides the points; unset uses ECharts' default symbol; line/scatter series.
+   * See `getCartesianSymbol`.
+   */
+  pointSize?: number;
+
+  /**
+   * Cartesian x-axis tick label rotation in degrees (Advanced; ECharts
+   * `xAxis.axisLabel.rotate`). `0` (default) keeps labels horizontal. See
+   * `getXTickRotate`.
+   */
+  xTickRotate?: number;
+
+  /**
+   * Radar (multivariate) fill area (Default tier; ECharts `series.areaStyle`):
+   * fill each polygon with a uniform-opacity tint. Off/unset outlines only
+   * (unchanged). See `getRadarAreaStyle`.
+   */
+  radarFillArea?: boolean;
+
+  /**
+   * Radar grid shape (Advanced; ECharts `radar.shape`): `polygon` (default) or
+   * `circle`. See `getRadarComponent`.
+   */
+  radarShape?: RadarShape;
+
+  /**
+   * Radar line width in px (Advanced; ECharts `series.lineStyle.width`). Unset
+   * uses ECharts' default stroke. See `getRadarLineStyle`.
+   */
+  radarLineWidth?: number;
+
+  /**
+   * Radar vertex symbol size in px (Advanced; ECharts `series.symbolSize`). `0`
+   * hides the markers; unset uses ECharts' default. See `getRadarSymbol`.
+   */
+  radarSymbolSize?: number;
+
+  /**
+   * Radar ring count (Advanced; ECharts `radar.splitNumber`). Unset uses ECharts'
+   * default (5 rings). See `getRadarComponent`.
+   */
+  radarSplitNumber?: number;
 
   // @internal
   animation?: {

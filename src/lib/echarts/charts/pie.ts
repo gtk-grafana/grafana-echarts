@@ -2,7 +2,7 @@ import { type ReduceDataOptions } from '@grafana/data';
 import { type SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import { PIE_LEGEND_VALUES_DEFAULT, PIE_SORT_DEFAULT } from 'editor/pie';
 import { getPieSliceFormatters, resolvePieSlices } from 'lib/echarts/converters/pie';
-import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
+import { DEFAULT_CHART_LEGEND, resolveEChartsLegend } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
 import {
   getPieAngles,
@@ -130,13 +130,12 @@ export const pieChartModule: ChartModule = {
     const baseEmphasis = getPieEmphasis(options.emphasisFocus, options.emphasisScale);
     const emphasis = centerEmphasisLabel ? { ...(baseEmphasis ?? {}), label: centerEmphasisLabel } : baseEmphasis;
 
-    const legend = isGrafanaLegend
-      ? { show: false }
-      : getLegendOption(
-          options.legend,
-          theme,
-          visible.map((slice) => slice.name)
-        );
+    const legend = resolveEChartsLegend(
+      isGrafanaLegend,
+      options.legend,
+      theme,
+      visible.map((slice) => slice.name)
+    );
 
     const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
     const hideZeros = options.tooltip?.hideZeros ?? false;

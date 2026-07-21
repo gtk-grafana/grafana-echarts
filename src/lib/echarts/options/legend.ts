@@ -88,3 +88,20 @@ export function getLegendOption(
 
   return { ...base, orient: 'horizontal', bottom: 0, left: 'left' };
 }
+
+/**
+ * Resolve the ECharts `legend` config for a chart module: hidden when the panel
+ * renders a Grafana DOM legend (`isGrafanaLegend`), otherwise the native legend
+ * from `getLegendOption`. Hoisted from the `isGrafanaLegend ? { show: false } :
+ * getLegendOption(...)` block duplicated across the cartesian, radar, and pie
+ * modules. `names` is forwarded for the single-series charts (pie/radar) whose
+ * legend items come from `data[].name`.
+ */
+export function resolveEChartsLegend(
+  isGrafanaLegend: boolean,
+  legend: VizLegendOptions | undefined,
+  theme: GrafanaTheme2,
+  names?: string[]
+): LegendComponentOption {
+  return isGrafanaLegend ? { show: false } : getLegendOption(legend, theme, names);
+}
