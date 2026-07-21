@@ -5,7 +5,12 @@ import {
   pieSelectedModePath,
   pieSelectedOffsetPath,
 } from 'editor/pie';
-import { addAdvancedNumberInput, addAdvancedSelect } from 'lib/grafana/editor/common/advanced-options';
+import {
+  addAdvancedNumberInput,
+  addAdvancedSelect,
+  composeShowIf,
+  type ExtraShowIf,
+} from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
@@ -14,13 +19,14 @@ import { type PanelOptions } from 'types';
  * `series.selectedOffset` explode distance, which only shows once a selection mode
  * is chosen. Rendered by `getPieSelection`.
  */
-export function addPieSelectionOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieSelectionOptions(builder: PanelOptionsEditorBuilder<PanelOptions>, showIf?: ExtraShowIf) {
   addAdvancedSelect(builder, {
     path: pieSelectedModePath,
     name: 'Slice selection',
     description: 'Allow selecting slices; a selected slice explodes outward by the offset below',
     defaultValue: PIE_SELECTED_MODE_DEFAULT,
     settings: { options: pieSelectedModeOptions },
+    showIf,
   });
 
   addAdvancedNumberInput(builder, {
@@ -28,6 +34,6 @@ export function addPieSelectionOptions(builder: PanelOptionsEditorBuilder<PanelO
     name: 'Selected offset',
     description: 'How far (px) a selected slice is pushed outward',
     settings: { min: 0, max: 50 },
-    showIf: (options) => (options.selectedMode ?? PIE_SELECTED_MODE_DEFAULT) !== 'off',
+    showIf: composeShowIf(showIf, (options) => (options.selectedMode ?? PIE_SELECTED_MODE_DEFAULT) !== 'off'),
   });
 }

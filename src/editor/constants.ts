@@ -51,7 +51,7 @@ export const stackSeriesName = 'Stacking';
  */
 export const STACK_GROUP_ID = 'total';
 
-export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar'];
+export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar', 'funnel'];
 
 /**
  * Series types that support a categorical axis

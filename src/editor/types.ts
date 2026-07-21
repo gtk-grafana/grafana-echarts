@@ -25,7 +25,9 @@ export type SeriesType =
   | 'chord'
   | 'custom';
 
-export type CategoricalOnlySeriesType = Extract<SeriesType, 'pie' | 'radar'>;
+// Funnel joins pie/radar as a non-cartesian, categorical-only type: it is a
+// part-to-whole variant sharing the pie slice model (see editor/funnel.ts).
+export type CategoricalOnlySeriesType = Extract<SeriesType, 'pie' | 'radar' | 'funnel'>;
 export type CategoricalAxisSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter' | 'boxplot'>;
 export type TimeAxisSupportsSeriesType = Extract<
   SeriesType,
@@ -37,6 +39,16 @@ export type HeatmapSeriesType = Extract<SeriesType, 'heatmap'>;
 // Hierarchy charts (treemap/sunburst) render a value-weighted tree rather than a
 // cartesian axis. See echarts/converters/hierarchy.ts.
 export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
+/** Funnel render type of the part-to-whole family. Reuses the pie slice model. */
+export type FunnelSeriesType = Extract<SeriesType, 'funnel'>;
+/**
+ * Render variants of the part-to-whole family, selected per panel via the
+ * panel-level `seriesType`: `pie` (radial) and `funnel` (stacked trapezoids).
+ * Both are built from the same categorical slice model (see resolvePieSlices);
+ * gauge is a planned third variant tracked separately. Mirrors
+ * `HierarchySeriesType` (treemap/sunburst) for the hierarchy family.
+ */
+export type PartToWholeSeriesType = Extract<SeriesType, 'pie' | 'funnel'>;
 
 /**
  * Series-type *selection* value: the concrete `SeriesType` plus the `'Auto'`
@@ -118,6 +130,33 @@ export type PieSelectedMode = 'off' | 'single' | 'multiple';
  * `getPieEmphasis`.
  */
 export type PieEmphasisFocus = 'none' | 'self' | 'series';
+
+/**
+ * Funnel (part-to-whole) layout direction, mapping to the ECharts funnel
+ * `series.orient` (`LayoutOrient`): `vertical` stacks trapezoids top-to-bottom
+ * (the default), `horizontal` lays them left-to-right. See `getFunnelOrient`.
+ * https://echarts.apache.org/en/option.html#series-funnel.orient
+ */
+export type FunnelOrient = 'vertical' | 'horizontal';
+
+/**
+ * Funnel (part-to-whole) cross-axis alignment, mapping to the ECharts funnel
+ * `series.funnelAlign`. For the default vertical orient this is the horizontal
+ * alignment of the narrowing trapezoids: `center` (the default), `left`, or
+ * `right`. See `getFunnelAlign`.
+ * https://echarts.apache.org/en/option.html#series-funnel.funnelAlign
+ */
+export type FunnelAlign = 'left' | 'center' | 'right';
+
+/**
+ * Funnel (part-to-whole) slice-label placement, a subset of the ECharts funnel
+ * `label.position`: `inside` (on the trapezoid — the plugin default, a clean
+ * part-to-whole read), `left`/`right` (outside with a leader line), or
+ * `top`/`bottom`. Reuses the pie Name/Value/Percent label content. See
+ * `getFunnelLabel`.
+ * https://echarts.apache.org/en/option.html#series-funnel.label.position
+ */
+export type FunnelLabelPosition = 'inside' | 'left' | 'right' | 'top' | 'bottom';
 
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s

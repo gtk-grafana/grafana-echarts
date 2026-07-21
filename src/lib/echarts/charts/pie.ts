@@ -2,6 +2,7 @@ import { type ReduceDataOptions } from '@grafana/data';
 import { type SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import { PIE_LEGEND_VALUES_DEFAULT, PIE_SORT_DEFAULT } from 'editor/pie';
 import { getPieSliceFormatters, resolvePieSlices } from 'lib/echarts/converters/pie';
+import { funnelDefaultOptions, getFunnelSeries } from 'lib/echarts/options/funnel';
 import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
 import { buildPieLegendItems } from 'lib/echarts/options/legendItems';
 import {
@@ -25,10 +26,69 @@ import {
 } from 'lib/echarts/options/pie';
 import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
-import { type ChartContext, type ChartModule, type EChartPieDataItem, type EChartPieSeriesOption } from './types';
+import {
+  type BaseOptionParts,
+  type ChartContext,
+  type ChartModule,
+  type EChartFunnelSeriesOption,
+  type EChartPieDataItem,
+  type EChartPieSeriesOption,
+} from './types';
 
 const resolveReduceOptions = (ctx: ChartContext): ReduceDataOptions | undefined => ctx.options.reduceOptions;
 const resolveSort = (ctx: ChartContext): SortOrder => ctx.options.sort ?? PIE_SORT_DEFAULT;
+
+/**
+ * Build the funnel render variant of the part-to-whole family. Reuses the shared
+ * slice model (`resolvePieSlices`), legend, and tooltip exactly as the pie does;
+ * only the series body differs (`getFunnelSeries`). Kept a sibling of the pie
+ * branch so the pie path stays untouched.
+ */
+function buildFunnelChartOption(
+  ctx: ChartContext<'pie' | 'funnel'>,
+  { isGrafanaLegend }: BaseOptionParts
+): EChartFunnelSeriesOption | null {
+  const { theme, options } = ctx;
+  const slices = resolvePieSlices(
+    ctx.frames,
+    theme,
+    ctx.fieldConfig,
+    resolveReduceOptions(ctx),
+    ctx.replaceVariables,
+    ctx.timeZone,
+    resolveSort(ctx)
+  );
+
+  // No numeric-like field at all → no usable data (matches the pie branch).
+  if (slices.length === 0) {
+    return null;
+  }
+
+  const visible = slices.filter((slice) => !slice.hidden);
+
+  const legend = isGrafanaLegend
+    ? { show: false }
+    : getLegendOption(
+        options.legend,
+        theme,
+        visible.map((slice) => slice.name)
+      );
+
+  const tooltipMode = options.tooltip?.mode ?? TooltipDisplayMode.Single;
+  const hideZeros = options.tooltip?.hideZeros ?? false;
+  // Dedicated pie tooltip, reused verbatim (slice-based). Skipped in None mode,
+  // where the panel disables the tooltip entirely.
+  const tooltip =
+    tooltipMode === TooltipDisplayMode.None
+      ? undefined
+      : { formatter: buildPieTooltip(visible, tooltipMode, theme, ctx.timeZone, hideZeros) };
+
+  return {
+    ...funnelDefaultOptions,
+    legend,
+    series: [getFunnelSeries(visible, options, theme, ctx.timeZone, { zlevel: options.zLevel?.series, tooltip })],
+  };
+}
 
 export const pieChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
@@ -50,7 +110,16 @@ export const pieChartModule: ChartModule = {
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
   },
 
-  buildOption(ctx: ChartContext<'pie'>, { isGrafanaLegend }): EChartPieSeriesOption | null {
+  buildOption(
+    ctx: ChartContext<'pie' | 'funnel'>,
+    base: BaseOptionParts
+  ): EChartPieSeriesOption | EChartFunnelSeriesOption | null {
+    // Funnel is a sibling render variant sharing the slice model; branch first so
+    // the pie path below is unchanged.
+    if (ctx.seriesType === 'funnel') {
+      return buildFunnelChartOption(ctx, base);
+    }
+    const { isGrafanaLegend } = base;
     const { theme, options, seriesType } = ctx;
     const slices = resolvePieSlices(
       ctx.frames,
@@ -198,3 +267,11 @@ export const pieChartModule: ChartModule = {
     );
   },
 };
+
+/**
+ * The part-to-whole family module. Pie and funnel share this one module (like the
+ * hierarchy family's treemap/sunburst): `buildOption` picks the render variant
+ * from `ctx.seriesType`, and legend/tooltip are variant-agnostic (slice-based).
+ * Alias of `pieChartModule`, exported under the family name for the registry.
+ */
+export const partToWholeChartModule: ChartModule = pieChartModule;

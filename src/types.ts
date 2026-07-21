@@ -8,6 +8,9 @@ import {
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
 import {
   type EditorMode,
+  type FunnelAlign,
+  type FunnelLabelPosition,
+  type FunnelOrient,
   type PieChartType,
   type PieEmphasisFocus,
   type PieLabel,
@@ -304,6 +307,49 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * the zeroed (flat) style.
    */
   labelTextStroke?: boolean;
+
+  /**
+   * Funnel (part-to-whole) layout direction (Advanced): `vertical` (default) or
+   * `horizontal`. Defaults to `FUNNEL_ORIENT_DEFAULT` (`vertical`); omitted from
+   * the series at the default. See `getFunnelOrient`.
+   */
+  funnelOrient?: FunnelOrient;
+
+  /**
+   * Funnel (part-to-whole) cross-axis alignment (Advanced): `center` (default),
+   * `left`, or `right` for the vertical orient. Defaults to
+   * `FUNNEL_ALIGN_DEFAULT` (`center`); omitted at the default. See `getFunnelAlign`.
+   */
+  funnelAlign?: FunnelAlign;
+
+  /**
+   * Funnel (part-to-whole) gap in px between trapezoids (Advanced; ECharts
+   * `series.gap`). Defaults to `FUNNEL_GAP_DEFAULT` (`0`), which omits the key.
+   * See `getFunnelGap`.
+   */
+  funnelGap?: number;
+
+  /**
+   * Funnel (part-to-whole) minimum trapezoid extent as a percentage of the layout
+   * box (Advanced; ECharts `series.minSize`). Unset falls back to the ECharts
+   * default (`'0%'`), so the key is omitted. See `getFunnelSize`.
+   */
+  funnelMinSize?: number;
+
+  /**
+   * Funnel (part-to-whole) maximum trapezoid extent as a percentage of the layout
+   * box (Advanced; ECharts `series.maxSize`). Unset falls back to the ECharts
+   * default (`'100%'`), so the key is omitted. See `getFunnelSize`.
+   */
+  funnelMaxSize?: number;
+
+  /**
+   * Funnel (part-to-whole) slice-label placement (Advanced; ECharts
+   * `label.position`): `inside` (default), `left`, `right`, `top`, or `bottom`.
+   * Reuses the pie Name/Value/Percent label content. Defaults to
+   * `FUNNEL_LABEL_POSITION_DEFAULT` (`inside`). See `getFunnelLabel`.
+   */
+  funnelLabelPosition?: FunnelLabelPosition;
 
   // @internal
   animation?: {

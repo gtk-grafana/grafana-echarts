@@ -20,10 +20,10 @@ import { type PanelOptions } from 'types';
 // Render in Advanced editor mode so the advanced options these tests exercise
 // (rose type, angles, center label, borders, …) are respected as-is. In Default
 // (rose type, angles, center label, borders, …) are respected as-is. In Default
-// mode `applyPieEditorModeDefaults` resets every advanced option to its default —
+// mode `applyPartToWholeEditorModeDefaults` resets every advanced option to its default —
 // including forcing `animation.enabled` back on, which would clobber the
 // `animation: { enabled: false }` these snapshots rely on for determinism. The
-// Default-mode reset itself is covered by the `applyPieEditorModeDefaults` unit tests.
+// Default-mode reset itself is covered by the `applyPartToWholeEditorModeDefaults` unit tests.
 const pieOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
   zLevel: { series: SERIES_ZLEVEL },
   animation: { enabled: false },

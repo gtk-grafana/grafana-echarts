@@ -5,7 +5,12 @@ import {
   pieLabelOverflowPath,
   pieLabelWidthPath,
 } from 'editor/pie';
-import { addAdvancedNumberInput, addAdvancedSelect } from 'lib/grafana/editor/common/advanced-options';
+import {
+  addAdvancedNumberInput,
+  addAdvancedSelect,
+  composeShowIf,
+  type ExtraShowIf,
+} from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
@@ -15,13 +20,14 @@ import { type PanelOptions } from 'types';
  * width only shows once overflow handling is enabled. Both thread through
  * `getPieContentLabel` → `getPieLabelStyle`.
  */
-export function addPieLabelOverflowOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieLabelOverflowOptions(builder: PanelOptionsEditorBuilder<PanelOptions>, showIf?: ExtraShowIf) {
   addAdvancedSelect(builder, {
     path: pieLabelOverflowPath,
     name: 'Label overflow',
     description: 'How long slice labels are handled: none, truncate (ellipsis), or wrap at the label width.',
     defaultValue: PIE_LABEL_OVERFLOW_DEFAULT,
     settings: { options: pieLabelOverflowOptions },
+    showIf,
   });
 
   addAdvancedNumberInput(builder, {
@@ -29,6 +35,6 @@ export function addPieLabelOverflowOptions(builder: PanelOptionsEditorBuilder<Pa
     name: 'Label width',
     description: 'Maximum label width (px) at which overflow handling applies.',
     settings: { min: 10, max: 400, integer: true },
-    showIf: (options) => options.labelOverflow != null && options.labelOverflow !== 'none',
+    showIf: composeShowIf(showIf, (options) => options.labelOverflow != null && options.labelOverflow !== 'none'),
   });
 }

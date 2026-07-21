@@ -5,6 +5,7 @@ import {
   CandlestickChart,
   CustomChart,
   EffectScatterChart,
+  FunnelChart,
   HeatmapChart,
   LineChart,
   PieChart,
@@ -58,6 +59,7 @@ registerEChartsModules([
   CandlestickChart, // multi-value cartesian: OHLC
   BoxplotChart, // multi-value cartesian: [min, Q1, median, Q3, max]
   PieChart,
+  FunnelChart, // part-to-whole family: stacked trapezoids sharing the pie slice model
   RadarChart,
   TreemapChart, // hierarchy family: nested rectangles sized by value
   SunburstChart, // hierarchy family: radial rings sized by value

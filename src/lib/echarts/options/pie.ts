@@ -2,6 +2,12 @@ import { type Field, fieldReducers, FieldType, type GrafanaTheme2, reduceField }
 import { type PieSeriesOption, type TitleComponentOption } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import {
+  FUNNEL_ALIGN_DEFAULT,
+  FUNNEL_GAP_DEFAULT,
+  FUNNEL_LABEL_POSITION_DEFAULT,
+  FUNNEL_ORIENT_DEFAULT,
+} from 'editor/funnel';
+import {
   PIE_ANIMATION_ENABLED_DEFAULT,
   PIE_AVOID_LABEL_OVERLAP_DEFAULT,
   PIE_BORDER_RADIUS_DEFAULT,
@@ -50,7 +56,7 @@ export const pieDefaultOptions: ECBasicOption = {
 /**
  * Default values for every Advanced-gated pie option, keyed by its `PanelOptions`
  * path. In Default editor mode these are spread over the stored options (see
- * `applyPieEditorModeDefaults`) so a panel renders exactly like an untouched pie
+ * `applyPartToWholeEditorModeDefaults`) so a panel renders exactly like an untouched pie
  * even if advanced values were configured earlier and then the user switched back
  * to Default — the render path itself never reads `editorMode`, so this is what
  * keeps hidden advanced values from leaking into the chart. Options whose default
@@ -91,18 +97,35 @@ export const ADVANCED_PIE_DEFAULTS: Partial<PanelOptions> = {
 };
 
 /**
- * Normalize the pie's panel options for rendering by editor mode. Advanced and
- * API modes render the stored options as-is; Default mode spreads
- * `ADVANCED_PIE_DEFAULTS` over them so advanced options are forced back to their
- * defaults (the controls are hidden, so their stored values must not affect the
- * render). Applied once in `buildPanelChartOption` for pie series types, before
- * both the series build and the `animation` read.
+ * Default values for every Advanced-gated funnel option, keyed by its
+ * `PanelOptions` path. Merged with `ADVANCED_PIE_DEFAULTS` in
+ * `applyPartToWholeEditorModeDefaults` so Default mode renders a plain funnel
+ * regardless of stored Advanced values. Options whose default is "unset" are set
+ * to `undefined` so any stored value is cleared. See `getFunnelSeries`.
  */
-export function applyPieEditorModeDefaults(options: PanelOptions): PanelOptions {
+export const ADVANCED_FUNNEL_DEFAULTS: Partial<PanelOptions> = {
+  funnelOrient: FUNNEL_ORIENT_DEFAULT,
+  funnelAlign: FUNNEL_ALIGN_DEFAULT,
+  funnelGap: FUNNEL_GAP_DEFAULT,
+  funnelMinSize: undefined,
+  funnelMaxSize: undefined,
+  funnelLabelPosition: FUNNEL_LABEL_POSITION_DEFAULT,
+};
+
+/**
+ * Normalize the part-to-whole panel options for rendering by editor mode.
+ * Advanced and API modes render the stored options as-is; Default mode spreads
+ * the combined pie + funnel advanced defaults over them so every advanced option
+ * is forced back to its default (the controls are hidden, so their stored values
+ * must not affect the render — for whichever variant is selected). Applied once
+ * in `buildPanelChartOption` for the part-to-whole series types, before both the
+ * series build and the `animation` read.
+ */
+export function applyPartToWholeEditorModeDefaults(options: PanelOptions): PanelOptions {
   if (isAdvancedEditorMode(options) || isApiEditorMode(options)) {
     return options;
   }
-  return { ...options, ...ADVANCED_PIE_DEFAULTS };
+  return { ...options, ...ADVANCED_PIE_DEFAULTS, ...ADVANCED_FUNNEL_DEFAULTS };
 }
 
 /**

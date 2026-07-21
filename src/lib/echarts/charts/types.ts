@@ -15,6 +15,7 @@ import {
   type ComposeOption,
   type CustomSeriesOption,
   type EffectScatterSeriesOption,
+  type FunnelSeriesOption,
   type GridComponentOption,
   type HeatmapSeriesOption,
   type PieSeriesOption,
@@ -94,6 +95,9 @@ export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;
 export type EChartPieSeriesOption = ComposeOption<PieSeriesOption | TitleComponentOption>;
 // Radar needs both the series and the `radar` coordinate component.
 export type EChartRadarSeriesOption = ComposeOption<RadarSeriesOption | RadarComponentOption>;
+// Funnel is the part-to-whole family's second render variant; it shares the pie
+// slice model but lays out stacked trapezoids (no radial coordinate component).
+export type EChartFunnelSeriesOption = ComposeOption<FunnelSeriesOption>;
 // Hierarchy families render a value-weighted tree; no cartesian axis component.
 export type EChartTreemapSeriesOption = ComposeOption<TreemapSeriesOption>;
 export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
@@ -124,6 +128,7 @@ export type EChartBuildOption =
   | EChartScatterSeriesOption
   | EChartPieSeriesOption
   | EChartRadarSeriesOption
+  | EChartFunnelSeriesOption
   | EChartTreemapSeriesOption
   | EChartSunburstSeriesOption
   | EChartCandlestickSeriesOption

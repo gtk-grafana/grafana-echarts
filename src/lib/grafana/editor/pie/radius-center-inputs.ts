@@ -1,6 +1,6 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { pieCenterXPath, pieCenterYPath, pieInnerRadiusPath, pieOuterRadiusPath } from 'editor/pie';
-import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
+import { addAdvancedNumberInput, type ExtraShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
@@ -8,7 +8,7 @@ import { type PanelOptions } from 'types';
  * panel. They override the `getPieRadius` defaults and drive `series.center` via
  * `getPieCenter`; unset values keep the pie/donut defaults (and centered position).
  */
-export function addPieRadiusCenterOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieRadiusCenterOptions(builder: PanelOptionsEditorBuilder<PanelOptions>, showIf?: ExtraShowIf) {
   const settings = { min: 0, max: 100, integer: true };
 
   addAdvancedNumberInput(builder, {
@@ -16,6 +16,7 @@ export function addPieRadiusCenterOptions(builder: PanelOptionsEditorBuilder<Pan
     name: 'Outer radius',
     description: 'Outer radius as a percentage of the panel. Leave empty for the default.',
     settings,
+    showIf,
   });
 
   addAdvancedNumberInput(builder, {
@@ -23,6 +24,7 @@ export function addPieRadiusCenterOptions(builder: PanelOptionsEditorBuilder<Pan
     name: 'Inner radius',
     description: 'Inner (hole) radius as a percentage of the panel. Leave empty for the default.',
     settings,
+    showIf,
   });
 
   addAdvancedNumberInput(builder, {
@@ -30,6 +32,7 @@ export function addPieRadiusCenterOptions(builder: PanelOptionsEditorBuilder<Pan
     name: 'Center X',
     description: 'Horizontal center as a percentage of the panel width. Leave empty to keep centered.',
     settings,
+    showIf,
   });
 
   addAdvancedNumberInput(builder, {
@@ -37,5 +40,6 @@ export function addPieRadiusCenterOptions(builder: PanelOptionsEditorBuilder<Pan
     name: 'Center Y',
     description: 'Vertical center as a percentage of the panel height. Leave empty to keep centered.',
     settings,
+    showIf,
   });
 }
