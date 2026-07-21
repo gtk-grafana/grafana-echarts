@@ -29,7 +29,7 @@ import {
 import { buildThresholdMarks, type ThresholdMarks } from 'lib/echarts/options/thresholds';
 import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import { getFieldValueFormatters } from 'lib/echarts/style';
-import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
 import { getFieldMinMax } from 'lib/grafana/fields/fieldConfig';
 import { isNumberField } from 'lib/grafana/narrowing';
 import {
@@ -262,6 +262,20 @@ export const cartesianChartModule: ChartModule = {
   getTooltipValueFormatter(ctx) {
     const formatters = getFieldValueFormatters(cartesianSeriesFields(ctx), ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'seriesIndex');
+  },
+
+  getTooltipFieldResolver(ctx) {
+    // Same field order as the series (see `cartesianSeriesFields`), so the
+    // hovered item's `seriesIndex` selects its source field and `dataIndex` its
+    // row — the tooltip footer reads that field's data links / labels.
+    const fields = cartesianSeriesFields(ctx);
+    return (item) => {
+      if (item.seriesIndex == null) {
+        return undefined;
+      }
+      const field = fields[item.seriesIndex];
+      return field ? { field, rowIndex: item.dataIndex ?? 0 } : undefined;
+    };
   },
 
   buildOption(

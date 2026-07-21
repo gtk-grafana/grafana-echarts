@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 import { type PieSliceModel } from 'lib/echarts/converters/types';
-import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
+import { buildPieTooltipModel } from 'lib/echarts/tooltip/pie';
 
 const theme = createTheme();
 
@@ -25,83 +25,80 @@ const slice = (name: string, value: number | undefined, color: string): PieSlice
 // Three visible slices summing to 100 so percentages read cleanly.
 const slices: PieSliceModel[] = [slice('A', 30, '#aaaaaa'), slice('B', 50, '#bbbbbb'), slice('C', 20, '#cccccc')];
 
-describe('buildPieTooltip', () => {
+const labels = (rows: Array<{ label: string }>) => rows.map((row) => row.label);
+const values = (rows: Array<{ value: string }>) => rows.map((row) => row.value);
+
+describe('buildPieTooltipModel', () => {
   describe('Single mode', () => {
     it('shows only the hovered slice: name header, value, and share of the whole', () => {
-      const el = buildPieTooltip(
+      const model = buildPieTooltipModel(
         slices,
         TooltipDisplayMode.Single,
         theme
       )(asParams({ dataIndex: 0, name: 'A', value: 30 }));
 
-      expect(el.textContent).toContain('A');
-      expect(el.textContent).toContain('30');
-      expect(el.textContent).toContain('30%');
+      expect(model.header).toBe('A');
+      expect(model.rows).toHaveLength(1);
+      expect(model.rows[0].value).toBe('30 (30%)');
+      expect(model.rows[0].color).toBe('#aaaaaa');
       // Other slices are not listed in Single mode.
-      expect(el.textContent).not.toContain('B');
-      expect(el.textContent).not.toContain('50');
-      // Exactly one swatch (the hovered slice).
-      expect(el.querySelectorAll('span')).toHaveLength(1);
+      expect(labels(model.rows)).not.toContain('B');
+      // The footer source points at the hovered slice's field.
+      expect(model.source?.field).toBe(slices[0].field);
     });
 
     it('never falls back to the ECharts auto series name ("series 0")', () => {
-      const el = buildPieTooltip(
+      const model = buildPieTooltipModel(
         slices,
         TooltipDisplayMode.Single,
         theme
       )(asParams({ dataIndex: 2, name: 'C', value: 20 }));
 
-      expect(el.textContent).not.toContain('series');
-      expect(el.textContent).toContain('C');
+      expect(model.header).toBe('C');
+      expect(model.header).not.toContain('series');
     });
 
     it('resolves the hovered slice by name when dataIndex is absent', () => {
-      const el = buildPieTooltip(slices, TooltipDisplayMode.Single, theme)(asParams({ name: 'B', value: 50 }));
+      const model = buildPieTooltipModel(slices, TooltipDisplayMode.Single, theme)(asParams({ name: 'B', value: 50 }));
 
-      expect(el.textContent).toContain('B');
-      expect(el.textContent).toContain('50%');
+      expect(model.header).toBe('B');
+      expect(model.rows[0].value).toBe('50 (50%)');
     });
   });
 
   describe('All mode', () => {
     it('lists every visible slice with value and percentage, headed by the hovered one', () => {
-      const el = buildPieTooltip(
+      const model = buildPieTooltipModel(
         slices,
         TooltipDisplayMode.Multi,
         theme
       )(asParams({ dataIndex: 1, name: 'B', value: 50 }));
 
-      expect(el.textContent).toContain('30 (30%)');
-      expect(el.textContent).toContain('50 (50%)');
-      expect(el.textContent).toContain('20 (20%)');
-      // One swatch per visible slice.
-      expect(el.querySelectorAll('span')).toHaveLength(3);
+      expect(model.header).toBe('B');
+      expect(values(model.rows)).toEqual(['30 (30%)', '50 (50%)', '20 (20%)']);
     });
 
     it('emphasizes exactly the hovered slice row', () => {
-      const el = buildPieTooltip(
+      const model = buildPieTooltipModel(
         slices,
         TooltipDisplayMode.Multi,
         theme
       )(asParams({ dataIndex: 1, name: 'B', value: 50 }));
 
-      // Emphasis is an inline font-weight on the row (the header's bold comes from
-      // a CSS class, so it has no inline style).
-      const boldRows = Array.from(el.querySelectorAll('div')).filter((div) => div.style.fontWeight !== '');
-      expect(boldRows).toHaveLength(1);
-      expect(boldRows[0].textContent).toContain('B');
+      const emphasized = model.rows.filter((row) => row.emphasis);
+      expect(emphasized).toHaveLength(1);
+      expect(emphasized[0].label).toBe('B');
     });
 
     it('computes percentages from the total, whole number by default (core Grafana)', () => {
       const thirds: PieSliceModel[] = [slice('x', 1, '#111111'), slice('y', 2, '#222222')];
-      const el = buildPieTooltip(
+      const model = buildPieTooltipModel(
         thirds,
         TooltipDisplayMode.Multi,
         theme
       )(asParams({ dataIndex: 0, name: 'x', value: 1 }));
 
-      expect(el.textContent).toContain('33%');
-      expect(el.textContent).toContain('67%');
+      expect(values(model.rows)).toEqual(['1 (33%)', '2 (67%)']);
     });
 
     it('drops zero-value slices when hideZeros is set, keeping slice order and emphasis', () => {
@@ -110,7 +107,7 @@ describe('buildPieTooltip', () => {
         slice('Z', 0, '#000000'),
         slice('B', 50, '#bbbbbb'),
       ];
-      const el = buildPieTooltip(
+      const model = buildPieTooltipModel(
         withZero,
         TooltipDisplayMode.Multi,
         theme,
@@ -118,18 +115,17 @@ describe('buildPieTooltip', () => {
         true
       )(asParams({ dataIndex: 2, name: 'B', value: 50 }));
 
-      // Two swatches remain (A and B); the zero slice Z is gone.
-      expect(el.querySelectorAll('span')).toHaveLength(2);
-      expect(el.textContent).not.toContain('Z');
+      // Two rows remain (A and B); the zero slice Z is gone.
+      expect(labels(model.rows)).toEqual(['A', 'B']);
       // Emphasis still lands on the hovered slice B, whose original index (2) is unchanged.
-      const boldRows = Array.from(el.querySelectorAll('div')).filter((div) => div.style.fontWeight !== '');
-      expect(boldRows).toHaveLength(1);
-      expect(boldRows[0].textContent).toContain('B');
+      const emphasized = model.rows.filter((row) => row.emphasis);
+      expect(emphasized).toHaveLength(1);
+      expect(emphasized[0].label).toBe('B');
     });
 
     it('keeps null-valued slices even when hideZeros is set', () => {
       const withNull: PieSliceModel[] = [slice('A', 30, '#aaaaaa'), slice('N', undefined, '#999999')];
-      const el = buildPieTooltip(
+      const model = buildPieTooltipModel(
         withNull,
         TooltipDisplayMode.Multi,
         theme,
@@ -137,8 +133,7 @@ describe('buildPieTooltip', () => {
         true
       )(asParams({ dataIndex: 0, name: 'A', value: 30 }));
 
-      expect(el.textContent).toContain('N');
-      expect(el.querySelectorAll('span')).toHaveLength(2);
+      expect(labels(model.rows)).toEqual(['A', 'N']);
     });
   });
 });

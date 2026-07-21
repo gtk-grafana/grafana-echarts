@@ -38,7 +38,7 @@ import { formatPieShare, getPieSliceFormatters, getPieSliceTotal } from 'lib/ech
 import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
 import { getValueFormatter } from 'lib/echarts/style';
-import { formatTooltipValue } from 'lib/echarts/tooltip/template';
+import { formatTooltipValue } from 'lib/echarts/tooltip/model';
 import { isAdvancedEditorMode, isApiEditorMode } from 'lib/grafana/editor/common/editor-mode';
 import { type PanelOptions } from 'types';
 

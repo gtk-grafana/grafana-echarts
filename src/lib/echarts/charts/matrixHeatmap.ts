@@ -57,7 +57,13 @@ export function buildMatrixHeatmapOption(
     grid,
     xAxis,
     yAxis,
-    series: [getMatrixHeatmapSeries(data, { theme, timeZone, formatValue }, options.zLevel?.series)],
+    series: [
+      getMatrixHeatmapSeries(
+        data,
+        { theme, timeZone, formatValue, tooltipSink: ctx.tooltipSink },
+        options.zLevel?.series
+      ),
+    ],
     visualMap: getMatrixHeatmapVisualMap({
       data,
       theme,

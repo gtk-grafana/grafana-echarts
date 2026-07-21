@@ -134,7 +134,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
 
     commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
     // The pie's own slice `sort` already governs tooltip row order (see
-    // `buildPieTooltip`), so the common tooltip's "Values sort order" control
+    // `buildPieTooltipModel`), so the common tooltip's "Values sort order" control
     // would be a no-op here. Drop it, keeping mode / hide-zeros / max size.
     removeOption(builder, 'tooltip.sort');
 

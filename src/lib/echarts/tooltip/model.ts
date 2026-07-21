@@ -1,7 +1,66 @@
-import { css } from '@emotion/css';
-import { formattedValueToString, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
+import { type Field, formattedValueToString, type ValueFormatter } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
 import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+
+/**
+ * The React-free tooltip content model. Chart formatters convert the hovered
+ * ECharts `params` into one of these and hand it to the React overlay
+ * (`EChartsTooltip`), which renders it with `@grafana/ui`'s `VizTooltip`. Nothing
+ * in this module touches the DOM or React — it is pure data derivation, so it
+ * stays testable and keeps the ECharts option layer isolated from the React
+ * tooltip (see `lib/components/tooltip`).
+ */
+export interface TooltipModel {
+  /** Header text: the shared axis (x/time) label, or the single hovered item's name. */
+  header?: string;
+  rows: TooltipRow[];
+  /**
+   * Source field + row of the single hovered item (present only when one item is
+   * focused, i.e. Single mode / a single hovered slice). The React footer reads
+   * data links and label-based ad-hoc filters from it. Kept as raw `Field`/row so
+   * the ECharts layer stays free of `@grafana/ui` (the footer resolves links
+   * there instead).
+   */
+  source?: TooltipSource;
+}
+
+/** The hovered item's source field and its row index within that field's values. */
+export interface TooltipSource {
+  field: Field;
+  rowIndex: number;
+}
+
+/**
+ * Resolve the source {@link TooltipSource} for a hovered tooltip item so the
+ * footer can surface data links and ad-hoc filters. Chart families key the item
+ * by `seriesIndex` and/or `dataIndex`; families with no clean field mapping
+ * (multi-value cartesian, heatmap cells, hierarchy nodes) omit the resolver.
+ */
+export type TooltipFieldResolver = (item: { seriesIndex?: number; dataIndex?: number }) => TooltipSource | undefined;
+
+/**
+ * Receives the latest tooltip content on each hover. Supplied by the React layer
+ * (`useEChartsTooltip`) and threaded into the option builders so the ECharts
+ * `formatter` can push content to React instead of rendering DOM itself.
+ */
+export type TooltipSink = (model: TooltipModel) => void;
+
+/**
+ * A sink that discards its model. Used as a fallback where no React overlay is
+ * wired (e.g. chart-module unit tests that call `buildOption` directly), so the
+ * per-series `formatter` can be attached unconditionally.
+ */
+export const NOOP_TOOLTIP_SINK: TooltipSink = () => undefined;
+
+/** A single series/value line rendered inside the tooltip. */
+export interface TooltipRow {
+  /** CSS color for the leading swatch; omitted rows render no swatch. */
+  color?: string;
+  label: string;
+  value: string;
+  /** Render the row highlighted (e.g. the hovered slice in a pie "All" tooltip). */
+  emphasis?: boolean;
+}
 
 /**
  * Axis-trigger tooltip params carry extra axis fields that ECharts adds at
@@ -119,140 +178,6 @@ export function applyTooltipRowOptions<T>(
   return result;
 }
 
-/**
- * Emotion styles mirroring Grafana's `VizTooltip` content: a bodySmall column
- * with a bold header and a CSS-table of color-indicator/label/value rows.
- * See @grafana/ui `VizTooltipWrapper` and `SeriesTable`.
- */
-const getTemplateStyles = (theme: GrafanaTheme2) => ({
-  root: css({
-    display: 'flex',
-    flexDirection: 'column',
-    fontFamily: theme.typography.fontFamily,
-    fontSize: theme.typography.bodySmall.fontSize,
-    color: theme.colors.text.primary,
-  }),
-  header: css({
-    fontWeight: theme.typography.fontWeightBold,
-    marginBottom: theme.spacing(0.5),
-  }),
-  table: css({
-    display: 'table',
-  }),
-  row: css({
-    display: 'table-row',
-    fontWeight: theme.typography.fontWeightLight,
-  }),
-  iconCell: css({
-    display: 'table-cell',
-    paddingRight: theme.spacing(1),
-    verticalAlign: 'middle',
-  }),
-  labelCell: css({
-    display: 'table-cell',
-    verticalAlign: 'middle',
-    wordBreak: 'break-all',
-  }),
-  valueCell: css({
-    display: 'table-cell',
-    verticalAlign: 'middle',
-    paddingLeft: theme.spacing(2),
-    textAlign: 'right',
-    fontWeight: theme.typography.fontWeightMedium,
-  }),
-  // Small line swatch, matching @grafana/ui `SeriesIcon`.
-  marker: css({
-    display: 'inline-block',
-    width: '14px',
-    height: '4px',
-    borderRadius: theme.shape.radius.pill,
-  }),
-});
-
-/** A single series/value line rendered inside the tooltip. */
-export interface TooltipRow {
-  /** CSS color for the leading swatch; omitted rows render no swatch. */
-  color?: string;
-  label: string;
-  value: string;
-  /** Render the row bold to highlight it (e.g. the hovered slice in a pie "All" tooltip). */
-  emphasis?: boolean;
-}
-
-/**
- * A reusable tooltip container that builds Grafana-styled DOM with the safe DOM
- * APIs (`createElement`/`textContent`, no `innerHTML`). Chart-specific
- * formatters share this so every tooltip renders identically.
- */
-export interface TooltipShell {
-  /** The root element to hand back to ECharts' `formatter`. */
-  root: HTMLDivElement;
-  appendHeader(text: string): void;
-  appendRow(row: TooltipRow): void;
-}
-
-export function buildTooltipShell(theme: GrafanaTheme2): TooltipShell {
-  const styles = getTemplateStyles(theme);
-  const root = document.createElement('div');
-  root.className = styles.root;
-
-  // The rows live in a CSS table so values align in a right-hand column; created
-  // lazily so a header-only tooltip stays clean.
-  let table: HTMLDivElement | null = null;
-  const ensureTable = (): HTMLDivElement => {
-    if (!table) {
-      table = document.createElement('div');
-      table.className = styles.table;
-      root.appendChild(table);
-    }
-    return table;
-  };
-
-  return {
-    root,
-    appendHeader(text) {
-      const header = document.createElement('div');
-      header.className = styles.header;
-      header.textContent = text;
-      root.appendChild(header);
-    },
-    // @todo can we find a more maintainable way to use html templates to hand off to eCharts? i.e. converting an html template without losing potential interactability?
-    // @todo we probably need react overlay to support click to pin functionality anyway, so I guess this is fine as a temporary measure
-    appendRow({ color, label, value, emphasis }) {
-      const row = document.createElement('div');
-      row.className = styles.row;
-      // Bold the whole row (cascades to its cells) to highlight the hovered slice.
-      if (emphasis) {
-        // @todo direct style manipulation?
-        row.style.fontWeight = String(theme.typography.fontWeightBold);
-        row.style.color = String(theme.colors.text.maxContrast);
-      }
-
-      const iconCell = document.createElement('div');
-      iconCell.className = styles.iconCell;
-      if (color) {
-        const marker = document.createElement('span');
-        marker.className = styles.marker;
-        marker.style.background = color;
-        iconCell.appendChild(marker);
-      }
-      row.appendChild(iconCell);
-
-      const labelCell = document.createElement('div');
-      labelCell.className = styles.labelCell;
-      labelCell.textContent = label;
-      row.appendChild(labelCell);
-
-      const valueCell = document.createElement('div');
-      valueCell.className = styles.valueCell;
-      valueCell.textContent = value;
-      row.appendChild(valueCell);
-
-      ensureTable().appendChild(row);
-    },
-  };
-}
-
 /** Header text: the shared axis (x/time) label, or the single item's name. */
 function getHeader(items: TooltipParam[]): string {
   const [first] = items;
@@ -276,29 +201,26 @@ function getLabel(item: TooltipParam, header: string): string {
 }
 
 /**
- * Generic VizTooltip-style content for cartesian, pie, and radar charts. Returns
- * a detached DOM element for ECharts' `tooltip.formatter`.
+ * Generic VizTooltip content model for cartesian, pie, and radar charts. Consumes
+ * ECharts' `tooltip.formatter` params (a single item, or an array in axis mode)
+ * and returns a {@link TooltipModel}.
  * https://echarts.apache.org/en/option.html#tooltip.formatter
  */
-export function buildTooltipContent(
+export function buildTooltipModel(
   params: TopLevelFormatterParams,
   resolveValueFormatter: TooltipValueFormatterResolver,
-  theme: GrafanaTheme2,
-  rowOptions?: TooltipRowOptions
-): HTMLElement {
+  rowOptions?: TooltipRowOptions,
+  resolveField?: TooltipFieldResolver
+): TooltipModel {
   const items = Array.isArray(params) ? params : [params];
-  const shell = buildTooltipShell(theme);
 
   // Header is the shared axis label, invariant across rows, so derive it before
   // any hide/sort reshaping.
   const header = getHeader(items);
-  if (header) {
-    shell.appendHeader(header);
-  }
 
-  const rows = rowOptions ? applyTooltipRowOptions(items, (item) => tooltipNumeric(item.value), rowOptions) : items;
+  const ordered = rowOptions ? applyTooltipRowOptions(items, (item) => tooltipNumeric(item.value), rowOptions) : items;
 
-  for (const item of rows) {
+  const rows: TooltipRow[] = ordered.map((item) => {
     // Each row formats with its own field's formatter so per-field unit/decimals
     // overrides are respected.
     const valueFormatter = resolveValueFormatter({ seriesIndex: item.seriesIndex, dataIndex: item.dataIndex });
@@ -308,12 +230,35 @@ export function buildTooltipContent(
       value = `${value} (${item.percent}%)`;
     }
 
-    shell.appendRow({
+    return {
       color: typeof item.color === 'string' ? item.color : undefined,
       label: getLabel(item, header),
       value,
-    });
-  }
+    };
+  });
 
-  return shell.root;
+  // Footer source only when a single series is focused (Single mode / single
+  // item). "All" (axis) tooltips list many series with no single focus, so — like
+  // core Grafana — they carry no footer.
+  const source = resolveField != null && items.length === 1 ? resolveField(items[0]) : undefined;
+
+  return { header: header || undefined, rows, source };
+}
+
+/**
+ * Adapt a {@link TooltipModel} producer into an ECharts `tooltip.formatter`. The
+ * returned formatter pushes the model to the React overlay via `sink` and returns
+ * an empty string so ECharts renders nothing (the box is styled invisible; see
+ * `getSilentTooltipOption`). This is the single bridge between the ECharts option
+ * layer and the React tooltip.
+ * https://echarts.apache.org/en/option.html#tooltip.formatter
+ */
+export function toEmittingFormatter(
+  produce: (params: TopLevelFormatterParams) => TooltipModel,
+  sink: TooltipSink
+): (params: TopLevelFormatterParams) => string {
+  return (params) => {
+    sink(produce(params));
+    return '';
+  };
 }

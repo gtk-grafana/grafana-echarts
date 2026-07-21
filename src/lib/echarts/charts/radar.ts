@@ -4,7 +4,7 @@ import { getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legen
 import { buildRadarLegendItems } from 'lib/echarts/options/legendItems';
 import { radarDefaultOptions } from 'lib/echarts/options/radar';
 import { getFieldValueFormatters } from 'lib/echarts/style';
-import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
 import { type ChartContext, type ChartModule, type EChartRadarSeriesOption } from './types';
 
 export const radarChartModule: ChartModule = {

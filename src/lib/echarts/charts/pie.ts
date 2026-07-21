@@ -24,8 +24,8 @@ import {
   pieDefaultOptions,
   resolvePieLabelColor,
 } from 'lib/echarts/options/pie';
-import { buildPieTooltip } from 'lib/echarts/tooltip/pie';
-import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { buildPieTooltipModel } from 'lib/echarts/tooltip/pie';
+import { indexedFormatterResolver, NOOP_TOOLTIP_SINK, toEmittingFormatter } from 'lib/echarts/tooltip/model';
 import { type ChartContext, type ChartModule, type EChartPieDataItem, type EChartPieSeriesOption } from './types';
 
 const resolveReduceOptions = (ctx: ChartContext): ReduceDataOptions | undefined => ctx.options.reduceOptions;
@@ -196,7 +196,14 @@ export const pieChartModule: ChartModule = {
           // mode, where the panel disables the tooltip entirely.
           ...(tooltipMode === TooltipDisplayMode.None
             ? {}
-            : { tooltip: { formatter: buildPieTooltip(visible, tooltipMode, theme, ctx.timeZone, hideZeros) } }),
+            : {
+                tooltip: {
+                  formatter: toEmittingFormatter(
+                    buildPieTooltipModel(visible, tooltipMode, theme, ctx.timeZone, hideZeros),
+                    ctx.tooltipSink ?? NOOP_TOOLTIP_SINK
+                  ),
+                },
+              }),
         },
       ],
     };

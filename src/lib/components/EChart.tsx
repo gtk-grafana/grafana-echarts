@@ -1,6 +1,8 @@
 import { type AbsoluteTimeRange } from '@grafana/data';
+import { TooltipDisplayMode } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type ComposeOption } from 'echarts';
+import type { TooltipOption } from 'echarts/types/dist/shared';
 import type { XAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
 import { type EChartsType, init } from 'lib/echarts/echarts';
@@ -13,6 +15,8 @@ import {
   ENABLE_TIME_BRUSH_ACTION,
 } from 'lib/echarts/timeBrush';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { EChartsTooltip } from './tooltip/EChartsTooltip';
+import { useEChartsTooltip } from './tooltip/useEChartsTooltip';
 
 interface Props {
   chartContext: ChartContext;
@@ -43,6 +47,17 @@ export const EChart: React.FC<Props> = ({
   // held in state so the option/resize effects re-run once it exists.
   const [chart, setChart] = useState<EChartsType | null>(null);
 
+  // React tooltip overlay: ECharts' (invisible) tooltip formatter feeds hovered
+  // content to this controller's `sink`; the controller tracks cursor/show/hide
+  // and the `EChartsTooltip` renders it with `@grafana/ui`'s VizTooltip. The
+  // chart mount node doubles as the coordinate origin for cursor positions.
+  // `tooltipSink`/`reportTooltipTrigger` are stable across renders.
+  const {
+    sink: tooltipSink,
+    reportTrigger: reportTooltipTrigger,
+    state: tooltipState,
+  } = useEChartsTooltip(chart, panelDOMRef);
+
   // Latest time-range setter, read from the brush handler (attached once per
   // chart instance) so it always calls the current prop without re-binding.
   const onChangeTimeRangeRef = useRef(onChangeTimeRange);
@@ -70,12 +85,17 @@ export const EChart: React.FC<Props> = ({
       return;
     }
 
-    const option = buildPanelChartOption(chartContext, { isGrafanaLegend });
+    const option = buildPanelChartOption(chartContext, { isGrafanaLegend, tooltipSink });
 
     if (!option) {
       debug('No echart option', LOG_LEVELS.error, chartContext);
       throw new Error('No echart option!');
     }
+
+    // Tell the tooltip controller the resolved trigger so it hides item tooltips
+    // on `mouseout` but keeps axis ("All") tooltips open across the grid.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    reportTooltipTrigger((option.tooltip as TooltipOption | undefined)?.trigger);
 
     // `notMerge` replaces the previous option outright (removing any components
     // the new option omits) instead of merging into it. This effect rebuilds the
@@ -90,7 +110,9 @@ export const EChart: React.FC<Props> = ({
     // `notMerge` recreates the brush component, so the cursor must be re-armed.
     // A `brush` option is only present for time-axis charts (see panelOption).
     chart.dispatchAction('brush' in option ? ENABLE_TIME_BRUSH_ACTION : DISABLE_TIME_BRUSH_ACTION);
-  }, [chart, chartContext, isGrafanaLegend]);
+    // `tooltipSink`/`reportTooltipTrigger` are stable (see useEChartsTooltip), so
+    // this effect still only re-runs on chart/context/legend changes.
+  }, [chart, chartContext, isGrafanaLegend, tooltipSink, reportTooltipTrigger]);
 
   useEffect(() => {
     if (!chart) {
@@ -145,5 +167,15 @@ export const EChart: React.FC<Props> = ({
     };
   }, [chart]);
 
-  return <div ref={panelDOMRef} style={{ width, height }} />;
+  return (
+    <>
+      <div ref={panelDOMRef} style={{ width, height }} />
+      <EChartsTooltip
+        state={tooltipState}
+        mode={chartContext.options.tooltip?.mode ?? TooltipDisplayMode.Single}
+        maxWidth={chartContext.options.tooltip?.maxWidth}
+        maxHeight={chartContext.options.tooltip?.maxHeight}
+      />
+    </>
+  );
 };

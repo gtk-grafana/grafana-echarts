@@ -1,4 +1,5 @@
 import type { GrafanaTheme2, ValueFormatter } from '@grafana/data';
+import { type TooltipSink } from 'lib/echarts/tooltip/model';
 
 /** Built-in color gradients offered for the heatmap cell layer. */
 export type HeatmapColorScheme = 'spectral' | 'blues' | 'turbo' | 'magma';
@@ -24,4 +25,6 @@ export interface BinnedHeatmapTooltipContext {
   theme: GrafanaTheme2;
   timeZone: string;
   formatValue: ValueFormatter;
+  /** Receives the hovered cell's content model; rendered by the React overlay. */
+  tooltipSink?: TooltipSink;
 }
