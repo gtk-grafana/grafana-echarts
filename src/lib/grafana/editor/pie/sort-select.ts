@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_SORT_DEFAULT, pieSortOptions, pieSortPath, pieTypeCategoryName } from 'editor/constants';
+import { PIE_SORT_DEFAULT, pieSortOptions, pieSortPath, pieTypeCategoryName } from 'editor/pie';
 import { type PanelOptions } from 'types';
 
 /**

@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { pieLabelColorPath } from 'editor/constants';
+import { pieLabelColorPath } from 'editor/pie';
 import { addAdvancedColorPicker } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

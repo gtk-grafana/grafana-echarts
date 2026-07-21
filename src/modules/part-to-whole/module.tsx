@@ -1,7 +1,8 @@
 import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { PIE_CALC_DEFAULT, TOOLTIP_DEFAULT_OPTIONS } from 'editor/constants';
+import { TOOLTIP_DEFAULT_OPTIONS } from 'editor/constants';
+import { PIE_CALC_DEFAULT } from 'editor/pie';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';

@@ -23,7 +23,7 @@ import {
   PIE_START_ANGLE_DEFAULT,
   PIE_STILL_SHOW_ZERO_SUM_DEFAULT,
   PIE_TYPE_DEFAULT,
-} from 'editor/constants';
+} from 'editor/pie';
 import {
   type PieChartType,
   type PieEmphasisFocus,

@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_ROSE_TYPE_DEFAULT, pieRoseTypeOptions, pieRoseTypePath } from 'editor/constants';
+import { PIE_ROSE_TYPE_DEFAULT, pieRoseTypeOptions, pieRoseTypePath } from 'editor/pie';
 import { addAdvancedSelect } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

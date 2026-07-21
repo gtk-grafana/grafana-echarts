@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_MIN_SHOW_LABEL_ANGLE_DEFAULT, pieMinShowLabelAnglePath } from 'editor/constants';
+import { PIE_MIN_SHOW_LABEL_ANGLE_DEFAULT, pieMinShowLabelAnglePath } from 'editor/pie';
 import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

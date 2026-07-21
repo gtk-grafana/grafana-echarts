@@ -6,7 +6,7 @@ import {
   pieAnimationEnabledPath,
   pieLabelTextShadowPath,
   pieLabelTextStrokePath,
-} from 'editor/constants';
+} from 'editor/pie';
 import { addAdvancedBooleanSwitch } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

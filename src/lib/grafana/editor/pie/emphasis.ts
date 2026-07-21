@@ -5,7 +5,7 @@ import {
   pieEmphasisFocusOptions,
   pieEmphasisFocusPath,
   pieEmphasisScalePath,
-} from 'editor/constants';
+} from 'editor/pie';
 import { addAdvancedBooleanSwitch, addAdvancedSelect } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

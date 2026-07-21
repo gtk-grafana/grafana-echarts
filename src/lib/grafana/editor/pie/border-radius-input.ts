@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { PIE_BORDER_RADIUS_DEFAULT, pieBorderRadiusPath } from 'editor/constants';
+import { PIE_BORDER_RADIUS_DEFAULT, pieBorderRadiusPath } from 'editor/pie';
 import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 

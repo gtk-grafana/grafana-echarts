@@ -1,7 +1,7 @@
 import { TooltipDisplayMode } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { pieSeriesTypes } from 'editor/constants';
+import { pieSeriesTypes } from 'editor/pie';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
