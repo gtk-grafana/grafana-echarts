@@ -2,7 +2,7 @@ import { FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from
 import { SortOrder } from '@grafana/schema';
 import { render } from '@testing-library/react';
 import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
+import { removeCanvasClear, roundCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
@@ -71,10 +71,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['sum'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     it('Calculate mean — same fields, different slice sizes', async () => {
@@ -82,10 +85,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['mean'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     it('All values with limit — one slice per row, capped', async () => {
@@ -93,10 +99,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: [], values: true, limit: 3 },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     it('multi-frame — one slice per series', async () => {
@@ -113,10 +122,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['sum'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -129,10 +141,13 @@ describe('part-to-whole canvas renders', () => {
         pieType: 'donut',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -145,10 +160,13 @@ describe('part-to-whole canvas renders', () => {
         sort: SortOrder.Ascending,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -172,10 +190,13 @@ describe('part-to-whole canvas renders', () => {
         minAngle: 10,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -190,10 +211,13 @@ describe('part-to-whole canvas renders', () => {
         endAngle: 360,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     it('semicircle donut (donut + start 180 / end 360)', async () => {
@@ -204,10 +228,13 @@ describe('part-to-whole canvas renders', () => {
         endAngle: 360,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -221,10 +248,13 @@ describe('part-to-whole canvas renders', () => {
         displayLabels: ['name', 'value', 'percent'],
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -247,10 +277,13 @@ describe('part-to-whole canvas renders', () => {
         roseType: 'radius',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     it('area (value as slice area)', async () => {
@@ -259,10 +292,13 @@ describe('part-to-whole canvas renders', () => {
         roseType: 'area',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -278,10 +314,13 @@ describe('part-to-whole canvas renders', () => {
         labelPosition: 'inside',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     // No reducer → the donut center stays empty (the per-slice labels are hidden;
@@ -295,10 +334,13 @@ describe('part-to-whole canvas renders', () => {
         labelPosition: 'center',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -321,10 +363,13 @@ describe('part-to-whole canvas renders', () => {
         fieldConfig
       );
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
 
     // A by-value continuous scheme colors each slice from its value (set on the
@@ -346,10 +391,13 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: [], values: true },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -382,10 +430,13 @@ describe('part-to-whole canvas renders', () => {
         labelFontSize: 24,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -404,10 +455,13 @@ describe('part-to-whole canvas renders', () => {
         selectedOffset: 20,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -421,10 +475,13 @@ describe('part-to-whole canvas renders', () => {
         labelWidth: 80,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -436,10 +493,13 @@ describe('part-to-whole canvas renders', () => {
         sliceBorderRadius: 12,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -461,10 +521,13 @@ describe('part-to-whole canvas renders', () => {
         stillShowZeroSum: false,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -476,10 +539,13 @@ describe('part-to-whole canvas renders', () => {
         clockwise: false,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -492,10 +558,13 @@ describe('part-to-whole canvas renders', () => {
         labelColor: '#ff0000',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -508,10 +577,13 @@ describe('part-to-whole canvas renders', () => {
         minShowLabelAngle: 10,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -524,10 +596,13 @@ describe('part-to-whole canvas renders', () => {
         sliceBorderColor: '#000000',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -541,10 +616,13 @@ describe('part-to-whole canvas renders', () => {
         centerX: 30,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 
@@ -558,10 +636,13 @@ describe('part-to-whole canvas renders', () => {
         labelTextShadow: true,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-        width,
-        height,
-      });
+      expect(roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(seriesEvents)))).toMatchCanvasSnapshot(
+        defaultEvents,
+        {
+          width,
+          height,
+        }
+      );
     });
   });
 });
