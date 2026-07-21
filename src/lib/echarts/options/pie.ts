@@ -138,6 +138,7 @@ export function getPieRadius(
 }
 
 /**
+ * @todo it centers from right side of text so it doesn't appear centered
  * ECharts pie `series.center` (`[x, y]` percentages) when the panel overrides the
  * center. Returns `undefined` when neither coordinate is set, so the ECharts
  * default (centered) is left untouched. A single provided axis keeps the other
