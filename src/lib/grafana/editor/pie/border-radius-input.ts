@@ -1,6 +1,6 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { PIE_BORDER_RADIUS_DEFAULT, pieBorderRadiusPath } from 'editor/pie';
-import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
+import { addAdvancedNumberInput, type ExtraShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
@@ -9,12 +9,13 @@ import { type PanelOptions } from 'types';
  * (the default) keeps square corners. Rendered by `getPieBorderRadius` /
  * `getPieItemStyle`.
  */
-export function addPieBorderRadiusOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieBorderRadiusOptions(builder: PanelOptionsEditorBuilder<PanelOptions>, showIf?: ExtraShowIf) {
   addAdvancedNumberInput(builder, {
     path: pieBorderRadiusPath,
     name: 'Rounded corners',
     description: 'Round the corners of each slice (px)',
     defaultValue: PIE_BORDER_RADIUS_DEFAULT,
     settings: { min: 0, max: 50 },
+    showIf,
   });
 }

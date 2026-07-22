@@ -8,6 +8,9 @@ import {
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
 import {
   type EditorMode,
+  type FunnelAlign,
+  type FunnelLabelPosition,
+  type FunnelOrient,
   type PieChartType,
   type PieEmphasisFocus,
   type PieLabel,
@@ -304,6 +307,54 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * the zeroed (flat) style.
    */
   labelTextStroke?: boolean;
+
+  /**
+   * Funnel (part-to-whole) layout direction ("Funnel" category): `vertical`
+   * (default) or `horizontal`. Defaults to `FUNNEL_ORIENT_DEFAULT` (`vertical`);
+   * omitted from the series at the default. See `getFunnelOrient`.
+   */
+  funnelOrient?: FunnelOrient;
+
+  /**
+   * Funnel (part-to-whole) cross-axis alignment ("Funnel" category): `center`
+   * (default), `left`, or `right`. Only applies to the vertical orient — a
+   * horizontal funnel forces center (the option is hidden and the value coerced at
+   * render). Defaults to `FUNNEL_ALIGN_DEFAULT` (`center`); omitted at the default.
+   * See `getFunnelAlign`.
+   */
+  funnelAlign?: FunnelAlign;
+
+  /**
+   * Funnel (part-to-whole) gap in px between trapezoids ("Funnel" category; ECharts
+   * `series.gap`). Defaults to `FUNNEL_GAP_DEFAULT` (`0`), which omits the key.
+   * See `getFunnelGap`.
+   */
+  funnelGap?: number;
+
+  /**
+   * Funnel (part-to-whole) minimum trapezoid extent as a percentage of the layout
+   * box ("Funnel" category; ECharts `series.minSize`). Unset falls back to the
+   * ECharts default (`'0%'`), so the key is omitted. See `getFunnelSize`.
+   */
+  funnelMinSize?: number;
+
+  /**
+   * Funnel (part-to-whole) maximum trapezoid extent as a percentage of the layout
+   * box ("Funnel" category; ECharts `series.maxSize`). Unset falls back to the
+   * ECharts default (`'100%'`), so the key is omitted. See `getFunnelSize`.
+   */
+  funnelMaxSize?: number;
+
+  /**
+   * Funnel (part-to-whole) slice-label placement ("Funnel" category; ECharts
+   * `label.position`). The offered choices depend on the orientation: a vertical
+   * funnel takes `inside` (default), `left`, or `right`; a horizontal funnel takes
+   * `center`, `top`, or `bottom`. The on-trapezoid placements (`inside`/`center`)
+   * get a per-slice contrast color. Reuses the pie Name/Value/Percent label
+   * content. Defaults to `FUNNEL_LABEL_POSITION_DEFAULT` (`inside`). See
+   * `getFunnelLabel` and `resolveFunnelLabelColor`.
+   */
+  funnelLabelPosition?: FunnelLabelPosition;
 
   // @internal
   animation?: {

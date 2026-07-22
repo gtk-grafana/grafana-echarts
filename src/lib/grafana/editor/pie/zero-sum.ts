@@ -5,7 +5,7 @@ import {
   pieShowEmptyCirclePath,
   pieStillShowZeroSumPath,
 } from 'editor/pie';
-import { addAdvancedBooleanSwitch } from 'lib/grafana/editor/common/advanced-options';
+import { addAdvancedBooleanSwitch, type ExtraShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
@@ -15,12 +15,13 @@ import { type PanelOptions } from 'types';
  * Defaults match ECharts (`true`); only the `false` override is emitted by
  * `getPieEmptyState`.
  */
-export function addPieZeroSumOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieZeroSumOptions(builder: PanelOptionsEditorBuilder<PanelOptions>, showIf?: ExtraShowIf) {
   addAdvancedBooleanSwitch(builder, {
     path: pieStillShowZeroSumPath,
     name: 'Still show zero sum',
     description: 'When every slice is zero, still draw an even pie instead of nothing',
     defaultValue: PIE_STILL_SHOW_ZERO_SUM_DEFAULT,
+    showIf,
   });
 
   addAdvancedBooleanSwitch(builder, {
@@ -28,5 +29,6 @@ export function addPieZeroSumOptions(builder: PanelOptionsEditorBuilder<PanelOpt
     name: 'Show empty circle',
     description: 'Draw a placeholder circle when there is no data',
     defaultValue: PIE_SHOW_EMPTY_CIRCLE_DEFAULT,
+    showIf,
   });
 }

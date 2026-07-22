@@ -1,6 +1,6 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { PIE_LABEL_POSITION_DEFAULT, pieLabelPositionOptions, pieLabelPositionPath } from 'editor/pie';
-import { addAdvancedRadio } from 'lib/grafana/editor/common/advanced-options';
+import { addAdvancedRadio, type ExtraShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
@@ -10,12 +10,13 @@ import { type PanelOptions } from 'types';
  * leader lines (the default), `inside` places labels on the slices, and `center`
  * puts a single readout in the donut hole.
  */
-export function addPieLabelPositionOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieLabelPositionOptions(builder: PanelOptionsEditorBuilder<PanelOptions>, showIf?: ExtraShowIf) {
   addAdvancedRadio(builder, {
     path: pieLabelPositionPath,
     name: 'Label position',
     description: 'Where slice labels render: outside, inside the slice, or the donut center',
     defaultValue: PIE_LABEL_POSITION_DEFAULT,
     settings: { options: pieLabelPositionOptions },
+    showIf,
   });
 }
