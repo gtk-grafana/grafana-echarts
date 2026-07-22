@@ -1,5 +1,7 @@
 import { type Field, getFieldDisplayName } from '@grafana/data';
 import { type DatasetComponentOption } from 'echarts';
+import { type ZRColor } from 'echarts/types/dist/shared';
+import { type ItemStyleOption } from 'echarts/types/src/util/types';
 import { STACK_GROUP_ID } from 'editor/constants';
 import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type HeatmapSeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
@@ -99,7 +101,7 @@ export function timeSeriesToEChartsOption(
     const dim = valueDim(fieldIndex);
     entry.columns[dim] = field.values;
 
-    const color = getSeriesColor(field, theme);
+    const color: ZRColor = getSeriesColor(field, theme);
     const resolvedType = resolveFieldSeriesType<CartesianSingleValueSeriesType | HeatmapSeriesType>(field, seriesType);
     // Only bar supports stacked
     const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
@@ -109,17 +111,16 @@ export function timeSeriesToEChartsOption(
     // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
     const showEffectOn = resolvedType === 'effectScatter' ? 'emphasis' : undefined;
 
+    const itemStyle: ItemStyleOption = { color };
+
     series.push({
       name: getFieldDisplayName(field, frame, frames),
       type,
       // Read x/y from the frame's columnar dataset instead of inline tuples.
       datasetIndex: entry.index,
       encode: { x: TIME_DIM, y: dim },
-      itemStyle: { color },
+      itemStyle,
       lineStyle: { color },
-      // @todo only set default if more then 50 series @todo perf test
-      // All series share one canvas (`zlevel` 1)
-      zlevel: options.zLevel?.series ?? 1,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       // Type-aware fast-path props (symbols/sampling for line; large for scatter/bar).
       ...getSeriesPerfOptions({ type: resolvedType, maxPoints: stats.maxPoints, options }),

@@ -1,4 +1,6 @@
 import type { GrafanaTheme2, ValueFormatter } from '@grafana/data';
+import type { ScatterSeriesOption } from 'echarts/types/dist/echarts';
+import type { LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 
 /** Built-in color gradients offered for the heatmap cell layer. */
 export type HeatmapColorScheme = 'spectral' | 'blues' | 'turbo' | 'magma';
@@ -24,4 +26,20 @@ export interface BinnedHeatmapTooltipContext {
   theme: GrafanaTheme2;
   timeZone: string;
   formatValue: ValueFormatter;
+}
+
+/**
+ * @todo these are still hacky types, but at least we're pulling them from echarts
+ * Fast-path props spread into a cartesian series, taken from ECharts' own series
+ * option definitions: from the line series & from the scatter series. Every key is optional,
+ * so each branch of `getSeriesPerfOptions` returns only those relevant to the series' render type.
+ */
+export type PerfSeriesOptions = Pick<LineSeriesOption, 'showSymbol' | 'sampling' | 'zlevel'> &
+  Pick<ScatterSeriesOption, 'large' | 'largeThreshold'>;
+
+/** Chart shape used to pick the fast path: number of series and the densest series. */
+export interface SeriesStats {
+  seriesCount: number;
+  /** Largest points-per-series across the frames (the density signal). */
+  maxPoints: number;
 }

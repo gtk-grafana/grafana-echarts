@@ -2,6 +2,7 @@ import { type DataFrame } from '@grafana/data';
 import { PERFORMANCE_DOWNSAMPLING_DEFAULT, PERFORMANCE_SHOW_POINTS_DEFAULT } from 'editor/constants';
 import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type ShowPointsMode } from 'editor/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
+import { type PerfSeriesOptions, type SeriesStats } from 'lib/echarts/options/types';
 import { type PanelOptions } from 'types';
 
 /**
@@ -37,13 +38,6 @@ export const ANIMATION_MAX_POINTS = 5000;
  */
 export const LARGE_MODE_THRESHOLD = 2000;
 
-/** Chart shape used to pick the fast path: number of series and the densest series. */
-export interface SeriesStats {
-  seriesCount: number;
-  /** Largest points-per-series across the frames (the density signal). */
-  maxPoints: number;
-}
-
 /**
  * Series count + densest-series point count for a frame set, counted the same
  * way `timeSeriesToEChartsOption` emits series (via `forEachTimeSeriesField`, so
@@ -60,19 +54,6 @@ export function getSeriesStats(frames: DataFrame[]): SeriesStats {
   });
   return { seriesCount, maxPoints };
 }
-
-/**
- * Per-series performance props spread into a cartesian series. `showSymbol` /
- * `sampling` apply to line series; `large` / `largeThreshold` to scatter and
- * bar. Only the keys relevant to the series' type are set.
- */
-export interface PerfSeriesOptions {
-  showSymbol?: boolean;
-  sampling?: 'lttb';
-  large?: boolean;
-  largeThreshold?: number;
-}
-
 /** Resolve line-series point-marker visibility from the (defaulted) Show points mode. */
 function resolveShowSymbol(showPoints: ShowPointsMode, maxPoints: number): boolean {
   switch (showPoints) {
@@ -110,6 +91,8 @@ export function getSeriesPerfOptions({
   options: PanelOptions;
 }): PerfSeriesOptions {
   const performance = options.performance;
+  // All series share one canvas (`zlevel` 1)
+  const zlevel = options.zLevel?.series;
 
   if (type === 'line') {
     const showPoints = performance?.showPoints ?? PERFORMANCE_SHOW_POINTS_DEFAULT;
@@ -117,15 +100,21 @@ export function getSeriesPerfOptions({
     const dense = maxPoints > SYMBOL_VISIBLE_MAX_POINTS;
     return {
       showSymbol: resolveShowSymbol(showPoints, maxPoints),
+      // @todo compare against minmax
       sampling: downsampling && dense ? 'lttb' : undefined,
+      zlevel,
     };
   }
 
   if (type === 'scatter' || type === 'bar') {
-    return maxPoints >= LARGE_MODE_THRESHOLD ? { large: true, largeThreshold: LARGE_MODE_THRESHOLD } : {};
+    return maxPoints >= LARGE_MODE_THRESHOLD
+      ? { large: true, largeThreshold: LARGE_MODE_THRESHOLD, zlevel }
+      : { zlevel };
   }
 
-  return {};
+  return {
+    zlevel,
+  };
 }
 
 /**
