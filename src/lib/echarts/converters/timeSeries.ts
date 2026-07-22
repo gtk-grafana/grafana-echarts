@@ -117,8 +117,8 @@ export function timeSeriesToEChartsOption(
       encode: { x: TIME_DIM, y: dim },
       itemStyle: { color },
       lineStyle: { color },
-      // All series share one canvas (`zlevel` 1); splitting per-series zlevels
-      // would spawn a canvas per level and cost more than it saves.
+      // @todo only set default if more then 50 series @todo perf test
+      // All series share one canvas (`zlevel` 1)
       zlevel: options.zLevel?.series ?? 1,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       // Type-aware fast-path props (symbols/sampling for line; large for scatter/bar).
