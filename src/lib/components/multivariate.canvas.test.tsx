@@ -1,8 +1,7 @@
 import { type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
-import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
-import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
+import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
+import { getComponent, getSettledSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
 // Multivariate (parallel coordinates) canvas snapshots, mirroring
@@ -36,7 +35,7 @@ const renderParallel = async (
   const { container } = render(
     getComponent(frames, 'parallel', parallelOptions(options), undefined, undefined, 'multivariate', fieldConfig)
   );
-  return getSeriesCanvasEvents(container);
+  return getSettledSeriesCanvasEvents(container);
 };
 
 describe('multivariate (parallel) canvas renders', () => {
@@ -56,7 +55,7 @@ describe('multivariate (parallel) canvas renders', () => {
     it('one axis per category, one polyline per field', async () => {
       const { defaultEvents, seriesEvents } = await renderParallel([teamsFrame]);
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -69,7 +68,7 @@ describe('multivariate (parallel) canvas renders', () => {
     it('curves the polylines through the axis crossings', async () => {
       const { defaultEvents, seriesEvents } = await renderParallel([teamsFrame], { parallelSmooth: true });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -82,7 +81,7 @@ describe('multivariate (parallel) canvas renders', () => {
     it('vertical (axes top-to-bottom)', async () => {
       const { defaultEvents, seriesEvents } = await renderParallel([teamsFrame], { parallelLayout: 'vertical' });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -94,7 +93,7 @@ describe('multivariate (parallel) canvas renders', () => {
     it('line width', async () => {
       const { defaultEvents, seriesEvents } = await renderParallel([teamsFrame], { parallelLineWidth: 4 });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -105,7 +104,7 @@ describe('multivariate (parallel) canvas renders', () => {
     it('line opacity', async () => {
       const { defaultEvents, seriesEvents } = await renderParallel([teamsFrame], { parallelLineOpacity: 50 });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -128,7 +127,7 @@ describe('multivariate (parallel) canvas renders', () => {
       };
       const { defaultEvents, seriesEvents } = await renderParallel([teamsFrame], {}, fieldConfig);
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -147,7 +146,7 @@ describe('multivariate (parallel) canvas renders', () => {
 
       const { defaultEvents, seriesEvents } = await renderParallel([singleFrame]);
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -166,7 +165,7 @@ describe('multivariate (parallel) canvas renders', () => {
 
       const { defaultEvents, seriesEvents } = await renderParallel([gapFrame]);
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });

@@ -7,720 +7,6 @@ exports[`multivariate (parallel) canvas renders base one axis per category, one 
     "type": "save",
   },
   {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 0.45,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {
-      "value": 0.45,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 10,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80.00000000000001,
-      "y": 60,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 160,
-      "y": 102,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 240,
-      "y": 116,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 320,
-      "y": 74,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80.00000000000001,
-            "y": 60,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 160,
-            "y": 102,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 240,
-            "y": 116,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 320,
-            "y": 74,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80,
-      "y": 95,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 160,
-      "y": 74,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 240,
-      "y": 130,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 320,
-      "y": 102,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80,
-            "y": 95,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 160,
-            "y": 74,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 240,
-            "y": 130,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 320,
-            "y": 102,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#ff9830",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80.00000000000001,
-      "y": 77.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 160,
-      "y": 130,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 240,
-      "y": 81,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 320,
-      "y": 116,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80.00000000000001,
-            "y": 77.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 160,
-            "y": 130,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 240,
-            "y": 81,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 320,
-            "y": 116,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 0.45,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {
-      "value": 0.45,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 10,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80.00000000000001,
-      "y": 60,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 160,
-      "y": 102,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 240,
-      "y": 116,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 320,
-      "y": 74,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80.00000000000001,
-            "y": 60,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 160,
-            "y": 102,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 240,
-            "y": 116,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 320,
-            "y": 74,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80,
-      "y": 95,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 160,
-      "y": 74,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 240,
-      "y": 130,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 320,
-      "y": 102,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80,
-            "y": 95,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 160,
-            "y": 74,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 240,
-            "y": 130,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 320,
-            "y": 102,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#ff9830",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80.00000000000001,
-      "y": 77.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 160,
-      "y": 130,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 240,
-      "y": 81,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 320,
-      "y": 116,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80.00000000000001,
-            "y": 77.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 160,
-            "y": 130,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 240,
-            "y": 81,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 320,
-            "y": 116,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
     "props": {
       "a": 1,
       "b": 0,
@@ -1009,6 +295,310 @@ exports[`multivariate (parallel) canvas renders base one axis per category, one 
           "props": {
             "x": 320,
             "y": 116,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.45,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 0.45,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 80,
+      "y": 60,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 114,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 240,
+      "y": 132,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 320,
+      "y": 78,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 80,
+            "y": 60,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 114,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 240,
+            "y": 132,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 320,
+            "y": 78,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 80,
+      "y": 105,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 78,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 240,
+      "y": 150,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 320,
+      "y": 114,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 80,
+            "y": 105,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 78,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 240,
+            "y": 150,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 320,
+            "y": 114,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 80,
+      "y": 82.5,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 150,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 240,
+      "y": 87,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 320,
+      "y": 132,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 80,
+            "y": 82.5,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 150,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 240,
+            "y": 87,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 320,
+            "y": 132,
           },
           "type": "lineTo",
         },
@@ -1030,55 +620,6 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
     "type": "save",
   },
   {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
     "props": {
       "a": 1,
       "b": 0,
@@ -1155,7 +696,7 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -1190,7 +731,7 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -1309,7 +850,7 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 77.5,
     },
     "type": "moveTo",
@@ -1344,7 +885,7 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 77.5,
           },
           "type": "moveTo",
@@ -1373,10 +914,6 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
       ],
     },
     "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
   },
   {
     "props": {},
@@ -1463,7 +1000,7 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -1471,21 +1008,21 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
   {
     "props": {
       "x": 160,
-      "y": 102,
+      "y": 114,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 116,
+      "y": 132,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
@@ -1498,7 +1035,7 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -1506,21 +1043,21 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
         {
           "props": {
             "x": 160,
-            "y": 102,
+            "y": 114,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 116,
+            "y": 132,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
@@ -1541,28 +1078,28 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
   {
     "props": {
       "x": 80,
-      "y": 95,
+      "y": 105,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "x": 160,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 130,
+      "y": 150,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 102,
+      "y": 114,
     },
     "type": "lineTo",
   },
@@ -1576,28 +1113,28 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
         {
           "props": {
             "x": 80,
-            "y": 95,
+            "y": 105,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "x": 160,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 130,
+            "y": 150,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 102,
+            "y": 114,
           },
           "type": "lineTo",
         },
@@ -1617,29 +1154,29 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
   },
   {
     "props": {
-      "x": 80.00000000000001,
-      "y": 77.5,
+      "x": 80,
+      "y": 82.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "x": 160,
-      "y": 130,
+      "y": 150,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 81,
+      "y": 87,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 116,
+      "y": 132,
     },
     "type": "lineTo",
   },
@@ -1652,29 +1189,29 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
         },
         {
           "props": {
-            "x": 80.00000000000001,
-            "y": 77.5,
+            "x": 80,
+            "y": 82.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "x": 160,
-            "y": 130,
+            "y": 150,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 81,
+            "y": 87,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 116,
+            "y": 132,
           },
           "type": "lineTo",
         },
@@ -1696,55 +1233,6 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
     "type": "save",
   },
   {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
     "props": {
       "a": 1,
       "b": 0,
@@ -1821,7 +1309,7 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -1849,7 +1337,7 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -1899,7 +1387,7 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
   {
     "props": {
       "x": 240,
-      "y": 83.33333333333333,
+      "y": 83.333336,
     },
     "type": "lineTo",
   },
@@ -1934,7 +1422,7 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
         {
           "props": {
             "x": 240,
-            "y": 83.33333333333333,
+            "y": 83.333336,
           },
           "type": "lineTo",
         },
@@ -1948,10 +1436,6 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
       ],
     },
     "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
   },
   {
     "props": {},
@@ -2038,7 +1522,7 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -2053,7 +1537,7 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
   {
     "props": {
       "x": 320,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
@@ -2066,7 +1550,7 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -2081,7 +1565,7 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
         {
           "props": {
             "x": 320,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
@@ -2102,28 +1586,28 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
   {
     "props": {
       "x": 80,
-      "y": 95,
+      "y": 105,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "x": 160,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 83.33333333333333,
+      "y": 90,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 102,
+      "y": 114,
     },
     "type": "lineTo",
   },
@@ -2137,28 +1621,28 @@ exports[`multivariate (parallel) canvas renders edge cases null gap (a missing v
         {
           "props": {
             "x": 80,
-            "y": 95,
+            "y": 105,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "x": 160,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 83.33333333333333,
+            "y": 90,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 102,
+            "y": 114,
           },
           "type": "lineTo",
         },
@@ -2180,55 +1664,6 @@ exports[`multivariate (parallel) canvas renders edge cases single line (one nume
     "type": "save",
   },
   {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
     "props": {
       "a": 1,
       "b": 0,
@@ -2305,7 +1740,7 @@ exports[`multivariate (parallel) canvas renders edge cases single line (one nume
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -2340,7 +1775,7 @@ exports[`multivariate (parallel) canvas renders edge cases single line (one nume
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -2376,10 +1811,6 @@ exports[`multivariate (parallel) canvas renders edge cases single line (one nume
   },
   {
     "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
     "type": "save",
   },
   {
@@ -2459,7 +1890,7 @@ exports[`multivariate (parallel) canvas renders edge cases single line (one nume
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -2481,7 +1912,7 @@ exports[`multivariate (parallel) canvas renders edge cases single line (one nume
   {
     "props": {
       "x": 320,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
@@ -2494,7 +1925,7 @@ exports[`multivariate (parallel) canvas renders edge cases single line (one nume
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -2516,7 +1947,7 @@ exports[`multivariate (parallel) canvas renders edge cases single line (one nume
         {
           "props": {
             "x": 320,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
@@ -2538,55 +1969,6 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
     "type": "save",
   },
   {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
     "props": {
       "a": 1,
       "b": 0,
@@ -2671,14 +2053,14 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
   {
     "props": {
       "x": 248,
-      "y": 106.66666666666666,
+      "y": 106.666664,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 224,
-      "y": 153.33333333333331,
+      "y": 153.333328,
     },
     "type": "lineTo",
   },
@@ -2706,14 +2088,14 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
         {
           "props": {
             "x": 248,
-            "y": 106.66666666666666,
+            "y": 106.666664,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 224,
-            "y": 153.33333333333331,
+            "y": 153.333328,
           },
           "type": "lineTo",
         },
@@ -2748,14 +2130,14 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
   {
     "props": {
       "x": 296,
-      "y": 106.66666666666666,
+      "y": 106.666664,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 200,
-      "y": 153.33333333333331,
+      "y": 153.333328,
     },
     "type": "lineTo",
   },
@@ -2783,14 +2165,14 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
         {
           "props": {
             "x": 296,
-            "y": 106.66666666666666,
+            "y": 106.666664,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 200,
-            "y": 153.33333333333331,
+            "y": 153.333328,
           },
           "type": "lineTo",
         },
@@ -2825,14 +2207,14 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
   {
     "props": {
       "x": 200,
-      "y": 106.66666666666666,
+      "y": 106.666664,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 284,
-      "y": 153.33333333333331,
+      "y": 153.333328,
     },
     "type": "lineTo",
   },
@@ -2860,14 +2242,14 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
         {
           "props": {
             "x": 200,
-            "y": 106.66666666666666,
+            "y": 106.666664,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 284,
-            "y": 153.33333333333331,
+            "y": 153.333328,
           },
           "type": "lineTo",
         },
@@ -2881,367 +2263,6 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
       ],
     },
     "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 0.45,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {
-      "value": 0.45,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 10,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 320,
-      "y": 60,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 248,
-      "y": 106.66666666666666,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 224,
-      "y": 153.33333333333331,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 296,
-      "y": 200,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 320,
-            "y": 60,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 248,
-            "y": 106.66666666666666,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 224,
-            "y": 153.33333333333331,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 296,
-            "y": 200,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 260,
-      "y": 60,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 296,
-      "y": 106.66666666666666,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 200,
-      "y": 153.33333333333331,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 248,
-      "y": 200,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 260,
-            "y": 60,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 296,
-            "y": 106.66666666666666,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 200,
-            "y": 153.33333333333331,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 248,
-            "y": 200,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#ff9830",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 290,
-      "y": 60,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "x": 200,
-      "y": 106.66666666666666,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 284,
-      "y": 153.33333333333331,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "x": 224,
-      "y": 200,
-    },
-    "type": "lineTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 290,
-            "y": 60,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "x": 200,
-            "y": 106.66666666666666,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 284,
-            "y": 153.33333333333331,
-          },
-          "type": "lineTo",
-        },
-        {
-          "props": {
-            "x": 224,
-            "y": 200,
-          },
-          "type": "lineTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
   },
   {
     "props": {},
@@ -3336,21 +2357,21 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
   {
     "props": {
       "x": 248,
-      "y": 106.66666412353516,
+      "y": 120,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 224,
-      "y": 153.3333282470703,
+      "y": 180,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 296,
-      "y": 200,
+      "y": 240,
     },
     "type": "lineTo",
   },
@@ -3371,21 +2392,21 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
         {
           "props": {
             "x": 248,
-            "y": 106.66666412353516,
+            "y": 120,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 224,
-            "y": 153.3333282470703,
+            "y": 180,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 296,
-            "y": 200,
+            "y": 240,
           },
           "type": "lineTo",
         },
@@ -3413,21 +2434,21 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
   {
     "props": {
       "x": 296,
-      "y": 106.66666412353516,
+      "y": 120,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 200,
-      "y": 153.3333282470703,
+      "y": 180,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 248,
-      "y": 200,
+      "y": 240,
     },
     "type": "lineTo",
   },
@@ -3448,21 +2469,21 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
         {
           "props": {
             "x": 296,
-            "y": 106.66666412353516,
+            "y": 120,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 200,
-            "y": 153.3333282470703,
+            "y": 180,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 248,
-            "y": 200,
+            "y": 240,
           },
           "type": "lineTo",
         },
@@ -3490,21 +2511,21 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
   {
     "props": {
       "x": 200,
-      "y": 106.66666412353516,
+      "y": 120,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 284,
-      "y": 153.3333282470703,
+      "y": 180,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 224,
-      "y": 200,
+      "y": 240,
     },
     "type": "lineTo",
   },
@@ -3525,21 +2546,21 @@ exports[`multivariate (parallel) canvas renders layout vertical (axes top-to-bot
         {
           "props": {
             "x": 200,
-            "y": 106.66666412353516,
+            "y": 120,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 284,
-            "y": 153.3333282470703,
+            "y": 180,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 224,
-            "y": 200,
+            "y": 240,
           },
           "type": "lineTo",
         },
@@ -3561,55 +2582,6 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
     "type": "save",
   },
   {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
     "props": {
       "a": 1,
       "b": 0,
@@ -3686,7 +2658,7 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -3721,7 +2693,7 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -3840,7 +2812,7 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 77.5,
     },
     "type": "moveTo",
@@ -3875,7 +2847,7 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 77.5,
           },
           "type": "moveTo",
@@ -3904,10 +2876,6 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
       ],
     },
     "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
   },
   {
     "props": {},
@@ -3994,7 +2962,7 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -4002,21 +2970,21 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
   {
     "props": {
       "x": 160,
-      "y": 102,
+      "y": 114,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 116,
+      "y": 132,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
@@ -4029,7 +2997,7 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -4037,21 +3005,21 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
         {
           "props": {
             "x": 160,
-            "y": 102,
+            "y": 114,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 116,
+            "y": 132,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
@@ -4072,28 +3040,28 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
   {
     "props": {
       "x": 80,
-      "y": 95,
+      "y": 105,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "x": 160,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 130,
+      "y": 150,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 102,
+      "y": 114,
     },
     "type": "lineTo",
   },
@@ -4107,28 +3075,28 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
         {
           "props": {
             "x": 80,
-            "y": 95,
+            "y": 105,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "x": 160,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 130,
+            "y": 150,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 102,
+            "y": 114,
           },
           "type": "lineTo",
         },
@@ -4148,29 +3116,29 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
   },
   {
     "props": {
-      "x": 80.00000000000001,
-      "y": 77.5,
+      "x": 80,
+      "y": 82.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "x": 160,
-      "y": 130,
+      "y": 150,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 81,
+      "y": 87,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 116,
+      "y": 132,
     },
     "type": "lineTo",
   },
@@ -4183,29 +3151,29 @@ exports[`multivariate (parallel) canvas renders line style line opacity 1`] = `
         },
         {
           "props": {
-            "x": 80.00000000000001,
-            "y": 77.5,
+            "x": 80,
+            "y": 82.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "x": 160,
-            "y": 130,
+            "y": 150,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 81,
+            "y": 87,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 116,
+            "y": 132,
           },
           "type": "lineTo",
         },
@@ -4227,55 +3195,6 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
     "type": "save",
   },
   {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
     "props": {
       "a": 1,
       "b": 0,
@@ -4358,7 +3277,7 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -4393,7 +3312,7 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -4512,7 +3431,7 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 77.5,
     },
     "type": "moveTo",
@@ -4547,7 +3466,7 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 77.5,
           },
           "type": "moveTo",
@@ -4576,10 +3495,6 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
       ],
     },
     "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
   },
   {
     "props": {},
@@ -4672,7 +3587,7 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
@@ -4680,21 +3595,21 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
   {
     "props": {
       "x": 160,
-      "y": 102,
+      "y": 114,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 116,
+      "y": 132,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
@@ -4707,7 +3622,7 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
@@ -4715,21 +3630,21 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
         {
           "props": {
             "x": 160,
-            "y": 102,
+            "y": 114,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 116,
+            "y": 132,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
@@ -4750,28 +3665,28 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
   {
     "props": {
       "x": 80,
-      "y": 95,
+      "y": 105,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "x": 160,
-      "y": 74,
+      "y": 78,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 130,
+      "y": 150,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 102,
+      "y": 114,
     },
     "type": "lineTo",
   },
@@ -4785,28 +3700,28 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
         {
           "props": {
             "x": 80,
-            "y": 95,
+            "y": 105,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "x": 160,
-            "y": 74,
+            "y": 78,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 130,
+            "y": 150,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 102,
+            "y": 114,
           },
           "type": "lineTo",
         },
@@ -4826,29 +3741,29 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
   },
   {
     "props": {
-      "x": 80.00000000000001,
-      "y": 77.5,
+      "x": 80,
+      "y": 82.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "x": 160,
-      "y": 130,
+      "y": 150,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 240,
-      "y": 81,
+      "y": 87,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "x": 320,
-      "y": 116,
+      "y": 132,
     },
     "type": "lineTo",
   },
@@ -4861,29 +3776,29 @@ exports[`multivariate (parallel) canvas renders line style line width 1`] = `
         },
         {
           "props": {
-            "x": 80.00000000000001,
-            "y": 77.5,
+            "x": 80,
+            "y": 82.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "x": 160,
-            "y": 130,
+            "y": 150,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 240,
-            "y": 81,
+            "y": 87,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "x": 320,
-            "y": 116,
+            "y": 132,
           },
           "type": "lineTo",
         },
@@ -4905,55 +3820,6 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
     "type": "save",
   },
   {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
     "props": {
       "a": 1,
       "b": 0,
@@ -5030,17 +3896,17 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 60,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "cpx1": 80.00000000000001,
-      "cpx2": 134.72158614465712,
+      "cpx1": 80,
+      "cpx2": 134.721588,
       "cpy1": 60,
-      "cpy2": 93.15255515063,
+      "cpy2": 93.152557,
       "x": 160,
       "y": 102,
     },
@@ -5048,10 +3914,10 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   },
   {
     "props": {
-      "cpx1": 182.72158614465712,
-      "cpx2": 217.27841385534288,
-      "cpy1": 109.95255515062999,
-      "cpy2": 119.976277575315,
+      "cpx1": 182.721588,
+      "cpx2": 217.278412,
+      "cpy1": 109.952553,
+      "cpy2": 119.97628,
       "x": 240,
       "y": 116,
     },
@@ -5059,9 +3925,9 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   },
   {
     "props": {
-      "cpx1": 265.2784138553429,
+      "cpx1": 265.278412,
       "cpx2": 320,
-      "cpy1": 111.576277575315,
+      "cpy1": 111.576279,
       "cpy2": 74,
       "x": 320,
       "y": 74,
@@ -5077,17 +3943,17 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 60,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "cpx1": 80.00000000000001,
-            "cpx2": 134.72158614465712,
+            "cpx1": 80,
+            "cpx2": 134.721588,
             "cpy1": 60,
-            "cpy2": 93.15255515063,
+            "cpy2": 93.152557,
             "x": 160,
             "y": 102,
           },
@@ -5095,10 +3961,10 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         },
         {
           "props": {
-            "cpx1": 182.72158614465712,
-            "cpx2": 217.27841385534288,
-            "cpy1": 109.95255515062999,
-            "cpy2": 119.976277575315,
+            "cpx1": 182.721588,
+            "cpx2": 217.278412,
+            "cpy1": 109.952553,
+            "cpy2": 119.97628,
             "x": 240,
             "y": 116,
           },
@@ -5106,9 +3972,9 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         },
         {
           "props": {
-            "cpx1": 265.2784138553429,
+            "cpx1": 265.278412,
             "cpx2": 320,
-            "cpy1": 111.576277575315,
+            "cpy1": 111.576279,
             "cpy2": 74,
             "x": 320,
             "y": 74,
@@ -5139,9 +4005,9 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   {
     "props": {
       "cpx1": 80,
-      "cpx2": 137.98827364659357,
+      "cpx2": 137.988281,
       "cpy1": 95,
-      "cpy2": 69.18493486019234,
+      "cpy2": 69.184937,
       "x": 160,
       "y": 74,
     },
@@ -5149,10 +4015,10 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   },
   {
     "props": {
-      "cpx1": 185.98827364659357,
-      "cpx2": 214.3035273351902,
-      "cpy1": 79.68493486019234,
-      "cpy2": 125.50311728365828,
+      "cpx1": 185.988281,
+      "cpx2": 214.303528,
+      "cpy1": 79.684937,
+      "cpy2": 125.50312,
       "x": 240,
       "y": 130,
     },
@@ -5160,9 +4026,9 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   },
   {
     "props": {
-      "cpx1": 262.3035273351902,
+      "cpx1": 262.303528,
       "cpx2": 320,
-      "cpy1": 133.90311728365828,
+      "cpy1": 133.903122,
       "cpy2": 102,
       "x": 320,
       "y": 102,
@@ -5186,9 +4052,9 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         {
           "props": {
             "cpx1": 80,
-            "cpx2": 137.98827364659357,
+            "cpx2": 137.988281,
             "cpy1": 95,
-            "cpy2": 69.18493486019234,
+            "cpy2": 69.184937,
             "x": 160,
             "y": 74,
           },
@@ -5196,10 +4062,10 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         },
         {
           "props": {
-            "cpx1": 185.98827364659357,
-            "cpx2": 214.3035273351902,
-            "cpy1": 79.68493486019234,
-            "cpy2": 125.50311728365828,
+            "cpx1": 185.988281,
+            "cpx2": 214.303528,
+            "cpy1": 79.684937,
+            "cpy2": 125.50312,
             "x": 240,
             "y": 130,
           },
@@ -5207,9 +4073,9 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         },
         {
           "props": {
-            "cpx1": 262.3035273351902,
+            "cpx1": 262.303528,
             "cpx2": 320,
-            "cpy1": 133.90311728365828,
+            "cpy1": 133.903122,
             "cpy2": 102,
             "x": 320,
             "y": 102,
@@ -5232,446 +4098,17 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 77.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "cpx1": 80.00000000000001,
-      "cpx2": 135.7625796163019,
-      "cpy1": 77.5,
-      "cpy2": 129.4698064291066,
-      "x": 160,
-      "y": 130,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "cpx1": 183.7625796163019,
-      "cpx2": 215.1397704935656,
-      "cpy1": 130.5198064291066,
-      "cpy2": 83.17527008181301,
-      "x": 240,
-      "y": 81,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "cpx1": 263.1397704935656,
-      "cpx2": 320,
-      "cpy1": 78.97527008181301,
-      "cpy2": 116,
-      "x": 320,
-      "y": 116,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80.00000000000001,
-            "y": 77.5,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "cpx1": 80.00000000000001,
-            "cpx2": 135.7625796163019,
-            "cpy1": 77.5,
-            "cpy2": 129.4698064291066,
-            "x": 160,
-            "y": 130,
-          },
-          "type": "bezierCurveTo",
-        },
-        {
-          "props": {
-            "cpx1": 183.7625796163019,
-            "cpx2": 215.1397704935656,
-            "cpy1": 130.5198064291066,
-            "cpy2": 83.17527008181301,
-            "x": 240,
-            "y": 81,
-          },
-          "type": "bezierCurveTo",
-        },
-        {
-          "props": {
-            "cpx1": 263.1397704935656,
-            "cpx2": 320,
-            "cpy1": 78.97527008181301,
-            "cpy2": 116,
-            "x": 320,
-            "y": 116,
-          },
-          "type": "bezierCurveTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "restore",
-  },
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {},
-    "type": "save",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "height": 140,
-      "width": 240,
-      "x": 80,
-      "y": 60,
-    },
-    "type": "rect",
-  },
-  {
-    "props": {
-      "fillRule": "nonzero",
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "height": 140,
-            "width": 240,
-            "x": 80,
-            "y": 60,
-          },
-          "type": "rect",
-        },
-      ],
-    },
-    "type": "clip",
-  },
-  {
-    "props": {
-      "a": 1,
-      "b": 0,
-      "c": 0,
-      "d": 1,
-      "e": 0,
-      "f": 0,
-    },
-    "type": "setTransform",
-  },
-  {
-    "props": {
-      "value": 0.45,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "source-over",
-    },
-    "type": "globalCompositeOperation",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetX",
-  },
-  {
-    "props": {
-      "value": 0,
-    },
-    "type": "shadowOffsetY",
-  },
-  {
-    "props": {
-      "value": "#000000",
-    },
-    "type": "shadowColor",
-  },
-  {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {
-      "value": 0.45,
-    },
-    "type": "globalAlpha",
-  },
-  {
-    "props": {
-      "value": "butt",
-    },
-    "type": "lineCap",
-  },
-  {
-    "props": {
-      "value": "miter",
-    },
-    "type": "lineJoin",
-  },
-  {
-    "props": {
-      "value": 10,
-    },
-    "type": "miterLimit",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80.00000000000001,
-      "y": 60,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "cpx1": 80.00000000000001,
-      "cpx2": 134.72158614465712,
-      "cpy1": 60,
-      "cpy2": 93.15255515063,
-      "x": 160,
-      "y": 102,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "cpx1": 182.72158614465712,
-      "cpx2": 217.27841385534288,
-      "cpy1": 109.95255515062999,
-      "cpy2": 119.976277575315,
-      "x": 240,
-      "y": 116,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "cpx1": 265.2784138553429,
-      "cpx2": 320,
-      "cpy1": 111.576277575315,
-      "cpy2": 74,
-      "x": 320,
-      "y": 74,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80.00000000000001,
-            "y": 60,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "cpx1": 80.00000000000001,
-            "cpx2": 134.72158614465712,
-            "cpy1": 60,
-            "cpy2": 93.15255515063,
-            "x": 160,
-            "y": 102,
-          },
-          "type": "bezierCurveTo",
-        },
-        {
-          "props": {
-            "cpx1": 182.72158614465712,
-            "cpx2": 217.27841385534288,
-            "cpy1": 109.95255515062999,
-            "cpy2": 119.976277575315,
-            "x": 240,
-            "y": 116,
-          },
-          "type": "bezierCurveTo",
-        },
-        {
-          "props": {
-            "cpx1": 265.2784138553429,
-            "cpx2": 320,
-            "cpy1": 111.576277575315,
-            "cpy2": 74,
-            "x": 320,
-            "y": 74,
-          },
-          "type": "bezierCurveTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80,
-      "y": 95,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "cpx1": 80,
-      "cpx2": 137.98827364659357,
-      "cpy1": 95,
-      "cpy2": 69.18493486019234,
-      "x": 160,
-      "y": 74,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "cpx1": 185.98827364659357,
-      "cpx2": 214.3035273351902,
-      "cpy1": 79.68493486019234,
-      "cpy2": 125.50311728365828,
-      "x": 240,
-      "y": 130,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "cpx1": 262.3035273351902,
-      "cpx2": 320,
-      "cpy1": 133.90311728365828,
-      "cpy2": 102,
-      "x": 320,
-      "y": 102,
-    },
-    "type": "bezierCurveTo",
-  },
-  {
-    "props": {
-      "path": [
-        {
-          "props": {},
-          "type": "beginPath",
-        },
-        {
-          "props": {
-            "x": 80,
-            "y": 95,
-          },
-          "type": "moveTo",
-        },
-        {
-          "props": {
-            "cpx1": 80,
-            "cpx2": 137.98827364659357,
-            "cpy1": 95,
-            "cpy2": 69.18493486019234,
-            "x": 160,
-            "y": 74,
-          },
-          "type": "bezierCurveTo",
-        },
-        {
-          "props": {
-            "cpx1": 185.98827364659357,
-            "cpx2": 214.3035273351902,
-            "cpy1": 79.68493486019234,
-            "cpy2": 125.50311728365828,
-            "x": 240,
-            "y": 130,
-          },
-          "type": "bezierCurveTo",
-        },
-        {
-          "props": {
-            "cpx1": 262.3035273351902,
-            "cpx2": 320,
-            "cpy1": 133.90311728365828,
-            "cpy2": 102,
-            "x": 320,
-            "y": 102,
-          },
-          "type": "bezierCurveTo",
-        },
-      ],
-    },
-    "type": "stroke",
-  },
-  {
-    "props": {
-      "value": "#ff9830",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {},
-    "type": "beginPath",
-  },
-  {
-    "props": {
-      "x": 80.00000000000001,
-      "y": 77.5,
-    },
-    "type": "moveTo",
-  },
-  {
-    "props": {
-      "cpx1": 80.00000000000001,
-      "cpx2": 135.7625796163019,
+      "cpx2": 135.762573,
       "cpy1": 77.5,
-      "cpy2": 129.4698064291066,
+      "cpy2": 129.469803,
       "x": 160,
       "y": 130,
     },
@@ -5679,10 +4116,10 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   },
   {
     "props": {
-      "cpx1": 183.7625796163019,
-      "cpx2": 215.1397704935656,
-      "cpy1": 130.5198064291066,
-      "cpy2": 83.17527008181301,
+      "cpx1": 183.762573,
+      "cpx2": 215.139771,
+      "cpy1": 130.519806,
+      "cpy2": 83.17527,
       "x": 240,
       "y": 81,
     },
@@ -5690,9 +4127,9 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   },
   {
     "props": {
-      "cpx1": 263.1397704935656,
+      "cpx1": 263.139771,
       "cpx2": 320,
-      "cpy1": 78.97527008181301,
+      "cpy1": 78.975273,
       "cpy2": 116,
       "x": 320,
       "y": 116,
@@ -5708,17 +4145,17 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 77.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "cpx1": 80.00000000000001,
-            "cpx2": 135.7625796163019,
+            "cpx1": 80,
+            "cpx2": 135.762573,
             "cpy1": 77.5,
-            "cpy2": 129.4698064291066,
+            "cpy2": 129.469803,
             "x": 160,
             "y": 130,
           },
@@ -5726,10 +4163,10 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         },
         {
           "props": {
-            "cpx1": 183.7625796163019,
-            "cpx2": 215.1397704935656,
-            "cpy1": 130.5198064291066,
-            "cpy2": 83.17527008181301,
+            "cpx1": 183.762573,
+            "cpx2": 215.139771,
+            "cpy1": 130.519806,
+            "cpy2": 83.17527,
             "x": 240,
             "y": 81,
           },
@@ -5737,9 +4174,9 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         },
         {
           "props": {
-            "cpx1": 263.1397704935656,
+            "cpx1": 263.139771,
             "cpx2": 320,
-            "cpy1": 78.97527008181301,
+            "cpy1": 78.975273,
             "cpy2": 116,
             "x": 320,
             "y": 116,
@@ -5749,10 +4186,6 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
       ],
     },
     "type": "stroke",
-  },
-  {
-    "props": {},
-    "type": "restore",
   },
   {
     "props": {},
@@ -5847,33 +4280,33 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   {
     "props": {
       "cpx1": 80,
-      "cpx2": 134.72158813476562,
+      "cpx2": 134.04802,
       "cpy1": 60,
-      "cpy2": 93.15255737304688,
+      "cpy2": 102.321609,
       "x": 160,
-      "y": 102,
+      "y": 114,
     },
     "type": "bezierCurveTo",
   },
   {
     "props": {
-      "cpx1": 182.72158813476562,
-      "cpx2": 217.27841186523438,
-      "cpy1": 109.95255279541016,
-      "cpy2": 119.97628021240234,
+      "cpx1": 182.04802,
+      "cpx2": 217.95198,
+      "cpy1": 123.921609,
+      "cpy2": 136.960805,
       "x": 240,
-      "y": 116,
+      "y": 132,
     },
     "type": "bezierCurveTo",
   },
   {
     "props": {
-      "cpx1": 265.2784118652344,
+      "cpx1": 265.95198,
       "cpx2": 320,
-      "cpy1": 111.57627868652344,
-      "cpy2": 74,
+      "cpy1": 126.160805,
+      "cpy2": 78,
       "x": 320,
-      "y": 74,
+      "y": 78,
     },
     "type": "bezierCurveTo",
   },
@@ -5894,33 +4327,33 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         {
           "props": {
             "cpx1": 80,
-            "cpx2": 134.72158813476562,
+            "cpx2": 134.04802,
             "cpy1": 60,
-            "cpy2": 93.15255737304688,
+            "cpy2": 102.321609,
             "x": 160,
-            "y": 102,
+            "y": 114,
           },
           "type": "bezierCurveTo",
         },
         {
           "props": {
-            "cpx1": 182.72158813476562,
-            "cpx2": 217.27841186523438,
-            "cpy1": 109.95255279541016,
-            "cpy2": 119.97628021240234,
+            "cpx1": 182.04802,
+            "cpx2": 217.95198,
+            "cpy1": 123.921609,
+            "cpy2": 136.960805,
             "x": 240,
-            "y": 116,
+            "y": 132,
           },
           "type": "bezierCurveTo",
         },
         {
           "props": {
-            "cpx1": 265.2784118652344,
+            "cpx1": 265.95198,
             "cpx2": 320,
-            "cpy1": 111.57627868652344,
-            "cpy2": 74,
+            "cpy1": 126.160805,
+            "cpy2": 78,
             "x": 320,
-            "y": 74,
+            "y": 78,
           },
           "type": "bezierCurveTo",
         },
@@ -5941,40 +4374,40 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   {
     "props": {
       "x": 80,
-      "y": 95,
+      "y": 105,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "cpx1": 80,
-      "cpx2": 137.98828125,
-      "cpy1": 95,
-      "cpy2": 69.1849365234375,
+      "cpx2": 138.898506,
+      "cpy1": 105,
+      "cpy2": 72.065205,
       "x": 160,
-      "y": 74,
+      "y": 78,
     },
     "type": "bezierCurveTo",
   },
   {
     "props": {
-      "cpx1": 185.98828125,
-      "cpx2": 214.30352783203125,
-      "cpy1": 79.6849365234375,
-      "cpy2": 125.50312042236328,
+      "cpx1": 186.898506,
+      "cpx2": 213.554967,
+      "cpy1": 85.565205,
+      "cpy2": 144.049868,
       "x": 240,
-      "y": 130,
+      "y": 150,
     },
     "type": "bezierCurveTo",
   },
   {
     "props": {
-      "cpx1": 262.30352783203125,
+      "cpx1": 261.554967,
       "cpx2": 320,
-      "cpy1": 133.9031219482422,
-      "cpy2": 102,
+      "cpy1": 154.849868,
+      "cpy2": 114,
       "x": 320,
-      "y": 102,
+      "y": 114,
     },
     "type": "bezierCurveTo",
   },
@@ -5988,40 +4421,40 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         {
           "props": {
             "x": 80,
-            "y": 95,
+            "y": 105,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "cpx1": 80,
-            "cpx2": 137.98828125,
-            "cpy1": 95,
-            "cpy2": 69.1849365234375,
+            "cpx2": 138.898506,
+            "cpy1": 105,
+            "cpy2": 72.065205,
             "x": 160,
-            "y": 74,
+            "y": 78,
           },
           "type": "bezierCurveTo",
         },
         {
           "props": {
-            "cpx1": 185.98828125,
-            "cpx2": 214.30352783203125,
-            "cpy1": 79.6849365234375,
-            "cpy2": 125.50312042236328,
+            "cpx1": 186.898506,
+            "cpx2": 213.554967,
+            "cpy1": 85.565205,
+            "cpy2": 144.049868,
             "x": 240,
-            "y": 130,
+            "y": 150,
           },
           "type": "bezierCurveTo",
         },
         {
           "props": {
-            "cpx1": 262.30352783203125,
+            "cpx1": 261.554967,
             "cpx2": 320,
-            "cpy1": 133.9031219482422,
-            "cpy2": 102,
+            "cpy1": 154.849868,
+            "cpy2": 114,
             "x": 320,
-            "y": 102,
+            "y": 114,
           },
           "type": "bezierCurveTo",
         },
@@ -6042,40 +4475,40 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
   {
     "props": {
       "x": 80,
-      "y": 77.5,
+      "y": 82.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
       "cpx1": 80,
-      "cpx2": 135.7625732421875,
-      "cpy1": 77.5,
-      "cpy2": 129.4698028564453,
+      "cpx2": 135.669484,
+      "cpy1": 82.5,
+      "cpy2": 149.315704,
       "x": 160,
-      "y": 130,
+      "y": 150,
     },
     "type": "bezierCurveTo",
   },
   {
     "props": {
-      "cpx1": 183.7625732421875,
-      "cpx2": 215.1397705078125,
-      "cpy1": 130.51980590820312,
-      "cpy2": 83.1752700805664,
+      "cpx1": 183.669484,
+      "cpx2": 214.755415,
+      "cpy1": 150.665704,
+      "cpy2": 89.840016,
       "x": 240,
-      "y": 81,
+      "y": 87,
     },
     "type": "bezierCurveTo",
   },
   {
     "props": {
-      "cpx1": 263.1397705078125,
+      "cpx1": 262.755415,
       "cpx2": 320,
-      "cpy1": 78.97527313232422,
-      "cpy2": 116,
+      "cpy1": 84.440016,
+      "cpy2": 132,
       "x": 320,
-      "y": 116,
+      "y": 132,
     },
     "type": "bezierCurveTo",
   },
@@ -6089,40 +4522,40 @@ exports[`multivariate (parallel) canvas renders smooth curves the polylines thro
         {
           "props": {
             "x": 80,
-            "y": 77.5,
+            "y": 82.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
             "cpx1": 80,
-            "cpx2": 135.7625732421875,
-            "cpy1": 77.5,
-            "cpy2": 129.4698028564453,
+            "cpx2": 135.669484,
+            "cpy1": 82.5,
+            "cpy2": 149.315704,
             "x": 160,
-            "y": 130,
+            "y": 150,
           },
           "type": "bezierCurveTo",
         },
         {
           "props": {
-            "cpx1": 183.7625732421875,
-            "cpx2": 215.1397705078125,
-            "cpy1": 130.51980590820312,
-            "cpy2": 83.1752700805664,
+            "cpx1": 183.669484,
+            "cpx2": 214.755415,
+            "cpy1": 150.665704,
+            "cpy2": 89.840016,
             "x": 240,
-            "y": 81,
+            "y": 87,
           },
           "type": "bezierCurveTo",
         },
         {
           "props": {
-            "cpx1": 263.1397705078125,
+            "cpx1": 262.755415,
             "cpx2": 320,
-            "cpy1": 78.97527313232422,
-            "cpy2": 116,
+            "cpy1": 84.440016,
+            "cpy2": 132,
             "x": 320,
-            "y": 116,
+            "y": 132,
           },
           "type": "bezierCurveTo",
         },

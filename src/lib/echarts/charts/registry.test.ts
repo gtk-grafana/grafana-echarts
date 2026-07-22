@@ -43,7 +43,17 @@ describe('resolveChartModule', () => {
 
   it('lists all supported series types', () => {
     expect(supportedChartSeriesTypes).toEqual(
-      expect.arrayContaining(['line', 'bar', 'scatter', 'effectScatter', 'heatmap', 'pie', 'funnel', 'radar', 'parallel'])
+      expect.arrayContaining([
+        'line',
+        'bar',
+        'scatter',
+        'effectScatter',
+        'heatmap',
+        'pie',
+        'funnel',
+        'radar',
+        'parallel',
+      ])
     );
   });
 });
