@@ -161,7 +161,7 @@ export interface ChartModule {
    * (multi-value cartesian, heatmap cells, hierarchy nodes) omit it and render no
    * footer.
    */
-  getTooltipFieldResolver?(ctx: ChartContext): TooltipFieldResolver;
+  getTooltipFieldResolver(ctx: ChartContext): TooltipFieldResolver;
 }
 
 export type CartesianOption = ComposeOption<

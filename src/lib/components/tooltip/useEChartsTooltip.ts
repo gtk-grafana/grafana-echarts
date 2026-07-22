@@ -137,6 +137,7 @@ export function useEChartsTooltip(
     const zr = chart.getZr();
 
     const onMove = (event: { offsetX: number; offsetY: number }) => {
+      console.log('onMove', event)
       if (latestRef.current.pinned) {
         return;
       }
@@ -155,7 +156,8 @@ export function useEChartsTooltip(
       update({ visible: false });
     };
 
-    const onMouseOut = () => {
+    const onMouseOut = (args) => {
+      console.log('onMouseOut', args);
       if (latestRef.current.pinned) {
         return;
       }
@@ -172,7 +174,8 @@ export function useEChartsTooltip(
       }, HIDE_DELAY_MS);
     };
 
-    const onMouseOver = () => {
+    const onMouseOver = (args) => {
+      console.log('onMouseOver', args)
       if (!latestRef.current.pinned) {
         cancelHide();
       }
@@ -227,6 +230,7 @@ export function useEChartsTooltip(
     chart.on('mouseover', onMouseOver as (...args: unknown[]) => void);
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     chart.on('click', onChartClick as (...args: unknown[]) => void);
+
 
     return () => {
       // On unmount EChart disposes the instance in its layout-effect cleanup,

@@ -61,7 +61,7 @@ export function buildPanelChartOption(
   const resolveValueFormatter = chartModule.getTooltipValueFormatter(ctx);
   // Optional per-family field resolver so hovered items can surface their
   // field's data links / ad-hoc filters in the tooltip footer.
-  const resolveField = chartModule.getTooltipFieldResolver?.(ctx);
+  const resolveField = chartModule.getTooltipFieldResolver(ctx);
   // Common tooltip parity: hide zero-value rows and sort by value, but only in
   // the multi-row "All" tooltip (mirrors `commonOptionsBuilder.addTooltipOptions`).
   const rowOptions =

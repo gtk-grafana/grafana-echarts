@@ -56,6 +56,8 @@ export function timeSeriesToEChartsOption(
       itemStyle: { color },
       lineStyle: { color },
       zlevel: options.zLevel?.series,
+      // capture hover events on line hover
+      triggerEvent: true,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       showEffectOn,
     });

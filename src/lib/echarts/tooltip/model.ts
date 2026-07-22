@@ -17,7 +17,7 @@ export interface TooltipModel {
    * (matching `TimeSeriesTooltip`), while item charts (pie/hierarchy) put the
    * item name in `label`.
    */
-  header?: TooltipHeaderItem;
+  header: TooltipHeaderItem;
   rows: TooltipRow[];
   /**
    * Source field + row of the single hovered item (present only when one item is
@@ -27,7 +27,7 @@ export interface TooltipModel {
    * there instead). In multi-row ("All") tooltips this is unset; each row carries
    * its own `source` and the overlay picks the clicked row's (see `TooltipRow`).
    */
-  source?: TooltipSource;
+  source: TooltipSource;
 }
 
 /** Header label/value pair; mirrors the `VizTooltipItem` core panels feed `VizTooltipHeader`. */
@@ -48,7 +48,7 @@ export interface TooltipSource {
  * by `seriesIndex` and/or `dataIndex`; families with no clean field mapping
  * (multi-value cartesian, heatmap cells, hierarchy nodes) omit the resolver.
  */
-export type TooltipFieldResolver = (item: { seriesIndex?: number; dataIndex?: number }) => TooltipSource | undefined;
+export type TooltipFieldResolver = (item: { seriesIndex?: number; dataIndex?: number }) => TooltipSource;
 
 /**
  * Receives the latest tooltip content on each hover. Supplied by the React layer
@@ -67,7 +67,7 @@ export const NOOP_TOOLTIP_SINK: TooltipSink = () => undefined;
 /** A single series/value line rendered inside the tooltip. */
 export interface TooltipRow {
   /** CSS color for the leading swatch; omitted rows render no swatch. */
-  color?: string;
+  color: string;
   label: string;
   value: string;
   /** Render the row highlighted (e.g. the hovered slice in a pie "All" tooltip). */
@@ -233,7 +233,7 @@ export interface TooltipModelOptions {
   /** Multi-mode row shaping (hide zeros / sort); see {@link TooltipRowOptions}. */
   rowOptions?: TooltipRowOptions;
   /** Maps an item to its source field for the footer; see {@link TooltipFieldResolver}. */
-  resolveField?: TooltipFieldResolver;
+  resolveField: TooltipFieldResolver;
   /**
    * Formats the hovered x value for the header (e.g. Grafana time formatting on
    * time axes, where item-trigger params carry the raw `[time, value]` tuple).
@@ -251,7 +251,7 @@ export interface TooltipModelOptions {
 export function buildTooltipModel(
   params: TopLevelFormatterParams,
   resolveValueFormatter: TooltipValueFormatterResolver,
-  { rowOptions, resolveField, formatHeaderValue }: TooltipModelOptions = {}
+  { rowOptions, resolveField, formatHeaderValue }: TooltipModelOptions
 ): TooltipModel {
   const items = Array.isArray(params) ? params : [params];
 
@@ -272,7 +272,7 @@ export function buildTooltipModel(
     }
 
     return {
-      color: typeof item.color === 'string' ? item.color : undefined,
+      color: item.color ?? '',
       label: getLabel(item, headerText),
       value,
       seriesIndex: item.seriesIndex,
@@ -284,9 +284,9 @@ export function buildTooltipModel(
 
   // Model-level source when a single item is focused (Single mode); the header
   // composition mirrors core: x/time in `value`, empty `label`.
-  const source = resolveField != null && items.length === 1 ? resolveField(items[0]) : undefined;
+  const source = resolveField(items[0]);
 
-  return { header: headerText ? { label: '', value: headerText } : undefined, rows, source };
+  return { header: { label: '', value: headerText }, rows, source };
 }
 
 /**
