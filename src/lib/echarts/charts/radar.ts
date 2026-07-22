@@ -4,7 +4,7 @@ import { getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legen
 import { buildRadarLegendItems } from 'lib/echarts/options/legendItems';
 import { radarDefaultOptions } from 'lib/echarts/options/radar';
 import { getFieldValueFormatters } from 'lib/echarts/style';
-import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
 import { type ChartContext, type ChartModule, type EChartRadarSeriesOption } from './types';
 
 export const radarChartModule: ChartModule = {
@@ -17,6 +17,20 @@ export const radarChartModule: ChartModule = {
     const fields = frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
     const formatters = getFieldValueFormatters(fields, ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
+  },
+
+  getTooltipFieldResolver(ctx) {
+    // Same per-polygon field list as the value formatter above, keyed by
+    // `dataIndex`; a polygon reduces a whole field, so links resolve at row 0.
+    const frame = findCategoricalFrame(ctx.frames);
+    const fields = frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+    return (item) => {
+      if (item.dataIndex == null) {
+        return undefined;
+      }
+      const field = fields[item.dataIndex];
+      return field ? { field, rowIndex: 0 } : undefined;
+    };
   },
 
   buildOption(ctx: ChartContext<'radar'>, { isGrafanaLegend }): EChartRadarSeriesOption | null {

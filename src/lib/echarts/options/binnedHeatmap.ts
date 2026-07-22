@@ -17,7 +17,12 @@ import {
   type HeatmapColorScalePlacement,
   type HeatmapColorScheme,
 } from 'lib/echarts/options/types';
-import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
+import {
+  formatTooltipValue,
+  NOOP_TOOLTIP_SINK,
+  toEmittingFormatter,
+  type TooltipModel,
+} from 'lib/echarts/tooltip/model';
 
 /**
  * Custom tick/label/grid-line placement for the heatmap bucket (Y) axis so the
@@ -171,10 +176,10 @@ export function makeBinnedHeatmapRenderItem(emphasisShadow: BinnedHeatmapCellSha
  * value]` tuple (item trigger). Returns safe DOM (no innerHTML) via the shared
  * tooltip shell. See https://echarts.apache.org/en/option.html#series-custom.tooltip
  */
-export function buildBinnedHeatmapTooltip(
+export function buildBinnedHeatmapTooltipModel(
   data: BinnedHeatmapData,
   ctx: BinnedHeatmapTooltipContext
-): (params: TopLevelFormatterParams) => HTMLElement {
+): (params: TopLevelFormatterParams) => TooltipModel {
   const bucketLabels = new Map<string, string>();
   for (const bucket of data.yBuckets) {
     bucketLabels.set(`${bucket.start}:${bucket.end}`, bucket.label);
@@ -197,11 +202,15 @@ export function buildBinnedHeatmapTooltip(
 
     const bucket = bucketLabels.get(`${yStart}:${yEnd}`) ?? `${formatBucketBound(yStart)} - ${formatBucketBound(yEnd)}`;
 
-    const shell = buildTooltipShell(ctx.theme);
-    shell.appendHeader(formatX(xStart));
-    shell.appendRow({ label: 'Value', value: formatTooltipValue(value, ctx.formatValue) });
-    shell.appendRow({ label: 'Name', value: bucket });
-    return shell.root;
+    // Time-style header: the x (time/value) goes in `value`, matching core's
+    // heatmap tooltip composition.
+    return {
+      header: { label: '', value: formatX(xStart) },
+      rows: [
+        { label: 'Value', value: formatTooltipValue(value, ctx.formatValue) },
+        { label: 'Name', value: bucket },
+      ],
+    };
   };
 }
 
@@ -233,7 +242,12 @@ export function getBinnedHeatmapSeries(
     legendHoverLink: false,
     // Per-series tooltip so a hovered cell reads like core Grafana's heatmap.
     // https://echarts.apache.org/en/option.html#series-custom.tooltip
-    tooltip: { formatter: buildBinnedHeatmapTooltip(data, tooltipCtx) },
+    tooltip: {
+      formatter: toEmittingFormatter(
+        buildBinnedHeatmapTooltipModel(data, tooltipCtx),
+        tooltipCtx.tooltipSink ?? NOOP_TOOLTIP_SINK
+      ),
+    },
   };
 }
 

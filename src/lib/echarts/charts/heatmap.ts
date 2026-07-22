@@ -3,7 +3,7 @@ import { collectTimeSeriesFields } from 'lib/echarts/converters/frames';
 import { heatmapLayoutDefault } from 'lib/echarts/options/constants';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getFieldValueFormatters } from 'lib/echarts/style';
-import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
 import { buildBinnedHeatmapLegendItems, buildBinnedHeatmapOption, getOverlayFrames } from './binnedHeatmap';
 import { buildMatrixHeatmapOption } from './matrixHeatmap';
 import {

@@ -30,7 +30,11 @@ import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
 // Imported from the module (not the barrel) to avoid a cycle: the tooltip barrel
 // pulls in `option.ts` -> `axes/converters` -> this file.
-import { type TooltipValueFormatterResolver } from 'lib/echarts/tooltip/template';
+import {
+  type TooltipFieldResolver,
+  type TooltipSink,
+  type TooltipValueFormatterResolver,
+} from 'lib/echarts/tooltip/model';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
@@ -50,6 +54,11 @@ export interface ChartContext<T = SeriesType> {
   // Grafana's `getFieldDisplayValues`, which the pie resolver uses to reduce
   // slices and to interpolate field display-name templates.
   replaceVariables: InterpolateFunction;
+  // Receives the hovered tooltip content model so the React overlay
+  // (`EChartsTooltip`) can render it. Injected by `buildPanelChartOption` from
+  // the value the `EChart` component supplies; optional so chart modules can be
+  // built without a React sink in unit tests (formatters fall back to a no-op).
+  tooltipSink?: TooltipSink;
 }
 
 export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
@@ -145,6 +154,14 @@ export interface ChartModule {
    * item to a field differently (by `seriesIndex` or `dataIndex`).
    */
   getTooltipValueFormatter(ctx: ChartContext): TooltipValueFormatterResolver;
+  /**
+   * Resolve the source `Field` + row index for a hovered tooltip item, so the
+   * tooltip footer can surface that field's data links and label-based ad-hoc
+   * filters. Optional: families whose items have no clean field mapping
+   * (multi-value cartesian, heatmap cells, hierarchy nodes) omit it and render no
+   * footer.
+   */
+  getTooltipFieldResolver?(ctx: ChartContext): TooltipFieldResolver;
 }
 
 export type CartesianOption = ComposeOption<

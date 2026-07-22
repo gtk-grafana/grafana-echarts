@@ -8,7 +8,12 @@ import {
   type HeatmapColorScalePlacement,
   type HeatmapColorScheme,
 } from 'lib/echarts/options/types';
-import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
+import {
+  formatTooltipValue,
+  NOOP_TOOLTIP_SINK,
+  toEmittingFormatter,
+  type TooltipModel,
+} from 'lib/echarts/tooltip/model';
 
 /** Dimension index of the value within a matrix cell tuple `[xIndex, yIndex, value]`. */
 const MATRIX_VALUE_DIM = 2;
@@ -17,13 +22,13 @@ const MATRIX_VALUE_DIM = 2;
  * Per-cell tooltip for the matrix heatmap. ECharts hands `params.value` back the
  * `[xIndex, yIndex, value]` tuple (item trigger); the indices are mapped back to
  * their category labels so the tooltip reads with the axis names rather than raw
- * indices. Returns safe DOM (no innerHTML) via the shared tooltip shell.
+ * indices. Rendered by the React overlay (`EChartsTooltip`).
  * https://echarts.apache.org/en/option.html#series-heatmap.tooltip
  */
-export function buildMatrixHeatmapTooltip(
+export function buildMatrixHeatmapTooltipModel(
   data: MatrixHeatmapData,
   ctx: BinnedHeatmapTooltipContext
-): (params: TopLevelFormatterParams) => HTMLElement {
+): (params: TopLevelFormatterParams) => TooltipModel {
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;
     const tuple = Array.isArray(param?.value) ? param.value : [];
@@ -31,13 +36,15 @@ export function buildMatrixHeatmapTooltip(
     const yIndex = Number(tuple[1]);
     const value = tuple[MATRIX_VALUE_DIM] ?? null;
 
-    const shell = buildTooltipShell(ctx.theme);
     // Header is the X (column) category; then a Value row and the Y (row) label,
     // mirroring the binned heatmap tooltip layout.
-    shell.appendHeader(data.xCategories[xIndex] ?? '');
-    shell.appendRow({ label: 'Value', value: formatTooltipValue(value, ctx.formatValue) });
-    shell.appendRow({ label: 'Name', value: data.yCategories[yIndex] ?? '' });
-    return shell.root;
+    return {
+      header: { label: '', value: data.xCategories[xIndex] ?? '' },
+      rows: [
+        { label: 'Value', value: formatTooltipValue(value, ctx.formatValue) },
+        { label: 'Name', value: data.yCategories[yIndex] ?? '' },
+      ],
+    };
   };
 }
 
@@ -60,7 +67,12 @@ export function getMatrixHeatmapSeries(
     zlevel,
     data: data.cells,
     legendHoverLink: false,
-    tooltip: { formatter: buildMatrixHeatmapTooltip(data, tooltipCtx) },
+    tooltip: {
+      formatter: toEmittingFormatter(
+        buildMatrixHeatmapTooltipModel(data, tooltipCtx),
+        tooltipCtx.tooltipSink ?? NOOP_TOOLTIP_SINK
+      ),
+    },
   };
 }
 

@@ -11,7 +11,13 @@ import { type HierarchyChartContext } from 'lib/echarts/charts/types';
 import { type HierarchyData, type HierarchyNode } from 'lib/echarts/converters/hierarchy';
 import { createBaseOptions } from 'lib/echarts/options/base';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
-import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
+import {
+  formatTooltipValue,
+  NOOP_TOOLTIP_SINK,
+  toEmittingFormatter,
+  type TooltipModel,
+  type TooltipRow,
+} from 'lib/echarts/tooltip/model';
 import { getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 
 /**
@@ -123,32 +129,29 @@ function toTreeData(nodes: HierarchyNode[], resolveColor: HierarchyColorResolver
 }
 
 /**
- * Tooltip for hierarchy series. Returns safe DOM (no innerHTML) via the shared
- * tooltip shell. https://echarts.apache.org/en/option.html#series-treemap.tooltip
+ * Tooltip content model for hierarchy series, rendered by the React overlay
+ * (`EChartsTooltip`). https://echarts.apache.org/en/option.html#series-treemap.tooltip
  *
- * - Single: the hovered node — its name as header, cumulative `value`, and (when
- *   present) `self`.
- * - All (`Multi`): every top-level node listed with a color swatch and value
- *   (the same set as the legend), regardless of which node is hovered — mirroring
- *   core Grafana's pie "All" mode. Hierarchy always hovers per item (category
- *   axis, no shared axis pointer), so this is built in the formatter rather than
- *   via an axis-triggered tooltip.
+ * - The hovered node: its name as header, cumulative `value`, and (when present)
+ *   `self`. Hierarchy always hovers per item (no shared axis pointer), so this is
+ *   built in the formatter rather than via an axis-triggered tooltip.
  */
-function buildHierarchyTooltip(ctx: HierarchySeriesContext): (params: TopLevelFormatterParams) => HTMLElement {
+function buildHierarchyTooltipModel(ctx: HierarchySeriesContext): (params: TopLevelFormatterParams) => TooltipModel {
   return (params) => {
-    const shell = buildTooltipShell(ctx.theme);
     const param = Array.isArray(params) ? params[0] : params;
     const hovered = isHierarchyTreeItem(param?.data) ? param.data : undefined;
-    shell.appendHeader(hovered?.name ?? String(param?.name ?? ''));
-    shell.appendRow({
-      color: typeof param?.color === 'string' ? param.color : undefined,
-      label: 'Value',
-      value: formatTooltipValue(hovered?.value ?? null, ctx.formatValue),
-    });
+    const rows: TooltipRow[] = [
+      {
+        color: typeof param?.color === 'string' ? param.color : undefined,
+        label: 'Value',
+        value: formatTooltipValue(hovered?.value ?? null, ctx.formatValue),
+      },
+    ];
     if (hovered?.self != null) {
-      shell.appendRow({ label: 'Self', value: formatTooltipValue(hovered.self, ctx.formatValue) });
+      rows.push({ label: 'Self', value: formatTooltipValue(hovered.self, ctx.formatValue) });
     }
-    return shell.root;
+    // Item chart: the hovered node's name is the header label.
+    return { header: { label: hovered?.name ?? String(param?.name ?? ''), value: '' }, rows };
   };
 }
 
@@ -159,7 +162,6 @@ function buildHierarchyTooltip(ctx: HierarchySeriesContext): (params: TopLevelFo
  * https://echarts.apache.org/en/option.html#series-treemap
  */
 export function getTreemapSeries(data: HierarchyData, ctx: HierarchySeriesContext): TreemapSeriesOption {
-  console.log('treemap', data, ctx);
   return {
     type: 'treemap',
     // Off by default: keep the panel static like the other families (no
@@ -170,7 +172,7 @@ export function getTreemapSeries(data: HierarchyData, ctx: HierarchySeriesContex
     breadcrumb: { show: ctx.options.legend.isVisible, width: ctx.options.legend.width },
     zlevel: ctx.options.zLevel?.series,
     data: toTreeData(data.roots, makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField)),
-    tooltip: { formatter: buildHierarchyTooltip(ctx) },
+    tooltip: { formatter: toEmittingFormatter(buildHierarchyTooltipModel(ctx), ctx.tooltipSink ?? NOOP_TOOLTIP_SINK) },
   };
 }
 
@@ -187,6 +189,6 @@ export function getSunburstSeries(data: HierarchyData, ctx: HierarchySeriesConte
     nodeClick: false,
     zlevel: ctx.options.zLevel?.series,
     data: toTreeData(data.roots, makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField)),
-    tooltip: { formatter: buildHierarchyTooltip(ctx) },
+    tooltip: { formatter: toEmittingFormatter(buildHierarchyTooltipModel(ctx), ctx.tooltipSink ?? NOOP_TOOLTIP_SINK) },
   };
 }

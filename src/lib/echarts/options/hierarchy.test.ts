@@ -10,6 +10,7 @@ import {
 import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions, type VizTooltipOptions } from '@grafana/schema';
 import { type HierarchyData } from 'lib/echarts/converters/hierarchy';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/model';
 import type { PanelOptions } from 'types';
 import { getSunburstSeries, getTreemapSeries, type HierarchySeriesContext } from './hierarchy';
 
@@ -34,7 +35,8 @@ const panelOptions = (mode: TooltipDisplayMode): PanelOptions => ({
 const ctx = (
   fieldConfig: FieldConfigSource,
   tooltipMode: TooltipDisplayMode = TooltipDisplayMode.Single,
-  valueField?: Field
+  valueField?: Field,
+  tooltipSink?: TooltipSink
 ): HierarchySeriesContext =>
   ({
     theme,
@@ -42,6 +44,7 @@ const ctx = (
     formatValue: (value) => ({ text: String(value) }),
     fieldConfig,
     valueField,
+    tooltipSink,
   }) as HierarchySeriesContext;
 
 // A numeric field carrying a by-value (continuous) Color scheme, with a display
@@ -60,16 +63,33 @@ const byValueField = (): Field => {
   return { ...field, display: getDisplayProcessor({ field, theme }) };
 };
 
-// Call a built series' tooltip formatter with a test param. ECharts types the
-// series `tooltip.formatter` as a wide union; the hierarchy formatter only reads
-// `.name`/`.color`/`.data`, so the test param is passed straight through.
-function callTooltip(series: { tooltip?: { formatter?: unknown } }, param: unknown): HTMLElement {
+// Build a hierarchy series with a capturing tooltip sink, invoke its emitting
+// `tooltip.formatter` with a test param, and return the emitted TooltipModel.
+// ECharts types the series `tooltip.formatter` as a wide union; the hierarchy
+// formatter only reads `.name`/`.color`/`.data`, so the param passes straight
+// through.
+function captureTooltip(
+  build: (sink: TooltipSink) => { tooltip?: { formatter?: unknown } },
+  param: unknown
+): TooltipModel {
+  let captured: TooltipModel | undefined;
+  const series = build((model) => {
+    captured = model;
+  });
   const formatter = series.tooltip?.formatter;
   if (typeof formatter !== 'function') {
     throw new Error('expected a tooltip formatter function');
   }
-  return (formatter as (p: unknown) => HTMLElement)(param);
+  (formatter as (p: unknown) => unknown)(param);
+  if (captured == null) {
+    throw new Error('tooltip formatter did not emit a model');
+  }
+  return captured;
 }
+
+// Flatten a model to a searchable string (header + each row's label/value).
+const tooltipText = (model: TooltipModel) =>
+  [model.header?.label, model.header?.value, ...model.rows.flatMap((row) => [row.label, row.value])].join(' ');
 
 // total > render (a deeper child) and an io sibling, so we can assert both the
 // top-level coloring and that deeper nodes stay uncolored.
@@ -166,44 +186,49 @@ describe('getSunburstSeries top-level colors', () => {
 
 describe('hierarchy tooltip modes', () => {
   it('Single: shows the hovered node name, its value, and self', () => {
-    const series = getTreemapSeries(data, ctx(noOverrides, TooltipDisplayMode.Single));
-
-    const text =
-      callTooltip(series, {
+    const model = captureTooltip(
+      (sink) => getTreemapSeries(data, ctx(noOverrides, TooltipDisplayMode.Single, undefined, sink)),
+      {
         name: 'total',
         color: '#abcdef',
         data: { name: 'total', value: 100, self: 10 },
-      }).textContent ?? '';
+      }
+    );
 
-    expect(text).toContain('total');
+    const text = tooltipText(model);
+    expect(model.header).toEqual({ label: 'total', value: '' });
     expect(text).toContain('Value');
     expect(text).toContain('100');
     expect(text).toContain('Self');
     expect(text).toContain('10');
   });
 
-  // TODO: unskip once `buildHierarchyTooltip` implements "All" (Multi) mode.
+  // TODO: unskip once `buildHierarchyTooltipModel` implements "All" (Multi) mode.
   // The formatter currently ignores `ctx.options.tooltip.mode` and only renders
   // the hovered node; these assert the intended behavior of listing every
-  // top-level node (see the doc comment on `buildHierarchyTooltip`).
+  // top-level node (see the doc comment on `buildHierarchyTooltipModel`).
   it.skip('All: lists every top-level node with its value, regardless of the hovered node', () => {
-    const series = getTreemapSeries(data, ctx(noOverrides, TooltipDisplayMode.Multi));
-
     // Hover a deep node; "All" mode still summarizes the top-level nodes.
-    const text = callTooltip(series, { name: 'render', data: { name: 'render', value: 60 } }).textContent ?? '';
+    const model = captureTooltip(
+      (sink) => getTreemapSeries(data, ctx(noOverrides, TooltipDisplayMode.Multi, undefined, sink)),
+      { name: 'render', data: { name: 'render', value: 60 } }
+    );
 
+    const text = tooltipText(model);
     expect(text).toContain('total');
     expect(text).toContain('100');
     expect(text).toContain('io');
     expect(text).toContain('30');
   });
 
-  // TODO: unskip once `buildHierarchyTooltip` implements "All" (Multi) mode (see above).
+  // TODO: unskip once `buildHierarchyTooltipModel` implements "All" (Multi) mode (see above).
   it.skip('All: sunburst also lists every top-level node', () => {
-    const series = getSunburstSeries(data, ctx(noOverrides, TooltipDisplayMode.Multi));
+    const model = captureTooltip(
+      (sink) => getSunburstSeries(data, ctx(noOverrides, TooltipDisplayMode.Multi, undefined, sink)),
+      {}
+    );
 
-    const text = callTooltip(series, {}).textContent ?? '';
-
+    const text = tooltipText(model);
     expect(text).toContain('total');
     expect(text).toContain('io');
   });

@@ -2,11 +2,12 @@ import { createTheme, FieldType, getDisplayProcessor, type Field, type ValueForm
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
 import {
-  buildMatrixHeatmapTooltip,
+  buildMatrixHeatmapTooltipModel,
   getMatrixHeatmapSeries,
   getMatrixHeatmapVisualMap,
 } from 'lib/echarts/options/matrixHeatmap';
 import { COLOR_SCHEMES } from 'lib/echarts/options/constants';
+import { type TooltipModel } from 'lib/echarts/tooltip/model';
 
 const theme = createTheme();
 // Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
@@ -139,25 +140,27 @@ describe('getMatrixHeatmapVisualMap', () => {
   });
 });
 
-describe('buildMatrixHeatmapTooltip', () => {
+describe('buildMatrixHeatmapTooltipModel', () => {
   const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as TopLevelFormatterParams;
+  const text = (model: TooltipModel) =>
+    [model.header?.label, model.header?.value, ...model.rows.flatMap((row) => [row.label, row.value])].join(' ');
 
   it('maps cell indices back to their category labels and value', () => {
-    const formatter = buildMatrixHeatmapTooltip(data, ctx);
-    const el = formatter(asParams([1, 0, 3]));
+    const formatter = buildMatrixHeatmapTooltipModel(data, ctx);
+    const model = formatter(asParams([1, 0, 3]));
     // X category header, then Value row and the Y category name.
-    expect(el.textContent).toContain('c2');
-    expect(el.textContent).toContain('Value');
-    expect(el.textContent).toContain('3');
-    expect(el.textContent).toContain('Name');
-    expect(el.textContent).toContain('a');
+    expect(model.header).toEqual({ label: '', value: 'c2' });
+    expect(text(model)).toContain('Value');
+    expect(text(model)).toContain('3');
+    expect(text(model)).toContain('Name');
+    expect(text(model)).toContain('a');
   });
 
   it('routes null cells through the field formatter for its No value text', () => {
-    const formatter = buildMatrixHeatmapTooltip(data, ctx);
-    const el = formatter(asParams([0, 0, null]));
+    const formatter = buildMatrixHeatmapTooltipModel(data, ctx);
+    const model = formatter(asParams([0, 0, null]));
     // The representative formatter (stub) emits the field's No value text; in
     // production this is `config.noValue` (default '-'). See getValueFormatter.
-    expect(el.textContent).toContain('null');
+    expect(text(model)).toContain('null');
   });
 });
