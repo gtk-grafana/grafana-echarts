@@ -17,6 +17,9 @@ import {
   type EffectScatterSeriesOption,
   type GridComponentOption,
   type HeatmapSeriesOption,
+  type LegendComponentOption,
+  type ParallelComponentOption,
+  type ParallelSeriesOption,
   type PieSeriesOption,
   type RadarComponentOption,
   type RadarSeriesOption,
@@ -94,6 +97,23 @@ export type EChartScatterSeriesOption = ComposeOption<ScatterSeriesOption>;
 export type EChartPieSeriesOption = ComposeOption<PieSeriesOption | TitleComponentOption>;
 // Radar needs both the series and the `radar` coordinate component.
 export type EChartRadarSeriesOption = ComposeOption<RadarSeriesOption | RadarComponentOption>;
+// The parallel-coordinates axis option, derived from the component's
+// `parallelAxisDefault` (ECharts does not export `ParallelAxisOption` from the
+// barrel).
+type ParallelAxisOption = NonNullable<ParallelComponentOption['parallelAxisDefault']>;
+// Parallel coordinates composes the parallel series and the `legend` component
+// (like radar, the module sets a `legend`; unlike radar, the parallel series does
+// not declare a legend dependency, so it is composed in explicitly). The
+// `parallel` coordinate component and its `parallelAxis` array are added by hand
+// rather than through `ComposeOption`'s dependency mechanism: `ParallelAxisOption`
+// lacks a `mainType: 'parallelAxis'` literal, so composing the `parallel`
+// component (whose `mainType` *is* a `ComposeOption` dependency key) makes
+// `GetDependency` synthesize a `{ [key: string]: ParallelAxisOption }` index
+// signature that then conflicts with every other key. See ECharts' `GetDependency`.
+export type EChartParallelSeriesOption = ComposeOption<ParallelSeriesOption | LegendComponentOption> & {
+  parallel?: ParallelComponentOption | ParallelComponentOption[];
+  parallelAxis?: ParallelAxisOption | ParallelAxisOption[];
+};
 // Hierarchy families render a value-weighted tree; no cartesian axis component.
 export type EChartTreemapSeriesOption = ComposeOption<TreemapSeriesOption>;
 export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
@@ -124,6 +144,7 @@ export type EChartBuildOption =
   | EChartScatterSeriesOption
   | EChartPieSeriesOption
   | EChartRadarSeriesOption
+  | EChartParallelSeriesOption
   | EChartTreemapSeriesOption
   | EChartSunburstSeriesOption
   | EChartCandlestickSeriesOption

@@ -1,0 +1,328 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "multivariate", "parallel"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Multivariate — parallel styling",
+  "uid": "echarts-multivariate-parallel-styled",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced \"Layout\" = Vertical (parallel.layout): the axes stack top-to-bottom and the polylines run down the panel. Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "parallel",
+        "editorMode": "advanced",
+        "parallelLayout": "vertical"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Layout: Vertical",
+      "type": "grafana-echartsmultivariate-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced \"Line width\" = 3 (series.lineStyle.width): thicker polylines. Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "parallel",
+        "editorMode": "advanced",
+        "parallelLineWidth": 3
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Line width: 3",
+      "type": "grafana-echartsmultivariate-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced \"Line opacity\" = 40 (series.lineStyle.opacity, 0–100): translucent polylines to de-clutter overlapping lines. Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "parallel",
+        "editorMode": "advanced",
+        "parallelLineOpacity": 40
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Line opacity: 40",
+      "type": "grafana-echartsmultivariate-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Combined styling: vertical layout, thicker lines, reduced opacity, and smoothing together. Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "parallel",
+        "editorMode": "advanced",
+        "parallelLayout": "vertical",
+        "parallelLineWidth": 2,
+        "parallelLineOpacity": 60,
+        "parallelSmooth": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Combined styling",
+      "type": "grafana-echartsmultivariate-panel"
+    }
+  ]
+}

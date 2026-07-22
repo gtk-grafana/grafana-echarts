@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { RADAR_SYMBOL_SIZE_DEFAULT, radarSymbolSizePath } from 'editor/radar';
+import { isRadarSelected, RADAR_SYMBOL_SIZE_DEFAULT, radarSymbolSizePath } from 'editor/radar';
 import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
@@ -15,5 +15,6 @@ export function addRadarSymbolSizeOptions(builder: PanelOptionsEditorBuilder<Pan
     description: 'Marker size at each polygon vertex (px). 0 hides the markers.',
     defaultValue: RADAR_SYMBOL_SIZE_DEFAULT,
     settings: { min: 0, max: 40, integer: true },
+    showIf: isRadarSelected,
   });
 }

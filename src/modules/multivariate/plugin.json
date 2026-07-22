@@ -5,8 +5,8 @@
   "name": "ECharts Multivariate",
   "id": "grafana-echartsmultivariate-panel",
   "info": {
-    "keywords": ["panel", "echarts", "radar", "multivariate"],
-    "description": "Multivariate ECharts panel (radar) built from categorical data.",
+    "keywords": ["panel", "echarts", "radar", "parallel", "multivariate"],
+    "description": "Multivariate ECharts panel (radar and parallel coordinates) built from categorical data.",
     "author": {
       "name": "Grafana"
     },

@@ -27,10 +27,10 @@ export type SeriesType =
 
 export type CategoricalOnlySeriesType = Extract<SeriesType, 'pie' | 'radar'>;
 /**
- * Render types the multivariate family can host. `radar` today; `parallel`
- * (parallel coordinates) is the roadmap second type (see
- * `modules/multivariate/parity.md`). Both use the categorical model but different
- * coordinate systems, so the family dispatches on the concrete type.
+ * Render types the multivariate family hosts: `radar` and `parallel` (parallel
+ * coordinates). Both use the same categorical model but different coordinate
+ * systems, so the family dispatches on the concrete type. See
+ * `modules/multivariate/parity.md`.
  */
 export type MultivariateSeriesType = Extract<SeriesType, 'radar' | 'parallel'>;
 export type CategoricalAxisSeriesType = Extract<SeriesType, 'line' | 'bar' | 'scatter' | 'effectScatter' | 'boxplot'>;
@@ -60,6 +60,14 @@ export type SeriesTypeOption = SeriesType | 'Auto';
  * See `getRadarComponent`.
  */
 export type RadarShape = 'polygon' | 'circle';
+
+/**
+ * Parallel-coordinates (multivariate) layout direction (ECharts
+ * `parallel.layout`): `horizontal` (axes laid out left-to-right, the ECharts
+ * default) or `vertical` (axes top-to-bottom). Advanced-only. See
+ * `getParallelComponent`.
+ */
+export type ParallelLayout = 'horizontal' | 'vertical';
 
 /**
  * Cartesian "Show values" mode (Bar-chart parity): whether per-point value labels

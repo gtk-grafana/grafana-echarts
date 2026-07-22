@@ -1,11 +1,12 @@
 import { type SelectableValue } from '@grafana/data';
-import { type MultivariateSeriesType, type RadarShape, type SeriesType } from 'editor/types';
+import { type MultivariateSeriesType, type RadarShape, type SeriesType, type SeriesTypeOption } from 'editor/types';
 
 /**
- * Multivariate-family editor constants (radar today; parallel coordinates is the
- * roadmap second render type — see `modules/multivariate/parity.md`). Moved out
- * of the shared `editor/constants.ts` so the family's constants live beside it
- * (mirrors `editor/pie.ts` / `editor/cartesian.ts`).
+ * Multivariate-family editor constants and chart-type selection helpers. Radar's
+ * own constants live here; the parallel-coordinates constants live in
+ * `editor/parallel.ts`. Moved out of the shared `editor/constants.ts` so the
+ * family's constants live beside it (mirrors `editor/pie.ts` / `editor/cartesian.ts`).
+ * See `modules/multivariate/parity.md`.
  */
 
 /**
@@ -15,22 +16,45 @@ import { type MultivariateSeriesType, type RadarShape, type SeriesType } from 'e
 export const radarSeriesTypes: SeriesType[] = ['radar'];
 
 /**
- * Every render type the multivariate family can host. Today just `radar`;
- * `parallel` (parallel-coordinates) will be added here when implemented, at
- * which point the family's chart-module dispatch and the "Chart type" picker
- * both light up (both key off this list). Kept distinct from `radarSeriesTypes`
- * (the radar-only subset) so the radar-specific routing stays precise.
+ * Every render type the multivariate family can host: radar and parallel
+ * coordinates. Both use the shared categorical model but different coordinate
+ * systems, so the family's chart-module dispatch (`multivariateChartModule`) and
+ * axis mapping key off this list. The "Chart type" picker lights up separately,
+ * once `MULTIVARIATE_SERIES_TYPE_OPTIONS` lists more than one option. Kept
+ * distinct from `radarSeriesTypes` (the radar-only subset) so the radar-specific
+ * routing stays precise.
  */
-export const multivariateSeriesTypes: MultivariateSeriesType[] = ['radar'];
+export const multivariateSeriesTypes: MultivariateSeriesType[] = ['radar', 'parallel'];
 
 /**
  * Render types offered by the multivariate family panel's "Chart type" picker.
- * One entry (`radar`) today, so the picker is not registered (a no-op seam);
- * adding `parallel` here lights it up. See `modules/multivariate/module.tsx`.
+ * With more than one entry the picker registers (see
+ * `modules/multivariate/module.tsx`), letting a panel toggle radar↔parallel over
+ * the same frames.
  */
 export const MULTIVARIATE_SERIES_TYPE_OPTIONS: Array<SelectableValue<MultivariateSeriesType>> = [
   { value: 'radar', label: 'Radar' },
+  { value: 'parallel', label: 'Parallel' },
 ];
+
+/**
+ * Resolve the multivariate panel's stored `seriesType` to a concrete render type.
+ * The "Chart type" picker writes `radar` or `parallel`; an unset or `'Auto'` value
+ * (a fresh panel, or one predating the picker) resolves to `radar`, the family
+ * default (mirrors `resolveAutoSeriesType`). Drives the editor `showIf` gates so
+ * radar and parallel options stay mutually exclusive.
+ */
+export function resolveMultivariateSeriesType(options: { seriesType?: SeriesTypeOption }): MultivariateSeriesType {
+  return options.seriesType === 'parallel' ? 'parallel' : 'radar';
+}
+
+/** Whether the multivariate panel is rendering radar (the family default). */
+export const isRadarSelected = (options: { seriesType?: SeriesTypeOption }): boolean =>
+  resolveMultivariateSeriesType(options) === 'radar';
+
+/** Whether the multivariate panel is rendering parallel coordinates. */
+export const isParallelSelected = (options: { seriesType?: SeriesTypeOption }): boolean =>
+  resolveMultivariateSeriesType(options) === 'parallel';
 
 /**
  * Editor category for radar chart-shape options. Named "Radar" so future

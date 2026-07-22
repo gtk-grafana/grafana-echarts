@@ -1,7 +1,10 @@
+import { PARALLEL_SMOOTH_DEFAULT } from 'editor/parallel';
 import { findCategoricalFrame, mapNumericFields } from 'lib/echarts/converters/frames';
+import { parallelToEChartsOption } from 'lib/echarts/converters/parallel';
 import { radarToEChartsOption } from 'lib/echarts/converters/radar';
 import { DEFAULT_CHART_LEGEND, resolveEChartsLegend } from 'lib/echarts/options/legend';
 import { buildRadarLegendItems } from 'lib/echarts/options/legendItems';
+import { getParallelComponent, getParallelLineStyle, parallelDefaultOptions } from 'lib/echarts/options/parallel';
 import {
   getRadarAreaStyle,
   getRadarComponent,
@@ -11,14 +14,22 @@ import {
 } from 'lib/echarts/options/radar';
 import { getFieldValueFormatters } from 'lib/echarts/style';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
-import { type BaseOptionParts, type ChartContext, type ChartModule, type EChartRadarSeriesOption } from './types';
+import {
+  type BaseOptionParts,
+  type ChartContext,
+  type ChartModule,
+  type EChartParallelSeriesOption,
+  type EChartRadarSeriesOption,
+} from './types';
 
 /**
- * Multivariate chart family: radar today, with parallel coordinates as the
- * roadmap second render type. `buildOption` dispatches on `ctx.seriesType`
- * (mirrors `hierarchyChartModule`), so a `parallel` branch can slot in beside
- * radar without disturbing routing. See `modules/multivariate/parity.md` for the
- * exact drop-in steps.
+ * Multivariate chart family: radar and parallel coordinates, built from the
+ * *same* shared categorical model (categories -> axes, each numeric field -> one
+ * series). `buildOption` dispatches on `ctx.seriesType` (mirrors
+ * `hierarchyChartModule`) to pick the coordinate system. Because both render
+ * types map one numeric field to one series, the shared `buildLegendItems` and
+ * `getTooltipValueFormatter` (`dataIndex` -> field) serve both unchanged. See
+ * `modules/multivariate/parity.md`.
  */
 
 /** Radar render: indicators from the categories, one polygon per numeric field. */
@@ -58,6 +69,56 @@ function buildRadarOption(ctx: ChartContext, isGrafanaLegend: boolean): EChartRa
   };
 }
 
+/**
+ * Parallel-coordinates render: one `parallelAxis` per category (a value axis that
+ * auto-scales to its own data), one polyline per numeric field, colored by the
+ * field's color via each data item's `lineStyle`.
+ */
+function buildParallelOption(ctx: ChartContext, isGrafanaLegend: boolean): EChartParallelSeriesOption | null {
+  const { frames, theme, options } = ctx;
+  const parallel = parallelToEChartsOption(frames, theme);
+
+  if (!parallel) {
+    return null;
+  }
+
+  // Advanced series style (line width / opacity) and the Default-tier smooth
+  // toggle, each omitted at its default so an untouched parallel chart renders on
+  // ECharts' own defaults.
+  const lineStyle = getParallelLineStyle(options.parallelLineWidth, options.parallelLineOpacity);
+  const smooth = options.parallelSmooth ?? PARALLEL_SMOOTH_DEFAULT;
+
+  return {
+    ...parallelDefaultOptions,
+    legend: resolveEChartsLegend(
+      isGrafanaLegend,
+      options.legend,
+      theme,
+      parallel.data.map((line) => line.name)
+    ),
+    // The `parallel` coordinate component carries the Advanced layout; the axes
+    // are their own top-level `parallelAxis` array — one value axis per category,
+    // positioned by `dim`.
+    parallel: getParallelComponent(options.parallelLayout),
+    parallelAxis: parallel.axes.map((axis, dim) => ({ dim, name: axis.name, type: 'value' as const })),
+    series: [
+      {
+        type: 'parallel',
+        // Per-line color rides on each data item's `lineStyle.color` (the
+        // documented per-line form); the series-level `lineStyle` below carries
+        // the shared width/opacity.
+        data: parallel.data.map((line) => ({ value: line.value, lineStyle: line.lineStyle })),
+        ...(smooth ? { smooth: true } : {}),
+        ...(lineStyle ? { lineStyle } : {}),
+        // Place the series on its own canvas layer (see the panel's
+        // `zLevel.series`), matching the other families so layered canvas capture
+        // can isolate it (also what the canvas tests read).
+        zlevel: options.zLevel?.series,
+      },
+    ],
+  };
+}
+
 export const multivariateChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
@@ -70,13 +131,16 @@ export const multivariateChartModule: ChartModule = {
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
   },
 
-  buildOption(ctx: ChartContext, { isGrafanaLegend }: BaseOptionParts): EChartRadarSeriesOption | null {
-    if (ctx.seriesType === 'radar') {
-      return buildRadarOption(ctx, isGrafanaLegend);
+  buildOption(
+    ctx: ChartContext,
+    { isGrafanaLegend }: BaseOptionParts
+  ): EChartRadarSeriesOption | EChartParallelSeriesOption | null {
+    if (ctx.seriesType === 'parallel') {
+      return buildParallelOption(ctx, isGrafanaLegend);
     }
-    // parallel: roadmap — a `parallel` branch builds the parallel-coordinates
-    // option here (see modules/multivariate/parity.md).
-    return null;
+    // Radar is the family default: an unset/`'Auto'` seriesType resolves to radar
+    // upstream (see `resolveAutoSeriesType`), so anything not `parallel` is radar.
+    return buildRadarOption(ctx, isGrafanaLegend);
   },
 
   buildLegendItems(ctx, calcs) {

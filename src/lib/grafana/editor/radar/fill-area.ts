@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { RADAR_FILL_AREA_DEFAULT, radarCategoryName, radarFillAreaPath } from 'editor/radar';
+import { isRadarSelected, RADAR_FILL_AREA_DEFAULT, radarCategoryName, radarFillAreaPath } from 'editor/radar';
 import { type PanelOptions } from 'types';
 
 /**
@@ -14,5 +14,6 @@ export function addRadarFillAreaOptions(builder: PanelOptionsEditorBuilder<Panel
     category: [radarCategoryName],
     description: 'Fill each polygon with a translucent tint',
     defaultValue: RADAR_FILL_AREA_DEFAULT,
+    showIf: isRadarSelected,
   });
 }

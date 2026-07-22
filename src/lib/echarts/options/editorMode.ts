@@ -5,6 +5,7 @@ import {
   isMultivariateSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { ADVANCED_CARTESIAN_DEFAULTS } from 'lib/echarts/options/cartesian';
+import { ADVANCED_PARALLEL_DEFAULTS } from 'lib/echarts/options/parallel';
 import { ADVANCED_PIE_DEFAULTS } from 'lib/echarts/options/pie';
 import { ADVANCED_RADAR_DEFAULTS } from 'lib/echarts/options/radar';
 import { isAdvancedEditorMode, isApiEditorMode } from 'lib/grafana/editor/common/editor-mode';
@@ -48,6 +49,12 @@ export function applyEditorModeDefaults(seriesType: SeriesType, options: PanelOp
   }
   if (isCartesianSingleValueSeriesType(seriesType) || isMultiValueSeriesType(seriesType)) {
     return applyAdvancedDefaults(options, ADVANCED_CARTESIAN_DEFAULTS);
+  }
+  // Parallel shares the multivariate family with radar but has its own Advanced
+  // defaults, so it must be checked before the radar branch below (which the
+  // `isMultivariateSeriesType` predicate would otherwise also match).
+  if (seriesType === 'parallel') {
+    return applyAdvancedDefaults(options, ADVANCED_PARALLEL_DEFAULTS);
   }
   if (isMultivariateSeriesType(seriesType)) {
     return applyAdvancedDefaults(options, ADVANCED_RADAR_DEFAULTS);

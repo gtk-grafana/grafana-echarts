@@ -18,6 +18,7 @@ import {
   type PieLegendValue,
   type PieRoseType,
   type PieSelectedMode,
+  type ParallelLayout,
   type RadarShape,
   type SeriesTypeOption,
 } from 'editor/types';
@@ -393,6 +394,33 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * default (5 rings). See `getRadarComponent`.
    */
   radarSplitNumber?: number;
+
+  /**
+   * Parallel (multivariate) smooth lines (Default tier; ECharts `series.smooth`):
+   * curve each polyline through its axis crossings rather than drawing straight
+   * segments. Off/unset draws straight segments (unchanged). See `buildParallelOption`.
+   */
+  parallelSmooth?: boolean;
+
+  /**
+   * Parallel layout direction (Advanced; ECharts `parallel.layout`): `horizontal`
+   * (axes left-to-right, the default) or `vertical` (axes top-to-bottom). See
+   * `getParallelComponent`.
+   */
+  parallelLayout?: ParallelLayout;
+
+  /**
+   * Parallel line width in px (Advanced; ECharts `series.lineStyle.width`). Unset
+   * uses ECharts' default stroke. See `getParallelLineStyle`.
+   */
+  parallelLineWidth?: number;
+
+  /**
+   * Parallel line opacity 0–100 (Advanced; ECharts `series.lineStyle.opacity`).
+   * Unset uses ECharts' default; lowering it de-clutters dense line bundles. See
+   * `getParallelLineStyle`.
+   */
+  parallelLineOpacity?: number;
 
   // @internal
   animation?: {

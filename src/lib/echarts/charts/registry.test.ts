@@ -20,10 +20,12 @@ describe('resolveChartModule', () => {
     expect(resolveChartModule('boxplot')).toBe(cartesianChartModule);
   });
 
-  it('routes pie and radar to their modules', () => {
+  it('routes pie to its module and both multivariate types to the multivariate module', () => {
     expect(resolveChartModule('pie')).toBe(pieChartModule);
-    // Radar routes to the (renamed) multivariate module.
+    // Radar and parallel share the (renamed) multivariate module; the module
+    // picks the coordinate system from the type.
     expect(resolveChartModule('radar')).toBe(multivariateChartModule);
+    expect(resolveChartModule('parallel')).toBe(multivariateChartModule);
   });
 
   it('throws for unsupported concrete types', () => {
@@ -32,7 +34,7 @@ describe('resolveChartModule', () => {
 
   it('lists all supported series types', () => {
     expect(supportedChartSeriesTypes).toEqual(
-      expect.arrayContaining(['line', 'bar', 'scatter', 'effectScatter', 'heatmap', 'pie', 'radar'])
+      expect.arrayContaining(['line', 'bar', 'scatter', 'effectScatter', 'heatmap', 'pie', 'radar', 'parallel'])
     );
   });
 });

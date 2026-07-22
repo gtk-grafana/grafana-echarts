@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { RADAR_LINE_WIDTH_DEFAULT, radarLineWidthPath } from 'editor/radar';
+import { isRadarSelected, RADAR_LINE_WIDTH_DEFAULT, radarLineWidthPath } from 'editor/radar';
 import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
@@ -15,5 +15,6 @@ export function addRadarLineWidthOptions(builder: PanelOptionsEditorBuilder<Pane
     description: 'Stroke width of the polygon outlines (px). Empty uses the default.',
     defaultValue: RADAR_LINE_WIDTH_DEFAULT,
     settings: { min: 0, max: 20, integer: true },
+    showIf: isRadarSelected,
   });
 }

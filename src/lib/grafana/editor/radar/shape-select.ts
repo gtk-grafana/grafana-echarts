@@ -1,5 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { RADAR_SHAPE_DEFAULT, radarShapeOptions, radarShapePath } from 'editor/radar';
+import { isRadarSelected, RADAR_SHAPE_DEFAULT, radarShapeOptions, radarShapePath } from 'editor/radar';
 import { addAdvancedRadio } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
@@ -15,5 +15,6 @@ export function addRadarShapeOptions(builder: PanelOptionsEditorBuilder<PanelOpt
     description: 'Radar grid shape: polygon (straight edges) or circle',
     defaultValue: RADAR_SHAPE_DEFAULT,
     settings: { options: radarShapeOptions },
+    showIf: isRadarSelected,
   });
 }

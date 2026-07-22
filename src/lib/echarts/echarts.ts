@@ -7,6 +7,7 @@ import {
   EffectScatterChart,
   HeatmapChart,
   LineChart,
+  ParallelChart,
   PieChart,
   RadarChart,
   ScatterChart,
@@ -20,6 +21,7 @@ import {
   LegendComponent,
   MarkAreaComponent,
   MarkLineComponent,
+  ParallelComponent,
   RadarComponent,
   TitleComponent,
   TooltipComponent,
@@ -59,6 +61,7 @@ registerEChartsModules([
   BoxplotChart, // multi-value cartesian: [min, Q1, median, Q3, max]
   PieChart,
   RadarChart,
+  ParallelChart, // multivariate family: parallel coordinates (one axis per category, one polyline per field)
   TreemapChart, // hierarchy family: nested rectangles sized by value
   SunburstChart, // hierarchy family: radial rings sized by value
   CustomChart, // binned heatmap cells are drawn as a custom series
@@ -72,6 +75,7 @@ registerEChartsModules([
   AxisPointerComponent,
   BrushComponent, // drag-select on the time axis for range zoom
   RadarComponent, // radar coordinate system
+  ParallelComponent, // parallel-coordinates coordinate system (parallel + parallelAxis)
   VisualMapContinuousComponent, // heatmap color gradient
   MarkLineComponent, // threshold lines on cartesian series
   MarkAreaComponent, // threshold filled regions on cartesian series
