@@ -183,6 +183,46 @@ export const getSeriesCanvasEvents = async (container: HTMLElement) => {
 };
 
 /**
+ * Series-layer draw calls for charts that repaint more than once on first render,
+ * captured deterministically.
+ *
+ * ECharts' parallel-coordinates view draws its polylines under a grid clip-path
+ * and then removes it via a `setTimeout` (see ParallelView `createGridClipShape`),
+ * which clears and repaints the series layer a second (and sometimes third) time.
+ * jest-canvas-mock *accumulates* draw calls across repaints and never resets on
+ * `clearRect`, so a capture taken at the `finished` event sees a non-deterministic
+ * number of accumulated paints — the source of the flaky parallel snapshots.
+ *
+ * This drains the deferred repaints, discards the accumulated draw calls, then
+ * forces a single clean full repaint via `resize` (which re-renders everything;
+ * the parallel view is already initialized, so it no longer re-adds the clip-path)
+ * and captures exactly that one paint. Use it instead of `getSeriesCanvasEvents`
+ * for the parallel family; single-paint charts do not need it.
+ */
+export const getSettledSeriesCanvasEvents = async (container: HTMLElement) => {
+  const { chartInstanceDom, chart } = getChart(container);
+  await waitForFinished(chart);
+  chart?.getZr().flush();
+  // Discard the accumulated multi-paint draw calls on every layer canvas.
+  chartInstanceDom.querySelectorAll('canvas').forEach((canvas) => {
+    const ctx = canvas.getContext('2d');
+    expect(ctx).not.toBeNull();
+    if (ctx === null) {
+      throw new Error('Narrow the canvas type');
+    }
+    ctx.__clearEvents?.();
+    ctx.__clearDrawCalls?.();
+  });
+  // Force one clean full repaint (same dimensions) and flush it synchronously, so
+  // the captured events are a single deterministic paint.
+  chart?.resize({ width, height });
+  chart?.getZr().flush();
+  const defaultEvents = readCanvasLayer(chartInstanceDom, DEFAULT_LAYER_SELECTOR);
+  const seriesEvents = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+  return { defaultEvents, seriesEvents };
+};
+
+/**
  * Render-settled draw calls including the dedicated axis layer. Requires the
  * panel to be rendered with `zLevel.axis` set (see `AXIS_ZLEVEL`).
  */

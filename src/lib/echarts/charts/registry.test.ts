@@ -1,9 +1,9 @@
 import {
   cartesianChartModule,
   heatmapChartModule,
+  multivariateChartModule,
   partToWholeChartModule,
   pieChartModule,
-  radarChartModule,
   resolveChartModule,
   supportedChartSeriesTypes,
 } from 'lib/echarts/charts/registry';
@@ -21,9 +21,12 @@ describe('resolveChartModule', () => {
     expect(resolveChartModule('boxplot')).toBe(cartesianChartModule);
   });
 
-  it('routes pie and radar to their modules', () => {
+  it('routes pie to its module and both multivariate types to the multivariate module', () => {
     expect(resolveChartModule('pie')).toBe(pieChartModule);
-    expect(resolveChartModule('radar')).toBe(radarChartModule);
+    // Radar and parallel share the (renamed) multivariate module; the module
+    // picks the coordinate system from the type.
+    expect(resolveChartModule('radar')).toBe(multivariateChartModule);
+    expect(resolveChartModule('parallel')).toBe(multivariateChartModule);
   });
 
   it('routes the part-to-whole family (pie + funnel) to the shared module', () => {
@@ -40,7 +43,17 @@ describe('resolveChartModule', () => {
 
   it('lists all supported series types', () => {
     expect(supportedChartSeriesTypes).toEqual(
-      expect.arrayContaining(['line', 'bar', 'scatter', 'effectScatter', 'heatmap', 'pie', 'funnel', 'radar'])
+      expect.arrayContaining([
+        'line',
+        'bar',
+        'scatter',
+        'effectScatter',
+        'heatmap',
+        'pie',
+        'funnel',
+        'radar',
+        'parallel',
+      ])
     );
   });
 });

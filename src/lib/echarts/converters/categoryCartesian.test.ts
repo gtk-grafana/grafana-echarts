@@ -71,13 +71,20 @@ describe('categoryCartesianToEChartsOption', () => {
     expect(result.series).toMatchObject([{ type: 'line' }, { type: 'line' }]);
   });
 
-  it('resolves a color for each series (item and line style)', () => {
+  it('resolves a color on itemStyle for each bar series', () => {
     const result = run([tableFrame()], 'bar');
 
+    // Bars render from itemStyle; they carry no lineStyle.
     for (const s of result.series) {
-      const color = s.itemStyle?.color;
-      expect(color).toEqual('#808080');
-      expect(s).toMatchObject({ lineStyle: { color } });
+      expect(s.itemStyle?.color).toEqual('#808080');
+    }
+  });
+
+  it('colors line series on both itemStyle and lineStyle', () => {
+    const result = run([tableFrame()], 'line');
+
+    for (const s of result.series) {
+      expect(s).toMatchObject({ itemStyle: { color: '#808080' }, lineStyle: { color: '#808080' } });
     }
   });
 

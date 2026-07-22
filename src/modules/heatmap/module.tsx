@@ -1,13 +1,11 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
+import { PanelPlugin } from '@grafana/data';
 import { commonOptionsBuilder } from '@grafana/ui';
-import {
-  cartesianOverrideOptions,
-  heatmapLegendCategoryName,
-  seriesCategoryName,
-  TOOLTIP_DEFAULT_OPTIONS,
-} from 'editor/constants';
+import { cartesianOverrideOptions } from 'editor/cartesian';
+import { heatmapLegendCategoryName, seriesCategoryName } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
+import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { heatmapColorSchemeDefault, heatmapLayoutDefault } from 'lib/echarts/options/constants';
 import { heatmapColorSchemeOptions, heatmapLayoutOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
@@ -23,18 +21,7 @@ import { heatmapSuggestionsSupplier } from './suggestions';
 // overlay on top of the heatmap cells (see `frameHasCartesianOverride`).
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('heatmap'))
   .useFieldConfig({
-    standardOptions: {
-      [FieldConfigProperty.Color]: {
-        settings: {
-          byValueSupport: true,
-          bySeriesSupport: true,
-          preferThresholdsMode: false,
-        },
-        defaultValue: {
-          mode: FieldColorModeId.PaletteClassic,
-        },
-      },
-    },
+    standardOptions: STANDARD_COLOR_OPTIONS,
     // Per-field series type override, scoped to cartesian types. Overriding a
     // numeric frame's field to line/bar/scatter promotes it from a heatmap
     // bucket row to a cartesian overlay drawn over the cells — the sanctioned
@@ -104,8 +91,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // @todo We only need this in a somewhat edge-case situation, so it really sucks that we always have to display the
     // legend in the editor UI because the field config is applied to the data frame after the panel options are already
     // built. So we don't have the field config override that we want to know if a field has been selected to render as a cartesian series.
-    commonOptionsBuilder.addLegendOptions(builder);
-    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
+    addCommonLegendAndTooltip(builder);
 
     return builder;
   })

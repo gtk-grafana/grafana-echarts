@@ -18,9 +18,10 @@ import {
   cartesianTimeDefaultOptions,
   getCartesianAxisStyle,
   getTimeAxisBounds,
+  getXTickRotate,
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
-import { DEFAULT_CHART_LEGEND, getLegendOption } from 'lib/echarts/options/legend';
+import { DEFAULT_CHART_LEGEND, resolveEChartsLegend } from 'lib/echarts/options/legend';
 import {
   buildCategoryCartesianLegendItems,
   buildMultiValueCartesianLegendItems,
@@ -82,12 +83,15 @@ function buildTimeOption(
   // render in browser-local time, ignoring the dashboard timezone).
   const xAxis = mergeAxisStyle<XAXisOption>(cartesianTimeDefaultOptions.xAxis, axisStyle, {
     ...getTimeAxisBounds(ctx.timeRange),
-    axisLabel: { formatter: getTimeAxisLabelFormatter(ctx.timeRange, ctx.timeZone) },
+    axisLabel: {
+      formatter: getTimeAxisLabelFormatter(ctx.timeRange, ctx.timeZone),
+      ...getXTickRotate(options.xTickRotate),
+    },
   });
 
   return {
     ...cartesianTimeDefaultOptions,
-    legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
+    legend: resolveEChartsLegend(isGrafanaLegend, options.legend, theme),
     grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend, getAxisGridSpacing(axes)),
     xAxis,
     yAxis: axes.yAxis,
@@ -129,14 +133,16 @@ function buildCategoryOption(
   const series = attachThresholdMarks(indexedSeries, cartesianThresholdMarks(ctx));
 
   // The category axis carries its labels in `data`; there is no per-tick value
-  // to format, so no value formatter is applied to the x-axis.
+  // to format, so no value formatter is applied to the x-axis. The Advanced "X
+  // tick rotation" is merged into the axis label (omitted at 0).
   const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
     data: categoryData.categories,
+    axisLabel: getXTickRotate(options.xTickRotate),
   });
 
   return {
     ...cartesianCategoryDefaultOptions,
-    legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
+    legend: resolveEChartsLegend(isGrafanaLegend, options.legend, theme),
     grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend, getAxisGridSpacing(axes)),
     xAxis,
     yAxis: axes.yAxis,
@@ -184,7 +190,7 @@ function buildMultiValueOption(
   // via Grafana's timezone-aware formatter; non-time categories pass through.
   const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
     data: multiValueData?.categories ?? [],
-    axisLabel: { formatter: getTimeAxisLabelFormatter(timeRange, timeZone) },
+    axisLabel: { formatter: getTimeAxisLabelFormatter(timeRange, timeZone), ...getXTickRotate(options.xTickRotate) },
   });
 
   const baseSeries = multiValueData?.series;
@@ -199,7 +205,7 @@ function buildMultiValueOption(
 
   return {
     ...cartesianCategoryDefaultOptions,
-    legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
+    legend: resolveEChartsLegend(isGrafanaLegend, options.legend, theme),
     grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
     xAxis,
     yAxis,

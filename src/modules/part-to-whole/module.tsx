@@ -1,12 +1,14 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
+import { PanelPlugin } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { seriesTypePath, TOOLTIP_DEFAULT_OPTIONS } from 'editor/constants';
+import { seriesTypePath } from 'editor/constants';
 import { isPieVariant } from 'editor/funnel';
 import { PIE_CALC_DEFAULT, partToWholeSeriesTypeOptions } from 'editor/pie';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
+import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { removeOption } from 'lib/grafana/editor/common/removeOption';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
 import { addFunnelAlignOptions } from 'lib/grafana/editor/funnel/align';
@@ -48,18 +50,7 @@ initPluginTranslations('grafana-echarts-app');
 // the same slices. gauge is a planned third variant.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('part-to-whole'))
   .useFieldConfig({
-    standardOptions: {
-      [FieldConfigProperty.Color]: {
-        settings: {
-          byValueSupport: true,
-          bySeriesSupport: true,
-          preferThresholdsMode: false,
-        },
-        defaultValue: {
-          mode: FieldColorModeId.PaletteClassic,
-        },
-      },
-    },
+    standardOptions: STANDARD_COLOR_OPTIONS,
     // Register `custom.hideFrom` so the legend visibility toggle's `byName`
     // override is applied by Grafana (unregistered override properties are
     // skipped). Pie/funnel slices are rows of one field, so the converter reads
@@ -159,19 +150,18 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     addFunnelSizeOptions(builder); // minSize / maxSize
     addFunnelLabelPositionOptions(builder); // label.position (choices depend on orient)
 
-    // Standard legend options, but without the reducer "Values" stats-picker
-    // (`includeLegendCalcs: false`): an arbitrary reducer over a single-value
-    // slice is meaningless. The pie's own Percent / Value control replaces it.
-    // Shared by both variants.
-    commonOptionsBuilder.addLegendOptions(builder, false);
-    // Legend values (Percent / Value) — Grafana Pie chart parity. Rendered by
-    // `buildPieLegendItems` (shared by both variants).
+    // Shared Legend + Tooltip pair, but without the legend's reducer "Values"
+    // stats-picker (`includeLegendCalcs: false`): an arbitrary reducer over a
+    // single-value slice is meaningless. The pie's own Percent / Value control
+    // replaces it. Shared by both variants (pie + funnel).
+    addCommonLegendAndTooltip(builder, { includeLegendCalcs: false });
+    // Legend values (Percent / Value) — Grafana Pie chart parity. Registered in
+    // the same "Legend" category (after the standard legend options). Rendered by
+    // `buildPieLegendItems`.
     addPieLegendValueOptions(builder);
-
-    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
-    // The slice `sort` already governs tooltip row order (see `buildPieTooltip`),
-    // so the common tooltip's "Values sort order" control would be a no-op here.
-    // Drop it, keeping mode / hide-zeros / max size.
+    // The pie's own slice `sort` already governs tooltip row order (see
+    // `buildPieTooltip`), so the common tooltip's "Values sort order" control
+    // would be a no-op here. Drop it, keeping mode / hide-zeros / max size.
     removeOption(builder, 'tooltip.sort');
 
     return builder;

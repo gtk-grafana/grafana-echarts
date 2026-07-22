@@ -1,9 +1,10 @@
 import { type Field, getFieldDisplayName } from '@grafana/data';
-import { STACK_GROUP_ID } from 'editor/constants';
+import { STACK_GROUP_ID } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type HeatmapSeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
+import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
 import { getSeriesColor } from 'lib/echarts/style';
 import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
@@ -41,24 +42,29 @@ export function timeSeriesToEChartsOption(
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
     const resolvedType = resolveFieldSeriesType<CartesianSingleValueSeriesType | HeatmapSeriesType>(field, seriesType);
-    // Only bar supports stacked
-    const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
-    // Heatmap doesn't support series.type
-    const type = resolvedType === 'heatmap' ? undefined : resolvedType;
-    // Only effectScatter supports showEffectOn
-    // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
-    const showEffectOn = resolvedType === 'effectScatter' ? 'emphasis' : undefined;
+    const name = getFieldDisplayName(field, frame, frames);
+    const data = timeField.values.map((time, i) => [time, field.values[i] ?? null]);
+    const zlevel = options.zLevel?.series;
 
-    echartsSeries.push({
-      name: getFieldDisplayName(field, frame, frames),
-      type,
-      data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
-      itemStyle: { color },
-      lineStyle: { color },
-      zlevel: options.zLevel?.series,
-      ...(stacked ? { stack: STACK_GROUP_ID } : {}),
-      showEffectOn,
-    });
+    // A heatmap-overlay field is not a cartesian series type (`series.type` is
+    // omitted), so it keeps the minimal color-only style rather than the Advanced
+    // cartesian options.
+    if (resolvedType === 'heatmap') {
+      echartsSeries.push({ name, type: undefined, data, itemStyle: { color }, lineStyle: { color }, zlevel });
+      return;
+    }
+
+    // Cartesian series get the Advanced value-label / geometry / style options
+    // (each omitted at its default). Only bar supports stacking.
+    const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
+    echartsSeries.push(
+      buildCartesianSeries(
+        { name, data, color, zlevel, ...(stacked ? { stack: STACK_GROUP_ID } : {}) },
+        resolvedType,
+        options,
+        theme
+      )
+    );
   });
 
   if (echartsSeries.length === 0) {
