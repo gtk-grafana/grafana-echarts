@@ -66,7 +66,14 @@ export function buildBinnedHeatmapOption(
   const { theme, options, seriesType, formatValue, timeZone } = ctx;
   const placement = options.heatmapColorScale?.placement ?? 'right';
   const { overlayFrames, heatmapSourceFrames, heatmap } = splitFrames(ctx);
-  const cartSeries = timeSeriesToEChartsOption({ ...ctx, seriesType, frames: overlayFrames }) ?? [];
+  // Cartesian overlays read from their own columnar dataset (threaded into the
+  // option below); the heatmap cell layer is a self-contained custom series with
+  // inline data, so the dataset doesn't affect it.
+  const { series: cartSeries, dataset: overlayDataset } = timeSeriesToEChartsOption({
+    ...ctx,
+    seriesType,
+    frames: overlayFrames,
+  }) ?? { series: [], dataset: [] };
 
   const axisStyle = getCartesianAxisStyle(theme);
 
@@ -120,6 +127,8 @@ export function buildBinnedHeatmapOption(
     xAxis,
     yAxis,
     series,
+    // Overlay series reference this per-frame columnar dataset via datasetIndex.
+    ...(overlayDataset.length > 0 ? { dataset: overlayDataset } : {}),
     visualMap: getBinnedHeatmapVisualMap({
       data: heatmap,
       theme,

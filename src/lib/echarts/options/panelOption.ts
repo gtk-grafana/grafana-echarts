@@ -6,6 +6,7 @@ import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
+import { getSeriesStats, resolveAnimation } from 'lib/echarts/options/performance';
 import { applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
 import {
@@ -85,7 +86,11 @@ export function buildPanelChartOption(
   return {
     ...echartOption,
     tooltip: tooltipOption,
-    animation: ctx.options.animation?.enabled,
+    // An explicit `animation.enabled` wins; otherwise animation auto-disables on
+    // dense charts (many series / long series) where load+transition animation is
+    // pure overhead. No-ops for pie/radar/category (their stats fall below every
+    // threshold). See `resolveAnimation`.
+    animation: resolveAnimation(ctx.options, getSeriesStats(ctx.frames)),
     ...(axisPointer ? { axisPointer } : {}),
     ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };

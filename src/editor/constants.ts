@@ -10,6 +10,7 @@ import {
   type MultiValueSeriesType,
   type SeriesType,
   type SeriesTypeOption,
+  type ShowPointsMode,
   type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
@@ -218,3 +219,34 @@ export const heatmapFrameTypes: string[] = [DataFrameType.HeatmapRows, DataFrame
 export const thresholdsCategoryName = 'Thresholds';
 export const thresholdsStyleModePath = 'thresholdsStyle.mode';
 export const thresholdsStyleModeName = 'Show thresholds';
+
+/**
+ * Performance options (Advanced, cartesian time series). ECharts' big-data
+ * levers (point markers off / LTTB downsampling / animation off) are auto-tuned
+ * above density thresholds so dense charts take the fast path while small charts
+ * are visually unchanged; these controls let power users override the auto
+ * behavior. Resolvers + thresholds live in `lib/echarts/options/performance.ts`;
+ * the editor fragment in `lib/grafana/editor/common/performance-options.ts`.
+ */
+export const performanceShowPointsPath = 'performance.showPoints';
+export const performanceShowPointsName = 'Show points';
+/** Default point-marker visibility: auto (hide symbols on dense series). */
+export const PERFORMANCE_SHOW_POINTS_DEFAULT: ShowPointsMode = 'auto';
+/** "Show points" choices (Auto / Always / Never), rendered as a radio. */
+export const performanceShowPointsOptions: Array<SelectableValue<ShowPointsMode>> = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'always', label: 'Always' },
+  { value: 'never', label: 'Never' },
+];
+export const performanceDownsamplingPath = 'performance.downsampling';
+export const performanceDownsamplingName = 'Downsampling (LTTB)';
+/** Default LTTB downsampling: on (sample dense series toward pixel resolution). */
+export const PERFORMANCE_DOWNSAMPLING_DEFAULT = true;
+/**
+ * Panel option path for the (shared `@internal animation.enabled`) animation
+ * toggle. Consumed via `resolveAnimation` in `panelOption.ts`. Kept separate
+ * from `pieAnimationEnabledPath` so the cartesian editor doesn't import pie
+ * constants; both intentionally point at the same option shape.
+ */
+export const animationEnabledPath = 'animation.enabled';
+export const animationName = 'Animation';
