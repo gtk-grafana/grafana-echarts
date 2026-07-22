@@ -1,3 +1,4 @@
+import { partToWholeSeriesTypes } from 'editor/pie';
 import { type SeriesType } from 'editor/types';
 import {
   isCartesianSingleValueSeriesType,
@@ -23,7 +24,7 @@ import { type PanelOptions } from 'types';
 /**
  * Spread `defaults` over `options` in Default editor mode; pass the options
  * through untouched in Advanced / API mode. The generic core hoisted from the
- * pie's `applyPieEditorModeDefaults`. Returns the same object reference when no
+ * pie's `applyPartToWholeEditorModeDefaults`. Returns the same object reference when no
  * reset is needed, so callers can cheaply detect "unchanged".
  */
 export function applyAdvancedDefaults(options: PanelOptions, defaults: Partial<PanelOptions>): PanelOptions {
@@ -44,7 +45,10 @@ export function applyAdvancedDefaults(options: PanelOptions, defaults: Partial<P
  * time, by which point every module has finished initializing.
  */
 export function applyEditorModeDefaults(seriesType: SeriesType, options: PanelOptions): PanelOptions {
-  if (seriesType === 'pie') {
+  // The part-to-whole family (pie + funnel) shares the pie Advanced defaults; the
+  // funnel's own layout options are not in `ADVANCED_PIE_DEFAULTS`, so they pass
+  // through untouched (they are Default-visible, not Advanced-gated).
+  if (partToWholeSeriesTypes.includes(seriesType)) {
     return applyAdvancedDefaults(options, ADVANCED_PIE_DEFAULTS);
   }
   if (isCartesianSingleValueSeriesType(seriesType) || isMultiValueSeriesType(seriesType)) {

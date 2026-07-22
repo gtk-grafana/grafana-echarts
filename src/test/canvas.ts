@@ -1,5 +1,6 @@
 import { type EChartsType } from 'echarts';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
+import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { getInstanceByDom } from 'lib/echarts/echarts';
 
 /**
@@ -150,6 +151,16 @@ const roundDeep = (value: unknown): unknown => {
  * as unrounded context.
  */
 export const roundCanvasEvents = <T>(events: T): T => roundDeep(events) as T;
+
+/**
+ * Normalize raw draw calls for snapshotting: strip `clearRect` calls, drop the
+ * canvas transform events, and round every coordinate to
+ * {@link CANVAS_SNAPSHOT_PRECISION}. This is the standard pipeline for the
+ * `toMatchCanvasSnapshot` assertions, replacing
+ * `roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(events)))`.
+ */
+export const normalizeCanvasEvents = (events: CanvasRenderingContext2DEvent[]) =>
+  roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(events)));
 
 export function clearMockedCanvasEvents(ctx: CanvasRenderingContext2D) {
   ctx.__clearDrawCalls();

@@ -4,7 +4,7 @@ import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
 import {
   ADVANCED_PIE_DEFAULTS,
-  applyPieEditorModeDefaults,
+  applyPartToWholeEditorModeDefaults,
   getPieAngles,
   getPieBorderRadius,
   getPieCenter,
@@ -243,34 +243,34 @@ describe('resolvePieLabelColor', () => {
   });
 });
 
-describe('applyPieEditorModeDefaults', () => {
+describe('applyPartToWholeEditorModeDefaults', () => {
   const withMode = (editorMode: PanelOptions['editorMode'], extra: Partial<PanelOptions> = {}): PanelOptions =>
     ({ editorMode, ...extra }) as PanelOptions;
 
   it('forces advanced options back to their defaults in Default mode', () => {
-    const resolved = applyPieEditorModeDefaults(withMode('default', { roseType: 'radius', startAngle: 180 }));
+    const resolved = applyPartToWholeEditorModeDefaults(withMode('default', { roseType: 'radius', startAngle: 180 }));
     expect(resolved.roseType).toBe(ADVANCED_PIE_DEFAULTS.roseType);
     expect(resolved.startAngle).toBe(ADVANCED_PIE_DEFAULTS.startAngle);
   });
 
   it('resets the shared animation option in Default mode', () => {
-    const resolved = applyPieEditorModeDefaults(withMode('default', { animation: { enabled: false } }));
+    const resolved = applyPartToWholeEditorModeDefaults(withMode('default', { animation: { enabled: false } }));
     expect(resolved.animation).toEqual({ enabled: true });
   });
 
   it('defaults an unset editor mode to Default (advanced values reset)', () => {
-    const resolved = applyPieEditorModeDefaults(withMode(undefined, { roseType: 'area' }));
+    const resolved = applyPartToWholeEditorModeDefaults(withMode(undefined, { roseType: 'area' }));
     expect(resolved.roseType).toBe(ADVANCED_PIE_DEFAULTS.roseType);
   });
 
   it('passes stored advanced values through untouched in Advanced mode', () => {
     const options = withMode('advanced', { roseType: 'radius', startAngle: 180 });
-    expect(applyPieEditorModeDefaults(options)).toBe(options);
+    expect(applyPartToWholeEditorModeDefaults(options)).toBe(options);
   });
 
   it('passes stored advanced values through untouched in API mode', () => {
     const options = withMode('api', { roseType: 'radius' });
-    expect(applyPieEditorModeDefaults(options)).toBe(options);
+    expect(applyPartToWholeEditorModeDefaults(options)).toBe(options);
   });
 });
 

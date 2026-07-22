@@ -42,7 +42,7 @@ export const editorModeOptions: Array<SelectableValue<EditorMode>> = [
  */
 export const advancedOptionsCategoryName = 'Advanced';
 
-export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar'];
+export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar', 'funnel'];
 
 /**
  * Series types that support a categorical axis

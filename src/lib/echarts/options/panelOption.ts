@@ -1,7 +1,7 @@
 import { TooltipDisplayMode } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { pieSeriesTypes } from 'editor/pie';
+import { partToWholeSeriesTypes } from 'editor/pie';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
@@ -44,8 +44,11 @@ export function buildPanelChartOption(
   const options = applyEditorModeDefaults(rawCtx.seriesType, rawCtx.options);
 
   // Drop value fields hidden via the legend visibility toggle before building.
-  // The pie is excluded: it hides slices by *category* name and reads hidden state internally (see `resolvePieSlices`).
-  const ctx: ChartContext = pieSeriesTypes.includes(rawCtx.seriesType)
+  // The part-to-whole family (pie/funnel) is excluded: it hides slices by
+  // *category* name and reads hidden state internally (see `resolvePieSlices`).
+  // Editor-mode normalization already ran generically above
+  // (`applyEditorModeDefaults`), so both branches use the normalized `options`.
+  const ctx: ChartContext = partToWholeSeriesTypes.includes(rawCtx.seriesType)
     ? { ...rawCtx, options }
     : { ...rawCtx, options, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 

@@ -145,14 +145,14 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 68.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 190.25,
     },
     "type": "lineTo",
@@ -180,14 +180,14 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 68.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 190.25,
           },
           "type": "lineTo",
@@ -268,7 +268,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   },
   {
     "props": {
-      "value": 0.3333333333333333,
+      "value": 0.333333,
     },
     "type": "lineWidth",
   },
@@ -304,7 +304,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -330,7 +330,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -359,7 +359,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -377,7 +377,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
       "b": 0,
       "c": 0,
       "d": 6,
-      "e": 145.3333282470703,
+      "e": 145.333328,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -396,7 +396,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -422,7 +422,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -451,7 +451,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -469,7 +469,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
       "b": 0,
       "c": 0,
       "d": 6,
-      "e": 272.6666564941406,
+      "e": 272.666656,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -488,7 +488,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -514,7 +514,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -543,7 +543,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -580,7 +580,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -606,7 +606,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -635,7 +635,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -794,14 +794,14 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 68.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 190.25,
     },
     "type": "lineTo",
@@ -829,14 +829,14 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 68.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 190.25,
           },
           "type": "lineTo",
@@ -917,7 +917,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   },
   {
     "props": {
-      "value": 0.3333333333333333,
+      "value": 0.333333,
     },
     "type": "lineWidth",
   },
@@ -953,7 +953,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -979,7 +979,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1008,7 +1008,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1026,7 +1026,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
       "b": 0,
       "c": 0,
       "d": 6,
-      "e": 145.3333282470703,
+      "e": 145.333328,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -1045,7 +1045,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -1071,7 +1071,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1100,7 +1100,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1118,7 +1118,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
       "b": 0,
       "c": 0,
       "d": 6,
-      "e": 272.6666564941406,
+      "e": 272.666656,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -1137,7 +1137,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -1163,7 +1163,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1192,7 +1192,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1229,7 +1229,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -1255,7 +1255,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1284,7 +1284,7 @@ exports[`Panel canvas renders cartesian advanced options enlarges the points (po
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1442,14 +1442,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 68.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 190.25,
     },
     "type": "lineTo",
@@ -1470,14 +1470,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 251,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 251,
     },
     "type": "lineTo",
@@ -1510,14 +1510,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 68.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 190.25,
           },
           "type": "lineTo",
@@ -1538,14 +1538,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 251,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 251,
           },
           "type": "lineTo",
@@ -1602,14 +1602,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 68.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 190.25,
     },
     "type": "lineTo",
@@ -1637,14 +1637,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 68.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 190.25,
           },
           "type": "lineTo",
@@ -1725,7 +1725,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   },
   {
     "props": {
-      "value": 0.6666666666666666,
+      "value": 0.666667,
     },
     "type": "lineWidth",
   },
@@ -1761,7 +1761,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -1787,7 +1787,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1816,7 +1816,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1834,7 +1834,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 145.3333282470703,
+      "e": 145.333328,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -1853,7 +1853,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -1879,7 +1879,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1908,7 +1908,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -1926,7 +1926,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 272.6666564941406,
+      "e": 272.666656,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -1945,7 +1945,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -1971,7 +1971,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2000,7 +2000,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2037,7 +2037,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -2063,7 +2063,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2092,7 +2092,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2245,14 +2245,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 68.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 190.25,
     },
     "type": "lineTo",
@@ -2273,14 +2273,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 251,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 251,
     },
     "type": "lineTo",
@@ -2313,14 +2313,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 68.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 190.25,
           },
           "type": "lineTo",
@@ -2341,14 +2341,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 251,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 251,
           },
           "type": "lineTo",
@@ -2405,14 +2405,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 68.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 190.25,
     },
     "type": "lineTo",
@@ -2440,14 +2440,14 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 68.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 190.25,
           },
           "type": "lineTo",
@@ -2528,7 +2528,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   },
   {
     "props": {
-      "value": 0.6666666666666666,
+      "value": 0.666667,
     },
     "type": "lineWidth",
   },
@@ -2564,7 +2564,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -2590,7 +2590,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2619,7 +2619,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2637,7 +2637,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 145.3333282470703,
+      "e": 145.333328,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -2656,7 +2656,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -2682,7 +2682,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2711,7 +2711,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2729,7 +2729,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 272.6666564941406,
+      "e": 272.666656,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -2748,7 +2748,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -2774,7 +2774,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2803,7 +2803,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2840,7 +2840,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -2866,7 +2866,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2895,7 +2895,7 @@ exports[`Panel canvas renders cartesian advanced options fills the area under th
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -2997,9 +2997,9 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
   },
   {
     "props": {
-      "height": -229.1142857142857,
-      "width": 38.19999999999999,
-      "x": 62.56666666666666,
+      "height": -229.114286,
+      "width": 38.2,
+      "x": 62.566667,
       "y": 251,
     },
     "type": "rect",
@@ -3014,9 +3014,9 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
         },
         {
           "props": {
-            "height": -229.1142857142857,
-            "width": 38.19999999999999,
-            "x": 62.56666666666666,
+            "height": -229.114286,
+            "width": 38.2,
+            "x": 62.566667,
             "y": 251,
           },
           "type": "rect",
@@ -3031,8 +3031,8 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
   },
   {
     "props": {
-      "height": -0,
-      "width": 38.19999999999999,
+      "height": 0,
+      "width": 38.2,
       "x": 189.9,
       "y": 251,
     },
@@ -3048,8 +3048,8 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
         },
         {
           "props": {
-            "height": -0,
-            "width": 38.19999999999999,
+            "height": 0,
+            "width": 38.2,
             "x": 189.9,
             "y": 251,
           },
@@ -3065,9 +3065,9 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
   },
   {
     "props": {
-      "height": -138.85714285714286,
-      "width": 38.19999999999999,
-      "x": 317.2333333333333,
+      "height": -138.857143,
+      "width": 38.2,
+      "x": 317.233333,
       "y": 251,
     },
     "type": "rect",
@@ -3082,9 +3082,9 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
         },
         {
           "props": {
-            "height": -138.85714285714286,
-            "width": 38.19999999999999,
-            "x": 317.2333333333333,
+            "height": -138.857143,
+            "width": 38.2,
+            "x": 317.233333,
             "y": 251,
           },
           "type": "rect",
@@ -3178,9 +3178,9 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
   },
   {
     "props": {
-      "height": -229.1142857142857,
-      "width": 38.19999999999999,
-      "x": 62.56666666666666,
+      "height": -229.114286,
+      "width": 38.2,
+      "x": 62.566667,
       "y": 251,
     },
     "type": "rect",
@@ -3195,9 +3195,9 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
         },
         {
           "props": {
-            "height": -229.1142857142857,
-            "width": 38.19999999999999,
-            "x": 62.56666666666666,
+            "height": -229.114286,
+            "width": 38.2,
+            "x": 62.566667,
             "y": 251,
           },
           "type": "rect",
@@ -3212,8 +3212,8 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
   },
   {
     "props": {
-      "height": -0,
-      "width": 38.19999999999999,
+      "height": 0,
+      "width": 38.2,
       "x": 189.9,
       "y": 251,
     },
@@ -3229,8 +3229,8 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
         },
         {
           "props": {
-            "height": -0,
-            "width": 38.19999999999999,
+            "height": 0,
+            "width": 38.2,
             "x": 189.9,
             "y": 251,
           },
@@ -3246,9 +3246,9 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
   },
   {
     "props": {
-      "height": -138.85714285714286,
-      "width": 38.19999999999999,
-      "x": 317.2333333333333,
+      "height": -138.857143,
+      "width": 38.2,
+      "x": 317.233333,
       "y": 251,
     },
     "type": "rect",
@@ -3263,9 +3263,9 @@ exports[`Panel canvas renders cartesian advanced options narrows the bars (bar w
         },
         {
           "props": {
-            "height": -138.85714285714286,
-            "width": 38.19999999999999,
-            "x": 317.2333333333333,
+            "height": -138.857143,
+            "width": 38.2,
+            "x": 317.233333,
             "y": 251,
           },
           "type": "rect",
@@ -3364,32 +3364,32 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   },
   {
     "props": {
-      "x": 47.73666666666666,
-      "y": 21.8857142857143,
+      "x": 47.736667,
+      "y": 21.885714,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 115.59666666666666,
-      "y": 21.8857142857143,
+      "x": 115.596667,
+      "y": 21.885714,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 10,
-      "startAngle": 4.71238898038469,
-      "x": 115.59666666666666,
-      "y": 31.8857142857143,
+      "startAngle": 4.712389,
+      "x": 115.596667,
+      "y": 31.885714,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 125.59666666666666,
+      "x": 125.596667,
       "y": 241,
     },
     "type": "lineTo",
@@ -3397,17 +3397,17 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 1.5707963267948966,
+      "endAngle": 1.570796,
       "radius": 10,
       "startAngle": 0,
-      "x": 115.59666666666666,
+      "x": 115.596667,
       "y": 241,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 47.73666666666666,
+      "x": 47.736667,
       "y": 251,
     },
     "type": "lineTo",
@@ -3415,29 +3415,29 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 3.141592653589793,
+      "endAngle": 3.141593,
       "radius": 10,
-      "startAngle": 1.5707963267948966,
-      "x": 47.73666666666666,
+      "startAngle": 1.570796,
+      "x": 47.736667,
       "y": 241,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 37.73666666666666,
-      "y": 31.8857142857143,
+      "x": 37.736667,
+      "y": 31.885714,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.71238898038469,
+      "endAngle": 4.712389,
       "radius": 10,
-      "startAngle": 3.141592653589793,
-      "x": 47.73666666666666,
-      "y": 31.8857142857143,
+      "startAngle": 3.141593,
+      "x": 47.736667,
+      "y": 31.885714,
     },
     "type": "arc",
   },
@@ -3455,32 +3455,32 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         },
         {
           "props": {
-            "x": 47.73666666666666,
-            "y": 21.8857142857143,
+            "x": 47.736667,
+            "y": 21.885714,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 115.59666666666666,
-            "y": 21.8857142857143,
+            "x": 115.596667,
+            "y": 21.885714,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 10,
-            "startAngle": 4.71238898038469,
-            "x": 115.59666666666666,
-            "y": 31.8857142857143,
+            "startAngle": 4.712389,
+            "x": 115.596667,
+            "y": 31.885714,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 125.59666666666666,
+            "x": 125.596667,
             "y": 241,
           },
           "type": "lineTo",
@@ -3488,17 +3488,17 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 1.5707963267948966,
+            "endAngle": 1.570796,
             "radius": 10,
             "startAngle": 0,
-            "x": 115.59666666666666,
+            "x": 115.596667,
             "y": 241,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 47.73666666666666,
+            "x": 47.736667,
             "y": 251,
           },
           "type": "lineTo",
@@ -3506,29 +3506,29 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 3.141592653589793,
+            "endAngle": 3.141593,
             "radius": 10,
-            "startAngle": 1.5707963267948966,
-            "x": 47.73666666666666,
+            "startAngle": 1.570796,
+            "x": 47.736667,
             "y": 241,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 37.73666666666666,
-            "y": 31.8857142857143,
+            "x": 37.736667,
+            "y": 31.885714,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.71238898038469,
+            "endAngle": 4.712389,
             "radius": 10,
-            "startAngle": 3.141592653589793,
-            "x": 47.73666666666666,
-            "y": 31.8857142857143,
+            "startAngle": 3.141593,
+            "x": 47.736667,
+            "y": 31.885714,
           },
           "type": "arc",
         },
@@ -3612,32 +3612,32 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   },
   {
     "props": {
-      "x": 302.4033333333333,
-      "y": 112.14285714285714,
+      "x": 302.403333,
+      "y": 112.142857,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 370.2633333333333,
-      "y": 112.14285714285714,
+      "x": 370.263333,
+      "y": 112.142857,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 10,
-      "startAngle": 4.71238898038469,
-      "x": 370.2633333333333,
-      "y": 122.14285714285714,
+      "startAngle": 4.712389,
+      "x": 370.263333,
+      "y": 122.142857,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 380.2633333333333,
+      "x": 380.263333,
       "y": 241,
     },
     "type": "lineTo",
@@ -3645,17 +3645,17 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 1.5707963267948966,
+      "endAngle": 1.570796,
       "radius": 10,
       "startAngle": 0,
-      "x": 370.2633333333333,
+      "x": 370.263333,
       "y": 241,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 302.4033333333333,
+      "x": 302.403333,
       "y": 251,
     },
     "type": "lineTo",
@@ -3663,29 +3663,29 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 3.141592653589793,
+      "endAngle": 3.141593,
       "radius": 10,
-      "startAngle": 1.5707963267948966,
-      "x": 302.4033333333333,
+      "startAngle": 1.570796,
+      "x": 302.403333,
       "y": 241,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 292.4033333333333,
-      "y": 122.14285714285714,
+      "x": 292.403333,
+      "y": 122.142857,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.71238898038469,
+      "endAngle": 4.712389,
       "radius": 10,
-      "startAngle": 3.141592653589793,
-      "x": 302.4033333333333,
-      "y": 122.14285714285714,
+      "startAngle": 3.141593,
+      "x": 302.403333,
+      "y": 122.142857,
     },
     "type": "arc",
   },
@@ -3703,32 +3703,32 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         },
         {
           "props": {
-            "x": 302.4033333333333,
-            "y": 112.14285714285714,
+            "x": 302.403333,
+            "y": 112.142857,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 370.2633333333333,
-            "y": 112.14285714285714,
+            "x": 370.263333,
+            "y": 112.142857,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 10,
-            "startAngle": 4.71238898038469,
-            "x": 370.2633333333333,
-            "y": 122.14285714285714,
+            "startAngle": 4.712389,
+            "x": 370.263333,
+            "y": 122.142857,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 380.2633333333333,
+            "x": 380.263333,
             "y": 241,
           },
           "type": "lineTo",
@@ -3736,17 +3736,17 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 1.5707963267948966,
+            "endAngle": 1.570796,
             "radius": 10,
             "startAngle": 0,
-            "x": 370.2633333333333,
+            "x": 370.263333,
             "y": 241,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 302.4033333333333,
+            "x": 302.403333,
             "y": 251,
           },
           "type": "lineTo",
@@ -3754,29 +3754,29 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 3.141592653589793,
+            "endAngle": 3.141593,
             "radius": 10,
-            "startAngle": 1.5707963267948966,
-            "x": 302.4033333333333,
+            "startAngle": 1.570796,
+            "x": 302.403333,
             "y": 241,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 292.4033333333333,
-            "y": 122.14285714285714,
+            "x": 292.403333,
+            "y": 122.142857,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.71238898038469,
+            "endAngle": 4.712389,
             "radius": 10,
-            "startAngle": 3.141592653589793,
-            "x": 302.4033333333333,
-            "y": 122.14285714285714,
+            "startAngle": 3.141593,
+            "x": 302.403333,
+            "y": 122.142857,
           },
           "type": "arc",
         },
@@ -3873,32 +3873,32 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   },
   {
     "props": {
-      "x": 47.73666666666666,
-      "y": 21.8857142857143,
+      "x": 47.736667,
+      "y": 21.885714,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 115.59666666666666,
-      "y": 21.8857142857143,
+      "x": 115.596667,
+      "y": 21.885714,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 10,
-      "startAngle": 4.71238898038469,
-      "x": 115.59666666666666,
-      "y": 31.8857142857143,
+      "startAngle": 4.712389,
+      "x": 115.596667,
+      "y": 31.885714,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 125.59666666666666,
+      "x": 125.596667,
       "y": 241,
     },
     "type": "lineTo",
@@ -3906,17 +3906,17 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 1.5707963267948966,
+      "endAngle": 1.570796,
       "radius": 10,
       "startAngle": 0,
-      "x": 115.59666666666666,
+      "x": 115.596667,
       "y": 241,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 47.73666666666666,
+      "x": 47.736667,
       "y": 251,
     },
     "type": "lineTo",
@@ -3924,29 +3924,29 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 3.141592653589793,
+      "endAngle": 3.141593,
       "radius": 10,
-      "startAngle": 1.5707963267948966,
-      "x": 47.73666666666666,
+      "startAngle": 1.570796,
+      "x": 47.736667,
       "y": 241,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 37.73666666666666,
-      "y": 31.8857142857143,
+      "x": 37.736667,
+      "y": 31.885714,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.71238898038469,
+      "endAngle": 4.712389,
       "radius": 10,
-      "startAngle": 3.141592653589793,
-      "x": 47.73666666666666,
-      "y": 31.8857142857143,
+      "startAngle": 3.141593,
+      "x": 47.736667,
+      "y": 31.885714,
     },
     "type": "arc",
   },
@@ -3964,32 +3964,32 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         },
         {
           "props": {
-            "x": 47.73666666666666,
-            "y": 21.8857142857143,
+            "x": 47.736667,
+            "y": 21.885714,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 115.59666666666666,
-            "y": 21.8857142857143,
+            "x": 115.596667,
+            "y": 21.885714,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 10,
-            "startAngle": 4.71238898038469,
-            "x": 115.59666666666666,
-            "y": 31.8857142857143,
+            "startAngle": 4.712389,
+            "x": 115.596667,
+            "y": 31.885714,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 125.59666666666666,
+            "x": 125.596667,
             "y": 241,
           },
           "type": "lineTo",
@@ -3997,17 +3997,17 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 1.5707963267948966,
+            "endAngle": 1.570796,
             "radius": 10,
             "startAngle": 0,
-            "x": 115.59666666666666,
+            "x": 115.596667,
             "y": 241,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 47.73666666666666,
+            "x": 47.736667,
             "y": 251,
           },
           "type": "lineTo",
@@ -4015,29 +4015,29 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 3.141592653589793,
+            "endAngle": 3.141593,
             "radius": 10,
-            "startAngle": 1.5707963267948966,
-            "x": 47.73666666666666,
+            "startAngle": 1.570796,
+            "x": 47.736667,
             "y": 241,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 37.73666666666666,
-            "y": 31.8857142857143,
+            "x": 37.736667,
+            "y": 31.885714,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.71238898038469,
+            "endAngle": 4.712389,
             "radius": 10,
-            "startAngle": 3.141592653589793,
-            "x": 47.73666666666666,
-            "y": 31.8857142857143,
+            "startAngle": 3.141593,
+            "x": 47.736667,
+            "y": 31.885714,
           },
           "type": "arc",
         },
@@ -4121,32 +4121,32 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   },
   {
     "props": {
-      "x": 302.4033333333333,
-      "y": 112.14285714285714,
+      "x": 302.403333,
+      "y": 112.142857,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 370.2633333333333,
-      "y": 112.14285714285714,
+      "x": 370.263333,
+      "y": 112.142857,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 10,
-      "startAngle": 4.71238898038469,
-      "x": 370.2633333333333,
-      "y": 122.14285714285714,
+      "startAngle": 4.712389,
+      "x": 370.263333,
+      "y": 122.142857,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 380.2633333333333,
+      "x": 380.263333,
       "y": 241,
     },
     "type": "lineTo",
@@ -4154,17 +4154,17 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 1.5707963267948966,
+      "endAngle": 1.570796,
       "radius": 10,
       "startAngle": 0,
-      "x": 370.2633333333333,
+      "x": 370.263333,
       "y": 241,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 302.4033333333333,
+      "x": 302.403333,
       "y": 251,
     },
     "type": "lineTo",
@@ -4172,29 +4172,29 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 3.141592653589793,
+      "endAngle": 3.141593,
       "radius": 10,
-      "startAngle": 1.5707963267948966,
-      "x": 302.4033333333333,
+      "startAngle": 1.570796,
+      "x": 302.403333,
       "y": 241,
     },
     "type": "arc",
   },
   {
     "props": {
-      "x": 292.4033333333333,
-      "y": 122.14285714285714,
+      "x": 292.403333,
+      "y": 122.142857,
     },
     "type": "lineTo",
   },
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 4.71238898038469,
+      "endAngle": 4.712389,
       "radius": 10,
-      "startAngle": 3.141592653589793,
-      "x": 302.4033333333333,
-      "y": 122.14285714285714,
+      "startAngle": 3.141593,
+      "x": 302.403333,
+      "y": 122.142857,
     },
     "type": "arc",
   },
@@ -4212,32 +4212,32 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         },
         {
           "props": {
-            "x": 302.4033333333333,
-            "y": 112.14285714285714,
+            "x": 302.403333,
+            "y": 112.142857,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 370.2633333333333,
-            "y": 112.14285714285714,
+            "x": 370.263333,
+            "y": 112.142857,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 10,
-            "startAngle": 4.71238898038469,
-            "x": 370.2633333333333,
-            "y": 122.14285714285714,
+            "startAngle": 4.712389,
+            "x": 370.263333,
+            "y": 122.142857,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 380.2633333333333,
+            "x": 380.263333,
             "y": 241,
           },
           "type": "lineTo",
@@ -4245,17 +4245,17 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 1.5707963267948966,
+            "endAngle": 1.570796,
             "radius": 10,
             "startAngle": 0,
-            "x": 370.2633333333333,
+            "x": 370.263333,
             "y": 241,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 302.4033333333333,
+            "x": 302.403333,
             "y": 251,
           },
           "type": "lineTo",
@@ -4263,29 +4263,29 @@ exports[`Panel canvas renders cartesian advanced options rounds the bar corners 
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 3.141592653589793,
+            "endAngle": 3.141593,
             "radius": 10,
-            "startAngle": 1.5707963267948966,
-            "x": 302.4033333333333,
+            "startAngle": 1.570796,
+            "x": 302.403333,
             "y": 241,
           },
           "type": "arc",
         },
         {
           "props": {
-            "x": 292.4033333333333,
-            "y": 122.14285714285714,
+            "x": 292.403333,
+            "y": 122.142857,
           },
           "type": "lineTo",
         },
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 4.71238898038469,
+            "endAngle": 4.712389,
             "radius": 10,
-            "startAngle": 3.141592653589793,
-            "x": 302.4033333333333,
-            "y": 122.14285714285714,
+            "startAngle": 3.141593,
+            "x": 302.403333,
+            "y": 122.142857,
           },
           "type": "arc",
         },
@@ -4387,9 +4387,9 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
   },
   {
     "props": {
-      "height": -229.1142857142857,
-      "width": 87.86000000000001,
-      "x": 37.73666666666666,
+      "height": -229.114286,
+      "width": 87.86,
+      "x": 37.736667,
       "y": 251,
     },
     "type": "rect",
@@ -4404,9 +4404,9 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
         },
         {
           "props": {
-            "height": -229.1142857142857,
-            "width": 87.86000000000001,
-            "x": 37.73666666666666,
+            "height": -229.114286,
+            "width": 87.86,
+            "x": 37.736667,
             "y": 251,
           },
           "type": "rect",
@@ -4421,8 +4421,8 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
   },
   {
     "props": {
-      "height": -0,
-      "width": 87.86000000000001,
+      "height": 0,
+      "width": 87.86,
       "x": 165.07,
       "y": 251,
     },
@@ -4438,8 +4438,8 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
         },
         {
           "props": {
-            "height": -0,
-            "width": 87.86000000000001,
+            "height": 0,
+            "width": 87.86,
             "x": 165.07,
             "y": 251,
           },
@@ -4455,9 +4455,9 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
   },
   {
     "props": {
-      "height": -138.85714285714286,
-      "width": 87.86000000000001,
-      "x": 292.4033333333333,
+      "height": -138.857143,
+      "width": 87.86,
+      "x": 292.403333,
       "y": 251,
     },
     "type": "rect",
@@ -4472,9 +4472,9 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
         },
         {
           "props": {
-            "height": -138.85714285714286,
-            "width": 87.86000000000001,
-            "x": 292.4033333333333,
+            "height": -138.857143,
+            "width": 87.86,
+            "x": 292.403333,
             "y": 251,
           },
           "type": "rect",
@@ -4489,8 +4489,8 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 81.66666666666666,
-      "f": 16.8857142857143,
+      "e": 81.666667,
+      "f": 16.885714,
     },
     "type": "setTransform",
   },
@@ -4625,8 +4625,8 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 336.3333333333333,
-      "f": 107.14285714285714,
+      "e": 336.333333,
+      "f": 107.142857,
     },
     "type": "setTransform",
   },
@@ -4742,9 +4742,9 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
   },
   {
     "props": {
-      "height": -229.1142857142857,
-      "width": 87.86000000000001,
-      "x": 37.73666666666666,
+      "height": -229.114286,
+      "width": 87.86,
+      "x": 37.736667,
       "y": 251,
     },
     "type": "rect",
@@ -4759,9 +4759,9 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
         },
         {
           "props": {
-            "height": -229.1142857142857,
-            "width": 87.86000000000001,
-            "x": 37.73666666666666,
+            "height": -229.114286,
+            "width": 87.86,
+            "x": 37.736667,
             "y": 251,
           },
           "type": "rect",
@@ -4776,8 +4776,8 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
   },
   {
     "props": {
-      "height": -0,
-      "width": 87.86000000000001,
+      "height": 0,
+      "width": 87.86,
       "x": 165.07,
       "y": 251,
     },
@@ -4793,8 +4793,8 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
         },
         {
           "props": {
-            "height": -0,
-            "width": 87.86000000000001,
+            "height": 0,
+            "width": 87.86,
             "x": 165.07,
             "y": 251,
           },
@@ -4810,9 +4810,9 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
   },
   {
     "props": {
-      "height": -138.85714285714286,
-      "width": 87.86000000000001,
-      "x": 292.4033333333333,
+      "height": -138.857143,
+      "width": 87.86,
+      "x": 292.403333,
       "y": 251,
     },
     "type": "rect",
@@ -4827,9 +4827,9 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
         },
         {
           "props": {
-            "height": -138.85714285714286,
-            "width": 87.86000000000001,
-            "x": 292.4033333333333,
+            "height": -138.857143,
+            "width": 87.86,
+            "x": 292.403333,
             "y": 251,
           },
           "type": "rect",
@@ -4844,8 +4844,8 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 81.66666666666666,
-      "f": 16.8857142857143,
+      "e": 81.666667,
+      "f": 16.885714,
     },
     "type": "setTransform",
   },
@@ -4980,8 +4980,8 @@ exports[`Panel canvas renders cartesian advanced options shows value labels (Alw
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 336.3333333333333,
-      "f": 107.14285714285714,
+      "e": 336.333333,
+      "f": 107.142857,
     },
     "type": "setTransform",
   },
@@ -5164,14 +5164,14 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 68.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 190.25,
     },
     "type": "lineTo",
@@ -5199,14 +5199,14 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 68.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 190.25,
           },
           "type": "lineTo",
@@ -5287,7 +5287,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   },
   {
     "props": {
-      "value": 0.6666666666666666,
+      "value": 0.666667,
     },
     "type": "lineWidth",
   },
@@ -5323,7 +5323,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -5349,7 +5349,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -5378,7 +5378,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -5396,7 +5396,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 145.3333282470703,
+      "e": 145.333328,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -5415,7 +5415,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -5441,7 +5441,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -5470,7 +5470,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -5488,7 +5488,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 272.6666564941406,
+      "e": 272.666656,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -5507,7 +5507,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -5533,7 +5533,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -5562,7 +5562,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -5599,7 +5599,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -5625,7 +5625,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -5654,7 +5654,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -5813,14 +5813,14 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   },
   {
     "props": {
-      "x": 145.3333282470703,
+      "x": 145.333328,
       "y": 68.75,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.6666564941406,
+      "x": 272.666656,
       "y": 190.25,
     },
     "type": "lineTo",
@@ -5848,14 +5848,14 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         },
         {
           "props": {
-            "x": 145.3333282470703,
+            "x": 145.333328,
             "y": 68.75,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.6666564941406,
+            "x": 272.666656,
             "y": 190.25,
           },
           "type": "lineTo",
@@ -5936,7 +5936,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   },
   {
     "props": {
-      "value": 0.6666666666666666,
+      "value": 0.666667,
     },
     "type": "lineWidth",
   },
@@ -5972,7 +5972,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -5998,7 +5998,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -6027,7 +6027,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -6045,7 +6045,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 145.3333282470703,
+      "e": 145.333328,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -6064,7 +6064,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -6090,7 +6090,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -6119,7 +6119,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -6137,7 +6137,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 272.6666564941406,
+      "e": 272.666656,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -6156,7 +6156,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -6182,7 +6182,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -6211,7 +6211,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -6248,7 +6248,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
   {
     "props": {
       "anticlockwise": false,
-      "endAngle": 6.283185307179586,
+      "endAngle": 6.283185,
       "radius": 1,
       "startAngle": 0,
       "x": 0,
@@ -6274,7 +6274,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,
@@ -6303,7 +6303,7 @@ exports[`Panel canvas renders cartesian advanced options thickens the line (line
         {
           "props": {
             "anticlockwise": false,
-            "endAngle": 6.283185307179586,
+            "endAngle": 6.283185,
             "radius": 1,
             "startAngle": 0,
             "x": 0,

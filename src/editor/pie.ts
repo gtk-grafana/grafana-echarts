@@ -1,6 +1,8 @@
 import { ReducerID, type SelectableValue } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
+import { funnelSeriesTypes } from 'editor/funnel';
 import {
+  type PartToWholeSeriesType,
   type PieChartType,
   type PieEmphasisFocus,
   type PieLabel,
@@ -18,6 +20,22 @@ import {
  * echarts/converters/pie.ts (`resolvePieSlices`).
  */
 export const pieSeriesTypes: SeriesType[] = ['pie'];
+/**
+ * Every render type of the part-to-whole family (pie + funnel), all built from
+ * the shared categorical slice model. Used to route the panel-level `seriesType`
+ * to the part-to-whole chart module (see `resolveChartModule`) and to gate the
+ * pie's editor-mode normalization (see `applyPartToWholeEditorModeDefaults`).
+ */
+export const partToWholeSeriesTypes: SeriesType[] = [...pieSeriesTypes, ...funnelSeriesTypes];
+/**
+ * Render types offered by the part-to-whole family panel's "Chart type" picker,
+ * selected per panel via the panel-level `seriesType` (mirrors the hierarchy
+ * family's Treemap/Sunburst radio). Pie is the default.
+ */
+export const partToWholeSeriesTypeOptions: Array<SelectableValue<PartToWholeSeriesType>> = [
+  { value: 'pie', label: 'Pie' },
+  { value: 'funnel', label: 'Funnel' },
+];
 /**
  * Default slice reducer, passed to `addStandardDataReduceOptions` as the pie's
  * default `reduceOptions.calcs`. Sum suits a part-to-whole (each slice is a share

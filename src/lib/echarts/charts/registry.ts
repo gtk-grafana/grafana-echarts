@@ -1,6 +1,6 @@
 import { cartesianTimeSeriesTypes, multiValueSeriesTypes } from 'editor/cartesian';
 import { heatmapSeriesTypes, hierarchySeriesTypes } from 'editor/constants';
-import { pieSeriesTypes } from 'editor/pie';
+import { partToWholeSeriesTypes } from 'editor/pie';
 import { multivariateSeriesTypes } from 'editor/radar';
 import { type SeriesType } from 'editor/types';
 import {
@@ -13,10 +13,10 @@ import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
 import { hierarchyChartModule } from './hierarchy';
 import { multivariateChartModule, radarChartModule } from './multivariate';
-import { pieChartModule } from './pie';
+import { partToWholeChartModule, pieChartModule } from './pie';
 import { type ChartModule } from './types';
 
-const pieModule = pieChartModule;
+const partToWholeModule = partToWholeChartModule;
 
 /** All series types with a registered chart module. */
 export const supportedChartSeriesTypes: SeriesType[] = [
@@ -24,7 +24,7 @@ export const supportedChartSeriesTypes: SeriesType[] = [
   ...multiValueSeriesTypes,
   ...heatmapSeriesTypes,
   ...multivariateSeriesTypes,
-  ...pieSeriesTypes,
+  ...partToWholeSeriesTypes,
   ...hierarchySeriesTypes,
 ];
 
@@ -50,8 +50,10 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (isMultivariateSeriesType(seriesType)) {
     return multivariateChartModule;
   }
-  if (pieSeriesTypes.includes(seriesType)) {
-    return pieModule;
+  // Pie and funnel share the part-to-whole module; the module picks the render
+  // variant from the type.
+  if (partToWholeSeriesTypes.includes(seriesType)) {
+    return partToWholeModule;
   }
   // Treemap and sunburst share the hierarchy module; the module picks the render
   // variant from the type.
@@ -66,6 +68,7 @@ export {
   heatmapChartModule,
   hierarchyChartModule,
   multivariateChartModule,
+  partToWholeChartModule,
   pieChartModule,
   radarChartModule,
 };

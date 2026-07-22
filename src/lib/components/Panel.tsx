@@ -10,6 +10,7 @@ import {
   VizLegend,
 } from '@grafana/ui';
 import { seriesTypePath } from 'editor/constants';
+import { partToWholeSeriesTypes } from 'editor/pie';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
@@ -132,11 +133,12 @@ export const Panel: React.FC<Props> = ({
     [panelContext, eventBus, onSeriesColorChange, onToggleSeriesVisibility]
   );
 
-  // Pie slices and candlestick/boxplot series map to legend items individually
-  // (not 1:1 with fields), so each click toggles that one item (Hide behavior)
-  // rather than the isolate-others default used by per-field families.
+  // Part-to-whole slices (pie/funnel) and candlestick/boxplot series map to
+  // legend items individually (not 1:1 with fields), so each click toggles that
+  // one item (Hide behavior) rather than the isolate-others default used by
+  // per-field families.
   const seriesVisibilityChangeBehavior =
-    seriesType === 'pie' || isMultiValueSeriesType(seriesType)
+    partToWholeSeriesTypes.includes(seriesType) || isMultiValueSeriesType(seriesType)
       ? SeriesVisibilityChangeBehavior.Hide
       : SeriesVisibilityChangeBehavior.Isolate;
 

@@ -15,6 +15,7 @@ import {
   type ComposeOption,
   type CustomSeriesOption,
   type EffectScatterSeriesOption,
+  type FunnelSeriesOption,
   type GridComponentOption,
   type HeatmapSeriesOption,
   type LegendComponentOption,
@@ -114,6 +115,9 @@ export type EChartParallelSeriesOption = ComposeOption<ParallelSeriesOption | Le
   parallel?: ParallelComponentOption | ParallelComponentOption[];
   parallelAxis?: ParallelAxisOption | ParallelAxisOption[];
 };
+// Funnel is the part-to-whole family's second render variant; it shares the pie
+// slice model but lays out stacked trapezoids (no radial coordinate component).
+export type EChartFunnelSeriesOption = ComposeOption<FunnelSeriesOption>;
 // Hierarchy families render a value-weighted tree; no cartesian axis component.
 export type EChartTreemapSeriesOption = ComposeOption<TreemapSeriesOption>;
 export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
@@ -145,6 +149,7 @@ export type EChartBuildOption =
   | EChartPieSeriesOption
   | EChartRadarSeriesOption
   | EChartParallelSeriesOption
+  | EChartFunnelSeriesOption
   | EChartTreemapSeriesOption
   | EChartSunburstSeriesOption
   | EChartCandlestickSeriesOption

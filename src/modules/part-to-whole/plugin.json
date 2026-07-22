@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "panel",
   "suggestions": true,
-  "name": "ECharts Part to whole",
+  "name": "Part to whole (pie)",
   "id": "grafana-echartsparttowhole-panel",
   "info": {
     "keywords": ["panel", "echarts", "pie", "part to whole"],

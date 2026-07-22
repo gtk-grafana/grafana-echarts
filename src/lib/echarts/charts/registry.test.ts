@@ -2,6 +2,7 @@ import {
   cartesianChartModule,
   heatmapChartModule,
   multivariateChartModule,
+  partToWholeChartModule,
   pieChartModule,
   resolveChartModule,
   supportedChartSeriesTypes,
@@ -28,13 +29,21 @@ describe('resolveChartModule', () => {
     expect(resolveChartModule('parallel')).toBe(multivariateChartModule);
   });
 
+  it('routes the part-to-whole family (pie + funnel) to the shared module', () => {
+    // Pie and funnel share one module (the module picks the variant from the type);
+    // `partToWholeChartModule` is the family alias of `pieChartModule`.
+    expect(resolveChartModule('funnel')).toBe(partToWholeChartModule);
+    expect(resolveChartModule('pie')).toBe(partToWholeChartModule);
+  });
+
   it('throws for unsupported concrete types', () => {
+    // gauge is a planned part-to-whole variant, not yet registered.
     expect(() => resolveChartModule('gauge')).toThrow();
   });
 
   it('lists all supported series types', () => {
     expect(supportedChartSeriesTypes).toEqual(
-      expect.arrayContaining(['line', 'bar', 'scatter', 'effectScatter', 'heatmap', 'pie', 'radar', 'parallel'])
+      expect.arrayContaining(['line', 'bar', 'scatter', 'effectScatter', 'heatmap', 'pie', 'funnel', 'radar', 'parallel'])
     );
   });
 });

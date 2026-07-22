@@ -1,5 +1,6 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { PIE_TYPE_DEFAULT, pieTypeCategoryName, pieTypeOptions, pieTypePath } from 'editor/pie';
+import { type ExtraShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
@@ -9,7 +10,7 @@ import { type PanelOptions } from 'types';
  * "Pie chart") so future ECharts-specific shape options can join it. The value
  * drives the ECharts series radius; see `getPieRadius`.
  */
-export function addPieTypeOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieTypeOptions(builder: PanelOptionsEditorBuilder<PanelOptions>, showIf?: ExtraShowIf) {
   builder.addRadio({
     path: pieTypePath,
     name: 'Pie chart type',
@@ -19,5 +20,6 @@ export function addPieTypeOptions(builder: PanelOptionsEditorBuilder<PanelOption
     settings: {
       options: pieTypeOptions,
     },
+    showIf,
   });
 }
