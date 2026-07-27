@@ -41,7 +41,12 @@ export function buildMatrixHeatmapTooltipModel(
     return {
       header: { label: '', value: data.xCategories[xIndex] ?? '' },
       rows: [
-        { label: 'Value', value: formatTooltipValue(value, ctx.formatValue) },
+        // Swatch = the cell's colour-scale colour; see the binned heatmap for why.
+        {
+          color: typeof param?.color === 'string' ? param.color : undefined,
+          label: 'Value',
+          value: formatTooltipValue(value, ctx.formatValue),
+        },
         { label: 'Name', value: data.yCategories[yIndex] ?? '' },
       ],
     };

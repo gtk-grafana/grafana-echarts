@@ -6,10 +6,26 @@ import { useEChartsTooltip } from './useEChartsTooltip';
 
 const model: TooltipModel = { header: { label: '', value: 'x' }, rows: [{ label: 'A', value: '1' }] };
 
-/** Minimal ECharts stand-in that records handlers and lets tests emit events. */
+/** Recorded `dispatchAction` payload, narrowed to the fields these tests assert. */
+interface Dispatched {
+  type: string;
+  seriesIndex?: number;
+  dataIndex?: number;
+}
+
+/**
+ * Minimal ECharts stand-in that records handlers and lets tests emit events.
+ *
+ * The pixel-conversion methods model an identity coordinate system: a cursor at
+ * (x, y) reads back as data (x, y), and series `s` places its point for data
+ * value `v` at pixel (v, v + s * 100). That keeps the proximity arithmetic in
+ * these tests trivial to reason about — the real coordinate maths is covered
+ * against a live chart in `lib/echarts/tooltip/proximity.test.ts`.
+ */
 function createFakeChart() {
   const zrHandlers: Record<string, Array<(arg: unknown) => void>> = {};
   const chartHandlers: Record<string, Array<(arg: unknown) => void>> = {};
+  const dispatched: Dispatched[] = [];
   const zr = {
     on: (event: string, handler: (arg: unknown) => void) => void (zrHandlers[event] ??= []).push(handler),
     off: (event: string, handler: (arg: unknown) => void) => {
@@ -23,13 +39,27 @@ function createFakeChart() {
       chartHandlers[event] = (chartHandlers[event] ?? []).filter((h) => h !== handler);
     },
     isDisposed: () => false,
+    dispatchAction: (payload: Dispatched) => void dispatched.push(payload),
+    containPixel: () => true,
+    convertFromPixel: (_finder: unknown, point: number[]) => point,
+    convertToPixel: (finder: { seriesIndex: number }, value: number[]) => [
+      value[0],
+      value[1] + finder.seriesIndex * 100,
+    ],
   };
   return {
     chart: chart as unknown as EChartsType,
+    dispatched,
     emitZr: (event: string, arg?: unknown) => (zrHandlers[event] ?? []).forEach((h) => h(arg)),
     emit: (event: string, arg?: unknown) => (chartHandlers[event] ?? []).forEach((h) => h(arg)),
   };
 }
+
+/** Two flat series whose points sit at y = 10 and y = 110 in fake-chart pixels. */
+const proximitySeries = [
+  { x: [0, 10, 20], y: [10, 10, 10] },
+  { x: [0, 10, 20], y: [10, 10, 10] },
+];
 
 // A container positioned at (100, 50) so window coords are offset + this origin.
 
@@ -168,5 +198,128 @@ describe('useEChartsTooltip', () => {
     });
     expect(result.current.state.pinned).toBe(true);
     expect(result.current.state.pinnedItem).toEqual({ seriesIndex: 1, dataIndex: 3 });
+  });
+
+  describe('proximity mode', () => {
+    const renderProximity = (fake: ReturnType<typeof createFakeChart>) =>
+      renderHook(() => useEChartsTooltip(fake.chart, containerRef, { series: proximitySeries }));
+
+    /** Cursor at data x=10; series 0's point is at y=10, series 1's at y=110. */
+    const moveTo = (fake: ReturnType<typeof createFakeChart>, x: number, y: number) =>
+      fake.emitZr('mousemove', { offsetX: x, offsetY: y });
+
+    it('replays the focused point into ECharts and emphasises it', () => {
+      const fake = createFakeChart();
+      const { result } = renderProximity(fake);
+
+      act(() => moveTo(fake, 10, 12));
+
+      expect(fake.dispatched).toEqual([
+        { type: 'highlight', seriesIndex: 0, dataIndex: 1 },
+        { type: 'showTip', seriesIndex: 0, dataIndex: 1 },
+      ]);
+      expect(result.current.state.activeSeriesIndex).toBe(0);
+    });
+
+    it('moves the emphasis off the old point when the focus changes', () => {
+      const fake = createFakeChart();
+      renderProximity(fake);
+
+      act(() => moveTo(fake, 10, 12));
+      fake.dispatched.length = 0;
+      // Nearer to series 1's point (y=110) than to series 0's (y=10).
+      act(() => moveTo(fake, 10, 108));
+
+      expect(fake.dispatched).toEqual([
+        { type: 'downplay', seriesIndex: 0, dataIndex: 1 },
+        { type: 'highlight', seriesIndex: 1, dataIndex: 1 },
+        { type: 'showTip', seriesIndex: 1, dataIndex: 1 },
+      ]);
+    });
+
+    it('does not re-dispatch while the cursor stays on the same point', () => {
+      const fake = createFakeChart();
+      renderProximity(fake);
+
+      act(() => moveTo(fake, 10, 12));
+      fake.dispatched.length = 0;
+      act(() => moveTo(fake, 11, 14));
+
+      expect(fake.dispatched).toEqual([]);
+    });
+
+    it('clears the emphasis when nothing is within the focus band', () => {
+      const fake = createFakeChart();
+      const { result } = renderProximity(fake);
+
+      act(() => moveTo(fake, 10, 12));
+      fake.dispatched.length = 0;
+      // Half way between the two series: outside the 30px band of either.
+      act(() => moveTo(fake, 10, 60));
+
+      expect(fake.dispatched).toEqual([{ type: 'downplay', seriesIndex: 0, dataIndex: 1 }]);
+      expect(result.current.state.activeSeriesIndex).toBeNull();
+      expect(result.current.state.visible).toBe(false);
+    });
+
+    it('freezes the emphasis on the pinned point, ignoring later moves', () => {
+      const fake = createFakeChart();
+      const { result } = renderProximity(fake);
+
+      act(() => {
+        moveTo(fake, 10, 12);
+        result.current.sink(model);
+      });
+      act(() => fake.emitZr('click'));
+      expect(result.current.state.pinned).toBe(true);
+      // An empty-grid click reports no element, so the pinned item comes from the
+      // proximity hit — which is also what the footer resolves against.
+      expect(result.current.state.pinnedItem).toEqual({ seriesIndex: 0, dataIndex: 1 });
+
+      fake.dispatched.length = 0;
+      // Moving onto the other series must not steal the emphasis while pinned.
+      act(() => moveTo(fake, 10, 108));
+
+      expect(fake.dispatched).toEqual([]);
+      expect(result.current.state.activeSeriesIndex).toBe(0);
+    });
+
+    it('releases the emphasis on dismiss', () => {
+      const fake = createFakeChart();
+      const { result } = renderProximity(fake);
+
+      act(() => {
+        moveTo(fake, 10, 12);
+        result.current.sink(model);
+      });
+      act(() => fake.emitZr('click'));
+      fake.dispatched.length = 0;
+
+      act(() => result.current.dismiss());
+
+      expect(fake.dispatched).toEqual([{ type: 'downplay', seriesIndex: 0, dataIndex: 1 }]);
+      expect(result.current.state.activeSeriesIndex).toBeNull();
+    });
+
+    it('tracks the active series without driving visibility in axis (All) mode', () => {
+      const fake = createFakeChart();
+      const { result } = renderProximity(fake);
+
+      act(() => {
+        result.current.reportTrigger('axis');
+        result.current.sink(model);
+        moveTo(fake, 10, 12);
+      });
+
+      // The focused point is emphasised, but ECharts owns the content in axis
+      // mode, so no `showTip` is replayed.
+      expect(fake.dispatched).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 1 }]);
+      expect(result.current.state.activeSeriesIndex).toBe(0);
+
+      // Leaving the focus band drops the emphasis but keeps the All tooltip up.
+      act(() => moveTo(fake, 10, 60));
+      expect(result.current.state.activeSeriesIndex).toBeNull();
+      expect(result.current.state.visible).toBe(true);
+    });
   });
 });

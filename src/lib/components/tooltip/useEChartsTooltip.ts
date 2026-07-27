@@ -343,7 +343,19 @@ export function useEChartsTooltip(
         return;
       }
       cancelHide();
-      update({ pinned: true, pinnedItem });
+
+      // Pinning freezes the active point along with the content. In proximity
+      // mode the click often lands on empty grid *near* a line, so ECharts
+      // reports no element and `pinnedItem` is null — the proximity-focused
+      // point is the one the user meant, and pinning it is what lets the footer
+      // resolve. Re-asserting the highlight makes the marker owned by the
+      // (persistent) action rather than ZRender's element hover, which clears as
+      // soon as the cursor leaves the symbol.
+      const focused = lastHitRef.current;
+      if (focused != null && !chart.isDisposed()) {
+        chart.dispatchAction({ type: 'highlight', ...focused });
+      }
+      update({ pinned: true, pinnedItem: pinnedItem ?? focused });
     };
 
     const onChartClick = (params: { seriesIndex?: number; dataIndex?: number }) => {

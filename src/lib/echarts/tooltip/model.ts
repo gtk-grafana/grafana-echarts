@@ -9,6 +9,32 @@ import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/t
  * in this module touches the DOM or React — it is pure data derivation, so it
  * stays testable and keeps the ECharts option layer isolated from the React
  * tooltip (see `lib/components/tooltip`).
+ *
+ * ## Coverage by chart family
+ *
+ * Every family feeds the React overlay, via one of two routes: the generic
+ * {@link buildTooltipModel} (cartesian, radar) or a per-series `formatter` the
+ * family attaches itself (pie, hierarchy, both heatmaps). The remaining
+ * differences are in what each family can populate, not in whether it works:
+ *
+ * | Family                 | swatch | footer (`source`) | notes                                  |
+ * |------------------------|--------|-------------------|----------------------------------------|
+ * | Cartesian single-value | yes    | yes               | reference implementation               |
+ * | Candlestick / boxplot  | yes    | no                | one row per packed dimension           |
+ * | Pie                    | yes    | yes               | only family setting `emphasis` itself  |
+ * | Radar                  | yes    | yes               | rows share one series name as label    |
+ * | Hierarchy              | yes    | no                | rows are `Value` / `Self`              |
+ * | Heatmap (both layouts) | yes    | no                | rows are `Value` / `Name`              |
+ *
+ * The `source` gaps are deliberate. A footer needs a single `Field` + row to
+ * read data links and ad-hoc filters from, and these families have no such
+ * mapping: a heatmap cell aggregates a bucket spanning many rows, a hierarchy
+ * node aggregates a subtree, and a candlestick item is built from four separate
+ * fields at once. Rather than invent one, those families render no footer.
+ *
+ * Known cosmetic gap: radar draws every polygon as one ECharts series, so
+ * {@link getLabel} resolves the same `seriesName` for each row instead of the
+ * per-polygon field name.
  */
 export interface TooltipModel {
   /**
@@ -26,8 +52,10 @@ export interface TooltipModel {
    * the ECharts layer stays free of `@grafana/ui` (the footer resolves links
    * there instead). In multi-row ("All") tooltips this is unset; each row carries
    * its own `source` and the overlay picks the clicked row's (see `TooltipRow`).
+   * Also unset for families with no clean item→field mapping (heatmap cells,
+   * hierarchy nodes), which render no footer.
    */
-  source: TooltipSource;
+  source?: TooltipSource;
 }
 
 /** Header label/value pair; mirrors the `VizTooltipItem` core panels feed `VizTooltipHeader`. */
@@ -48,7 +76,7 @@ export interface TooltipSource {
  * by `seriesIndex` and/or `dataIndex`; families with no clean field mapping
  * (multi-value cartesian, heatmap cells, hierarchy nodes) omit the resolver.
  */
-export type TooltipFieldResolver = (item: { seriesIndex?: number; dataIndex?: number }) => TooltipSource;
+export type TooltipFieldResolver = (item: { seriesIndex?: number; dataIndex?: number }) => TooltipSource | undefined;
 
 /**
  * Receives the latest tooltip content on each hover. Supplied by the React layer
@@ -67,7 +95,7 @@ export const NOOP_TOOLTIP_SINK: TooltipSink = () => undefined;
 /** A single series/value line rendered inside the tooltip. */
 export interface TooltipRow {
   /** CSS color for the leading swatch; omitted rows render no swatch. */
-  color: string;
+  color?: string;
   label: string;
   value: string;
   /** Render the row highlighted (e.g. the hovered slice in a pie "All" tooltip). */
@@ -87,6 +115,17 @@ type TooltipParam = CallbackDataParams & {
   axisValueLabel?: string;
   axisValue?: number | string;
 };
+
+/**
+ * The row swatch colour, when ECharts gives a plain CSS colour.
+ *
+ * `CallbackDataParams['color']` is a `ZRColor`, which also covers gradient and
+ * pattern objects. Those have no CSS-string equivalent the swatch could render,
+ * so they resolve to no swatch rather than to a stringified object.
+ */
+function tooltipColor(color: CallbackDataParams['color']): string | undefined {
+  return typeof color === 'string' ? color : undefined;
+}
 
 /**
  * Resolve the value formatter for a single hovered tooltip item. Chart families
@@ -218,6 +257,29 @@ function getHeaderText(items: TooltipParam[], formatHeaderValue?: (item: Tooltip
   return '';
 }
 
+/**
+ * One row per packed dimension of a multi-value item (candlestick / boxplot).
+ *
+ * ECharts prefixes these items' `value` with the data index, so the dimensions
+ * start at offset 1 — verified against a live chart: candlestick reports
+ * `[dataIndex, open, close, low, high]` and boxplot
+ * `[dataIndex, min, q1, median, q3, max]`.
+ */
+function expandMultiValueRows(
+  item: TooltipParam,
+  dimensions: string[],
+  valueFormatter: ValueFormatter,
+  color: string | undefined
+): TooltipRow[] {
+  const packed = Array.isArray(item.value) ? item.value : [];
+  return dimensions.map((label, dimension) => ({
+    color,
+    label,
+    value: formatTooltipValue(packed[dimension + 1] ?? null, valueFormatter),
+    seriesIndex: item.seriesIndex,
+  }));
+}
+
 /** Row label for an item: prefer the series name, falling back to its name. */
 function getLabel(item: TooltipParam, headerText: string): string {
   if (item.seriesName != null && item.seriesName !== '') {
@@ -232,13 +294,28 @@ function getLabel(item: TooltipParam, headerText: string): string {
 export interface TooltipModelOptions {
   /** Multi-mode row shaping (hide zeros / sort); see {@link TooltipRowOptions}. */
   rowOptions?: TooltipRowOptions;
-  /** Maps an item to its source field for the footer; see {@link TooltipFieldResolver}. */
-  resolveField: TooltipFieldResolver;
+  /**
+   * Maps an item to its source field for the footer; see
+   * {@link TooltipFieldResolver}. Omitted by families with no clean item→field
+   * mapping, which render no footer.
+   */
+  resolveField?: TooltipFieldResolver;
   /**
    * Formats the hovered x value for the header (e.g. Grafana time formatting on
    * time axes, where item-trigger params carry the raw `[time, value]` tuple).
    */
-  formatHeaderValue?: (item: { value?: unknown }) => string | undefined;
+  formatHeaderValue?: (item: { value?: unknown; name?: string }) => string | undefined;
+  /**
+   * Labels for the dimensions a multi-value series packs into a single item, in
+   * the series' own data order — `[Open, Close, Low, High]` for candlestick,
+   * `[Min, Q1, Median, Q3, Max]` for boxplot.
+   *
+   * When set, each hovered item expands into one row per dimension instead of
+   * the single value row. Without it only the *last* dimension would surface
+   * (`unwrapTooltipValue` takes the final element), which reads as a lone "High"
+   * or "Max" with no indication the rest exist.
+   */
+  multiValueDimensions?: string[];
 }
 
 /**
@@ -251,7 +328,7 @@ export interface TooltipModelOptions {
 export function buildTooltipModel(
   params: TopLevelFormatterParams,
   resolveValueFormatter: TooltipValueFormatterResolver,
-  { rowOptions, resolveField, formatHeaderValue }: TooltipModelOptions
+  { rowOptions, resolveField, formatHeaderValue, multiValueDimensions }: TooltipModelOptions = {}
 ): TooltipModel {
   const items = Array.isArray(params) ? params : [params];
 
@@ -260,6 +337,20 @@ export function buildTooltipModel(
   const headerText = getHeaderText(items, formatHeaderValue);
 
   const ordered = rowOptions ? applyTooltipRowOptions(items, (item) => tooltipNumeric(item.value), rowOptions) : items;
+
+  if (multiValueDimensions != null) {
+    // Sorting/hiding by "the" value is meaningless when an item carries several,
+    // so multi-value items expand in their natural dimension order.
+    const rows = items.flatMap((item) =>
+      expandMultiValueRows(
+        item,
+        multiValueDimensions,
+        resolveValueFormatter({ seriesIndex: item.seriesIndex, dataIndex: item.dataIndex }),
+        tooltipColor(item.color)
+      )
+    );
+    return { header: { label: '', value: headerText }, rows };
+  }
 
   const rows: TooltipRow[] = ordered.map((item) => {
     // Each row formats with its own field's formatter so per-field unit/decimals
@@ -272,7 +363,7 @@ export function buildTooltipModel(
     }
 
     return {
-      color: item.color ?? '',
+      color: tooltipColor(item.color),
       label: getLabel(item, headerText),
       value,
       seriesIndex: item.seriesIndex,
@@ -282,9 +373,10 @@ export function buildTooltipModel(
     };
   });
 
-  // Model-level source when a single item is focused (Single mode); the header
-  // composition mirrors core: x/time in `value`, empty `label`.
-  const source = resolveField(items[0]);
+  // Model-level source only when a single item is focused (Single mode, or one
+  // hovered slice). A multi-row axis tooltip has no single focused field, so it
+  // stays unset and the overlay falls back to the clicked row's own `source`.
+  const source = items.length === 1 ? resolveField?.(items[0]) : undefined;
 
   return { header: { label: '', value: headerText }, rows, source };
 }

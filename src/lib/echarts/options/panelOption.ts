@@ -61,28 +61,44 @@ export function buildPanelChartOption(
   const resolveValueFormatter = chartModule.getTooltipValueFormatter(ctx);
   // Optional per-family field resolver so hovered items can surface their
   // field's data links / ad-hoc filters in the tooltip footer.
-  const resolveField = chartModule.getTooltipFieldResolver(ctx);
+  const resolveField = chartModule.getTooltipFieldResolver?.(ctx);
   // Common tooltip parity: hide zero-value rows and sort by value, but only in
   // the multi-row "All" tooltip (mirrors `commonOptionsBuilder.addTooltipOptions`).
   const rowOptions =
     tooltipMode === TooltipDisplayMode.Multi
       ? { sort: ctx.options.tooltip?.sort, hideZeros: ctx.options.tooltip?.hideZeros }
       : undefined;
+  // Multi-value families (candlestick/boxplot) pack several values per item, so
+  // the tooltip lists each dimension instead of just the last.
+  const multiValueDimensions = chartModule.getTooltipDimensions?.(ctx);
   // Header time formatting: item-trigger (Single) params carry the raw
   // `[time, value]` tuple, and axis-trigger `axisValueLabel` uses ECharts' own
   // time format — both are replaced with Grafana's, honoring the dashboard time
   // zone (core tooltip parity).
   const formatHeaderValue =
     axisType === 'time'
-      ? (item: { value?: unknown }) => {
-          const time: unknown = Array.isArray(item.value) ? item.value[0] : undefined;
-          return typeof time === 'number' ? dateTimeFormat(time, { timeZone: ctx.timeZone }) : undefined;
+      ? (item: { value?: unknown; name?: string }) => {
+          // A multi-value item's `value` starts with its *data index*, not the x
+          // value (verified against a live chart), so reading `value[0]` would
+          // format index 1 as 1970-01-01. Those items carry the x in `name`.
+          const xValue: unknown = Array.isArray(item.value) ? item.value[0] : undefined;
+          const raw: unknown = multiValueDimensions != null ? item.name : xValue;
+          const time = typeof raw === 'string' ? Date.parse(raw) : raw;
+          return typeof time === 'number' && !Number.isNaN(time)
+            ? dateTimeFormat(time, { timeZone: ctx.timeZone })
+            : undefined;
         }
       : undefined;
   const tooltipOption = getSilentTooltipOption(
     grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
     tooltipMode,
-    (params) => buildTooltipModel(params, resolveValueFormatter, { rowOptions, resolveField, formatHeaderValue }),
+    (params) =>
+      buildTooltipModel(params, resolveValueFormatter, {
+        rowOptions,
+        resolveField,
+        formatHeaderValue,
+        multiValueDimensions,
+      }),
     sink
   );
 

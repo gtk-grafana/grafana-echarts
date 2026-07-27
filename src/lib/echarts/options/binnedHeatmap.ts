@@ -207,7 +207,14 @@ export function buildBinnedHeatmapTooltipModel(
     return {
       header: { label: '', value: formatX(xStart) },
       rows: [
-        { label: 'Value', value: formatTooltipValue(value, ctx.formatValue) },
+        // The swatch carries the cell's own colour-scale colour, so the tooltip
+        // shows which bucket of the scale was hit — the heatmap equivalent of a
+        // series swatch. Only a plain CSS colour is usable (see `tooltipColor`).
+        {
+          color: typeof param?.color === 'string' ? param.color : undefined,
+          label: 'Value',
+          value: formatTooltipValue(value, ctx.formatValue),
+        },
         { label: 'Name', value: bucket },
       ],
     };

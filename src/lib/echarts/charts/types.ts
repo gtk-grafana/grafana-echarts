@@ -161,7 +161,14 @@ export interface ChartModule {
    * (multi-value cartesian, heatmap cells, hierarchy nodes) omit it and render no
    * footer.
    */
-  getTooltipFieldResolver(ctx: ChartContext): TooltipFieldResolver;
+  getTooltipFieldResolver?(ctx: ChartContext): TooltipFieldResolver;
+  /**
+   * Labels for the dimensions a multi-value series packs into one item, so the
+   * tooltip lists them all instead of just the last. Only families that draw
+   * several values per x (candlestick, boxplot) implement this; see
+   * {@link TooltipModelOptions.multiValueDimensions}.
+   */
+  getTooltipDimensions?(ctx: ChartContext): string[] | undefined;
 }
 
 export type CartesianOption = ComposeOption<

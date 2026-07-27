@@ -45,6 +45,44 @@ const timeFrame = (): DataFrame =>
     ],
   });
 
+/** OHLC frame; the converter detects candlestick from these field names. */
+const candlestickFrame = (): DataFrame =>
+  toDataFrame({
+    fields: [
+      { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497] },
+      { name: 'open', type: FieldType.number, values: [10, 20] },
+      { name: 'high', type: FieldType.number, values: [15, 25] },
+      { name: 'low', type: FieldType.number, values: [5, 15] },
+      { name: 'close', type: FieldType.number, values: [12, 22] },
+    ],
+  });
+
+/** Five-number summary frame; the converter detects boxplot from these names. */
+const boxplotFrame = (): DataFrame =>
+  toDataFrame({
+    fields: [
+      { name: 'cat', type: FieldType.string, values: ['a', 'b'] },
+      { name: 'min', type: FieldType.number, values: [1, 2] },
+      { name: 'q1', type: FieldType.number, values: [3, 4] },
+      { name: 'median', type: FieldType.number, values: [5, 6] },
+      { name: 'q3', type: FieldType.number, values: [7, 8] },
+      { name: 'max', type: FieldType.number, values: [9, 10] },
+    ],
+  });
+
+/**
+ * Categorical frame with one numeric field per radar polygon — the shape the
+ * showcase dashboard's radar panel produces after its `convertFieldType`.
+ */
+const radarFrame = (): DataFrame =>
+  toDataFrame({
+    fields: [
+      { name: 'metric', type: FieldType.string, values: ['speed', 'power', 'range', 'cost'] },
+      { name: 'alpha', type: FieldType.number, values: [80, 70, 60, 90] },
+      { name: 'bravo', type: FieldType.number, values: [60, 90, 75, 50] },
+    ],
+  });
+
 const pieFrame = (): DataFrame =>
   toDataFrame({
     fields: [
@@ -125,6 +163,61 @@ describe('tooltip emission through a real ECharts instance', () => {
       { seriesIndex: 0, field: 'a' },
       { seriesIndex: 1, field: 'b' },
     ]);
+    chart.dispose();
+  });
+
+  it('candlestick: lists every packed dimension and a real time header', () => {
+    const { emitted, chart } = emitViaShowTip(
+      makeContext([candlestickFrame()], 'candlestick', TooltipDisplayMode.Single),
+      { seriesIndex: 0, dataIndex: 1 }
+    );
+
+    expect(emitted).toHaveLength(1);
+    const [model] = emitted;
+    // A multi-value item's `value` starts with its data index, so a naive
+    // `value[0]` header would render index 1 as 1970-01-01.
+    expect(model.header?.value).toMatch(/^2026-07-04 04:51:34$/);
+    // Rows follow ECharts' candlestick data order, `[open, close, low, high]`.
+    expect(model.rows.map((row) => [row.label, row.value])).toEqual([
+      ['Open', '20'],
+      ['Close', '22'],
+      ['Low', '15'],
+      ['High', '25'],
+    ]);
+    chart.dispose();
+  });
+
+  it('boxplot: lists the five-number summary rather than only the last dimension', () => {
+    const { emitted, chart } = emitViaShowTip(makeContext([boxplotFrame()], 'boxplot', TooltipDisplayMode.Single), {
+      seriesIndex: 0,
+      dataIndex: 1,
+    });
+
+    expect(emitted).toHaveLength(1);
+    const [model] = emitted;
+    expect(model.header?.value).toBe('b');
+    expect(model.rows.map((row) => [row.label, row.value])).toEqual([
+      ['Min', '2'],
+      ['Q1', '4'],
+      ['Median', '6'],
+      ['Q3', '8'],
+      ['Max', '10'],
+    ]);
+    chart.dispose();
+  });
+
+  it('radar: emits the hovered polygon and resolves its field for the footer', () => {
+    const { emitted, chart } = emitViaShowTip(makeContext([radarFrame()], 'radar', TooltipDisplayMode.Single), {
+      seriesIndex: 0,
+      dataIndex: 1,
+    });
+
+    expect(emitted).toHaveLength(1);
+    const [model] = emitted;
+    expect(model.rows).toHaveLength(1);
+    // Radar keys its resolvers by `dataIndex` (one data item per polygon), so
+    // index 1 is the second numeric field.
+    expect(model.source?.field.name).toBe('bravo');
     chart.dispose();
   });
 

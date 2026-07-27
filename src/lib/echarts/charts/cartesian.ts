@@ -278,6 +278,19 @@ export const cartesianChartModule: ChartModule = {
     };
   },
 
+  getTooltipDimensions(ctx) {
+    // Labels follow each series' own ECharts data order, not the Grafana field
+    // order: candlestick is emitted `[open, close, low, high]` (see
+    // `multiValueCartesian`), which is not the OHLC order its field names use.
+    if (ctx.seriesType === 'candlestick') {
+      return ['Open', 'Close', 'Low', 'High'];
+    }
+    if (ctx.seriesType === 'boxplot') {
+      return ['Min', 'Q1', 'Median', 'Q3', 'Max'];
+    }
+    return undefined;
+  },
+
   buildOption(
     ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>,
     { isGrafanaLegend }
