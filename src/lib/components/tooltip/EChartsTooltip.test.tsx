@@ -5,7 +5,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { type TooltipModel } from 'lib/echarts/tooltip/model';
 import React from 'react';
 import { EChartsTooltip } from './EChartsTooltip';
-import { type EChartsTooltipState } from './useEChartsTooltip';
+import { TOOLTIP_MARKER_ATTR, type EChartsTooltipState } from './useEChartsTooltip';
 
 const model = (over: Partial<TooltipModel> = {}): TooltipModel => ({
   header: { label: '', value: 'MyHeader' },
@@ -146,6 +146,38 @@ describe('EChartsTooltip', () => {
     // Single mode never emphasises, matching core.
     renderTooltip(state({ model: multiModel, activeSeriesIndex: 1 }), undefined, TooltipDisplayMode.Single);
     expect(emphasisDiffers()).toBe(false);
+  });
+
+  it('is click-through while hovering and interactive once pinned', () => {
+    // Regression: without the marker attribute the outside-click handler treats
+    // a click on a data link as a click outside and dismisses instantly, and
+    // without pointer-events the click never lands at all — between them the
+    // pinned tooltip was completely uninteractable.
+    const { unmount } = renderTooltip(state());
+    const hovering = document.querySelector<HTMLElement>(`[${TOOLTIP_MARKER_ATTR}]`);
+    expect(hovering).not.toBeNull();
+    expect(hovering!.style.pointerEvents).toBe('none');
+    unmount();
+
+    renderTooltip(state({ pinned: true }));
+    const pinned = document.querySelector<HTMLElement>(`[${TOOLTIP_MARKER_ATTR}]`);
+    expect(pinned!.style.pointerEvents).toBe('auto');
+    // The dismiss handler looks the marker up with `closest`, so content inside
+    // must resolve back to it.
+    expect(screen.getByText('Series A').closest(`[${TOOLTIP_MARKER_ATTR}]`)).toBe(pinned);
+  });
+
+  it('positions with a transform and no layout padding of its own', () => {
+    // The VizTooltip pieces carry their own padding; an extra layer of it made
+    // the header too tall and pushed the absolutely-positioned close button out
+    // of alignment with it.
+    renderTooltip(state({ position: { x: 30, y: 40 } }));
+    const wrapper = document.querySelector<HTMLElement>(`[${TOOLTIP_MARKER_ATTR}]`)!;
+
+    expect(wrapper.style.transform).toBe('translateX(40px) translateY(50px)');
+    expect(getComputedStyle(wrapper).padding).toBe('');
+    // Core positions purely by transform; a transition makes the tooltip lag the cursor.
+    expect(getComputedStyle(wrapper).transition).toBe('');
   });
 
   it('shows a close button that dismisses only when pinned', () => {

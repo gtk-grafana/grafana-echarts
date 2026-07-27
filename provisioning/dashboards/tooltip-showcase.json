@@ -303,7 +303,7 @@
         {
           "refId": "A",
           "scenarioId": "csv_content",
-          "csvContent": "time,gappy,solid\n2021-07-13T17:00:00Z,10,40\n2021-07-13T17:10:00Z,,42\n2021-07-13T17:20:00Z,,44\n2021-07-13T17:30:00Z,25,46\n2021-07-13T17:40:00Z,30,48\n2021-07-13T17:50:00Z,,50\n2021-07-13T18:00:00Z,20,52\n",
+          "csvContent": "time,gappy,solid\n2021-07-13T17:00:00Z,10,40\n2021-07-13T17:10:00Z,,42\n2021-07-13T17:20:00Z,,44\n2021-07-13T17:30:00Z,25,46\n2021-07-13T17:40:00Z,30,48\n2021-07-13T17:50:00Z,,50\n",
           "datasource": {
             "type": "grafana-testdata-datasource",
             "uid": "trlxrdZVk"
@@ -673,7 +673,26 @@
             "mode": "palette-classic"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "close"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "seriesType": "candlestick",
@@ -691,7 +710,7 @@
         {
           "refId": "A",
           "scenarioId": "csv_content",
-          "csvContent": "time,open,high,low,close\n2021-07-13T17:00:00Z,10,15,8,12\n2021-07-13T17:10:00Z,12,18,11,17\n2021-07-13T17:20:00Z,17,17,13,14\n2021-07-13T17:30:00Z,14,20,14,19\n2021-07-13T17:40:00Z,19,22,16,16\n",
+          "csvContent": "time,open,high,low,close\n2021-07-13T17:00:00Z,10,15,8,12\n2021-07-13T17:10:00Z,12,18,11,17\n2021-07-13T17:20:00Z,17,17,13,14\n2021-07-13T17:30:00Z,14,20,14,19\n2021-07-13T17:40:00Z,19,22,16,16\n2021-07-13T17:50:00Z,16,19,12,13\n",
           "datasource": {
             "type": "grafana-testdata-datasource",
             "uid": "trlxrdZVk"
@@ -736,7 +755,7 @@
       },
       "type": "grafana-echartscartesian-panel",
       "title": "Boxplot \u2014 five-number summary",
-      "description": "Same expansion: Min/Q1/Median/Q3/Max instead of only Max.",
+      "description": "Same expansion: Min/Q1/Median/Q3/Max instead of only Max. The 'median' field carries a data link, but no footer appears when pinned \u2014 a multi-value item is built from five fields at once, so there is no single field for links to resolve against (documented parity gap).",
       "id": 15,
       "gridPos": {
         "h": 9,
@@ -750,7 +769,26 @@
             "mode": "palette-classic"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "median"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "seriesType": "boxplot",
@@ -813,7 +851,7 @@
       },
       "type": "grafana-echartsmultivariate-panel",
       "title": "Radar",
-      "description": "Radar had no dashboard coverage at all before this one. Known cosmetic gap: every polygon is one ECharts series, so all rows share the same series name as their label instead of the per-polygon field name.",
+      "description": "Radar had no dashboard coverage at all before this one. The 'alpha' polygon carries a data link, which DOES resolve \u2014 radar keys its field resolver by dataIndex, one item per polygon. Known cosmetic gap: every polygon is one ECharts series, so all rows share the same series name as their label instead of the per-polygon field name.",
       "id": 16,
       "gridPos": {
         "h": 9,
@@ -827,7 +865,26 @@
             "mode": "palette-classic"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "alpha"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "seriesType": "radar",
@@ -878,7 +935,7 @@
       },
       "type": "grafana-echartsparttowhole-panel",
       "title": "Pie \u2014 All mode",
-      "description": "Pie sets its own row emphasis, so the hovered slice bolds in All mode regardless of proximity.",
+      "description": "`reduceOptions.values: true` gives one slice per row, so All mode lists every slice. Pie sets its own row emphasis, so the hovered slice bolds regardless of proximity. The 'value' field carries a data link, which resolves to the hovered slice's row.",
       "id": 17,
       "gridPos": {
         "h": 9,
@@ -892,7 +949,26 @@
             "mode": "palette-classic"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "value"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "seriesType": "pie",
@@ -906,9 +982,9 @@
           "mode": "multi"
         },
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [],
           "fields": "",
-          "values": false
+          "values": true
         }
       },
       "targets": [
@@ -944,7 +1020,7 @@
       },
       "type": "grafana-echartshierarchy-panel",
       "title": "Treemap",
-      "description": "Rows are Value / Self. No footer by design: a node aggregates a whole subtree, so there is no single field+row for data links to resolve against.",
+      "description": "Rows are Value / Self. The 'value' field carries a data link, but no footer appears: a node aggregates a whole subtree, so there is no single field+row to resolve against (documented parity gap).",
       "id": 18,
       "gridPos": {
         "h": 9,
@@ -958,7 +1034,26 @@
             "mode": "palette-classic"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "value"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "seriesType": "treemap",
@@ -1005,7 +1100,7 @@
       },
       "type": "grafana-echartsheatmap-panel",
       "title": "Heatmap (matrix)",
-      "description": "Cells now carry a colour swatch showing which bucket of the colour scale was hit. No footer: a cell aggregates a bucket spanning many rows.",
+      "description": "Cells now carry a colour swatch showing which bucket of the colour scale was hit. The 'Wed' field carries a data link, but no footer appears: a cell aggregates a bucket spanning many rows (documented parity gap).",
       "id": 19,
       "gridPos": {
         "h": 9,
@@ -1019,7 +1114,26 @@
             "mode": "palette-classic"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wed"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "seriesType": "heatmap",
@@ -1078,15 +1192,161 @@
       ]
     },
     {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "type": "grafana-echartscartesian-panel",
+      "title": "Bar \u2014 proximity and the active marker",
+      "description": "Bars keep ECharts' default emphasis: they have no symbol to scale, and their hit area is already large enough not to need a marker. Proximity still resolves which bar is nearest, so the Single tooltip and the All-mode bold row behave as they do for lines.",
+      "id": 20,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 58
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "alpha"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "10,25,15,30,20",
+          "alias": "alpha",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          }
+        },
+        {
+          "refId": "B",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "18,12,28,16,34",
+          "alias": "bravo",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "type": "grafana-echartscartesian-panel",
+      "title": "Stacked bar \u2014 All mode",
+      "description": "Stacking changes the rendered y; the bold row still follows the cursor vertically.",
+      "id": 21,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 58
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "bar",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "stackSeries": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "10,25,15,30,20",
+          "alias": "alpha",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          }
+        },
+        {
+          "refId": "B",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "18,12,28,16,34",
+          "alias": "bravo",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          }
+        },
+        {
+          "refId": "C",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "6,9,4,12,8",
+          "alias": "charlie",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          }
+        }
+      ]
+    },
+    {
       "type": "row",
       "title": "Content edge cases",
       "collapsed": false,
-      "id": 20,
+      "id": 22,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 58
+        "y": 67
       },
       "panels": []
     },
@@ -1098,12 +1358,12 @@
       "type": "grafana-echartscartesian-panel",
       "title": "Per-field units and decimals",
       "description": "Each row formats with its own field's unit/decimals override, not one shared formatter.",
-      "id": 21,
+      "id": 23,
       "gridPos": {
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 59
+        "y": 68
       },
       "fieldConfig": {
         "defaults": {
@@ -1185,12 +1445,12 @@
       "type": "grafana-echartscartesian-panel",
       "title": "All mode \u2014 hide zeros + sort desc",
       "description": "Zero rows drop out and remaining rows sort by value; the bold row still tracks proximity.",
-      "id": 22,
+      "id": 24,
       "gridPos": {
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 59
+        "y": 68
       },
       "fieldConfig": {
         "defaults": {
@@ -1255,12 +1515,12 @@
       "type": "grafana-echartscartesian-panel",
       "title": "Tooltip disabled (None)",
       "description": "No tooltip and no active-point marker; proximity work is skipped entirely.",
-      "id": 23,
+      "id": 25,
       "gridPos": {
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 59
+        "y": 68
       },
       "fieldConfig": {
         "defaults": {
@@ -1303,8 +1563,8 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
-    "to": "now"
+    "from": "2021-07-13T17:00:00.000Z",
+    "to": "2021-07-13T18:00:00.000Z"
   },
   "timepicker": {},
   "timezone": "utc",

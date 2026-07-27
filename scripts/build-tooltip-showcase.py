@@ -25,6 +25,24 @@ HEATMAP = "grafana-echartsheatmap-panel"
 
 LEGEND = {"showLegend": True, "displayMode": "list", "placement": "bottom", "calcs": []}
 
+# The candlestick panel's OHLC comes from a CSV with fixed timestamps, and the
+# cartesian time axis is pinned to the dashboard's range (`getTimeAxisBounds`) —
+# so with a `now-6h` range that panel renders empty. The dashboard therefore uses
+# the absolute window the CSV lives in, matching `candlestick-boxplot.json`. The
+# generated scenarios (`csv_metric_values`, `random_walk`) distribute themselves
+# across whatever range is selected, so they are unaffected.
+CANDLE_FROM = "2021-07-13T17:00:00.000Z"
+CANDLE_TO = "2021-07-13T18:00:00.000Z"
+CANDLE_CSV = (
+    "time,open,high,low,close\n"
+    "2021-07-13T17:00:00Z,10,15,8,12\n"
+    "2021-07-13T17:10:00Z,12,18,11,17\n"
+    "2021-07-13T17:20:00Z,17,17,13,14\n"
+    "2021-07-13T17:30:00Z,14,20,14,19\n"
+    "2021-07-13T17:40:00Z,19,22,16,16\n"
+    "2021-07-13T17:50:00Z,16,19,12,13\n"
+)
+
 _ids = iter(range(1, 500))
 _y = [0]
 
@@ -66,6 +84,24 @@ def panel(*, ptype, title, description, options, targets, x, w, h=9, y=None,
 
 def csv(content, ref="A"):
     return {"refId": ref, "scenarioId": "csv_content", "csvContent": content}
+
+
+def links_on(field_name, title="Open Grafana docs"):
+    """Attach a data link to one field, so the pinned footer has something to show.
+
+    Families whose items have no single source field (boxplot, heatmap,
+    hierarchy) still get the override — the point is to demonstrate that they
+    correctly render *no* footer, which is the documented parity gap.
+    """
+    return {
+        "defaults": {"color": {"mode": "palette-classic"}},
+        "overrides": [{
+            "matcher": {"id": "byName", "options": field_name},
+            "properties": [{"id": "links", "value": [
+                {"title": title, "url": "https://grafana.com/docs/", "targetBlank": True},
+            ]}],
+        }],
+    }
 
 
 def metric(values, alias, ref="A"):
@@ -151,7 +187,6 @@ panels.append(panel(
         "2021-07-13T17:30:00Z,25,46\n"
         "2021-07-13T17:40:00Z,30,48\n"
         "2021-07-13T17:50:00Z,,50\n"
-        "2021-07-13T18:00:00Z,20,52\n"
     )],
     transformations=convert([("time", "time"), ("gappy", "number"), ("solid", "number")]),
 ))
@@ -246,22 +281,21 @@ panels.append(panel(
         "as 1970-01-01."
     ),
     options=echarts_opts("candlestick"),
-    targets=[csv(
-        "time,open,high,low,close\n"
-        "2021-07-13T17:00:00Z,10,15,8,12\n"
-        "2021-07-13T17:10:00Z,12,18,11,17\n"
-        "2021-07-13T17:20:00Z,17,17,13,14\n"
-        "2021-07-13T17:30:00Z,14,20,14,19\n"
-        "2021-07-13T17:40:00Z,19,22,16,16\n"
-    )],
+    field_config=links_on("close"),
+    targets=[csv(CANDLE_CSV)],
     transformations=convert([("time", "time"), ("open", "number"), ("high", "number"),
                              ("low", "number"), ("close", "number")]),
 ))
 panels.append(panel(
     ptype=CARTESIAN, x=8, w=8, y=h,
     title="Boxplot — five-number summary",
-    description="Same expansion: Min/Q1/Median/Q3/Max instead of only Max.",
+    description=(
+        "Same expansion: Min/Q1/Median/Q3/Max instead of only Max. The 'median' field carries a data "
+        "link, but no footer appears when pinned — a multi-value item is built from five fields at "
+        "once, so there is no single field for links to resolve against (documented parity gap)."
+    ),
     options=echarts_opts("boxplot"),
+    field_config=links_on("median"),
     targets=[csv(
         "cat,min,q1,median,q3,max\n"
         "alpha,1,3,5,7,9\n"
@@ -275,11 +309,13 @@ panels.append(panel(
     ptype=MULTIVARIATE, x=16, w=8, y=h,
     title="Radar",
     description=(
-        "Radar had no dashboard coverage at all before this one. Known cosmetic gap: every polygon "
-        "is one ECharts series, so all rows share the same series name as their label instead of the "
-        "per-polygon field name."
+        "Radar had no dashboard coverage at all before this one. The 'alpha' polygon carries a data "
+        "link, which DOES resolve — radar keys its field resolver by dataIndex, one item per polygon. "
+        "Known cosmetic gap: every polygon is one ECharts series, so all rows share the same series "
+        "name as their label instead of the per-polygon field name."
     ),
     options=echarts_opts("radar", mode="multi"),
+    field_config=links_on("alpha"),
     targets=[csv(
         "metric,alpha,bravo\n"
         "speed,80,60\n"
@@ -294,9 +330,14 @@ h = _next_y(9)
 panels.append(panel(
     ptype=PIE, x=0, w=8, y=h,
     title="Pie — All mode",
-    description="Pie sets its own row emphasis, so the hovered slice bolds in All mode regardless of proximity.",
+    description=(
+        "`reduceOptions.values: true` gives one slice per row, so All mode lists every slice. Pie sets "
+        "its own row emphasis, so the hovered slice bolds regardless of proximity. The 'value' field "
+        "carries a data link, which resolves to the hovered slice's row."
+    ),
     options={"seriesType": "pie", "legend": LEGEND, "tooltip": {"mode": "multi"},
-             "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": False}},
+             "reduceOptions": {"calcs": [], "fields": "", "values": True}},
+    field_config=links_on("value"),
     targets=[csv("category,value\nSales,43\nAdmin,10\nIT,30\nMarketing,18\nSupport,7")],
     transformations=convert([("value", "number")]),
 ))
@@ -304,10 +345,12 @@ panels.append(panel(
     ptype=HIERARCHY, x=8, w=8, y=h,
     title="Treemap",
     description=(
-        "Rows are Value / Self. No footer by design: a node aggregates a whole subtree, so there is "
-        "no single field+row for data links to resolve against."
+        "Rows are Value / Self. The 'value' field carries a data link, but no footer appears: a node "
+        "aggregates a whole subtree, so there is no single field+row to resolve against "
+        "(documented parity gap)."
     ),
     options=echarts_opts("treemap"),
+    field_config=links_on("value"),
     targets=[csv("category,value\nSales,43\nAdmin,10\nIT,30\nMarketing,18\nSupport,7")],
     transformations=convert([("value", "number")]),
 ))
@@ -315,14 +358,41 @@ panels.append(panel(
     ptype=HEATMAP, x=16, w=8, y=h,
     title="Heatmap (matrix)",
     description=(
-        "Cells now carry a colour swatch showing which bucket of the colour scale was hit. No footer: "
-        "a cell aggregates a bucket spanning many rows."
+        "Cells now carry a colour swatch showing which bucket of the colour scale was hit. The 'Wed' "
+        "field carries a data link, but no footer appears: a cell aggregates a bucket spanning many "
+        "rows (documented parity gap)."
     ),
     options={"seriesType": "heatmap", "heatmapLayout": "matrix", "heatmapColorScheme": "spectral",
              "legend": LEGEND, "tooltip": {"mode": "single"}},
+    field_config=links_on("Wed"),
     targets=[csv("Service,Mon,Tue,Wed,Thu,Fri\nAPI,12,19,3,5,2\nWeb,8,11,14,7,9\nDB,3,6,9,4,15\nCache,20,4,7,12,6")],
     transformations=convert([("Mon", "number"), ("Tue", "number"), ("Wed", "number"),
                              ("Thu", "number"), ("Fri", "number")]),
+))
+
+h = _next_y(9)
+panels.append(panel(
+    ptype=CARTESIAN, x=0, w=12, y=h,
+    title="Bar — proximity and the active marker",
+    description=(
+        "Bars keep ECharts' default emphasis: they have no symbol to scale, and their hit area is "
+        "already large enough not to need a marker. Proximity still resolves which bar is nearest, so "
+        "the Single tooltip and the All-mode bold row behave as they do for lines."
+    ),
+    options=echarts_opts("bar"),
+    field_config=links_on("alpha"),
+    targets=[metric("10,25,15,30,20", "alpha", "A"), metric("18,12,28,16,34", "bravo", "B")],
+))
+panels.append(panel(
+    ptype=CARTESIAN, x=12, w=12, y=h,
+    title="Stacked bar — All mode",
+    description="Stacking changes the rendered y; the bold row still follows the cursor vertically.",
+    options=echarts_opts("bar", mode="multi", stackSeries=True),
+    targets=[
+        metric("10,25,15,30,20", "alpha", "A"),
+        metric("18,12,28,16,34", "bravo", "B"),
+        metric("6,9,4,12,8", "charlie", "C"),
+    ],
 ))
 
 # ------------------------------------------------------------ formatting
@@ -380,7 +450,7 @@ dashboard = {
     "schemaVersion": 39,
     "tags": ["echarts", "tooltip", "proximity", "parity"],
     "templating": {"list": []},
-    "time": {"from": "now-6h", "to": "now"},
+    "time": {"from": CANDLE_FROM, "to": CANDLE_TO},
     "timepicker": {},
     "timezone": "utc",
     "title": "ECharts Tooltip — proximity, pinning & parity",

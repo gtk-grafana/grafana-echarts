@@ -62,10 +62,13 @@ const proximitySeries = [
 ];
 
 // A container positioned at (100, 50) so window coords are offset + this origin.
+// A real (attached) element, not a bare stub: the scroll-dismiss handler asks
+// whether the scrolled node contains it, which needs a node in the document.
+const containerEl = document.createElement('div');
+containerEl.getBoundingClientRect = () => ({ left: 100, top: 50 }) as DOMRect;
+document.body.appendChild(containerEl);
 
-const containerRef = {
-  current: { getBoundingClientRect: () => ({ left: 100, top: 50 }) },
-} as unknown as RefObject<HTMLElement>;
+const containerRef: RefObject<HTMLElement> = { current: containerEl };
 
 describe('useEChartsTooltip', () => {
   beforeEach(() => {
@@ -198,6 +201,46 @@ describe('useEChartsTooltip', () => {
     });
     expect(result.current.state.pinned).toBe(true);
     expect(result.current.state.pinnedItem).toEqual({ seriesIndex: 1, dataIndex: 3 });
+  });
+
+  describe('scroll while pinned', () => {
+    const pin = () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+      act(() => {
+        view.result.current.sink(model);
+        fake.emitZr('click');
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      return view;
+    };
+
+    it('dismisses when an ancestor of the chart scrolls', () => {
+      const { result } = pin();
+
+      // The chart container is a child of document, so a document scroll moves
+      // it — the pinned tooltip no longer points at its datapoint.
+      act(() => {
+        document.dispatchEvent(new Event('scroll', { bubbles: false }));
+      });
+
+      expect(result.current.state.pinned).toBe(false);
+      expect(result.current.state.visible).toBe(false);
+    });
+
+    it('ignores scrolling inside the tooltip itself', () => {
+      const { result } = pin();
+      // A scrollable Multi-mode tooltip body: scrolling it must not close it.
+      const inner = document.createElement('div');
+      document.body.appendChild(inner);
+
+      act(() => {
+        inner.dispatchEvent(new Event('scroll', { bubbles: false }));
+      });
+
+      expect(result.current.state.pinned).toBe(true);
+      inner.remove();
+    });
   });
 
   describe('proximity mode', () => {

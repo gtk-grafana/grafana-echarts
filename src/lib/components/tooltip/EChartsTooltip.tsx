@@ -1,4 +1,4 @@
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { type Field, type GrafanaTheme2 } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import {
@@ -12,7 +12,6 @@ import {
   useStyles2,
   VizTooltipColorIndicator,
   VizTooltipColorPlacement,
-  VizTooltipContainer,
   VizTooltipContent,
   VizTooltipFooter,
   VizTooltipHeader,
@@ -20,8 +19,8 @@ import {
   VizTooltipWrapper,
 } from '@grafana/ui';
 import { type TooltipRow, type TooltipSource } from 'lib/echarts/tooltip/model';
-import React from 'react';
-import { type EChartsTooltipState } from './useEChartsTooltip';
+import React, { useLayoutEffect, useRef } from 'react';
+import { TOOLTIP_MARKER_ATTR, TOOLTIP_OFFSET, type EChartsTooltipState } from './useEChartsTooltip';
 
 interface Props {
   state: EChartsTooltipState;
@@ -38,11 +37,11 @@ interface Props {
 /** "filter for" operator (`=`); `AdHocFilterModel['operator']` is `'=' | '!='`. */
 const FILTER_FOR: AdHocFilterModel['operator'] = '=';
 
-// /**
-//  * Room core reserves for its window-edge math: `TooltipPlugin2` subtracts a
-//  * scrollbar's width from the viewport before deciding whether to flip.
-//  */
-// const SCROLLBAR_WIDTH = 16;
+/**
+ * Room core reserves for its window-edge math: `TooltipPlugin2` subtracts a
+ * scrollbar's width from the viewport before deciding whether to flip.
+ */
+const SCROLLBAR_WIDTH = 16;
 
 /**
  * Map a model row to a `VizTooltipItem`.
@@ -128,27 +127,27 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
-// /**
-//  * Position the tooltip beside the cursor like core's `TooltipPlugin2`: offset by
-//  * `TOOLTIP_OFFSET`, and when it would overflow the viewport (minus a scrollbar's
-//  * width), flip to the cursor's other side via `translate(-100%)`.
-//  */
-// function cursorTransform(position: { x: number; y: number }, size: { width: number; height: number }): string {
-//   const winWid = window.innerWidth - SCROLLBAR_WIDTH;
-//   const winHgt = window.innerHeight - SCROLLBAR_WIDTH;
-//   const width = size.width + TOOLTIP_OFFSET.x;
-//   const height = size.height + TOOLTIP_OFFSET.y;
-//
-//   const flipX = position.x + width > winWid && position.x - width >= 0;
-//   const flipY = position.y + height > winHgt && position.y - height >= 0;
-//
-//   const shiftX = position.x + (flipX ? -TOOLTIP_OFFSET.x : TOOLTIP_OFFSET.x);
-//   const shiftY = position.y + (flipY ? -TOOLTIP_OFFSET.y : TOOLTIP_OFFSET.y);
-//   const reflectX = flipX ? ' translateX(-100%)' : '';
-//   const reflectY = flipY ? ' translateY(-100%)' : '';
-//
-//   return `translateX(${shiftX}px)${reflectX} translateY(${shiftY}px)${reflectY}`;
-// }
+/**
+ * Position the tooltip beside the cursor like core's `TooltipPlugin2`: offset by
+ * `TOOLTIP_OFFSET`, and when it would overflow the viewport (minus a scrollbar's
+ * width), flip to the cursor's other side via `translate(-100%)`.
+ */
+function cursorTransform(position: { x: number; y: number }, size: { width: number; height: number }): string {
+  const winWid = window.innerWidth - SCROLLBAR_WIDTH;
+  const winHgt = window.innerHeight - SCROLLBAR_WIDTH;
+  const width = size.width + TOOLTIP_OFFSET.x;
+  const height = size.height + TOOLTIP_OFFSET.y;
+
+  const flipX = position.x + width > winWid && position.x - width >= 0;
+  const flipY = position.y + height > winHgt && position.y - height >= 0;
+
+  const shiftX = position.x + (flipX ? -TOOLTIP_OFFSET.x : TOOLTIP_OFFSET.x);
+  const shiftY = position.y + (flipY ? -TOOLTIP_OFFSET.y : TOOLTIP_OFFSET.y);
+  const reflectX = flipX ? ' translateX(-100%)' : '';
+  const reflectY = flipY ? ' translateY(-100%)' : '';
+
+  return `translateX(${shiftX}px)${reflectX} translateY(${shiftY}px)${reflectY}`;
+}
 
 /**
  * Renders the ECharts hover state with `@grafana/ui`'s `VizTooltip` pieces,
@@ -165,28 +164,40 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
   // Hooks must run before any early return (Rules of Hooks).
   const { onAddAdHocFilter } = usePanelContext();
   const styles = useStyles2(getStyles);
-  // const wrapperRef = useRef<HTMLDivElement>(null);
-  // const [size, setSize] = useState({ width: 0, height: 0 });
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  // Latest placement, so the ResizeObserver below always positions against the
+  // current cursor without being torn down on every mouse move.
+  const placeRef = useRef<() => void>(() => undefined);
 
   const { model, position, visible, pinned } = state;
   const active = visible && model != null && position != null;
 
-  // Track the rendered size so the edge-flip math reacts to content changes
-  // (mirrors TooltipPlugin2's ResizeObserver on its wrapper).
-  // useLayoutEffect(() => {
-  //   const dom = wrapperRef.current;
-  //   if (!active || dom == null) {
-  //     return;
-  //   }
-  //   // const observer = new ResizeObserver((entries) => {
-  //   //   // for (const entry of entries) {
-  //   //   //   // const next = { width: entry.contentRect.width, height: entry.contentRect.height };
-  //   //   //   // setSize((prev) => (prev.width === next.width && prev.height === next.height ? prev : next));
-  //   //   // }
-  //   // });
-  //   // observer.observe(dom);
-  //   // return () => observer.disconnect();
-  // }, [active]);
+  // Positioned imperatively, as core's `TooltipPlugin2` does: writing the
+  // transform straight to the node keeps the cursor-follow off React's render
+  // path. Going through state instead would re-render the whole tooltip — footer
+  // and data links included — on every mouse move.
+  useLayoutEffect(() => {
+    placeRef.current = () => {
+      const dom = wrapperRef.current;
+      if (dom == null || position == null) {
+        return;
+      }
+      dom.style.transform = cursorTransform(position, { width: dom.offsetWidth, height: dom.offsetHeight });
+    };
+    placeRef.current();
+  }, [position]);
+
+  // Re-place when the content resizes, so the edge-flip math reacts to a change
+  // of row count (mirrors TooltipPlugin2's ResizeObserver on its wrapper).
+  useLayoutEffect(() => {
+    const dom = wrapperRef.current;
+    if (!active || dom == null) {
+      return;
+    }
+    const observer = new ResizeObserver(() => placeRef.current());
+    observer.observe(dom);
+    return () => observer.disconnect();
+  }, [active]);
 
   if (!active) {
     return null;
@@ -219,12 +230,22 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
   }
   return (
     <Portal>
-      <VizTooltipContainer
-        position={position}
-        offset={{
-          x: 0,
-          y: 0,
+      <div
+        ref={wrapperRef}
+        className={cx(styles.wrapper, pinned && styles.pinned)}
+        style={{
+          // Only a pinned tooltip is interactive. While hovering it must stay
+          // click-through, or it would swallow the pointer and flicker as the
+          // cursor crosses it (core does the same).
+          pointerEvents: pinned ? 'auto' : 'none',
+          maxWidth: maxWidth ?? 'none',
         }}
+        // Marks this subtree for the outside-click dismiss handler, so a click
+        // *inside* a pinned tooltip (a data link, a "filter for" button) is not
+        // treated as a click outside it.
+        {...{ [TOOLTIP_MARKER_ATTR]: '' }}
+        aria-live="polite"
+        aria-atomic="true"
       >
         {pinned && <IconButton aria-label="Close" className={styles.closeButton} name="times" onClick={dismiss} />}
         <VizTooltipWrapper>
@@ -237,7 +258,7 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
           />
           {footer}
         </VizTooltipWrapper>
-      </VizTooltipContainer>
+      </div>
     </Portal>
   );
 };

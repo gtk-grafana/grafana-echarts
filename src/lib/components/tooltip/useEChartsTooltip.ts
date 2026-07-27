@@ -407,9 +407,9 @@ export function useEChartsTooltip(
     };
   }, [chart, containerRef, cancelHide, focusPoint, update]);
 
-  // While pinned, dismiss on a click outside the tooltip or on Escape. Clicks
-  // inside the tooltip (data links, ad-hoc filter buttons) are ignored so the
-  // pinned tooltip stays interactive.
+  // While pinned, dismiss on a click outside the tooltip, on Escape, or when the
+  // chart scrolls away underneath it. Clicks inside the tooltip (data links,
+  // ad-hoc filter buttons) are ignored so the pinned tooltip stays interactive.
   useEffect(() => {
     if (!state.pinned) {
       return;
@@ -426,14 +426,29 @@ export function useEChartsTooltip(
         dismiss();
       }
     };
-    // Capture phase so an outside press dismisses before other handlers act on it.
+    // A pinned tooltip is positioned in viewport coordinates, so once the chart
+    // scrolls it no longer points at the datapoint it describes. Only scrolls of
+    // an *ancestor* of the chart move it: this deliberately ignores scrolling
+    // within the tooltip's own content, which stays open (mirrors core's
+    // `e.target.contains(plot.root)` test).
+    const onScroll = (event: Event) => {
+      const target = event.target;
+      const container = containerRef.current;
+      if (container != null && target instanceof Node && target.contains(container)) {
+        dismiss();
+      }
+    };
+    // Capture phase so an outside press dismisses before other handlers act on
+    // it, and so scrolls of nested containers (which do not bubble) are seen.
     document.addEventListener('mousedown', onDocMouseDown, true);
     document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('scroll', onScroll, true);
     return () => {
       document.removeEventListener('mousedown', onDocMouseDown, true);
       document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('scroll', onScroll, true);
     };
-  }, [state.pinned, dismiss]);
+  }, [state.pinned, dismiss, containerRef]);
 
   return { state, sink, reportTrigger, dismiss };
 }
