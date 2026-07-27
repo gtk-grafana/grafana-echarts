@@ -49,6 +49,14 @@ export function getCrosshairAxisPointer(): TooltipOption['axisPointer'] {
     // https://echarts.apache.org/en/option.html#tooltip.axisPointer.crossStyle
     crossStyle: lineStyle,
     label: { show: false },
+    // An axis pointer emphasises *every* series at the snapped x by default,
+    // which would mark a whole column of points as active. Only the
+    // proximity-focused point should carry the marker — matching Single mode and
+    // core Grafana, where one hover point is drawn at a time — so the automatic
+    // batch is suppressed and `useEChartsTooltip` highlights the one point
+    // itself.
+    // https://echarts.apache.org/en/option.html#axisPointer.triggerEmphasis
+    triggerEmphasis: false,
   };
 }
 

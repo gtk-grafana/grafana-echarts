@@ -43,7 +43,7 @@ const frameOf = (values: Record<string, Array<number | null>>): DataFrame =>
     ],
   });
 
-const makeContext = (frames: DataFrame[]): ChartContext => ({
+const makeContext = (frames: DataFrame[], mode = TooltipDisplayMode.Single): ChartContext => ({
   frames,
   theme: createTheme(),
   timeZone: 'utc',
@@ -51,7 +51,7 @@ const makeContext = (frames: DataFrame[]): ChartContext => ({
   options: {
     [seriesTypePath]: 'line',
     legend,
-    tooltip: { mode: TooltipDisplayMode.Single, sort: undefined, hideZeros: false },
+    tooltip: { mode, sort: undefined, hideZeros: false },
   } as unknown as PanelOptions,
   seriesType: 'line',
   formatValue,
@@ -60,8 +60,16 @@ const makeContext = (frames: DataFrame[]): ChartContext => ({
 });
 
 /** Mount a live 400x300 chart for `frames` and return it with its series values. */
-function mount(frames: DataFrame[]): { chart: EChartsType; series: SeriesPoints[] } {
-  const option = buildPanelChartOption(makeContext(frames), { isGrafanaLegend: true });
+function mount(
+  frames: DataFrame[],
+  mode = TooltipDisplayMode.Single,
+  patchAxisPointer?: Record<string, unknown>
+): { chart: EChartsType; series: SeriesPoints[] } {
+  const option = buildPanelChartOption(makeContext(frames, mode), { isGrafanaLegend: true });
+  if (patchAxisPointer) {
+    Object.assign(option.axisPointer as object, patchAxisPointer);
+    Object.assign((option.tooltip as { axisPointer: object }).axisPointer, patchAxisPointer);
+  }
   const dom = document.createElement('div');
   dom.style.width = '400px';
   dom.style.height = '300px';
@@ -209,6 +217,51 @@ describe('findHoveredPoint', () => {
     const between = { x: (pixelOf(chart, mounted.series, 0, 2).x + pixelOf(chart, mounted.series, 0, 3).x) / 2 };
     expect(findHoveredPoint(chart, { x: between.x, y: target.y }, mounted.series)).not.toBeNull();
     expect(findHoveredPoint(chart, { x: between.x, y: target.y }, mounted.series, { hoverProximity: 5 })).toBeNull();
+  });
+
+  it('the All-mode axis pointer emphasises no series of its own', () => {
+    // ECharts' axis pointer highlights *every* series at the snapped x, which
+    // would light up a whole column of points instead of the one focused point.
+    // `triggerEmphasis: false` (set in `getCrosshairAxisPointer`) suppresses it,
+    // leaving the tooltip's own single `highlight` as the only marker.
+    const frames = [frameOf({ a: [10, 20, 30, 40, 50], b: [60, 70, 80, 90, 95] })];
+
+    const highlightsFor = (patchAxisPointer?: Record<string, unknown>) => {
+      const mounted = mount(frames, TooltipDisplayMode.Multi, patchAxisPointer);
+      const batches: unknown[] = [];
+      mounted.chart.on('highlight', (params) => {
+        batches.push(params);
+      });
+      const at = pixelOf(mounted.chart, mounted.series, 0, 2);
+      mounted.chart.dispatchAction({ type: 'updateAxisPointer', x: at.x, y: at.y });
+      mounted.chart.dispose();
+      return batches;
+    };
+
+    // Control: with ECharts' default the axis pointer does emphasise on its own,
+    // which is the behaviour being suppressed.
+    expect(highlightsFor({ triggerEmphasis: true })).not.toHaveLength(0);
+    // As shipped: nothing is emphasised by the axis pointer.
+    expect(highlightsFor()).toHaveLength(0);
+  });
+
+  it('keeps the tooltip’s own highlight through an axis-pointer update', () => {
+    // The axis pointer reconciles its emphasis by downplaying whatever it
+    // highlighted last. That bookkeeping must not reach the point the tooltip
+    // highlighted itself, or the marker would be wiped on the next mouse move.
+    const mounted = mount([frameOf({ a: [10, 20, 30, 40, 50], b: [60, 70, 80, 90, 95] })], TooltipDisplayMode.Multi);
+    chart = mounted.chart;
+    const downplayed: unknown[] = [];
+
+    chart.dispatchAction({ type: 'highlight', seriesIndex: 1, dataIndex: 2 });
+    chart.on('downplay', (params) => {
+      downplayed.push(params);
+    });
+
+    const at = pixelOf(chart, mounted.series, 0, 2);
+    chart.dispatchAction({ type: 'updateAxisPointer', x: at.x, y: at.y });
+
+    expect(downplayed).toHaveLength(0);
   });
 
   it('resolves per-series y axes independently', () => {
