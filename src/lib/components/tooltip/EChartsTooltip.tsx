@@ -208,9 +208,6 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
       }
     }
   }
-  console.log('model', model);
-  console.log('position', position);
-
   return (
     <Portal>
       <VizTooltipContainer

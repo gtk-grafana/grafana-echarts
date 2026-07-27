@@ -4,9 +4,12 @@ import { debug, LOG_LEVELS } from 'development';
 import { type ComposeOption } from 'echarts';
 import type { TooltipOption } from 'echarts/types/dist/shared';
 import type { XAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
+import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
+import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
+import { collectSeriesPoints } from 'lib/echarts/tooltip/proximity';
 import {
   type BrushEndEvent,
   brushEndToTimeRange,
@@ -14,7 +17,7 @@ import {
   DISABLE_TIME_BRUSH_ACTION,
   ENABLE_TIME_BRUSH_ACTION,
 } from 'lib/echarts/timeBrush';
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { EChartsTooltip } from './tooltip/EChartsTooltip';
 import { useEChartsTooltip } from './tooltip/useEChartsTooltip';
 
@@ -47,6 +50,21 @@ export const EChart: React.FC<Props> = ({
   // held in state so the option/resize effects re-run once it exists.
   const [chart, setChart] = useState<EChartsType | null>(null);
 
+  const tooltipMode = chartContext.options.tooltip?.mode ?? TooltipDisplayMode.Single;
+
+  // Per-series values enabling Grafana-parity proximity hover, built only for
+  // the case it applies to: a Single tooltip on a single-value cartesian chart
+  // over a time axis, which is exactly what `timeSeriesToEChartsOption` emits
+  // `[time, value]` series for (and so the only shape whose array index is a
+  // valid `seriesIndex`). Everything else — All mode, category axes, pie,
+  // hierarchy, heatmap — keeps ECharts' native hit-testing.
+  const proximitySeries = useMemo(() => {
+    if (tooltipMode !== TooltipDisplayMode.Single || !isCartesianSingleValueSeriesType(chartContext.seriesType)) {
+      return undefined;
+    }
+    return framesHaveTimeField(chartContext.frames) ? collectSeriesPoints(chartContext.frames) : undefined;
+  }, [chartContext.frames, chartContext.seriesType, tooltipMode]);
+
   // React tooltip overlay: ECharts' (invisible) tooltip formatter feeds hovered
   // content to this controller's `sink`; the controller tracks cursor/show/hide
   // and the `EChartsTooltip` renders it with `@grafana/ui`'s VizTooltip. The
@@ -57,7 +75,7 @@ export const EChart: React.FC<Props> = ({
     reportTrigger: reportTooltipTrigger,
     state: tooltipState,
     dismiss: dismissTooltip,
-  } = useEChartsTooltip(chart, panelDOMRef);
+  } = useEChartsTooltip(chart, panelDOMRef, { series: proximitySeries });
 
   // Latest time-range setter, read from the brush handler (attached once per
   // chart instance) so it always calls the current prop without re-binding.
@@ -174,7 +192,7 @@ export const EChart: React.FC<Props> = ({
       <EChartsTooltip
         state={tooltipState}
         dismiss={dismissTooltip}
-        mode={chartContext.options.tooltip?.mode ?? TooltipDisplayMode.Single}
+        mode={tooltipMode}
         maxWidth={chartContext.options.tooltip?.maxWidth}
         maxHeight={chartContext.options.tooltip?.maxHeight}
       />

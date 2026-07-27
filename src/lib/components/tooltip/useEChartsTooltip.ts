@@ -1,5 +1,6 @@
 import { type EChartsType } from 'lib/echarts/echarts';
 import { type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/model';
+import { findHoveredPoint, type ProximityHit, type SeriesPoints } from 'lib/echarts/tooltip/proximity';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 
 /**
@@ -37,6 +38,18 @@ export interface EChartsTooltipState {
   pinnedItem: { seriesIndex?: number; dataIndex?: number } | null;
 }
 
+export interface EChartsTooltipOptions {
+  /**
+   * Per-series values enabling Grafana-parity proximity hover (see
+   * `lib/echarts/tooltip/proximity`). Omit — or pass an empty array — to fall
+   * back to ECharts' native hit-testing, which is what non-cartesian families
+   * (pie, treemap, heatmap) want.
+   */
+  series?: readonly SeriesPoints[];
+  /** Core's "Hover proximity" (px); see {@link findHoveredPoint}. */
+  hoverProximity?: number;
+}
+
 export interface EChartsTooltipController {
   state: EChartsTooltipState;
   /** Stable sink passed into `buildPanelChartOption`; receives hovered content each move. */
@@ -59,16 +72,27 @@ const HIDDEN: EChartsTooltipState = { model: null, position: null, visible: fals
  *
  * Show/hide model:
  * - `sink` → show (and update content); cancels any pending hide.
- * - ZRender `mousemove` → track cursor position.
+ * - ZRender `mousemove` → track cursor position, and in proximity mode resolve
+ *   which point is hovered (see below).
  * - `mouseout` → hide after {@link HIDE_DELAY_MS}, but only for item-triggered
  *   tooltips; axis ("All") tooltips persist across the whole grid and hide only
- *   on `globalout`.
+ *   on `globalout`. Skipped entirely in proximity mode, where `mousemove` owns
+ *   show *and* hide.
  * - ZRender `globalout` (cursor leaves the canvas) → hide immediately.
  * A pinned tooltip ignores all hover updates until dismissed.
+ *
+ * Proximity mode: when {@link EChartsTooltipOptions.series} is supplied, hover
+ * is resolved by {@link findHoveredPoint} instead of ECharts' hit-testing, so
+ * the tooltip appears when the cursor is merely *near* a series — core Grafana's
+ * behaviour — rather than only when it is on a symbol or the line stroke. The
+ * resolved point is replayed into ECharts as a `showTip` action, which runs the
+ * usual `tooltip.formatter` and so reaches this hook's `sink` through exactly
+ * the same path as a native hover.
  */
 export function useEChartsTooltip(
   chart: EChartsType | null,
-  containerRef: RefObject<HTMLElement | null>
+  containerRef: RefObject<HTMLElement | null>,
+  { series, hoverProximity }: EChartsTooltipOptions = {}
 ): EChartsTooltipController {
   const [state, setState] = useState<EChartsTooltipState>(HIDDEN);
 
@@ -82,6 +106,25 @@ export function useEChartsTooltip(
   const rafIdRef = useRef<number | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const triggerRef = useRef<string | undefined>(undefined);
+
+  // Proximity inputs are read through a ref so a new `series` array identity (a
+  // fresh one is built on every data change) doesn't re-bind the ZRender
+  // listeners below.
+  const proximityRef = useRef({ series, hoverProximity });
+  useEffect(() => {
+    proximityRef.current = { series, hoverProximity };
+  }, [series, hoverProximity]);
+
+  // The point last replayed into ECharts, so an unchanged hover doesn't
+  // re-dispatch. `showTip` re-runs the formatter every time it is called, which
+  // would otherwise push an identical model on every mouse move.
+  const lastHitRef = useRef<Pick<ProximityHit, 'seriesIndex' | 'dataIndex'> | null>(null);
+
+  // New data invalidates the cached indices — the same `dataIndex` now points at
+  // a different point, so the dedupe above must not suppress the next dispatch.
+  useEffect(() => {
+    lastHitRef.current = null;
+  }, [series]);
 
   const flush = useCallback(() => {
     if (flushScheduledRef.current) {
@@ -127,6 +170,9 @@ export function useEChartsTooltip(
 
   const dismiss = useCallback(() => {
     cancelHide();
+    // Forget the replayed point so the next move over the same datapoint
+    // re-shows the tooltip instead of being deduped away.
+    lastHitRef.current = null;
     update({ pinned: false, pinnedItem: null, visible: false, model: null });
   }, [cancelHide, update]);
 
@@ -137,18 +183,51 @@ export function useEChartsTooltip(
     const zr = chart.getZr();
 
     const onMove = (event: { offsetX: number; offsetY: number }) => {
-      console.log('onMove', event)
       if (latestRef.current.pinned) {
         return;
       }
+
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) {
         return;
       }
       update({ position: { x: rect.left + event.offsetX, y: rect.top + event.offsetY } });
+
+      const { series: seriesPoints, hoverProximity: proximity } = proximityRef.current;
+      if (seriesPoints == null || seriesPoints.length === 0) {
+        // Not a proximity-capable chart; ECharts' own hit-testing drives `sink`.
+        return;
+      }
+
+      // ZRender offsets are already relative to the canvas, which is the
+      // coordinate space the chart's pixel conversions use.
+      const hit = findHoveredPoint(chart, { x: event.offsetX, y: event.offsetY }, seriesPoints, {
+        hoverProximity: proximity,
+      });
+
+      if (hit == null) {
+        // Nothing within the focus band. Core shows no Single tooltip here, and
+        // hiding immediately (rather than after HIDE_DELAY_MS) is right because
+        // the cursor is still inside the plot — there is no gap to bridge.
+        lastHitRef.current = null;
+        cancelHide();
+        update({ visible: false });
+        return;
+      }
+
+      const last = lastHitRef.current;
+      if (last?.seriesIndex === hit.seriesIndex && last?.dataIndex === hit.dataIndex) {
+        // Same point: the position update above is all that's needed.
+        return;
+      }
+      lastHitRef.current = { seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex };
+      // Runs `tooltip.formatter` synchronously, so `sink` fires before this
+      // returns and shows the tooltip.
+      chart.dispatchAction({ type: 'showTip', seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex });
     };
 
     const onGlobalOut = () => {
+      lastHitRef.current = null;
       if (latestRef.current.pinned) {
         return;
       }
@@ -156,8 +235,7 @@ export function useEChartsTooltip(
       update({ visible: false });
     };
 
-    const onMouseOut = (args) => {
-      console.log('onMouseOut', args);
+    const onMouseOut = () => {
       if (latestRef.current.pinned) {
         return;
       }
@@ -167,6 +245,13 @@ export function useEChartsTooltip(
       if (triggerRef.current === 'axis') {
         return;
       }
+      // In proximity mode `mousemove` decides visibility on every move, so this
+      // element-level leave says nothing useful — the cursor has left a symbol
+      // but is very likely still within the focus band of the same line.
+      const { series: seriesPoints } = proximityRef.current;
+      if (seriesPoints != null && seriesPoints.length > 0) {
+        return;
+      }
       cancelHide();
       hideTimerRef.current = setTimeout(() => {
         hideTimerRef.current = null;
@@ -174,8 +259,7 @@ export function useEChartsTooltip(
       }, HIDE_DELAY_MS);
     };
 
-    const onMouseOver = (args) => {
-      console.log('onMouseOver', args)
+    const onMouseOver = () => {
       if (!latestRef.current.pinned) {
         cancelHide();
       }
@@ -230,7 +314,6 @@ export function useEChartsTooltip(
     chart.on('mouseover', onMouseOver as (...args: unknown[]) => void);
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     chart.on('click', onChartClick as (...args: unknown[]) => void);
-
 
     return () => {
       // On unmount EChart disposes the instance in its layout-effect cleanup,
