@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { type Field, type GrafanaTheme2 } from '@grafana/data';
-import { type TooltipDisplayMode } from '@grafana/schema';
+import { TooltipDisplayMode } from '@grafana/schema';
 import {
   type AdHocFilterModel,
   getFieldDisplayLinks,
@@ -44,15 +44,22 @@ const FILTER_FOR: AdHocFilterModel['operator'] = '=';
 //  */
 // const SCROLLBAR_WIDTH = 16;
 
-/** Map a model row to a `VizTooltipItem`; `emphasis` becomes the active (bold) row. */
-function rowToItem(row: TooltipRow): VizTooltipItem {
+/**
+ * Map a model row to a `VizTooltipItem`.
+ *
+ * The active (bold) row is the row's own `emphasis` when the model set one (pie
+ * marks its hovered slice), otherwise the proximity-focused series. Core only
+ * emphasises a row in Multi mode — in Single mode there is one row and bolding
+ * it would just be noise — so `activeSeriesIndex` is passed as `null` there.
+ */
+function rowToItem(row: TooltipRow, activeSeriesIndex: number | null): VizTooltipItem {
   return {
     label: row.label,
     value: row.value,
     color: row.color,
     colorIndicator: VizTooltipColorIndicator.series,
     colorPlacement: VizTooltipColorPlacement.first,
-    isActive: row.emphasis,
+    isActive: row.emphasis ?? (row.seriesIndex != null && row.seriesIndex === activeSeriesIndex),
   };
 }
 
@@ -190,7 +197,9 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
     return null;
   }
 
-  const items = model.rows.map(rowToItem);
+  const items = model.rows.map((row) =>
+    rowToItem(row, mode === TooltipDisplayMode.Multi ? state.activeSeriesIndex : null)
+  );
 
   // The footer is interactive, so it is only shown when pinned (the tooltip only
   // receives pointer events when pinned). Mirrors core Grafana, which shows the

@@ -19,11 +19,16 @@ const state = (over: Partial<EChartsTooltipState> = {}): EChartsTooltipState => 
   visible: true,
   pinned: false,
   pinnedItem: null,
+  activeSeriesIndex: null,
   ...over,
 });
 
-const renderTooltip = (tooltipState: EChartsTooltipState, panelContext?: Partial<PanelContext>) => {
-  const ui = <EChartsTooltip state={tooltipState} dismiss={jest.fn()} mode={TooltipDisplayMode.Single} />;
+const renderTooltip = (
+  tooltipState: EChartsTooltipState,
+  panelContext?: Partial<PanelContext>,
+  mode: TooltipDisplayMode = TooltipDisplayMode.Single
+) => {
+  const ui = <EChartsTooltip state={tooltipState} dismiss={jest.fn()} mode={mode} />;
   return render(
     panelContext ? <PanelContextProvider value={panelContext as PanelContext}>{ui}</PanelContextProvider> : ui
   );
@@ -103,6 +108,44 @@ describe('EChartsTooltip', () => {
     // Pinned on series B's element: B's data links show.
     renderTooltip(state({ model: multiModel, pinned: true, pinnedItem: { seriesIndex: 1, dataIndex: 0 } }));
     expect(screen.getByText('MyLink')).toBeInTheDocument();
+  });
+
+  it('emphasises the proximity-focused row in All mode only', () => {
+    const multiModel = model({
+      source: undefined,
+      rows: [
+        { label: 'Series A', value: '1', color: '#f00', seriesIndex: 0 },
+        { label: 'Series B', value: '2', color: '#0f0', seriesIndex: 1 },
+      ],
+    });
+    // `VizTooltipRow` marks the active row by adding a class to its *label*.
+    // Comparing the two labels' classes detects that without depending on
+    // emotion's generated names or on jsdom resolving the cascade.
+    const labelClasses = (label: string) => screen.getByText(label).className;
+    const emphasisDiffers = () => labelClasses('Series A') !== labelClasses('Series B');
+
+    const { unmount } = renderTooltip(
+      state({ model: multiModel, activeSeriesIndex: 1 }),
+      undefined,
+      TooltipDisplayMode.Multi
+    );
+    expect(emphasisDiffers()).toBe(true);
+    // ...and it is B, the focused series, that carries the extra class.
+    expect(labelClasses('Series B').split(' ').length).toBeGreaterThan(labelClasses('Series A').split(' ').length);
+    unmount();
+
+    // Nothing within the focus band -> no row is emphasised.
+    const { unmount: unmount2 } = renderTooltip(
+      state({ model: multiModel, activeSeriesIndex: null }),
+      undefined,
+      TooltipDisplayMode.Multi
+    );
+    expect(emphasisDiffers()).toBe(false);
+    unmount2();
+
+    // Single mode never emphasises, matching core.
+    renderTooltip(state({ model: multiModel, activeSeriesIndex: 1 }), undefined, TooltipDisplayMode.Single);
+    expect(emphasisDiffers()).toBe(false);
   });
 
   it('shows a close button that dismisses only when pinned', () => {

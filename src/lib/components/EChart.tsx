@@ -53,13 +53,17 @@ export const EChart: React.FC<Props> = ({
   const tooltipMode = chartContext.options.tooltip?.mode ?? TooltipDisplayMode.Single;
 
   // Per-series values enabling Grafana-parity proximity hover, built only for
-  // the case it applies to: a Single tooltip on a single-value cartesian chart
-  // over a time axis, which is exactly what `timeSeriesToEChartsOption` emits
-  // `[time, value]` series for (and so the only shape whose array index is a
-  // valid `seriesIndex`). Everything else — All mode, category axes, pie,
-  // hierarchy, heatmap — keeps ECharts' native hit-testing.
+  // the shape it applies to: a single-value cartesian chart over a time axis,
+  // which is exactly what `timeSeriesToEChartsOption` emits `[time, value]`
+  // series for (and so the only shape whose array index is a valid
+  // `seriesIndex`). Category axes, pie, hierarchy and heatmap keep ECharts'
+  // native hit-testing.
+  //
+  // Built for both tooltip modes, but used differently by each: in Single it
+  // decides what the tooltip shows, in All only which row is emphasised (see
+  // `useEChartsTooltip`). None mode renders no tooltip at all, so skip the work.
   const proximitySeries = useMemo(() => {
-    if (tooltipMode !== TooltipDisplayMode.Single || !isCartesianSingleValueSeriesType(chartContext.seriesType)) {
+    if (tooltipMode === TooltipDisplayMode.None || !isCartesianSingleValueSeriesType(chartContext.seriesType)) {
       return undefined;
     }
     return framesHaveTimeField(chartContext.frames) ? collectSeriesPoints(chartContext.frames) : undefined;

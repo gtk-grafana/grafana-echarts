@@ -36,6 +36,16 @@ export interface EChartsTooltipState {
    * hovered-series footer. `null` when pinned from an empty-grid click.
    */
   pinnedItem: { seriesIndex?: number; dataIndex?: number } | null;
+  /**
+   * The proximity-focused series, or `null` when none is within the focus band.
+   *
+   * Drives the bold ("active") row in multi-row "All" tooltips, mirroring core,
+   * where the emphasised row is the vertically nearest series — not whichever
+   * element ECharts happens to consider hovered. Kept separate from `model` so
+   * it survives the two arriving in either order: in axis mode ECharts rebuilds
+   * the model from its own mousemove handling, independently of this hook's.
+   */
+  activeSeriesIndex: number | null;
 }
 
 export interface EChartsTooltipOptions {
@@ -60,7 +70,14 @@ export interface EChartsTooltipController {
   dismiss: () => void;
 }
 
-const HIDDEN: EChartsTooltipState = { model: null, position: null, visible: false, pinned: false, pinnedItem: null };
+const HIDDEN: EChartsTooltipState = {
+  model: null,
+  position: null,
+  visible: false,
+  pinned: false,
+  pinnedItem: null,
+  activeSeriesIndex: null,
+};
 
 /**
  * Bridges ECharts hover into React tooltip state. ECharts' (invisible) tooltip
@@ -153,6 +170,39 @@ export function useEChartsTooltip(
     }
   }, []);
 
+  /**
+   * Move the emphasised datapoint to `hit` (or clear it), returning whether it
+   * actually changed so callers can skip redundant work.
+   *
+   * ECharts' `highlight` action applies the series' `emphasis` state to that
+   * point, which enlarges the symbol in the series colour — and, for a dense
+   * line whose symbols aren't rendered, creates one on the fly. That is the
+   * marker core draws on the focused point. `downplay` reverts the previous one;
+   * without it the emphasis would accumulate across every point hovered.
+   */
+  const focusPoint = useCallback(
+    (hit: ProximityHit | null): boolean => {
+      const previous = lastHitRef.current;
+      const next = hit == null ? null : { seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex };
+      if (previous?.seriesIndex === next?.seriesIndex && previous?.dataIndex === next?.dataIndex) {
+        return false;
+      }
+      lastHitRef.current = next;
+
+      if (chart != null && !chart.isDisposed()) {
+        if (previous != null) {
+          chart.dispatchAction({ type: 'downplay', ...previous });
+        }
+        if (next != null) {
+          chart.dispatchAction({ type: 'highlight', ...next });
+        }
+      }
+      update({ activeSeriesIndex: next?.seriesIndex ?? null });
+      return true;
+    },
+    [chart, update]
+  );
+
   const sink = useCallback<TooltipSink>(
     (model) => {
       if (latestRef.current.pinned) {
@@ -170,11 +220,11 @@ export function useEChartsTooltip(
 
   const dismiss = useCallback(() => {
     cancelHide();
-    // Forget the replayed point so the next move over the same datapoint
-    // re-shows the tooltip instead of being deduped away.
-    lastHitRef.current = null;
+    // Drop the emphasis and forget the replayed point, so the next move over the
+    // same datapoint re-shows the tooltip instead of being deduped away.
+    focusPoint(null);
     update({ pinned: false, pinnedItem: null, visible: false, model: null });
-  }, [cancelHide, update]);
+  }, [cancelHide, focusPoint, update]);
 
   useEffect(() => {
     if (!chart) {
@@ -205,32 +255,41 @@ export function useEChartsTooltip(
         hoverProximity: proximity,
       });
 
+      // Axis-triggered ("All") tooltips list every series and are shown/hidden by
+      // ECharts itself across the whole grid, so proximity must not drive
+      // visibility here — core keeps the All tooltip up even with no series in
+      // the focus band. It only decides which row is emphasised.
+      const axisTriggered = triggerRef.current === 'axis';
+
       if (hit == null) {
+        focusPoint(null);
+        if (axisTriggered) {
+          return;
+        }
         // Nothing within the focus band. Core shows no Single tooltip here, and
         // hiding immediately (rather than after HIDE_DELAY_MS) is right because
         // the cursor is still inside the plot — there is no gap to bridge.
-        lastHitRef.current = null;
         cancelHide();
         update({ visible: false });
         return;
       }
 
-      const last = lastHitRef.current;
-      if (last?.seriesIndex === hit.seriesIndex && last?.dataIndex === hit.dataIndex) {
-        // Same point: the position update above is all that's needed.
+      const changed = focusPoint(hit);
+      if (axisTriggered || !changed) {
+        // Either ECharts owns the content, or the same point is still hovered
+        // and the position update above is all that's needed.
         return;
       }
-      lastHitRef.current = { seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex };
       // Runs `tooltip.formatter` synchronously, so `sink` fires before this
       // returns and shows the tooltip.
       chart.dispatchAction({ type: 'showTip', seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex });
     };
 
     const onGlobalOut = () => {
-      lastHitRef.current = null;
       if (latestRef.current.pinned) {
         return;
       }
+      focusPoint(null);
       cancelHide();
       update({ visible: false });
     };
@@ -334,7 +393,7 @@ export function useEChartsTooltip(
       }
       flushScheduledRef.current = false;
     };
-  }, [chart, containerRef, cancelHide, update]);
+  }, [chart, containerRef, cancelHide, focusPoint, update]);
 
   // While pinned, dismiss on a click outside the tooltip or on Escape. Clicks
   // inside the tooltip (data links, ad-hoc filter buttons) are ignored so the

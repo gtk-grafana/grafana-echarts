@@ -9,6 +9,32 @@ import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
+ * Emphasis (hover) state for a datapoint, applied by the tooltip's `highlight`
+ * dispatch to mark the focused point — core Grafana's hover marker.
+ *
+ * `scale` enlarges the symbol relative to the series' `symbolSize` (6px by
+ * default), which is what makes the point read as focused; for a dense line
+ * whose symbols aren't rendered, ECharts creates one on demand to carry this
+ * state. `focus: 'none'` keeps the other series at full opacity — ECharts would
+ * otherwise dim them, which core does not do.
+ *
+ * The symbol inherits the series' `itemStyle.color`, so no colour is set here.
+ * Bars have no symbol to scale (and `scale` is not part of their emphasis
+ * options), so they keep ECharts' default emphasis; their hit area is already
+ * large enough not to need a marker.
+ * https://echarts.apache.org/en/option.html#series-line.emphasis
+ */
+const HOVER_POINT_EMPHASIS = {
+  focus: 'none',
+  scale: 2,
+} as const;
+
+/** Series types drawn with a symbol, so a scaled emphasis marker applies. */
+function isSymbolSeriesType(type: string | undefined): type is 'line' | 'scatter' | 'effectScatter' {
+  return type === 'line' || type === 'scatter' || type === 'effectScatter';
+}
+
+/**
  * Resolve the series type for a single value field: field override wins when cartesian.
  */
 function resolveFieldSeriesType<T>(field: Field, defaultType: T): T | CartesianSingleValueSeriesType {
@@ -47,11 +73,13 @@ export function timeSeriesToEChartsOption(
     const type = resolvedType === 'heatmap' ? undefined : resolvedType;
     // Only effectScatter supports showEffectOn
     // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
-    const showEffectOn = resolvedType === 'effectScatter' ? 'emphasis' : undefined;
+    // Annotated, not inferred: hoisting this into `common` below would otherwise
+    // widen the fresh `'emphasis'` literal to `string` and stop the object
+    // matching any member of the series union.
+    const showEffectOn: 'emphasis' | undefined = resolvedType === 'effectScatter' ? 'emphasis' : undefined;
 
-    echartsSeries.push({
+    const common = {
       name: getFieldDisplayName(field, frame, frames),
-      type,
       data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
       itemStyle: { color },
       lineStyle: { color },
@@ -60,7 +88,16 @@ export function timeSeriesToEChartsOption(
       triggerEvent: true,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       showEffectOn,
-    });
+    };
+
+    // Split on the discriminant so `emphasis.scale` typechecks: it is a
+    // symbol-only option, absent from `BarSeriesOption`, and a union-typed
+    // `type` would make the literal assignable to no member of the series union.
+    if (isSymbolSeriesType(type)) {
+      echartsSeries.push({ ...common, type, emphasis: HOVER_POINT_EMPHASIS });
+      return;
+    }
+    echartsSeries.push({ ...common, type });
   });
 
   if (echartsSeries.length === 0) {
