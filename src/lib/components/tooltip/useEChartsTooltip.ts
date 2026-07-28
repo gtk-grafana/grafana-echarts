@@ -81,6 +81,99 @@ const HIDDEN: EChartsTooltipState = {
 };
 
 /**
+ * State written at mouse-move frequency but rendered at most once per animation
+ * frame. `latestRef` is the live truth the event handlers read and patch through
+ * `update`; `state` is what React renders, set from a coalesced frame so a burst
+ * of moves costs one render.
+ */
+function useRafState<T>(initial: T) {
+  const [state, setState] = useState<T>(initial);
+  const latestRef = useRef<T>(initial);
+  // A boolean gate (not the frame id) so a coalesced flush is tracked correctly
+  // even if `requestAnimationFrame` runs its callback synchronously; the id is
+  // kept only so it can be cancelled on unmount.
+  const flushScheduledRef = useRef(false);
+  const rafIdRef = useRef<number | null>(null);
+
+  const update = useCallback((patch: Partial<T>) => {
+    latestRef.current = { ...latestRef.current, ...patch };
+    if (flushScheduledRef.current) {
+      return;
+    }
+    flushScheduledRef.current = true;
+    rafIdRef.current = requestAnimationFrame(() => {
+      flushScheduledRef.current = false;
+      rafIdRef.current = null;
+      setState(latestRef.current);
+    });
+  }, []);
+
+  // Cancelling the pending frame belongs to this hook, not to whichever effect
+  // happens to schedule one: an effect that early-returns (as the chart effect
+  // does while `chart` is null) would never run its cleanup, leaking a frame
+  // scheduled before the chart existed.
+  useEffect(
+    () => () => {
+      if (rafIdRef.current != null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      flushScheduledRef.current = false;
+    },
+    []
+  );
+
+  return { state, latestRef, update };
+}
+
+/**
+ * While pinned, dismiss on a click outside the tooltip, on Escape, or when the
+ * chart scrolls away underneath it. Clicks inside the tooltip (data links,
+ * ad-hoc filter buttons) are ignored so the pinned tooltip stays interactive.
+ */
+function usePinnedDismiss(pinned: boolean, dismiss: () => void, containerRef: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    if (!pinned) {
+      return;
+    }
+    const onDocMouseDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(`[${TOOLTIP_MARKER_ATTR}]`)) {
+        return;
+      }
+      dismiss();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        dismiss();
+      }
+    };
+    // A pinned tooltip is positioned in viewport coordinates, so once the chart
+    // scrolls it no longer points at the datapoint it describes. Only scrolls of
+    // an *ancestor* of the chart move it: this deliberately ignores scrolling
+    // within the tooltip's own content, which stays open (mirrors core's
+    // `e.target.contains(plot.root)` test).
+    const onScroll = (event: Event) => {
+      const target = event.target;
+      const container = containerRef.current;
+      if (container != null && target instanceof Node && target.contains(container)) {
+        dismiss();
+      }
+    };
+    // Capture phase so an outside press dismisses before other handlers act on
+    // it, and so scrolls of nested containers (which do not bubble) are seen.
+    document.addEventListener('mousedown', onDocMouseDown, true);
+    document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('scroll', onScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', onDocMouseDown, true);
+      document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('scroll', onScroll, true);
+    };
+  }, [pinned, dismiss, containerRef]);
+}
+
+/**
  * Bridges ECharts hover into React tooltip state. ECharts' (invisible) tooltip
  * `formatter` pushes the hovered {@link TooltipModel} through {@link
  * EChartsTooltipController.sink}; this hook tracks the cursor (via ZRender mouse
@@ -112,16 +205,8 @@ export function useEChartsTooltip(
   containerRef: RefObject<HTMLElement | null>,
   { series, hoverProximity }: EChartsTooltipOptions = {}
 ): EChartsTooltipController {
-  const [state, setState] = useState<EChartsTooltipState>(HIDDEN);
+  const { state, latestRef, update } = useRafState<EChartsTooltipState>(HIDDEN);
 
-  // The live truth, mutated by the high-frequency event handlers and flushed to
-  // React state on a single animation frame to avoid a render per mouse move.
-  const latestRef = useRef<EChartsTooltipState>(HIDDEN);
-  // A boolean gate (not the frame id) so a coalesced flush is tracked correctly
-  // even if `requestAnimationFrame` runs its callback synchronously; the id is
-  // kept only so it can be cancelled on unmount.
-  const flushScheduledRef = useRef(false);
-  const rafIdRef = useRef<number | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const triggerRef = useRef<string | undefined>(undefined);
 
@@ -150,26 +235,6 @@ export function useEChartsTooltip(
   // is now, not where the frozen pin sits.
   const livePositionRef = useRef<EChartsTooltipState['position']>(null);
   const liveHitRef = useRef<Pick<ProximityHit, 'seriesIndex' | 'dataIndex'> | null>(null);
-
-  const flush = useCallback(() => {
-    if (flushScheduledRef.current) {
-      return;
-    }
-    flushScheduledRef.current = true;
-    rafIdRef.current = requestAnimationFrame(() => {
-      flushScheduledRef.current = false;
-      rafIdRef.current = null;
-      setState(latestRef.current);
-    });
-  }, []);
-
-  const update = useCallback(
-    (patch: Partial<EChartsTooltipState>) => {
-      latestRef.current = { ...latestRef.current, ...patch };
-      flush();
-    },
-    [flush]
-  );
 
   const cancelHide = useCallback(() => {
     if (hideTimerRef.current != null) {
@@ -219,7 +284,7 @@ export function useEChartsTooltip(
       cancelHide();
       update({ model, visible: true });
     },
-    [cancelHide, update]
+    [cancelHide, latestRef, update]
   );
 
   const reportTrigger = useCallback((trigger: string | undefined) => {
@@ -448,56 +513,10 @@ export function useEChartsTooltip(
         chart.off('click', onChartClick);
       }
       cancelHide();
-      if (rafIdRef.current != null) {
-        cancelAnimationFrame(rafIdRef.current);
-        rafIdRef.current = null;
-      }
-      flushScheduledRef.current = false;
     };
-  }, [chart, containerRef, cancelHide, focusPoint, update]);
+  }, [chart, containerRef, cancelHide, focusPoint, latestRef, update]);
 
-  // While pinned, dismiss on a click outside the tooltip, on Escape, or when the
-  // chart scrolls away underneath it. Clicks inside the tooltip (data links,
-  // ad-hoc filter buttons) are ignored so the pinned tooltip stays interactive.
-  useEffect(() => {
-    if (!state.pinned) {
-      return;
-    }
-    const onDocMouseDown = (event: MouseEvent) => {
-      const target = event.target;
-      if (target instanceof Element && target.closest(`[${TOOLTIP_MARKER_ATTR}]`)) {
-        return;
-      }
-      dismiss();
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        dismiss();
-      }
-    };
-    // A pinned tooltip is positioned in viewport coordinates, so once the chart
-    // scrolls it no longer points at the datapoint it describes. Only scrolls of
-    // an *ancestor* of the chart move it: this deliberately ignores scrolling
-    // within the tooltip's own content, which stays open (mirrors core's
-    // `e.target.contains(plot.root)` test).
-    const onScroll = (event: Event) => {
-      const target = event.target;
-      const container = containerRef.current;
-      if (container != null && target instanceof Node && target.contains(container)) {
-        dismiss();
-      }
-    };
-    // Capture phase so an outside press dismisses before other handlers act on
-    // it, and so scrolls of nested containers (which do not bubble) are seen.
-    document.addEventListener('mousedown', onDocMouseDown, true);
-    document.addEventListener('keydown', onKeyDown);
-    window.addEventListener('scroll', onScroll, true);
-    return () => {
-      document.removeEventListener('mousedown', onDocMouseDown, true);
-      document.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('scroll', onScroll, true);
-    };
-  }, [state.pinned, dismiss, containerRef]);
+  usePinnedDismiss(state.pinned, dismiss, containerRef);
 
   return { state, sink, reportTrigger, dismiss };
 }
