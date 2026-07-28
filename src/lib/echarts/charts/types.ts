@@ -29,8 +29,6 @@ import {
 } from 'echarts';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
-// Imported from the module (not the barrel) to avoid a cycle: the tooltip barrel
-// pulls in `option.ts` -> `axes/converters` -> this file.
 import {
   type TooltipFieldResolver,
   type TooltipSink,

@@ -10,15 +10,13 @@ import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
 import { resolveAnimation } from 'lib/echarts/performance/resolvers';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
+import { buildTooltipModel, NOOP_TOOLTIP_SINK, type TooltipSink } from 'lib/echarts/tooltip/model';
 import {
-  buildTooltipModel,
   getCrosshairAxisPointer,
   getNoTooltipOption,
   getSilentTooltipOption,
   grafanaTooltipModeToEChartsTrigger,
-  NOOP_TOOLTIP_SINK,
-  type TooltipSink,
-} from 'lib/echarts/tooltip';
+} from 'lib/echarts/tooltip/option';
 import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
 
 /**
