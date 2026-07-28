@@ -18,16 +18,16 @@ styling defaults, exposing only a small set of per-field overrides.
 
 ## Panel options
 
-| Core Grafana option                                | ECharts equivalent                                                                         | Status        |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------- |
-| Tooltip: mode (Single/All/Hidden)                  | `tooltip.mode`                                                                             | Supported     |
-| Tooltip: hover sort, hide zeros, max width         | none (ECharts renders its own box)                                                         | Not supported |
-| Legend: visibility, mode, placement, width, values | Grafana legend via `addLegendOptions`                                                      | Supported     |
-| Legend: series show/hide + color (interactive)     | `VizLegend` writes `hideFrom`/color field-config overrides                                 | Supported     |
-| Axis: time zone editor                             | none (timeZone from panel context)                                                         | Not supported |
-| Annotations                                        | none                                                                                       | Not supported |
-| —                                                  | `editorMode` radio (Default / Advanced editor tiers)                                       | ECharts-only  |
-| —                                                  | Advanced: `performance.showPoints`, `performance.downsampling` (LTTB), `animation.enabled` | Advanced      |
+| Core Grafana option                                | ECharts equivalent                                                                             | Status        |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------- |
+| Tooltip: mode (Single/All/Hidden)                  | `tooltip.mode`                                                                                 | Supported     |
+| Tooltip: hover sort, hide zeros, max width         | none (ECharts renders its own box)                                                             | Not supported |
+| Legend: visibility, mode, placement, width, values | Grafana legend via `addLegendOptions`                                                          | Supported     |
+| Legend: series show/hide + color (interactive)     | `VizLegend` writes `hideFrom`/color field-config overrides                                     | Supported     |
+| Axis: time zone editor                             | none (timeZone from panel context)                                                             | Not supported |
+| Annotations                                        | none                                                                                           | Not supported |
+| —                                                  | `editorMode` radio (Default / Advanced editor tiers)                                           | ECharts-only  |
+| —                                                  | Advanced: `performance.showPoints`, `performance.downsampling` (LTTB), `performance.animation` | Advanced      |
 
 ## Graph styles (core custom field config)
 
@@ -77,7 +77,7 @@ the registered runtime surface.
 | `brush`                                                                                        | Partial         | `lineX` drag maps to the dashboard time range; time axis only.                                                                  |
 | `markLine` / `markArea`                                                                        | Supported       | Threshold lines / regions on the shared value axis.                                                                             |
 | `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive show/hide + color persist as field-config overrides. |
-| `animation`                                                                                    | Supported       | Explicit `animation.enabled` (Advanced) wins; otherwise auto-disabled above 50 series or 5,000 points/series.                   |
+| `animation`                                                                                    | Supported       | Advanced `performance.animation` (Auto/Always/Never); Auto disables above 50 series or 5,000 points/series.                     |
 | `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                                                                                 |
 | `visualMap`                                                                                    | Not implemented | Registered for the heatmap family only.                                                                                         |
 | `dataZoom`                                                                                     | Not implemented | Range zoom is delegated to `brush` -> dashboard time range.                                                                     |

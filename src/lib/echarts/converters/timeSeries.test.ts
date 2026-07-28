@@ -11,7 +11,7 @@ import { seriesTypePath } from 'editor/constants';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
-import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_POINTS } from 'lib/echarts/options/performance';
+import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_POINTS } from 'lib/echarts/performance/constants';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();

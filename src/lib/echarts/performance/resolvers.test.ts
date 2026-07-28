@@ -4,12 +4,10 @@ import { type PanelOptions } from 'types';
 import {
   ANIMATION_MAX_POINTS,
   ANIMATION_MAX_SERIES,
-  getSeriesPerfOptions,
-  getSeriesStats,
   LARGE_MODE_THRESHOLD,
-  resolveAnimation,
   SYMBOL_VISIBLE_MAX_POINTS,
-} from './performance';
+} from './constants';
+import { getSeriesPerfOptions, getSeriesStats, resolveAnimation } from './resolvers';
 
 const options = (extra?: Partial<PanelOptions>): PanelOptions => ({ ...extra }) as PanelOptions;
 
@@ -116,6 +114,42 @@ describe('getSeriesPerfOptions', () => {
 });
 
 describe('resolveAnimation', () => {
+  // The Advanced tri-state is the cartesian control and outranks everything else.
+  it('honors the tri-state "always" even above the thresholds', () => {
+    expect(
+      resolveAnimation(options({ performance: { animation: 'always' } }), {
+        seriesCount: ANIMATION_MAX_SERIES + 1,
+        maxPoints: ANIMATION_MAX_POINTS + 1,
+      })
+    ).toBe(true);
+  });
+
+  it('honors the tri-state "never" even below the thresholds', () => {
+    expect(resolveAnimation(options({ performance: { animation: 'never' } }), { seriesCount: 1, maxPoints: 1 })).toBe(
+      false
+    );
+  });
+
+  it('falls through to the thresholds on the tri-state "auto"', () => {
+    expect(
+      resolveAnimation(options({ performance: { animation: 'auto' } }), {
+        seriesCount: ANIMATION_MAX_SERIES + 1,
+        maxPoints: 1,
+      })
+    ).toBe(false);
+  });
+
+  // The tri-state outranks the shared boolean, so a stored `animation.enabled`
+  // cannot resurrect animation once the user picks Never.
+  it('lets the tri-state override the shared animation.enabled boolean', () => {
+    expect(
+      resolveAnimation(options({ performance: { animation: 'never' }, animation: { enabled: true } }), {
+        seriesCount: 1,
+        maxPoints: 1,
+      })
+    ).toBe(false);
+  });
+
   it('honors an explicit enabled=true even above the thresholds', () => {
     expect(
       resolveAnimation(options({ animation: { enabled: true } }), {

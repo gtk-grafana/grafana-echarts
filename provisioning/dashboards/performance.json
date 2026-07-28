@@ -1,0 +1,703 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Render-performance comparisons for the cartesian fast path, each ECharts panel paired with its core Grafana (uPlot) counterpart on the same query. Every row is collapsed by default — these are deliberately heavy panels, so open one at a time. Thresholds and measurements: docs/performance.md.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 3,
+      "type": "row",
+      "title": "Dense: 500 series x 1000 points",
+      "description": "The profiled regression (500 series). Every lever engages: >50 series auto-disables animation, >100 points/series hides symbols and enables LTTB. Benchmarked at 7383ms -> 184ms. Expect both panels to be slow to open; that is the point of the comparison.",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "grafana-echartscartesian-panel",
+          "title": "ECharts — auto (all levers on)",
+          "description": "Advanced > Performance left at defaults (Show points: Auto, Downsampling: on, Animation: Auto). Switch Show points to Always and Downsampling off to feel the pre-lever behavior.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "maxDataPoints": 1000,
+          "options": {
+            "seriesType": "line",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 500,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "Core Grafana timeseries (uPlot)",
+          "description": "Same query. uPlot reference for the same 500x1000 shape.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "maxDataPoints": 1000,
+          "options": {
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "showPoints": "auto",
+                "lineWidth": 1,
+                "fillOpacity": 0
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 500,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "row",
+      "title": "Deep: 20 series x 5000 points",
+      "description": "Few series, many points each. Isolates the per-point levers (symbols + LTTB) from the series-count animation threshold. Benchmarked at 1882ms -> 35ms.",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "panels": [
+        {
+          "id": 4,
+          "type": "grafana-echartscartesian-panel",
+          "title": "ECharts — auto",
+          "description": "Symbols hidden and LTTB sampling on (5000 > 100 points/series). Animation auto-off (>5000 points is the threshold; 5000 is at it, 20 series is under 50).",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "maxDataPoints": 5000,
+          "options": {
+            "seriesType": "line",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 20,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Core Grafana timeseries (uPlot)",
+          "description": "Same query.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "maxDataPoints": 5000,
+          "options": {
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "showPoints": "auto",
+                "lineWidth": 1,
+                "fillOpacity": 0
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 20,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "LTTB: 1 series x 100000 points",
+      "description": "One series far past pixel resolution — the clearest look at LTTB downsampling. Benchmarked at 1888ms -> 31ms. Toggle Advanced > Performance > Downsampling off to compare; the shape should be near-identical because LTTB preserves visual peaks.",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "panels": [
+        {
+          "id": 7,
+          "type": "grafana-echartscartesian-panel",
+          "title": "ECharts — LTTB on (default)",
+          "description": "sampling: lttb. Compare against the same panel with Downsampling off.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "maxDataPoints": 100000,
+          "options": {
+            "seriesType": "line",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 1,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "Core Grafana timeseries (uPlot)",
+          "description": "Same query. uPlot does its own path decimation.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "maxDataPoints": 100000,
+          "options": {
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "showPoints": "auto",
+                "lineWidth": 1,
+                "fillOpacity": 0
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 1,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Symbol threshold: 100 vs 101 points",
+      "description": "SYMBOL_VISIBLE_MAX_POINTS = 100. At or below it markers draw; one point past it they are hidden. This is the visible default change versus pre-branch behavior — the pair exists so the boundary can be eyeballed. Covered by a canvas regression test (performance.canvas.test.tsx).",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 3
+      },
+      "panels": [
+        {
+          "id": 10,
+          "type": "grafana-echartscartesian-panel",
+          "title": "ECharts — 100 points (markers visible)",
+          "description": "At the threshold: showSymbol stays true, no sampling.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "maxDataPoints": 100,
+          "options": {
+            "seriesType": "line",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 1,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "type": "grafana-echartscartesian-panel",
+          "title": "ECharts — 101 points (markers hidden)",
+          "description": "One point past the threshold: showSymbol false, sampling lttb. Set Show points to Always to bring them back.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "maxDataPoints": 101,
+          "options": {
+            "seriesType": "line",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 1,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "row",
+      "title": "Scatter: large mode at 2000+ points",
+      "description": "LARGE_MODE_THRESHOLD = 2000. Scatter is symbols-by-definition, so `large` (a batched, symbol-simplified renderer) is its lever rather than showSymbol. effectScatter is deliberately excluded — its ripple animation is meant for a handful of highlighted points.",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "panels": [
+        {
+          "id": 13,
+          "type": "grafana-echartscartesian-panel",
+          "title": "ECharts scatter — large mode on",
+          "description": "series.large + largeThreshold: 2000.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "maxDataPoints": 5000,
+          "options": {
+            "seriesType": "scatter",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 1,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        },
+        {
+          "id": 14,
+          "type": "xychart",
+          "title": "Core Grafana xychart (uPlot)",
+          "description": "Same query, plotted as points.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "maxDataPoints": 5000,
+          "options": {
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            },
+            "mapping": "auto",
+            "series": [
+              {
+                "x": {
+                  "matcher": {
+                    "id": "byType",
+                    "options": "time"
+                  }
+                }
+              }
+            ]
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "show": "points",
+                "pointSize": {
+                  "fixed": 3
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 1,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "row",
+      "title": "Heatmap: animation auto-off on a large grid",
+      "description": "Surfaced in review, not by design: getSeriesStats counts a heatmap frame's numeric columns via forEachTimeSeriesField, so 64 series crosses ANIMATION_MAX_SERIES (50) and the grid renders unanimated. No other lever touches the heatmap cell layer (it is a custom series with inline data). Compare load feel against the core heatmap.",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "panels": [
+        {
+          "id": 16,
+          "type": "grafana-echartsheatmap-panel",
+          "title": "ECharts heatmap — 64 series (animation auto-off)",
+          "description": "64 series > ANIMATION_MAX_SERIES (50), so resolveAnimation returns false. Set Advanced > Performance > Animation to Always to force it back on and compare the load transition.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "maxDataPoints": 200,
+          "options": {
+            "seriesType": "heatmap",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single"
+            },
+            "heatmapColorScale": {
+              "placement": "right"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 64,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        },
+        {
+          "id": 17,
+          "type": "heatmap",
+          "title": "Core Grafana heatmap",
+          "description": "Same query, core heatmap for comparison.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "maxDataPoints": 200,
+          "options": {
+            "legend": {
+              "show": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "yHistogram": false
+            },
+            "calculate": true,
+            "color": {
+              "mode": "scheme",
+              "scheme": "Spectral",
+              "steps": 64
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "random_walk",
+              "seriesCount": 64,
+              "startValue": 50,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "performance"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "ECharts Performance",
+  "uid": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+  "version": 1,
+  "weekStart": ""
+}

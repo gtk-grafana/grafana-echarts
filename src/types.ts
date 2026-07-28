@@ -18,9 +18,9 @@ import {
   type PieLabelPosition,
   type PieLegendValue,
   type PieRoseType,
+  type PerformanceMode,
   type PieSelectedMode,
   type SeriesTypeOption,
-  type ShowPointsMode,
 } from 'editor/types';
 
 import {
@@ -358,12 +358,11 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   funnelLabelPosition?: FunnelLabelPosition;
 
   /**
-   * Animation toggle (shared `@internal` shape; surfaced in the cartesian
-   * Advanced editor and reused by the pie). Consumed via `resolveAnimation`,
-   * which treats an explicit `enabled` as an override and otherwise auto-disables
-   * animation above the series/point thresholds (see
-   * `lib/echarts/options/performance.ts`). Left unset by the cartesian editor so
-   * the auto path stays reachable.
+   * Animation toggle (shared `@internal` shape). Written by the part-to-whole
+   * editor and by hand-edited/previously-persisted panel JSON; the cartesian
+   * editor uses the tri-state `performance.animation` instead so that "auto" is
+   * representable. `resolveAnimation` reads this as an explicit override once the
+   * tri-state resolves to `auto`.
    * https://echarts.apache.org/en/option.html#animation
    */
   animation?: {
@@ -374,13 +373,16 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Advanced-only performance overrides for the cartesian time-series fast path.
    * ECharts' big-data levers are auto-enabled above density thresholds; these
    * override the auto behavior. `showPoints` maps to per-series `showSymbol`
-   * (Auto hides symbols on dense series); `downsampling` toggles LTTB `sampling`.
-   * Unset fields resolve to their defaults (`auto` / `true`). See
-   * `getSeriesPerfOptions` and the `addPerformanceOptions` editor fragment.
+   * (Auto hides symbols on dense series), `downsampling` toggles LTTB `sampling`,
+   * and `animation` overrides the panel-wide `animation` flag. Unset fields
+   * resolve to their defaults (`auto` / `true` / `auto`). See
+   * `lib/echarts/performance/resolvers.ts` and the `addPerformanceOptions`
+   * editor fragment.
    */
   performance?: {
-    showPoints?: ShowPointsMode;
+    showPoints?: PerformanceMode;
     downsampling?: boolean;
+    animation?: PerformanceMode;
   };
 
   // @internal

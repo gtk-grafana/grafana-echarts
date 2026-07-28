@@ -70,14 +70,17 @@ export type SeriesTypeOption = SeriesType | 'Auto';
 export type EditorMode = 'default' | 'advanced' | 'api';
 
 /**
- * Point-marker visibility for dense cartesian line series (Advanced, ECharts
- * `series.showSymbol`): `auto` hides per-point symbols once a series exceeds the
- * density threshold and keeps them below it (the render-cost lever behind the
- * 500-series regression), `always` forces symbols on, `never` forces them off.
- * Unset resolves to `auto`. See `getSeriesPerfOptions` in
- * `lib/echarts/options/performance.ts`.
+ * Tri-state override for a cartesian performance lever (Advanced): `auto` defers
+ * to the density thresholds in `lib/echarts/performance/constants.ts`, `always`
+ * and `never` force the lever on or off. Unset resolves to `auto`.
+ *
+ * Shared by `performance.showPoints` (ECharts `series.showSymbol` — the
+ * render-cost lever behind the 500-series regression) and
+ * `performance.animation` (ECharts `animation`). One type for both mirrors core
+ * Grafana's `VisibilityMode`, which is likewise reused across its tri-state
+ * options. See the resolvers in `lib/echarts/performance/resolvers.ts`.
  */
-export type ShowPointsMode = 'auto' | 'always' | 'never';
+export type PerformanceMode = 'auto' | 'always' | 'never';
 
 /**
  * Pie (part-to-whole) slice-label content, matching core Grafana's

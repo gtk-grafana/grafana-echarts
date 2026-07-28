@@ -4,7 +4,7 @@ import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type Heat
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
-import { getSeriesPerfOptions, getSeriesStats } from 'lib/echarts/options/performance';
+import { getSeriesPerfOptions, getSeriesStats } from 'lib/echarts/performance/resolvers';
 import { getSeriesColor } from 'lib/echarts/style';
 import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';

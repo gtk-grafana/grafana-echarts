@@ -6,8 +6,8 @@ import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
-import { getSeriesStats, resolveAnimation } from 'lib/echarts/options/performance';
 import { applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
+import { getSeriesStats, resolveAnimation } from 'lib/echarts/performance/resolvers';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
 import {
   getCrosshairAxisPointer,
@@ -86,11 +86,12 @@ export function buildPanelChartOption(
   return {
     ...echartOption,
     tooltip: tooltipOption,
-    // An explicit `animation.enabled` wins; otherwise animation auto-disables on
-    // dense charts (many series / long series) where load+transition animation is
-    // pure overhead. Pie/radar/category stats fall below every threshold so they
-    // are unaffected in practice; a large heatmap can cross them, since its
-    // numeric frame columns are counted like series. See `resolveAnimation`.
+    // The cartesian Advanced tri-state wins, then the shared `animation.enabled`
+    // (which part-to-whole writes); otherwise animation auto-disables on dense
+    // charts (many series / long series) where load+transition animation is pure
+    // overhead. Pie/radar/category stats fall below every threshold so they are
+    // unaffected in practice; a large heatmap can cross them, since its numeric
+    // frame columns are counted like series. See `resolveAnimation`.
     animation: resolveAnimation(ctx.options, getSeriesStats(ctx.frames)),
     ...(axisPointer ? { axisPointer } : {}),
     ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),

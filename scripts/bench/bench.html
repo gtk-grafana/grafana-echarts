@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #c {
+        width: 1200px;
+        height: 600px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="c"></div>
+    <script>
+      // ---------------------------------------------------------------------
+      // Synthetic Grafana-like frames. Generated ONCE per scenario and shared by
+      // every variant, so per-variant timings measure only option construction +
+      // ECharts ingestion/render, never data generation.
+      // ---------------------------------------------------------------------
+      function makeFrames({ frames, fieldsPerFrame, points }) {
+        const out = [];
+        const start = 1700000000000;
+        for (let f = 0; f < frames; f++) {
+          const time = new Array(points);
+          for (let i = 0; i < points; i++) {
+            time[i] = start + i * 10000;
+          }
+          const fields = [];
+          for (let v = 0; v < fieldsPerFrame; v++) {
+            const values = new Array(points);
+            for (let i = 0; i < points; i++) {
+              // Deterministic signal (no Math.random -> stable across runs/variants).
+              values[i] = Math.sin((i + f * 7 + v * 13) / 9) * 100 + (i % 17);
+            }
+            fields.push({ name: 'f' + f + '_v' + v, values });
+          }
+          out.push({ time, fields });
+        }
+        return out;
+      }
+
+      const PALETTE = ['#7EB26D', '#EAB839', '#6ED0E0', '#EF843C', '#E24D42', '#1F78C1', '#BA43A9', '#705DA0'];
+
+      // ---------------------------------------------------------------------
+      // Option builders mirroring the two real code paths:
+      //   buildTuples  -> `main`   (converters/timeSeries.ts on main)
+      //   buildDataset -> branch   (converters/timeSeries.ts on this branch)
+      // `perf` toggles the branch's getSeriesPerfOptions() output, held
+      // identical across both data paths so the dataset delta is isolated.
+      // ---------------------------------------------------------------------
+      function commonSeriesProps(name, color, perf, maxPoints) {
+        const s = {
+          name: name,
+          type: 'line',
+          itemStyle: { color: color },
+          lineStyle: { color: color },
+          zlevel: 1,
+        };
+        if (perf) {
+          // Mirrors getSeriesPerfOptions(): SYMBOL_VISIBLE_MAX_POINTS = 100.
+          s.showSymbol = maxPoints <= 100;
+          if (maxPoints > 100) {
+            s.sampling = 'lttb';
+          }
+        }
+        return s;
+      }
+
+      function buildTuples(frames, perf, maxPoints) {
+        const series = [];
+        let n = 0;
+        for (let f = 0; f < frames.length; f++) {
+          const frame = frames[f];
+          for (let v = 0; v < frame.fields.length; v++) {
+            const field = frame.fields[v];
+            const s = commonSeriesProps(field.name, PALETTE[n % PALETTE.length], perf, maxPoints);
+            // The exact expression from main's converter.
+            s.data = frame.time.map((time, i) => [time, field.values[i] ?? null]);
+            series.push(s);
+            n++;
+          }
+        }
+        return { series: series };
+      }
+
+      function buildDataset(frames, perf, maxPoints) {
+        const series = [];
+        const dataset = [];
+        let n = 0;
+        for (let f = 0; f < frames.length; f++) {
+          const frame = frames[f];
+          // One keyed-columns dataset per frame, columns held BY REFERENCE.
+          const columns = { time: frame.time };
+          const idx = dataset.length;
+          dataset.push({ source: columns });
+          for (let v = 0; v < frame.fields.length; v++) {
+            const field = frame.fields[v];
+            const dim = 'v' + v;
+            columns[dim] = field.values;
+            const s = commonSeriesProps(field.name, PALETTE[n % PALETTE.length], perf, maxPoints);
+            s.datasetIndex = idx;
+            s.encode = { x: 'time', y: dim };
+            series.push(s);
+            n++;
+          }
+        }
+        return { series: series, dataset: dataset };
+      }
+
+      function fullOption(built, perf) {
+        return Object.assign(
+          {
+            animation: perf ? false : true,
+            xAxis: { type: 'time' },
+            yAxis: { type: 'value' },
+            grid: { left: 40, right: 20, top: 20, bottom: 30 },
+          },
+          built
+        );
+      }
+
+      // ---------------------------------------------------------------------
+      // Harness
+      // ---------------------------------------------------------------------
+      let chart = null;
+      const dom = document.getElementById('c');
+
+      function freshChart() {
+        if (chart) {
+          chart.dispose();
+        }
+        chart = echarts.init(dom, undefined, { useDirtyRect: true });
+        return chart;
+      }
+
+      // One (scenario, variant) iteration. Async: resolves on ECharts' own
+      // `finished` event, which fires when rendering AND any animation have
+      // completed -- so animated variants are not under-counted.
+      window.runOnce = function (scenarioSpec, variant) {
+        return new Promise((resolve) => {
+          const frames = window.__frames[scenarioSpec.key];
+          const perf = variant.perf;
+          const maxPoints = scenarioSpec.points;
+
+          freshChart();
+          const heapBefore = performance.memory ? performance.memory.usedJSHeapSize : 0;
+
+          // --- Phase 1: build the option (converter-side cost) ---
+          const b0 = performance.now();
+          const built = variant.dataset ? buildDataset(frames, perf, maxPoints) : buildTuples(frames, perf, maxPoints);
+          const option = fullOption(built, perf);
+          const b1 = performance.now();
+          const heapAfterBuild = performance.memory ? performance.memory.usedJSHeapSize : 0;
+
+          // With animation off, ECharts fires `finished` synchronously from
+          // inside setOption, so the handler can run before setOption returns.
+          // Record the timestamp there but settle after setOption has returned,
+          // taking the later of the two -- otherwise the tail of setOption is
+          // dropped and setOptionMs reads NaN.
+          let finishedAt = 0;
+          let settle = null;
+          let s0 = 0;
+          let s1 = 0;
+
+          function settleIfReady() {
+            if (!finishedAt || !s1) {
+              return;
+            }
+            resolve({
+              buildMs: b1 - b0,
+              setOptionMs: s1 - s0,
+              // Build start -> fully rendered & animation complete.
+              finishedMs: Math.max(finishedAt, s1) - b0,
+              heapBuildBytes: heapAfterBuild - heapBefore,
+              heapTotalBytes: (performance.memory ? performance.memory.usedJSHeapSize : 0) - heapBefore,
+            });
+          }
+
+          chart.on('finished', function () {
+            if (finishedAt) {
+              return;
+            }
+            finishedAt = performance.now();
+            settleIfReady();
+          });
+
+          // --- Phase 2: setOption (ingestion + layout + first render pass) ---
+          s0 = performance.now();
+          chart.setOption(option, { notMerge: true });
+          s1 = performance.now();
+          settleIfReady();
+        });
+      };
+
+      // Render one variant and hold it, for pixel-equivalence screenshotting.
+      window.renderStill = function (scenarioSpec, variant) {
+        return new Promise((resolve) => {
+          const frames = window.__frames[scenarioSpec.key];
+          freshChart();
+          const built = variant.dataset
+            ? buildDataset(frames, variant.perf, scenarioSpec.points)
+            : buildTuples(frames, variant.perf, scenarioSpec.points);
+          // Force animation off for both so the still is deterministic.
+          const option = Object.assign(fullOption(built, variant.perf), { animation: false });
+          let done = false;
+          chart.on('finished', function () {
+            if (done) {
+              return;
+            }
+            done = true;
+            resolve(true);
+          });
+          chart.setOption(option, { notMerge: true });
+        });
+      };
+
+      window.makeScenario = function (spec) {
+        window.__frames = window.__frames || {};
+        window.__frames[spec.key] = makeFrames(spec);
+        return true;
+      };
+
+      window.dropScenario = function (key) {
+        if (window.__frames) {
+          delete window.__frames[key];
+        }
+        if (chart) {
+          chart.dispose();
+          chart = null;
+        }
+        return true;
+      };
+
+      window.__ready = true;
+    </script>
+  </body>
+</html>

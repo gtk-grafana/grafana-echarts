@@ -8,9 +8,9 @@ import {
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type MultiValueSeriesType,
+  type PerformanceMode,
   type SeriesType,
   type SeriesTypeOption,
-  type ShowPointsMode,
   type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
@@ -225,28 +225,36 @@ export const thresholdsStyleModeName = 'Show thresholds';
  * levers (point markers off / LTTB downsampling / animation off) are auto-tuned
  * above density thresholds so dense charts take the fast path while small charts
  * are visually unchanged; these controls let power users override the auto
- * behavior. Resolvers + thresholds live in `lib/echarts/options/performance.ts`;
- * the editor fragment in `lib/grafana/editor/common/performance-options.ts`.
+ * behavior. Resolvers live in `lib/echarts/performance/resolvers.ts` and the
+ * thresholds in `lib/echarts/performance/constants.ts`; the editor fragment is
+ * `lib/grafana/editor/common/performance-options.ts`.
  */
-export const performanceShowPointsPath = 'performance.showPoints';
-export const performanceShowPointsName = 'Show points';
-/** Default point-marker visibility: auto (hide symbols on dense series). */
-export const PERFORMANCE_SHOW_POINTS_DEFAULT: ShowPointsMode = 'auto';
-/** "Show points" choices (Auto / Always / Never), rendered as a radio. */
-export const performanceShowPointsOptions: Array<SelectableValue<ShowPointsMode>> = [
+
+/** Tri-state choices (Auto / Always / Never) shared by every performance override radio. */
+export const performanceModeOptions: Array<SelectableValue<PerformanceMode>> = [
   { value: 'auto', label: 'Auto' },
   { value: 'always', label: 'Always' },
   { value: 'never', label: 'Never' },
 ];
+
+export const performanceShowPointsPath = 'performance.showPoints';
+export const performanceShowPointsName = 'Show points';
+/** Default point-marker visibility: auto (hide symbols on dense series). */
+export const PERFORMANCE_SHOW_POINTS_DEFAULT: PerformanceMode = 'auto';
+
 export const performanceDownsamplingPath = 'performance.downsampling';
 export const performanceDownsamplingName = 'Downsampling (LTTB)';
 /** Default LTTB downsampling: on (sample dense series toward pixel resolution). */
 export const PERFORMANCE_DOWNSAMPLING_DEFAULT = true;
+
 /**
- * Panel option path for the (shared `@internal animation.enabled`) animation
- * toggle. Consumed via `resolveAnimation` in `panelOption.ts`. Kept separate
- * from `pieAnimationEnabledPath` so the cartesian editor doesn't import pie
- * constants; both intentionally point at the same option shape.
+ * Animation override. A tri-state rather than a boolean switch so `auto` is
+ * representable: a boolean whose unset state meant "auto" rendered as an
+ * unchecked switch while the chart was in fact animating. `auto` persists
+ * harmlessly and keeps the threshold-driven path (see `resolveAnimation`).
+ * Distinct from `pieAnimationEnabledPath` — part-to-whole keeps its own boolean.
  */
-export const animationEnabledPath = 'animation.enabled';
-export const animationName = 'Animation';
+export const performanceAnimationPath = 'performance.animation';
+export const performanceAnimationName = 'Animation';
+/** Default animation mode: auto (disable on dense charts, animate otherwise). */
+export const PERFORMANCE_ANIMATION_DEFAULT: PerformanceMode = 'auto';

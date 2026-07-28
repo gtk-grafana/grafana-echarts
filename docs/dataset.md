@@ -169,20 +169,23 @@ deliberate boundary.
 
 ## Reproducing the measurement
 
-The benchmark is not committed — it is a standalone harness (a page that builds
-both option shapes over shared generated frames and drives them through a real
-ECharts instance under Playwright). Rebuilding it is a couple of hours. The
-things that make it trustworthy, and that a re-run should preserve:
+Both the timing comparison and the tooltip probe are committed, so this does not
+have to be taken on trust:
 
-- Hold the performance levers **identical** on both sides, or you measure them
-  instead of the dataset.
-- Time to ECharts' `finished` event, not to `setOption` return — with animation
-  on, most of the work happens after `setOption` returns.
-- Hash the rendered canvas on both sides and assert they match, or a variant that
-  silently renders less will look faster.
-- Include a wide frame (many value fields, one time column) as well as
-  many single-field frames. They behave differently, and the wide case is both
-  dataset's best theoretical case and where the tooltip breaks.
+```sh
+pnpm run bench:dataset          # the table above
+pnpm run bench:dataset-tooltip  # the WRONG/OK output above
+```
+
+They are manual — not wired into CI — and live in
+[scripts/bench/](../scripts/bench/README.md), which documents the four properties
+that make the timing trustworthy (levers held identical across a pair, timing to
+`finished`, canvas hashing, frames generated once). Absolute numbers are
+machine-specific; compare ratios.
+
+The dataset option builder is still in the harness even though the production
+path is gone — that is the point. It is what makes the comparison re-runnable
+against a future ECharts version without first re-implementing the prototype.
 
 ## References
 

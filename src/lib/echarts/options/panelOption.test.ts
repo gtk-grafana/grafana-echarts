@@ -18,7 +18,7 @@ import { type SeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type PanelOptions } from 'types';
 import { buildPanelChartOption } from './panelOption';
-import { ANIMATION_MAX_POINTS, ANIMATION_MAX_SERIES } from './performance';
+import { ANIMATION_MAX_POINTS, ANIMATION_MAX_SERIES } from 'lib/echarts/performance/constants';
 
 const timeRange: TimeRange = {
   from: dateTime(1783137094497),

@@ -13,6 +13,8 @@
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "e2e": "playwright test",
+    "bench:dataset": "node scripts/bench/dataset-vs-tuples.mjs",
+    "bench:dataset-tooltip": "node scripts/bench/dataset-tooltip-probe.mjs",
     "prepare": "lefthook install",
     "server": "COMPOSE_PROJECT_NAME=${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-${GRAFANA_PORT:-3001}} docker compose up --build",
     "sign": "sign-plugin"

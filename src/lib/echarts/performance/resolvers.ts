@@ -1,42 +1,31 @@
 import { type DataFrame } from '@grafana/data';
-import { PERFORMANCE_DOWNSAMPLING_DEFAULT, PERFORMANCE_SHOW_POINTS_DEFAULT } from 'editor/constants';
-import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type ShowPointsMode } from 'editor/types';
+import {
+  PERFORMANCE_ANIMATION_DEFAULT,
+  PERFORMANCE_DOWNSAMPLING_DEFAULT,
+  PERFORMANCE_SHOW_POINTS_DEFAULT,
+} from 'editor/constants';
+import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type PerformanceMode } from 'editor/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
-import { type PerfSeriesOptions, type SeriesStats } from 'lib/echarts/options/types';
+import {
+  ANIMATION_MAX_POINTS,
+  ANIMATION_MAX_SERIES,
+  LARGE_MODE_THRESHOLD,
+  SYMBOL_VISIBLE_MAX_POINTS,
+} from 'lib/echarts/performance/constants';
+import { type PerfSeriesOptions, type SeriesStats } from 'lib/echarts/performance/types';
 import { type PanelOptions } from 'types';
 
 /**
- * Single source of truth for the cartesian time-series "fast path": the density
- * thresholds and the resolvers that turn a chart's shape (series count + points
- * per series) plus any Advanced overrides into ECharts' big-data levers.
+ * Resolvers that turn a chart's shape (series count + points per series) plus any
+ * Advanced overrides into ECharts' big-data levers. The thresholds they compare
+ * against live in `./constants.ts`; the editor fragment that surfaces the
+ * overrides is `lib/grafana/editor/common/performance-options.ts`.
  *
- * A Chrome profile of 500 time-series showed the initial render was one ~4.5s
- * main-thread task dominated by per-point symbols, transition diffing/animation,
- * and scene-graph work that scales with element count — all things ECharts lets
- * you turn off. These resolvers switch dense charts onto that fast path
- * automatically while leaving small charts visually identical (so canvas
- * snapshots below the thresholds don't churn), and let power users override the
- * auto behavior from the Advanced editor.
+ * These switch dense charts onto the fast path automatically while leaving small
+ * charts visually identical (so canvas snapshots below the thresholds don't
+ * churn), and let power users override the auto behavior. See
+ * `docs/performance.md` for the measurements behind each lever.
  */
-
-/**
- * Per-series point count at/below which point markers stay visible and LTTB
- * sampling stays off (auto mode). Above it, a line series hides its symbols and
- * (when downsampling is enabled) samples to reduce drawn points. Symbols at
- * every point are the single biggest render cost in the profiled regression.
- */
-export const SYMBOL_VISIBLE_MAX_POINTS = 100;
-/** Series count above which animation auto-disables (transition diffing scales with series). */
-export const ANIMATION_MAX_SERIES = 50;
-/** Per-series point count above which animation auto-disables. */
-export const ANIMATION_MAX_POINTS = 5000;
-/**
- * Per-series point count at/above which scatter/bar series switch on ECharts'
- * `large` mode (a batched, symbol-simplified renderer). Also emitted as the
- * series' `largeThreshold` so ECharts only engages the optimization per-series
- * above this count. https://echarts.apache.org/en/option.html#series-scatter.large
- */
-export const LARGE_MODE_THRESHOLD = 2000;
 
 /**
  * Series count + densest-series point count for a frame set, counted the same
@@ -54,8 +43,9 @@ export function getSeriesStats(frames: DataFrame[]): SeriesStats {
   });
   return { seriesCount, maxPoints };
 }
+
 /** Resolve line-series point-marker visibility from the (defaulted) Show points mode. */
-function resolveShowSymbol(showPoints: ShowPointsMode, maxPoints: number): boolean {
+function resolveShowSymbol(showPoints: PerformanceMode, maxPoints: number): boolean {
   switch (showPoints) {
     case 'always':
       return true;
@@ -111,16 +101,36 @@ export function getSeriesPerfOptions({
 }
 
 /**
- * Resolve the panel-level `animation` flag. An explicit `animation.enabled`
- * (from the Advanced toggle or persisted JSON) always wins; otherwise animation
- * auto-disables once a chart crosses either the series-count or points-per-series
- * threshold (transition diffing and load animation are pure overhead on dense
- * data). Small/non-time-series charts stay animated, matching prior behavior.
+ * Resolve the panel-level `animation` flag.
+ *
+ * Precedence:
+ * 1. The cartesian Advanced tri-state (`performance.animation`) when it resolves
+ *    to `always`/`never`. It is a tri-state rather than a boolean switch
+ *    precisely so `auto` is representable — a boolean whose unset state means
+ *    "auto" displays as off in the editor while the chart is in fact animating.
+ * 2. The shared `animation.enabled` boolean. Part-to-whole writes it via
+ *    `applyPartToWholeEditorModeDefaults`, and it is also where a hand-edited or
+ *    previously-persisted panel JSON value lands.
+ * 3. Otherwise auto: animation stays on until the chart crosses either the
+ *    series-count or points-per-series threshold, past which load and transition
+ *    animation are pure overhead.
+ *
+ *    @todo test if this is already applied while panel is rendering new data frame
  */
 export function resolveAnimation(options: PanelOptions, stats: SeriesStats): boolean {
+  console.log('resolveAnimation', options, stats);
+  const mode = options.performance?.animation ?? PERFORMANCE_ANIMATION_DEFAULT;
+  if (mode === 'always') {
+    return true;
+  }
+  if (mode === 'never') {
+    return false;
+  }
+
   const explicit = options.animation?.enabled;
   if (explicit != null) {
     return explicit;
   }
+
   return stats.seriesCount <= ANIMATION_MAX_SERIES && stats.maxPoints <= ANIMATION_MAX_POINTS;
 }
