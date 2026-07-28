@@ -4,7 +4,7 @@ import { type BinnedHeatmapData, formatBucketBound } from 'lib/echarts/converter
 // The cell tuple layout is owned by the series encode (`encodeBinnedHeatmapData`),
 // which is what hands this formatter its `params.value`.
 import { HEATMAP_VALUE_DIM } from 'lib/echarts/options/constants';
-import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import { formatEChartsValue } from 'lib/echarts/style';
 import { type BinnedHeatmapTooltipContext, type TooltipModel } from 'lib/echarts/tooltip/types';
 
 /**
@@ -62,7 +62,7 @@ export function buildBinnedHeatmapTooltipModel(
         {
           color: typeof param?.color === 'string' ? param.color : undefined,
           label: 'Value',
-          value: formatTooltipValue(value, ctx.formatValue),
+          value: formatEChartsValue(value, ctx.formatValue),
           source,
         },
         { label: 'Name', value: bucket },

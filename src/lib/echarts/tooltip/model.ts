@@ -1,6 +1,7 @@
-import { formattedValueToString, type ValueFormatter } from '@grafana/data';
+import { type ValueFormatter } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
 import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { formatEChartsValue, unwrapEChartsValue } from 'lib/echarts/style';
 import {
   type TooltipFieldResolver,
   type TooltipModel,
@@ -59,44 +60,10 @@ export function indexedFormatterResolver(
   };
 }
 
-/**
- * Unwrap the value ECharts hands a tooltip item. Array data items (cartesian
- * `[time, value]`, heatmap `[..., value]`) carry the numeric magnitude last;
- * scalar items are their own value.
- */
-function unwrapTooltipValue(eChartValue: CallbackDataParams['value']): CallbackDataParams['value'] {
-  return Array.isArray(eChartValue) ? eChartValue[eChartValue.length - 1] : eChartValue;
-}
-
 /** The numeric magnitude of a tooltip item, or `undefined` for non-numeric/empty values. */
 function tooltipNumeric(eChartValue: CallbackDataParams['value']): number | undefined {
-  const numeric = unwrapTooltipValue(eChartValue);
+  const numeric = unwrapEChartsValue(eChartValue);
   return typeof numeric === 'number' ? numeric : undefined;
-}
-
-/**
- * Format a raw ECharts tooltip value with Grafana's field formatter.
- * See https://echarts.apache.org/en/option.html#tooltip.valueFormatter
- */
-export function formatTooltipValue(
-  eChartValue: CallbackDataParams['value'],
-  grafanaFormatValue: ValueFormatter
-): string {
-  const numeric = unwrapTooltipValue(eChartValue);
-  if (typeof numeric === 'number') {
-    return formattedValueToString(grafanaFormatValue(numeric));
-  }
-
-  // Empty (null/undefined) values route through the field formatter as `NaN`,
-  // which it renders as the field's standard "No value" text (see
-  // `getValueFormatter`). `NaN` is used because `ValueFormatter` is typed to
-  // accept a number, and the formatter treats `NaN` the same as null.
-  if (numeric == null) {
-    return formattedValueToString(grafanaFormatValue(NaN));
-  }
-
-  // A genuine non-null, non-numeric value (e.g. a category label).
-  return String(numeric);
 }
 
 /**
@@ -178,7 +145,7 @@ function expandMultiValueRows(
   return dimensions.map((label, dimension) => ({
     color,
     label,
-    value: formatTooltipValue(packed[dimension + 1] ?? null, valueFormatter),
+    value: formatEChartsValue(packed[dimension + 1] ?? null, valueFormatter),
     seriesIndex: item.seriesIndex,
     source: resolveField?.({ seriesIndex: item.seriesIndex, dataIndex: item.dataIndex, dimensionIndex: dimension }),
   }));
@@ -243,7 +210,7 @@ export function buildTooltipModel(
     // Each row formats with its own field's formatter so per-field unit/decimals
     // overrides are respected.
     const valueFormatter = resolveValueFormatter({ seriesIndex: item.seriesIndex, dataIndex: item.dataIndex });
-    let value = formatTooltipValue(item.value, valueFormatter);
+    let value = formatEChartsValue(item.value, valueFormatter);
     // Slice charts (pie) expose the share of the whole as a percentage.
     if (typeof item.percent === 'number') {
       value = `${value} (${item.percent}%)`;

@@ -2,7 +2,7 @@ import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
 // The cell tuple layout is shared with the series `data` and the visualMap dimension.
 import { MATRIX_VALUE_DIM } from 'lib/echarts/options/constants';
-import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import { formatEChartsValue } from 'lib/echarts/style';
 import { type BinnedHeatmapTooltipContext, type TooltipModel } from 'lib/echarts/tooltip/types';
 
 /**
@@ -37,7 +37,7 @@ export function buildMatrixHeatmapTooltipModel(
         {
           color: typeof param?.color === 'string' ? param.color : undefined,
           label: 'Value',
-          value: formatTooltipValue(value, ctx.formatValue),
+          value: formatEChartsValue(value, ctx.formatValue),
           source,
         },
         { label: 'Name', value: data.yCategories[yIndex] ?? '' },

@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { formatPieShare, getPieSliceFormatters, getPieSliceTotal } from 'lib/echarts/converters/pie';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
-import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import { formatEChartsValue } from 'lib/echarts/style';
 import { type TooltipModel, type TooltipRow } from 'lib/echarts/tooltip/types';
 
 /**
@@ -40,7 +40,7 @@ export function buildPieTooltipModel(
 
   const rowValue = (index: number): string => {
     const slice = slices[index];
-    const value = formatTooltipValue(slice.value ?? null, formatters[index]);
+    const value = formatEChartsValue(slice.value ?? null, formatters[index]);
     return `${value} (${formatPieShare(slice.value, total, slice.field.config.decimals)})`;
   };
 

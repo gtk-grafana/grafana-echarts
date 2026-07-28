@@ -1,5 +1,5 @@
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import { formatEChartsValue } from 'lib/echarts/style';
 import {
   type HierarchyTooltipContext,
   type HierarchyTreeItem,
@@ -37,12 +37,12 @@ export function buildHierarchyTooltipModel(
       {
         color: typeof param?.color === 'string' ? param.color : undefined,
         label: 'Value',
-        value: formatTooltipValue(hovered?.value ?? null, ctx.formatValue),
+        value: formatEChartsValue(hovered?.value ?? null, ctx.formatValue),
         source,
       },
     ];
     if (hovered?.self != null) {
-      rows.push({ label: 'Self', value: formatTooltipValue(hovered.self, ctx.formatValue) });
+      rows.push({ label: 'Self', value: formatEChartsValue(hovered.self, ctx.formatValue) });
     }
     // Item chart: the hovered node's name is the header label.
     return { header: { label: hovered?.name ?? String(param?.name ?? ''), value: '' }, rows, source };

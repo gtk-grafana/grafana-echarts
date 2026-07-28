@@ -37,8 +37,7 @@ import { type EChartPieDataItem } from 'lib/echarts/charts/types';
 import { formatPieShare, getPieSliceFormatters, getPieSliceTotal } from 'lib/echarts/converters/pie';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
 import { createBaseOptions, getThemeTextStyle } from 'lib/echarts/options/base';
-import { getValueFormatter } from 'lib/echarts/style';
-import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import { isAdvancedEditorMode, isApiEditorMode } from 'lib/grafana/editor/common/editor-mode';
 import { type PanelOptions } from 'types';
 
@@ -452,7 +451,7 @@ export function buildPieLabelLines(
       parts.push(slice.name);
     }
     if (selected.includes('value')) {
-      parts.push(formatTooltipValue(slice.value ?? null, formatters[index]));
+      parts.push(formatEChartsValue(slice.value ?? null, formatters[index]));
     }
     if (selected.includes('percent')) {
       parts.push(formatPieShare(slice.value, total, slice.field.config.decimals));
@@ -558,7 +557,7 @@ export function getPieCenterTitle(
   if (typeof aggregate !== 'number' || !Number.isFinite(aggregate)) {
     return undefined;
   }
-  const valueText = formatTooltipValue(aggregate, getValueFormatter(field, theme, timeZone));
+  const valueText = formatEChartsValue(aggregate, getValueFormatter(field, theme, timeZone));
   const reducerName = fieldReducers.getIfExists(reducerId)?.name ?? reducerId;
   return {
     // Anchor the text block's center on the pie center (tracks centerX/centerY).
