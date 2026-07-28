@@ -16,10 +16,3 @@ import type { LineSeriesOption, ScatterSeriesOption } from 'echarts';
  */
 export type PerfSeriesOptions = Pick<LineSeriesOption, 'showSymbol' | 'sampling'> &
   Pick<ScatterSeriesOption, 'large' | 'largeThreshold'>;
-
-/** Chart shape used to pick the fast path: number of series and the densest series. */
-export interface SeriesStats {
-  seriesCount: number;
-  /** Largest points-per-series across the frames (the density signal). */
-  maxPoints: number;
-}

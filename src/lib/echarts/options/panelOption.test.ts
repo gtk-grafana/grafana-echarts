@@ -18,7 +18,6 @@ import { type SeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type PanelOptions } from 'types';
 import { buildPanelChartOption } from './panelOption';
-import { ANIMATION_MAX_POINTS, ANIMATION_MAX_SERIES } from 'lib/echarts/performance/constants';
 
 const timeRange: TimeRange = {
   from: dateTime(1783137094497),
@@ -304,28 +303,14 @@ describe('buildPanelChartOption for the pie (row/series family)', () => {
   });
 });
 
-// The panel-level `animation` flag is resolved from the chart's shape: it stays
-// on for small charts, auto-disables once a chart crosses the series-count or
-// points-per-series threshold, and always honors an explicit override. See
-// `resolveAnimation`.
+// The panel-level `animation` flag is an opt-in, off by default, independent of
+// the data. Density thresholds were tried and removed — they could not fire
+// before the render that needed them. See `resolveAnimation`.
 describe('buildPanelChartOption animation resolution', () => {
   const visible: FieldConfigSource = { defaults: {}, overrides: [] };
   const animationOf = (option: PanelOption): boolean | undefined => option.animation;
 
-  // A time frame with `count` numeric series (2 points each) to cross the series threshold.
-  const manySeriesFrame = (count: number): DataFrame =>
-    toDataFrame({
-      fields: [
-        { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497] },
-        ...Array.from({ length: count }, (_, i) => ({
-          name: `s${i}`,
-          type: FieldType.number,
-          values: [i, i + 1],
-        })),
-      ],
-    });
-
-  // A single-series time frame with `points` rows to cross the points threshold.
+  // A single-series time frame with `points` rows, to prove density is ignored.
   const denseTimeFrame = (points: number): DataFrame =>
     toDataFrame({
       fields: [
@@ -334,30 +319,33 @@ describe('buildPanelChartOption animation resolution', () => {
       ],
     });
 
-  it('auto-enables animation for a small time chart', () => {
+  it('is off by default on a small time chart', () => {
     const option = buildPanelChartOption(makeContext([timeFrame()], 'line', visible), { isGrafanaLegend: true });
-    expect(animationOf(option)).toBe(true);
-  });
-
-  it('auto-disables animation above the series-count threshold', () => {
-    const option = buildPanelChartOption(makeContext([manySeriesFrame(ANIMATION_MAX_SERIES + 1)], 'line', visible), {
-      isGrafanaLegend: true,
-    });
     expect(animationOf(option)).toBe(false);
   });
 
-  it('auto-disables animation above the points-per-series threshold', () => {
-    const option = buildPanelChartOption(makeContext([denseTimeFrame(ANIMATION_MAX_POINTS + 1)], 'line', visible), {
-      isGrafanaLegend: true,
-    });
-    expect(animationOf(option)).toBe(false);
-  });
-
-  it('respects an explicit animation override even above the thresholds', () => {
+  it('is on when explicitly enabled', () => {
     const option = buildPanelChartOption(
-      makeContext([manySeriesFrame(ANIMATION_MAX_SERIES + 1)], 'line', visible, { animation: { enabled: true } }),
+      makeContext([timeFrame()], 'line', visible, { animation: { enabled: true } }),
       { isGrafanaLegend: true }
     );
     expect(animationOf(option)).toBe(true);
+  });
+
+  // The opt-in is honored regardless of size: the user asked for it explicitly,
+  // and there is no threshold left to overrule them.
+  it('stays on when explicitly enabled on a dense chart', () => {
+    const option = buildPanelChartOption(
+      makeContext([denseTimeFrame(10_000)], 'line', visible, { animation: { enabled: true } }),
+      { isGrafanaLegend: true }
+    );
+    expect(animationOf(option)).toBe(true);
+  });
+
+  it('stays off on a dense chart when unset', () => {
+    const option = buildPanelChartOption(makeContext([denseTimeFrame(10_000)], 'line', visible), {
+      isGrafanaLegend: true,
+    });
+    expect(animationOf(option)).toBe(false);
   });
 });

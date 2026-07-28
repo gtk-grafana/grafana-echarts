@@ -358,11 +358,11 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   funnelLabelPosition?: FunnelLabelPosition;
 
   /**
-   * Animation toggle (shared `@internal` shape). Written by the part-to-whole
-   * editor and by hand-edited/previously-persisted panel JSON; the cartesian
-   * editor uses the tri-state `performance.animation` instead so that "auto" is
-   * representable. `resolveAnimation` reads this as an explicit override once the
-   * tri-state resolves to `auto`.
+   * Animation toggle, shared by every family that offers it (cartesian and
+   * part-to-whole both register it as an Advanced switch). Read via
+   * `resolveAnimation`, which defaults it to **off** — see
+   * `ANIMATION_ENABLED_DEFAULT` for why density thresholds were tried and
+   * abandoned.
    * https://echarts.apache.org/en/option.html#animation
    */
   animation?: {
@@ -373,16 +373,15 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Advanced-only performance overrides for the cartesian time-series fast path.
    * ECharts' big-data levers are auto-enabled above density thresholds; these
    * override the auto behavior. `showPoints` maps to per-series `showSymbol`
-   * (Auto hides symbols on dense series), `downsampling` toggles LTTB `sampling`,
-   * and `animation` overrides the panel-wide `animation` flag. Unset fields
-   * resolve to their defaults (`auto` / `true` / `auto`). See
+   * (Auto hides symbols on dense series) and `downsampling` toggles LTTB
+   * `sampling`. Unset fields resolve to their defaults (`auto` / `true`).
+   * Animation is not here — it is the shared `animation.enabled` above. See
    * `lib/echarts/performance/resolvers.ts` and the `addPerformanceOptions`
    * editor fragment.
    */
   performance?: {
     showPoints?: PerformanceMode;
     downsampling?: boolean;
-    animation?: PerformanceMode;
   };
 
   // @internal

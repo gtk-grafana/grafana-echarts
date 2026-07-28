@@ -4,7 +4,7 @@ import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type Heat
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
-import { getSeriesPerfOptions, getSeriesStats } from 'lib/echarts/performance/resolvers';
+import { getMaxPointsPerSeries, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 import { getSeriesColor } from 'lib/echarts/style';
 import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
@@ -46,9 +46,9 @@ export function timeSeriesToEChartsOption(
   const frames: Array<FieldTypedDataFrame<string | number, EChartsFieldConfig>> = rawFrames;
   const echartsSeries: EChartSingleValueCartesianSeries[] = [];
 
-  // Density signal (series count + densest series) drives the fast-path props;
-  // computed once so all series resolve against the same stats.
-  const stats = getSeriesStats(rawFrames);
+  // Density signal (points in the densest series) drives the fast-path props;
+  // computed once so every series resolves against the same number.
+  const maxPoints = getMaxPointsPerSeries(rawFrames);
 
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
@@ -70,7 +70,7 @@ export function timeSeriesToEChartsOption(
       zlevel: options.zLevel?.series,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       // Type-aware fast-path props (symbols/sampling for line; large for scatter/bar).
-      ...getSeriesPerfOptions({ type: resolvedType, maxPoints: stats.maxPoints, options }),
+      ...getSeriesPerfOptions({ type: resolvedType, maxPoints, options }),
       showEffectOn,
     });
   });

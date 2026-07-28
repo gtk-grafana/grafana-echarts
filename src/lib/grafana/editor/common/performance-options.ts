@@ -1,10 +1,10 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import {
-  PERFORMANCE_ANIMATION_DEFAULT,
+  ANIMATION_ENABLED_DEFAULT,
+  animationEnabledPath,
+  animationName,
   PERFORMANCE_DOWNSAMPLING_DEFAULT,
   PERFORMANCE_SHOW_POINTS_DEFAULT,
-  performanceAnimationName,
-  performanceAnimationPath,
   performanceDownsamplingName,
   performanceDownsamplingPath,
   performanceModeOptions,
@@ -25,13 +25,11 @@ import { type PanelOptions } from 'types';
  *   `showSymbol`. Auto hides markers on dense line series; Always/Never force it.
  * - **Downsampling** (`performance.downsampling`, default on): LTTB `sampling` on
  *   dense line series (a no-op once points fit the pixels).
- * - **Animation** (`performance.animation`, default Auto): the panel-wide
- *   `animation` flag. A tri-state rather than a switch so Auto is representable —
- *   a boolean whose unset state meant "auto" rendered unchecked while the chart
- *   was in fact animating.
- *
- * Both tri-states share `performanceModeOptions` (Auto / Always / Never) so the
- * two radios read identically in the editor.
+ * - **Animation** (`animation.enabled`, default off): the panel-wide `animation`
+ *   flag, an opt-in switch. Density thresholds were tried and removed — they
+ *   could not fire before the render that needed them (see `resolveAnimation`) —
+ *   so animation is simply off unless asked for. Because off *is* the default, a
+ *   plain switch is now unambiguous: what it shows is what the chart does.
  */
 export function addPerformanceOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
   addAdvancedRadio<PerformanceMode>(builder, {
@@ -49,11 +47,10 @@ export function addPerformanceOptions(builder: PanelOptionsEditorBuilder<PanelOp
     defaultValue: PERFORMANCE_DOWNSAMPLING_DEFAULT,
   });
 
-  addAdvancedRadio<PerformanceMode>(builder, {
-    path: performanceAnimationPath,
-    name: performanceAnimationName,
-    description: 'Animate on load and update. Auto disables animation on large datasets',
-    defaultValue: PERFORMANCE_ANIMATION_DEFAULT,
-    settings: { options: performanceModeOptions },
+  addAdvancedBooleanSwitch(builder, {
+    path: animationEnabledPath,
+    name: animationName,
+    description: 'Animate on load and update. Off by default; costly on large datasets',
+    defaultValue: ANIMATION_ENABLED_DEFAULT,
   });
 }

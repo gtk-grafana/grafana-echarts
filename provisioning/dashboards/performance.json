@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "Render-performance comparisons for the cartesian fast path, each ECharts panel paired with its core Grafana (uPlot) counterpart on the same query. Every row is collapsed by default — these are deliberately heavy panels, so open one at a time. Thresholds and measurements: docs/performance.md.",
+  "description": "Render-performance comparisons for the cartesian fast path, each ECharts panel paired with its core Grafana (uPlot) counterpart on the same query. Every row is collapsed by default \u2014 these are deliberately heavy panels, so open one at a time. Thresholds and measurements: docs/performance.md.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -13,7 +13,7 @@
       "id": 3,
       "type": "row",
       "title": "Dense: 500 series x 1000 points",
-      "description": "The profiled regression (500 series). Every lever engages: >50 series auto-disables animation, >100 points/series hides symbols and enables LTTB. Benchmarked at 7383ms -> 184ms. Expect both panels to be slow to open; that is the point of the comparison.",
+      "description": "The profiled regression (500 series). The per-point levers engage here: >100 points/series hides symbols and enables LTTB. Animation is off by default for every panel, so it is not a variable. Benchmarked at 7383ms -> 184ms. Expect both panels to be slow to open; that is the point of the comparison.",
       "collapsed": true,
       "gridPos": {
         "h": 1,
@@ -25,8 +25,8 @@
         {
           "id": 1,
           "type": "grafana-echartscartesian-panel",
-          "title": "ECharts — auto (all levers on)",
-          "description": "Advanced > Performance left at defaults (Show points: Auto, Downsampling: on, Animation: Auto). Switch Show points to Always and Downsampling off to feel the pre-lever behavior.",
+          "title": "ECharts \u2014 auto (all levers on)",
+          "description": "Advanced > Performance left at defaults (Show points: Auto, Downsampling: on). Switch Show points to Always and Downsampling off to feel the pre-lever behavior, and toggle Animation on to see why it is off by default.",
           "datasource": {
             "type": "grafana-testdata-datasource"
           },
@@ -124,7 +124,7 @@
       "id": 6,
       "type": "row",
       "title": "Deep: 20 series x 5000 points",
-      "description": "Few series, many points each. Isolates the per-point levers (symbols + LTTB) from the series-count animation threshold. Benchmarked at 1882ms -> 35ms.",
+      "description": "Few series, many points each. Isolates the per-point levers (symbols + LTTB) from series count. Benchmarked at 1882ms -> 35ms.",
       "collapsed": true,
       "gridPos": {
         "h": 1,
@@ -136,8 +136,8 @@
         {
           "id": 4,
           "type": "grafana-echartscartesian-panel",
-          "title": "ECharts — auto",
-          "description": "Symbols hidden and LTTB sampling on (5000 > 100 points/series). Animation auto-off (>5000 points is the threshold; 5000 is at it, 20 series is under 50).",
+          "title": "ECharts \u2014 auto",
+          "description": "Symbols hidden and LTTB sampling on (5000 > 100 points/series).",
           "datasource": {
             "type": "grafana-testdata-datasource"
           },
@@ -235,7 +235,7 @@
       "id": 9,
       "type": "row",
       "title": "LTTB: 1 series x 100000 points",
-      "description": "One series far past pixel resolution — the clearest look at LTTB downsampling. Benchmarked at 1888ms -> 31ms. Toggle Advanced > Performance > Downsampling off to compare; the shape should be near-identical because LTTB preserves visual peaks.",
+      "description": "One series far past pixel resolution \u2014 the clearest look at LTTB downsampling. Benchmarked at 1888ms -> 31ms. Toggle Advanced > Performance > Downsampling off to compare; the shape should be near-identical because LTTB preserves visual peaks.",
       "collapsed": true,
       "gridPos": {
         "h": 1,
@@ -247,7 +247,7 @@
         {
           "id": 7,
           "type": "grafana-echartscartesian-panel",
-          "title": "ECharts — LTTB on (default)",
+          "title": "ECharts \u2014 LTTB on (default)",
           "description": "sampling: lttb. Compare against the same panel with Downsampling off.",
           "datasource": {
             "type": "grafana-testdata-datasource"
@@ -346,7 +346,7 @@
       "id": 12,
       "type": "row",
       "title": "Symbol threshold: 100 vs 101 points",
-      "description": "SYMBOL_VISIBLE_MAX_POINTS = 100. At or below it markers draw; one point past it they are hidden. This is the visible default change versus pre-branch behavior — the pair exists so the boundary can be eyeballed. Covered by a canvas regression test (performance.canvas.test.tsx).",
+      "description": "SYMBOL_VISIBLE_MAX_POINTS = 100. At or below it markers draw; one point past it they are hidden. This is the visible default change versus pre-branch behavior \u2014 the pair exists so the boundary can be eyeballed. Covered by a canvas regression test (performance.canvas.test.tsx).",
       "collapsed": true,
       "gridPos": {
         "h": 1,
@@ -358,7 +358,7 @@
         {
           "id": 10,
           "type": "grafana-echartscartesian-panel",
-          "title": "ECharts — 100 points (markers visible)",
+          "title": "ECharts \u2014 100 points (markers visible)",
           "description": "At the threshold: showSymbol stays true, no sampling.",
           "datasource": {
             "type": "grafana-testdata-datasource"
@@ -403,7 +403,7 @@
         {
           "id": 11,
           "type": "grafana-echartscartesian-panel",
-          "title": "ECharts — 101 points (markers hidden)",
+          "title": "ECharts \u2014 101 points (markers hidden)",
           "description": "One point past the threshold: showSymbol false, sampling lttb. Set Show points to Always to bring them back.",
           "datasource": {
             "type": "grafana-testdata-datasource"
@@ -451,7 +451,7 @@
       "id": 15,
       "type": "row",
       "title": "Scatter: large mode at 2000+ points",
-      "description": "LARGE_MODE_THRESHOLD = 2000. Scatter is symbols-by-definition, so `large` (a batched, symbol-simplified renderer) is its lever rather than showSymbol. effectScatter is deliberately excluded — its ripple animation is meant for a handful of highlighted points.",
+      "description": "LARGE_MODE_THRESHOLD = 2000. Scatter is symbols-by-definition, so `large` (a batched, symbol-simplified renderer) is its lever rather than showSymbol. effectScatter is deliberately excluded \u2014 its ripple animation is meant for a handful of highlighted points.",
       "collapsed": true,
       "gridPos": {
         "h": 1,
@@ -463,7 +463,7 @@
         {
           "id": 13,
           "type": "grafana-echartscartesian-panel",
-          "title": "ECharts scatter — large mode on",
+          "title": "ECharts scatter \u2014 large mode on",
           "description": "series.large + largeThreshold: 2000.",
           "datasource": {
             "type": "grafana-testdata-datasource"
@@ -573,8 +573,8 @@
     {
       "id": 18,
       "type": "row",
-      "title": "Heatmap: animation auto-off on a large grid",
-      "description": "Surfaced in review, not by design: getSeriesStats counts a heatmap frame's numeric columns via forEachTimeSeriesField, so 64 series crosses ANIMATION_MAX_SERIES (50) and the grid renders unanimated. No other lever touches the heatmap cell layer (it is a custom series with inline data). Compare load feel against the core heatmap.",
+      "title": "Heatmap: no fast path reaches the cell layer",
+      "description": "The heatmap is the family none of the levers help. The cell layer is a custom series with inline data, so showSymbol/sampling/large do not apply to it, and animation is off by default like everywhere else. Kept as the honest counter-example: a large grid is slow and this branch does not fix that. Compare load feel against the core heatmap.",
       "collapsed": true,
       "gridPos": {
         "h": 1,
@@ -586,8 +586,8 @@
         {
           "id": 16,
           "type": "grafana-echartsheatmap-panel",
-          "title": "ECharts heatmap — 64 series (animation auto-off)",
-          "description": "64 series > ANIMATION_MAX_SERIES (50), so resolveAnimation returns false. Set Advanced > Performance > Animation to Always to force it back on and compare the load transition.",
+          "title": "ECharts heatmap - 64 series (no lever applies)",
+          "description": "64 series x 200 points. None of the cartesian fast-path props reach the cell layer; only the cartesian overlay series (there is none here) would receive them.",
           "datasource": {
             "type": "grafana-testdata-datasource"
           },

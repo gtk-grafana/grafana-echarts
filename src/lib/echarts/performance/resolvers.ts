@@ -1,47 +1,40 @@
 import { type DataFrame } from '@grafana/data';
 import {
-  PERFORMANCE_ANIMATION_DEFAULT,
+  ANIMATION_ENABLED_DEFAULT,
   PERFORMANCE_DOWNSAMPLING_DEFAULT,
   PERFORMANCE_SHOW_POINTS_DEFAULT,
 } from 'editor/constants';
 import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type PerformanceMode } from 'editor/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
-import {
-  ANIMATION_MAX_POINTS,
-  ANIMATION_MAX_SERIES,
-  LARGE_MODE_THRESHOLD,
-  SYMBOL_VISIBLE_MAX_POINTS,
-} from 'lib/echarts/performance/constants';
-import { type PerfSeriesOptions, type SeriesStats } from 'lib/echarts/performance/types';
+import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_POINTS } from 'lib/echarts/performance/constants';
+import { type PerfSeriesOptions } from 'lib/echarts/performance/types';
 import { type PanelOptions } from 'types';
 
 /**
- * Resolvers that turn a chart's shape (series count + points per series) plus any
- * Advanced overrides into ECharts' big-data levers. The thresholds they compare
- * against live in `./constants.ts`; the editor fragment that surfaces the
- * overrides is `lib/grafana/editor/common/performance-options.ts`.
+ * Resolvers that turn a chart's density plus any Advanced overrides into ECharts'
+ * big-data levers. The threshold they compare against lives in `./constants.ts`;
+ * the editor fragment that surfaces the overrides is
+ * `lib/grafana/editor/common/performance-options.ts`.
  *
  * These switch dense charts onto the fast path automatically while leaving small
- * charts visually identical (so canvas snapshots below the thresholds don't
+ * charts visually identical (so canvas snapshots below the threshold don't
  * churn), and let power users override the auto behavior. See
  * `docs/performance.md` for the measurements behind each lever.
  */
 
 /**
- * Series count + densest-series point count for a frame set, counted the same
- * way `timeSeriesToEChartsOption` emits series (via `forEachTimeSeriesField`, so
- * the numeric-fallback X field is honored). Non-time-series frames (pie, radar,
- * category) yield small counts well below every threshold, so the resolvers
- * no-op for them.
+ * Points in the densest series of a frame set — the density signal every
+ * per-series lever resolves against. Counted the same way
+ * `timeSeriesToEChartsOption` emits series (via `forEachTimeSeriesField`, so the
+ * numeric-fallback X field is honored). Non-time-series frames (pie, radar,
+ * category) yield counts well below the threshold, so the resolvers no-op.
  */
-export function getSeriesStats(frames: DataFrame[]): SeriesStats {
-  let seriesCount = 0;
+export function getMaxPointsPerSeries(frames: DataFrame[]): number {
   let maxPoints = 0;
   forEachTimeSeriesField(frames, ({ field }) => {
-    seriesCount += 1;
     maxPoints = Math.max(maxPoints, field.values.length);
   });
-  return { seriesCount, maxPoints };
+  return maxPoints;
 }
 
 /** Resolve line-series point-marker visibility from the (defaulted) Show points mode. */
@@ -101,33 +94,21 @@ export function getSeriesPerfOptions({
 }
 
 /**
- * Resolve the panel-level `animation` flag.
+ * Resolve the panel-level `animation` flag: the shared `animation.enabled`
+ * opt-in, defaulting to off for every family.
  *
- * Precedence:
- * 1. The cartesian Advanced tri-state (`performance.animation`) when it resolves
- *    to `always`/`never`. It is a tri-state rather than a boolean switch
- *    precisely so `auto` is representable — a boolean whose unset state means
- *    "auto" displays as off in the editor while the chart is in fact animating.
- * 2. The shared `animation.enabled` boolean. Part-to-whole writes it via
- *    `applyPartToWholeEditorModeDefaults`, and it is also where a hand-edited or
- *    previously-persisted panel JSON value lands.
- * 3. Otherwise auto: animation stays on until the chart crosses either the
- *    series-count or points-per-series threshold, past which load and transition
- *    animation are pure overhead.
+ * Density thresholds were tried here first — animate until a chart crosses a
+ * series-count or points-per-series limit — and removed, because the sequencing
+ * cannot work. A panel only learns a response is dense once it is already
+ * rendering it; Grafana re-renders with the *previous* data while a query is in
+ * flight, so that render animates on the old count; and any threshold leaves a
+ * band below it (growing 10 -> 40 series) that animates a chart already heavy
+ * enough to feel it. The threshold fired correctly, just too late to help.
+ *
+ * So animation is opt-in instead, which also matches core Grafana more closely —
+ * its viz panels do not animate at all. Deliberately takes no frame stats:
+ * nothing about the data affects the answer any more. See `docs/performance.md`.
  */
-export function resolveAnimation(options: PanelOptions, stats: SeriesStats): boolean {
-  const mode = options.performance?.animation ?? PERFORMANCE_ANIMATION_DEFAULT;
-  if (mode === 'always') {
-    return true;
-  }
-  if (mode === 'never') {
-    return false;
-  }
-
-  const explicit = options.animation?.enabled;
-  if (explicit != null) {
-    return explicit;
-  }
-
-  return stats.seriesCount <= ANIMATION_MAX_SERIES && stats.maxPoints <= ANIMATION_MAX_POINTS;
+export function resolveAnimation(options: PanelOptions): boolean {
+  return options.animation?.enabled ?? ANIMATION_ENABLED_DEFAULT;
 }

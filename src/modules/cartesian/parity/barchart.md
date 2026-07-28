@@ -16,21 +16,21 @@ stacking.
 
 ## Panel options
 
-| Core Grafana option                           | ECharts equivalent                                                                                                                                     | Status        |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
-| X Axis field picker                           | none (x derived from time/first field)                                                                                                                 | Not supported |
-| Orientation (auto/horizontal/vertical)        | none (vertical)                                                                                                                                        | Not supported |
-| Rotate x tick labels, max length, min spacing | none                                                                                                                                                   | Not supported |
-| Show values (auto/always/never)               | none                                                                                                                                                   | Not supported |
-| Stacking (none/normal/percent)                | per-field `stackSeries` (boolean)                                                                                                                      | Partial       |
-| Group width, bar width, bar radius            | none                                                                                                                                                   | Not supported |
-| Highlight full area on hover                  | none                                                                                                                                                   | Not supported |
-| Color by field                                | none (Color field config)                                                                                                                              | Partial       |
-| Tooltip: mode                                 | `tooltip.mode`                                                                                                                                         | Supported     |
-| Legend                                        | Grafana legend via `addLegendOptions`                                                                                                                  | Supported     |
-| Text size                                     | none                                                                                                                                                   | Not supported |
-| —                                             | `editorMode` radio (Default / Advanced editor tiers)                                                                                                   | ECharts-only  |
-| —                                             | Advanced: `performance.showPoints` / `performance.downsampling` (line-only), `performance.animation`; bar auto-enables `large` at 2,000+ points/series | Advanced      |
+| Core Grafana option                           | ECharts equivalent                                                                                                                                                  | Status        |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| X Axis field picker                           | none (x derived from time/first field)                                                                                                                              | Not supported |
+| Orientation (auto/horizontal/vertical)        | none (vertical)                                                                                                                                                     | Not supported |
+| Rotate x tick labels, max length, min spacing | none                                                                                                                                                                | Not supported |
+| Show values (auto/always/never)               | none                                                                                                                                                                | Not supported |
+| Stacking (none/normal/percent)                | per-field `stackSeries` (boolean)                                                                                                                                   | Partial       |
+| Group width, bar width, bar radius            | none                                                                                                                                                                | Not supported |
+| Highlight full area on hover                  | none                                                                                                                                                                | Not supported |
+| Color by field                                | none (Color field config)                                                                                                                                           | Partial       |
+| Tooltip: mode                                 | `tooltip.mode`                                                                                                                                                      | Supported     |
+| Legend                                        | Grafana legend via `addLegendOptions`                                                                                                                               | Supported     |
+| Text size                                     | none                                                                                                                                                                | Not supported |
+| —                                             | `editorMode` radio (Default / Advanced editor tiers)                                                                                                                | ECharts-only  |
+| —                                             | Advanced: `performance.showPoints` / `performance.downsampling` (line-only), `animation.enabled` (off by default); bar auto-enables `large` at 2,000+ points/series | Advanced      |
 
 ## Graph styles (core custom field config)
 
@@ -76,7 +76,7 @@ the registered runtime surface.
 | `brush`                                                                                        | Partial         | `lineX` drag maps to the dashboard time range; time axis only.                                                                  |
 | `markLine` / `markArea`                                                                        | Supported       | Threshold lines / regions on the shared value axis.                                                                             |
 | `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive show/hide + color persist as field-config overrides. |
-| `animation`                                                                                    | Supported       | Advanced `performance.animation` (Auto/Always/Never); Auto disables above 50 series or 5,000 points/series.                     |
+| `animation`                                                                                    | Supported       | Off by default for every family; opt in via the Advanced `animation.enabled` switch.                                            |
 | `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                                                                                 |
 | `visualMap`                                                                                    | Not implemented | Registered for the heatmap family only.                                                                                         |
 | `dataZoom`                                                                                     | Not implemented | Range zoom is delegated to `brush` -> dashboard time range.                                                                     |

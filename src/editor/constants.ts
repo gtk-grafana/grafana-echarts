@@ -221,16 +221,16 @@ export const thresholdsStyleModePath = 'thresholdsStyle.mode';
 export const thresholdsStyleModeName = 'Show thresholds';
 
 /**
- * Performance options (Advanced, cartesian time series). ECharts' big-data
- * levers (point markers off / LTTB downsampling / animation off) are auto-tuned
- * above density thresholds so dense charts take the fast path while small charts
- * are visually unchanged; these controls let power users override the auto
- * behavior. Resolvers live in `lib/echarts/performance/resolvers.ts` and the
- * thresholds in `lib/echarts/performance/constants.ts`; the editor fragment is
+ * Performance options (Advanced, cartesian time series). ECharts' per-point
+ * levers (point markers off / LTTB downsampling) are auto-tuned above a density
+ * threshold so dense charts take the fast path while small charts are visually
+ * unchanged; these controls let power users override the auto behavior.
+ * Resolvers live in `lib/echarts/performance/resolvers.ts` and the threshold in
+ * `lib/echarts/performance/constants.ts`; the editor fragment is
  * `lib/grafana/editor/common/performance-options.ts`.
  */
 
-/** Tri-state choices (Auto / Always / Never) shared by every performance override radio. */
+/** Tri-state choices (Auto / Always / Never) for a performance override radio. */
 export const performanceModeOptions: Array<SelectableValue<PerformanceMode>> = [
   { value: 'auto', label: 'Auto' },
   { value: 'always', label: 'Always' },
@@ -248,13 +248,16 @@ export const performanceDownsamplingName = 'Downsampling (LTTB)';
 export const PERFORMANCE_DOWNSAMPLING_DEFAULT = true;
 
 /**
- * Animation override. A tri-state rather than a boolean switch so `auto` is
- * representable: a boolean whose unset state meant "auto" rendered as an
- * unchecked switch while the chart was in fact animating. `auto` persists
- * harmlessly and keeps the threshold-driven path (see `resolveAnimation`).
- * Distinct from `pieAnimationEnabledPath` — part-to-whole keeps its own boolean.
+ * Shared animation toggle, offered as an opt-in Advanced switch by every family
+ * that exposes it (cartesian here, part-to-whole via `pieAnimationEnabledPath`).
+ *
+ * **Off by default, for every panel.** Density thresholds were tried first and
+ * could not work: a panel cannot know a response is dense until it has it, and
+ * any threshold leaves a band below it that still animates on an already-heavy
+ * chart (growing 10 -> 40 series animates, and Grafana re-renders with the
+ * previous data while a query is in flight). Off is also closer to core Grafana,
+ * whose viz panels do not animate at all. See `docs/performance.md`.
  */
-export const performanceAnimationPath = 'performance.animation';
-export const performanceAnimationName = 'Animation';
-/** Default animation mode: auto (disable on dense charts, animate otherwise). */
-export const PERFORMANCE_ANIMATION_DEFAULT: PerformanceMode = 'auto';
+export const animationEnabledPath = 'animation.enabled';
+export const animationName = 'Animation';
+export const ANIMATION_ENABLED_DEFAULT = false;

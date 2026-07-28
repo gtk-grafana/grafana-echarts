@@ -1,5 +1,6 @@
 import { createTheme, type Field, type FieldConfig, FieldType } from '@grafana/data';
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
+import { PIE_ANIMATION_ENABLED_DEFAULT } from 'editor/pie';
 import { type PieLabel } from 'editor/types';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
 import {
@@ -253,9 +254,13 @@ describe('applyPartToWholeEditorModeDefaults', () => {
     expect(resolved.startAngle).toBe(ADVANCED_PIE_DEFAULTS.startAngle);
   });
 
+  // Asserted against the default rather than a literal: animation is now off by
+  // default for every family, so the point is that Default mode *resets* the
+  // stored value, whichever way the default points.
   it('resets the shared animation option in Default mode', () => {
-    const resolved = applyPartToWholeEditorModeDefaults(withMode('default', { animation: { enabled: false } }));
-    expect(resolved.animation).toEqual({ enabled: true });
+    const resolved = applyPartToWholeEditorModeDefaults(withMode('default', { animation: { enabled: true } }));
+    expect(resolved.animation).toEqual(ADVANCED_PIE_DEFAULTS.animation);
+    expect(resolved.animation).toEqual({ enabled: PIE_ANIMATION_ENABLED_DEFAULT });
   });
 
   it('defaults an unset editor mode to Default (advanced values reset)', () => {

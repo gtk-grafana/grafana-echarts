@@ -7,11 +7,12 @@ thousands of points — inside a usable render budget, without changing how smal
 charts look. This doc records the levers, the thresholds they trigger at, and
 the measurements behind both.
 
-Everything here lives in `src/lib/echarts/performance/` —
-`resolvers.ts` (the resolvers) and `constants.ts` (the thresholds, split out so
-they can be read and mocked without pulling in the resolvers) — plus
-`src/lib/grafana/editor/common/performance-options.ts` (the editor fragment) and
-`src/lib/components/EChart.tsx` (instance-level flags).
+Everything here lives in `src/lib/echarts/performance/` — `resolvers.ts` (the
+resolvers) and `constants.ts` (the thresholds, split out so they can be read and
+mocked without pulling in the resolvers) — plus
+`src/lib/grafana/editor/common/performance-options.ts` (the editor fragment).
+`src/lib/components/EChart.tsx` deliberately passes no perf flags to `init`; see
+"Rejected: `useDirtyRect`".
 
 To see it in a real dashboard, use the provisioned **ECharts Performance**
 dashboard (`provisioning/dashboards/performance.json`): one collapsed row per
@@ -31,18 +32,22 @@ of this is custom rendering.
 
 ## The levers
 
-| Lever                   | ECharts option                           | Applies to       | Auto-trigger                            |
-| ----------------------- | ---------------------------------------- | ---------------- | --------------------------------------- |
-| Hide per-point symbols  | `series.showSymbol`                      | `line`           | > 100 points in the densest series      |
-| LTTB downsampling       | `series.sampling: 'lttb'`                | `line`           | > 100 points in the densest series      |
-| Batched large-data mode | `series.large` + `series.largeThreshold` | `scatter`, `bar` | ≥ 2000 points in the densest series     |
-| Disable animation       | `animation`                              | panel-wide       | > 50 series **or** > 5000 points/series |
+| Lever                   | ECharts option                           | Applies to       | Trigger                             |
+| ----------------------- | ---------------------------------------- | ---------------- | ----------------------------------- |
+| Hide per-point symbols  | `series.showSymbol`                      | `line`           | > 100 points in the densest series  |
+| LTTB downsampling       | `series.sampling: 'lttb'`                | `line`           | > 100 points in the densest series  |
+| Batched large-data mode | `series.large` + `series.largeThreshold` | `scatter`, `bar` | ≥ 2000 points in the densest series |
+| No animation            | `animation`                              | panel-wide       | always (opt-in to re-enable)        |
 
-Density is measured once per render by `getSeriesStats`, over the whole frame
-set, so every series in a chart resolves against the same numbers and a chart
-never renders half on the fast path. `effectScatter` (a ripple animation meant
-for a handful of highlighted points) and the heatmap cell layer are deliberately
-left untouched.
+Density is measured once per render by `getMaxPointsPerSeries`, over the whole
+frame set, so every series in a chart resolves against the same number and a
+chart never renders half on the fast path. `effectScatter` (a ripple animation
+meant for a handful of highlighted points) and the heatmap cell layer are
+deliberately left untouched.
+
+Animation is the exception: it is not density-driven at all. It is simply off,
+for every panel family, unless a user opts in. See "Rejected: animation density
+thresholds" below for why the threshold version had to go.
 
 The thresholds are chosen so that fixtures below them are visually unchanged —
 which is why the existing canvas snapshots did not move when this landed. The
@@ -55,26 +60,20 @@ the constant's current value.
 
 ## Editor overrides
 
-Three Advanced-tier options (gated behind editor mode — see
-[options-modes.md](./options-modes.md)) let a user override the auto behavior on
-the cartesian panel:
+Three Advanced-tier options on the cartesian panel (gated behind editor mode —
+see [options-modes.md](./options-modes.md)). The first two override the
+density-driven auto behavior; the third is a plain opt-in:
 
 | Option              | Path                       | Default | Effect                                     |
 | ------------------- | -------------------------- | ------- | ------------------------------------------ |
 | Show points         | `performance.showPoints`   | `auto`  | `auto` / `always` / `never` → `showSymbol` |
 | Downsampling (LTTB) | `performance.downsampling` | `true`  | Turns `sampling` off when set to false     |
-| Animation           | `performance.animation`    | `auto`  | `auto` / `always` / `never` → `animation`  |
+| Animation           | `animation.enabled`        | `false` | Opt in to load/update animation            |
 
-**Animation is a tri-state, not a switch.** It was a boolean switch first, with
-no `defaultValue` so that the unset state could mean "auto" — but the editor
-renders the stored value, so the switch showed _off_ while a small chart was in
-fact animating. A tri-state makes `auto` representable: it persists harmlessly
-and keeps the threshold-driven path reachable. Both tri-states share one
-`PerformanceMode` type and one option list, so the two radios read identically.
-
-The shared `animation.enabled` boolean still exists and is still honored (it is
-what part-to-whole writes, and where a hand-edited or previously-persisted JSON
-value lands), but it now ranks _below_ the tri-state — see `resolveAnimation`.
+Animation uses the shared `animation.enabled` boolean rather than a
+`performance.*` key, because part-to-whole offers the same switch and they should
+mean the same thing. Because off _is_ the default, a plain switch is unambiguous:
+what it shows is what the chart does.
 
 ## What the levers are worth
 
@@ -103,6 +102,46 @@ Note the first row: at exactly 100 points per series the symbol and sampling
 levers do **not** engage — that 4.5× is animation alone. Most of the benefit in
 the dense rows comes from `showSymbol: false` plus `sampling`, which cut drawn
 elements rather than making the same drawing faster.
+
+## Rejected: animation density thresholds
+
+Animation was originally auto-disabled above 50 series or 5000 points/series,
+keeping it for small charts. That shipped and was removed: **the threshold fires
+correctly, just too late to help.**
+
+Verified by driving successive `setOption` calls and comparing the first painted
+frame against the settled one:
+
+| render                       | series | `animation` | animated? |
+| ---------------------------- | ------ | ----------- | --------- |
+| first response               | 10     | `true`      | yes       |
+| dense response               | 60     | `false`     | **no**    |
+| control, same jump           | 60     | `true`      | yes       |
+| growth still under threshold | 30     | `true`      | **yes**   |
+
+The dense render behaves exactly as designed. The problem is everything leading
+up to it:
+
+- **A panel cannot know a response is dense until it has it.** By the time the
+  count is known, that render is already correct — but the render _before_ it
+  animated on the old, smaller count.
+- **Grafana re-renders with the previous data while a query is in flight**, so
+  that intermediate render animates too.
+- **Any threshold leaves a band below it.** Growing 10 → 40 series stays under 50
+  and animates, and 40 series is already heavy enough to feel.
+
+Raising or lowering the threshold just moves the band. Suppressing animation
+whenever the series set changes shape would need per-instance history in
+`EChart.tsx`, and would end up disabling animation on virtually every real data
+refresh anyway — converging on "off" with extra machinery.
+
+So animation is opt-in, off by default, for every family including the pie. That
+is also **closer to core Grafana**, whose viz panels do not animate at all — so
+this is parity rather than a regression, which is worth more here than an
+animation nobody asked for. `ANIMATION_MAX_SERIES`, `ANIMATION_MAX_POINTS` and
+`SeriesStats.seriesCount` all went away with it; `getSeriesStats` collapsed to
+`getMaxPointsPerSeries`, which also removed the double stats computation per
+render.
 
 ## Rejected: `useDirtyRect`
 
@@ -163,15 +202,11 @@ and numbers: [dataset.md](./dataset.md).
 - **`sampling: 'lttb'` has not been compared against `'minmax'`.** LTTB
   preserves visual shape; `minmax` preserves extremes, which can matter more for
   spiky monitoring data. Worth revisiting (there is a `@todo` at the call site).
-- **Animation stats are computed panel-wide**, including for the heatmap: its
-  frames carry numeric fields that `forEachTimeSeriesField` counts as series, so
-  a large enough heatmap auto-disables animation too. That is harmless but
-  incidental rather than designed. The last row of the provisioned performance
-  dashboard exercises it (64 series, past `ANIMATION_MAX_SERIES`).
-- **`getSeriesStats` runs twice per cartesian render** — once in `panelOption.ts`
-  for the animation flag and once in the converter for the series props. It is
-  O(fields) with an O(1) length read per field, so this is cheap, but it is
-  redundant.
+- **Density is computed once per render now**, in the converter only. Dropping the
+  animation thresholds removed the second `getSeriesStats` call in
+  `panelOption.ts`, and with it the incidental coupling where a large heatmap
+  auto-disabled its own animation (its numeric frame columns were being counted
+  like series). Both were noted here as warts; both are gone.
 - **Cartesian does not normalize its options by editor mode.** Unlike
   part-to-whole, a stored `performance.*` value keeps applying after the user
   switches back to Default. Defaults are the fast path so nothing renders worse,

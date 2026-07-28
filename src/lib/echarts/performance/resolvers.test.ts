@@ -1,13 +1,8 @@
 import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type PanelOptions } from 'types';
-import {
-  ANIMATION_MAX_POINTS,
-  ANIMATION_MAX_SERIES,
-  LARGE_MODE_THRESHOLD,
-  SYMBOL_VISIBLE_MAX_POINTS,
-} from './constants';
-import { getSeriesPerfOptions, getSeriesStats, resolveAnimation } from './resolvers';
+import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_POINTS } from './constants';
+import { getMaxPointsPerSeries, getSeriesPerfOptions, resolveAnimation } from './resolvers';
 
 const options = (extra?: Partial<PanelOptions>): PanelOptions => ({ ...extra }) as PanelOptions;
 
@@ -24,24 +19,24 @@ const timeFrame = (points: number, valueFields = 1): DataFrame =>
     ],
   });
 
-describe('getSeriesStats', () => {
-  it('counts one series per numeric field and the densest series point count (wide frame)', () => {
-    expect(getSeriesStats([timeFrame(10, 3)])).toEqual({ seriesCount: 3, maxPoints: 10 });
+describe('getMaxPointsPerSeries', () => {
+  it('takes the densest series in a wide frame', () => {
+    expect(getMaxPointsPerSeries([timeFrame(10, 3)])).toBe(10);
   });
 
-  it('sums series across frames and takes the max points across them (multi frame)', () => {
-    expect(getSeriesStats([timeFrame(10, 1), timeFrame(25, 1)])).toEqual({ seriesCount: 2, maxPoints: 25 });
+  it('takes the max across frames (multi frame)', () => {
+    expect(getMaxPointsPerSeries([timeFrame(10, 1), timeFrame(25, 1)])).toBe(25);
   });
 
-  it('returns zeros for an empty frame list', () => {
-    expect(getSeriesStats([])).toEqual({ seriesCount: 0, maxPoints: 0 });
+  it('returns zero for an empty frame list', () => {
+    expect(getMaxPointsPerSeries([])).toBe(0);
   });
 
-  it('returns zeros when no frame has a usable X field', () => {
+  it('returns zero when no frame has a usable X field', () => {
     const frame = toDataFrame({
       fields: [{ name: 'host', type: FieldType.string, values: ['a', 'b'] }],
     });
-    expect(getSeriesStats([frame])).toEqual({ seriesCount: 0, maxPoints: 0 });
+    expect(getMaxPointsPerSeries([frame])).toBe(0);
   });
 });
 
@@ -113,67 +108,32 @@ describe('getSeriesPerfOptions', () => {
   });
 });
 
+// Animation is a plain opt-in, off unless asked for, and takes no frame stats:
+// density thresholds were tried and could not fire before the render that needed
+// them. See `resolveAnimation`.
 describe('resolveAnimation', () => {
-  // The Advanced tri-state is the cartesian control and outranks everything else.
-  it('honors the tri-state "always" even above the thresholds', () => {
-    expect(
-      resolveAnimation(options({ performance: { animation: 'always' } }), {
-        seriesCount: ANIMATION_MAX_SERIES + 1,
-        maxPoints: ANIMATION_MAX_POINTS + 1,
-      })
-    ).toBe(true);
+  it('is off when unset', () => {
+    expect(resolveAnimation(options())).toBe(false);
   });
 
-  it('honors the tri-state "never" even below the thresholds', () => {
-    expect(resolveAnimation(options({ performance: { animation: 'never' } }), { seriesCount: 1, maxPoints: 1 })).toBe(
-      false
-    );
+  it('is off when the animation object is present but empty', () => {
+    // A persisted panel can carry `animation: {}`; it must not read as enabled.
+    expect(resolveAnimation(options({ animation: {} as PanelOptions['animation'] }))).toBe(false);
   });
 
-  it('falls through to the thresholds on the tri-state "auto"', () => {
-    expect(
-      resolveAnimation(options({ performance: { animation: 'auto' } }), {
-        seriesCount: ANIMATION_MAX_SERIES + 1,
-        maxPoints: 1,
-      })
-    ).toBe(false);
+  it('is on when explicitly enabled', () => {
+    expect(resolveAnimation(options({ animation: { enabled: true } }))).toBe(true);
   });
 
-  // The tri-state outranks the shared boolean, so a stored `animation.enabled`
-  // cannot resurrect animation once the user picks Never.
-  it('lets the tri-state override the shared animation.enabled boolean', () => {
-    expect(
-      resolveAnimation(options({ performance: { animation: 'never' }, animation: { enabled: true } }), {
-        seriesCount: 1,
-        maxPoints: 1,
-      })
-    ).toBe(false);
+  it('is off when explicitly disabled', () => {
+    expect(resolveAnimation(options({ animation: { enabled: false } }))).toBe(false);
   });
 
-  it('honors an explicit enabled=true even above the thresholds', () => {
-    expect(
-      resolveAnimation(options({ animation: { enabled: true } }), {
-        seriesCount: ANIMATION_MAX_SERIES + 1,
-        maxPoints: ANIMATION_MAX_POINTS + 1,
-      })
-    ).toBe(true);
-  });
-
-  it('honors an explicit enabled=false even below the thresholds', () => {
-    expect(resolveAnimation(options({ animation: { enabled: false } }), { seriesCount: 1, maxPoints: 1 })).toBe(false);
-  });
-
-  it('auto-enables for a small chart when unset', () => {
-    expect(resolveAnimation(options(), { seriesCount: ANIMATION_MAX_SERIES, maxPoints: ANIMATION_MAX_POINTS })).toBe(
-      true
-    );
-  });
-
-  it('auto-disables above the series-count threshold', () => {
-    expect(resolveAnimation(options(), { seriesCount: ANIMATION_MAX_SERIES + 1, maxPoints: 1 })).toBe(false);
-  });
-
-  it('auto-disables above the points-per-series threshold', () => {
-    expect(resolveAnimation(options(), { seriesCount: 1, maxPoints: ANIMATION_MAX_POINTS + 1 })).toBe(false);
+  // Density no longer influences the answer, so a huge frame set changes nothing.
+  it('ignores chart density entirely', () => {
+    const dense = options({ animation: { enabled: true } });
+    expect(resolveAnimation(dense)).toBe(true);
+    expect(getMaxPointsPerSeries([timeFrame(100_000, 200)])).toBe(100_000);
+    expect(resolveAnimation(dense)).toBe(true);
   });
 });
