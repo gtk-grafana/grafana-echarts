@@ -1,11 +1,19 @@
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
 import { type TooltipOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { type CrossStyle, type EChartsTooltipTrigger } from './eChartsTypes';
+import { type EChartsTooltipTrigger } from './eChartsTypes';
 import { toEmittingFormatter, type TooltipModel, type TooltipSink } from './model';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
 const CROSSHAIR_COLOR = 'rgba(120, 120, 130, 0.5)';
+
+/**
+ * ECharts declares `crossStyle` inline on `tooltip.axisPointer` with no named
+ * export, so derive it rather than redeclare it. It widens `lineStyle` with a
+ * `textStyle`, so a value of this type satisfies both keys.
+ * https://echarts.apache.org/en/option.html#tooltip.axisPointer.crossStyle
+ */
+type CrossStyle = NonNullable<NonNullable<TooltipOption['axisPointer']>['crossStyle']>;
 
 /**
  * Pick the ECharts tooltip trigger for the chart's axis type and Grafana tooltip mode.

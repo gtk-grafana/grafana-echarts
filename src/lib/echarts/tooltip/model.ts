@@ -112,8 +112,13 @@ export interface TooltipRow {
 }
 
 /**
- * Axis-trigger tooltip params carry extra axis fields that ECharts adds at
- * runtime but omits from `CallbackDataParams`.
+ * Axis-trigger tooltip params, which carry axis fields ECharts omits from
+ * `CallbackDataParams`.
+ *
+ * ECharts declares this exact shape as `TooltipCallbackDataParams`
+ * (`echarts/types/src/component/tooltip/TooltipView.d.ts:32`) but never exports
+ * it, so importing it fails with TS2614 and it has to be restated here — same
+ * constraint as `BrushAreaParam` in `lib/echarts/timeBrush.ts`.
  * https://echarts.apache.org/en/option.html#tooltip.formatter
  */
 type TooltipParam = CallbackDataParams & {

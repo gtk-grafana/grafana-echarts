@@ -1,3 +1,4 @@
+import { type ECElementEvent } from 'echarts/core';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/model';
 import { findHoveredPoint, type ProximityHit, type SeriesPoints } from 'lib/echarts/tooltip/proximity';
@@ -345,7 +346,7 @@ export function useEChartsTooltip(
       }, HIDE_DELAY_MS);
     };
 
-    const onMouseOver = (params: { seriesIndex?: number }) => {
+    const onMouseOver = (params: ECElementEvent) => {
       if (latestRef.current.pinned) {
         return;
       }
@@ -353,7 +354,7 @@ export function useEChartsTooltip(
       // Native hit-testing families (bars, and anything with proximity off) get
       // their active/bold row from the element actually under the cursor, so the
       // hovered item — not the vertically-nearest one — is the one emphasised.
-      if (!inProximityMode() && params?.seriesIndex != null) {
+      if (!inProximityMode() && params.seriesIndex != null) {
         update({ activeSeriesIndex: params.seriesIndex });
       }
     };
@@ -411,7 +412,7 @@ export function useEChartsTooltip(
       update({ pinned: true, pinnedItem: target });
     };
 
-    const onChartClick = (params: { seriesIndex?: number; dataIndex?: number }) => {
+    const onChartClick = (params: ECElementEvent) => {
       const cur = latestRef.current;
       // The ZRender click runs first and may already have pinned this same user
       // click, from the proximity-focused point — which outranks whichever
@@ -430,15 +431,9 @@ export function useEChartsTooltip(
     zr.on('mousemove', onMove);
     zr.on('globalout', onGlobalOut);
     zr.on('click', onZrClick);
-    // ECharts' event typings for element events are permissive; the handlers
-    // ignore the params, so cast to the shared handler shape (see the brush
-    // handler in EChart.tsx for the same pattern).
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    chart.on('mouseout', onMouseOut as (...args: unknown[]) => void);
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    chart.on('mouseover', onMouseOver as (...args: unknown[]) => void);
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    chart.on('click', onChartClick as (...args: unknown[]) => void);
+    chart.on('mouseout', onMouseOut);
+    chart.on('mouseover', onMouseOver);
+    chart.on('click', onChartClick);
 
     return () => {
       // On unmount EChart disposes the instance in its layout-effect cleanup,
