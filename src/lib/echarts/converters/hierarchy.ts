@@ -12,6 +12,13 @@ export interface HierarchyNode {
   value: number | null;
   self?: number;
   children?: HierarchyNode[];
+  /**
+   * Row index within the hierarchy value field this node was built from, so the
+   * tooltip footer can surface that row's data links. Set for leaf-ish source
+   * rows (each flame-graph row, each flat categorical row); `undefined` for
+   * nodes with no single backing row.
+   */
+  sourceRowIndex?: number;
 }
 
 /** Chart-agnostic tree, ready for a treemap or sunburst series. */
@@ -96,6 +103,7 @@ function flameGraphToRoots(frame: DataFrame, theme: GrafanaTheme2): HierarchyNod
     const node: HierarchyNode = {
       name: resolveLabel(labelField.values[row]).text,
       value: valueField.values[row] ?? null,
+      sourceRowIndex: row,
     };
     if (selfField) {
       node.self = selfField.values[row] ?? undefined;
@@ -147,6 +155,7 @@ export function frameToHierarchy(frames: DataFrame[], theme: GrafanaTheme2): Hie
   const roots = categorical.categories.map<HierarchyNode>((name, row) => ({
     name,
     value: firstSeries?.values[row] ?? null,
+    sourceRowIndex: row,
   }));
   return { roots };
 }

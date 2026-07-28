@@ -294,9 +294,19 @@ export function useEChartsTooltip(
       update({ visible: false });
     };
 
+    const inProximityMode = () => {
+      const { series: seriesPoints } = proximityRef.current;
+      return seriesPoints != null && seriesPoints.length > 0;
+    };
+
     const onMouseOut = () => {
       if (latestRef.current.pinned) {
         return;
+      }
+      // Without proximity, ECharts' own element hit-testing owns which item is
+      // hovered (e.g. bars), so leaving an element clears the active row it drove.
+      if (!inProximityMode()) {
+        update({ activeSeriesIndex: null });
       }
       // Axis-triggered ("All") tooltips stay open across the whole grid; ECharts
       // fires `mouseout` when the cursor leaves each series element, which is not
@@ -307,8 +317,7 @@ export function useEChartsTooltip(
       // In proximity mode `mousemove` decides visibility on every move, so this
       // element-level leave says nothing useful — the cursor has left a symbol
       // but is very likely still within the focus band of the same line.
-      const { series: seriesPoints } = proximityRef.current;
-      if (seriesPoints != null && seriesPoints.length > 0) {
+      if (inProximityMode()) {
         return;
       }
       cancelHide();
@@ -318,9 +327,16 @@ export function useEChartsTooltip(
       }, HIDE_DELAY_MS);
     };
 
-    const onMouseOver = () => {
-      if (!latestRef.current.pinned) {
-        cancelHide();
+    const onMouseOver = (params: { seriesIndex?: number }) => {
+      if (latestRef.current.pinned) {
+        return;
+      }
+      cancelHide();
+      // Native hit-testing families (bars, and anything with proximity off) get
+      // their active/bold row from the element actually under the cursor, so the
+      // hovered item — not the vertically-nearest one — is the one emphasised.
+      if (!inProximityMode() && params?.seriesIndex != null) {
+        update({ activeSeriesIndex: params.seriesIndex });
       }
     };
 

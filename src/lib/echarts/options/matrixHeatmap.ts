@@ -36,6 +36,11 @@ export function buildMatrixHeatmapTooltipModel(
     const yIndex = Number(tuple[1]);
     const value = tuple[MATRIX_VALUE_DIM] ?? null;
 
+    // A cell maps cleanly to one column field at one row, so the footer can
+    // surface that field's data links (see `EChartsTooltip`).
+    const field = data.xFields[xIndex];
+    const source = field ? { field, rowIndex: yIndex } : undefined;
+
     // Header is the X (column) category; then a Value row and the Y (row) label,
     // mirroring the binned heatmap tooltip layout.
     return {
@@ -46,9 +51,11 @@ export function buildMatrixHeatmapTooltipModel(
           color: typeof param?.color === 'string' ? param.color : undefined,
           label: 'Value',
           value: formatTooltipValue(value, ctx.formatValue),
+          source,
         },
         { label: 'Name', value: data.yCategories[yIndex] ?? '' },
       ],
+      source,
     };
   };
 }

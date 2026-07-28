@@ -40,6 +40,8 @@ interface HierarchyTreeItem {
   self?: number;
   itemStyle?: { color: string };
   children?: HierarchyTreeItem[];
+  /** Source row (see {@link HierarchyNode.sourceRowIndex}) for footer data links. */
+  sourceRowIndex?: number;
 }
 
 /** Type guard so tooltip params (`data`) narrow without a type assertion. */
@@ -117,6 +119,9 @@ function toTreeData(nodes: HierarchyNode[], resolveColor: HierarchyColorResolver
     if (node.self != null) {
       item.self = node.self;
     }
+    if (node.sourceRowIndex != null) {
+      item.sourceRowIndex = node.sourceRowIndex;
+    }
     const color = resolveColor(node.name, node.value, index, depth);
     if (color != null) {
       item.itemStyle = { color };
@@ -140,18 +145,26 @@ function buildHierarchyTooltipModel(ctx: HierarchySeriesContext): (params: TopLe
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;
     const hovered = isHierarchyTreeItem(param?.data) ? param.data : undefined;
+    // A node built from a single source row resolves that row's data links
+    // against the value field (see `EChartsTooltip`). Nodes with no backing row
+    // (aggregated flame-graph parents) render no footer.
+    const source =
+      ctx.valueField != null && hovered?.sourceRowIndex != null
+        ? { field: ctx.valueField, rowIndex: hovered.sourceRowIndex }
+        : undefined;
     const rows: TooltipRow[] = [
       {
         color: typeof param?.color === 'string' ? param.color : undefined,
         label: 'Value',
         value: formatTooltipValue(hovered?.value ?? null, ctx.formatValue),
+        source,
       },
     ];
     if (hovered?.self != null) {
       rows.push({ label: 'Self', value: formatTooltipValue(hovered.self, ctx.formatValue) });
     }
     // Item chart: the hovered node's name is the header label.
-    return { header: { label: hovered?.name ?? String(param?.name ?? ''), value: '' }, rows };
+    return { header: { label: hovered?.name ?? String(param?.name ?? ''), value: '' }, rows, source };
   };
 }
 

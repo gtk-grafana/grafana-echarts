@@ -122,6 +122,52 @@ function resolveMultiValueCategories(
   });
 }
 
+/**
+ * The frame's source fields in the order the ECharts series packs them, so a
+ * hovered dimension maps back to the Grafana field it came from:
+ * `[open, close, low, high]` for candlestick (see `CANDLESTICK_FIELDS` for the
+ * Grafana naming), `[min, q1, median, q3, max]` for boxplot — falling back to
+ * the first five numeric fields when the boxplot names are absent. Returns
+ * `null` when the frame cannot supply a full set.
+ */
+export function resolveMultiValueFields(
+  frame: DataFrame,
+  seriesType: MultiValueSeriesType
+): Array<Field<number>> | null {
+  if (seriesType === 'candlestick') {
+    const [open, high, low, close] = CANDLESTICK_FIELDS.map((name) => findNumericFieldByName(frame, name));
+    return open && high && low && close ? [open, close, low, high] : null;
+  }
+
+  const namedFields = BOXPLOT_FIELDS.map((name) => findNumericFieldByName(frame, name));
+  const fields = namedFields.every((field) => field !== undefined)
+    ? namedFields
+    : frame.fields.filter(isNumberField).slice(0, BOXPLOT_FIELDS.length);
+  return fields.length === BOXPLOT_FIELDS.length ? fields : null;
+}
+
+/**
+ * How a rendered multi-value item maps back to the frame: `fields` in ECharts
+ * data (dimension) order and `rows[dataIndex]` giving the frame row each item
+ * was built from. The row indirection matters because time-based frames drop
+ * rows outside the dashboard range (see `resolveRowIndices`), so `dataIndex` is
+ * not the frame row. Consumed by the tooltip footer to resolve data links.
+ */
+export interface MultiValueSourceMapping {
+  fields: Array<Field<number>>;
+  rows: number[];
+}
+
+/** {@link MultiValueSourceMapping} for a context, or `null` when unavailable. */
+export function resolveMultiValueSources(ctx: ChartContext<MultiValueSeriesType>): MultiValueSourceMapping | null {
+  const frame = findCategoricalFrame(filterUnsupportedFields(ctx.frames));
+  if (!frame) {
+    return null;
+  }
+  const fields = resolveMultiValueFields(frame, ctx.seriesType);
+  return fields ? { fields, rows: resolveRowIndices(frame, ctx.timeRange) } : null;
+}
+
 /** Frame display name for the single multi-value series, or a type fallback. */
 function seriesName(frame: DataFrame, fallback: string): string {
   return frame.name?.trim() ? frame.name : fallback;
@@ -140,8 +186,8 @@ function buildCandlestick(
   rows: number[],
   zlevel: number | undefined
 ): CandlestickSeriesOption | null {
-  const [open, high, low, close] = CANDLESTICK_FIELDS.map((name) => findNumericFieldByName(frame, name));
-  if (!open || !high || !low || !close) {
+  const fields = resolveMultiValueFields(frame, 'candlestick');
+  if (!fields) {
     return null;
   }
 
@@ -149,10 +195,10 @@ function buildCandlestick(
     name: seriesName(frame, 'OHLC'),
     type: 'candlestick',
     zlevel,
-    data: rows.map((row) => rowValues([open, close, low, high], row)),
+    data: rows.map((row) => rowValues(fields, row)),
     // Bullish/bearish (`color`/`color0`) styling is a render-step concern; this
     // single color is a fallback derived from the close field.
-    itemStyle: { color: getSeriesColor(close, theme) },
+    itemStyle: { color: getSeriesColor(fields[1], theme) },
   };
 }
 
@@ -168,13 +214,8 @@ function buildBoxplot(
   rows: number[],
   zlevel: number | undefined
 ): BoxplotSeriesOption | null {
-  const numericFields = frame.fields.filter(isNumberField);
-  const namedFields = BOXPLOT_FIELDS.map((name) => findNumericFieldByName(frame, name));
-  const fields = namedFields.every((field) => field !== undefined)
-    ? namedFields
-    : numericFields.slice(0, BOXPLOT_FIELDS.length);
-
-  if (fields.length < BOXPLOT_FIELDS.length) {
+  const fields = resolveMultiValueFields(frame, 'boxplot');
+  if (!fields) {
     return null;
   }
 

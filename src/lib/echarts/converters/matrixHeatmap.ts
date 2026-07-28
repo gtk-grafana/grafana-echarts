@@ -30,6 +30,12 @@ export interface MatrixHeatmapData {
   valueMin: number;
   valueMax: number;
   xField: Field<number>;
+  /**
+   * The numeric field behind each X (column) category, in `xCategories` order,
+   * so a hovered cell resolves back to its own column's field (and that field's
+   * data links) rather than only the first.
+   */
+  xFields: Array<Field<number>>;
   yField: Field<string>;
 }
 
@@ -60,6 +66,7 @@ export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2):
   }
 
   const xField = numericFields[0].field;
+  const xFields = numericFields.map(({ field }) => field);
   const yField = findCategoryField(frame);
   const yCategories = resolveCategoriesFromField(yField, frame.length);
 
@@ -95,5 +102,5 @@ export function frameToMatrixHeatmap(frames: DataFrame[], theme: GrafanaTheme2):
     debug('Matrix: unable to calculate min value', LOG_LEVELS.warn, { valueMin });
   }
 
-  return { xCategories, yCategories, cells, valueMin, valueMax, xField, yField };
+  return { xCategories, yCategories, cells, valueMin, valueMax, xField, xFields, yField };
 }

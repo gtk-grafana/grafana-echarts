@@ -43,9 +43,13 @@ export function buildPieTooltipModel(
     return `${value} (${formatPieShare(slice.value, total, slice.field.config.decimals)})`;
   };
 
-  // Per-slice footer sources: pie slice fields carry a single value, so the row
-  // index is always 0.
-  const sliceSource = (index: number) => ({ field: slices[index].field, rowIndex: 0 });
+  // Per-slice footer source: the slice's real backing column + row, so the
+  // footer surfaces that field's data links. `undefined` when the slice has no
+  // source column (the synthetic slice `field` carries no links).
+  const sliceSource = (index: number) => {
+    const slice = slices[index];
+    return slice.sourceField ? { field: slice.sourceField, rowIndex: slice.sourceRowIndex ?? 0 } : undefined;
+  };
 
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;

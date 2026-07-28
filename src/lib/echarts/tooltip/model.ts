@@ -20,21 +20,17 @@ import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/t
  * | Family                 | swatch | footer (`source`) | notes                                  |
  * |------------------------|--------|-------------------|----------------------------------------|
  * | Cartesian single-value | yes    | yes               | reference implementation               |
- * | Candlestick / boxplot  | yes    | no                | one row per packed dimension           |
+ * | Candlestick / boxplot  | yes    | yes (per row)     | one row per packed dimension           |
  * | Pie                    | yes    | yes               | only family setting `emphasis` itself  |
  * | Radar                  | yes    | yes               | rows share one series name as label    |
- * | Hierarchy              | yes    | no                | rows are `Value` / `Self`              |
- * | Heatmap (both layouts) | yes    | no                | rows are `Value` / `Name`              |
+ * | Hierarchy              | yes    | yes               | rows are `Value` / `Self`              |
+ * | Heatmap (both layouts) | yes    | yes               | rows are `Value` / `Name`              |
  *
- * The `source` gaps are deliberate. A footer needs a single `Field` + row to
- * read data links and ad-hoc filters from, and these families have no such
- * mapping: a heatmap cell aggregates a bucket spanning many rows, a hierarchy
- * node aggregates a subtree, and a candlestick item is built from four separate
- * fields at once. Rather than invent one, those families render no footer.
- *
- * Known cosmetic gap: radar draws every polygon as one ECharts series, so
- * {@link getLabel} resolves the same `seriesName` for each row instead of the
- * per-polygon field name.
+ * A footer needs a `Field` + row to read data links and ad-hoc filters from.
+ * Every family now supplies one: heatmap cells and hierarchy nodes each carry
+ * the row they were built from, and a multi-value (candlestick/boxplot) item
+ * resolves one field *per packed dimension*, so its rows carry a source each and
+ * the overlay unions their links.
  */
 export interface TooltipModel {
   /**
@@ -76,7 +72,16 @@ export interface TooltipSource {
  * by `seriesIndex` and/or `dataIndex`; families with no clean field mapping
  * (multi-value cartesian, heatmap cells, hierarchy nodes) omit the resolver.
  */
-export type TooltipFieldResolver = (item: { seriesIndex?: number; dataIndex?: number }) => TooltipSource | undefined;
+export type TooltipFieldResolver = (item: {
+  seriesIndex?: number;
+  dataIndex?: number;
+  /**
+   * Which packed dimension of a multi-value item is being resolved (candlestick
+   * `[Open, Close, Low, High]`, boxplot `[Min, Q1, Median, Q3, Max]`). Each maps
+   * to its own source field, so the resolver needs it to pick the right one.
+   */
+  dimensionIndex?: number;
+}) => TooltipSource | undefined;
 
 /**
  * Receives the latest tooltip content on each hover. Supplied by the React layer
@@ -264,12 +269,17 @@ function getHeaderText(items: TooltipParam[], formatHeaderValue?: (item: Tooltip
  * start at offset 1 — verified against a live chart: candlestick reports
  * `[dataIndex, open, close, low, high]` and boxplot
  * `[dataIndex, min, q1, median, q3, max]`.
+ *
+ * Each dimension comes from its own Grafana field, so each row resolves its own
+ * `source` (by `dimensionIndex`) and the footer surfaces the links of whichever
+ * of those fields define them.
  */
 function expandMultiValueRows(
   item: TooltipParam,
   dimensions: string[],
   valueFormatter: ValueFormatter,
-  color: string | undefined
+  color: string | undefined,
+  resolveField: TooltipFieldResolver | undefined
 ): TooltipRow[] {
   const packed = Array.isArray(item.value) ? item.value : [];
   return dimensions.map((label, dimension) => ({
@@ -277,12 +287,23 @@ function expandMultiValueRows(
     label,
     value: formatTooltipValue(packed[dimension + 1] ?? null, valueFormatter),
     seriesIndex: item.seriesIndex,
+    source: resolveField?.({ seriesIndex: item.seriesIndex, dataIndex: item.dataIndex, dimensionIndex: dimension }),
   }));
 }
 
+/**
+ * ECharts' placeholder name for a series the option left unnamed: an internal
+ * `series\0<index>` marker, deliberately containing a NUL so it cannot collide
+ * with a user-supplied name. It is not meant to be displayed. Radar draws every
+ * polygon as data items of one unnamed series, so without this its rows would
+ * read "series 0" instead of the polygon's own name.
+ * https://github.com/apache/echarts/blob/master/src/util/model.ts
+ */
+const DUMMY_SERIES_NAME_PREFIX = 'series\0';
+
 /** Row label for an item: prefer the series name, falling back to its name. */
 function getLabel(item: TooltipParam, headerText: string): string {
-  if (item.seriesName != null && item.seriesName !== '') {
+  if (item.seriesName != null && item.seriesName !== '' && !item.seriesName.startsWith(DUMMY_SERIES_NAME_PREFIX)) {
     return item.seriesName;
   }
   const name = item.name != null ? String(item.name) : '';
@@ -346,7 +367,8 @@ export function buildTooltipModel(
         item,
         multiValueDimensions,
         resolveValueFormatter({ seriesIndex: item.seriesIndex, dataIndex: item.dataIndex }),
-        tooltipColor(item.color)
+        tooltipColor(item.color),
+        resolveField
       )
     );
     return { header: { label: '', value: headerText }, rows };

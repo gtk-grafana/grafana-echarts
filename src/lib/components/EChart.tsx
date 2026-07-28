@@ -59,11 +59,21 @@ export const EChart: React.FC<Props> = ({
   // `seriesIndex`). Category axes, pie, hierarchy and heatmap keep ECharts'
   // native hit-testing.
   //
+  // Bars are excluded: proximity picks the vertically-nearest point across
+  // series, which for a column of bars is the nearest bar *top* rather than the
+  // bar the cursor is actually over. Bars have a large hit area, so ECharts'
+  // native item/axis hover already tooltips (and emphasises) the hovered bar
+  // correctly — matching what the user is pointing at (see `useEChartsTooltip`).
+  //
   // Built for both tooltip modes, but used differently by each: in Single it
   // decides what the tooltip shows, in All only which row is emphasised (see
   // `useEChartsTooltip`). None mode renders no tooltip at all, so skip the work.
   const proximitySeries = useMemo(() => {
-    if (tooltipMode === TooltipDisplayMode.None || !isCartesianSingleValueSeriesType(chartContext.seriesType)) {
+    if (
+      tooltipMode === TooltipDisplayMode.None ||
+      chartContext.seriesType === 'bar' ||
+      !isCartesianSingleValueSeriesType(chartContext.seriesType)
+    ) {
       return undefined;
     }
     return framesHaveTimeField(chartContext.frames) ? collectSeriesPoints(chartContext.frames) : undefined;

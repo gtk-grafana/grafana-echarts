@@ -1,5 +1,5 @@
 import { css, cx } from '@emotion/css';
-import { type Field, type GrafanaTheme2 } from '@grafana/data';
+import { type Field, type GrafanaTheme2, type LinkModel } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import {
   type AdHocFilterModel,
@@ -75,23 +75,57 @@ function buildAdHocFilters(field: Field, onAddAdHocFilter: PanelContext['onAddAd
   }));
 }
 
+/** Keep the first entry per key, preserving order. */
+function dedupeBy<T>(items: T[], key: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const id = key(item);
+    if (seen.has(id)) {
+      return false;
+    }
+    seen.add(id);
+    return true;
+  });
+}
+
+/** The footer's data links across every source field, deduped like core's own. */
+function collectDataLinks(sources: TooltipSource[]): Array<LinkModel<Field>> {
+  const links = sources.flatMap((source) => getFieldDisplayLinks(source.field, source.rowIndex));
+  return dedupeBy(links, (link) => `${link.title}/${link.href}`);
+}
+
+/** The footer's ad-hoc filters across every source field, deduped by key/value. */
+function collectAdHocFilters(
+  sources: TooltipSource[],
+  onAddAdHocFilter: PanelContext['onAddAdHocFilter']
+): AdHocFilterModel[] {
+  const filters = sources.flatMap((source) => buildAdHocFilters(source.field, onAddAdHocFilter));
+  return dedupeBy(filters, (filter) => `${filter.key}/${filter.value}`);
+}
+
 /**
- * The footer's source field: the single focused item's (Single mode), else the
- * row matching the clicked series (multi-row "All" tooltips) — mirroring core,
+ * The footer's source fields: the single focused item's (Single mode), else the
+ * rows matching the clicked series (multi-row "All" tooltips) — mirroring core,
  * where the pinned footer belongs to the hovered series.
+ *
+ * Usually one source. A multi-value item (candlestick/boxplot) expands into one
+ * row per packed dimension, each backed by its own field, and those rows all
+ * share the item's series index — so all of them match and the footer shows the
+ * union of their links.
  */
-function resolveActiveSource(state: EChartsTooltipState): TooltipSource | undefined {
+function resolveActiveSources(state: EChartsTooltipState): TooltipSource[] {
   const { model, pinnedItem } = state;
   if (model == null) {
-    return undefined;
+    return [];
   }
   if (model.source != null) {
-    return model.source;
+    return [model.source];
   }
-  if (pinnedItem?.seriesIndex != null) {
-    return model.rows.find((row) => row.seriesIndex === pinnedItem.seriesIndex && row.source != null)?.source;
+  const seriesIndex = pinnedItem?.seriesIndex;
+  if (seriesIndex == null) {
+    return [];
   }
-  return undefined;
+  return model.rows.flatMap((row) => (row.seriesIndex === seriesIndex && row.source != null ? [row.source] : []));
 }
 
 /**
@@ -217,15 +251,13 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
   // links/filters footer for the focused series once pinned.
   let footer: React.ReactNode = null;
   if (pinned) {
-    const source = resolveActiveSource(state);
-    if (source != null) {
-      const dataLinks = getFieldDisplayLinks(source.field, source.rowIndex);
-      const adHocFilters = buildAdHocFilters(source.field, onAddAdHocFilter);
-      if (dataLinks.length > 0 || adHocFilters.length > 0) {
-        // @todo pass `annotate` once Grafana externalizes the annotation API for
-        // plugins (VizTooltipFooter supports it; core wires it from PanelContext).
-        footer = <VizTooltipFooter dataLinks={dataLinks} adHocFilters={adHocFilters} />;
-      }
+    const sources = resolveActiveSources(state);
+    const dataLinks = collectDataLinks(sources);
+    const adHocFilters = collectAdHocFilters(sources, onAddAdHocFilter);
+    if (dataLinks.length > 0 || adHocFilters.length > 0) {
+      // @todo pass `annotate` once Grafana externalizes the annotation API for
+      // plugins (VizTooltipFooter supports it; core wires it from PanelContext).
+      footer = <VizTooltipFooter dataLinks={dataLinks} adHocFilters={adHocFilters} />;
     }
   }
   return (

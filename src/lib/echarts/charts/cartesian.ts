@@ -10,7 +10,10 @@ import {
   framesHaveTimeField,
   mapNumericFields,
 } from 'lib/echarts/converters/frames';
-import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
+import {
+  multiValueCartesianToEChartsOption,
+  resolveMultiValueSources,
+} from 'lib/echarts/converters/multiValueCartesian';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import { getCartesianGrid } from 'lib/echarts/grid/grid';
 import {
@@ -265,6 +268,22 @@ export const cartesianChartModule: ChartModule = {
   },
 
   getTooltipFieldResolver(ctx) {
+    const seriesType = ctx.seriesType;
+    if (isMultiValueSeriesType(seriesType)) {
+      // Candlestick/boxplot draw one item from several fields at once, so the
+      // hovered *dimension* picks the field while `dataIndex` picks the frame
+      // row the item was rendered from (time-filtered rows shift the two apart).
+      const sources = resolveMultiValueSources({ ...ctx, seriesType });
+      return (item) => {
+        if (sources == null || item.dimensionIndex == null || item.dataIndex == null) {
+          return undefined;
+        }
+        const field = sources.fields[item.dimensionIndex];
+        const rowIndex = sources.rows[item.dataIndex];
+        return field != null && rowIndex != null ? { field, rowIndex } : undefined;
+      };
+    }
+
     // Same field order as the series (see `cartesianSeriesFields`), so the
     // hovered item's `seriesIndex` selects its source field and `dataIndex` its
     // row — the tooltip footer reads that field's data links / labels.
