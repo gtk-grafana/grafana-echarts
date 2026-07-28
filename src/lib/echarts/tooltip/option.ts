@@ -1,6 +1,6 @@
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
-import { type TooltipOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type ECBasicOption, type TooltipOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type EChartsTooltipTrigger } from './eChartsTypes';
 import { NOOP_TOOLTIP_SINK, toEmittingFormatter, type TooltipModel, type TooltipSink } from './model';
 
@@ -51,6 +51,20 @@ export function getNoTooltipOption() {
  */
 export function seriesTooltip(produce: (params: TopLevelFormatterParams) => TooltipModel, sink?: TooltipSink) {
   return { formatter: toEmittingFormatter(produce, sink ?? NOOP_TOOLTIP_SINK) };
+}
+
+/**
+ * Read the resolved `trigger` off a built panel option. `ECBasicOption` types
+ * every component through an index signature, so the value arrives as `unknown`
+ * and has to be narrowed rather than asserted.
+ */
+export function getTooltipTrigger(option: ECBasicOption): EChartsTooltipTrigger {
+  const tooltip: unknown = option.tooltip;
+  if (tooltip == null || typeof tooltip !== 'object' || !('trigger' in tooltip)) {
+    return undefined;
+  }
+  const { trigger } = tooltip;
+  return trigger === 'item' || trigger === 'axis' || trigger === 'none' ? trigger : undefined;
 }
 
 /**

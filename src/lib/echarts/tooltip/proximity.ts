@@ -45,7 +45,10 @@
  * since a global index would be meaningless for the other frames.
  */
 import { type DataFrame } from '@grafana/data';
-import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
+import { TooltipDisplayMode } from '@grafana/schema';
+import { type SeriesType } from 'editor/types';
+import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
+import { forEachTimeSeriesField, framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { type EChartsType } from 'lib/echarts/echarts';
 
 /**
@@ -87,6 +90,47 @@ export function collectSeriesPoints(frames: DataFrame[]): SeriesPoints[] {
     series.push({ x: timeField.values, y: field.values });
   });
   return series;
+}
+
+/**
+ * Whether hover should be resolved by proximity rather than by ECharts' own
+ * hit-testing. Only one shape qualifies: a single-value cartesian chart over a
+ * time axis, which is exactly what `timeSeriesToEChartsOption` emits
+ * `[time, value]` series for (and so the only shape whose array index is a valid
+ * `seriesIndex`). Category axes, pie, hierarchy and heatmap keep native
+ * hit-testing.
+ *
+ * Bars are excluded: proximity picks the vertically-nearest point across series,
+ * which for a column of bars is the nearest bar *top* rather than the bar the
+ * cursor is actually over. Bars have a large hit area, so ECharts' native
+ * item/axis hover already tooltips (and emphasises) the hovered bar correctly —
+ * matching what the user is pointing at (see `useEChartsTooltip`).
+ *
+ * None mode renders no tooltip at all, so it skips the work entirely.
+ */
+function shouldUseProximity(seriesType: SeriesType, mode: TooltipDisplayMode): boolean {
+  return (
+    mode !== TooltipDisplayMode.None && seriesType !== 'bar' && isCartesianSingleValueSeriesType(seriesType) === true
+  );
+}
+
+/**
+ * The proximity inputs for a chart, or `undefined` when the family or mode does
+ * not use proximity hover (see {@link shouldUseProximity}).
+ *
+ * Built for both remaining tooltip modes, but used differently by each: in
+ * Single it decides what the tooltip shows, in All only which row is emphasised
+ * (see `useEChartsTooltip`).
+ */
+export function collectProximitySeries(
+  frames: DataFrame[],
+  seriesType: SeriesType,
+  mode: TooltipDisplayMode
+): SeriesPoints[] | undefined {
+  if (!shouldUseProximity(seriesType, mode) || !framesHaveTimeField(frames)) {
+    return undefined;
+  }
+  return collectSeriesPoints(frames);
 }
 
 /** The datapoint under (or near) the cursor. */

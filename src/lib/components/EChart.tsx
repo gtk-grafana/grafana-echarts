@@ -2,14 +2,12 @@ import { type AbsoluteTimeRange } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type ComposeOption } from 'echarts';
-import type { TooltipOption } from 'echarts/types/dist/shared';
 import type { XAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
-import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
-import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
-import { collectSeriesPoints } from 'lib/echarts/tooltip/proximity';
+import { getTooltipTrigger } from 'lib/echarts/tooltip/option';
+import { collectProximitySeries } from 'lib/echarts/tooltip/proximity';
 import {
   type BrushEndEvent,
   brushEndToTimeRange,
@@ -52,32 +50,12 @@ export const EChart: React.FC<Props> = ({
 
   const tooltipMode = chartContext.options.tooltip?.mode ?? TooltipDisplayMode.Single;
 
-  // Per-series values enabling Grafana-parity proximity hover, built only for
-  // the shape it applies to: a single-value cartesian chart over a time axis,
-  // which is exactly what `timeSeriesToEChartsOption` emits `[time, value]`
-  // series for (and so the only shape whose array index is a valid
-  // `seriesIndex`). Category axes, pie, hierarchy and heatmap keep ECharts'
-  // native hit-testing.
-  //
-  // Bars are excluded: proximity picks the vertically-nearest point across
-  // series, which for a column of bars is the nearest bar *top* rather than the
-  // bar the cursor is actually over. Bars have a large hit area, so ECharts'
-  // native item/axis hover already tooltips (and emphasises) the hovered bar
-  // correctly — matching what the user is pointing at (see `useEChartsTooltip`).
-  //
-  // Built for both tooltip modes, but used differently by each: in Single it
-  // decides what the tooltip shows, in All only which row is emphasised (see
-  // `useEChartsTooltip`). None mode renders no tooltip at all, so skip the work.
-  const proximitySeries = useMemo(() => {
-    if (
-      tooltipMode === TooltipDisplayMode.None ||
-      chartContext.seriesType === 'bar' ||
-      !isCartesianSingleValueSeriesType(chartContext.seriesType)
-    ) {
-      return undefined;
-    }
-    return framesHaveTimeField(chartContext.frames) ? collectSeriesPoints(chartContext.frames) : undefined;
-  }, [chartContext.frames, chartContext.seriesType, tooltipMode]);
+  // Per-series values enabling Grafana-parity proximity hover; `undefined` for
+  // the families and modes that keep ECharts' native hit-testing.
+  const proximitySeries = useMemo(
+    () => collectProximitySeries(chartContext.frames, chartContext.seriesType, tooltipMode),
+    [chartContext.frames, chartContext.seriesType, tooltipMode]
+  );
 
   // React tooltip overlay: ECharts' (invisible) tooltip formatter feeds hovered
   // content to this controller's `sink`; the controller tracks cursor/show/hide
@@ -139,8 +117,7 @@ export const EChart: React.FC<Props> = ({
 
     // Tell the tooltip controller the resolved trigger so it hides item tooltips
     // on `mouseout` but keeps axis ("All") tooltips open across the grid.
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    reportTooltipTrigger((option.tooltip as TooltipOption | undefined)?.trigger);
+    reportTooltipTrigger(getTooltipTrigger(option));
 
     // `notMerge` replaces the previous option outright (removing any components
     // the new option omits) instead of merging into it. This effect rebuilds the

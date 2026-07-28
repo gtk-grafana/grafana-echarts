@@ -1,5 +1,5 @@
-import { dateTimeFormat, type TimeZone } from '@grafana/data';
-import { TooltipDisplayMode } from '@grafana/schema';
+import { dateTimeFormat } from '@grafana/data';
+import { type TimeZone, TooltipDisplayMode } from '@grafana/schema';
 import { type TooltipOption } from 'echarts/types/dist/shared';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
