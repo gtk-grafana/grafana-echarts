@@ -53,7 +53,7 @@
       // `perf` toggles the branch's getSeriesPerfOptions() output, held
       // identical across both data paths so the dataset delta is isolated.
       // ---------------------------------------------------------------------
-      function commonSeriesProps(name, color, perf, maxPoints) {
+      function commonSeriesProps(name, color, perf, density) {
         const s = {
           name: name,
           type: 'line',
@@ -62,23 +62,40 @@
           zlevel: 1,
         };
         if (perf) {
-          // Mirrors getSeriesPerfOptions(): SYMBOL_VISIBLE_MAX_POINTS = 100.
-          s.showSymbol = maxPoints <= 100;
-          if (maxPoints > 100) {
+          // Mirrors getSeriesPerfOptions(). Note the two different measures:
+          // symbols key off the chart TOTAL (marker count is the cost), sampling
+          // keys off a single series' depth (LTTB thins within a series).
+          // SYMBOL_VISIBLE_MAX_TOTAL_POINTS = 100, SAMPLING_MIN_POINTS_PER_SERIES = 100.
+          s.showSymbol = density.totalPoints <= 100;
+          if (density.maxPointsPerSeries > 100) {
             s.sampling = 'lttb';
           }
         }
         return s;
       }
 
-      function buildTuples(frames, perf, maxPoints) {
+      /** Total points across all series, and the densest single series. */
+      function measureDensity(frames) {
+        let totalPoints = 0;
+        let maxPointsPerSeries = 0;
+        for (let f = 0; f < frames.length; f++) {
+          for (let v = 0; v < frames[f].fields.length; v++) {
+            const points = frames[f].fields[v].values.length;
+            totalPoints += points;
+            maxPointsPerSeries = Math.max(maxPointsPerSeries, points);
+          }
+        }
+        return { totalPoints: totalPoints, maxPointsPerSeries: maxPointsPerSeries };
+      }
+
+      function buildTuples(frames, perf, density) {
         const series = [];
         let n = 0;
         for (let f = 0; f < frames.length; f++) {
           const frame = frames[f];
           for (let v = 0; v < frame.fields.length; v++) {
             const field = frame.fields[v];
-            const s = commonSeriesProps(field.name, PALETTE[n % PALETTE.length], perf, maxPoints);
+            const s = commonSeriesProps(field.name, PALETTE[n % PALETTE.length], perf, density);
             // The exact expression from main's converter.
             s.data = frame.time.map((time, i) => [time, field.values[i] ?? null]);
             series.push(s);
@@ -88,7 +105,7 @@
         return { series: series };
       }
 
-      function buildDataset(frames, perf, maxPoints) {
+      function buildDataset(frames, perf, density) {
         const series = [];
         const dataset = [];
         let n = 0;
@@ -102,7 +119,7 @@
             const field = frame.fields[v];
             const dim = 'v' + v;
             columns[dim] = field.values;
-            const s = commonSeriesProps(field.name, PALETTE[n % PALETTE.length], perf, maxPoints);
+            const s = commonSeriesProps(field.name, PALETTE[n % PALETTE.length], perf, density);
             s.datasetIndex = idx;
             s.encode = { x: 'time', y: dim };
             series.push(s);
@@ -145,14 +162,14 @@
         return new Promise((resolve) => {
           const frames = window.__frames[scenarioSpec.key];
           const perf = variant.perf;
-          const maxPoints = scenarioSpec.points;
+          const density = measureDensity(frames);
 
           freshChart();
           const heapBefore = performance.memory ? performance.memory.usedJSHeapSize : 0;
 
           // --- Phase 1: build the option (converter-side cost) ---
           const b0 = performance.now();
-          const built = variant.dataset ? buildDataset(frames, perf, maxPoints) : buildTuples(frames, perf, maxPoints);
+          const built = variant.dataset ? buildDataset(frames, perf, density) : buildTuples(frames, perf, density);
           const option = fullOption(built, perf);
           const b1 = performance.now();
           const heapAfterBuild = performance.memory ? performance.memory.usedJSHeapSize : 0;
@@ -202,9 +219,10 @@
         return new Promise((resolve) => {
           const frames = window.__frames[scenarioSpec.key];
           freshChart();
+          const density = measureDensity(frames);
           const built = variant.dataset
-            ? buildDataset(frames, variant.perf, scenarioSpec.points)
-            : buildTuples(frames, variant.perf, scenarioSpec.points);
+            ? buildDataset(frames, variant.perf, density)
+            : buildTuples(frames, variant.perf, density);
           // Force animation off for both so the still is deterministic.
           const option = Object.assign(fullOption(built, variant.perf), { animation: false });
           let done = false;

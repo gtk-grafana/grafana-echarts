@@ -6,8 +6,12 @@ import {
 } from 'editor/constants';
 import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type PerformanceMode } from 'editor/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
-import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_POINTS } from 'lib/echarts/performance/constants';
-import { type PerfSeriesOptions } from 'lib/echarts/performance/types';
+import {
+  LARGE_MODE_THRESHOLD,
+  SAMPLING_MIN_POINTS_PER_SERIES,
+  SYMBOL_VISIBLE_MAX_TOTAL_POINTS,
+} from 'lib/echarts/performance/constants';
+import { type PerfSeriesOptions, type SeriesDensity } from 'lib/echarts/performance/types';
 import { type PanelOptions } from 'types';
 
 /**
@@ -23,22 +27,30 @@ import { type PanelOptions } from 'types';
  */
 
 /**
- * Points in the densest series of a frame set — the density signal every
- * per-series lever resolves against. Counted the same way
+ * Both density measures for a frame set: total points across all series, and
+ * points in the densest single series. Counted the same way
  * `timeSeriesToEChartsOption` emits series (via `forEachTimeSeriesField`, so the
  * numeric-fallback X field is honored). Non-time-series frames (pie, radar,
- * category) yield counts well below the threshold, so the resolvers no-op.
+ * category) yield counts well below the thresholds, so the resolvers no-op.
  */
-export function getMaxPointsPerSeries(frames: DataFrame[]): number {
-  let maxPoints = 0;
+export function getSeriesDensity(frames: DataFrame[]): SeriesDensity {
+  let totalPoints = 0;
+  let maxPointsPerSeries = 0;
   forEachTimeSeriesField(frames, ({ field }) => {
-    maxPoints = Math.max(maxPoints, field.values.length);
+    const points = field.values.length;
+    totalPoints += points;
+    maxPointsPerSeries = Math.max(maxPointsPerSeries, points);
   });
-  return maxPoints;
+  return { totalPoints, maxPointsPerSeries };
 }
 
-/** Resolve line-series point-marker visibility from the (defaulted) Show points mode. */
-function resolveShowSymbol(showPoints: PerformanceMode, maxPoints: number): boolean {
+/**
+ * Resolve line-series point-marker visibility from the (defaulted) Show points
+ * mode. Auto keys off **total** points, not per-series: the cost is the number of
+ * markers drawn, and a chart of 1000 short series draws just as many as one long
+ * one.
+ */
+function resolveShowSymbol(showPoints: PerformanceMode, totalPoints: number): boolean {
   switch (showPoints) {
     case 'always':
       return true;
@@ -46,48 +58,49 @@ function resolveShowSymbol(showPoints: PerformanceMode, maxPoints: number): bool
       return false;
     case 'auto':
     default:
-      // Keep markers while the densest series is still sparse enough to read.
-      return maxPoints <= SYMBOL_VISIBLE_MAX_POINTS;
+      return totalPoints <= SYMBOL_VISIBLE_MAX_TOTAL_POINTS;
   }
 }
 
 /**
  * Fast-path props for one series given its resolved render type, the chart's
- * densest-series point count, and the panel's Advanced overrides.
+ * density, and the panel's Advanced overrides.
  *
- * - `line`: hide per-point symbols on dense data (unless Show points forces it)
- *   and enable LTTB `sampling` above the density threshold (unless Downsampling
- *   is off). LTTB is a no-op when points already fit the pixels, so it only ever
- *   removes redundant draw work.
- * - `scatter` / `bar`: enable `large` mode above `LARGE_MODE_THRESHOLD`. Scatter
- *   is symbols-by-definition (no `showSymbol`), so `large` is its lever;
+ * - `line`: hide per-point symbols once the chart's **total** point count crosses
+ *   the threshold (unless Show points forces it), and enable LTTB `sampling` once
+ *   a **single series** is deep enough to be worth thinning (unless Downsampling
+ *   is off). The two use different measures on purpose — see `./constants.ts`.
+ * - `scatter` / `bar`: enable `large` mode above `LARGE_MODE_THRESHOLD`
+ *   per-series, matching ECharts' own `largeThreshold` semantics. Scatter is
+ *   symbols-by-definition (no `showSymbol`), so `large` is its lever;
  *   `effectScatter` (ripple animation, meant for a few highlighted points) and
  *   heatmap (`type: undefined`) are left untouched.
  */
 export function getSeriesPerfOptions({
   type,
-  maxPoints,
+  density,
   options,
 }: {
   type: CartesianSingleValueSeriesType | HeatmapSeriesType | undefined;
-  maxPoints: number;
+  density: SeriesDensity;
   options: PanelOptions;
 }): PerfSeriesOptions {
   const performance = options.performance;
+  const { totalPoints, maxPointsPerSeries } = density;
 
   if (type === 'line') {
     const showPoints = performance?.showPoints ?? PERFORMANCE_SHOW_POINTS_DEFAULT;
     const downsampling = performance?.downsampling ?? PERFORMANCE_DOWNSAMPLING_DEFAULT;
-    const dense = maxPoints > SYMBOL_VISIBLE_MAX_POINTS;
+    const worthSampling = maxPointsPerSeries > SAMPLING_MIN_POINTS_PER_SERIES;
     return {
-      showSymbol: resolveShowSymbol(showPoints, maxPoints),
+      showSymbol: resolveShowSymbol(showPoints, totalPoints),
       // @todo compare against minmax
-      sampling: downsampling && dense ? 'lttb' : undefined,
+      sampling: downsampling && worthSampling ? 'lttb' : undefined,
     };
   }
 
   if (type === 'scatter' || type === 'bar') {
-    return maxPoints >= LARGE_MODE_THRESHOLD ? { large: true, largeThreshold: LARGE_MODE_THRESHOLD } : {};
+    return maxPointsPerSeries >= LARGE_MODE_THRESHOLD ? { large: true, largeThreshold: LARGE_MODE_THRESHOLD } : {};
   }
 
   return {};

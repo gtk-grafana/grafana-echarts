@@ -373,7 +373,8 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * Advanced-only performance overrides for the cartesian time-series fast path.
    * ECharts' big-data levers are auto-enabled above density thresholds; these
    * override the auto behavior. `showPoints` maps to per-series `showSymbol`
-   * (Auto hides symbols on dense series) and `downsampling` toggles LTTB
+   * (Auto hides symbols once the chart's *total* point count is high) and
+   * `downsampling` toggles LTTB
    * `sampling`. Unset fields resolve to their defaults (`auto` / `true`).
    * Animation is not here — it is the shared `animation.enabled` above. See
    * `lib/echarts/performance/resolvers.ts` and the `addPerformanceOptions`

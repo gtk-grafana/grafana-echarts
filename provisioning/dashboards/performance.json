@@ -100,6 +100,9 @@
                 "showPoints": "auto",
                 "lineWidth": 1,
                 "fillOpacity": 0
+              },
+              "color": {
+                "mode": "palette-classic"
               }
             },
             "overrides": []
@@ -211,6 +214,9 @@
                 "showPoints": "auto",
                 "lineWidth": 1,
                 "fillOpacity": 0
+              },
+              "color": {
+                "mode": "palette-classic"
               }
             },
             "overrides": []
@@ -322,6 +328,9 @@
                 "showPoints": "auto",
                 "lineWidth": 1,
                 "fillOpacity": 0
+              },
+              "color": {
+                "mode": "palette-classic"
               }
             },
             "overrides": []
@@ -345,8 +354,8 @@
     {
       "id": 12,
       "type": "row",
-      "title": "Symbol threshold: 100 vs 101 points",
-      "description": "SYMBOL_VISIBLE_MAX_POINTS = 100. At or below it markers draw; one point past it they are hidden. This is the visible default change versus pre-branch behavior \u2014 the pair exists so the boundary can be eyeballed. Covered by a canvas regression test (performance.canvas.test.tsx).",
+      "title": "Symbol threshold: TOTAL points, 100 vs 101",
+      "description": "SYMBOL_VISIBLE_MAX_TOTAL_POINTS = 100, and it is a chart TOTAL, not per-series: marker count is what the render cost tracks, so 1000 series x 100 points draws the same 100,000 markers as one long series would. Panels use csv_metric_values, which returns exactly as many points as values given \u2014 maxDataPoints cannot hit an exact count because Grafana snaps the query interval, which is why the old 100/101 panels both showed markers. Covered by performance.canvas.test.tsx.",
       "collapsed": true,
       "gridPos": {
         "h": 1,
@@ -356,20 +365,19 @@
       },
       "panels": [
         {
-          "id": 10,
+          "id": 19,
           "type": "grafana-echartscartesian-panel",
-          "title": "ECharts \u2014 100 points (markers visible)",
-          "description": "At the threshold: showSymbol stays true, no sampling.",
+          "title": "1 series x 100 pts = 100 total (markers)",
+          "description": "Exactly at the threshold: showSymbol stays true.",
           "datasource": {
             "type": "grafana-testdata-datasource"
           },
           "gridPos": {
             "h": 10,
-            "w": 12,
+            "w": 8,
             "x": 0,
             "y": 0
           },
-          "maxDataPoints": 100,
           "options": {
             "seriesType": "line",
             "legend": {
@@ -392,29 +400,26 @@
                 "type": "grafana-testdata-datasource"
               },
               "refId": "A",
-              "scenarioId": "random_walk",
-              "seriesCount": 1,
-              "startValue": 50,
-              "min": 0,
-              "max": 100
+              "scenarioId": "csv_metric_values",
+              "stringInput": "50.0,56.6,63.1,69.2,74.7,79.6,83.7,86.8,88.9,89.9,89.8,88.6,86.4,83.1,78.9,73.9,68.3,62.1,55.6,49.0,42.4,36.0,29.9,24.5,19.7,15.8,12.8,10.9,10.0,10.3,11.6,14.1,17.5,21.8,26.9,32.6,38.8,45.3,52.0,58.6,65.0,70.9,76.3,80.9,84.7,87.5,89.3,90.0,89.6,88.1,85.5,81.9,77.5,72.3,66.5,60.2,53.7,47.0,40.4,34.1,28.2,23.0,18.5,14.8,12.1,10.5,10.0,10.6,12.3,15.0,18.7,23.2,28.5,34.4,40.8,47.3,54.0,60.6,66.8,72.6,77.8,82.2,85.7,88.2,89.6,90.0,89.2,87.4,84.5,80.7,76.0,70.6,64.6,58.3,51.7,45.0,38.5,32.3,26.6,21.5",
+              "alias": "cpu"
             }
           ]
         },
         {
-          "id": 11,
+          "id": 20,
           "type": "grafana-echartscartesian-panel",
-          "title": "ECharts \u2014 101 points (markers hidden)",
-          "description": "One point past the threshold: showSymbol false, sampling lttb. Set Show points to Always to bring them back.",
+          "title": "1 series x 101 pts = 101 total (no markers)",
+          "description": "One point past the threshold: showSymbol false. Set Show points to Always to bring them back.",
           "datasource": {
             "type": "grafana-testdata-datasource"
           },
           "gridPos": {
             "h": 10,
-            "w": 12,
-            "x": 12,
+            "w": 8,
+            "x": 8,
             "y": 0
           },
-          "maxDataPoints": 101,
           "options": {
             "seriesType": "line",
             "legend": {
@@ -437,11 +442,78 @@
                 "type": "grafana-testdata-datasource"
               },
               "refId": "A",
-              "scenarioId": "random_walk",
-              "seriesCount": 1,
-              "startValue": 50,
-              "min": 0,
-              "max": 100
+              "scenarioId": "csv_metric_values",
+              "stringInput": "50.0,56.6,63.1,69.2,74.7,79.6,83.7,86.8,88.9,89.9,89.8,88.6,86.4,83.1,78.9,73.9,68.3,62.1,55.6,49.0,42.4,36.0,29.9,24.5,19.7,15.8,12.8,10.9,10.0,10.3,11.6,14.1,17.5,21.8,26.9,32.6,38.8,45.3,52.0,58.6,65.0,70.9,76.3,80.9,84.7,87.5,89.3,90.0,89.6,88.1,85.5,81.9,77.5,72.3,66.5,60.2,53.7,47.0,40.4,34.1,28.2,23.0,18.5,14.8,12.1,10.5,10.0,10.6,12.3,15.0,18.7,23.2,28.5,34.4,40.8,47.3,54.0,60.6,66.8,72.6,77.8,82.2,85.7,88.2,89.6,90.0,89.2,87.4,84.5,80.7,76.0,70.6,64.6,58.3,51.7,45.0,38.5,32.3,26.6,21.5,17.3",
+              "alias": "cpu"
+            }
+          ]
+        },
+        {
+          "id": 21,
+          "type": "grafana-echartscartesian-panel",
+          "title": "4 series x 26 pts = 104 total (no markers)",
+          "description": "The case a per-series threshold got wrong: only 26 points per series, but 104 markers, so they go. Compare with the left panel \u2014 same marker budget, very different per-series depth.",
+          "datasource": {
+            "type": "grafana-testdata-datasource"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 8,
+            "x": 16,
+            "y": 0
+          },
+          "options": {
+            "seriesType": "line",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "A",
+              "scenarioId": "csv_metric_values",
+              "stringInput": "50.0,56.6,63.1,69.2,74.7,79.6,83.7,86.8,88.9,89.9,89.8,88.6,86.4,83.1,78.9,73.9,68.3,62.1,55.6,49.0,42.4,36.0,29.9,24.5,19.7,15.8",
+              "alias": "series0"
+            },
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "B",
+              "scenarioId": "csv_metric_values",
+              "stringInput": "79.6,83.7,86.8,88.9,89.9,89.8,88.6,86.4,83.1,78.9,73.9,68.3,62.1,55.6,49.0,42.4,36.0,29.9,24.5,19.7,15.8,12.8,10.9,10.0,10.3,11.6",
+              "alias": "series1"
+            },
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "C",
+              "scenarioId": "csv_metric_values",
+              "stringInput": "89.8,88.6,86.4,83.1,78.9,73.9,68.3,62.1,55.6,49.0,42.4,36.0,29.9,24.5,19.7,15.8,12.8,10.9,10.0,10.3,11.6,14.1,17.5,21.8,26.9,32.6",
+              "alias": "series2"
+            },
+            {
+              "datasource": {
+                "type": "grafana-testdata-datasource"
+              },
+              "refId": "D",
+              "scenarioId": "csv_metric_values",
+              "stringInput": "73.9,68.3,62.1,55.6,49.0,42.4,36.0,29.9,24.5,19.7,15.8,12.8,10.9,10.0,10.3,11.6,14.1,17.5,21.8,26.9,32.6,38.8,45.3,52.0,58.6,65.0",
+              "alias": "series3"
             }
           ]
         }
@@ -509,7 +581,7 @@
           "id": 14,
           "type": "xychart",
           "title": "Core Grafana xychart (uPlot)",
-          "description": "Same query, plotted as points.",
+          "description": "Same query, plotted as points. Provisioning xychart matchers appears broken with this spec. @todo",
           "datasource": {
             "type": "grafana-testdata-datasource"
           },
@@ -521,27 +593,40 @@
           },
           "maxDataPoints": 5000,
           "options": {
+            "mapping": "manual",
+            "series": [
+              {
+                "frame": {
+                  "matcher": {
+                    "id": "byIndex",
+                    "options": 0
+                  }
+                },
+                "x": {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "time"
+                  }
+                },
+                "y": {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "A-series"
+                  }
+                }
+              }
+            ],
+            "tooltip": {
+              "mode": "single",
+              "sort": "none",
+              "hideZeros": false
+            },
             "legend": {
               "showLegend": false,
               "displayMode": "list",
               "placement": "bottom",
               "calcs": []
-            },
-            "tooltip": {
-              "mode": "single",
-              "sort": "none"
-            },
-            "mapping": "auto",
-            "series": [
-              {
-                "x": {
-                  "matcher": {
-                    "id": "byType",
-                    "options": "time"
-                  }
-                }
-              }
-            ]
+            }
           },
           "fieldConfig": {
             "defaults": {
@@ -549,7 +634,39 @@
                 "show": "points",
                 "pointSize": {
                   "fixed": 3
+                },
+                "pointShape": "circle",
+                "pointStrokeWidth": 1,
+                "fillOpacity": 50,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "axisColorMode": "text",
+                "axisBorderShow": false,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "axisCenteredZero": false,
+                "hideFrom": {
+                  "tooltip": false,
+                  "viz": false,
+                  "legend": false
                 }
+              },
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "value": null,
+                    "color": "green"
+                  },
+                  {
+                    "value": 80,
+                    "color": "red"
+                  }
+                ]
               }
             },
             "overrides": []
@@ -663,7 +780,10 @@
           },
           "fieldConfig": {
             "defaults": {
-              "custom": {}
+              "custom": {},
+              "color": {
+                "mode": "palette-classic"
+              }
             },
             "overrides": []
           },
@@ -697,7 +817,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "ECharts Performance",
-  "uid": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-  "version": 1,
+  "uid": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5c",
+  "version": 11,
   "weekStart": ""
 }

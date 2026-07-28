@@ -16,3 +16,21 @@ import type { LineSeriesOption, ScatterSeriesOption } from 'echarts';
  */
 export type PerfSeriesOptions = Pick<LineSeriesOption, 'showSymbol' | 'sampling'> &
   Pick<ScatterSeriesOption, 'large' | 'largeThreshold'>;
+
+/**
+ * The two density measures the levers key off. They are genuinely different axes
+ * and must not be conflated — see the note in `./constants.ts`.
+ */
+export interface SeriesDensity {
+  /**
+   * Points summed across every series. Total drawn-element cost (symbols) scales
+   * with this, not with per-series depth.
+   */
+  totalPoints: number;
+  /**
+   * Points in the densest single series. What the within-a-series levers
+   * (`sampling`, `large`) key off, since neither helps a chart made of many
+   * short series.
+   */
+  maxPointsPerSeries: number;
+}

@@ -22,7 +22,9 @@ import { type PanelOptions } from 'types';
  * resolved in `lib/echarts/performance/resolvers.ts`:
  *
  * - **Show points** (`performance.showPoints`, default Auto): per-series
- *   `showSymbol`. Auto hides markers on dense line series; Always/Never force it.
+ *   `showSymbol`, decided from the chart's **total** point count — marker count is
+ *   what costs, so many short series are as expensive as one long one. Auto hides
+ *   markers once the total crosses the threshold; Always/Never force it.
  * - **Downsampling** (`performance.downsampling`, default on): LTTB `sampling` on
  *   dense line series (a no-op once points fit the pixels).
  * - **Animation** (`animation.enabled`, default off): the panel-wide `animation`
@@ -35,7 +37,7 @@ export function addPerformanceOptions(builder: PanelOptionsEditorBuilder<PanelOp
   addAdvancedRadio<PerformanceMode>(builder, {
     path: performanceShowPointsPath,
     name: performanceShowPointsName,
-    description: 'Point markers on line series. Auto hides them on dense series to speed up rendering',
+    description: 'Point markers on line series. Auto hides them once the chart has many points in total',
     defaultValue: PERFORMANCE_SHOW_POINTS_DEFAULT,
     settings: { options: performanceModeOptions },
   });

@@ -38,13 +38,13 @@ sides**, so the delta is the dataset change alone and nothing else.
 A screenshot hash comparison confirmed the two paths render **pixel-identical
 output** in every scenario, so this is a like-for-like comparison.
 
-| Scenario                  | Tuples | Dataset | Delta            |
-| ------------------------- | ------ | ------- | ---------------- |
-| 500 series × 100 pts      | 375 ms | 368 ms  | −7 ms (−1.8%)    |
-| 500 series × 100 pts wide | 372 ms | 386 ms  | **+15 ms (+4%)** |
-| 500 series × 1000 pts     | 184 ms | 128 ms  | −55 ms (−30%)    |
-| 20 series × 5000 pts      | 35 ms  | 20 ms   | −16 ms (−44%)    |
-| 1 series × 100 000 pts    | 31 ms  | 16 ms   | −15 ms (−49%)    |
+| Scenario                  | Tuples | Dataset | Delta         |
+| ------------------------- | ------ | ------- | ------------- |
+| 500 series × 100 pts      | 44 ms  | 38 ms   | −6 ms (−15%)  |
+| 500 series × 100 pts wide | 44 ms  | 43 ms   | −1 ms (−2%)   |
+| 500 series × 1000 pts     | 182 ms | 128 ms  | −55 ms (−30%) |
+| 20 series × 5000 pts      | 35 ms  | 20 ms   | −16 ms (−44%) |
+| 1 series × 100 000 pts    | 31 ms  | 16 ms   | −15 ms (−47%) |
 
 The converter-side saving is real and behaves exactly as predicted: at 500 × 1000
 the option build drops from 11.6 ms / 23.4 MB allocated to 0.2 ms / ~0 MB,
@@ -60,15 +60,17 @@ tuple allocation only becomes visible once the far larger render costs are gone.
 The percentages in the dense rows look substantial, and they are honest. What
 makes them not worth it is the denominator.
 
-The performance levers alone take the 500 × 1000 case from **7383 ms to 184 ms**.
-Dataset then takes it from 184 ms to 128 ms. So of the ~7.25 s originally on the
-table, the levers recover 7.20 s and dataset recovers a further 0.06 s — under
+The performance levers alone take the 500 × 1000 case from **7162 ms to 182 ms**.
+Dataset then takes it from 182 ms to 128 ms. So of the ~7.03 s originally on the
+table, the levers recover 6.98 s and dataset recovers a further 0.05 s — under
 1% of the problem, for the larger share of the complexity.
 
-In absolute terms the saving is 15–55 ms, below a frame budget in four of five
-scenarios. And in the wide-frame case — 500 series sharing one time column,
+In absolute terms the saving is 1–55 ms, below a frame budget in four of five
+scenarios. And the wide-frame case — 500 series sharing one time column,
 supposedly dataset's best case, the one where the shared column is parsed once
-instead of 500 times — it measured **slower**.
+instead of 500 times — lands in the noise: across runs it has measured both
+slightly faster and slightly slower than tuples (−2% here, +4% on an earlier
+run), so the shared-column saving is not detectable end to end.
 
 The doc's original theory was that dataset addresses "roughly half the measured
 problem." The measurement says it is closer to 1%.
@@ -109,7 +111,7 @@ shape that breaks. This was not an edge case.
 Fixing it properly means routing all six tooltip builders through
 `params.encode.y[0]` and `params.dimensionNames`, plus an instance-driven tooltip
 test to stop it regressing. That work is the actual price of dataset, and it buys
-the 15–55 ms above.
+the 1–55 ms above.
 
 ## The rest of the cost
 

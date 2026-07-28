@@ -11,7 +11,7 @@ import { seriesTypePath } from 'editor/constants';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
-import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_POINTS } from 'lib/echarts/performance/constants';
+import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_TOTAL_POINTS } from 'lib/echarts/performance/constants';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -258,14 +258,14 @@ describe('timeSeriesToEChartsOption', () => {
 
   describe('performance fast-path props', () => {
     it('keeps symbols and no sampling on a sparse line series (below the density threshold)', () => {
-      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_POINTS)], 'line');
+      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS)], 'line');
 
       expect(result[0]).toMatchObject({ showSymbol: true });
       expect((result[0] as LineSeriesOption).sampling).toBeUndefined();
     });
 
     it('drops symbols and enables LTTB on a dense line series', () => {
-      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_POINTS + 1)], 'line');
+      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1)], 'line');
 
       expect(result[0]).toMatchObject({ showSymbol: false, sampling: 'lttb' });
     });
@@ -277,7 +277,7 @@ describe('timeSeriesToEChartsOption', () => {
     });
 
     it('honors the Downsampling = off override on a dense series', () => {
-      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_POINTS + 1)], 'line', {
+      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1)], 'line', {
         performance: { downsampling: false },
       });
 

@@ -239,7 +239,7 @@ export const performanceModeOptions: Array<SelectableValue<PerformanceMode>> = [
 
 export const performanceShowPointsPath = 'performance.showPoints';
 export const performanceShowPointsName = 'Show points';
-/** Default point-marker visibility: auto (hide symbols on dense series). */
+/** Default point-marker visibility: auto (hide symbols above the total-points threshold). */
 export const PERFORMANCE_SHOW_POINTS_DEFAULT: PerformanceMode = 'auto';
 
 export const performanceDownsamplingPath = 'performance.downsampling';

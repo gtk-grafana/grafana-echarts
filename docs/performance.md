@@ -20,6 +20,35 @@ scenario, each pairing an ECharts panel with its core Grafana (uPlot)
 counterpart on the same query. The rows are collapsed because the panels are
 deliberately heavy — open one at a time.
 
+The core-Grafana comparison panels are hand-authored JSON. **When one of them is
+wrong, fix it by configuring the panel in the Grafana UI and copying the exported
+`options` in verbatim** — do not derive the config from `@grafana/schema`'s
+published types. The xychart panel is the worked example; its mapping must be
+exactly:
+
+```json
+"mapping": "manual",
+"series": [
+  {
+    "frame": { "matcher": { "id": "byIndex", "options": 0 } },
+    "x": { "matcher": { "id": "byName", "options": "time" } },
+    "y": { "matcher": { "id": "byName", "options": "A-series" } }
+  }
+]
+```
+
+Three things that each broke it: `mapping: 'auto'` (which ignores `series[]`
+entirely — it is the _manual_ mapping config), a `byType` y matcher, and giving
+the query an `alias` (which renames the value field away from `A-series`, the
+default name the matcher targets). Note that the field names are load-bearing, so
+this config is coupled to the `random_walk` scenario.
+
+Two things to know when a change to this file doesn't appear in Grafana:
+provisioned dashboards poll every 10s by default, and because `default.yaml` sets
+no `allowUiUpdates`, Grafana **rejects UI saves** for them — so panel edits made
+in the browser live only in that tab's unsaved state and will keep shadowing the
+file until the dashboard is reloaded without them.
+
 ## The problem
 
 A Chrome profile of 500 time series showed the initial render as one ~4.5s
@@ -34,16 +63,17 @@ of this is custom rendering.
 
 | Lever                   | ECharts option                           | Applies to       | Trigger                             |
 | ----------------------- | ---------------------------------------- | ---------------- | ----------------------------------- |
-| Hide per-point symbols  | `series.showSymbol`                      | `line`           | > 100 points in the densest series  |
+| Hide per-point symbols  | `series.showSymbol`                      | `line`           | > 100 points **in the chart total** |
 | LTTB downsampling       | `series.sampling: 'lttb'`                | `line`           | > 100 points in the densest series  |
 | Batched large-data mode | `series.large` + `series.largeThreshold` | `scatter`, `bar` | ≥ 2000 points in the densest series |
 | No animation            | `animation`                              | panel-wide       | always (opt-in to re-enable)        |
 
-Density is measured once per render by `getMaxPointsPerSeries`, over the whole
-frame set, so every series in a chart resolves against the same number and a
-chart never renders half on the fast path. `effectScatter` (a ripple animation
-meant for a handful of highlighted points) and the heatmap cell layer are
-deliberately left untouched.
+Density is measured once per render by `getSeriesDensity`, over the whole frame
+set, so every series in a chart resolves against the same numbers and a chart
+never renders half on the fast path. It returns both measures the table above
+needs — `totalPoints` and `maxPointsPerSeries`. `effectScatter` (a ripple
+animation meant for a handful of highlighted points) and the heatmap cell layer
+are deliberately left untouched.
 
 Animation is the exception: it is not density-driven at all. It is simply off,
 for every panel family, unless a user opts in. See "Rejected: animation density
@@ -87,21 +117,23 @@ Reproduce with `pnpm run bench:dataset` (see
 [scripts/bench/README.md](../scripts/bench/README.md)). Absolute numbers are
 machine-specific; the ratios are what to compare.
 
-| Scenario               | Baseline | With levers | Speedup |
-| ---------------------- | -------- | ----------- | ------- |
-| 500 series × 100 pts   | 1698 ms  | 375 ms      | 4.5×    |
-| 500 series × 1000 pts  | 7383 ms  | 184 ms      | 40×     |
-| 20 series × 5000 pts   | 1882 ms  | 35 ms       | 54×     |
-| 1 series × 100 000 pts | 1888 ms  | 31 ms       | 61×     |
+| Scenario               | Total pts | Baseline | With levers | Speedup |
+| ---------------------- | --------- | -------- | ----------- | ------- |
+| 500 series × 100 pts   | 50 000    | 1693 ms  | 44 ms       | 39×     |
+| 500 series × 1000 pts  | 500 000   | 7162 ms  | 182 ms      | 39×     |
+| 20 series × 5000 pts   | 100 000   | 1829 ms  | 35 ms       | 52×     |
+| 1 series × 100 000 pts | 100 000   | 1885 ms  | 31 ms       | 61×     |
 
-The 500 × 1000 row reproduces the original profile closely (7.4s ≈ the reported
+The 500 × 1000 row reproduces the original profile closely (7.2s ≈ the reported
 ~4.5s task plus animation tail) and is the case the thresholds were tuned
 against.
 
-Note the first row: at exactly 100 points per series the symbol and sampling
-levers do **not** engage — that 4.5× is animation alone. Most of the benefit in
-the dense rows comes from `showSymbol: false` plus `sampling`, which cut drawn
-elements rather than making the same drawing faster.
+Most of the benefit comes from `showSymbol: false`, which cuts drawn elements
+rather than making the same drawing faster. The first row is the clearest
+evidence: it has only 100 points **per series**, so an earlier per-series symbol
+threshold left markers on and that row measured 375 ms instead of 44 ms — an 8.5×
+regression hiding behind a threshold that looked like it was doing its job. Total
+points is the measure that matters; see the note in `performance/constants.ts`.
 
 ## Rejected: animation density thresholds
 
