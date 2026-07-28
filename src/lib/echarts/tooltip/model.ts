@@ -126,9 +126,8 @@ function getHeaderText(items: TooltipParam[], formatHeaderValue?: (item: Tooltip
  * One row per packed dimension of a multi-value item (candlestick / boxplot).
  *
  * ECharts prefixes these items' `value` with the data index, so the dimensions
- * start at offset 1 — verified against a live chart: candlestick reports
- * `[dataIndex, open, close, low, high]` and boxplot
- * `[dataIndex, min, q1, median, q3, max]`.
+ * start at offset 1: candlestick reports `[dataIndex, open, close, low, high]`
+ * and boxplot `[dataIndex, min, q1, median, q3, max]`.
  *
  * Each dimension comes from its own Grafana field, so each row resolves its own
  * `source` (by `dimensionIndex`) and the footer surfaces the links of whichever

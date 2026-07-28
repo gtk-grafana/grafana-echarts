@@ -31,7 +31,7 @@
  * panel option, which has no default) replaces *both* limits with that one
  * value, and disables the gap-scan special case.
  *
- * Verified against `grafana/grafana@main`
+ * Upstream: `grafana/grafana`
  * (`public/app/core/components/TimeSeries/utils.ts`, `cursor` config) and
  * uPlot 1.6.32 (`src/uPlot.js`, `cursor.dataIdx` / `cursor.focus` dispatch).
  *

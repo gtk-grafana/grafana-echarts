@@ -125,7 +125,9 @@ export function getTreemapSeries(data: HierarchyData, ctx: HierarchySeriesContex
     roam: false,
     leafDepth: 5,
     nodeClick: false,
-    // @todo not working without nodeClick: 'zoomToNode'
+    // Inert as configured: ECharts only draws the breadcrumb trail for
+    // zoom-to-node navigation, which `nodeClick: false` above rules out. Kept so
+    // the sizing is already correct if the panel ever opts back into zooming.
     breadcrumb: { show: ctx.options.legend.isVisible, width: ctx.options.legend.width },
     zlevel: ctx.options.zLevel?.series,
     data: toTreeData(data.roots, makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField)),

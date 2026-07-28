@@ -21,7 +21,7 @@ import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
-import { buildPanelChartOption } from './panelOption';
+import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
 
 const timeRange: TimeRange = {
   from: dateTime(1783137094497),
