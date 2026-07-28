@@ -242,9 +242,14 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
     return null;
   }
 
-  const items = model.rows.map((row) =>
-    rowToItem(row, mode === TooltipDisplayMode.Multi ? state.activeSeriesIndex : null)
-  );
+  // Core only emphasises a row in Multi mode; in Single there is one row and
+  // bolding it would just be noise. A series index also only identifies a row
+  // when rows map 1:1 to series — a multi-value item (candlestick/boxplot)
+  // expands into several rows sharing one series index, so bolding "the" active
+  // row would bold all of them. Fall back to no active row in that case.
+  const activeSeriesIndex = mode === TooltipDisplayMode.Multi ? state.activeSeriesIndex : null;
+  const activeRowCount = model.rows.filter((row) => row.seriesIndex === activeSeriesIndex).length;
+  const items = model.rows.map((row) => rowToItem(row, activeRowCount === 1 ? activeSeriesIndex : null));
 
   // The footer is interactive, so it is only shown when pinned (the tooltip only
   // receives pointer events when pinned). Mirrors core Grafana, which shows the

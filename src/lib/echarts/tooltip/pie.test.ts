@@ -14,16 +14,30 @@ const asParams = (params: unknown) => params as TopLevelFormatterParams;
 const sliceField = (value: number): Field =>
   toDataFrame({ fields: [{ name: 'v', type: FieldType.number, values: [value] }] }).fields[0];
 
-const slice = (name: string, value: number | undefined, color: string): PieSliceModel => ({
+/**
+ * The real frame column a slice was reduced from. Distinct from the synthetic
+ * single-value `field`, which is rebuilt for the legend and carries no data
+ * links — the footer must resolve against this one.
+ */
+const sourceColumn = (): Field =>
+  toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [30, 50, 20] }] }).fields[0];
+
+const slice = (name: string, value: number | undefined, color: string, sourceRowIndex = 0): PieSliceModel => ({
   name,
   value,
   color,
   hidden: false,
   field: sliceField(value ?? 0),
+  sourceField: sourceColumn(),
+  sourceRowIndex,
 });
 
 // Three visible slices summing to 100 so percentages read cleanly.
-const slices: PieSliceModel[] = [slice('A', 30, '#aaaaaa'), slice('B', 50, '#bbbbbb'), slice('C', 20, '#cccccc')];
+const slices: PieSliceModel[] = [
+  slice('A', 30, '#aaaaaa', 0),
+  slice('B', 50, '#bbbbbb', 1),
+  slice('C', 20, '#cccccc', 2),
+];
 
 const labels = (rows: Array<{ label: string }>) => rows.map((row) => row.label);
 const values = (rows: Array<{ value: string }>) => rows.map((row) => row.value);
@@ -43,8 +57,21 @@ describe('buildPieTooltipModel', () => {
       expect(model.rows[0].color).toBe('#aaaaaa');
       // Other slices are not listed in Single mode.
       expect(labels(model.rows)).not.toContain('B');
-      // The footer source points at the hovered slice's field.
-      expect(model.source?.field).toBe(slices[0].field);
+      // The footer source points at the slice's real backing column and row —
+      // not the synthetic single-value field, which carries no data links.
+      expect(model.source).toEqual({ field: slices[0].sourceField, rowIndex: 0 });
+      expect(model.source?.field).not.toBe(slices[0].field);
+    });
+
+    it('omits the footer source for a slice with no backing column', () => {
+      const orphan: PieSliceModel[] = [{ ...slice('A', 30, '#aaaaaa'), sourceField: undefined }];
+      const model = buildPieTooltipModel(
+        orphan,
+        TooltipDisplayMode.Single,
+        theme
+      )(asParams({ dataIndex: 0, name: 'A', value: 30 }));
+
+      expect(model.source).toBeUndefined();
     });
 
     it('never falls back to the ECharts auto series name ("series 0")', () => {
@@ -76,6 +103,8 @@ describe('buildPieTooltipModel', () => {
 
       expect(model.header).toEqual({ label: 'B', value: '' });
       expect(values(model.rows)).toEqual(['30 (30%)', '50 (50%)', '20 (20%)']);
+      // Each row carries its own slice's row, so the footer follows the click.
+      expect(model.rows.map((row) => row.source?.rowIndex)).toEqual([0, 1, 2]);
     });
 
     it('emphasizes exactly the hovered slice row', () => {

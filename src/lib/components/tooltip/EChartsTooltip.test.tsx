@@ -148,6 +148,21 @@ describe('EChartsTooltip', () => {
     expect(emphasisDiffers()).toBe(false);
   });
 
+  it('emphasises no row when several share the active series index', () => {
+    // A multi-value item (candlestick/boxplot) expands into one row per packed
+    // dimension, all from the same series — so no single row is "the" active one.
+    const packed = model({
+      source: undefined,
+      rows: [
+        { label: 'Open', value: '1', seriesIndex: 0 },
+        { label: 'Close', value: '2', seriesIndex: 0 },
+      ],
+    });
+    renderTooltip(state({ model: packed, activeSeriesIndex: 0 }), undefined, TooltipDisplayMode.Multi);
+
+    expect(screen.getByText('Open').className).toBe(screen.getByText('Close').className);
+  });
+
   it('is click-through while hovering and interactive once pinned', () => {
     // Regression: without the marker attribute the outside-click handler treats
     // a click on a data link as a click outside and dismisses instantly, and

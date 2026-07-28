@@ -202,6 +202,12 @@ export function buildBinnedHeatmapTooltipModel(
 
     const bucket = bucketLabels.get(`${yStart}:${yEnd}`) ?? `${formatBucketBound(yStart)} - ${formatBucketBound(yEnd)}`;
 
+    // Cells are encoded 1:1 from `data.cells`, so the hovered item's index maps
+    // straight back to the field + row it was built from — what the footer needs
+    // to resolve the cell's data links.
+    const cell = param?.dataIndex != null ? data.cells[param.dataIndex] : undefined;
+    const source = cell ? { field: cell.field, rowIndex: cell.rowIndex } : undefined;
+
     // Time-style header: the x (time/value) goes in `value`, matching core's
     // heatmap tooltip composition.
     return {
@@ -214,9 +220,11 @@ export function buildBinnedHeatmapTooltipModel(
           color: typeof param?.color === 'string' ? param.color : undefined,
           label: 'Value',
           value: formatTooltipValue(value, ctx.formatValue),
+          source,
         },
         { label: 'Name', value: bucket },
       ],
+      source,
     };
   };
 }

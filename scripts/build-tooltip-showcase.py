@@ -89,9 +89,10 @@ def csv(content, ref="A"):
 def links_on(field_name, title="Open Grafana docs"):
     """Attach a data link to one field, so the pinned footer has something to show.
 
-    Families whose items have no single source field (boxplot, heatmap,
-    hierarchy) still get the override — the point is to demonstrate that they
-    correctly render *no* footer, which is the documented parity gap.
+    Every family resolves a hovered item back to a source field + row, so each
+    panel below should show this link in its footer once pinned. Families whose
+    items pack several fields (boxplot, candlestick) union their dimensions'
+    links; a heatmap cell resolves its own column, a hierarchy node its own row.
     """
     return {
         "defaults": {"color": {"mode": "palette-classic"}},
@@ -278,7 +279,8 @@ panels.append(panel(
         "Multi-value series pack several values into one item. The tooltip lists Open/Close/Low/High "
         "in ECharts' own data order; previously only the last dimension (High) surfaced. The header "
         "shows the real time — a multi-value item's value[0] is its data index, which used to render "
-        "as 1970-01-01."
+        "as 1970-01-01. The 'close' field carries a data link: each row resolves its own dimension's "
+        "field, so pinning a candle surfaces it in the footer."
     ),
     options=echarts_opts("candlestick"),
     field_config=links_on("close"),
@@ -291,8 +293,8 @@ panels.append(panel(
     title="Boxplot — five-number summary",
     description=(
         "Same expansion: Min/Q1/Median/Q3/Max instead of only Max. The 'median' field carries a data "
-        "link, but no footer appears when pinned — a multi-value item is built from five fields at "
-        "once, so there is no single field for links to resolve against (documented parity gap)."
+        "link, and pinning now shows it: a multi-value item is built from five fields at once, so "
+        "each row resolves its own dimension's field and the footer unions their links."
     ),
     options=echarts_opts("boxplot"),
     field_config=links_on("median"),
@@ -310,9 +312,10 @@ panels.append(panel(
     title="Radar",
     description=(
         "Radar had no dashboard coverage at all before this one. The 'alpha' polygon carries a data "
-        "link, which DOES resolve — radar keys its field resolver by dataIndex, one item per polygon. "
-        "Known cosmetic gap: every polygon is one ECharts series, so all rows share the same series "
-        "name as their label instead of the per-polygon field name."
+        "link, which resolves — radar keys its field resolver by dataIndex, one item per polygon. "
+        "Every polygon is a data item of one *unnamed* ECharts series, whose auto-generated name (an "
+        "internal 'series 0' placeholder) used to leak out as the row label; the label now falls back "
+        "to the polygon's own name."
     ),
     options=echarts_opts("radar", mode="multi"),
     field_config=links_on("alpha"),
@@ -333,7 +336,8 @@ panels.append(panel(
     description=(
         "`reduceOptions.values: true` gives one slice per row, so All mode lists every slice. Pie sets "
         "its own row emphasis, so the hovered slice bolds regardless of proximity. The 'value' field "
-        "carries a data link, which resolves to the hovered slice's row."
+        "carries a data link, which resolves against the slice's real source column and row — not "
+        "the synthetic single-value field rebuilt for the legend, which carries no links."
     ),
     options={"seriesType": "pie", "legend": LEGEND, "tooltip": {"mode": "multi"},
              "reduceOptions": {"calcs": [], "fields": "", "values": True}},
@@ -345,9 +349,10 @@ panels.append(panel(
     ptype=HIERARCHY, x=8, w=8, y=h,
     title="Treemap",
     description=(
-        "Rows are Value / Self. The 'value' field carries a data link, but no footer appears: a node "
-        "aggregates a whole subtree, so there is no single field+row to resolve against "
-        "(documented parity gap)."
+        "Rows are Value / Self. The 'value' field carries a data link, and pinning now shows it: "
+        "every node keeps the row it was built from. Click-to-zoom (nodeClick) is off, matching the "
+        "other families — with it on, ECharts consumed the click that pins the tooltip, leaving the "
+        "footer unreachable."
     ),
     options=echarts_opts("treemap"),
     field_config=links_on("value"),
@@ -359,8 +364,8 @@ panels.append(panel(
     title="Heatmap (matrix)",
     description=(
         "Cells now carry a colour swatch showing which bucket of the colour scale was hit. The 'Wed' "
-        "field carries a data link, but no footer appears: a cell aggregates a bucket spanning many "
-        "rows (documented parity gap)."
+        "field carries a data link, and pinning now shows it: a matrix cell maps to exactly one "
+        "column field at one row. Pin a Wed cell to see it; other columns' cells show no footer."
     ),
     options={"seriesType": "heatmap", "heatmapLayout": "matrix", "heatmapColorScheme": "spectral",
              "legend": LEGEND, "tooltip": {"mode": "single"}},
@@ -372,12 +377,32 @@ panels.append(panel(
 
 h = _next_y(9)
 panels.append(panel(
+    ptype=HEATMAP, x=0, w=12, y=h,
+    title="Heatmap (binned) — the default layout",
+    description=(
+        "The default `binned` layout draws cells as a custom series on continuous axes, so it "
+        "resolves links on a different path from the matrix layout above. Each cell is built from one "
+        "(field, row) pair, so pinning a cell shows that row's link. The 'B' field carries the link: "
+        "pin a cell in the B row to see the footer."
+    ),
+    options={"seriesType": "heatmap", "heatmapColorScheme": "spectral",
+             "legend": LEGEND, "tooltip": {"mode": "single"}},
+    field_config=links_on("B"),
+    targets=[csv("time,A,B\n2021-07-13T17:00:00Z,3,9\n2021-07-13T17:10:00Z,5,4\n"
+                 "2021-07-13T17:20:00Z,8,6\n2021-07-13T17:30:00Z,2,11\n")],
+    transformations=convert([("time", "time"), ("A", "number"), ("B", "number")]),
+))
+
+h = _next_y(9)
+panels.append(panel(
     ptype=CARTESIAN, x=0, w=12, y=h,
-    title="Bar — proximity and the active marker",
+    title="Bar — the hovered bar wins, not the nearest bar top",
     description=(
         "Bars keep ECharts' default emphasis: they have no symbol to scale, and their hit area is "
-        "already large enough not to need a marker. Proximity still resolves which bar is nearest, so "
-        "the Single tooltip and the All-mode bold row behave as they do for lines."
+        "already large enough not to need a marker. Bars opt out of proximity — it picks the "
+        "vertically nearest datapoint, which for a column of bars is the nearest bar *top* rather "
+        "than the bar under the cursor. ECharts' native hit-testing drives both the Single tooltip "
+        "and the All-mode bold row instead, so hovering a bar always describes that bar."
     ),
     options=echarts_opts("bar"),
     field_config=links_on("alpha"),

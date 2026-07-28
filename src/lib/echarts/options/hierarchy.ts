@@ -177,11 +177,14 @@ function buildHierarchyTooltipModel(ctx: HierarchySeriesContext): (params: TopLe
 export function getTreemapSeries(data: HierarchyData, ctx: HierarchySeriesContext): TreemapSeriesOption {
   return {
     type: 'treemap',
-    // Off by default: keep the panel static like the other families (no
-    // click-to-zoom breadcrumb navigation).
+    // Off: keep the panel static like the other families (no click-to-zoom
+    // breadcrumb navigation). `nodeClick` must stay off for the tooltip too —
+    // ECharts' zoom-to-node consumes the click that pins the tooltip, so with it
+    // on a node's data links are unreachable.
     roam: false,
     leafDepth: 5,
-    nodeClick: 'zoomToNode',
+    nodeClick: false,
+    // @todo not working without nodeClick: 'zoomToNode'
     breadcrumb: { show: ctx.options.legend.isVisible, width: ctx.options.legend.width },
     zlevel: ctx.options.zLevel?.series,
     data: toTreeData(data.roots, makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField)),

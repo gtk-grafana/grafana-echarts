@@ -15,6 +15,7 @@ const formatValue: ValueFormatter = (value) => ({ text: value == null || Number.
 const ctx = { theme, timeZone: 'utc', formatValue };
 
 const xField: Field<number> = { name: 'c1', type: FieldType.number, values: [1, 4], config: {} };
+const xField2: Field<number> = { name: 'c2', type: FieldType.number, values: [2, 3], config: {} };
 const yField: Field<string> = { name: 'row', type: FieldType.string, values: ['a', 'b'], config: {} };
 const formatDisplayValue = getDisplayProcessor({ theme, field: yField });
 
@@ -28,6 +29,7 @@ const data: MatrixHeatmapData = {
   valueMin: 1,
   valueMax: 4,
   xField,
+  xFields: [xField, xField2],
   yField,
 };
 
@@ -154,6 +156,12 @@ describe('buildMatrixHeatmapTooltipModel', () => {
     expect(text(model)).toContain('3');
     expect(text(model)).toContain('Name');
     expect(text(model)).toContain('a');
+  });
+
+  it('resolves the hovered cell back to its own column field and row, for footer links', () => {
+    const formatter = buildMatrixHeatmapTooltipModel(data, ctx);
+    // Cell [xIndex 1, yIndex 0] is column `c2` at row 0.
+    expect(formatter(asParams([1, 0, 3])).source).toEqual({ field: xField2, rowIndex: 0 });
   });
 
   it('routes null cells through the field formatter for its No value text', () => {
