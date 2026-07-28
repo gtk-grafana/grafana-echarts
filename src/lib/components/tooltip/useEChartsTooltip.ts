@@ -143,6 +143,13 @@ export function useEChartsTooltip(
     lastHitRef.current = null;
   }, [series]);
 
+  // The live cursor and proximity hit, tracked on every move *including while
+  // pinned*. A pinned tooltip freezes what it renders, but clicking another
+  // point has to re-pin onto that point — which needs where the cursor actually
+  // is now, not where the frozen pin sits.
+  const livePositionRef = useRef<EChartsTooltipState['position']>(null);
+  const liveHitRef = useRef<Pick<ProximityHit, 'seriesIndex' | 'dataIndex'> | null>(null);
+
   const flush = useCallback(() => {
     if (flushScheduledRef.current) {
       return;
@@ -181,7 +188,7 @@ export function useEChartsTooltip(
    * without it the emphasis would accumulate across every point hovered.
    */
   const focusPoint = useCallback(
-    (hit: ProximityHit | null): boolean => {
+    (hit: Pick<ProximityHit, 'seriesIndex' | 'dataIndex'> | null): boolean => {
       const previous = lastHitRef.current;
       const next = hit == null ? null : { seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex };
       if (previous?.seriesIndex === next?.seriesIndex && previous?.dataIndex === next?.dataIndex) {
@@ -233,27 +240,38 @@ export function useEChartsTooltip(
     const zr = chart.getZr();
 
     const onMove = (event: { offsetX: number; offsetY: number }) => {
-      if (latestRef.current.pinned) {
-        return;
-      }
-
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) {
         return;
       }
-      update({ position: { x: rect.left + event.offsetX, y: rect.top + event.offsetY } });
+      const position = { x: rect.left + event.offsetX, y: rect.top + event.offsetY };
+      livePositionRef.current = position;
 
       const { series: seriesPoints, hoverProximity: proximity } = proximityRef.current;
+      // ZRender offsets are already relative to the canvas, which is the
+      // coordinate space the chart's pixel conversions use.
+      const hit =
+        seriesPoints != null && seriesPoints.length > 0
+          ? findHoveredPoint(chart, { x: event.offsetX, y: event.offsetY }, seriesPoints, {
+              hoverProximity: proximity,
+            })
+          : null;
+      // Only the index pair: `pinnedItem` is built from this, and the proximity
+      // `distance` is an internal detail that has no business in tooltip state.
+      liveHitRef.current = hit == null ? null : { seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex };
+
+      // Pinned: content, position and the active point all stay frozen. Only the
+      // live refs above keep tracking, so a click can re-pin onto a new point.
+      if (latestRef.current.pinned) {
+        return;
+      }
+
+      update({ position });
+
       if (seriesPoints == null || seriesPoints.length === 0) {
         // Not a proximity-capable chart; ECharts' own hit-testing drives `sink`.
         return;
       }
-
-      // ZRender offsets are already relative to the canvas, which is the
-      // coordinate space the chart's pixel conversions use.
-      const hit = findHoveredPoint(chart, { x: event.offsetX, y: event.offsetY }, seriesPoints, {
-        hoverProximity: proximity,
-      });
 
       // Axis-triggered ("All") tooltips list every series and are shown/hidden by
       // ECharts itself across the whole grid, so proximity must not drive
@@ -354,34 +372,54 @@ export function useEChartsTooltip(
     // On an element click both fire; whichever runs first pins, and the element
     // handler still records the item on the same tick.
     const pinWith = (pinnedItem: EChartsTooltipState['pinnedItem']) => {
-      const cur = latestRef.current;
-      if (cur.pinned || !cur.visible || cur.model == null) {
-        return;
-      }
+      // In proximity mode the click often lands on empty grid *near* a line, so
+      // ECharts reports no element and `pinnedItem` is null — the
+      // proximity-focused point is the one the user meant, and pinning it is
+      // what lets the footer resolve.
+      const target = pinnedItem ?? liveHitRef.current;
+
+      // Re-pin, not just "pin": the previous pin (if any) was dismissed by the
+      // outside-click handler on mousedown, so content, position and the active
+      // point all have to be rebuilt for the newly clicked item rather than
+      // reused. Clearing `pinned` first lets `sink` accept the replayed content.
+      latestRef.current = { ...latestRef.current, pinned: false };
       cancelHide();
 
-      // Pinning freezes the active point along with the content. In proximity
-      // mode the click often lands on empty grid *near* a line, so ECharts
-      // reports no element and `pinnedItem` is null — the proximity-focused
-      // point is the one the user meant, and pinning it is what lets the footer
-      // resolve. Re-asserting the highlight makes the marker owned by the
-      // (persistent) action rather than ZRender's element hover, which clears as
-      // soon as the cursor leaves the symbol.
-      const focused = lastHitRef.current;
-      if (focused != null && !chart.isDisposed()) {
-        chart.dispatchAction({ type: 'highlight', ...focused });
+      // The frozen position belongs to the old pin; the cursor is what the new
+      // one should sit beside.
+      if (livePositionRef.current != null) {
+        update({ position: livePositionRef.current });
       }
-      update({ pinned: true, pinnedItem: pinnedItem ?? focused });
+
+      if (target?.seriesIndex != null && !chart.isDisposed()) {
+        // Re-asserting the highlight makes the marker owned by the (persistent)
+        // action rather than ZRender's element hover, which clears as soon as
+        // the cursor leaves the symbol.
+        focusPoint({ seriesIndex: target.seriesIndex, dataIndex: target.dataIndex ?? 0 });
+        chart.dispatchAction({ type: 'highlight', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
+        // Runs `tooltip.formatter` synchronously, so `sink` has refreshed the
+        // model by the time this returns.
+        chart.dispatchAction({ type: 'showTip', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
+      }
+
+      // Nothing resolved to show (e.g. a click on empty grid after the previous
+      // pin was dismissed): stay unpinned rather than freezing a stale tooltip.
+      const cur = latestRef.current;
+      if (!cur.visible || cur.model == null) {
+        return;
+      }
+      update({ pinned: true, pinnedItem: target });
     };
 
     const onChartClick = (params: { seriesIndex?: number; dataIndex?: number }) => {
       const cur = latestRef.current;
-      // The ZRender click may have pinned first (same user click); still record
-      // the element so the footer resolves. A click while already interactively
-      // pinned never reaches here un-dismissed (the outside-click handler runs
-      // on mousedown, before click).
-      if (cur.pinned && cur.pinnedItem == null) {
-        update({ pinnedItem: { seriesIndex: params.seriesIndex, dataIndex: params.dataIndex } });
+      // The ZRender click runs first and may already have pinned this same user
+      // click, from the proximity-focused point — which outranks whichever
+      // element ECharts happened to hit. Only record the element it found.
+      if (cur.pinned) {
+        if (cur.pinnedItem == null) {
+          update({ pinnedItem: { seriesIndex: params.seriesIndex, dataIndex: params.dataIndex } });
+        }
         return;
       }
       pinWith({ seriesIndex: params.seriesIndex, dataIndex: params.dataIndex });

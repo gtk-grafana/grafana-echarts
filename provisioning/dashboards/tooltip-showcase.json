@@ -895,7 +895,7 @@
           "calcs": []
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "single"
         }
       },
       "targets": [

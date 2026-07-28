@@ -317,7 +317,7 @@ panels.append(panel(
         "internal 'series 0' placeholder) used to leak out as the row label; the label now falls back "
         "to the polygon's own name."
     ),
-    options=echarts_opts("radar", mode="multi"),
+    options=echarts_opts("radar"),
     field_config=links_on("alpha"),
     targets=[csv(
         "metric,alpha,bravo\n"

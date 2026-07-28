@@ -12,7 +12,7 @@ import {
   toDataFrame,
   type ValueFormatter,
 } from '@grafana/data';
-import { LegendDisplayMode, type VizLegendOptions } from '@grafana/schema';
+import { LegendDisplayMode, SortOrder, TooltipDisplayMode, type VizLegendOptions } from '@grafana/schema';
 import { seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
@@ -141,6 +141,56 @@ const seriesArray = (option: PanelOption) => {
   const { series } = option as unknown as { series?: unknown };
   return Array.isArray(series) ? series : series ? [series] : [];
 };
+
+describe('buildPanelChartOption tooltip mode', () => {
+  const radarFrame = (): DataFrame =>
+    toDataFrame({
+      fields: [
+        { name: 'metric', type: FieldType.string, values: ['speed', 'power'] },
+        { name: 'alpha', type: FieldType.number, values: [80, 70] },
+        { name: 'bravo', type: FieldType.number, values: [60, 90] },
+      ],
+    });
+  const noOverrides: FieldConfigSource = { defaults: {}, overrides: [] };
+  const tooltipOf = (option: PanelOption) => (option as unknown as { tooltip?: { show?: boolean } }).tooltip;
+
+  it('clamps a persisted All mode to Single for radar, which has no All tooltip', () => {
+    // The editor no longer offers All (see `modules/multivariate/module.tsx`),
+    // but dashboards saved before that still carry `multi`.
+    const option = buildPanelChartOption(
+      makeContext([radarFrame()], 'radar', noOverrides, {
+        tooltip: { mode: TooltipDisplayMode.Multi, sort: SortOrder.None },
+      }),
+      { isGrafanaLegend: true }
+    );
+
+    // Single on a non-cartesian axis is an item trigger, and the multi-only row
+    // options (sort/hideZeros) never apply.
+    expect(tooltipOf(option)).toMatchObject({ show: true, trigger: 'item' });
+  });
+
+  it('still honours Hidden mode for radar', () => {
+    const option = buildPanelChartOption(
+      makeContext([radarFrame()], 'radar', noOverrides, {
+        tooltip: { mode: TooltipDisplayMode.None, sort: SortOrder.None },
+      }),
+      { isGrafanaLegend: true }
+    );
+
+    expect(tooltipOf(option)).toEqual({ show: false });
+  });
+
+  it('leaves All mode alone for families that support it', () => {
+    const option = buildPanelChartOption(
+      makeContext([timeFrame()], 'line', noOverrides, {
+        tooltip: { mode: TooltipDisplayMode.Multi, sort: SortOrder.None },
+      }),
+      { isGrafanaLegend: true }
+    );
+
+    expect(tooltipOf(option)).toMatchObject({ trigger: 'axis' });
+  });
+});
 
 describe('buildPanelChartOption with all series hidden', () => {
   it('renders a time x-axis with no series for the time cartesian (line) path', () => {

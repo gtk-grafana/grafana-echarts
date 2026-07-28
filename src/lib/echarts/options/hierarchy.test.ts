@@ -63,6 +63,10 @@ const byValueField = (): Field => {
   return { ...field, display: getDisplayProcessor({ field, theme }) };
 };
 
+/** A plain numeric value field, the source the tooltip footer resolves against. */
+const valueField = (): Field =>
+  toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [43, 10] }] }).fields[0];
+
 // Build a hierarchy series with a capturing tooltip sink, invoke its emitting
 // `tooltip.formatter` with a test param, and return the emitted TooltipModel.
 // ECharts types the series `tooltip.formatter` as a wide union; the hierarchy
@@ -181,6 +185,50 @@ describe('getSunburstSeries top-level colors', () => {
 
     expect(nodes.find((node) => node.name === 'io')?.itemStyle?.color).toBe('#abcdef');
     expect(nodes.find((node) => node.name === 'total')?.itemStyle?.color).toBe(getPaletteColorByIndex(0, theme));
+  });
+});
+
+describe('hierarchy tooltip footer source', () => {
+  const rowData: HierarchyData = {
+    roots: [
+      { name: 'Sales', value: 43, sourceRowIndex: 0 },
+      { name: 'Admin', value: 10, sourceRowIndex: 1 },
+    ],
+  };
+
+  it('resolves each node against the row it was built from', () => {
+    // Data links are field-level config in Grafana, so *which* links a node
+    // shows is a property of the value field. What is per-node is the row they
+    // resolve against, which drives link interpolation — so two nodes must not
+    // collapse onto row 0.
+    const field = valueField();
+    const capture = (name: string, sourceRowIndex: number) =>
+      captureTooltip((sink) => getTreemapSeries(rowData, ctx(noOverrides, TooltipDisplayMode.Single, field, sink)), {
+        name,
+        data: { name, value: 1, sourceRowIndex },
+      });
+
+    expect(capture('Sales', 0).source).toEqual({ field, rowIndex: 0 });
+    expect(capture('Admin', 1).source).toEqual({ field, rowIndex: 1 });
+  });
+
+  it('omits the source for a node with no backing row', () => {
+    // Aggregated flame-graph parents have no single row to resolve against.
+    const model = captureTooltip(
+      (sink) => getTreemapSeries(rowData, ctx(noOverrides, TooltipDisplayMode.Single, valueField(), sink)),
+      { name: 'total', data: { name: 'total', value: 100 } }
+    );
+
+    expect(model.source).toBeUndefined();
+  });
+
+  it('omits the source when the hierarchy has no value field', () => {
+    const model = captureTooltip(
+      (sink) => getTreemapSeries(rowData, ctx(noOverrides, TooltipDisplayMode.Single, undefined, sink)),
+      { name: 'Sales', data: { name: 'Sales', value: 43, sourceRowIndex: 0 } }
+    );
+
+    expect(model.source).toBeUndefined();
   });
 });
 

@@ -22,7 +22,7 @@ import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/t
  * | Cartesian single-value | yes    | yes               | reference implementation               |
  * | Candlestick / boxplot  | yes    | yes (per row)     | one row per packed dimension           |
  * | Pie                    | yes    | yes               | only family setting `emphasis` itself  |
- * | Radar                  | yes    | yes               | rows share one series name as label    |
+ * | Radar                  | yes    | yes               | one row per hovered polygon            |
  * | Hierarchy              | yes    | yes               | rows are `Value` / `Self`              |
  * | Heatmap (both layouts) | yes    | yes               | rows are `Value` / `Name`              |
  *

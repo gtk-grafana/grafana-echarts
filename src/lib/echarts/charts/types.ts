@@ -169,6 +169,13 @@ export interface ChartModule {
    * {@link TooltipModelOptions.multiValueDimensions}.
    */
   getTooltipDimensions?(ctx: ChartContext): string[] | undefined;
+  /**
+   * The family has no meaningful "All" tooltip, so a persisted
+   * `tooltip.mode: multi` is clamped back to Single when building the option.
+   * Its editor should also pass `singleOnly` to `addTooltipOptions`; this covers
+   * dashboards saved before the option was withdrawn.
+   */
+  singleTooltipOnly?: boolean;
 }
 
 export type CartesianOption = ComposeOption<

@@ -56,7 +56,14 @@ export function buildPanelChartOption(
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
   const hasTimeField = framesHaveTimeField(ctx.frames);
   const axisType = panelTypeToAxis(ctx, hasTimeField);
-  const tooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
+  // Families with no meaningful "All" tooltip clamp a persisted `multi` back to
+  // Single: their editor no longer offers it, but a dashboard saved before that
+  // still carries the value (see `ChartModule.singleTooltipOnly`).
+  const requestedTooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
+  const tooltipMode =
+    chartModule.singleTooltipOnly && requestedTooltipMode === TooltipDisplayMode.Multi
+      ? TooltipDisplayMode.Single
+      : requestedTooltipMode;
   // Per-series resolver so each row honors its field's unit/decimals overrides.
   const resolveValueFormatter = chartModule.getTooltipValueFormatter(ctx);
   // Optional per-family field resolver so hovered items can surface their

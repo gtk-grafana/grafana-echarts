@@ -9,6 +9,11 @@ import { type ChartContext, type ChartModule, type EChartRadarSeriesOption } fro
 
 export const radarChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
+  // @todo restore "All" once a radar hover expands into one row per indicator.
+  // ECharts hands the formatter a single param whose `value` is the polygon's
+  // whole indicator array, so today an All tooltip would repeat that one row
+  // rather than list the axes. See the multivariate parity doc.
+  singleTooltipOnly: true,
 
   getTooltipValueFormatter(ctx) {
     // Each polygon is one numeric field rendered as a data item in a single

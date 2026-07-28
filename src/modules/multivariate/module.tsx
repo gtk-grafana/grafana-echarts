@@ -34,7 +34,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
   })
   .setPanelOptions((builder) => {
     commonOptionsBuilder.addLegendOptions(builder);
-    commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
+    // Single/Hidden only: a radar hover already carries every indicator of the
+    // polygon, so "All" has no extra rows to list (see `radarChartModule`).
+    commonOptionsBuilder.addTooltipOptions(builder, true, false, TOOLTIP_DEFAULT_OPTIONS);
     return builder;
   })
   // Advertise fitness for multi-metric numeric data (opts in via `"suggestions": true`).

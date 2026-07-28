@@ -52,17 +52,28 @@ const dispatch = async (chart: EChartsType, type: string, x: number, y: number) 
   });
 };
 
-const tooltipText = () => document.querySelector(`[${TOOLTIP_MARKER_ATTR}]`)?.textContent ?? '';
+const tooltipEl = () => document.querySelector<HTMLElement>(`[${TOOLTIP_MARKER_ATTR}]`);
+const tooltipText = () => tooltipEl()?.textContent ?? '';
+
+/** Emulate a browser click: zrender only synthesizes `click` after a press pair. */
+const clickAt = async (chart: EChartsType, x: number, y: number) => {
+  // The document-level mousedown is what dismisses a pinned tooltip, so it has
+  // to fire too — re-pinning depends on the click rebuilding state afterwards.
+  await act(async () => {
+    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+  });
+  await dispatch(chart, 'mousedown', x, y);
+  await dispatch(chart, 'mouseup', x, y);
+  await dispatch(chart, 'click', x, y);
+};
 
 /** Hover each candidate point until one lands on a chart item, then click to pin. */
-const hoverAndPin = async (chart: EChartsType, points: Array<[number, number]>) => {
+const hoverAndPin = async (chart: EChartsType, points: Array<[number, number]>): Promise<readonly [number, number]> => {
   for (const [x, y] of points) {
     await dispatch(chart, 'mousemove', x, y);
     if (tooltipText() !== '') {
-      await dispatch(chart, 'mousedown', x, y);
-      await dispatch(chart, 'mouseup', x, y);
-      await dispatch(chart, 'click', x, y);
-      return;
+      await clickAt(chart, x, y);
+      return [x, y] as const;
     }
   }
   throw new Error('No chart item was hoverable at any candidate point');
@@ -90,6 +101,50 @@ const categoryFrame = () =>
     }),
     'value'
   );
+
+/** Two candidate points that hover *different* items, for re-pin coverage. */
+const findTwoItems = async (chart: EChartsType, points: Array<[number, number]>) => {
+  const found: Array<{ point: [number, number]; text: string }> = [];
+  for (const point of points) {
+    await dispatch(chart, 'mousemove', point[0], point[1]);
+    const text = tooltipText();
+    if (text !== '' && !found.some((entry) => entry.text === text)) {
+      found.push({ point, text });
+      if (found.length === 2) {
+        return found;
+      }
+    }
+  }
+  throw new Error('Could not hover two distinct items');
+};
+
+describe('re-pinning', () => {
+  it('moves an existing pin onto the newly clicked point, content and position', async () => {
+    const chart = await renderPanel([categoryFrame()], 'treemap', 'hierarchy');
+    const [first, second] = await findTwoItems(chart, [
+      [60, 60],
+      [200, 120],
+      [330, 60],
+      [330, 200],
+      [60, 200],
+    ]);
+
+    await dispatch(chart, 'mousemove', first.point[0], first.point[1]);
+    await clickAt(chart, first.point[0], first.point[1]);
+    const pinnedText = tooltipText();
+    const pinnedTransform = tooltipEl()?.style.transform;
+    expect(pinnedText).toContain(first.text);
+
+    // Click a different item while still pinned. Without re-pinning, a pinned
+    // tooltip freezes both content and position, so it would keep describing —
+    // and sit beside — the first point.
+    await dispatch(chart, 'mousemove', second.point[0], second.point[1]);
+    await clickAt(chart, second.point[0], second.point[1]);
+
+    expect(tooltipText()).toContain(second.text);
+    expect(tooltipEl()?.style.transform).not.toBe(pinnedTransform);
+  });
+});
 
 describe('pinned tooltip data links', () => {
   it('resolves a treemap node back to its source row', async () => {
