@@ -1,5 +1,6 @@
 import { type EChartsType } from 'echarts';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
+import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
 import { getInstanceByDom } from 'lib/echarts/echarts';
 
 /**
@@ -101,6 +102,65 @@ export const setupECharts = (container: HTMLElement) => {
 
 export const removeCanvasClear = (events: CanvasRenderingContext2DEvent[]) =>
   events.filter((e) => e.type !== 'clearRect');
+
+// Cross-platform float determinism for canvas snapshots.
+//
+// ECharts lays out arc/pie and axis geometry with trig (`Math.sin`/`Math.cos`),
+// whose results are only defined to be *close* to the true value: the last
+// unit-in-the-last-place can differ between V8 builds and CPU architectures
+// (e.g. local Node 24 vs the CI-pinned Node 22). JavaScript then serializes two
+// doubles that are 1 ULP apart to different shortest round-trip strings
+// (`65.34554082152242` vs `65.34554082152243`), so a raw-float snapshot flakes
+// even though the drawing is pixel-identical.
+//
+// Quantizing every coordinate to a fixed sub-pixel precision collapses that
+// noise: 1e-6 px sits ~7 orders of magnitude above the ~1e-13 float noise floor
+// yet ~6 orders below a meaningful pixel, so genuine geometry regressions still
+// surface while ULP jitter never does.
+export const CANVAS_SNAPSHOT_PRECISION = 6;
+
+const ROUND_FACTOR = 10 ** CANVAS_SNAPSHOT_PRECISION;
+
+const roundNumber = (value: number): number => {
+  if (!Number.isFinite(value)) {
+    return value; // leave NaN / ±Infinity untouched
+  }
+  const rounded = Math.round(value * ROUND_FACTOR) / ROUND_FACTOR;
+  return rounded === 0 ? 0 : rounded; // normalize -0 to +0 for stable serialization
+};
+
+const roundDeep = (value: unknown): unknown => {
+  if (typeof value === 'number') {
+    return roundNumber(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(roundDeep);
+  }
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, roundDeep(inner)]));
+  }
+  return value;
+};
+
+/**
+ * Deep-clone `events`, rounding every finite number (coordinates, transform
+ * matrix entries, nested `props.path` segments) to {@link CANVAS_SNAPSHOT_PRECISION}
+ * decimal places so committed snapshots stay stable across platforms. Strings
+ * (colors, gradients) and non-finite values pass through unchanged. The input is
+ * never mutated — the same event objects are also handed to the compare viewer
+ * as unrounded context.
+ */
+export const roundCanvasEvents = <T>(events: T): T => roundDeep(events) as T;
+
+/**
+ * Normalize raw draw calls for snapshotting: strip `clearRect` calls, drop the
+ * canvas transform events, and round every coordinate to
+ * {@link CANVAS_SNAPSHOT_PRECISION}. This is the standard pipeline for the
+ * `toMatchCanvasSnapshot` assertions, replacing
+ * `roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(events)))`.
+ */
+export const normalizeCanvasEvents = (events: CanvasRenderingContext2DEvent[]) =>
+  roundCanvasEvents(removeCanvasTransforms(removeCanvasClear(events)));
 
 export function clearMockedCanvasEvents(ctx: CanvasRenderingContext2D) {
   ctx.__clearDrawCalls();

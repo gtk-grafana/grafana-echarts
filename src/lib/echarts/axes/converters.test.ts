@@ -60,6 +60,7 @@ describe('panelTypeToAxis', () => {
 
   it('maps non-cartesian families to a category axis', () => {
     expect(panelTypeToAxis(makeContext('pie'))).toBe('category');
+    expect(panelTypeToAxis(makeContext('funnel'))).toBe('category');
     expect(panelTypeToAxis(makeContext('radar'))).toBe('category');
   });
 

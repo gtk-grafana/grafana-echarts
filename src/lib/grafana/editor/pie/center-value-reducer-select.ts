@@ -1,6 +1,6 @@
 import { fieldReducers, type PanelOptionsEditorBuilder, type SelectableValue } from '@grafana/data';
 import { pieCenterValueReducerPath } from 'editor/pie';
-import { addAdvancedSelect } from 'lib/grafana/editor/common/advanced-options';
+import { addAdvancedSelect, composeShowIf, type ExtraShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /** Grafana reducer options (id → display name) for the center-readout select. */
@@ -15,12 +15,15 @@ const reducerOptions: Array<SelectableValue<string>> = fieldReducers
  * donut-center readout. Unset leaves the center empty until a slice is hovered.
  * Rendered by `getPieCenterTitle`.
  */
-export function addPieCenterValueReducerOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieCenterValueReducerOptions(
+  builder: PanelOptionsEditorBuilder<PanelOptions>,
+  showIf?: ExtraShowIf
+) {
   addAdvancedSelect(builder, {
     path: pieCenterValueReducerPath,
     name: 'Center value',
     description: 'Reducer aggregating the slices into the donut-center readout (shown with center labels)',
     settings: { options: reducerOptions },
-    showIf: (options) => options.labelPosition === 'center',
+    showIf: composeShowIf(showIf, (options) => options.labelPosition === 'center'),
   });
 }

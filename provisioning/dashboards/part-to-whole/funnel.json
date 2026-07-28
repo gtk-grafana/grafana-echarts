@@ -1,0 +1,241 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Chart type = Funnel. The funnel reuses the pie slice model verbatim (same frames, same Sum/All-values reducer, same per-slice colors, legend, tooltip and Name/Value/Percent labels); only the layout differs. Segment width is proportional to value (min: 0), and the shared Slice sorting drives the top-to-bottom order.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "funnel",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "displayLabels": ["name", "value"],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nSales,43\nAdmin,25\nIT,30\nSupport,48\nOps,22"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Funnel — vertical (default)",
+      "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Same data as the vertical funnel, laid out horizontally (Advanced → Funnel orientation = Horizontal). Advanced editor mode is required for the orientation to take effect.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "funnel",
+        "editorMode": "advanced",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "displayLabels": ["name", "value"],
+        "funnelOrient": "horizontal",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nSales,43\nAdmin,25\nIT,30\nSupport,48\nOps,22"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Funnel — horizontal",
+      "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Name + Value + Percent labels on each segment, reusing the pie label content builder. Percent is each segment's share of the visible total (so labels and tooltip agree).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "funnel",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "displayLabels": ["name", "value", "percent"],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nSales,43\nAdmin,25\nIT,30\nSupport,48\nOps,22"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Funnel — name + value + percent labels",
+      "type": "grafana-echartsparttowhole-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "part-to-whole", "funnel"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Part-to-whole — funnel",
+  "uid": "f1a2b3c4-0819-42a3-b4c5-d6e7f0020304",
+  "version": 1,
+  "weekStart": ""
+}

@@ -3,8 +3,7 @@ import { GraphThresholdsStyleMode } from '@grafana/schema';
 import { render } from '@testing-library/react';
 import { cartesianTimeSeriesTypes } from 'editor/constants';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
-import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
+import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getCanvasEvents, getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 
 // Integration test: render the real <Panel /> (React glue + ECharts init +
@@ -37,7 +36,7 @@ describe('Panel canvas renders', () => {
         );
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -63,7 +62,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -106,7 +105,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -136,7 +135,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -167,7 +166,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -204,7 +203,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -234,7 +233,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -264,7 +263,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -293,7 +292,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -339,7 +338,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -369,7 +368,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -417,7 +416,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -437,7 +436,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -458,7 +457,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -497,7 +496,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -517,7 +516,7 @@ describe('Panel canvas renders', () => {
 
         const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });

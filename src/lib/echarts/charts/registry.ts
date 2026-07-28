@@ -5,17 +5,17 @@ import {
   multiValueSeriesTypes,
   radarSeriesTypes,
 } from 'editor/constants';
-import { pieSeriesTypes } from 'editor/pie';
+import { partToWholeSeriesTypes } from 'editor/pie';
 import { type SeriesType } from 'editor/types';
 import { isHierarchySeriesType, isMultiValueSeriesType, isCartesianSingleValueSeriesType } from './narrowing';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
 import { hierarchyChartModule } from './hierarchy';
-import { pieChartModule } from './pie';
+import { partToWholeChartModule, pieChartModule } from './pie';
 import { radarChartModule } from './radar';
 import { type ChartModule } from './types';
 
-const pieModule = pieChartModule;
+const partToWholeModule = partToWholeChartModule;
 const radarModule = radarChartModule;
 
 /** All series types with a registered chart module. */
@@ -24,7 +24,7 @@ export const supportedChartSeriesTypes: SeriesType[] = [
   ...multiValueSeriesTypes,
   ...heatmapSeriesTypes,
   ...radarSeriesTypes,
-  ...pieSeriesTypes,
+  ...partToWholeSeriesTypes,
   ...hierarchySeriesTypes,
 ];
 
@@ -50,8 +50,10 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (radarSeriesTypes.includes(seriesType)) {
     return radarModule;
   }
-  if (pieSeriesTypes.includes(seriesType)) {
-    return pieModule;
+  // Pie and funnel share the part-to-whole module; the module picks the render
+  // variant from the type.
+  if (partToWholeSeriesTypes.includes(seriesType)) {
+    return partToWholeModule;
   }
   // Treemap and sunburst share the hierarchy module; the module picks the render
   // variant from the type.
@@ -61,4 +63,11 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   throw new Error(`Cannot resolve chart module, invalid ${seriesType}!`);
 }
 
-export { cartesianChartModule, heatmapChartModule, hierarchyChartModule, pieChartModule, radarChartModule };
+export {
+  cartesianChartModule,
+  heatmapChartModule,
+  hierarchyChartModule,
+  partToWholeChartModule,
+  pieChartModule,
+  radarChartModule,
+};

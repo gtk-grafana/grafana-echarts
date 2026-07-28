@@ -7,9 +7,23 @@ data frame in a **nested set model**.
 > **Not a data plane contract kind.** Like [node-graph.md](./node-graph.md), flame
 > graph is **out of the Grafana data plane contract**. It carries no
 > `frame.meta.type`. Grafana identifies it through a separate routing signal
-> (`frame.meta.preferredVisualisationType`). This doc documents the **input frame
-> format** Grafana expects; the plugin does **not** consume these frames yet (see
-> [../todo/flame-graph.md](../todo/flame-graph.md)).
+> (`frame.meta.preferredVisualisationType`).
+
+> **Implemented.** This plugin consumes these frames: `frameToHierarchy`
+> (`src/lib/echarts/converters/hierarchy.ts`) rebuilds the call tree from the
+> nested set and renders it as a **treemap** or **sunburst** — see
+> [hierarchy.md](./hierarchy.md). This doc describes the **input frame format**;
+> the hierarchy doc describes the tree model and the charts. ECharts has no native
+> flame/icicle series, so the classic left-aligned stacked-bar layout (a `custom`
+> `renderItem` series) remains unbuilt — `todo/flame-graph.md` sketches it, though
+> that doc predates the hierarchy converter and still reads as if nothing exists.
+
+Live examples ship in `provisioning/dashboards/hierarchy.json` ("ECharts
+Hierarchy treemap and sunburst"): _Treemap (flame-graph nested set)_ and
+_Sunburst (flame-graph nested set)_ build the frame from TestData CSV content and
+are detected by field shape, while _Treemap (TestData flame graph)_ uses
+TestData's built-in `flame_graph` scenario, which carries the real
+`meta.preferredVisualisationType` signal and an enum `label` field.
 
 Field names below come from Grafana's flame graph data transform
 (`packages/grafana-flamegraph/src/FlameGraph/dataTransform.ts`) and the flame
@@ -36,6 +50,11 @@ Grafana treats a response as a flame graph when:
 
 - `frame.meta.preferredVisualisationType === 'flamegraph'`.
 
+`isFlameGraphFrame` (`src/lib/echarts/converters/hierarchy.ts`) takes that as the
+canonical signal, then falls back to the nested-set **field shape** — a numeric
+`level`, a numeric `value`, and a `label` field — so provisioned TestData CSV,
+which cannot set the meta signal, still renders.
+
 ## Required fields
 
 | Field name | Type           | Description                                                                                                      |
@@ -57,6 +76,12 @@ top table show baseline, comparison, and diff values.
 
 Both diff fields must be present together — supplying only one is a malformed
 frame.
+
+> **Spec only.** `valueRight` and `selfRight` are documented here for
+> completeness but are **not read anywhere in `src/`**: `flameGraphToRoots`
+> (`src/lib/echarts/converters/hierarchy.ts`) resolves only `level`, `value`,
+> `self`, and `label`, so a diff profile currently renders as its baseline side
+> alone.
 
 ## Example
 

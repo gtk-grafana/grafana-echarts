@@ -7,7 +7,7 @@ import {
   pieLabelTextShadowPath,
   pieLabelTextStrokePath,
 } from 'editor/pie';
-import { addAdvancedBooleanSwitch } from 'lib/grafana/editor/common/advanced-options';
+import { addAdvancedBooleanSwitch, type ExtraShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 /**
@@ -17,12 +17,16 @@ import { type PanelOptions } from 'types';
  * re-enable switches, all in the "Advanced" category. The text switches re-enable
  * the ECharts label shadow/stroke that `getPieLabelStyle` zeroes by default.
  */
-export function addPieAnimationTextStyleOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
+export function addPieAnimationTextStyleOptions(
+  builder: PanelOptionsEditorBuilder<PanelOptions>,
+  showIf?: ExtraShowIf
+) {
   addAdvancedBooleanSwitch(builder, {
     path: pieAnimationEnabledPath,
     name: 'Animation',
     description: 'Animate the pie on load and update',
     defaultValue: PIE_ANIMATION_ENABLED_DEFAULT,
+    showIf,
   });
 
   addAdvancedBooleanSwitch(builder, {
@@ -30,6 +34,7 @@ export function addPieAnimationTextStyleOptions(builder: PanelOptionsEditorBuild
     name: 'Label text shadow',
     description: 'Draw a drop shadow behind slice labels',
     defaultValue: PIE_LABEL_TEXT_SHADOW_DEFAULT,
+    showIf,
   });
 
   addAdvancedBooleanSwitch(builder, {
@@ -37,5 +42,6 @@ export function addPieAnimationTextStyleOptions(builder: PanelOptionsEditorBuild
     name: 'Label text stroke',
     description: 'Draw a contrast stroke around slice-label text',
     defaultValue: PIE_LABEL_TEXT_STROKE_DEFAULT,
+    showIf,
   });
 }

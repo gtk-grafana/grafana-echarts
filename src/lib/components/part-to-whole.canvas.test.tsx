@@ -1,8 +1,7 @@
 import { FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
 import { render } from '@testing-library/react';
-import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import { removeCanvasClear, SERIES_ZLEVEL } from 'test/canvas';
+import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
@@ -20,10 +19,10 @@ import { type PanelOptions } from 'types';
 // Render in Advanced editor mode so the advanced options these tests exercise
 // (rose type, angles, center label, borders, …) are respected as-is. In Default
 // (rose type, angles, center label, borders, …) are respected as-is. In Default
-// mode `applyPieEditorModeDefaults` resets every advanced option to its default —
+// mode `applyPartToWholeEditorModeDefaults` resets every advanced option to its default —
 // including forcing `animation.enabled` back on, which would clobber the
 // `animation: { enabled: false }` these snapshots rely on for determinism. The
-// Default-mode reset itself is covered by the `applyPieEditorModeDefaults` unit tests.
+// Default-mode reset itself is covered by the `applyPartToWholeEditorModeDefaults` unit tests.
 const pieOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
   zLevel: { series: SERIES_ZLEVEL },
   animation: { enabled: false },
@@ -71,7 +70,7 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['sum'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -82,7 +81,7 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['mean'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -93,7 +92,7 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: [], values: true, limit: 3 },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -113,7 +112,7 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: ['sum'], values: false },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -129,7 +128,7 @@ describe('part-to-whole canvas renders', () => {
         pieType: 'donut',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -145,7 +144,7 @@ describe('part-to-whole canvas renders', () => {
         sort: SortOrder.Ascending,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -172,7 +171,7 @@ describe('part-to-whole canvas renders', () => {
         minAngle: 10,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -190,7 +189,7 @@ describe('part-to-whole canvas renders', () => {
         endAngle: 360,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -204,7 +203,7 @@ describe('part-to-whole canvas renders', () => {
         endAngle: 360,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -221,7 +220,7 @@ describe('part-to-whole canvas renders', () => {
         displayLabels: ['name', 'value', 'percent'],
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -247,7 +246,7 @@ describe('part-to-whole canvas renders', () => {
         roseType: 'radius',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -259,7 +258,7 @@ describe('part-to-whole canvas renders', () => {
         roseType: 'area',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -278,7 +277,7 @@ describe('part-to-whole canvas renders', () => {
         labelPosition: 'inside',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -295,7 +294,7 @@ describe('part-to-whole canvas renders', () => {
         labelPosition: 'center',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -321,7 +320,7 @@ describe('part-to-whole canvas renders', () => {
         fieldConfig
       );
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -346,7 +345,7 @@ describe('part-to-whole canvas renders', () => {
         reduceOptions: { calcs: [], values: true },
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -382,7 +381,7 @@ describe('part-to-whole canvas renders', () => {
         labelFontSize: 24,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -404,7 +403,7 @@ describe('part-to-whole canvas renders', () => {
         selectedOffset: 20,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -421,7 +420,7 @@ describe('part-to-whole canvas renders', () => {
         labelWidth: 80,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -436,7 +435,7 @@ describe('part-to-whole canvas renders', () => {
         sliceBorderRadius: 12,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -461,7 +460,7 @@ describe('part-to-whole canvas renders', () => {
         stillShowZeroSum: false,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -476,7 +475,7 @@ describe('part-to-whole canvas renders', () => {
         clockwise: false,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -492,7 +491,7 @@ describe('part-to-whole canvas renders', () => {
         labelColor: '#ff0000',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -508,7 +507,7 @@ describe('part-to-whole canvas renders', () => {
         minShowLabelAngle: 10,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -524,7 +523,7 @@ describe('part-to-whole canvas renders', () => {
         sliceBorderColor: '#000000',
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -541,7 +540,7 @@ describe('part-to-whole canvas renders', () => {
         centerX: 30,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });
@@ -558,7 +557,7 @@ describe('part-to-whole canvas renders', () => {
         labelTextShadow: true,
       });
 
-      expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
         width,
         height,
       });

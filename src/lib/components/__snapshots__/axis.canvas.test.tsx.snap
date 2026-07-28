@@ -814,14 +814,14 @@ exports[`Panel canvas axis renders grid 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000004,
+      "x": 14,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -835,14 +835,14 @@ exports[`Panel canvas axis renders grid 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000004,
+            "x": 14,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -857,14 +857,14 @@ exports[`Panel canvas axis renders grid 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000007,
+      "x": 14,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -878,14 +878,14 @@ exports[`Panel canvas axis renders grid 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000007,
+            "x": 14,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -900,14 +900,14 @@ exports[`Panel canvas axis renders grid 1`] = `
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.00000000000001,
+      "x": 14,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -921,14 +921,14 @@ exports[`Panel canvas axis renders grid 1`] = `
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.00000000000001,
+            "x": 14,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -943,14 +943,14 @@ exports[`Panel canvas axis renders grid 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000014,
+      "x": 14,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -964,14 +964,14 @@ exports[`Panel canvas axis renders grid 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000014,
+            "x": 14,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -1370,8 +1370,8 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 10,
       "f": 251,
@@ -1468,10 +1468,10 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000004,
+      "e": 10,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -1506,10 +1506,10 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000007,
+      "e": 10,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -1544,10 +1544,10 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.00000000000001,
+      "e": 10,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -1582,10 +1582,10 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000014,
+      "e": 10,
       "f": 8,
     },
     "type": "setTransform",
@@ -1623,7 +1623,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 78.3242727777778,
+      "e": 78.324273,
       "f": 259,
     },
     "type": "setTransform",
@@ -1661,7 +1661,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 120.76871722222221,
+      "e": 120.768717,
       "f": 259,
     },
     "type": "setTransform",
@@ -1699,7 +1699,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 205.6576061111111,
+      "e": 205.657606,
       "f": 259,
     },
     "type": "setTransform",
@@ -1737,7 +1737,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 248.10205055555556,
+      "e": 248.102051,
       "f": 259,
     },
     "type": "setTransform",
@@ -1775,7 +1775,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 332.99093944444445,
+      "e": 332.990939,
       "f": 259,
     },
     "type": "setTransform",
@@ -1813,7 +1813,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 375.4353838888889,
+      "e": 375.435384,
       "f": 259,
     },
     "type": "setTransform",
@@ -1851,7 +1851,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 35.879828333333336,
+      "e": 35.879828,
       "f": 259,
     },
     "type": "setTransform",
@@ -1889,7 +1889,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 163.21316166666665,
+      "e": 163.213162,
       "f": 259,
     },
     "type": "setTransform",
@@ -2775,14 +2775,14 @@ exports[`Panel canvas axis renders grid 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000004,
+      "x": 14,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -2796,14 +2796,14 @@ exports[`Panel canvas axis renders grid 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000004,
+            "x": 14,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -2818,14 +2818,14 @@ exports[`Panel canvas axis renders grid 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000007,
+      "x": 14,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -2839,14 +2839,14 @@ exports[`Panel canvas axis renders grid 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000007,
+            "x": 14,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -2861,14 +2861,14 @@ exports[`Panel canvas axis renders grid 1`] = `
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.00000000000001,
+      "x": 14,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -2882,14 +2882,14 @@ exports[`Panel canvas axis renders grid 1`] = `
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.00000000000001,
+            "x": 14,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -2904,14 +2904,14 @@ exports[`Panel canvas axis renders grid 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000014,
+      "x": 14,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -2925,14 +2925,14 @@ exports[`Panel canvas axis renders grid 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000014,
+            "x": 14,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -3331,8 +3331,8 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 10,
       "f": 251,
@@ -3429,10 +3429,10 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000004,
+      "e": 10,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -3467,10 +3467,10 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000007,
+      "e": 10,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -3505,10 +3505,10 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.00000000000001,
+      "e": 10,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -3543,10 +3543,10 @@ exports[`Panel canvas axis renders grid 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000014,
+      "e": 10,
       "f": 8,
     },
     "type": "setTransform",
@@ -3584,7 +3584,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 78.3242727777778,
+      "e": 78.324273,
       "f": 259,
     },
     "type": "setTransform",
@@ -3622,7 +3622,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 120.76871722222221,
+      "e": 120.768717,
       "f": 259,
     },
     "type": "setTransform",
@@ -3660,7 +3660,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 205.6576061111111,
+      "e": 205.657606,
       "f": 259,
     },
     "type": "setTransform",
@@ -3698,7 +3698,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 248.10205055555556,
+      "e": 248.102051,
       "f": 259,
     },
     "type": "setTransform",
@@ -3736,7 +3736,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 332.99093944444445,
+      "e": 332.990939,
       "f": 259,
     },
     "type": "setTransform",
@@ -3774,7 +3774,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 375.4353838888889,
+      "e": 375.435384,
       "f": 259,
     },
     "type": "setTransform",
@@ -3812,7 +3812,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 35.879828333333336,
+      "e": 35.879828,
       "f": 259,
     },
     "type": "setTransform",
@@ -3850,7 +3850,7 @@ exports[`Panel canvas axis renders grid 1`] = `
       "b": 0,
       "c": 0,
       "d": 1,
-      "e": 163.21316166666665,
+      "e": 163.213162,
       "f": 259,
     },
     "type": "setTransform",
@@ -4096,14 +4096,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   },
   {
     "props": {
-      "x": 32.00000000000001,
+      "x": 32,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.000000000000004,
+      "x": 28,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -4117,14 +4117,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
         },
         {
           "props": {
-            "x": 32.00000000000001,
+            "x": 32,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.000000000000004,
+            "x": 28,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -4139,14 +4139,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   },
   {
     "props": {
-      "x": 32.000000000000014,
+      "x": 32,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.00000000000001,
+      "x": 28,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -4160,14 +4160,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
         },
         {
           "props": {
-            "x": 32.000000000000014,
+            "x": 32,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.00000000000001,
+            "x": 28,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -4354,14 +4354,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   },
   {
     "props": {
-      "x": 245.00000000000003,
+      "x": 245,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 249.00000000000003,
+      "x": 249,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -4375,14 +4375,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
         },
         {
           "props": {
-            "x": 245.00000000000003,
+            "x": 245,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 249.00000000000003,
+            "x": 249,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -4609,10 +4609,10 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.000000000000004,
+      "e": 24,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -4707,10 +4707,10 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.00000000000001,
+      "e": 24,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -4745,8 +4745,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 251,
@@ -4783,8 +4783,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 190.25,
@@ -4821,8 +4821,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 129.5,
@@ -4859,8 +4859,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 68.75,
@@ -4897,8 +4897,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 8,
@@ -4935,8 +4935,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 251,
@@ -4973,8 +4973,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 190.25,
@@ -5011,8 +5011,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 129.5,
@@ -5049,8 +5049,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 68.75,
@@ -5087,8 +5087,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 8,
@@ -5293,14 +5293,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   },
   {
     "props": {
-      "x": 32.00000000000001,
+      "x": 32,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.000000000000004,
+      "x": 28,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -5314,14 +5314,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
         },
         {
           "props": {
-            "x": 32.00000000000001,
+            "x": 32,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.000000000000004,
+            "x": 28,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -5336,14 +5336,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   },
   {
     "props": {
-      "x": 32.000000000000014,
+      "x": 32,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.00000000000001,
+      "x": 28,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -5357,14 +5357,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
         },
         {
           "props": {
-            "x": 32.000000000000014,
+            "x": 32,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.00000000000001,
+            "x": 28,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -5551,14 +5551,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   },
   {
     "props": {
-      "x": 245.00000000000003,
+      "x": 245,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 249.00000000000003,
+      "x": 249,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -5572,14 +5572,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
         },
         {
           "props": {
-            "x": 245.00000000000003,
+            "x": 245,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 249.00000000000003,
+            "x": 249,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -5806,10 +5806,10 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.000000000000004,
+      "e": 24,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -5904,10 +5904,10 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.00000000000001,
+      "e": 24,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -5942,8 +5942,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 251,
@@ -5980,8 +5980,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 190.25,
@@ -6018,8 +6018,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 129.5,
@@ -6056,8 +6056,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 68.75,
@@ -6094,8 +6094,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 253,
       "f": 8,
@@ -6132,8 +6132,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 251,
@@ -6170,8 +6170,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 190.25,
@@ -6208,8 +6208,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 129.5,
@@ -6246,8 +6246,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 68.75,
@@ -6284,8 +6284,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes two units (right-right
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 303,
       "f": 8,
@@ -6495,14 +6495,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   },
   {
     "props": {
-      "x": 32.00000000000001,
+      "x": 32,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.000000000000004,
+      "x": 28,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -6516,14 +6516,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
         },
         {
           "props": {
-            "x": 32.00000000000001,
+            "x": 32,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.000000000000004,
+            "x": 28,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -6538,14 +6538,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   },
   {
     "props": {
-      "x": 32.000000000000014,
+      "x": 32,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.00000000000001,
+      "x": 28,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -6559,14 +6559,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
         },
         {
           "props": {
-            "x": 32.000000000000014,
+            "x": 32,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.00000000000001,
+            "x": 28,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -6793,10 +6793,10 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.000000000000004,
+      "e": 24,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -6891,10 +6891,10 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.00000000000001,
+      "e": 24,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -6929,8 +6929,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 251,
@@ -6967,8 +6967,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 190.25,
@@ -7005,8 +7005,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 129.5,
@@ -7043,8 +7043,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 68.75,
@@ -7081,8 +7081,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 8,
@@ -7287,14 +7287,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   },
   {
     "props": {
-      "x": 32.00000000000001,
+      "x": 32,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.000000000000004,
+      "x": 28,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -7308,14 +7308,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
         },
         {
           "props": {
-            "x": 32.00000000000001,
+            "x": 32,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.000000000000004,
+            "x": 28,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -7330,14 +7330,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   },
   {
     "props": {
-      "x": 32.000000000000014,
+      "x": 32,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.00000000000001,
+      "x": 28,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -7351,14 +7351,14 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
         },
         {
           "props": {
-            "x": 32.000000000000014,
+            "x": 32,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.00000000000001,
+            "x": 28,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -7585,10 +7585,10 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.000000000000004,
+      "e": 24,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -7683,10 +7683,10 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.00000000000001,
+      "e": 24,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -7721,8 +7721,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 251,
@@ -7759,8 +7759,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 190.25,
@@ -7797,8 +7797,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 129.5,
@@ -7835,8 +7835,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 68.75,
@@ -7873,8 +7873,8 @@ exports[`Panel canvas axis renders heatmap overlay y-axes unit hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 314,
       "f": 8,
@@ -8385,14 +8385,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 216.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000002,
+      "x": 14,
       "y": 216.5,
     },
     "type": "lineTo",
@@ -8406,14 +8406,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 216.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000002,
+            "x": 14,
             "y": 216.5,
           },
           "type": "lineTo",
@@ -8428,14 +8428,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 181.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000004,
+      "x": 14,
       "y": 181.5,
     },
     "type": "lineTo",
@@ -8449,14 +8449,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 181.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000004,
+            "x": 14,
             "y": 181.5,
           },
           "type": "lineTo",
@@ -8471,14 +8471,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 147.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000007,
+      "x": 14,
       "y": 147.5,
     },
     "type": "lineTo",
@@ -8492,14 +8492,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 147.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000007,
+            "x": 14,
             "y": 147.5,
           },
           "type": "lineTo",
@@ -8514,14 +8514,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 112.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000009,
+      "x": 14,
       "y": 112.5,
     },
     "type": "lineTo",
@@ -8535,14 +8535,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 112.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000009,
+            "x": 14,
             "y": 112.5,
           },
           "type": "lineTo",
@@ -8557,14 +8557,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 77.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.00000000000001,
+      "x": 14,
       "y": 77.5,
     },
     "type": "lineTo",
@@ -8578,14 +8578,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 77.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.00000000000001,
+            "x": 14,
             "y": 77.5,
           },
           "type": "lineTo",
@@ -8600,14 +8600,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 42.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000012,
+      "x": 14,
       "y": 42.5,
     },
     "type": "lineTo",
@@ -8621,14 +8621,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 42.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000012,
+            "x": 14,
             "y": 42.5,
           },
           "type": "lineTo",
@@ -8643,14 +8643,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000014,
+      "x": 14,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -8664,14 +8664,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000014,
+            "x": 14,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -8683,8 +8683,8 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 10,
       "f": 251,
@@ -8781,11 +8781,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000002,
-      "f": 216.28571428571428,
+      "e": 10,
+      "f": 216.285714,
     },
     "type": "setTransform",
   },
@@ -8819,11 +8819,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000004,
-      "f": 181.57142857142856,
+      "e": 10,
+      "f": 181.571429,
     },
     "type": "setTransform",
   },
@@ -8857,11 +8857,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000007,
-      "f": 146.85714285714286,
+      "e": 10,
+      "f": 146.857143,
     },
     "type": "setTransform",
   },
@@ -8895,11 +8895,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000009,
-      "f": 112.14285714285714,
+      "e": 10,
+      "f": 112.142857,
     },
     "type": "setTransform",
   },
@@ -8933,11 +8933,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.00000000000001,
-      "f": 77.42857142857142,
+      "e": 10,
+      "f": 77.428571,
     },
     "type": "setTransform",
   },
@@ -8971,11 +8971,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000012,
-      "f": 42.71428571428572,
+      "e": 10,
+      "f": 42.714286,
     },
     "type": "setTransform",
   },
@@ -9009,10 +9009,10 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000014,
+      "e": 10,
       "f": 8,
     },
     "type": "setTransform",
@@ -9516,14 +9516,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 216.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000002,
+      "x": 14,
       "y": 216.5,
     },
     "type": "lineTo",
@@ -9537,14 +9537,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 216.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000002,
+            "x": 14,
             "y": 216.5,
           },
           "type": "lineTo",
@@ -9559,14 +9559,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 181.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000004,
+      "x": 14,
       "y": 181.5,
     },
     "type": "lineTo",
@@ -9580,14 +9580,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 181.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000004,
+            "x": 14,
             "y": 181.5,
           },
           "type": "lineTo",
@@ -9602,14 +9602,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 147.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000007,
+      "x": 14,
       "y": 147.5,
     },
     "type": "lineTo",
@@ -9623,14 +9623,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 147.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000007,
+            "x": 14,
             "y": 147.5,
           },
           "type": "lineTo",
@@ -9645,14 +9645,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 112.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000009,
+      "x": 14,
       "y": 112.5,
     },
     "type": "lineTo",
@@ -9666,14 +9666,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 112.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000009,
+            "x": 14,
             "y": 112.5,
           },
           "type": "lineTo",
@@ -9688,14 +9688,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 77.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.00000000000001,
+      "x": 14,
       "y": 77.5,
     },
     "type": "lineTo",
@@ -9709,14 +9709,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 77.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.00000000000001,
+            "x": 14,
             "y": 77.5,
           },
           "type": "lineTo",
@@ -9731,14 +9731,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 42.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000012,
+      "x": 14,
       "y": 42.5,
     },
     "type": "lineTo",
@@ -9752,14 +9752,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 42.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000012,
+            "x": 14,
             "y": 42.5,
           },
           "type": "lineTo",
@@ -9774,14 +9774,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000014,
+      "x": 14,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -9795,14 +9795,14 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000014,
+            "x": 14,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -9814,8 +9814,8 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 10,
       "f": 251,
@@ -9912,11 +9912,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000002,
-      "f": 216.28571428571428,
+      "e": 10,
+      "f": 216.285714,
     },
     "type": "setTransform",
   },
@@ -9950,11 +9950,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000004,
-      "f": 181.57142857142856,
+      "e": 10,
+      "f": 181.571429,
     },
     "type": "setTransform",
   },
@@ -9988,11 +9988,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000007,
-      "f": 146.85714285714286,
+      "e": 10,
+      "f": 146.857143,
     },
     "type": "setTransform",
   },
@@ -10026,11 +10026,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000009,
-      "f": 112.14285714285714,
+      "e": 10,
+      "f": 112.142857,
     },
     "type": "setTransform",
   },
@@ -10064,11 +10064,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.00000000000001,
-      "f": 77.42857142857142,
+      "e": 10,
+      "f": 77.428571,
     },
     "type": "setTransform",
   },
@@ -10102,11 +10102,11 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000012,
-      "f": 42.71428571428572,
+      "e": 10,
+      "f": 42.714286,
     },
     "type": "setTransform",
   },
@@ -10140,10 +10140,10 @@ exports[`Panel canvas axis renders single y-axis renderers category (bar) 1`] = 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000014,
+      "e": 10,
       "f": 8,
     },
     "type": "setTransform",
@@ -10351,14 +10351,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
   },
   {
     "props": {
-      "x": 32.00000000000001,
+      "x": 32,
       "y": 220.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.000000000000004,
+      "x": 28,
       "y": 220.5,
     },
     "type": "lineTo",
@@ -10372,14 +10372,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
         },
         {
           "props": {
-            "x": 32.00000000000001,
+            "x": 32,
             "y": 220.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.000000000000004,
+            "x": 28,
             "y": 220.5,
           },
           "type": "lineTo",
@@ -10394,14 +10394,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
   },
   {
     "props": {
-      "x": 32.000000000000014,
+      "x": 32,
       "y": 79.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.000000000000014,
+      "x": 28,
       "y": 79.5,
     },
     "type": "lineTo",
@@ -10415,14 +10415,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
         },
         {
           "props": {
-            "x": 32.000000000000014,
+            "x": 32,
             "y": 79.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.000000000000014,
+            "x": 28,
             "y": 79.5,
           },
           "type": "lineTo",
@@ -10434,10 +10434,10 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.000000000000004,
+      "e": 24,
       "f": 220.25,
     },
     "type": "setTransform",
@@ -10532,10 +10532,10 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.000000000000014,
+      "e": 24,
       "f": 78.75,
     },
     "type": "setTransform",
@@ -10738,14 +10738,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
   },
   {
     "props": {
-      "x": 32.00000000000001,
+      "x": 32,
       "y": 220.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.000000000000004,
+      "x": 28,
       "y": 220.5,
     },
     "type": "lineTo",
@@ -10759,14 +10759,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
         },
         {
           "props": {
-            "x": 32.00000000000001,
+            "x": 32,
             "y": 220.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.000000000000004,
+            "x": 28,
             "y": 220.5,
           },
           "type": "lineTo",
@@ -10781,14 +10781,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
   },
   {
     "props": {
-      "x": 32.000000000000014,
+      "x": 32,
       "y": 79.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 28.000000000000014,
+      "x": 28,
       "y": 79.5,
     },
     "type": "lineTo",
@@ -10802,14 +10802,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
         },
         {
           "props": {
-            "x": 32.000000000000014,
+            "x": 32,
             "y": 79.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 28.000000000000014,
+            "x": 28,
             "y": 79.5,
           },
           "type": "lineTo",
@@ -10821,10 +10821,10 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.000000000000004,
+      "e": 24,
       "f": 220.25,
     },
     "type": "setTransform",
@@ -10919,10 +10919,10 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (binned) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 24.000000000000014,
+      "e": 24,
       "f": 78.75,
     },
     "type": "setTransform",
@@ -11259,14 +11259,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   },
   {
     "props": {
-      "x": 29.000000000000007,
+      "x": 29,
       "y": 196.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 25.000000000000007,
+      "x": 25,
       "y": 196.5,
     },
     "type": "lineTo",
@@ -11280,14 +11280,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
         },
         {
           "props": {
-            "x": 29.000000000000007,
+            "x": 29,
             "y": 196.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 25.000000000000007,
+            "x": 25,
             "y": 196.5,
           },
           "type": "lineTo",
@@ -11302,14 +11302,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   },
   {
     "props": {
-      "x": 29.00000000000001,
+      "x": 29,
       "y": 102.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 25.00000000000001,
+      "x": 25,
       "y": 102.5,
     },
     "type": "lineTo",
@@ -11323,14 +11323,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
         },
         {
           "props": {
-            "x": 29.00000000000001,
+            "x": 29,
             "y": 102.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 25.00000000000001,
+            "x": 25,
             "y": 102.5,
           },
           "type": "lineTo",
@@ -11345,14 +11345,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   },
   {
     "props": {
-      "x": 29.000000000000018,
+      "x": 29,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 25.000000000000018,
+      "x": 25,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -11366,14 +11366,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
         },
         {
           "props": {
-            "x": 29.000000000000018,
+            "x": 29,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 25.000000000000018,
+            "x": 25,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -11385,11 +11385,11 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 21.000000000000004,
-      "f": 243.83333333333334,
+      "e": 21,
+      "f": 243.833333,
     },
     "type": "setTransform",
   },
@@ -11483,10 +11483,10 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 21.000000000000007,
+      "e": 21,
       "f": 149.5,
     },
     "type": "setTransform",
@@ -11521,11 +11521,11 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 21.000000000000014,
-      "f": 55.16666666666666,
+      "e": 21,
+      "f": 55.166667,
     },
     "type": "setTransform",
   },
@@ -11856,14 +11856,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   },
   {
     "props": {
-      "x": 29.000000000000007,
+      "x": 29,
       "y": 196.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 25.000000000000007,
+      "x": 25,
       "y": 196.5,
     },
     "type": "lineTo",
@@ -11877,14 +11877,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
         },
         {
           "props": {
-            "x": 29.000000000000007,
+            "x": 29,
             "y": 196.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 25.000000000000007,
+            "x": 25,
             "y": 196.5,
           },
           "type": "lineTo",
@@ -11899,14 +11899,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   },
   {
     "props": {
-      "x": 29.00000000000001,
+      "x": 29,
       "y": 102.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 25.00000000000001,
+      "x": 25,
       "y": 102.5,
     },
     "type": "lineTo",
@@ -11920,14 +11920,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
         },
         {
           "props": {
-            "x": 29.00000000000001,
+            "x": 29,
             "y": 102.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 25.00000000000001,
+            "x": 25,
             "y": 102.5,
           },
           "type": "lineTo",
@@ -11942,14 +11942,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   },
   {
     "props": {
-      "x": 29.000000000000018,
+      "x": 29,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 25.000000000000018,
+      "x": 25,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -11963,14 +11963,14 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
         },
         {
           "props": {
-            "x": 29.000000000000018,
+            "x": 29,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 25.000000000000018,
+            "x": 25,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -11982,11 +11982,11 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 21.000000000000004,
-      "f": 243.83333333333334,
+      "e": 21,
+      "f": 243.833333,
     },
     "type": "setTransform",
   },
@@ -12080,10 +12080,10 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 21.000000000000007,
+      "e": 21,
       "f": 149.5,
     },
     "type": "setTransform",
@@ -12118,11 +12118,11 @@ exports[`Panel canvas axis renders single y-axis renderers heatmap (matrix) 1`] 
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 21.000000000000014,
-      "f": 55.16666666666666,
+      "e": 21,
+      "f": 55.166667,
     },
     "type": "setTransform",
   },
@@ -12544,14 +12544,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 202.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000004,
+      "x": 14,
       "y": 202.5,
     },
     "type": "lineTo",
@@ -12565,14 +12565,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 202.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000004,
+            "x": 14,
             "y": 202.5,
           },
           "type": "lineTo",
@@ -12587,14 +12587,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 154.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000005,
+      "x": 14,
       "y": 154.5,
     },
     "type": "lineTo",
@@ -12608,14 +12608,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 154.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000005,
+            "x": 14,
             "y": 154.5,
           },
           "type": "lineTo",
@@ -12630,14 +12630,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 105.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000009,
+      "x": 14,
       "y": 105.5,
     },
     "type": "lineTo",
@@ -12651,14 +12651,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 105.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000009,
+            "x": 14,
             "y": 105.5,
           },
           "type": "lineTo",
@@ -12673,14 +12673,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 56.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000012,
+      "x": 14,
       "y": 56.5,
     },
     "type": "lineTo",
@@ -12694,14 +12694,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 56.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000012,
+            "x": 14,
             "y": 56.5,
           },
           "type": "lineTo",
@@ -12716,14 +12716,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000014,
+      "x": 14,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -12737,14 +12737,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000014,
+            "x": 14,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -12756,8 +12756,8 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 10,
       "f": 251,
@@ -12854,10 +12854,10 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000004,
+      "e": 10,
       "f": 202.4,
     },
     "type": "setTransform",
@@ -12892,10 +12892,10 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000007,
+      "e": 10,
       "f": 153.8,
     },
     "type": "setTransform",
@@ -12930,11 +12930,11 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000009,
-      "f": 105.20000000000002,
+      "e": 10,
+      "f": 105.2,
     },
     "type": "setTransform",
   },
@@ -12968,11 +12968,11 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.00000000000001,
-      "f": 56.599999999999994,
+      "e": 10,
+      "f": 56.6,
     },
     "type": "setTransform",
   },
@@ -13006,10 +13006,10 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000014,
+      "e": 10,
       "f": 8,
     },
     "type": "setTransform",
@@ -13427,14 +13427,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 202.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000004,
+      "x": 14,
       "y": 202.5,
     },
     "type": "lineTo",
@@ -13448,14 +13448,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 202.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000004,
+            "x": 14,
             "y": 202.5,
           },
           "type": "lineTo",
@@ -13470,14 +13470,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 154.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000005,
+      "x": 14,
       "y": 154.5,
     },
     "type": "lineTo",
@@ -13491,14 +13491,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 154.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000005,
+            "x": 14,
             "y": 154.5,
           },
           "type": "lineTo",
@@ -13513,14 +13513,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 105.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000009,
+      "x": 14,
       "y": 105.5,
     },
     "type": "lineTo",
@@ -13534,14 +13534,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 105.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000009,
+            "x": 14,
             "y": 105.5,
           },
           "type": "lineTo",
@@ -13556,14 +13556,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 56.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000012,
+      "x": 14,
       "y": 56.5,
     },
     "type": "lineTo",
@@ -13577,14 +13577,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 56.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000012,
+            "x": 14,
             "y": 56.5,
           },
           "type": "lineTo",
@@ -13599,14 +13599,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000014,
+      "x": 14,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -13620,14 +13620,14 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000014,
+            "x": 14,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -13639,8 +13639,8 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 10,
       "f": 251,
@@ -13737,10 +13737,10 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000004,
+      "e": 10,
       "f": 202.4,
     },
     "type": "setTransform",
@@ -13775,10 +13775,10 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000007,
+      "e": 10,
       "f": 153.8,
     },
     "type": "setTransform",
@@ -13813,11 +13813,11 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000009,
-      "f": 105.20000000000002,
+      "e": 10,
+      "f": 105.2,
     },
     "type": "setTransform",
   },
@@ -13851,11 +13851,11 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.00000000000001,
-      "f": 56.599999999999994,
+      "e": 10,
+      "f": 56.6,
     },
     "type": "setTransform",
   },
@@ -13889,10 +13889,10 @@ exports[`Panel canvas axis renders single y-axis renderers multi-value (candlest
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000014,
+      "e": 10,
       "f": 8,
     },
     "type": "setTransform",
@@ -14272,14 +14272,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000004,
+      "x": 14,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -14293,14 +14293,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000004,
+            "x": 14,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -14315,14 +14315,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000007,
+      "x": 14,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -14336,14 +14336,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000007,
+            "x": 14,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -14358,14 +14358,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.00000000000001,
+      "x": 14,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -14379,14 +14379,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.00000000000001,
+            "x": 14,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -14401,14 +14401,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000014,
+      "x": 14,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -14422,14 +14422,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000014,
+            "x": 14,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -14441,8 +14441,8 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 10,
       "f": 251,
@@ -14539,10 +14539,10 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000004,
+      "e": 10,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -14577,10 +14577,10 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000007,
+      "e": 10,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -14615,10 +14615,10 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.00000000000001,
+      "e": 10,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -14653,10 +14653,10 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000014,
+      "e": 10,
       "f": 8,
     },
     "type": "setTransform",
@@ -15031,14 +15031,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000004,
+      "x": 18,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000004,
+      "x": 14,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -15052,14 +15052,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000004,
+            "x": 18,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000004,
+            "x": 14,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -15074,14 +15074,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000007,
+      "x": 18,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000007,
+      "x": 14,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -15095,14 +15095,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000007,
+            "x": 18,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000007,
+            "x": 14,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -15117,14 +15117,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   },
   {
     "props": {
-      "x": 18.00000000000001,
+      "x": 18,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.00000000000001,
+      "x": 14,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -15138,14 +15138,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
         },
         {
           "props": {
-            "x": 18.00000000000001,
+            "x": 18,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.00000000000001,
+            "x": 14,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -15160,14 +15160,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   },
   {
     "props": {
-      "x": 18.000000000000014,
+      "x": 18,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 14.000000000000014,
+      "x": 14,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -15181,14 +15181,14 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
         },
         {
           "props": {
-            "x": 18.000000000000014,
+            "x": 18,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 14.000000000000014,
+            "x": 14,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -15200,8 +15200,8 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 10,
       "f": 251,
@@ -15298,10 +15298,10 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000004,
+      "e": 10,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -15336,10 +15336,10 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000007,
+      "e": 10,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -15374,10 +15374,10 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.00000000000001,
+      "e": 10,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -15412,10 +15412,10 @@ exports[`Panel canvas axis renders single y-axis renderers time (line) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 10.000000000000014,
+      "e": 10,
       "f": 8,
     },
     "type": "setTransform",
@@ -15838,14 +15838,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 84.00000000000001,
+      "x": 84,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -15859,14 +15859,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 84.00000000000001,
+            "x": 84,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -15881,14 +15881,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 84.00000000000001,
+      "x": 84,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -15902,14 +15902,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 84.00000000000001,
+            "x": 84,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -15924,14 +15924,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 84.00000000000001,
+      "x": 84,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -15945,14 +15945,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 84.00000000000001,
+            "x": 84,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -16017,7 +16017,7 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 30.000000000000004,
+      "x": 30,
       "y": 210.5,
     },
     "type": "lineTo",
@@ -16038,7 +16038,7 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 30.000000000000004,
+            "x": 30,
             "y": 210.5,
           },
           "type": "lineTo",
@@ -16053,14 +16053,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.00000000000001,
+      "x": 34,
       "y": 170.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.000000000000004,
+      "x": 30,
       "y": 170.5,
     },
     "type": "lineTo",
@@ -16074,14 +16074,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.00000000000001,
+            "x": 34,
             "y": 170.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.000000000000004,
+            "x": 30,
             "y": 170.5,
           },
           "type": "lineTo",
@@ -16096,14 +16096,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.00000000000001,
+      "x": 34,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.000000000000007,
+      "x": 30,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -16117,14 +16117,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.00000000000001,
+            "x": 34,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.000000000000007,
+            "x": 30,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -16139,14 +16139,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.00000000000001,
+      "x": 34,
       "y": 89.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.00000000000001,
+      "x": 30,
       "y": 89.5,
     },
     "type": "lineTo",
@@ -16160,14 +16160,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.00000000000001,
+            "x": 34,
             "y": 89.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.00000000000001,
+            "x": 30,
             "y": 89.5,
           },
           "type": "lineTo",
@@ -16182,14 +16182,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.000000000000014,
+      "x": 34,
       "y": 48.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.000000000000014,
+      "x": 30,
       "y": 48.5,
     },
     "type": "lineTo",
@@ -16203,14 +16203,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.000000000000014,
+            "x": 34,
             "y": 48.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.000000000000014,
+            "x": 30,
             "y": 48.5,
           },
           "type": "lineTo",
@@ -16225,14 +16225,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.000000000000014,
+      "x": 34,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.000000000000014,
+      "x": 30,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -16246,14 +16246,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.000000000000014,
+            "x": 34,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.000000000000014,
+            "x": 30,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -16480,8 +16480,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 76,
       "f": 251,
@@ -16578,8 +16578,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 76,
       "f": 190.25,
@@ -16616,8 +16616,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 76,
       "f": 129.5,
@@ -16654,10 +16654,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 76.00000000000001,
+      "e": 76,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -16692,10 +16692,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 76.00000000000001,
+      "e": 76,
       "f": 8,
     },
     "type": "setTransform",
@@ -16730,8 +16730,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 26,
       "f": 251,
@@ -16768,10 +16768,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000004,
+      "e": 26,
       "f": 210.5,
     },
     "type": "setTransform",
@@ -16806,10 +16806,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000007,
+      "e": 26,
       "f": 170,
     },
     "type": "setTransform",
@@ -16844,10 +16844,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000007,
+      "e": 26,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -16882,10 +16882,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.00000000000001,
+      "e": 26,
       "f": 89,
     },
     "type": "setTransform",
@@ -16920,10 +16920,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000014,
+      "e": 26,
       "f": 48.5,
     },
     "type": "setTransform",
@@ -16958,10 +16958,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000014,
+      "e": 26,
       "f": 8,
     },
     "type": "setTransform",
@@ -16996,8 +16996,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 251,
@@ -17034,8 +17034,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 190.25,
@@ -17072,8 +17072,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 129.5,
@@ -17110,8 +17110,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 68.75,
@@ -17148,8 +17148,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 8,
@@ -17569,14 +17569,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 84.00000000000001,
+      "x": 84,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -17590,14 +17590,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 84.00000000000001,
+            "x": 84,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -17612,14 +17612,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 84.00000000000001,
+      "x": 84,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -17633,14 +17633,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 84.00000000000001,
+            "x": 84,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -17655,14 +17655,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 84.00000000000001,
+      "x": 84,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 80.00000000000001,
+      "x": 80,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -17676,14 +17676,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 84.00000000000001,
+            "x": 84,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 80.00000000000001,
+            "x": 80,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -17748,7 +17748,7 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 30.000000000000004,
+      "x": 30,
       "y": 210.5,
     },
     "type": "lineTo",
@@ -17769,7 +17769,7 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 30.000000000000004,
+            "x": 30,
             "y": 210.5,
           },
           "type": "lineTo",
@@ -17784,14 +17784,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.00000000000001,
+      "x": 34,
       "y": 170.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.000000000000004,
+      "x": 30,
       "y": 170.5,
     },
     "type": "lineTo",
@@ -17805,14 +17805,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.00000000000001,
+            "x": 34,
             "y": 170.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.000000000000004,
+            "x": 30,
             "y": 170.5,
           },
           "type": "lineTo",
@@ -17827,14 +17827,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.00000000000001,
+      "x": 34,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.000000000000007,
+      "x": 30,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -17848,14 +17848,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.00000000000001,
+            "x": 34,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.000000000000007,
+            "x": 30,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -17870,14 +17870,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.00000000000001,
+      "x": 34,
       "y": 89.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.00000000000001,
+      "x": 30,
       "y": 89.5,
     },
     "type": "lineTo",
@@ -17891,14 +17891,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.00000000000001,
+            "x": 34,
             "y": 89.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.00000000000001,
+            "x": 30,
             "y": 89.5,
           },
           "type": "lineTo",
@@ -17913,14 +17913,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.000000000000014,
+      "x": 34,
       "y": 48.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.000000000000014,
+      "x": 30,
       "y": 48.5,
     },
     "type": "lineTo",
@@ -17934,14 +17934,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.000000000000014,
+            "x": 34,
             "y": 48.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.000000000000014,
+            "x": 30,
             "y": 48.5,
           },
           "type": "lineTo",
@@ -17956,14 +17956,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   },
   {
     "props": {
-      "x": 34.000000000000014,
+      "x": 34,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 30.000000000000014,
+      "x": 30,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -17977,14 +17977,14 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
         },
         {
           "props": {
-            "x": 34.000000000000014,
+            "x": 34,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 30.000000000000014,
+            "x": 30,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -18211,8 +18211,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 76,
       "f": 251,
@@ -18309,8 +18309,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 76,
       "f": 190.25,
@@ -18347,8 +18347,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 76,
       "f": 129.5,
@@ -18385,10 +18385,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 76.00000000000001,
+      "e": 76,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -18423,10 +18423,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 76.00000000000001,
+      "e": 76,
       "f": 8,
     },
     "type": "setTransform",
@@ -18461,8 +18461,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 26,
       "f": 251,
@@ -18499,10 +18499,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000004,
+      "e": 26,
       "f": 210.5,
     },
     "type": "setTransform",
@@ -18537,10 +18537,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000007,
+      "e": 26,
       "f": 170,
     },
     "type": "setTransform",
@@ -18575,10 +18575,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000007,
+      "e": 26,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -18613,10 +18613,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.00000000000001,
+      "e": 26,
       "f": 89,
     },
     "type": "setTransform",
@@ -18651,10 +18651,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000014,
+      "e": 26,
       "f": 48.5,
     },
     "type": "setTransform",
@@ -18689,10 +18689,10 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 26.000000000000014,
+      "e": 26,
       "f": 8,
     },
     "type": "setTransform",
@@ -18727,8 +18727,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 251,
@@ -18765,8 +18765,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 190.25,
@@ -18803,8 +18803,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 129.5,
@@ -18841,8 +18841,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 68.75,
@@ -18879,8 +18879,8 @@ exports[`Panel canvas axis renders three y-axes (left-left-right) 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 8,
@@ -19264,14 +19264,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000004,
+      "x": 20,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000004,
+      "x": 16,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -19285,14 +19285,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000004,
+            "x": 20,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000004,
+            "x": 16,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -19307,14 +19307,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000007,
+      "x": 20,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000007,
+      "x": 16,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -19328,14 +19328,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000007,
+            "x": 20,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000007,
+            "x": 16,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -19350,14 +19350,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   },
   {
     "props": {
-      "x": 20.00000000000001,
+      "x": 20,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.00000000000001,
+      "x": 16,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -19371,14 +19371,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
         },
         {
           "props": {
-            "x": 20.00000000000001,
+            "x": 20,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.00000000000001,
+            "x": 16,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -19393,14 +19393,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000014,
+      "x": 20,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000014,
+      "x": 16,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -19414,14 +19414,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000014,
+            "x": 20,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000014,
+            "x": 16,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -19433,8 +19433,8 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 12,
       "f": 251,
@@ -19531,10 +19531,10 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000004,
+      "e": 12,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -19569,10 +19569,10 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000007,
+      "e": 12,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -19607,10 +19607,10 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.00000000000001,
+      "e": 12,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -19645,10 +19645,10 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000014,
+      "e": 12,
       "f": 8,
     },
     "type": "setTransform",
@@ -20023,14 +20023,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000004,
+      "x": 20,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000004,
+      "x": 16,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -20044,14 +20044,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000004,
+            "x": 20,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000004,
+            "x": 16,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -20066,14 +20066,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000007,
+      "x": 20,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000007,
+      "x": 16,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -20087,14 +20087,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000007,
+            "x": 20,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000007,
+            "x": 16,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -20109,14 +20109,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   },
   {
     "props": {
-      "x": 20.00000000000001,
+      "x": 20,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.00000000000001,
+      "x": 16,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -20130,14 +20130,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
         },
         {
           "props": {
-            "x": 20.00000000000001,
+            "x": 20,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.00000000000001,
+            "x": 16,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -20152,14 +20152,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000014,
+      "x": 20,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000014,
+      "x": 16,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -20173,14 +20173,14 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000014,
+            "x": 20,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000014,
+            "x": 16,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -20192,8 +20192,8 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 12,
       "f": 251,
@@ -20290,10 +20290,10 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000004,
+      "e": 12,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -20328,10 +20328,10 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000007,
+      "e": 12,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -20366,10 +20366,10 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.00000000000001,
+      "e": 12,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -20404,10 +20404,10 @@ exports[`Panel canvas axis renders two y-axis placements left-hidden 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000014,
+      "e": 12,
       "f": 8,
     },
     "type": "setTransform",
@@ -20830,14 +20830,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 81.00000000000001,
+      "x": 81,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 77.00000000000001,
+      "x": 77,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -20851,14 +20851,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 81.00000000000001,
+            "x": 81,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 77.00000000000001,
+            "x": 77,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -20873,14 +20873,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 81.00000000000001,
+      "x": 81,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 77.00000000000001,
+      "x": 77,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -20894,14 +20894,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 81.00000000000001,
+            "x": 81,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 77.00000000000001,
+            "x": 77,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -20916,14 +20916,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 81.00000000000001,
+      "x": 81,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 77.00000000000001,
+      "x": 77,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -20937,14 +20937,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 81.00000000000001,
+            "x": 81,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 77.00000000000001,
+            "x": 77,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -21002,14 +21002,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 31.000000000000004,
+      "x": 31,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 27.000000000000004,
+      "x": 27,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -21023,14 +21023,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 31.000000000000004,
+            "x": 31,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 27.000000000000004,
+            "x": 27,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -21045,14 +21045,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 31.000000000000007,
+      "x": 31,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 27.000000000000007,
+      "x": 27,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -21066,14 +21066,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 31.000000000000007,
+            "x": 31,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 27.000000000000007,
+            "x": 27,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -21088,14 +21088,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 31.00000000000001,
+      "x": 31,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 27.00000000000001,
+      "x": 27,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -21109,14 +21109,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 31.00000000000001,
+            "x": 31,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 27.00000000000001,
+            "x": 27,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -21131,14 +21131,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 31.000000000000014,
+      "x": 31,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 27.000000000000014,
+      "x": 27,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -21152,14 +21152,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 31.000000000000014,
+            "x": 31,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 27.000000000000014,
+            "x": 27,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -21171,8 +21171,8 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 73,
       "f": 251,
@@ -21269,8 +21269,8 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 73,
       "f": 190.25,
@@ -21307,8 +21307,8 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 73,
       "f": 129.5,
@@ -21345,10 +21345,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 73.00000000000001,
+      "e": 73,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -21383,10 +21383,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 73.00000000000001,
+      "e": 73,
       "f": 8,
     },
     "type": "setTransform",
@@ -21421,8 +21421,8 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 23,
       "f": 251,
@@ -21459,10 +21459,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 23.000000000000004,
+      "e": 23,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -21497,10 +21497,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 23.000000000000007,
+      "e": 23,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -21535,10 +21535,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 23.00000000000001,
+      "e": 23,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -21573,10 +21573,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 23.000000000000014,
+      "e": 23,
       "f": 8,
     },
     "type": "setTransform",
@@ -21994,14 +21994,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 81.00000000000001,
+      "x": 81,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 77.00000000000001,
+      "x": 77,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -22015,14 +22015,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 81.00000000000001,
+            "x": 81,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 77.00000000000001,
+            "x": 77,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -22037,14 +22037,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 81.00000000000001,
+      "x": 81,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 77.00000000000001,
+      "x": 77,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -22058,14 +22058,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 81.00000000000001,
+            "x": 81,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 77.00000000000001,
+            "x": 77,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -22080,14 +22080,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 81.00000000000001,
+      "x": 81,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 77.00000000000001,
+      "x": 77,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -22101,14 +22101,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 81.00000000000001,
+            "x": 81,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 77.00000000000001,
+            "x": 77,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -22166,14 +22166,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 31.000000000000004,
+      "x": 31,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 27.000000000000004,
+      "x": 27,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -22187,14 +22187,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 31.000000000000004,
+            "x": 31,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 27.000000000000004,
+            "x": 27,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -22209,14 +22209,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 31.000000000000007,
+      "x": 31,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 27.000000000000007,
+      "x": 27,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -22230,14 +22230,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 31.000000000000007,
+            "x": 31,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 27.000000000000007,
+            "x": 27,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -22252,14 +22252,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 31.00000000000001,
+      "x": 31,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 27.00000000000001,
+      "x": 27,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -22273,14 +22273,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 31.00000000000001,
+            "x": 31,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 27.00000000000001,
+            "x": 27,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -22295,14 +22295,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   },
   {
     "props": {
-      "x": 31.000000000000014,
+      "x": 31,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 27.000000000000014,
+      "x": 27,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -22316,14 +22316,14 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
         },
         {
           "props": {
-            "x": 31.000000000000014,
+            "x": 31,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 27.000000000000014,
+            "x": 27,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -22335,8 +22335,8 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 73,
       "f": 251,
@@ -22433,8 +22433,8 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 73,
       "f": 190.25,
@@ -22471,8 +22471,8 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 73,
       "f": 129.5,
@@ -22509,10 +22509,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 73.00000000000001,
+      "e": 73,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -22547,10 +22547,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 73.00000000000001,
+      "e": 73,
       "f": 8,
     },
     "type": "setTransform",
@@ -22585,8 +22585,8 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 23,
       "f": 251,
@@ -22623,10 +22623,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 23.000000000000004,
+      "e": 23,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -22661,10 +22661,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 23.000000000000007,
+      "e": 23,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -22699,10 +22699,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 23.00000000000001,
+      "e": 23,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -22737,10 +22737,10 @@ exports[`Panel canvas axis renders two y-axis placements left-left 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 23.000000000000014,
+      "e": 23,
       "f": 8,
     },
     "type": "setTransform",
@@ -23120,14 +23120,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000004,
+      "x": 20,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000004,
+      "x": 16,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -23141,14 +23141,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000004,
+            "x": 20,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000004,
+            "x": 16,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -23163,14 +23163,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000007,
+      "x": 20,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000007,
+      "x": 16,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -23184,14 +23184,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000007,
+            "x": 20,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000007,
+            "x": 16,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -23206,14 +23206,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   },
   {
     "props": {
-      "x": 20.00000000000001,
+      "x": 20,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.00000000000001,
+      "x": 16,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -23227,14 +23227,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
         },
         {
           "props": {
-            "x": 20.00000000000001,
+            "x": 20,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.00000000000001,
+            "x": 16,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -23249,14 +23249,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000014,
+      "x": 20,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000014,
+      "x": 16,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -23270,14 +23270,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000014,
+            "x": 20,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000014,
+            "x": 16,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -23504,8 +23504,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 12,
       "f": 251,
@@ -23602,10 +23602,10 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000004,
+      "e": 12,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -23640,10 +23640,10 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000007,
+      "e": 12,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -23678,10 +23678,10 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.00000000000001,
+      "e": 12,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -23716,10 +23716,10 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000014,
+      "e": 12,
       "f": 8,
     },
     "type": "setTransform",
@@ -23754,8 +23754,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 251,
@@ -23792,8 +23792,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 190.25,
@@ -23830,8 +23830,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 129.5,
@@ -23868,8 +23868,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 68.75,
@@ -23906,8 +23906,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 8,
@@ -24284,14 +24284,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000004,
+      "x": 20,
       "y": 190.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000004,
+      "x": 16,
       "y": 190.5,
     },
     "type": "lineTo",
@@ -24305,14 +24305,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000004,
+            "x": 20,
             "y": 190.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000004,
+            "x": 16,
             "y": 190.5,
           },
           "type": "lineTo",
@@ -24327,14 +24327,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000007,
+      "x": 20,
       "y": 129.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000007,
+      "x": 16,
       "y": 129.5,
     },
     "type": "lineTo",
@@ -24348,14 +24348,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000007,
+            "x": 20,
             "y": 129.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000007,
+            "x": 16,
             "y": 129.5,
           },
           "type": "lineTo",
@@ -24370,14 +24370,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   },
   {
     "props": {
-      "x": 20.00000000000001,
+      "x": 20,
       "y": 69.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.00000000000001,
+      "x": 16,
       "y": 69.5,
     },
     "type": "lineTo",
@@ -24391,14 +24391,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
         },
         {
           "props": {
-            "x": 20.00000000000001,
+            "x": 20,
             "y": 69.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.00000000000001,
+            "x": 16,
             "y": 69.5,
           },
           "type": "lineTo",
@@ -24413,14 +24413,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   },
   {
     "props": {
-      "x": 20.000000000000014,
+      "x": 20,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 16.000000000000014,
+      "x": 16,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -24434,14 +24434,14 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
         },
         {
           "props": {
-            "x": 20.000000000000014,
+            "x": 20,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 16.000000000000014,
+            "x": 16,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -24668,8 +24668,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 12,
       "f": 251,
@@ -24766,10 +24766,10 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000004,
+      "e": 12,
       "f": 190.25,
     },
     "type": "setTransform",
@@ -24804,10 +24804,10 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000007,
+      "e": 12,
       "f": 129.5,
     },
     "type": "setTransform",
@@ -24842,10 +24842,10 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.00000000000001,
+      "e": 12,
       "f": 68.75,
     },
     "type": "setTransform",
@@ -24880,10 +24880,10 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 12.000000000000014,
+      "e": 12,
       "f": 8,
     },
     "type": "setTransform",
@@ -24918,8 +24918,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 251,
@@ -24956,8 +24956,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 190.25,
@@ -24994,8 +24994,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 129.5,
@@ -25032,8 +25032,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 68.75,
@@ -25070,8 +25070,8 @@ exports[`Panel canvas axis renders two y-axis placements left-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 397,
       "f": 8,
@@ -25837,8 +25837,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 251,
@@ -25935,8 +25935,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 190.25,
@@ -25973,8 +25973,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 129.5,
@@ -26011,8 +26011,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 68.75,
@@ -26049,8 +26049,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 8,
@@ -26087,8 +26087,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 251,
@@ -26125,8 +26125,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 190.25,
@@ -26163,8 +26163,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 129.5,
@@ -26201,8 +26201,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 68.75,
@@ -26239,8 +26239,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 8,
@@ -27001,8 +27001,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 251,
@@ -27099,8 +27099,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 190.25,
@@ -27137,8 +27137,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 129.5,
@@ -27175,8 +27175,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 68.75,
@@ -27213,8 +27213,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 335,
       "f": 8,
@@ -27251,8 +27251,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 251,
@@ -27289,8 +27289,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 190.25,
@@ -27327,8 +27327,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 129.5,
@@ -27365,8 +27365,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 68.75,
@@ -27403,8 +27403,8 @@ exports[`Panel canvas axis renders two y-axis placements right-right 1`] = `
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 385,
       "f": 8,
@@ -27829,14 +27829,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.000000000000004,
+      "x": 19,
       "y": 202.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000004,
+      "x": 15,
       "y": 202.5,
     },
     "type": "lineTo",
@@ -27850,14 +27850,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.000000000000004,
+            "x": 19,
             "y": 202.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000004,
+            "x": 15,
             "y": 202.5,
           },
           "type": "lineTo",
@@ -27872,14 +27872,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.000000000000007,
+      "x": 19,
       "y": 154.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000005,
+      "x": 15,
       "y": 154.5,
     },
     "type": "lineTo",
@@ -27893,14 +27893,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.000000000000007,
+            "x": 19,
             "y": 154.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000005,
+            "x": 15,
             "y": 154.5,
           },
           "type": "lineTo",
@@ -27915,14 +27915,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.00000000000001,
+      "x": 19,
       "y": 105.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000009,
+      "x": 15,
       "y": 105.5,
     },
     "type": "lineTo",
@@ -27936,14 +27936,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.00000000000001,
+            "x": 19,
             "y": 105.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000009,
+            "x": 15,
             "y": 105.5,
           },
           "type": "lineTo",
@@ -27958,14 +27958,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.00000000000001,
+      "x": 19,
       "y": 56.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000012,
+      "x": 15,
       "y": 56.5,
     },
     "type": "lineTo",
@@ -27979,14 +27979,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.00000000000001,
+            "x": 19,
             "y": 56.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000012,
+            "x": 15,
             "y": 56.5,
           },
           "type": "lineTo",
@@ -28001,14 +28001,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.000000000000014,
+      "x": 19,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000014,
+      "x": 15,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -28022,14 +28022,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.000000000000014,
+            "x": 19,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000014,
+            "x": 15,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -28041,8 +28041,8 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 11,
       "f": 251,
@@ -28139,10 +28139,10 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.000000000000004,
+      "e": 11,
       "f": 202.4,
     },
     "type": "setTransform",
@@ -28177,10 +28177,10 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.000000000000007,
+      "e": 11,
       "f": 153.8,
     },
     "type": "setTransform",
@@ -28215,11 +28215,11 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.000000000000009,
-      "f": 105.20000000000002,
+      "e": 11,
+      "f": 105.2,
     },
     "type": "setTransform",
   },
@@ -28253,11 +28253,11 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.00000000000001,
-      "f": 56.599999999999994,
+      "e": 11,
+      "f": 56.6,
     },
     "type": "setTransform",
   },
@@ -28291,10 +28291,10 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.000000000000014,
+      "e": 11,
       "f": 8,
     },
     "type": "setTransform",
@@ -28712,14 +28712,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.000000000000004,
+      "x": 19,
       "y": 202.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000004,
+      "x": 15,
       "y": 202.5,
     },
     "type": "lineTo",
@@ -28733,14 +28733,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.000000000000004,
+            "x": 19,
             "y": 202.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000004,
+            "x": 15,
             "y": 202.5,
           },
           "type": "lineTo",
@@ -28755,14 +28755,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.000000000000007,
+      "x": 19,
       "y": 154.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000005,
+      "x": 15,
       "y": 154.5,
     },
     "type": "lineTo",
@@ -28776,14 +28776,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.000000000000007,
+            "x": 19,
             "y": 154.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000005,
+            "x": 15,
             "y": 154.5,
           },
           "type": "lineTo",
@@ -28798,14 +28798,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.00000000000001,
+      "x": 19,
       "y": 105.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000009,
+      "x": 15,
       "y": 105.5,
     },
     "type": "lineTo",
@@ -28819,14 +28819,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.00000000000001,
+            "x": 19,
             "y": 105.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000009,
+            "x": 15,
             "y": 105.5,
           },
           "type": "lineTo",
@@ -28841,14 +28841,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.00000000000001,
+      "x": 19,
       "y": 56.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000012,
+      "x": 15,
       "y": 56.5,
     },
     "type": "lineTo",
@@ -28862,14 +28862,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.00000000000001,
+            "x": 19,
             "y": 56.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000012,
+            "x": 15,
             "y": 56.5,
           },
           "type": "lineTo",
@@ -28884,14 +28884,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   },
   {
     "props": {
-      "x": 19.000000000000014,
+      "x": 19,
       "y": 8.5,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 15.000000000000014,
+      "x": 15,
       "y": 8.5,
     },
     "type": "lineTo",
@@ -28905,14 +28905,14 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
         },
         {
           "props": {
-            "x": 19.000000000000014,
+            "x": 19,
             "y": 8.5,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 15.000000000000014,
+            "x": 15,
             "y": 8.5,
           },
           "type": "lineTo",
@@ -28924,8 +28924,8 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
       "e": 11,
       "f": 251,
@@ -29022,10 +29022,10 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.000000000000004,
+      "e": 11,
       "f": 202.4,
     },
     "type": "setTransform",
@@ -29060,10 +29060,10 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.000000000000007,
+      "e": 11,
       "f": 153.8,
     },
     "type": "setTransform",
@@ -29098,11 +29098,11 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.000000000000009,
-      "f": 105.20000000000002,
+      "e": 11,
+      "f": 105.2,
     },
     "type": "setTransform",
   },
@@ -29136,11 +29136,11 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.00000000000001,
-      "f": 56.599999999999994,
+      "e": 11,
+      "f": 56.6,
     },
     "type": "setTransform",
   },
@@ -29174,10 +29174,10 @@ exports[`Panel canvas axis renders value axis honors explicit Min/Max bounds 1`]
   {
     "props": {
       "a": 1,
-      "b": 2.4492935982947064e-16,
-      "c": -4.66973964754502e-16,
+      "b": 0,
+      "c": 0,
       "d": 1,
-      "e": 11.000000000000014,
+      "e": 11,
       "f": 8,
     },
     "type": "setTransform",
