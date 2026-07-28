@@ -70,8 +70,10 @@ export function timeSeriesToEChartsOption(
       lineStyle: { color },
       zlevel: options.zLevel?.series,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
-      // Type-aware fast-path props (symbols/sampling for line; large for scatter/bar).
-      ...getSeriesPerfOptions({ type: resolvedType, density, options }),
+      // Type-aware fast-path props (symbols/sampling for line; large for
+      // scatter/bar). `values` lets the symbol decision spare a series that draws
+      // no line, which would otherwise render as nothing at all.
+      ...getSeriesPerfOptions({ type: resolvedType, density, options, values: field.values }),
       showEffectOn,
     });
   });

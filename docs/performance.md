@@ -16,9 +16,13 @@ mocked without pulling in the resolvers) — plus
 
 To see it in a real dashboard, use the provisioned **ECharts Performance**
 dashboard (`provisioning/dashboards/performance.json`): one collapsed row per
-scenario, each pairing an ECharts panel with its core Grafana (uPlot)
-counterpart on the same query. The rows are collapsed because the panels are
-deliberately heavy — open one at a time.
+scenario, most pairing an ECharts panel with its core Grafana counterpart on a
+byte-identical query (uPlot for the time-series and xychart rows, core `heatmap`
+for the last one). One row does not pair: "Symbol threshold" is three ECharts
+panels straddling the 100-point total (100, 101, and 4x26=104), with no core
+equivalent to compare against.
+The rows are collapsed because the panels are deliberately heavy — open one at a
+time.
 
 The core-Grafana comparison panels are hand-authored JSON. **When one of them is
 wrong, fix it by configuring the panel in the Grafana UI and copying the exported
@@ -61,23 +65,56 @@ of this is custom rendering.
 
 ## The levers
 
-| Lever                   | ECharts option                           | Applies to       | Trigger                             |
-| ----------------------- | ---------------------------------------- | ---------------- | ----------------------------------- |
-| Hide per-point symbols  | `series.showSymbol`                      | `line`           | > 100 points **in the chart total** |
-| LTTB downsampling       | `series.sampling: 'lttb'`                | `line`           | > 100 points in the densest series  |
-| Batched large-data mode | `series.large` + `series.largeThreshold` | `scatter`, `bar` | ≥ 2000 points in the densest series |
-| No animation            | `animation`                              | panel-wide       | always (opt-in to re-enable)        |
+| Lever                   | ECharts option                           | Applies to       | Trigger                                 |
+| ----------------------- | ---------------------------------------- | ---------------- | --------------------------------------- |
+| Hide per-point symbols  | `series.showSymbol`                      | `line`           | > 100 points **in the chart total**     |
+| LTTB downsampling       | `series.sampling: 'lttb'`                | `line`           | always armed; **ECharts** gates it (\*) |
+| Batched large-data mode | `series.large` + `series.largeThreshold` | `scatter`, `bar` | ≥ 2000 points in the densest series     |
+| No animation            | `animation`                              | panel-wide       | always (opt-in to re-enable)            |
 
-Density is measured once per render by `getSeriesDensity`, over the whole frame
-set, so every series in a chart resolves against the same numbers and a chart
-never renders half on the fast path. It returns both measures the table above
-needs — `totalPoints` and `maxPointsPerSeries`. `effectScatter` (a ripple
-animation meant for a handful of highlighted points) and the heatmap cell layer
-are deliberately left untouched.
+(\*) Sampling deliberately carries no threshold of ours. ECharts re-gates it on
+the rendered width — its `dataSample` processor thins a series only once
+`round(count / axisWidthPx * dpr) > 1`, i.e. at roughly 1.5x more points than the
+x axis has pixels. Any per-series count we picked sat far below that and never
+fired first, so it read as a behavior boundary that did not exist. It is now armed
+on every line series unless the user turns Downsampling off, and ECharts decides
+when it engages.
 
-Animation is the exception: it is not density-driven at all. It is simply off,
-for every panel family, unless a user opts in. See "Rejected: animation density
-thresholds" below for why the threshold version had to go.
+Density is measured once per render, so every series in a chart resolves against
+the same numbers and a chart never renders half on the fast path. Each measurement
+returns both numbers the table above needs — `totalPoints` and
+`maxPointsPerSeries`. Two converters resolve the levers, each measuring its own
+series:
+`getSeriesDensity(frames)` on the time-axis path (`converters/timeSeries.ts`) and
+`getDensityFromSeriesValues` on the category-axis path
+(`converters/categoryCartesian.ts`, whose series are flattened already). The
+binned heatmap measures only its cartesian overlay subset, since that is what it
+passes to the time-series converter. `effectScatter` (a ripple animation meant for
+a handful of highlighted points) and the heatmap cell layer are deliberately left
+untouched.
+
+**One exception keeps the symbol lever from hiding data.** Markers are the only
+thing that renders a series with no line to draw, so `auto` keeps them when a
+series holds no two _adjacent_ non-null values — a single-point series (a
+Prometheus instant query), or a series whose values are each separated by nulls
+(`connectNulls` is off, so a null breaks the path). Without it those charts paint
+nothing at all: no marker, and a zero-length path per point covers no pixels. Core
+Grafana guards the same case, via the `pointsFilter` its uPlot series builder
+applies to gap-isolated points. Two limits worth knowing: a series with even one
+contiguous pair takes the fast path, so isolated points _elsewhere_ in it still
+lose their markers (`showSymbol` is per-series, and ECharts has no per-point
+filter); and the guard belongs to `auto` only — an explicit `never` is obeyed even
+when it blanks the series.
+
+Animation is the other exception: it is not density-driven at all. It is off for
+every panel family unless a user opts in. See "Rejected: animation density
+thresholds" below for why the threshold version had to go. Two series override even
+the opt-in and never animate, via a series-level `animation: false` that beats the
+panel-level flag: the matrix heatmap's cells (a grid has no shape to grow into, and
+the rect count scales with the product of both axes) and the binned heatmap's
+cartesian overlay (animating independently of the cells it annotates reads as two
+layers disagreeing). The binned layout's own cell series is not covered and still
+honors the opt-in — an asymmetry, not a decision.
 
 The thresholds are chosen so that fixtures below them are visually unchanged —
 which is why the existing canvas snapshots did not move when this landed. The
@@ -86,7 +123,10 @@ symbol threshold has its own canvas regression test
 `performance/constants` down to a handful of points rather than committing a
 100-point snapshot: it pins the behavior at the boundary (markers on at the
 threshold, off one point past it, back on under `Show points: Always`) instead of
-the constant's current value.
+the constant's current value. The no-drawable-line exception is tested in the same
+file by counting ink (`arc` and `lineTo` draw calls) rather than snapshotting,
+because "did anything render at all" is the whole claim — a snapshot would state it
+in a thousand lines and still pass if it were ever re-recorded blank.
 
 ## Editor overrides
 
@@ -99,6 +139,12 @@ density-driven auto behavior; the third is a plain opt-in:
 | Show points         | `performance.showPoints`   | `auto`  | `auto` / `always` / `never` → `showSymbol` |
 | Downsampling (LTTB) | `performance.downsampling` | `true`  | Turns `sampling` off when set to false     |
 | Animation           | `animation.enabled`        | `false` | Opt in to load/update animation            |
+
+Show points and Downsampling apply to both cartesian x-axis paths (time and
+category). They do nothing on `boxplot` and `candlestick`, which are the same
+panel but a different converter (`converters/multiValueCartesian.ts`) with no
+`showSymbol`/`sampling` equivalent — the controls are visible there and inert.
+Wiring candlestick's own `large` mode would be the fix; it is not done.
 
 Animation uses the shared `animation.enabled` boolean rather than a
 `performance.*` key, because part-to-whole offers the same switch and they should
@@ -171,9 +217,10 @@ So animation is opt-in, off by default, for every family including the pie. That
 is also **closer to core Grafana**, whose viz panels do not animate at all — so
 this is parity rather than a regression, which is worth more here than an
 animation nobody asked for. `ANIMATION_MAX_SERIES`, `ANIMATION_MAX_POINTS` and
-`SeriesStats.seriesCount` all went away with it; `getSeriesStats` collapsed to
-`getMaxPointsPerSeries`, which also removed the double stats computation per
-render.
+`SeriesStats.seriesCount` all went away with it, as did the second stats
+computation per render — the surviving density helper is `getSeriesDensity`, which
+returns both `totalPoints` and `maxPointsPerSeries` and is called once, in the
+converter.
 
 ## Rejected: `useDirtyRect`
 
@@ -212,7 +259,7 @@ measures as noise.
 
 A columnar `option.dataset` + per-series `encode` path was prototyped on this
 branch and removed after measurement. It is pixel-identical to the tuple path
-but saved only 7–55 ms once the levers above were already applied — against a
+but saved only 1–55 ms once the levers above were already applied — against a
 permanent second data path and a silent multi-series tooltip bug. Full rationale
 and numbers: [dataset.md](./dataset.md).
 
@@ -234,11 +281,24 @@ and numbers: [dataset.md](./dataset.md).
 - **`sampling: 'lttb'` has not been compared against `'minmax'`.** LTTB
   preserves visual shape; `minmax` preserves extremes, which can matter more for
   spiky monitoring data. Worth revisiting (there is a `@todo` at the call site).
-- **Density is computed once per render now**, in the converter only. Dropping the
-  animation thresholds removed the second `getSeriesStats` call in
-  `panelOption.ts`, and with it the incidental coupling where a large heatmap
-  auto-disabled its own animation (its numeric frame columns were being counted
-  like series). Both were noted here as warts; both are gone.
+- **Stacked line/area charts under LTTB have a fidelity wart, not a correctness
+  bug.** Stack values are computed before sampling — ECharts runs `dataStack` at
+  processor priority 900 and `dataSample` at 5000 — so the stacked totals at every
+  retained point are right. But each series is sampled independently, and against
+  the _raw_ value dimension rather than the stacked one, so bands in a dense stack
+  can keep mismatched x positions and the retained points are not chosen from the
+  geometry actually drawn. Only bites above the pixel-width gate. Untested.
+- **Density is computed once per render per converter.** Dropping the animation
+  thresholds removed the second stats call in `panelOption.ts`, and with it the
+  incidental coupling where a large heatmap auto-disabled its own animation (its
+  numeric frame columns were being counted like series). Both were noted here as
+  warts; both are gone.
+- **Point markers can still disappear _within_ a series.** The no-drawable-line
+  exception above saves a series that would render as nothing, but a series holding
+  one contiguous pair plus many gap-isolated points takes the fast path and loses
+  the markers on those isolated points. `showSymbol` is per-series, and ECharts
+  offers no per-point equivalent of core Grafana's `pointsFilter`, so closing this
+  fully would mean splitting a series in two or drawing a companion scatter series.
 - **Cartesian does not normalize its options by editor mode.** Unlike
   part-to-whole, a stored `performance.*` value keeps applying after the user
   switches back to Default. Defaults are the fast path so nothing renders worse,

@@ -1,8 +1,8 @@
 import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type PanelOptions } from 'types';
-import { LARGE_MODE_THRESHOLD, SAMPLING_MIN_POINTS_PER_SERIES, SYMBOL_VISIBLE_MAX_TOTAL_POINTS } from './constants';
-import { getSeriesDensity, getSeriesPerfOptions, resolveAnimation } from './resolvers';
+import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_TOTAL_POINTS } from './constants';
+import { getDensityFromSeriesValues, getSeriesDensity, getSeriesPerfOptions, resolveAnimation } from './resolvers';
 
 const options = (extra?: Partial<PanelOptions>): PanelOptions => ({ ...extra }) as PanelOptions;
 
@@ -21,6 +21,31 @@ const timeFrame = (points: number, valueFields = 1): DataFrame =>
 
 /** Density shorthand for the resolver tests. */
 const density = (totalPoints: number, maxPointsPerSeries = totalPoints) => ({ totalPoints, maxPointsPerSeries });
+
+/**
+ * `values` shorthand: a run of `count` contiguous non-null points, i.e. an
+ * ordinary series that draws a line. The symbol resolver only inspects adjacency,
+ * so the actual numbers are irrelevant.
+ */
+const contiguous = (count: number) => Array.from({ length: count }, (_, i) => i);
+
+describe('getDensityFromSeriesValues', () => {
+  it('sums total and takes the longest series', () => {
+    expect(getDensityFromSeriesValues([contiguous(10), contiguous(25)])).toEqual({
+      totalPoints: 35,
+      maxPointsPerSeries: 25,
+    });
+  });
+
+  it('returns zeros for no series', () => {
+    expect(getDensityFromSeriesValues([])).toEqual({ totalPoints: 0, maxPointsPerSeries: 0 });
+  });
+
+  // Nulls occupy a slot on the x axis, so they count toward render cost.
+  it('counts null slots, since they still cost a data point', () => {
+    expect(getDensityFromSeriesValues([[1, null, 3]])).toEqual({ totalPoints: 3, maxPointsPerSeries: 3 });
+  });
+});
 
 describe('getSeriesDensity', () => {
   it('sums total across a wide frame and takes the densest series', () => {
@@ -49,42 +74,39 @@ describe('getSeriesDensity', () => {
 
 describe('getSeriesPerfOptions', () => {
   describe('line', () => {
-    it('keeps symbols and no sampling for a sparse chart (auto)', () => {
+    it('keeps symbols for a sparse chart (auto)', () => {
       expect(
-        getSeriesPerfOptions({ type: 'line', density: density(SYMBOL_VISIBLE_MAX_TOTAL_POINTS), options: options() })
-      ).toEqual({ showSymbol: true, sampling: undefined });
+        getSeriesPerfOptions({
+          type: 'line',
+          density: density(SYMBOL_VISIBLE_MAX_TOTAL_POINTS),
+          options: options(),
+          values: contiguous(SYMBOL_VISIBLE_MAX_TOTAL_POINTS),
+        })
+      ).toEqual({ showSymbol: true, sampling: 'lttb' });
     });
 
-    it('hides symbols and enables LTTB for a deep single series (auto)', () => {
+    it('hides symbols for a deep single series (auto)', () => {
       expect(
         getSeriesPerfOptions({
           type: 'line',
           density: density(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1),
           options: options(),
+          values: contiguous(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1),
         })
       ).toEqual({ showSymbol: false, sampling: 'lttb' });
     });
 
-    // The regression this split fixes: many short series draw just as many
-    // markers as one long one, so symbols must go even though no single series is
-    // deep enough to be worth sampling.
-    it('hides symbols on many short series, without enabling sampling', () => {
+    // The regression the total-vs-per-series split fixes: many short series draw
+    // just as many markers as one long one, so symbols must go even though no
+    // single series is deep.
+    it('hides symbols on many short series', () => {
       expect(
         getSeriesPerfOptions({
           type: 'line',
           // 1000 series x 100 points: 100,000 markers, but only 100 per series.
           density: { totalPoints: 100_000, maxPointsPerSeries: 100 },
           options: options(),
-        })
-      ).toEqual({ showSymbol: false, sampling: undefined });
-    });
-
-    it('enables sampling only once a single series is deep enough', () => {
-      expect(
-        getSeriesPerfOptions({
-          type: 'line',
-          density: { totalPoints: 100_000, maxPointsPerSeries: SAMPLING_MIN_POINTS_PER_SERIES + 1 },
-          options: options(),
+          values: contiguous(100),
         })
       ).toEqual({ showSymbol: false, sampling: 'lttb' });
     });
@@ -95,6 +117,7 @@ describe('getSeriesPerfOptions', () => {
           type: 'line',
           density: density(5000),
           options: options({ performance: { showPoints: 'always' } }),
+          values: contiguous(5000),
         })
       ).toEqual({ showSymbol: true, sampling: 'lttb' });
     });
@@ -105,33 +128,112 @@ describe('getSeriesPerfOptions', () => {
           type: 'line',
           density: density(10),
           options: options({ performance: { showPoints: 'never' } }),
+          values: contiguous(10),
         })
-      ).toEqual({ showSymbol: false, sampling: undefined });
+      ).toEqual({ showSymbol: false, sampling: 'lttb' });
     });
 
-    it('honors Downsampling = off on a dense chart (no sampling, symbols still hidden)', () => {
+    it('honors Downsampling = off (no sampling, symbols still hidden)', () => {
       expect(
         getSeriesPerfOptions({
           type: 'line',
           density: density(5000),
           options: options({ performance: { downsampling: false } }),
+          values: contiguous(5000),
         })
       ).toEqual({ showSymbol: false, sampling: undefined });
+    });
+
+    // Symbols are the only thing that renders a series with no line to draw, so
+    // the auto lever spares those even on a dense chart. Without this the panel
+    // paints nothing at all: no arc per point, and a zero-length path per point
+    // covers no pixels. Core Grafana guards the same case via `pointsFilter`.
+    describe('series that would render as nothing', () => {
+      it('keeps symbols for a single-point series on a dense chart', () => {
+        // 200 one-point series (a Prometheus instant query): far past the total,
+        // but no series has two points to draw a line between.
+        expect(
+          getSeriesPerfOptions({
+            type: 'line',
+            density: { totalPoints: 200, maxPointsPerSeries: 1 },
+            options: options(),
+            values: [42],
+          })
+        ).toMatchObject({ showSymbol: true });
+      });
+
+      it('keeps symbols when every value is separated by nulls', () => {
+        expect(
+          getSeriesPerfOptions({
+            type: 'line',
+            density: density(5000),
+            options: options(),
+            values: [1, null, 3, null, 5, null],
+          })
+        ).toMatchObject({ showSymbol: true });
+      });
+
+      it('keeps symbols for an all-null series', () => {
+        expect(
+          getSeriesPerfOptions({
+            type: 'line',
+            density: density(5000),
+            options: options(),
+            values: [null, null, null],
+          })
+        ).toMatchObject({ showSymbol: true });
+      });
+
+      it('keeps symbols for an empty series', () => {
+        expect(
+          getSeriesPerfOptions({ type: 'line', density: density(5000), options: options(), values: [] })
+        ).toMatchObject({ showSymbol: true });
+      });
+
+      // One adjacent pair anywhere is enough to draw a line, so the fast path
+      // still applies — the isolated points elsewhere in the series lose their
+      // markers, which is the pre-existing behavior and the limit of what
+      // `showSymbol` (a per-series flag) can express.
+      it('still hides symbols when a gappy series has one contiguous pair', () => {
+        expect(
+          getSeriesPerfOptions({
+            type: 'line',
+            density: density(5000),
+            options: options(),
+            values: [1, null, 3, 4, null, 6],
+          })
+        ).toMatchObject({ showSymbol: false });
+      });
+
+      // The guard belongs to the heuristic only: an explicit Never is obeyed even
+      // when it blanks the series.
+      it('does not override an explicit Never', () => {
+        expect(
+          getSeriesPerfOptions({
+            type: 'line',
+            density: density(5000),
+            options: options({ performance: { showPoints: 'never' } }),
+            values: [42],
+          })
+        ).toMatchObject({ showSymbol: false });
+      });
     });
   });
 
   describe('scatter / bar large mode', () => {
     it.each(['scatter', 'bar'] as CartesianSingleValueSeriesType[])('enables large mode for a dense %s', (type) => {
-      expect(getSeriesPerfOptions({ type, density: density(LARGE_MODE_THRESHOLD), options: options() })).toEqual({
+      expect(
+        getSeriesPerfOptions({ type, density: density(LARGE_MODE_THRESHOLD), options: options(), values: [] })
+      ).toEqual({
         large: true,
         largeThreshold: LARGE_MODE_THRESHOLD,
       });
     });
 
     it.each(['scatter', 'bar'] as CartesianSingleValueSeriesType[])('leaves a sparse %s untouched', (type) => {
-      expect(getSeriesPerfOptions({ type, density: density(LARGE_MODE_THRESHOLD - 1), options: options() })).toEqual(
-        {}
-      );
+      expect(
+        getSeriesPerfOptions({ type, density: density(LARGE_MODE_THRESHOLD - 1), options: options(), values: [] })
+      ).toEqual({});
     });
 
     // `large` is per-series because ECharts applies `largeThreshold` per-series;
@@ -144,6 +246,7 @@ describe('getSeriesPerfOptions', () => {
             type,
             density: { totalPoints: 100_000, maxPointsPerSeries: 100 },
             options: options(),
+            values: [],
           })
         ).toEqual({});
       }
@@ -151,11 +254,15 @@ describe('getSeriesPerfOptions', () => {
   });
 
   it('leaves effectScatter untouched (ripple series, not a big-data path)', () => {
-    expect(getSeriesPerfOptions({ type: 'effectScatter', density: density(10_000), options: options() })).toEqual({});
+    expect(
+      getSeriesPerfOptions({ type: 'effectScatter', density: density(10_000), options: options(), values: [] })
+    ).toEqual({});
   });
 
   it('leaves heatmap (undefined type) untouched', () => {
-    expect(getSeriesPerfOptions({ type: undefined, density: density(10_000), options: options() })).toEqual({});
+    expect(getSeriesPerfOptions({ type: undefined, density: density(10_000), options: options(), values: [] })).toEqual(
+      {}
+    );
   });
 });
 
@@ -180,12 +287,7 @@ describe('resolveAnimation', () => {
     expect(resolveAnimation(options({ animation: { enabled: false } }))).toBe(false);
   });
 
-  // `resolveAnimation` takes no density argument at all, which is the point: the
-  // signature makes it impossible for frame shape to influence the answer.
-  it('takes only options, so chart density cannot influence it', () => {
-    expect(resolveAnimation).toHaveLength(1);
-    // A frame set well past every per-series/total threshold still animates when
-    // the user opted in.
+  it('animates a chart well past every density threshold when the user opted in', () => {
     expect(getSeriesDensity([timeFrame(500, 20)]).totalPoints).toBe(10_000);
     expect(resolveAnimation(options({ animation: { enabled: true } }))).toBe(true);
   });

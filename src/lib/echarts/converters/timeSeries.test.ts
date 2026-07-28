@@ -257,17 +257,42 @@ describe('timeSeriesToEChartsOption', () => {
   });
 
   describe('performance fast-path props', () => {
-    it('keeps symbols and no sampling on a sparse line series (below the density threshold)', () => {
+    it('keeps symbols on a sparse line series (below the density threshold)', () => {
       const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS)], 'line');
 
       expect(result[0]).toMatchObject({ showSymbol: true });
-      expect((result[0] as LineSeriesOption).sampling).toBeUndefined();
     });
 
-    it('drops symbols and enables LTTB on a dense line series', () => {
+    it('drops symbols on a dense line series', () => {
       const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1)], 'line');
 
       expect(result[0]).toMatchObject({ showSymbol: false, sampling: 'lttb' });
+    });
+
+    // LTTB carries no threshold of ours — ECharts gates it on the rendered width,
+    // so it is armed on every line series unless the user turns it off.
+    it('arms LTTB even on a sparse line series (ECharts gates it on pixel width)', () => {
+      const result = runSeries([densityFrame(10)], 'line');
+
+      expect(result[0]).toMatchObject({ sampling: 'lttb' });
+    });
+
+    // A series with no two adjacent non-null values draws no line, so hiding its
+    // markers would render it as nothing at all.
+    it('keeps symbols on a single-point series even past the total threshold', () => {
+      const frames = Array.from({ length: SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1 }, (_, i) =>
+        toDataFrame({
+          fields: [
+            { name: 'time', type: FieldType.time, values: [i] },
+            { name: `s${i}`, type: FieldType.number, values: [i] },
+          ],
+        })
+      );
+
+      const result = runSeries(frames, 'line');
+
+      expect(result).toHaveLength(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1);
+      expect(result.every((series) => (series as LineSeriesOption).showSymbol === true)).toBe(true);
     });
 
     it('honors the Show points = Never override on a sparse series', () => {

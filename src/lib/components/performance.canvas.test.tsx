@@ -9,8 +9,10 @@ import { getCanvasEvents, getComponent, height, width } from 'test/panel';
 // if the production threshold ever moved. Mocking pins the *behavior* at the
 // boundary rather than the constant's current value.
 //
-// `SAMPLING_MIN_POINTS_PER_SERIES` is deliberately left real (100), so sampling
-// never engages at these sizes and these snapshots stay about symbols alone.
+// LTTB carries no threshold of ours, but it cannot disturb these snapshots
+// either: ECharts only samples a series with ~1.5x more points than the axis has
+// pixels, far past these sizes (see `lib/echarts/performance/constants.ts`), so
+// they stay about symbols alone.
 //
 // This is what `lib/echarts/performance/constants.ts` exists for as a separate
 // module: it can be mocked without touching the resolvers that read it.
@@ -101,5 +103,87 @@ describe('Panel canvas performance fast path', () => {
     });
 
     expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+  });
+});
+
+/**
+ * Draw calls that put ink on the series layer. A line series paints via `lineTo`
+ * (path segments) and `arc` (point markers) — a series with neither renders as an
+ * empty canvas, however many `moveTo`/`stroke` pairs it emits, because a
+ * zero-length path covers no pixels.
+ */
+const countInk = (events: Array<{ type: string }>) =>
+  events.reduce(
+    (acc, { type }) => ({
+      arc: acc.arc + (type === 'arc' ? 1 : 0),
+      lineTo: acc.lineTo + (type === 'lineTo' ? 1 : 0),
+    }),
+    { arc: 0, lineTo: 0 }
+  );
+
+// Guards the blank-panel regression: hiding markers on a series that draws no
+// line leaves nothing on the canvas at all. Asserted by counting ink rather than
+// snapshotting, because "did anything render" is the whole claim — a snapshot
+// would state it in a thousand lines and still pass if it were re-recorded blank.
+// Core Grafana keeps these points visible too, via its uPlot `pointsFilter`.
+describe('Panel canvas performance fast path: series that draw no line', () => {
+  // Several one-point frames (a Prometheus instant query): past the total, but no
+  // series has two points to draw a line between.
+  it('still paints single-point series past the symbol threshold', async () => {
+    const frames = Array.from({ length: MOCKED_MAX_TOTAL_POINTS + 1 }, (_, i) =>
+      toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1783137094497 + i * 3600000] },
+          { name: `cpu${i}`, type: FieldType.number, values: [10 + i * 10], config: { displayName: `cpu${i}` } },
+        ],
+      })
+    );
+
+    const { container } = render(
+      getComponent(frames, 'line', { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } })
+    );
+    const { seriesEvents } = await getCanvasEvents(container);
+
+    expect(countInk(seriesEvents).arc).toBeGreaterThan(0);
+  });
+
+  // One series past the threshold whose values are each separated by nulls, so
+  // `connectNulls: false` leaves no drawable segment anywhere.
+  it('still paints a series whose every value is null-separated', async () => {
+    const points = (MOCKED_MAX_TOTAL_POINTS + 1) * 2;
+    const frame = toDataFrame({
+      fields: [
+        {
+          name: 'time',
+          type: FieldType.time,
+          values: Array.from({ length: points }, (_, i) => 1783137094497 + i * 3600000),
+        },
+        {
+          name: 'cpu',
+          type: FieldType.number,
+          values: Array.from({ length: points }, (_, i) => (i % 2 === 0 ? 10 + (i % 5) * 10 : null)),
+          config: { displayName: 'cpu' },
+        },
+      ],
+    });
+
+    const { container } = render(
+      getComponent([frame], 'line', { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } })
+    );
+    const { seriesEvents } = await getCanvasEvents(container);
+
+    const ink = countInk(seriesEvents);
+    expect(ink.lineTo).toBe(0); // nulls break every segment: markers are all there is
+    expect(ink.arc).toBeGreaterThan(0);
+  });
+
+  // The other side of the boundary: an ordinary dense series does lose its
+  // markers, so the guard above cannot be passing because symbols never drop.
+  it('still drops markers on an ordinary dense series', async () => {
+    const { seriesEvents } = await renderSeriesLayer(MOCKED_MAX_TOTAL_POINTS + 1);
+
+    const ink = countInk(seriesEvents);
+    expect(ink.arc).toBe(0);
+    expect(ink.lineTo).toBeGreaterThan(0); // the line is what renders it instead
   });
 });

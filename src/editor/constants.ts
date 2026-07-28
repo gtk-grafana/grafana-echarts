@@ -220,15 +220,13 @@ export const thresholdsCategoryName = 'Thresholds';
 export const thresholdsStyleModePath = 'thresholdsStyle.mode';
 export const thresholdsStyleModeName = 'Show thresholds';
 
-/**
- * Performance options (Advanced, cartesian time series). ECharts' per-point
- * levers (point markers off / LTTB downsampling) are auto-tuned above a density
- * threshold so dense charts take the fast path while small charts are visually
- * unchanged; these controls let power users override the auto behavior.
- * Resolvers live in `lib/echarts/performance/resolvers.ts` and the threshold in
- * `lib/echarts/performance/constants.ts`; the editor fragment is
- * `lib/grafana/editor/common/performance-options.ts`.
- */
+// Performance options (Advanced, cartesian). ECharts' per-point levers (point
+// markers off / LTTB downsampling) are auto-tuned by density so dense charts take
+// the fast path while small charts are visually unchanged; these controls let
+// power users override the auto behavior. Resolvers live in
+// `lib/echarts/performance/resolvers.ts` and the thresholds in
+// `lib/echarts/performance/constants.ts`; the editor fragment is
+// `lib/grafana/editor/common/performance-options.ts`.
 
 /** Tri-state choices (Auto / Always / Never) for a performance override radio. */
 export const performanceModeOptions: Array<SelectableValue<PerformanceMode>> = [

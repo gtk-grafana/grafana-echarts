@@ -13,11 +13,17 @@
  * resolvers switch a chart onto ECharts' big-data levers.
  *
  * **Note which axis each threshold measures.** Symbol cost scales with the
- * *total* number of drawn markers, so its threshold is a total; sampling and
- * `large` reduce work *within* a series, so theirs are per-series. Conflating the
- * two is a real bug: 1000 series x 100 points is only 100 points per series but
- * 100,000 symbols, and measured 720ms with markers on versus 54ms with them off.
- * See `docs/performance.md`.
+ * *total* number of drawn markers, so its threshold is a total; `large` reduces
+ * work *within* a series, so its threshold is per-series. Conflating the two is a
+ * real bug: 1000 series x 100 points is only 100 points per series but 100,000
+ * symbols, and measured 720ms with markers on versus 54ms with them off.
+ *
+ * There is deliberately **no sampling threshold here.** LTTB is armed whenever
+ * downsampling is on and ECharts decides when it fires, gating on the rendered
+ * width (`round(count / axisWidthPx * dpr) > 1` in its `dataSample` processor) —
+ * roughly 1.5x more points than the axis has pixels. A per-series count we picked
+ * would sit far below that and never fire first, so it read as a behavior boundary
+ * that did not exist. See `docs/performance.md`.
  */
 
 /**
@@ -27,14 +33,6 @@
  * cost ~2ms, at 10,000 ~67ms, at 100,000 ~666ms.
  */
 export const SYMBOL_VISIBLE_MAX_TOTAL_POINTS = 100;
-
-/**
- * **Per-series** point count above which a line series enables LTTB `sampling`
- * (when downsampling is on). Deliberately per-series rather than total: sampling
- * thins points *within* a series toward pixel resolution, so it does nothing for
- * a chart made of many short series and would only add overhead there.
- */
-export const SAMPLING_MIN_POINTS_PER_SERIES = 100;
 
 /**
  * **Per-series** point count at/above which scatter/bar series switch on ECharts'

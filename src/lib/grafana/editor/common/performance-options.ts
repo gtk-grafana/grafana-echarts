@@ -24,9 +24,12 @@ import { type PanelOptions } from 'types';
  * - **Show points** (`performance.showPoints`, default Auto): per-series
  *   `showSymbol`, decided from the chart's **total** point count — marker count is
  *   what costs, so many short series are as expensive as one long one. Auto hides
- *   markers once the total crosses the threshold; Always/Never force it.
- * - **Downsampling** (`performance.downsampling`, default on): LTTB `sampling` on
- *   dense line series (a no-op once points fit the pixels).
+ *   markers once the total crosses the threshold, except on a series that draws no
+ *   line and would then render as nothing; Always/Never force it.
+ * - **Downsampling** (`performance.downsampling`, default on): arms LTTB
+ *   `sampling` on every line series. ECharts itself decides when it fires, gating
+ *   on the rendered width, so this is a no-op until a series has more points than
+ *   the axis has pixels.
  * - **Animation** (`animation.enabled`, default off): the panel-wide `animation`
  *   flag, an opt-in switch. Density thresholds were tried and removed — they
  *   could not fire before the render that needed them (see `resolveAnimation`) —

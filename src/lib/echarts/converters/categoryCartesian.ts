@@ -5,6 +5,7 @@ import { type CartesianOption, type ChartContext } from 'lib/echarts/charts/type
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { findCategoryField, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
+import { getDensityFromSeriesValues, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 
 /**
  * Convert Grafana Numeric frames into an ECharts category-axis cartesian chart
@@ -46,6 +47,11 @@ export function categoryCartesianToEChartsOption(
   }
 
   const stacked = seriesType === 'bar' && options.stackSeries;
+  // Density drives the same fast-path props as the time-axis converter, computed
+  // once over every series so a dense chart never renders half on the fast path.
+  // Without this the Advanced Performance options were visible but inert on
+  // category-axis charts. See lib/echarts/performance/resolvers.ts.
+  const density = getDensityFromSeriesValues(categorical.series.map(({ values }) => values));
   const echartsSeries: CartesianOption['series'] = categorical.series.map((field) => ({
     name: field.name,
     type: seriesType,
@@ -54,6 +60,7 @@ export function categoryCartesianToEChartsOption(
     itemStyle: { color: field.color },
     lineStyle: { color: field.color },
     ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+    ...getSeriesPerfOptions({ type: seriesType, density, options, values: field.values }),
   }));
 
   return { categories: categorical.categories, series: echartsSeries };

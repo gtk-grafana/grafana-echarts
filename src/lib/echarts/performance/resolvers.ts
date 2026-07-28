@@ -6,17 +6,13 @@ import {
 } from 'editor/constants';
 import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type PerformanceMode } from 'editor/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
-import {
-  LARGE_MODE_THRESHOLD,
-  SAMPLING_MIN_POINTS_PER_SERIES,
-  SYMBOL_VISIBLE_MAX_TOTAL_POINTS,
-} from 'lib/echarts/performance/constants';
+import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_TOTAL_POINTS } from 'lib/echarts/performance/constants';
 import { type PerfSeriesOptions, type SeriesDensity } from 'lib/echarts/performance/types';
 import { type PanelOptions } from 'types';
 
 /**
  * Resolvers that turn a chart's density plus any Advanced overrides into ECharts'
- * big-data levers. The threshold they compare against lives in `./constants.ts`;
+ * big-data levers. The thresholds they compare against live in `./constants.ts`;
  * the editor fragment that surfaces the overrides is
  * `lib/grafana/editor/common/performance-options.ts`.
  *
@@ -27,30 +23,74 @@ import { type PanelOptions } from 'types';
  */
 
 /**
- * Both density measures for a frame set: total points across all series, and
- * points in the densest single series. Counted the same way
- * `timeSeriesToEChartsOption` emits series (via `forEachTimeSeriesField`, so the
- * numeric-fallback X field is honored). Non-time-series frames (pie, radar,
- * category) yield counts well below the thresholds, so the resolvers no-op.
+ * Both density measures for a set of already-flattened series value arrays.
+ * `getSeriesDensity` below is the frame-shaped entry point; the category-axis
+ * converter has its series flattened already (`frameToCategorical`) and calls
+ * this directly, so both cartesian paths measure density the same way.
  */
-export function getSeriesDensity(frames: DataFrame[]): SeriesDensity {
+export function getDensityFromSeriesValues(seriesValues: ReadonlyArray<readonly unknown[]>): SeriesDensity {
   let totalPoints = 0;
   let maxPointsPerSeries = 0;
-  forEachTimeSeriesField(frames, ({ field }) => {
-    const points = field.values.length;
-    totalPoints += points;
-    maxPointsPerSeries = Math.max(maxPointsPerSeries, points);
-  });
+  for (const values of seriesValues) {
+    totalPoints += values.length;
+    maxPointsPerSeries = Math.max(maxPointsPerSeries, values.length);
+  }
   return { totalPoints, maxPointsPerSeries };
 }
 
 /**
- * Resolve line-series point-marker visibility from the (defaulted) Show points
- * mode. Auto keys off **total** points, not per-series: the cost is the number of
- * markers drawn, and a chart of 1000 short series draws just as many as one long
- * one.
+ * Both density measures for a frame set: total points across all series, and
+ * points in the densest single series. Counted the same way
+ * `timeSeriesToEChartsOption` emits series (via `forEachTimeSeriesField`, so the
+ * numeric-fallback X field is honored). Non-time-series frames (pie, radar) yield
+ * counts well below the thresholds, so the resolvers no-op.
  */
-function resolveShowSymbol(showPoints: PerformanceMode, totalPoints: number): boolean {
+export function getSeriesDensity(frames: DataFrame[]): SeriesDensity {
+  const seriesValues: Array<readonly unknown[]> = [];
+  forEachTimeSeriesField(frames, ({ field }) => {
+    seriesValues.push(field.values);
+  });
+  return getDensityFromSeriesValues(seriesValues);
+}
+
+/**
+ * Whether a series draws at least one line segment, i.e. holds two *adjacent*
+ * non-null values. Returns on the first pair found, so for ordinary dense data it
+ * costs a single comparison.
+ *
+ * A series without one paints nothing at all when symbols are hidden: ECharts
+ * emits a zero-length `moveTo`/`stroke` per point, which covers no pixels, so the
+ * point markers are the only thing that renders it. Two ordinary shapes hit this
+ * — a single-point series (a Prometheus instant query), and a series whose values
+ * are each separated by nulls (`connectNulls` is off, so a null breaks the path).
+ */
+function hasDrawableLineSegment(values: readonly unknown[]): boolean {
+  for (let i = 1; i < values.length; i++) {
+    if (values[i] != null && values[i - 1] != null) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Resolve line-series point-marker visibility from the (defaulted) Show points
+ * mode, the chart's total density, and the series' own values.
+ *
+ * Auto keys off **total** points, not per-series: the cost is the number of
+ * markers drawn, and a chart of 1000 short series draws just as many as one long
+ * one. It makes one exception above that total — a series with no drawable line
+ * segment keeps its markers, because hiding them would render that series as
+ * literally nothing (see {@link hasDrawableLineSegment}). Core Grafana guards the
+ * same case, via the `pointsFilter` its uPlot series builder applies to
+ * gap-isolated points.
+ *
+ * `always` and `never` are explicit overrides and are obeyed literally, so unlike
+ * core, `never` *will* blank an isolated-point series — that is what asking for no
+ * markers on a chart that draws no lines means. Only the heuristic promises to
+ * keep the data visible.
+ */
+function resolveShowSymbol(showPoints: PerformanceMode, totalPoints: number, values: readonly unknown[]): boolean {
   switch (showPoints) {
     case 'always':
       return true;
@@ -58,7 +98,7 @@ function resolveShowSymbol(showPoints: PerformanceMode, totalPoints: number): bo
       return false;
     case 'auto':
     default:
-      return totalPoints <= SYMBOL_VISIBLE_MAX_TOTAL_POINTS;
+      return totalPoints <= SYMBOL_VISIBLE_MAX_TOTAL_POINTS || !hasDrawableLineSegment(values);
   }
 }
 
@@ -67,9 +107,8 @@ function resolveShowSymbol(showPoints: PerformanceMode, totalPoints: number): bo
  * density, and the panel's Advanced overrides.
  *
  * - `line`: hide per-point symbols once the chart's **total** point count crosses
- *   the threshold (unless Show points forces it), and enable LTTB `sampling` once
- *   a **single series** is deep enough to be worth thinning (unless Downsampling
- *   is off). The two use different measures on purpose — see `./constants.ts`.
+ *   the threshold (unless Show points forces it, or the series would vanish), and
+ *   arm LTTB `sampling` unless Downsampling is off.
  * - `scatter` / `bar`: enable `large` mode above `LARGE_MODE_THRESHOLD`
  *   per-series, matching ECharts' own `largeThreshold` semantics. Scatter is
  *   symbols-by-definition (no `showSymbol`), so `large` is its lever;
@@ -80,10 +119,13 @@ export function getSeriesPerfOptions({
   type,
   density,
   options,
+  values,
 }: {
   type: CartesianSingleValueSeriesType | HeatmapSeriesType | undefined;
   density: SeriesDensity;
   options: PanelOptions;
+  /** This series' own values, in emit order. Only the `line` branch reads them. */
+  values: readonly unknown[];
 }): PerfSeriesOptions {
   const performance = options.performance;
   const { totalPoints, maxPointsPerSeries } = density;
@@ -91,11 +133,16 @@ export function getSeriesPerfOptions({
   if (type === 'line') {
     const showPoints = performance?.showPoints ?? PERFORMANCE_SHOW_POINTS_DEFAULT;
     const downsampling = performance?.downsampling ?? PERFORMANCE_DOWNSAMPLING_DEFAULT;
-    const worthSampling = maxPointsPerSeries > SAMPLING_MIN_POINTS_PER_SERIES;
     return {
-      showSymbol: resolveShowSymbol(showPoints, totalPoints),
+      showSymbol: resolveShowSymbol(showPoints, totalPoints, values),
+      // Armed whenever downsampling is on, with no point threshold of our own,
+      // because ECharts re-gates it on the rendered width: its `dataSample`
+      // processor thins a series only once `round(count / axisWidthPx * dpr) > 1`,
+      // i.e. at roughly 1.5x more points than the x axis has pixels. Any
+      // points-per-series threshold we set below that never fires first, so it
+      // would only be decoration — see `./constants.ts`.
       // @todo compare against minmax
-      sampling: downsampling && worthSampling ? 'lttb' : undefined,
+      sampling: downsampling ? 'lttb' : undefined,
     };
   }
 
