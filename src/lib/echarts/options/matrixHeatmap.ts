@@ -78,6 +78,13 @@ export function getMatrixHeatmapSeries(
     type: 'heatmap',
     zlevel,
     data: data.cells,
+    // Cells never animate, even when the panel opts in via `animation.enabled`: a
+    // series-level `animation` overrides the panel-level flag. A matrix holds one
+    // cell per x/y pair, so the rect count scales with the product of both axes,
+    // and a grid has no shape to grow into — the transition is pure cost. Matches
+    // the binned layout's cartesian overlay; see docs/performance.md.
+    // https://echarts.apache.org/en/option.html#series-heatmap.animation
+    animation: false,
     legendHoverLink: false,
     tooltip: {
       formatter: toEmittingFormatter(

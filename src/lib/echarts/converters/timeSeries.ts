@@ -4,6 +4,7 @@ import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type Heat
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
+import { getSeriesDensity, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 import { getSeriesColor } from 'lib/echarts/style';
 import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
@@ -55,6 +56,13 @@ function resolveFieldStack(field: Field, panelStack = false): boolean {
 
 /**
  * Convert Grafana time series DataFrames into ECharts series data.
+ *
+ * Data is emitted as inline `[time, value]` tuples.
+ *
+ * Series carry the type-aware performance props from `getSeriesPerfOptions`
+ * (symbols off / LTTB for dense lines; `large` for dense scatter/bar), computed
+ * once from the whole frame set so a dense chart switches every series onto the
+ * fast path consistently.
  */
 export function timeSeriesToEChartsOption(
   ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
@@ -63,6 +71,11 @@ export function timeSeriesToEChartsOption(
 
   const frames: Array<FieldTypedDataFrame<string | number, EChartsFieldConfig>> = rawFrames;
   const echartsSeries: EChartSingleValueCartesianSeries[] = [];
+
+  // Density (total points + densest series) drives the fast-path props; computed
+  // once over the whole frame set so every series resolves against the same
+  // numbers and a chart never renders half on the fast path.
+  const density = getSeriesDensity(rawFrames);
 
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
@@ -87,6 +100,10 @@ export function timeSeriesToEChartsOption(
       // capture hover events on line hover
       triggerEvent: true,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+      // Type-aware fast-path props (symbols/sampling for line; large for
+      // scatter/bar). `values` lets the symbol decision spare a series that draws
+      // no line, which would otherwise render as nothing at all.
+      ...getSeriesPerfOptions({ type: resolvedType, density, options, values: field.values }),
       showEffectOn,
     };
 

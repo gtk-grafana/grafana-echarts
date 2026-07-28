@@ -8,6 +8,7 @@ import {
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type MultiValueSeriesType,
+  type PerformanceMode,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -218,3 +219,43 @@ export const heatmapFrameTypes: string[] = [DataFrameType.HeatmapRows, DataFrame
 export const thresholdsCategoryName = 'Thresholds';
 export const thresholdsStyleModePath = 'thresholdsStyle.mode';
 export const thresholdsStyleModeName = 'Show thresholds';
+
+// Performance options (Advanced, cartesian). ECharts' per-point levers (point
+// markers off / LTTB downsampling) are auto-tuned by density so dense charts take
+// the fast path while small charts are visually unchanged; these controls let
+// power users override the auto behavior. Resolvers live in
+// `lib/echarts/performance/resolvers.ts` and the thresholds in
+// `lib/echarts/performance/constants.ts`; the editor fragment is
+// `lib/grafana/editor/common/performance-options.ts`.
+
+/** Tri-state choices (Auto / Always / Never) for a performance override radio. */
+export const performanceModeOptions: Array<SelectableValue<PerformanceMode>> = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'always', label: 'Always' },
+  { value: 'never', label: 'Never' },
+];
+
+export const performanceShowPointsPath = 'performance.showPoints';
+export const performanceShowPointsName = 'Show points';
+/** Default point-marker visibility: auto (hide symbols above the total-points threshold). */
+export const PERFORMANCE_SHOW_POINTS_DEFAULT: PerformanceMode = 'auto';
+
+export const performanceDownsamplingPath = 'performance.downsampling';
+export const performanceDownsamplingName = 'Downsampling (LTTB)';
+/** Default LTTB downsampling: on (sample dense series toward pixel resolution). */
+export const PERFORMANCE_DOWNSAMPLING_DEFAULT = true;
+
+/**
+ * Shared animation toggle, offered as an opt-in Advanced switch by every family
+ * that exposes it (cartesian here, part-to-whole via `pieAnimationEnabledPath`).
+ *
+ * **Off by default, for every panel.** Density thresholds were tried first and
+ * could not work: a panel cannot know a response is dense until it has it, and
+ * any threshold leaves a band below it that still animates on an already-heavy
+ * chart (growing 10 -> 40 series animates, and Grafana re-renders with the
+ * previous data while a query is in flight). Off is also closer to core Grafana,
+ * whose viz panels do not animate at all. See `docs/performance.md`.
+ */
+export const animationEnabledPath = 'animation.enabled';
+export const animationName = 'Animation';
+export const ANIMATION_ENABLED_DEFAULT = false;
