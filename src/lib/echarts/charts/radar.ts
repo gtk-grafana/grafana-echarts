@@ -1,3 +1,4 @@
+import { type Field } from '@grafana/data';
 import { findCategoricalFrame, mapNumericFields } from 'lib/echarts/converters/frames';
 import { radarToEChartsOption } from 'lib/echarts/converters/radar';
 import { getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
@@ -18,17 +19,14 @@ export const radarChartModule: ChartModule = {
   getTooltipValueFormatter(ctx) {
     // Each polygon is one numeric field rendered as a data item in a single
     // series, so the tooltip's `dataIndex` selects the polygon's field formatter.
-    const frame = findCategoricalFrame(ctx.frames);
-    const fields = frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
-    const formatters = getFieldValueFormatters(fields, ctx.theme, ctx.timeZone);
+    const formatters = getFieldValueFormatters(radarSeriesFields(ctx), ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
   },
 
   getTooltipFieldResolver(ctx) {
-    // Same per-polygon field list as the value formatter above, keyed by
-    // `dataIndex`; a polygon reduces a whole field, so links resolve at row 0.
-    const frame = findCategoricalFrame(ctx.frames);
-    const fields = frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+    // Keyed by `dataIndex` like the value formatter above; a polygon reduces a
+    // whole field, so links resolve at row 0.
+    const fields = radarSeriesFields(ctx);
     return (item) => {
       if (item.dataIndex == null) {
         return undefined;
@@ -64,3 +62,13 @@ export const radarChartModule: ChartModule = {
     return buildRadarLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
   },
 };
+
+/**
+ * The numeric field behind each polygon, in the order radar emits its data items
+ * — so a tooltip's `dataIndex` maps back to its source field. Mirrors
+ * `cartesianSeriesFields`.
+ */
+function radarSeriesFields(ctx: ChartContext): Field[] {
+  const frame = findCategoricalFrame(ctx.frames);
+  return frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+}

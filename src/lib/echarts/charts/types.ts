@@ -154,9 +154,11 @@ export interface ChartModule {
   /**
    * Resolve the value formatter for a hovered tooltip item so each series
    * formats with its own field's unit/decimals overrides. Chart families map the
-   * item to a field differently (by `seriesIndex` or `dataIndex`).
+   * item to a field differently (by `seriesIndex` or `dataIndex`). Optional:
+   * families whose items all share the panel formatter omit it and
+   * `buildPanelTooltip` falls back to `ctx.formatValue`.
    */
-  getTooltipValueFormatter(ctx: ChartContext): TooltipValueFormatterResolver;
+  getTooltipValueFormatter?(ctx: ChartContext): TooltipValueFormatterResolver;
   /**
    * Resolve the source `Field` + row index for a hovered tooltip item, so the
    * tooltip footer can surface that field's data links and label-based ad-hoc
@@ -177,6 +179,12 @@ export interface ChartModule {
    * `tooltip.mode: multi` is clamped back to Single when building the option.
    * Its editor should also pass `singleOnly` to `addTooltipOptions`; this covers
    * dashboards saved before the option was withdrawn.
+   *
+   * Only radar sets this today. Hierarchy's editor passes `singleOnly` (see
+   * `modules/hierarchy/module.tsx`) but `hierarchyChartModule` does not set this,
+   * so a dashboard saved with `multi` still builds an axis trigger there. Left
+   * alone deliberately: setting it would change what those saved dashboards
+   * render.
    */
   singleTooltipOnly?: boolean;
 }

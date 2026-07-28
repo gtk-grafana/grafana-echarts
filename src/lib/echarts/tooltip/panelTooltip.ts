@@ -47,7 +47,8 @@ export function buildPanelTooltip(
     chartModule.singleTooltipOnly && requested === TooltipDisplayMode.Multi ? TooltipDisplayMode.Single : requested;
 
   // Per-series resolver so each row honors its field's unit/decimals overrides.
-  const resolveValueFormatter = chartModule.getTooltipValueFormatter(ctx);
+  // Families with a single value dimension omit it and share the panel formatter.
+  const resolveValueFormatter = chartModule.getTooltipValueFormatter?.(ctx) ?? (() => ctx.formatValue);
   // Optional per-family field resolver so hovered items can surface their
   // field's data links / ad-hoc filters in the tooltip footer.
   const resolveField = chartModule.getTooltipFieldResolver?.(ctx);

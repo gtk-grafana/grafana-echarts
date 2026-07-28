@@ -381,14 +381,24 @@ describe('heatmapChartModule.buildOption series composition', () => {
 });
 
 describe('heatmapChartModule.getTooltipValueFormatter', () => {
+  // The member is optional on `ChartModule` (families whose items all share the
+  // panel formatter omit it), so narrow once — heatmap does implement it.
+  const resolverFor = (frames: DataFrame[]) => {
+    const resolve = heatmapChartModule.getTooltipValueFormatter?.(makeContext(frames));
+    if (resolve == null) {
+      throw new Error('heatmapChartModule should define getTooltipValueFormatter');
+    }
+    return resolve;
+  };
+
   it('uses the panel formatter for the cell layer (series index 0)', () => {
-    const resolve = heatmapChartModule.getTooltipValueFormatter(makeContext([heatmapFrame(), twoUnitOverlayFrame()]));
+    const resolve = resolverFor([heatmapFrame(), twoUnitOverlayFrame()]);
     // The cell layer is series index 0; it falls back to the panel formatter.
     expect(resolve({ seriesIndex: 0 })(5)).toEqual(formatValue(5));
   });
 
   it('resolves each overlay series to its own field unit formatter', () => {
-    const resolve = heatmapChartModule.getTooltipValueFormatter(makeContext([heatmapFrame(), twoUnitOverlayFrame()]));
+    const resolve = resolverFor([heatmapFrame(), twoUnitOverlayFrame()]);
     // Overlays follow the cell layer: index 1 is bytes, index 2 is percent.
     expect(formattedValueToString(resolve({ seriesIndex: 2 })(50))).toContain('%');
     // The bytes overlay formats with its unit, unlike the raw panel formatter.
@@ -396,7 +406,7 @@ describe('heatmapChartModule.getTooltipValueFormatter', () => {
   });
 
   it('falls back to the panel formatter for an unknown series index', () => {
-    const resolve = heatmapChartModule.getTooltipValueFormatter(makeContext([heatmapFrame()]));
+    const resolve = resolverFor([heatmapFrame()]);
     expect(resolve({ seriesIndex: 5 })(7)).toEqual(formatValue(7));
   });
 });
