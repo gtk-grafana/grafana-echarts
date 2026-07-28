@@ -392,6 +392,21 @@ panels.append(panel(
                  "2021-07-13T17:20:00Z,8,6\n2021-07-13T17:30:00Z,2,11\n")],
     transformations=convert([("time", "time"), ("A", "number"), ("B", "number")]),
 ))
+panels.append(panel(
+    ptype=PIE, x=12, w=12, y=h,
+    title="Funnel — All mode",
+    description=(
+        "Funnel is the pie's sibling render variant: only the series body differs, so it shares the "
+        "slice model and the pie tooltip verbatim. All mode lists every stage with its value and "
+        "share of the whole, and the hovered stage bolds. The 'value' field carries a data link, "
+        "which resolves against the slice's real source column and row — pin a stage to see it."
+    ),
+    options={"seriesType": "funnel", "legend": LEGEND, "tooltip": {"mode": "multi"},
+             "reduceOptions": {"calcs": [], "fields": "", "values": True}},
+    field_config=links_on("value"),
+    targets=[csv("stage,value\nVisited,1000\nSigned up,620\nActivated,410\nSubscribed,180\nRenewed,95")],
+    transformations=convert([("value", "number")]),
+))
 
 h = _next_y(9)
 panels.append(panel(

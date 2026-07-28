@@ -220,6 +220,157 @@
       ],
       "title": "Funnel — name + value + percent labels",
       "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Tooltip mode = All. The funnel shares the pie's tooltip verbatim, so hovering any stage lists every stage with its value and share of the whole, and bolds the hovered one. Percentages are computed from the visible stages, so they stay consistent whichever stage you hover.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "funnel",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "displayLabels": ["name", "value"],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "stage,value\nVisited,1000\nSigned up,620\nActivated,410\nSubscribed,180\nRenewed,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Funnel — All mode tooltip",
+      "type": "grafana-echartsparttowhole-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Click a stage to pin the tooltip: pinning freezes the content and makes it interactive, adding a close button and a footer. The 'value' field carries a data link, which resolves against the stage's real source column and row — not the synthetic single-value field rebuilt for the legend, which carries no links. Escape, an outside click, or scrolling the chart away dismisses it.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "value"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "funnel",
+        "reduceOptions": {
+          "values": true,
+          "calcs": []
+        },
+        "displayLabels": ["name", "value"],
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "stage,value\nVisited,1000\nSigned up,620\nActivated,410\nSubscribed,180\nRenewed,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Funnel — pinned tooltip with data links",
+      "type": "grafana-echartsparttowhole-panel"
     }
   ],
   "refresh": "",

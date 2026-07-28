@@ -1285,10 +1285,95 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
+      "type": "grafana-echartsparttowhole-panel",
+      "title": "Funnel \u2014 All mode",
+      "description": "Funnel is the pie's sibling render variant: only the series body differs, so it shares the slice model and the pie tooltip verbatim. All mode lists every stage with its value and share of the whole, and the hovered stage bolds. The 'value' field carries a data link, which resolves against the slice's real source column and row \u2014 pin a stage to see it.",
+      "id": 21,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 58
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "value"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Grafana docs",
+                    "url": "https://grafana.com/docs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "funnel",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "",
+          "values": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "stage,value\nVisited,1000\nSigned up,620\nActivated,410\nSubscribed,180\nRenewed,95",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
       "type": "grafana-echartscartesian-panel",
       "title": "Bar \u2014 the hovered bar wins, not the nearest bar top",
       "description": "Bars keep ECharts' default emphasis: they have no symbol to scale, and their hit area is already large enough not to need a marker. Bars opt out of proximity \u2014 it picks the vertically nearest datapoint, which for a column of bars is the nearest bar *top* rather than the bar under the cursor. ECharts' native hit-testing drives both the Single tooltip and the All-mode bold row instead, so hovering a bar always describes that bar.",
-      "id": 21,
+      "id": 22,
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -1365,7 +1450,7 @@
       "type": "grafana-echartscartesian-panel",
       "title": "Stacked bar \u2014 All mode",
       "description": "Stacking changes the rendered y; the bold row still follows the cursor vertically.",
-      "id": 22,
+      "id": 23,
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -1430,7 +1515,7 @@
       "type": "row",
       "title": "Content edge cases",
       "collapsed": false,
-      "id": 23,
+      "id": 24,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1447,7 +1532,7 @@
       "type": "grafana-echartscartesian-panel",
       "title": "Per-field units and decimals",
       "description": "Each row formats with its own field's unit/decimals override, not one shared formatter.",
-      "id": 24,
+      "id": 25,
       "gridPos": {
         "h": 9,
         "w": 8,
@@ -1534,7 +1619,7 @@
       "type": "grafana-echartscartesian-panel",
       "title": "All mode \u2014 hide zeros + sort desc",
       "description": "Zero rows drop out and remaining rows sort by value; the bold row still tracks proximity.",
-      "id": 25,
+      "id": 26,
       "gridPos": {
         "h": 9,
         "w": 8,
@@ -1604,7 +1689,7 @@
       "type": "grafana-echartscartesian-panel",
       "title": "Tooltip disabled (None)",
       "description": "No tooltip and no active-point marker; proximity work is skipped entirely.",
-      "id": 26,
+      "id": 27,
       "gridPos": {
         "h": 9,
         "w": 8,

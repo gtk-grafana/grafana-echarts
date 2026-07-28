@@ -236,4 +236,39 @@ describe('tooltip emission through a real ECharts instance', () => {
     expect(model.source).toBeDefined();
     chart.dispose();
   });
+
+  // Funnel is the pie's sibling render variant and shares the slice model, so it
+  // shares the pie tooltip verbatim (see `buildFunnelChartOption`). It landed
+  // after the React overlay, so these guard that its series formatter is wired
+  // to the sink rather than left on the pre-overlay DOM path.
+  it('funnel: emits the hovered slice with its name as the header label and the slice field as source', () => {
+    const { emitted, chart } = emitViaShowTip(makeContext([pieFrame()], 'funnel', TooltipDisplayMode.Single), {
+      seriesIndex: 0,
+      dataIndex: 0,
+    });
+
+    expect(emitted).toHaveLength(1);
+    const [model] = emitted;
+    expect(model.header?.value).toBe('');
+    expect(model.header?.label).not.toBe('');
+    expect(model.rows[0].value).toMatch(/\(\d+%\)$/);
+    expect(model.source).toBeDefined();
+    chart.dispose();
+  });
+
+  it('funnel / All (Multi): lists every slice with the hovered one emphasized', () => {
+    const { emitted, chart } = emitViaShowTip(makeContext([pieFrame()], 'funnel', TooltipDisplayMode.Multi), {
+      seriesIndex: 0,
+      dataIndex: 1,
+    });
+
+    expect(emitted).toHaveLength(1);
+    const [model] = emitted;
+    expect(model.rows).toHaveLength(2);
+    // Every row carries its own source so the pinned footer can resolve the
+    // clicked row's data links.
+    expect(model.rows.every((row) => row.source != null)).toBe(true);
+    expect(model.rows.map((row) => row.emphasis)).toEqual([false, true]);
+    chart.dispose();
+  });
 });
