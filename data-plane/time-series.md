@@ -62,8 +62,19 @@ Per series the converter emits:
   below).
 - **itemStyle.color** / **lineStyle.color** — both from `getSeriesColor`
   (`src/lib/echarts/style.ts`), so symbols and lines always agree.
+- **zlevel** — `options.zLevel?.series`, which splits the series onto their own
+  canvas layer. The canvas snapshot harness (`src/test/canvas.ts`) depends on
+  this.
 - **stack** — `STACK_GROUP_ID` (`'total'`, `src/editor/constants.ts`) when the
   series resolves to a stacked bar.
+- **showSymbol** / **sampling** / **large** / **largeThreshold** — the
+  density-driven fast-path props, spread in from `getSeriesPerfOptions`
+  (`src/lib/echarts/performance/resolvers.ts`). Which keys appear depends on the
+  resolved render type, and the density is measured across the whole frame set
+  so every series in a chart takes the same path. The one per-series input is the
+  field's own values, which keep markers on a series that draws no line (a single
+  point, or values each separated by nulls) — otherwise it would render as nothing.
+  See [performance.md](../docs/performance.md).
 
 A frame with no time field _and_ only one numeric field contributes nothing: its
 single numeric field is elected as the X field and then excluded from the series

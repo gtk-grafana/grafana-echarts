@@ -159,7 +159,6 @@ function buildHierarchyTooltip(ctx: HierarchySeriesContext): (params: TopLevelFo
  * https://echarts.apache.org/en/option.html#series-treemap
  */
 export function getTreemapSeries(data: HierarchyData, ctx: HierarchySeriesContext): TreemapSeriesOption {
-  console.log('treemap', data, ctx);
   return {
     type: 'treemap',
     // Off by default: keep the panel static like the other families (no

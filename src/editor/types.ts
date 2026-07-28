@@ -70,6 +70,21 @@ export type SeriesTypeOption = SeriesType | 'Auto';
 export type EditorMode = 'default' | 'advanced' | 'api';
 
 /**
+ * Tri-state override for a density-driven cartesian performance lever (Advanced):
+ * `auto` defers to the threshold in `lib/echarts/performance/constants.ts`,
+ * `always` and `never` force the lever on or off. Unset resolves to `auto`.
+ *
+ * Used by `performance.showPoints` (ECharts `series.showSymbol` — the render-cost
+ * lever behind the 500-series regression). Kept as a shared named type rather
+ * than inlined because it is the shape any future density-driven override should
+ * take, mirroring core Grafana's reusable `VisibilityMode`. Animation is
+ * deliberately *not* one of these: it is a plain off-by-default boolean, since
+ * density thresholds could not fire early enough to be useful (see
+ * `resolveAnimation`). See `lib/echarts/performance/resolvers.ts`.
+ */
+export type PerformanceMode = 'auto' | 'always' | 'never';
+
+/**
  * Pie (part-to-whole) slice-label content, matching core Grafana's
  * `PieChartLabels` (`@grafana/schema` doesn't re-export the raw enum, so the
  * string values are mirrored here): `name` (slice name), `value` (formatted slice

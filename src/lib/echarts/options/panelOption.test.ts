@@ -302,3 +302,50 @@ describe('buildPanelChartOption for the pie (row/series family)', () => {
     );
   });
 });
+
+// The panel-level `animation` flag is an opt-in, off by default, independent of
+// the data. Density thresholds were tried and removed — they could not fire
+// before the render that needed them. See `resolveAnimation`.
+describe('buildPanelChartOption animation resolution', () => {
+  const visible: FieldConfigSource = { defaults: {}, overrides: [] };
+  const animationOf = (option: PanelOption): boolean | undefined => option.animation;
+
+  // A single-series time frame with `points` rows, to prove density is ignored.
+  const denseTimeFrame = (points: number): DataFrame =>
+    toDataFrame({
+      fields: [
+        { name: 'time', type: FieldType.time, values: Array.from({ length: points }, (_, i) => 1783137094497 + i) },
+        { name: 'a', type: FieldType.number, values: Array.from({ length: points }, (_, i) => i) },
+      ],
+    });
+
+  it('is off by default on a small time chart', () => {
+    const option = buildPanelChartOption(makeContext([timeFrame()], 'line', visible), { isGrafanaLegend: true });
+    expect(animationOf(option)).toBe(false);
+  });
+
+  it('is on when explicitly enabled', () => {
+    const option = buildPanelChartOption(
+      makeContext([timeFrame()], 'line', visible, { animation: { enabled: true } }),
+      { isGrafanaLegend: true }
+    );
+    expect(animationOf(option)).toBe(true);
+  });
+
+  // The opt-in is honored regardless of size: the user asked for it explicitly,
+  // and there is no threshold left to overrule them.
+  it('stays on when explicitly enabled on a dense chart', () => {
+    const option = buildPanelChartOption(
+      makeContext([denseTimeFrame(10_000)], 'line', visible, { animation: { enabled: true } }),
+      { isGrafanaLegend: true }
+    );
+    expect(animationOf(option)).toBe(true);
+  });
+
+  it('stays off on a dense chart when unset', () => {
+    const option = buildPanelChartOption(makeContext([denseTimeFrame(10_000)], 'line', visible), {
+      isGrafanaLegend: true,
+    });
+    expect(animationOf(option)).toBe(false);
+  });
+});

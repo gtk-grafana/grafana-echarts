@@ -34,12 +34,19 @@ converter.
 | Tooltip mode                  | `tooltip.mode` applies if boxplot is rendered |
 | Legend                        | Grafana legend via `addLegendOptions`         |
 | Standard field-config options | Full set kept (Color customized)              |
+| Editor mode                   | `editorMode` radio (Default / Advanced)       |
+| Performance overrides         | Registered but inert here — see below         |
 
 ## Notes / gaps
 
 - Purely ECharts-side. There is no core panel to reach parity with; any future
   work is about exposing a render-type selector and documenting the five-number
   field convention.
+- The Advanced **Show points** and **Downsampling** options are registered for the
+  whole cartesian panel, so they appear here, but they do nothing: boxplot renders
+  through `converters/multiValueCartesian.ts`, which has no `showSymbol`/`sampling`
+  equivalent to drive. `animation.enabled` does apply. See
+  [performance.md](../../../../docs/performance.md).
 
 ## ECharts API support
 
@@ -57,7 +64,7 @@ the registered runtime surface.
 | `brush`                                                                                        | Partial         | `lineX` drag maps category indices back to the dashboard time range.                                                                                                                                    |
 | `markLine` / `markArea`                                                                        | Supported       | Threshold lines / regions on the shared value axis.                                                                                                                                                     |
 | `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive show/hide (via the core `hideSeriesFrom` byNames override) + color (via `byName`) read directly (per series, not per field). |
-| `animation`                                                                                    | Supported       | ECharts defaults (enabled).                                                                                                                                                                             |
+| `animation`                                                                                    | Supported       | Off by default for every family; opt in via the Advanced `animation.enabled` switch.                                                                                                                    |
 | `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                                                                                                                                                         |
 | `visualMap`                                                                                    | Not implemented | Registered for the heatmap family only.                                                                                                                                                                 |
 | `dataZoom`                                                                                     | Not implemented | Range zoom is delegated to `brush` -> dashboard time range.                                                                                                                                             |

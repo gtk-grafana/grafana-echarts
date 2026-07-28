@@ -7,6 +7,7 @@ import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
+import { resolveAnimation } from 'lib/echarts/performance/resolvers';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
 import {
   getCrosshairAxisPointer,
@@ -85,7 +86,10 @@ export function buildPanelChartOption(
   return {
     ...echartOption,
     tooltip: tooltipOption,
-    animation: ctx.options.animation?.enabled,
+    // Animation is opt-in and off by default for every family — density
+    // thresholds were tried and could not fire early enough to help. See
+    // `resolveAnimation`.
+    animation: resolveAnimation(ctx.options),
     ...(axisPointer ? { axisPointer } : {}),
     ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };

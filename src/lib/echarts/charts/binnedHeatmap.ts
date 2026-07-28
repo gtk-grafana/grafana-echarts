@@ -229,7 +229,14 @@ const buildSeries = (
     getBinnedHeatmapSeries(heatmap, { theme, timeZone: ctx.timeZone, formatValue }, 0, options.zLevel?.series)
   );
   cartSeries.forEach((cartesian, i) => {
-    series.push({ ...cartesian, yAxisIndex: (overlayAxes?.seriesYAxisIndex[i] ?? 0) + 1 });
+    // Overlay series never animate, even when the panel opts in via
+    // `animation.enabled`: a series-level `animation` overrides the panel-level
+    // flag, and that is deliberate here. The overlay exists to annotate the cells
+    // beneath it, so animating it independently of the cell layer reads as two
+    // layers disagreeing for the length of the transition. Called out as an
+    // exception in docs/performance.md.
+    // https://echarts.apache.org/en/option.html#series-line.animation
+    series.push({ ...cartesian, animation: false, yAxisIndex: (overlayAxes?.seriesYAxisIndex[i] ?? 0) + 1 });
   });
   return series;
 };

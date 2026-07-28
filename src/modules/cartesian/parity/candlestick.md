@@ -38,6 +38,8 @@ exposes no per-field mapping or candlestick-specific styling in the editor.
 | Tooltip: mode                             | `tooltip.mode` (only if candlestick is rendered) | Partial       |
 | Legend                                    | Grafana legend via `addLegendOptions`            | Partial       |
 | Annotations                               | none                                             | Not supported |
+| —                                         | `editorMode` radio (Default / Advanced tiers)    | ECharts-only  |
+| —                                         | Advanced: `animation.enabled` (off by default)   | Advanced      |
 
 ## Standard (field-config) options
 
@@ -49,6 +51,12 @@ Color), matching core Candlestick which uses the timeseries graph field config.
 - The defining Candlestick features (OHLC field mapping, candle mode/style,
   up/down colors) are not exposed. Making candlestick usable would require a
   panel-level render-type selector and OHLC mapping options.
+- The Advanced **Show points** and **Downsampling** options are registered for the
+  whole cartesian panel, so they appear here, but they do nothing: candlestick
+  renders through `converters/multiValueCartesian.ts`, which never calls
+  `getSeriesPerfOptions`. ECharts does support `large`/`largeThreshold` on
+  candlestick, so wiring that converter is the obvious fix; it is not done. See
+  [performance.md](../../../../docs/performance.md).
 
 ## ECharts API support
 
@@ -66,7 +74,7 @@ the registered runtime surface.
 | `brush`                                                                                        | Partial         | `lineX` drag maps category indices back to the dashboard time range.                                                                                                                                    |
 | `markLine` / `markArea`                                                                        | Supported       | Threshold lines / regions on the shared value axis.                                                                                                                                                     |
 | `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive show/hide (via the core `hideSeriesFrom` byNames override) + color (via `byName`) read directly (per series, not per field). |
-| `animation`                                                                                    | Supported       | ECharts defaults (enabled).                                                                                                                                                                             |
+| `animation`                                                                                    | Supported       | Off by default for every family; opt in via the Advanced `animation.enabled` switch.                                                                                                                    |
 | `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                                                                                                                                                         |
 | `visualMap`                                                                                    | Not implemented | Registered for the heatmap family only.                                                                                                                                                                 |
 | `dataZoom`                                                                                     | Not implemented | Range zoom is delegated to `brush` -> dashboard time range.                                                                                                                                             |
