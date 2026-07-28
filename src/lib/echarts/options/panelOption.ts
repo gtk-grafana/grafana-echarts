@@ -1,4 +1,3 @@
-import { dateTimeFormat } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
@@ -10,13 +9,9 @@ import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
 import { resolveAnimation } from 'lib/echarts/performance/resolvers';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
-import { buildTooltipModel, NOOP_TOOLTIP_SINK, type TooltipSink } from 'lib/echarts/tooltip/model';
-import {
-  getCrosshairAxisPointer,
-  getNoTooltipOption,
-  getSilentTooltipOption,
-  grafanaTooltipModeToEChartsTrigger,
-} from 'lib/echarts/tooltip/option';
+import { NOOP_TOOLTIP_SINK, type TooltipSink } from 'lib/echarts/tooltip/model';
+import { getCrosshairAxisPointer, getNoTooltipOption } from 'lib/echarts/tooltip/option';
+import { buildPanelTooltip } from 'lib/echarts/tooltip/panelTooltip';
 import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
 
 /**
@@ -58,58 +53,7 @@ export function buildPanelChartOption(
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
   const hasTimeField = framesHaveTimeField(ctx.frames);
   const axisType = panelTypeToAxis(ctx, hasTimeField);
-  // Families with no meaningful "All" tooltip clamp a persisted `multi` back to
-  // Single: their editor no longer offers it, but a dashboard saved before that
-  // still carries the value (see `ChartModule.singleTooltipOnly`).
-  const requestedTooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
-  const tooltipMode =
-    chartModule.singleTooltipOnly && requestedTooltipMode === TooltipDisplayMode.Multi
-      ? TooltipDisplayMode.Single
-      : requestedTooltipMode;
-  // Per-series resolver so each row honors its field's unit/decimals overrides.
-  const resolveValueFormatter = chartModule.getTooltipValueFormatter(ctx);
-  // Optional per-family field resolver so hovered items can surface their
-  // field's data links / ad-hoc filters in the tooltip footer.
-  const resolveField = chartModule.getTooltipFieldResolver?.(ctx);
-  // Common tooltip parity: hide zero-value rows and sort by value, but only in
-  // the multi-row "All" tooltip (mirrors `commonOptionsBuilder.addTooltipOptions`).
-  const rowOptions =
-    tooltipMode === TooltipDisplayMode.Multi
-      ? { sort: ctx.options.tooltip?.sort, hideZeros: ctx.options.tooltip?.hideZeros }
-      : undefined;
-  // Multi-value families (candlestick/boxplot) pack several values per item, so
-  // the tooltip lists each dimension instead of just the last.
-  const multiValueDimensions = chartModule.getTooltipDimensions?.(ctx);
-  // Header time formatting: item-trigger (Single) params carry the raw
-  // `[time, value]` tuple, and axis-trigger `axisValueLabel` uses ECharts' own
-  // time format — both are replaced with Grafana's, honoring the dashboard time
-  // zone (core tooltip parity).
-  const formatHeaderValue =
-    axisType === 'time'
-      ? (item: { value?: unknown; name?: string }) => {
-          // A multi-value item's `value` starts with its *data index*, not the x
-          // value (verified against a live chart), so reading `value[0]` would
-          // format index 1 as 1970-01-01. Those items carry the x in `name`.
-          const xValue: unknown = Array.isArray(item.value) ? item.value[0] : undefined;
-          const raw: unknown = multiValueDimensions != null ? item.name : xValue;
-          const time = typeof raw === 'string' ? Date.parse(raw) : raw;
-          return typeof time === 'number' && !Number.isNaN(time)
-            ? dateTimeFormat(time, { timeZone: ctx.timeZone })
-            : undefined;
-        }
-      : undefined;
-  const tooltipOption = getSilentTooltipOption(
-    grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
-    tooltipMode,
-    (params) =>
-      buildTooltipModel(params, resolveValueFormatter, {
-        rowOptions,
-        resolveField,
-        formatHeaderValue,
-        multiValueDimensions,
-      }),
-    sink
-  );
+  const { option: tooltipOption, mode: tooltipMode } = buildPanelTooltip(ctx, chartModule, axisType);
 
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
   if (!echartOption) {
