@@ -310,7 +310,7 @@ describe('buildPanelChartOption for the pie (row/series family)', () => {
 // `resolveAnimation`.
 describe('buildPanelChartOption animation resolution', () => {
   const visible: FieldConfigSource = { defaults: {}, overrides: [] };
-  const animationOf = (option: PanelOption): boolean | undefined => (option as { animation?: boolean }).animation;
+  const animationOf = (option: PanelOption): boolean | undefined => option.animation;
 
   // A time frame with `count` numeric series (2 points each) to cross the series threshold.
   const manySeriesFrame = (count: number): DataFrame =>

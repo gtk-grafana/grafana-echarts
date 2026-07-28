@@ -8,7 +8,8 @@ import { isAdvancedEditorMode } from 'lib/grafana/editor/common/editor-mode';
 import { type PanelOptions } from 'types';
 
 /**
- * Shared helpers for the Advanced-gated pie editor options. Every advanced option
+ * Shared helpers for Advanced-gated editor options, used by the part-to-whole
+ * (pie) editor and by the cartesian performance options. Every advanced option
  * follows the same shape: it lives in the single `advancedOptionsCategoryName`
  * ("Advanced") category and is hidden unless the panel is in Advanced editor mode.
  * These helpers capture that shape so each editor file is a single declarative

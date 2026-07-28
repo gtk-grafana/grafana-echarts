@@ -1,6 +1,5 @@
 import type { GrafanaTheme2, ValueFormatter } from '@grafana/data';
-import type { ScatterSeriesOption } from 'echarts/types/dist/echarts';
-import type { LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
+import type { LineSeriesOption, ScatterSeriesOption } from 'echarts';
 
 /** Built-in color gradients offered for the heatmap cell layer. */
 export type HeatmapColorScheme = 'spectral' | 'blues' | 'turbo' | 'magma';
@@ -29,12 +28,20 @@ export interface BinnedHeatmapTooltipContext {
 }
 
 /**
- * @todo these are still hacky types, but at least we're pulling them from echarts
- * Fast-path props spread into a cartesian series, taken from ECharts' own series
- * option definitions: from the line series & from the scatter series. Every key is optional,
- * so each branch of `getSeriesPerfOptions` returns only those relevant to the series' render type.
+ * Fast-path props spread into a cartesian series, picked from ECharts' own
+ * series option definitions. ECharts exports no ready-made "big-data levers"
+ * type — the mixins that would express it (`SeriesSamplingOptionMixin`,
+ * `SeriesLargeOptionMixin`) are internal — so the two `Pick`s are the closest
+ * thing to a first-party definition. Every key is optional, so each branch of
+ * `getSeriesPerfOptions` returns only those relevant to the series' render type.
+ *
+ * `large`/`largeThreshold` are picked off `ScatterSeriesOption` but are also
+ * applied to `bar`: `BarSeriesOption` omits `SeriesLargeOptionMixin` in ECharts'
+ * `.d.ts` even though the runtime supports both keys (`BaseBarSeries` defaults
+ * `large: false, largeThreshold: 400`), so Scatter's declaration stands in for
+ * the missing one.
  */
-export type PerfSeriesOptions = Pick<LineSeriesOption, 'showSymbol' | 'sampling' | 'zlevel'> &
+export type PerfSeriesOptions = Pick<LineSeriesOption, 'showSymbol' | 'sampling'> &
   Pick<ScatterSeriesOption, 'large' | 'largeThreshold'>;
 
 /** Chart shape used to pick the fast path: number of series and the densest series. */

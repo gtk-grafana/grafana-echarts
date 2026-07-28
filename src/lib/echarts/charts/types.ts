@@ -14,7 +14,6 @@ import {
   type CandlestickSeriesOption,
   type ComposeOption,
   type CustomSeriesOption,
-  type DatasetComponentOption,
   type EffectScatterSeriesOption,
   type FunnelSeriesOption,
   type GridComponentOption,
@@ -78,9 +77,6 @@ export type EChartBinnedHeatmapOption = ComposeOption<
   | EffectScatterSeriesOption
   | GridComponentOption
   | VisualMapComponentOption
-  // Cartesian overlays read from a per-frame columnar dataset (the cell layer's
-  // custom series carries inline data and is unaffected).
-  | DatasetComponentOption
 >;
 /**
  * The option the matrix heatmap panel builds: the native ECharts `heatmap`
@@ -118,22 +114,11 @@ export type EChartBoxPlotSeriesOption = ComposeOption<BoxplotSeriesOption>;
 export type EChartEffectScatterSeriesOption = ComposeOption<EffectScatterSeriesOption>;
 
 export type EChartMultiValueCartesianSeriesOption = ComposeOption<CandlestickSeriesOption | BoxplotSeriesOption>;
-// `DatasetComponentOption` is composed in so the time-axis builder can attach the
-// per-frame columnar `dataset` the series reference via `datasetIndex`/`encode`
-// (zero-copy ingestion; see `timeSeriesToEChartsOption`). It contributes only the
-// `dataset` field — the series union below is unchanged.
 export type EChartCartesianSeriesOption = ComposeOption<
-  | BarSeriesOption
-  | LineSeriesOption
-  | CandlestickSeriesOption
-  | ScatterSeriesOption
-  | EffectScatterSeriesOption
-  | DatasetComponentOption
+  BarSeriesOption | LineSeriesOption | CandlestickSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption
 >;
 
-// A single cartesian series entry narrowed to the single-series union so arrays
-// assign to a `series` field. `encode`/`datasetIndex` are part of every series
-// option (SeriesEncodeOptionMixin), so dataset-backed series still assign here.
+// A single cartesian series entry narrowed to the single-series union so arrays assign to a `series` field.
 export type EChartSingleValueCartesianSeries = Exclude<NonNullable<EChartCartesianSeriesOption['series']>, unknown[]>;
 export type EChartBuildOption =
   | EChartBinnedHeatmapOption

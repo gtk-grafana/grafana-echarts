@@ -91,8 +91,6 @@ export function getSeriesPerfOptions({
   options: PanelOptions;
 }): PerfSeriesOptions {
   const performance = options.performance;
-  // All series share one canvas (`zlevel` 1)
-  const zlevel = options.zLevel?.series;
 
   if (type === 'line') {
     const showPoints = performance?.showPoints ?? PERFORMANCE_SHOW_POINTS_DEFAULT;
@@ -102,19 +100,14 @@ export function getSeriesPerfOptions({
       showSymbol: resolveShowSymbol(showPoints, maxPoints),
       // @todo compare against minmax
       sampling: downsampling && dense ? 'lttb' : undefined,
-      zlevel,
     };
   }
 
   if (type === 'scatter' || type === 'bar') {
-    return maxPoints >= LARGE_MODE_THRESHOLD
-      ? { large: true, largeThreshold: LARGE_MODE_THRESHOLD, zlevel }
-      : { zlevel };
+    return maxPoints >= LARGE_MODE_THRESHOLD ? { large: true, largeThreshold: LARGE_MODE_THRESHOLD } : {};
   }
 
-  return {
-    zlevel,
-  };
+  return {};
 }
 
 /**

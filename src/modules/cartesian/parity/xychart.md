@@ -18,14 +18,16 @@ other cartesian render types; it has no X/Y field-mapping editor.
 
 ## Panel options
 
-| Core Grafana option                            | ECharts equivalent                                                                                     | Status        |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------- |
-| Series mapping (auto/manual)                   | none (fields plotted vs time/first field)                                                              | Not supported |
-| Series editor (per-series X/Y/size/color/name) | none                                                                                                   | Not supported |
-| Point size / size field                        | none                                                                                                   | Not supported |
-| Color by field                                 | none (Color field config)                                                                              | Partial       |
-| Tooltip: mode                                  | `tooltip.mode`                                                                                         | Supported     |
-| Legend                                         | Grafana legend via `addLegendOptions`; interactive show/hide + color persist as field-config overrides | Supported     |
+| Core Grafana option                            | ECharts equivalent                                                                                                                                                                   | Status        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| Series mapping (auto/manual)                   | none (fields plotted vs time/first field)                                                                                                                                            | Not supported |
+| Series editor (per-series X/Y/size/color/name) | none                                                                                                                                                                                 | Not supported |
+| Point size / size field                        | none                                                                                                                                                                                 | Not supported |
+| Color by field                                 | none (Color field config)                                                                                                                                                            | Partial       |
+| Tooltip: mode                                  | `tooltip.mode`                                                                                                                                                                       | Supported     |
+| Legend                                         | Grafana legend via `addLegendOptions`; interactive show/hide + color persist as field-config overrides                                                                               | Supported     |
+| —                                              | `editorMode` radio (Default / Advanced editor tiers)                                                                                                                                 | ECharts-only  |
+| —                                              | Advanced: `performance.showPoints` / `performance.downsampling` (line-only), `animation.enabled`; `scatter` auto-enables `large` at 2,000+ points/series (`effectScatter` untouched) | Advanced      |
 
 ## Standard (field-config) options
 
@@ -57,7 +59,7 @@ the registered runtime surface.
 | `brush`                                                                                        | Partial         | `lineX` drag maps to the dashboard time range; time axis only.                                                                  |
 | `markLine` / `markArea`                                                                        | Supported       | Threshold lines / regions on the shared value axis.                                                                             |
 | `legend`                                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive show/hide + color persist as field-config overrides. |
-| `animation`                                                                                    | Supported       | ECharts defaults (enabled).                                                                                                     |
+| `animation`                                                                                    | Supported       | Explicit `animation.enabled` (Advanced) wins; otherwise auto-disabled above 50 series or 5,000 points/series.                   |
 | `color` / `textStyle`                                                                          | Supported       | Derived from the Grafana theme.                                                                                                 |
 | `visualMap`                                                                                    | Not implemented | Registered for the heatmap family only.                                                                                         |
 | `dataZoom`                                                                                     | Not implemented | Range zoom is delegated to `brush` -> dashboard time range.                                                                     |

@@ -58,11 +58,8 @@ function buildTimeOption(
 ): EChartCartesianSeriesOption | null {
   const { theme, options, formatValue, timeZone } = ctx;
 
-  // Support rendering time without series. The converter returns the series plus
-  // the per-frame columnar `dataset` they read via `datasetIndex`/`encode`.
-  const converted = timeSeriesToEChartsOption(ctx);
-  const cartSeries = converted?.series ?? [];
-  const dataset = converted?.dataset ?? [];
+  // Support rendering time without series
+  const cartSeries = timeSeriesToEChartsOption(ctx) ?? [];
 
   const axisStyle = getCartesianAxisStyle(theme);
 
@@ -95,8 +92,6 @@ function buildTimeOption(
     xAxis,
     yAxis: axes.yAxis,
     series,
-    // Attach the columnar dataset only when there are series to read it.
-    ...(dataset.length > 0 ? { dataset } : {}),
   };
 }
 

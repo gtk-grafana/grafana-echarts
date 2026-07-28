@@ -10,6 +10,7 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Grafana and EChart APIs should be isolated from each other whenever possible, preferably in different directories
 - Any usage of Grafana or EChart APIs should contain links to the relevant documentation
 - Editor options are tiered via a shared `editorMode` option (Default / Advanced / API); see [docs/options-modes.md](docs/options-modes.md)
+- Dense cartesian charts auto-switch onto ECharts' big-data levers above density thresholds; see [docs/performance.md](docs/performance.md)
 
 ## Critical rules
 

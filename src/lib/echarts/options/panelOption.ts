@@ -88,8 +88,9 @@ export function buildPanelChartOption(
     tooltip: tooltipOption,
     // An explicit `animation.enabled` wins; otherwise animation auto-disables on
     // dense charts (many series / long series) where load+transition animation is
-    // pure overhead. No-ops for pie/radar/category (their stats fall below every
-    // threshold). See `resolveAnimation`.
+    // pure overhead. Pie/radar/category stats fall below every threshold so they
+    // are unaffected in practice; a large heatmap can cross them, since its
+    // numeric frame columns are counted like series. See `resolveAnimation`.
     animation: resolveAnimation(ctx.options, getSeriesStats(ctx.frames)),
     ...(axisPointer ? { axisPointer } : {}),
     ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),

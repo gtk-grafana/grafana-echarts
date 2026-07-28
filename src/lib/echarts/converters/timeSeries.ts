@@ -1,7 +1,4 @@
 import { type Field, getFieldDisplayName } from '@grafana/data';
-import { type DatasetComponentOption } from 'echarts';
-import { type ZRColor } from 'echarts/types/dist/shared';
-import { type ItemStyleOption } from 'echarts/types/src/util/types';
 import { STACK_GROUP_ID } from 'editor/constants';
 import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type HeatmapSeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
@@ -31,37 +28,10 @@ function resolveFieldStack(field: Field, panelStack = false): boolean {
   return override ?? panelStack;
 }
 
-/** Dimension name of the shared time/X column in a frame's columnar dataset. */
-const TIME_DIM = 'time';
-/** Dimension name of one value column, unique within its frame's dataset (by field index). */
-const valueDim = (fieldIndex: number): string => `v${fieldIndex}`;
-
 /**
- * Keyed-column dataset `source`: dimension name → the DataFrame column, held by
- * reference. Matches ECharts' `OptionSourceDataKeyedColumns`
- * (`Dictionary<ArrayLike<OptionDataValue>>`).
- */
-type ColumnarSource = Record<string, ArrayLike<string | number | null | undefined>>;
-
-/**
- * Time-series converter output: the ECharts series plus the per-frame columnar
- * `dataset` the series read via `datasetIndex`/`encode`. Kept together so the
- * chart builder threads both into the option (see `buildTimeOption`).
- */
-export interface TimeSeriesEChartsResult {
-  series: EChartSingleValueCartesianSeries[];
-  dataset: DatasetComponentOption[];
-}
-
-/**
- * Convert Grafana time series DataFrames into ECharts series + dataset.
+ * Convert Grafana time series DataFrames into ECharts series data.
  *
- * Data is fed via one columnar `dataset` per source frame (keyed-column
- * `source`, referencing the DataFrame's existing arrays directly — no per-point
- * `[time, value]` tuples are allocated) and per-series `encode`/`datasetIndex`.
- * ECharts parses `null`/`undefined`/`NaN`/`''` holes as gaps (see its
- * `parseDataValue`), so gaps render exactly as the old inline-tuple path did
- * while values pass through zero-copy.
+ * Data is emitted as inline `[time, value]` tuples.
  *
  * Series carry the type-aware performance props from `getSeriesPerfOptions`
  * (symbols off / LTTB for dense lines; `large` for dense scatter/bar), computed
@@ -70,38 +40,18 @@ export interface TimeSeriesEChartsResult {
  */
 export function timeSeriesToEChartsOption(
   ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
-): TimeSeriesEChartsResult | null {
+): EChartSingleValueCartesianSeries[] | null {
   const { frames: rawFrames, theme, options, seriesType } = ctx;
 
   const frames: Array<FieldTypedDataFrame<string | number, EChartsFieldConfig>> = rawFrames;
-  const series: EChartSingleValueCartesianSeries[] = [];
-  const dataset: DatasetComponentOption[] = [];
+  const echartsSeries: EChartSingleValueCartesianSeries[] = [];
 
   // Density signal (series count + densest series) drives the fast-path props;
   // computed once so all series resolve against the same stats.
   const stats = getSeriesStats(rawFrames);
 
-  // One columnar dataset per source frame, created lazily on the frame's first
-  // value field. Wide frames (shared time, many values) reuse one dataset; the
-  // multi-frame shape yields one dataset per frame. The `columns` object is the
-  // same reference held by the pushed dataset entry, so adding value columns to
-  // it fills that dataset's `source` in place. Keyed by frame index.
-  const frameColumns = new Map<number, { index: number; columns: ColumnarSource }>();
-
-  forEachTimeSeriesField(frames, ({ frame, frameIndex, field, fieldIndex, timeField }) => {
-    let entry = frameColumns.get(frameIndex);
-    if (!entry) {
-      // Reference the DataFrame's time column directly (zero-copy).
-      const columns: ColumnarSource = { [TIME_DIM]: timeField.values };
-      entry = { index: dataset.length, columns };
-      dataset.push({ source: columns });
-      frameColumns.set(frameIndex, entry);
-    }
-    // Reference the value column directly under a per-field-unique dimension.
-    const dim = valueDim(fieldIndex);
-    entry.columns[dim] = field.values;
-
-    const color: ZRColor = getSeriesColor(field, theme);
+  forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
+    const color = getSeriesColor(field, theme);
     const resolvedType = resolveFieldSeriesType<CartesianSingleValueSeriesType | HeatmapSeriesType>(field, seriesType);
     // Only bar supports stacked
     const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
@@ -111,16 +61,13 @@ export function timeSeriesToEChartsOption(
     // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
     const showEffectOn = resolvedType === 'effectScatter' ? 'emphasis' : undefined;
 
-    const itemStyle: ItemStyleOption = { color };
-
-    series.push({
+    echartsSeries.push({
       name: getFieldDisplayName(field, frame, frames),
       type,
-      // Read x/y from the frame's columnar dataset instead of inline tuples.
-      datasetIndex: entry.index,
-      encode: { x: TIME_DIM, y: dim },
-      itemStyle,
+      data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
+      itemStyle: { color },
       lineStyle: { color },
+      zlevel: options.zLevel?.series,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       // Type-aware fast-path props (symbols/sampling for line; large for scatter/bar).
       ...getSeriesPerfOptions({ type: resolvedType, maxPoints: stats.maxPoints, options }),
@@ -128,9 +75,9 @@ export function timeSeriesToEChartsOption(
     });
   });
 
-  if (series.length === 0) {
+  if (echartsSeries.length === 0) {
     return null;
   }
 
-  return { series, dataset };
+  return echartsSeries;
 }
