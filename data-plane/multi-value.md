@@ -30,17 +30,40 @@ turning every numeric field into its own series.
 
 Fields are resolved by a case-insensitive name convention:
 
-| Series      | Field names (in ECharts value order) | Fallback                            |
-| ----------- | ------------------------------------ | ----------------------------------- |
-| candlestick | `open`, `high`, `low`, `close`       | none — missing any field → `null`   |
-| boxplot     | `min`, `q1`, `median`, `q3`, `max`   | first five numeric fields, in order |
+| Series      | Field names (detection order)      | Fallback                            |
+| ----------- | ---------------------------------- | ----------------------------------- |
+| candlestick | `open`, `high`, `low`, `close`     | none — missing any field → `null`   |
+| boxplot     | `min`, `q1`, `median`, `q3`, `max` | first five numeric fields, in order |
 
 - Each row becomes one item: the aligned dimension array
   (`field.values[row] ?? null` per field).
 - The whole frame is a **single series**, named from `frame.name` (falling back
   to `"OHLC"` / `"Boxplot"`), colored from the `close` / `median` field.
-- Before mapping, non-string/non-numeric fields are stripped
-  (`filterNonStringOrNumericFields`).
+- Before mapping, fields that are not string, numeric, or time are stripped
+  (`filterUnsupportedFields`, `src/lib/grafana/filtering.ts`).
+
+### Detection order is not emit order (candlestick)
+
+The names above are the plugin's **detection** convention — the order of
+`CANDLESTICK_FIELDS` in `src/lib/echarts/converters/multiValueCartesian.ts`,
+which reads OHLC as `['open', 'high', 'low', 'close']`. That is _not_ the order
+ECharts wants.
+
+An ECharts candlestick item is **OCLH**: `[open, close, lowest, highest]`, so
+index 1 is `close` and index 3 is `high`. `buildCandlestick` therefore reorders
+on emit, mapping each row through `rowValues([open, close, low, high], row)`.
+Anywhere you compare the two lists, remember the detection array is name-lookup
+order and the emitted array is ECharts value order.
+
+Boxplot has no such mismatch: `BOXPLOT_FIELDS`
+(`min`/`q1`/`median`/`q3`/`max`) is both the detection order and the ECharts
+value order, so it is emitted as resolved.
+
+The alternative to reordering in the converter is to leave the source columns
+alone and let ECharts remap them: with a dataset whose columns are
+`[x, open, high, low, close]`, `encode.y: [1, 4, 3, 2]` picks open, close,
+lowest, highest in the order the series expects. This plugin builds `series.data`
+directly rather than using `dataset`, so it reorders instead.
 
 ### X axis (categories)
 

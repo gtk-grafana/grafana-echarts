@@ -8,23 +8,31 @@ Grafana data plane contract: https://grafana.com/developers/dataplane/.
 Grafana consolidates every query response into column-oriented **data frames**
 (fields + metadata). The data plane adds a _type_ (`frame.meta.type`) declaring
 the frame's kind (time series, numeric, heatmap, ...). This plugin only branches
-on `meta.type` for the heatmap family; every other chart infers its shape from
+on `meta.type` for the heatmap family.
+
+The one other routing signal it reads is `meta.preferredVisualisationType`,
+which Grafana uses for kinds that sit outside the contract: `isFlameGraphFrame`
+(`src/lib/echarts/converters/hierarchy.ts`) accepts
+`preferredVisualisationType === 'flamegraph'` as the canonical flame-graph
+signal, falling back to the nested-set field shape (`level` + `value` + `label`)
+for datasources that cannot set meta. Every other chart infers its shape from
 the fields present.
 
 ## Models
 
-| Doc                                      | ECharts charts                               | Grafana kind consumed                           |
-| ---------------------------------------- | -------------------------------------------- | ----------------------------------------------- |
-| [categorical.md](./categorical.md)       | pie, radar, category-axis line/bar/scatter   | Numeric (`NumericWide`/`Multi`/`Long`)          |
-| [multi-value.md](./multi-value.md)       | candlestick, boxplot                         | TimeSeriesWide / Numeric (by name convention)   |
-| [heatmap-binned.md](./heatmap-binned.md) | continuous-axis heatmap (custom cell series) | Heatmap (`heatmap-rows` / `heatmap-cells`)      |
-| [heatmap-matrix.md](./heatmap-matrix.md) | category x category heatmap (native series)  | Numeric (wide / pivot) — _not_ the Heatmap kind |
-| [node-graph.md](./node-graph.md)         | _spec only, not implemented_                 | Node graph (out of contract — nodes + edges)    |
-| [flame-graph.md](./flame-graph.md)       | _spec only, not implemented_                 | Flame graph (out of contract — nested set)      |
-
-Time series (line/bar/scatter on a `time` axis) is the straightforward
-`[time, value]` mapping in `src/lib/echarts/converters/timeSeries.ts` and is not
-given its own doc here.
+| Doc                                          | ECharts charts                                            | Grafana kind consumed                                   |
+| -------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------- |
+| [categorical.md](./categorical.md)           | category-axis line / bar / scatter (shared base model)    | Numeric (`NumericWide`/`Multi`/`Long`)                  |
+| [time-series.md](./time-series.md)           | time-axis line / bar / scatter                            | Time series (`TimeSeriesWide` / `TimeSeriesMulti`)      |
+| [part-to-whole.md](./part-to-whole.md)       | pie, funnel                                               | Any numeric field, reduced via standard `reduceOptions` |
+| [multivariate.md](./multivariate.md)         | radar                                                     | Numeric, through the categorical model                  |
+| [multi-value.md](./multi-value.md)           | candlestick, boxplot                                      | TimeSeriesWide / Numeric (by name convention)           |
+| [hierarchy.md](./hierarchy.md)               | treemap, sunburst                                         | Flame-graph nested set, or Numeric (flat fallback)      |
+| [flame-graph.md](./flame-graph.md)           | input frame format for treemap / sunburst                 | Flame graph (out of contract — nested set)              |
+| [heatmap-binned.md](./heatmap-binned.md)     | continuous-axis heatmap (custom cell series)              | Heatmap (`heatmap-rows` / `heatmap-cells`)              |
+| [heatmap-matrix.md](./heatmap-matrix.md)     | category x category heatmap (native series)               | Numeric (wide / pivot) — _not_ the Heatmap kind         |
+| [node-graph.md](./node-graph.md)             | _spec only, not implemented_                              | Node graph (out of contract — nodes + edges)            |
+| [echarts-coverage.md](./echarts-coverage.md) | every ECharts series type — implementation support matrix | —                                                       |
 
 ## Conventions shared across models
 
@@ -38,6 +46,23 @@ given its own doc here.
 ## Known limitations
 
 The biggest cross-cutting gap is **single-frame handling**: the categorical,
-multi-value, and matrix-heatmap models read only the first frame with a numeric
-field and drop the rest, so multi-frame responses (`*Multi`, one-frame-per-series
-datasources like Prometheus) are not merged. See `todo/multiple-frames.md`.
+multi-value, matrix-heatmap, and hierarchy models read a single source frame and
+drop the rest, so multi-frame responses (`*Multi`, one-frame-per-series
+datasources like Prometheus) are not merged. They pick it with
+`findCategoricalFrame` (`src/lib/echarts/converters/frames.ts`), the first frame
+with a numeric field; hierarchy's flame-graph path likewise takes the first
+flame-graph frame. See `todo/multiple-frames.md`.
+
+Three models are genuine exceptions and do read every frame:
+
+- **Part-to-whole** (pie, funnel) delegates to Grafana's own
+  `getFieldDisplayValues` (`resolvePieSlices` in
+  `src/lib/echarts/converters/pie.ts`), which reduces numeric fields across all
+  frames, so a one-frame-per-series response yields one slice per series.
+- **Binned heatmap** merges every heatmap frame into one cell set
+  (`frameToBinnedHeatmap`, `src/lib/echarts/converters/binnedHeatmap.ts`). The
+  x-axis stays a `time` axis only when every contributing frame has a time X
+  field.
+- **Time series** walks the numeric fields of every frame that has a usable time
+  (or fallback numeric) X field (`forEachTimeSeriesField`,
+  `src/lib/echarts/converters/frames.ts`).
