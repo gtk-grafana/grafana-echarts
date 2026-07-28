@@ -1,6 +1,11 @@
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { formatTooltipValue, type TooltipModel, type TooltipRow } from 'lib/echarts/tooltip/model';
-import { type HierarchyTooltipContext, type HierarchyTreeItem } from 'lib/echarts/tooltip/types';
+import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import {
+  type HierarchyTooltipContext,
+  type HierarchyTreeItem,
+  type TooltipModel,
+  type TooltipRow,
+} from 'lib/echarts/tooltip/types';
 
 /** Type guard so tooltip params (`data`) narrow without a type assertion. */
 function isHierarchyTreeItem(value: unknown): value is HierarchyTreeItem {

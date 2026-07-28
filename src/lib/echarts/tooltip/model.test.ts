@@ -6,10 +6,9 @@ import {
   buildTooltipModel,
   formatTooltipValue,
   indexedFormatterResolver,
-  type TooltipFieldResolver,
-  type TooltipModel,
   toEmittingFormatter,
 } from 'lib/echarts/tooltip/model';
+import { type TooltipFieldResolver, type TooltipModel } from 'lib/echarts/tooltip/types';
 
 // Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
 const formatValue: ValueFormatter = (value) => ({ text: value == null || Number.isNaN(value) ? 'null' : `${value}` });

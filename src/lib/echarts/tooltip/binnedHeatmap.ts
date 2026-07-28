@@ -4,8 +4,8 @@ import { type BinnedHeatmapData, formatBucketBound } from 'lib/echarts/converter
 // The cell tuple layout is owned by the series encode (`encodeBinnedHeatmapData`),
 // which is what hands this formatter its `params.value`.
 import { HEATMAP_VALUE_DIM } from 'lib/echarts/options/constants';
-import { formatTooltipValue, type TooltipModel } from 'lib/echarts/tooltip/model';
-import { type BinnedHeatmapTooltipContext } from 'lib/echarts/tooltip/types';
+import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import { type BinnedHeatmapTooltipContext, type TooltipModel } from 'lib/echarts/tooltip/types';
 
 /**
  * Per-cell tooltip for the binned heatmap custom series. Unlike the generic

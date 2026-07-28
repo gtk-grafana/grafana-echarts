@@ -3,7 +3,7 @@ import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type BinnedHeatmapData } from 'lib/echarts/converters/binnedHeatmap';
 import { getBinnedHeatmapBucketAxis } from 'lib/echarts/options/binnedHeatmap';
 import { buildBinnedHeatmapTooltipModel } from 'lib/echarts/tooltip/binnedHeatmap';
-import { type TooltipModel } from 'lib/echarts/tooltip/model';
+import { type TooltipModel } from 'lib/echarts/tooltip/types';
 
 const baseData = (overrides: Partial<BinnedHeatmapData>): BinnedHeatmapData => ({
   cells: [],

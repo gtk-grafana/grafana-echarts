@@ -1,8 +1,8 @@
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
 import { type ECBasicOption, type TooltipOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { type EChartsTooltipTrigger } from './eChartsTypes';
-import { NOOP_TOOLTIP_SINK, toEmittingFormatter, type TooltipModel, type TooltipSink } from './model';
+import { NOOP_TOOLTIP_SINK, toEmittingFormatter } from './model';
+import { type EChartsTooltipTrigger, type TooltipModel, type TooltipSink } from './types';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
 const CROSSHAIR_COLOR = 'rgba(120, 120, 130, 0.5)';

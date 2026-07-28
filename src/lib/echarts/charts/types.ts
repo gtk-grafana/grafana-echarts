@@ -33,7 +33,7 @@ import {
   type TooltipFieldResolver,
   type TooltipSink,
   type TooltipValueFormatterResolver,
-} from 'lib/echarts/tooltip/model';
+} from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */

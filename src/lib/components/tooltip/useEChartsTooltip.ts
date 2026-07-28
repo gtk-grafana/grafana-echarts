@@ -1,8 +1,9 @@
 import { type ECElementEvent } from 'echarts/core';
 import { type EChartsType } from 'lib/echarts/echarts';
-import { type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/model';
-import { findHoveredPoint, type ProximityHit, type SeriesPoints } from 'lib/echarts/tooltip/proximity';
+import { findHoveredPoint, type ProximityHit } from 'lib/echarts/tooltip/proximity';
+import { type EChartsTooltipTrigger, type TooltipSink } from 'lib/echarts/tooltip/types';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { type EChartsTooltipController, type EChartsTooltipOptions, type EChartsTooltipState } from './types';
 
 /**
  * How long (ms) an item-triggered tooltip lingers after the cursor leaves its
@@ -21,55 +22,6 @@ export const TOOLTIP_OFFSET = { x: 10, y: 10 };
  * handler uses it to tell a click inside the (pinned) tooltip from one outside.
  */
 export const TOOLTIP_MARKER_ATTR = 'data-echarts-tooltip';
-
-export interface EChartsTooltipState {
-  /** The hovered content, or `null` when nothing is hovered. */
-  model: TooltipModel | null;
-  /** Cursor position in window coordinates. */
-  position: { x: number; y: number } | null;
-  visible: boolean;
-  /** Whether the user has click-to-pinned the tooltip (freezes content, enables interaction). */
-  pinned: boolean;
-  /**
-   * The chart element that was clicked to pin, when the click landed on one
-   * (ECharts element-level `click` params). Lets the overlay pick the clicked
-   * row's footer source in multi-row ("All") tooltips, mirroring core's
-   * hovered-series footer. `null` when pinned from an empty-grid click.
-   */
-  pinnedItem: { seriesIndex?: number; dataIndex?: number } | null;
-  /**
-   * The proximity-focused series, or `null` when none is within the focus band.
-   *
-   * Drives the bold ("active") row in multi-row "All" tooltips, mirroring core,
-   * where the emphasised row is the vertically nearest series — not whichever
-   * element ECharts happens to consider hovered. Kept separate from `model` so
-   * it survives the two arriving in either order: in axis mode ECharts rebuilds
-   * the model from its own mousemove handling, independently of this hook's.
-   */
-  activeSeriesIndex: number | null;
-}
-
-export interface EChartsTooltipOptions {
-  /**
-   * Per-series values enabling Grafana-parity proximity hover (see
-   * `lib/echarts/tooltip/proximity`). Omit — or pass an empty array — to fall
-   * back to ECharts' native hit-testing, which is what non-cartesian families
-   * (pie, treemap, heatmap) want.
-   */
-  series?: readonly SeriesPoints[];
-  /** Core's "Hover proximity" (px); see {@link findHoveredPoint}. */
-  hoverProximity?: number;
-}
-
-export interface EChartsTooltipController {
-  state: EChartsTooltipState;
-  /** Stable sink passed into `buildPanelChartOption`; receives hovered content each move. */
-  sink: TooltipSink;
-  /** Report the resolved ECharts tooltip `trigger` after each `setOption` (drives hide behavior). */
-  reportTrigger: (trigger: string | undefined) => void;
-  /** Dismiss a pinned tooltip (used by the overlay's close affordances). */
-  dismiss: () => void;
-}
 
 const HIDDEN: EChartsTooltipState = {
   model: null,
@@ -208,7 +160,7 @@ export function useEChartsTooltip(
   const { state, latestRef, update } = useRafState<EChartsTooltipState>(HIDDEN);
 
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const triggerRef = useRef<string | undefined>(undefined);
+  const triggerRef = useRef<EChartsTooltipTrigger>(undefined);
 
   // Proximity inputs are read through a ref so a new `series` array identity (a
   // fresh one is built on every data change) doesn't re-bind the ZRender
@@ -287,7 +239,7 @@ export function useEChartsTooltip(
     [cancelHide, latestRef, update]
   );
 
-  const reportTrigger = useCallback((trigger: string | undefined) => {
+  const reportTrigger = useCallback((trigger: EChartsTooltipTrigger) => {
     triggerRef.current = trigger;
   }, []);
 
@@ -461,7 +413,7 @@ export function useEChartsTooltip(
         // Re-asserting the highlight makes the marker owned by the (persistent)
         // action rather than ZRender's element hover, which clears as soon as
         // the cursor leaves the symbol.
-        focusPoint({ seriesIndex: target.seriesIndex, dataIndex: target.dataIndex ?? 0 });
+        focusPoint({ seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
         chart.dispatchAction({ type: 'highlight', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
         // Runs `tooltip.formatter` synchronously, so `sink` has refreshed the
         // model by the time this returns.

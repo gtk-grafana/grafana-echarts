@@ -1,5 +1,5 @@
 import { TooltipDisplayMode } from '@grafana/schema';
-import { type TooltipModel } from 'lib/echarts/tooltip/model';
+import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { getSilentTooltipOption, grafanaTooltipModeToEChartsTrigger } from 'lib/echarts/tooltip/option';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 

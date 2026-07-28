@@ -10,7 +10,7 @@ import {
 import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions, type VizTooltipOptions } from '@grafana/schema';
 import { type HierarchyData } from 'lib/echarts/converters/hierarchy';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
-import { type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/model';
+import { type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/types';
 import type { PanelOptions } from 'types';
 import { getSunburstSeries, getTreemapSeries, type HierarchySeriesContext } from './hierarchy';
 

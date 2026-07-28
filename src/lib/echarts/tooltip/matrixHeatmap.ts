@@ -2,8 +2,8 @@ import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
 // The cell tuple layout is shared with the series `data` and the visualMap dimension.
 import { MATRIX_VALUE_DIM } from 'lib/echarts/options/constants';
-import { formatTooltipValue, type TooltipModel } from 'lib/echarts/tooltip/model';
-import { type BinnedHeatmapTooltipContext } from 'lib/echarts/tooltip/types';
+import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import { type BinnedHeatmapTooltipContext, type TooltipModel } from 'lib/echarts/tooltip/types';
 
 /**
  * Per-cell tooltip for the matrix heatmap. ECharts hands `params.value` back the

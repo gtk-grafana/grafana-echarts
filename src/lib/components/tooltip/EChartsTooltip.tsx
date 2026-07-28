@@ -1,6 +1,6 @@
 import { css, cx } from '@emotion/css';
 import { type Field, type GrafanaTheme2, type LinkModel } from '@grafana/data';
-import { TooltipDisplayMode } from '@grafana/schema';
+import { TooltipDisplayMode, type VizTooltipOptions } from '@grafana/schema';
 import {
   type AdHocFilterModel,
   getFieldDisplayLinks,
@@ -18,20 +18,20 @@ import {
   type VizTooltipItem,
   VizTooltipWrapper,
 } from '@grafana/ui';
-import { type TooltipRow, type TooltipSource } from 'lib/echarts/tooltip/model';
+import { type TooltipRow, type TooltipSource } from 'lib/echarts/tooltip/types';
 import React, { useLayoutEffect, useRef } from 'react';
-import { TOOLTIP_MARKER_ATTR, TOOLTIP_OFFSET, type EChartsTooltipState } from './useEChartsTooltip';
+import { type EChartsTooltipState } from './types';
+import { TOOLTIP_MARKER_ATTR, TOOLTIP_OFFSET } from './useEChartsTooltip';
 
-interface Props {
+/**
+ * `mode`/`maxWidth`/`maxHeight` are the panel's own Grafana tooltip options:
+ * `mode` drives whether the content area scrolls, `maxWidth` bounds the box (long
+ * labels wrap) and `maxHeight` enables the scroll in Multi mode.
+ */
+interface Props extends Pick<VizTooltipOptions, 'mode' | 'maxWidth' | 'maxHeight'> {
   state: EChartsTooltipState;
   /** Dismisses a pinned tooltip; wired to the close button. */
   dismiss: () => void;
-  /** Tooltip display mode; drives whether the content area scrolls. */
-  mode: TooltipDisplayMode;
-  /** Max content width in px (Grafana `tooltip.maxWidth`); long labels wrap. */
-  maxWidth?: number;
-  /** Max content height in px (Grafana `tooltip.maxHeight`); enables scroll in Multi mode. */
-  maxHeight?: number;
 }
 
 /** "filter for" operator (`=`); `AdHocFilterModel['operator']` is `'=' | '!='`. */

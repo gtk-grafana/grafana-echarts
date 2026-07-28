@@ -2,10 +2,11 @@ import { type Field, FieldType, type LinkModel, toDataFrame } from '@grafana/dat
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type PanelContext, PanelContextProvider } from '@grafana/ui';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { type TooltipModel } from 'lib/echarts/tooltip/model';
+import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import React from 'react';
 import { EChartsTooltip } from './EChartsTooltip';
-import { TOOLTIP_MARKER_ATTR, type EChartsTooltipState } from './useEChartsTooltip';
+import { type EChartsTooltipState } from './types';
+import { TOOLTIP_MARKER_ATTR } from './useEChartsTooltip';
 
 const model = (over: Partial<TooltipModel> = {}): TooltipModel => ({
   header: { label: '', value: 'MyHeader' },

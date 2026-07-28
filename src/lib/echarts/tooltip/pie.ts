@@ -3,7 +3,8 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { type CallbackDataParams, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { formatPieShare, getPieSliceFormatters, getPieSliceTotal } from 'lib/echarts/converters/pie';
 import { type PieSliceModel } from 'lib/echarts/converters/types';
-import { formatTooltipValue, type TooltipModel, type TooltipRow } from 'lib/echarts/tooltip/model';
+import { formatTooltipValue } from 'lib/echarts/tooltip/model';
+import { type TooltipModel, type TooltipRow } from 'lib/echarts/tooltip/types';
 
 /**
  * Build the pie's `series.tooltip.formatter` content model, modeled on the

@@ -19,7 +19,7 @@ import { seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType, init } from 'lib/echarts/echarts';
-import { type TooltipModel } from 'lib/echarts/tooltip/model';
+import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 import { buildPanelChartOption } from './panelOption';
 

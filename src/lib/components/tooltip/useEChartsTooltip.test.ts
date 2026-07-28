@@ -1,6 +1,6 @@
 import { act, fireEvent, renderHook } from '@testing-library/react';
 import { type EChartsType } from 'lib/echarts/echarts';
-import { type TooltipModel } from 'lib/echarts/tooltip/model';
+import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type RefObject } from 'react';
 import { useEChartsTooltip } from './useEChartsTooltip';
 

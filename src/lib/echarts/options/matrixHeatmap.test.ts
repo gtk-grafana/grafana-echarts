@@ -4,7 +4,7 @@ import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
 import { getMatrixHeatmapSeries, getMatrixHeatmapVisualMap } from 'lib/echarts/options/matrixHeatmap';
 import { COLOR_SCHEMES } from 'lib/echarts/options/constants';
 import { buildMatrixHeatmapTooltipModel } from 'lib/echarts/tooltip/matrixHeatmap';
-import { type TooltipModel } from 'lib/echarts/tooltip/model';
+import { type TooltipModel } from 'lib/echarts/tooltip/types';
 
 const theme = createTheme();
 // Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
