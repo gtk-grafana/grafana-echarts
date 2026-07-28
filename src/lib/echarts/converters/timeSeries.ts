@@ -55,7 +55,8 @@ export function timeSeriesToEChartsOption(
       data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
       itemStyle: { color },
       lineStyle: { color },
-      zlevel: options.zLevel?.series,
+      // @todo set zLevel if series count is over 50 or something
+      zlevel: options.zLevel?.series ?? 1,
       ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       showEffectOn,
     });
