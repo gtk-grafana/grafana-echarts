@@ -6,18 +6,14 @@ import {
   type GrafanaTheme2,
 } from '@grafana/data';
 import { type SunburstSeriesOption, type TreemapSeriesOption } from 'echarts';
-import { type ECBasicOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type HierarchyChartContext } from 'lib/echarts/charts/types';
 import { type HierarchyData, type HierarchyNode } from 'lib/echarts/converters/hierarchy';
 import { createBaseOptions } from 'lib/echarts/options/base';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
-import {
-  formatTooltipValue,
-  NOOP_TOOLTIP_SINK,
-  toEmittingFormatter,
-  type TooltipModel,
-  type TooltipRow,
-} from 'lib/echarts/tooltip/model';
+import { buildHierarchyTooltipModel } from 'lib/echarts/tooltip/hierarchy';
+import { seriesTooltip } from 'lib/echarts/tooltip/option';
+import { type HierarchyTreeItem } from 'lib/echarts/tooltip/types';
 import { getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 
 /**
@@ -28,26 +24,6 @@ import { getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 export const hierarchyDefaultOptions: ECBasicOption = {
   ...createBaseOptions(),
 };
-
-/**
- * ECharts tree data item shared by the treemap and sunburst series (both accept
- * `{ name, value, children, itemStyle }`). `self` is carried through as an extra
- * field so the tooltip can surface it; ECharts preserves unknown data props.
- */
-interface HierarchyTreeItem {
-  name: string;
-  value?: number;
-  self?: number;
-  itemStyle?: { color: string };
-  children?: HierarchyTreeItem[];
-  /** Source row (see {@link HierarchyNode.sourceRowIndex}) for footer data links. */
-  sourceRowIndex?: number;
-}
-
-/** Type guard so tooltip params (`data`) narrow without a type assertion. */
-function isHierarchyTreeItem(value: unknown): value is HierarchyTreeItem {
-  return typeof value === 'object' && value !== null && 'name' in value;
-}
 
 /** Context needed to build a hierarchy series (colors + tooltip formatting). */
 export interface HierarchySeriesContext extends HierarchyChartContext {
@@ -134,41 +110,6 @@ function toTreeData(nodes: HierarchyNode[], resolveColor: HierarchyColorResolver
 }
 
 /**
- * Tooltip content model for hierarchy series, rendered by the React overlay
- * (`EChartsTooltip`). https://echarts.apache.org/en/option.html#series-treemap.tooltip
- *
- * - The hovered node: its name as header, cumulative `value`, and (when present)
- *   `self`. Hierarchy always hovers per item (no shared axis pointer), so this is
- *   built in the formatter rather than via an axis-triggered tooltip.
- */
-function buildHierarchyTooltipModel(ctx: HierarchySeriesContext): (params: TopLevelFormatterParams) => TooltipModel {
-  return (params) => {
-    const param = Array.isArray(params) ? params[0] : params;
-    const hovered = isHierarchyTreeItem(param?.data) ? param.data : undefined;
-    // A node built from a single source row resolves that row's data links
-    // against the value field (see `EChartsTooltip`). Nodes with no backing row
-    // (aggregated flame-graph parents) render no footer.
-    const source =
-      ctx.valueField != null && hovered?.sourceRowIndex != null
-        ? { field: ctx.valueField, rowIndex: hovered.sourceRowIndex }
-        : undefined;
-    const rows: TooltipRow[] = [
-      {
-        color: typeof param?.color === 'string' ? param.color : undefined,
-        label: 'Value',
-        value: formatTooltipValue(hovered?.value ?? null, ctx.formatValue),
-        source,
-      },
-    ];
-    if (hovered?.self != null) {
-      rows.push({ label: 'Self', value: formatTooltipValue(hovered.self, ctx.formatValue) });
-    }
-    // Item chart: the hovered node's name is the header label.
-    return { header: { label: hovered?.name ?? String(param?.name ?? ''), value: '' }, rows, source };
-  };
-}
-
-/**
  * Treemap series: nested rectangles sized by `value`. `zlevel` places the series
  * on its own canvas layer (see the panel's `zLevel.series`) so layered canvas
  * capture can isolate it, matching the other families.
@@ -188,7 +129,7 @@ export function getTreemapSeries(data: HierarchyData, ctx: HierarchySeriesContex
     breadcrumb: { show: ctx.options.legend.isVisible, width: ctx.options.legend.width },
     zlevel: ctx.options.zLevel?.series,
     data: toTreeData(data.roots, makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField)),
-    tooltip: { formatter: toEmittingFormatter(buildHierarchyTooltipModel(ctx), ctx.tooltipSink ?? NOOP_TOOLTIP_SINK) },
+    tooltip: seriesTooltip(buildHierarchyTooltipModel(ctx), ctx.tooltipSink),
   };
 }
 
@@ -205,6 +146,6 @@ export function getSunburstSeries(data: HierarchyData, ctx: HierarchySeriesConte
     nodeClick: false,
     zlevel: ctx.options.zLevel?.series,
     data: toTreeData(data.roots, makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField)),
-    tooltip: { formatter: toEmittingFormatter(buildHierarchyTooltipModel(ctx), ctx.tooltipSink ?? NOOP_TOOLTIP_SINK) },
+    tooltip: seriesTooltip(buildHierarchyTooltipModel(ctx), ctx.tooltipSink),
   };
 }

@@ -2,7 +2,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
 import { type TooltipOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type EChartsTooltipTrigger } from './eChartsTypes';
-import { toEmittingFormatter, type TooltipModel, type TooltipSink } from './model';
+import { NOOP_TOOLTIP_SINK, toEmittingFormatter, type TooltipModel, type TooltipSink } from './model';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
 const CROSSHAIR_COLOR = 'rgba(120, 120, 130, 0.5)';
@@ -39,6 +39,18 @@ export function grafanaTooltipModeToEChartsTrigger(
 
 export function getNoTooltipOption() {
   return { show: false };
+}
+
+/**
+ * A per-series `tooltip` for the families that build their own content model
+ * (pie, funnel, hierarchy, both heatmaps) instead of going through the panel's
+ * generic one. Defaulting the sink here is what lets those formatters be
+ * attached unconditionally, including in unit tests that build a series with no
+ * React overlay wired.
+ * https://echarts.apache.org/en/option.html#series-pie.tooltip
+ */
+export function seriesTooltip(produce: (params: TopLevelFormatterParams) => TooltipModel, sink?: TooltipSink) {
+  return { formatter: toEmittingFormatter(produce, sink ?? NOOP_TOOLTIP_SINK) };
 }
 
 /**

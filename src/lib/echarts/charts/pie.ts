@@ -26,7 +26,8 @@ import {
   resolvePieLabelColor,
 } from 'lib/echarts/options/pie';
 import { buildPieTooltipModel } from 'lib/echarts/tooltip/pie';
-import { indexedFormatterResolver, NOOP_TOOLTIP_SINK, toEmittingFormatter } from 'lib/echarts/tooltip/model';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
+import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import {
   type BaseOptionParts,
   type ChartContext,
@@ -82,12 +83,7 @@ function buildFunnelChartOption(
   const tooltip =
     tooltipMode === TooltipDisplayMode.None
       ? undefined
-      : {
-          formatter: toEmittingFormatter(
-            buildPieTooltipModel(visible, tooltipMode, theme, ctx.timeZone, hideZeros),
-            ctx.tooltipSink ?? NOOP_TOOLTIP_SINK
-          ),
-        };
+      : seriesTooltip(buildPieTooltipModel(visible, tooltipMode, theme, ctx.timeZone, hideZeros), ctx.tooltipSink);
 
   return {
     ...funnelDefaultOptions,
@@ -271,12 +267,10 @@ export const pieChartModule: ChartModule = {
           ...(tooltipMode === TooltipDisplayMode.None
             ? {}
             : {
-                tooltip: {
-                  formatter: toEmittingFormatter(
-                    buildPieTooltipModel(visible, tooltipMode, theme, ctx.timeZone, hideZeros),
-                    ctx.tooltipSink ?? NOOP_TOOLTIP_SINK
-                  ),
-                },
+                tooltip: seriesTooltip(
+                  buildPieTooltipModel(visible, tooltipMode, theme, ctx.timeZone, hideZeros),
+                  ctx.tooltipSink
+                ),
               }),
         },
       ],

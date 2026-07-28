@@ -1,12 +1,9 @@
 import { createTheme, FieldType, getDisplayProcessor, type Field, type ValueFormatter } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
-import {
-  buildMatrixHeatmapTooltipModel,
-  getMatrixHeatmapSeries,
-  getMatrixHeatmapVisualMap,
-} from 'lib/echarts/options/matrixHeatmap';
+import { getMatrixHeatmapSeries, getMatrixHeatmapVisualMap } from 'lib/echarts/options/matrixHeatmap';
 import { COLOR_SCHEMES } from 'lib/echarts/options/constants';
+import { buildMatrixHeatmapTooltipModel } from 'lib/echarts/tooltip/matrixHeatmap';
 import { type TooltipModel } from 'lib/echarts/tooltip/model';
 
 const theme = createTheme();

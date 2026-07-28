@@ -1,7 +1,8 @@
 import { createTheme, FieldType, type ValueFormatter } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type BinnedHeatmapData } from 'lib/echarts/converters/binnedHeatmap';
-import { buildBinnedHeatmapTooltipModel, getBinnedHeatmapBucketAxis } from 'lib/echarts/options/binnedHeatmap';
+import { getBinnedHeatmapBucketAxis } from 'lib/echarts/options/binnedHeatmap';
+import { buildBinnedHeatmapTooltipModel } from 'lib/echarts/tooltip/binnedHeatmap';
 import { type TooltipModel } from 'lib/echarts/tooltip/model';
 
 const baseData = (overrides: Partial<BinnedHeatmapData>): BinnedHeatmapData => ({
