@@ -114,11 +114,8 @@ export function getSeriesPerfOptions({
  * 3. Otherwise auto: animation stays on until the chart crosses either the
  *    series-count or points-per-series threshold, past which load and transition
  *    animation are pure overhead.
- *
- *    @todo test if this is already applied while panel is rendering new data frame
  */
 export function resolveAnimation(options: PanelOptions, stats: SeriesStats): boolean {
-  console.log('resolveAnimation', options, stats);
   const mode = options.performance?.animation ?? PERFORMANCE_ANIMATION_DEFAULT;
   if (mode === 'always') {
     return true;

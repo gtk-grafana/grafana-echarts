@@ -229,7 +229,7 @@ const buildSeries = (
     getBinnedHeatmapSeries(heatmap, { theme, timeZone: ctx.timeZone, formatValue }, 0, options.zLevel?.series)
   );
   cartSeries.forEach((cartesian, i) => {
-    series.push({ ...cartesian, yAxisIndex: (overlayAxes?.seriesYAxisIndex[i] ?? 0) + 1 });
+    series.push({ ...cartesian, animation: false, yAxisIndex: (overlayAxes?.seriesYAxisIndex[i] ?? 0) + 1 });
   });
   return series;
 };

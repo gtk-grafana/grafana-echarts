@@ -13,6 +13,7 @@ bundle is injected from `node_modules`, not vendored, so it cannot drift.
 ```sh
 pnpm run bench:dataset          # tuples vs dataset, and what the perf levers are worth
 pnpm run bench:dataset-tooltip  # what params.value contains under a dataset
+pnpm run bench:dirty-rect       # why useDirtyRect is off: the artifact + the non-benefit
 ```
 
 ## `bench:dataset`
@@ -54,6 +55,21 @@ The repo's existing tooltip tests construct their `params` object by hand, so
 they cannot catch this. If dataset is ever revisited, an instance-driven tooltip
 test in `src/` is a prerequisite rather than a follow-up.
 
+## `bench:dirty-rect`
+
+Why `useDirtyRect` is off. Two parts: it reproduces the initial-draw corruption
+(init small → `setOption` with animation on → `resize()` mid-animation, which is
+the mount sequence `EChart.tsx` produces) and writes PNGs to compare, then times
+the flag on and off across initial render, full-option updates and hover.
+
+The artifact only appears with animation enabled. The timing sits inside
+run-to-run variance without a stable sign, because `setOption` runs with
+`notMerge: true` — every repaint invalidates everything, so there is no partial
+repaint for dirty rect to skip.
+
+Run this before proposing the flag again. Rationale:
+[docs/performance.md](../../docs/performance.md).
+
 ## Files
 
 | File                        | Purpose                                                              |
@@ -61,6 +77,7 @@ test in `src/` is a prerequisite rather than a follow-up.
 | `bench.html`                | The page: frame generation, both option builders, the timing harness |
 | `dataset-vs-tuples.mjs`     | Driver for the timing comparison                                     |
 | `dataset-tooltip-probe.mjs` | Driver for the `params.value` probe                                  |
+| `dirty-rect.mjs`            | Self-contained: `useDirtyRect` artifact repro + timing               |
 
 `bench.html` builds the option shapes by hand rather than importing the plugin's
 converter, so it has no build step. That is a deliberate trade: it measures the

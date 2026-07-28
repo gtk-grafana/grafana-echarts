@@ -56,11 +56,15 @@ export const EChart: React.FC<Props> = ({
       return;
     }
 
-    // `useDirtyRect` repaints only changed regions instead of the whole canvas,
-    // cutting per-frame draw work on dense charts (cartesian is low-risk for the
-    // rare dirty-rect artifact; single-flag revert if needed).
+    // Do not pass `useDirtyRect: true` here. It was tried and reverted: it
+    // corrupts the initial draw (line paths and gridlines missing from the region
+    // a resize exposes) because the resize effect below fires while the load
+    // animation is still running, and zrender's dirty regions are stale by then.
+    // It also measured as no gain — `setOption` runs with `notMerge`, so every
+    // repaint invalidates everything and there is no partial repaint to skip.
+    // See docs/performance.md and `pnpm run bench:dirty-rect`.
     // https://echarts.apache.org/en/api.html#echarts.init
-    const instance = init(dom, undefined, { useDirtyRect: true });
+    const instance = init(dom);
     setChart(instance);
 
     return () => {

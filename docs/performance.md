@@ -37,7 +37,6 @@ of this is custom rendering.
 | LTTB downsampling       | `series.sampling: 'lttb'`                | `line`           | > 100 points in the densest series      |
 | Batched large-data mode | `series.large` + `series.largeThreshold` | `scatter`, `bar` | ≥ 2000 points in the densest series     |
 | Disable animation       | `animation`                              | panel-wide       | > 50 series **or** > 5000 points/series |
-| Dirty-rectangle repaint | `init(..., { useDirtyRect: true })`      | every chart      | always on                               |
 
 Density is measured once per render by `getSeriesStats`, over the whole frame
 set, so every series in a chart resolves against the same numbers and a chart
@@ -105,6 +104,39 @@ levers do **not** engage — that 4.5× is animation alone. Most of the benefit 
 the dense rows comes from `showSymbol: false` plus `sampling`, which cut drawn
 elements rather than making the same drawing faster.
 
+## Rejected: `useDirtyRect`
+
+`init(dom, undefined, { useDirtyRect: true })` repaints only changed regions
+instead of the whole canvas. It shipped on this branch and was reverted: it
+corrupts the initial draw, and it does not measurably help.
+
+**The bug.** On mount, `EChart.tsx` runs the option effect and then the resize
+effect, so `chart.resize()` lands while the load animation is still running. With
+dirty rect on, the region the resize exposes is left partly unpainted — zrender's
+dirty regions were computed against the pre-resize layout. It was first reported
+in Grafana as gridline gaps (blank rectangles where gridlines belong); the
+committed repro loses the line paths while the point markers survive. Which
+elements go missing depends on what is animating, so the symptom is not a
+reliable signature. Setting animation off makes it disappear, which is what
+pinned the trigger.
+
+**The non-benefit.** Timed on and off across initial render, full-option updates
+and hover highlight, the difference sits inside run-to-run variance and does not
+hold a consistent sign — the 500-series case measured both +0.4% and −5.7% on
+initial render across two runs. That is the expected result: `setOption` runs with
+`notMerge: true`, so every update replaces the whole option, every repaint
+invalidates everything, and there is no partial repaint left to skip. Dirty rect
+pays off for incremental updates, which this render loop does not do.
+
+So it was a correctness regression bought with no reliable gain. Reproduce both
+halves with `pnpm run bench:dirty-rect` before proposing it again.
+
+Gating it on "animation is off" was considered and rejected: `useDirtyRect` is an
+`init()` option, and the animation decision is data-dependent, so honoring it
+would mean disposing and re-initializing the instance whenever a chart crossed a
+density threshold — losing brush state and flashing — to buy an effect that
+measures as noise.
+
 ## Rejected: feeding ECharts through `dataset`
 
 A columnar `option.dataset` + per-series `encode` path was prototyped on this
@@ -115,10 +147,8 @@ and numbers: [dataset.md](./dataset.md).
 
 ## Notes and open questions
 
-- **`useDirtyRect` is on for every chart**, not just cartesian. It repaints only
-  changed regions. The known trade-off is a rare repaint artifact on charts with
-  heavily overlapping graphics; cartesian is low-risk and it is a single-flag
-  revert in `EChart.tsx` if one shows up.
+- **`useDirtyRect` is deliberately off** — see "Rejected: `useDirtyRect`" above.
+  Do not re-add it without running `pnpm run bench:dirty-rect`.
 - **The option build is not separately memoized, deliberately.** A `useMemo` over
   `chartContext` + `isGrafanaLegend` was tried and removed: the build already sits
   in a `useEffect` keyed on the same memoized `chartContext` (see `Panel.tsx`), so
