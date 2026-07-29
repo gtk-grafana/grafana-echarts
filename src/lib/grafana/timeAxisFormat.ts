@@ -59,10 +59,7 @@ function pickTickFormatter(spanMs: number, timeZone: string): (ms: number) => st
  * axis, whose labels are ISO timestamps). Non-time strings (e.g. a categorical
  * boxplot label) fail to parse and pass through unchanged.
  */
-export function getTimeAxisLabelFormatter(
-  timeRange: TimeRange,
-  timeZone: string
-): (value: number | string) => string {
+export function getTimeAxisLabelFormatter(timeRange: TimeRange, timeZone: string): (value: number | string) => string {
   const formatTick = pickTickFormatter(timeRange.to.valueOf() - timeRange.from.valueOf(), timeZone);
 
   return (value) => {

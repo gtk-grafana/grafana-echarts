@@ -1,9 +1,12 @@
 import { debug, LOG_LEVELS } from 'development';
-import { STACK_GROUP_ID } from 'editor/constants';
+import { STACK_GROUP_ID } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type CartesianOption, type ChartContext } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
+import { findCategoryField, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
+import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
+import { getDensityFromSeriesValues, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 
 /**
  * Convert Grafana Numeric frames into an ECharts category-axis cartesian chart
@@ -30,22 +33,45 @@ export function categoryCartesianToEChartsOption(
   const categorical = frameToCategorical(frames, theme);
 
   if (!categorical) {
+    // Hiding every series via the legend strips all numeric value fields,
+    // leaving a category frame with no series. Keep the category axis and render
+    // nothing (matches core Grafana) by reusing the category labels from the
+    // remaining frame (string field, else row indices).
+    const categoryFrame = frames.find((frame) => findCategoryField(frame)) ?? frames[0];
+    if (categoryFrame) {
+      return { categories: resolveCategoriesFromFrame(categoryFrame), series: [] };
+    }
+
     // We should bail for empty/invalid frames earlier then this
     debug('Categorical-x cartesian plots must have categorical data', LOG_LEVELS.warn, frames);
     throw new Error('Categorical-x cartesian plots must have categorical data');
   }
 
   const stacked = seriesType === 'bar' && options.stackSeries;
-  const echartsSeries: CartesianOption['series'] = categorical.series.map((field) => ({
-    name: field.name,
-    // effectScatter has types inconsistency but should have same behavior as scatter with same options, type assertion will have to do for now
-    type: seriesType as Exclude<CartesianSingleValueSeriesType, 'effectScatter'>,
-    zlevel: options.zLevel?.series,
-    data: field.values,
-    itemStyle: { color: field.color },
-    lineStyle: { color: field.color },
-    ...(stacked ? { stack: STACK_GROUP_ID } : {}),
-  }));
+  // Density drives the same fast-path props as the time-axis converter, computed
+  // once over every series so a dense chart never renders half on the fast path.
+  // Without this the Advanced Performance options were visible but inert on
+  // category-axis charts. See lib/echarts/performance/resolvers.ts.
+  const density = getDensityFromSeriesValues(categorical.series.map(({ values }) => values));
+  // Per-series color plus the Advanced value-label / geometry / style options and
+  // the fast-path props; every extra is omitted at its default so untouched
+  // panels are unchanged. `hover` is not set: unlike the time axis, category
+  // charts keep ECharts' native hit-testing and default emphasis.
+  const echartsSeries: CartesianOption['series'] = categorical.series.map((field) =>
+    buildCartesianSeries(
+      {
+        name: field.name,
+        data: field.values,
+        color: field.color,
+        zlevel: options.zLevel?.series,
+        perf: getSeriesPerfOptions({ type: seriesType, density, options, values: field.values }),
+        ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+      },
+      seriesType,
+      options,
+      theme
+    )
+  );
 
   return { categories: categorical.categories, series: echartsSeries };
 }

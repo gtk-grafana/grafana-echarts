@@ -6,8 +6,9 @@ import {
   formattedValueToString,
   ThresholdsMode,
   toDataFrame,
+  type ValueFormatter,
 } from '@grafana/data';
-import { getPaletteColorByIndex, getSeriesColor, getValueFormatter } from 'lib/echarts/style';
+import { formatEChartsValue, getPaletteColorByIndex, getSeriesColor, getValueFormatter } from 'lib/echarts/style';
 
 const theme = createTheme();
 
@@ -69,12 +70,47 @@ describe('getValueFormatter', () => {
     expect(formattedValueToString(format(12.345))).toEqual('12.3%');
   });
 
-  it('returns a FormattedValue with string text for null values', () => {
+  it('renders the default no-value hyphen for empty values', () => {
     const field = numericField({ unit: 'percent' });
     const format = getValueFormatter(field, theme);
 
-    // @ts-expect-error
-    const result = format(null).text;
-    expect(result).toBe('');
+    // @ts-expect-error null is a valid runtime input ECharts passes for gaps.
+    expect(format(null).text).toBe('-');
+    // @ts-expect-error undefined is likewise a runtime possibility.
+    expect(format(undefined).text).toBe('-');
+    expect(format(NaN).text).toBe('-');
+  });
+
+  it('renders the configured No value text for empty values', () => {
+    const field = numericField({ unit: 'percent', noValue: 'n/a' });
+    const format = getValueFormatter(field, theme);
+
+    // @ts-expect-error null is a valid runtime input ECharts passes for gaps.
+    expect(format(null).text).toBe('n/a');
+    // Real numeric values still format normally.
+    expect(formattedValueToString(format(12))).toBe('12%');
+  });
+});
+
+// Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
+const formatValue: ValueFormatter = (value) => ({ text: value == null || Number.isNaN(value) ? 'null' : `${value}` });
+
+describe('formatEChartsValue', () => {
+  it('formats scalar numbers through the Grafana formatter', () => {
+    expect(formatEChartsValue(10, formatValue)).toBe('10');
+  });
+
+  it('renders empty values as the field No value text', () => {
+    expect(formatEChartsValue(null, formatValue)).toBe('null');
+  });
+
+  it('unwraps the trailing numeric from array data items', () => {
+    // Cartesian [time, value] tuple and heatmap [xStart, yStart, xEnd, yEnd, value].
+    expect(formatEChartsValue([1000, 42], formatValue)).toBe('42');
+    expect(formatEChartsValue([1000, 10, 2000, 20, 7], formatValue)).toBe('7');
+  });
+
+  it('passes through a genuine non-numeric value (e.g. a category label)', () => {
+    expect(formatEChartsValue('text', formatValue)).toBe('text');
   });
 });

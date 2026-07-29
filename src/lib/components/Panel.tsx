@@ -1,25 +1,24 @@
 import { type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
-import {
-  PanelContextProvider,
-  type SeriesVisibilityChangeMode,
-  usePanelContext,
-  useTheme2,
-  VizLayout,
-  VizLegend,
-} from '@grafana/ui';
+import { useTheme2, VizLayout } from '@grafana/ui';
 import { seriesTypePath } from 'editor/constants';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { type PanelOptions } from 'types';
 import { EChart } from './EChart';
+import { useLegend } from './hooks/useLegend';
+import { type ChartFamily, resolveSeriesType } from 'lib/echarts/charts/autoSeriesType';
 
-interface Props extends PanelProps<PanelOptions> {}
+interface Props extends PanelProps<PanelOptions> {
+  /** The nested plugin's chart family, used to resolve an `'Auto'` series type. */
+  family: ChartFamily;
+}
 
 export const Panel: React.FC<Props> = ({
+  family,
   options,
   data,
   width,
@@ -30,10 +29,19 @@ export const Panel: React.FC<Props> = ({
   eventBus,
   timeRange,
   onChangeTimeRange,
+  onFieldConfigChange,
+  replaceVariables,
 }) => {
   const theme = useTheme2();
-  const panelContext = usePanelContext();
-  const seriesType = options[seriesTypePath];
+  // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel).
+  // Resolve it to a concrete type once — from the data and scoped to this panel's
+  // family — so both the chart module and the ChartContext below see a real
+  // series type (downstream axis/build code throws on a non-concrete one).
+  const rawSeriesType = options[seriesTypePath];
+  const seriesType = useMemo(
+    () => resolveSeriesType(rawSeriesType, data.series, family),
+    [rawSeriesType, data.series, family]
+  );
 
   const chartModule = useMemo(() => resolveChartModule(seriesType), [seriesType]);
 
@@ -55,56 +63,22 @@ export const Panel: React.FC<Props> = ({
       options,
       seriesType,
       formatValue,
+      fieldConfig,
+      replaceVariables,
     }),
-    [data.series, theme, timeZone, timeRange, options, seriesType, formatValue]
+    [data.series, theme, timeZone, timeRange, options, seriesType, formatValue, fieldConfig, replaceVariables]
   );
 
-  const legendItems = useMemo(() => {
-    if (!isVizLegend) {
-      return [];
-    }
-    return chartModule.buildLegendItems(chartContext, resolvedLegend.calcs ?? []);
-  }, [isVizLegend, chartModule, chartContext, resolvedLegend]);
-
-  const onSeriesColorChange = useCallback((_label: string, _color: string) => {
-    // @todo requires fieldConfig override write-back (PanelContext not available to community panels)
-  }, []);
-
-  const onToggleSeriesVisibility = useCallback(
-    (_label: string | string[] | null, _mode: SeriesVisibilityChangeMode) => {
-      // @todo requires series visibility state
-    },
-    []
-  );
-
-  const legendContextValue = useMemo(
-    () => ({
-      ...panelContext,
-      eventBus,
-      onSeriesColorChange,
-      onToggleSeriesVisibility,
-    }),
-    [panelContext, eventBus, onSeriesColorChange, onToggleSeriesVisibility]
-  );
-
-  const renderLegend = useCallback(
-    () => (
-      <VizLayout.Legend placement={resolvedLegend.placement} width={resolvedLegend.width}>
-        <PanelContextProvider value={legendContextValue}>
-          <VizLegend
-            items={legendItems}
-            displayMode={resolvedLegend.displayMode}
-            placement={resolvedLegend.placement}
-            sortBy={resolvedLegend.sortBy}
-            sortDesc={resolvedLegend.sortDesc}
-            isSortable={true}
-            limit={resolvedLegend.limit}
-          />
-        </PanelContextProvider>
-      </VizLayout.Legend>
-    ),
-    [legendContextValue, legendItems, resolvedLegend]
-  );
+  const { items: legendItems, renderLegend } = useLegend({
+    chartModule,
+    chartContext,
+    resolvedLegend,
+    isVizLegend,
+    seriesType,
+    fieldConfig,
+    onFieldConfigChange,
+    eventBus,
+  });
 
   if (data.series.length === 0) {
     return <PanelDataErrorView fieldConfig={fieldConfig} panelId={id} data={data} needsStringField />;

@@ -1,0 +1,113 @@
+# Part-to-whole (pie) editor option parity
+
+Compares the ECharts **Part-to-whole** module ([module.tsx](./module.tsx)),
+rendering `seriesType: pie`, against core Grafana's **Pie chart** panel
+([
+`public/app/plugins/panel/piechart/module.tsx`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/piechart/module.tsx)).
+
+## Design difference
+
+Core Pie chart adds data-reduction options (which value/calculation per slice)
+plus pie-specific display options (type, sorting, labels, legend values). This
+module now shares core's data-reduction model: it registers the standard **Value
+options** (`addStandardDataReduceOptions`) and resolves slices through Grafana's
+`getFieldDisplayValues` (see `resolvePieSlices`), so reduction, multi-frame
+handling, display name, color, and unit/decimals formatting are all owned by
+Grafana. Multiple series/frames (e.g. one frame per Prometheus series) each become
+a slice. Pie-specific _display_ options (type, sorting, labels, legend values) are
+all supported.
+
+Long-shaped data is reshaped to wide upstream with a Grafana transform (**Rows to fields** or **Group
+by**) — see the `provisioning/dashboards/part-to-whole/` demos.
+
+## Panel options
+
+| Core Grafana option                               | ECharts equivalent                                                                                                                     | Status          |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| Value / calculation (data reduce)                 | `reduceOptions` (Calculate/All values + Calculation) via `addStandardDataReduceOptions`                                                | Supported       |
+| Fields to include, limit                          | `reduceOptions.fields` / `reduceOptions.limit`                                                                                         | Supported       |
+| Pie chart type (Pie / Donut)                      | `pieType` radio in a "Pie" category; rendered as the series radius by `getPieRadius`                                                   | Supported       |
+| Slice sorting (asc/desc/none)                     | `sort` select in the default (top) section, shared by pie + funnel; orders the shared slice model in `resolvePieSlices` (default desc) | Supported       |
+| Labels (Percent / Name / Value)                   | `displayLabels` multi-select in a "Labels" category; rendered by `getPieContentLabel`                                                  | Supported       |
+| Arc start / end angle (ECharts-only)              | `startAngle` / `endAngle` number inputs in the "Pie" category (Advanced); half-pie / semicircle donut via `getPieAngles`               | Advanced        |
+| Label font size (ECharts-only)                    | `labelFontSize` number input ("Labels", Advanced); threads into `getPieLabelStyle`                                                     | Advanced        |
+| Label overflow / width (ECharts-only)             | `labelOverflow` select + `labelWidth` ("Labels", Advanced); `label.overflow`/`label.width` via `getPieLabelStyle`                      | Advanced        |
+| Min angle to show label (ECharts-only)            | `minShowLabelAngle` number input ("Labels", Advanced); `series.minShowLabelAngle` via `getPieMinShowLabelAngle`                        | Advanced        |
+| Slice separation border (ECharts-only)            | `sliceBorderWidth` + `sliceBorderColor` (color picker) ("Pie", Advanced); `itemStyle` border via `getPieItemStyle`                     | Advanced        |
+| Custom radius / center (ECharts-only)             | `outerRadius`/`innerRadius`/`centerX`/`centerY` ("Pie", Advanced); `radius`/`center` via `getPieRadius`/`getPieCenter`                 | Advanced        |
+| Tooltip: mode                                     | `tooltip.mode`                                                                                                                         | Supported       |
+| Tooltip: hide zeros                               | `tooltip.hideZeros` via `addTooltipOptions`; drops zero-value slices from the "All" tooltip                                            | Supported       |
+| Tooltip: click-to-pin, data links, ad-hoc filters | React `VizTooltip` footer for the hovered slice's field (annotations: todo)                                                            | Supported       |
+| Tooltip: sort                                     | none                                                                                                                                   | Not supported\* |
+| Legend: visibility, mode, placement, width        | Grafana legend via `addLegendOptions` (reducer "Values" stats-picker dropped)                                                          | Supported       |
+| Legend: slice show/hide + color (interactive)     | Per-slice toggle; converter reads the `hideSeriesFrom` (visibility) and `byName` (color) overrides by name                             | Supported       |
+| Legend values (Percent / Value)                   | `legend.values` multi-select in the "Legend" category; rendered by `buildPieLegendItems`                                               | Supported       |
+
+\* Tooltip sort in eCharts uses existing slice sorting instead of having two separate options.
+
+## Advanced pie options (ECharts-only)
+
+Gated behind the shared **Advanced** editor mode (`showIf: isAdvancedEditorMode`);
+hidden in Default. Each omits its ECharts key at the default so existing renders
+are unchanged.
+
+| ECharts option / option group          | ECharts equivalent                                                                                 | Status   |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- | -------- |
+| Select / explode                       | `selectedMode` + `selectedOffset` (Pie category); rendered by `getPieSelection`                    | Advanced |
+| Rounded corners                        | `itemStyle.borderRadius` (Pie category); rendered by `getPieBorderRadius` / `getPieItemStyle`      | Advanced |
+| Emphasis (hover)                       | `emphasis.focus` + `emphasis.scale` (Pie category); rendered by `getPieEmphasis`                   | Advanced |
+| Label color                            | `label.color` (Labels category, `addColorPicker`); overrides the theme color in `getPieLabelStyle` | Advanced |
+| Zero-sum / empty circle                | `stillShowZeroSum` + `showEmptyCircle` (Pie category); rendered by `getPieEmptyState`              | Advanced |
+| Clockwise / avoid label overlap        | `clockwise` + `avoidLabelOverlap` (Pie category); rendered by `getPieOrientation`                  | Advanced |
+| Animation + label text shadow / stroke | `animation.enabled` (Pie) + `label.textShadowBlur` / `label.textBorderWidth` re-enable (Labels)    | Advanced |
+
+## Standard (field-config) options
+
+| Option                                                                       | Core Pie                                     | ECharts Part-to-whole                     |
+| ---------------------------------------------------------------------------- | -------------------------------------------- | ----------------------------------------- |
+| Color scheme                                                                 | Kept (bySeries, gradient, seeded fixedColor) | Kept (PaletteClassic, byValue + bySeries) |
+| Thresholds                                                                   | Disabled                                     | Kept                                      |
+| Unit, Decimals, Min, Max, Display name, No value, Value mappings, Data links | Kept                                         | Kept                                      |
+
+## Notes / gaps
+
+- Slice labels (Name / Value / Percent) are supported via the "Labels" option,
+  donut rendering via the "Pie" > Pie chart type option, slice sorting via the
+  "Pie" > Slice sorting option, and legend values (Percent / Value) via the
+  "Legend" > Legend values option.
+- ECharts-only roadmap: this module's family also covers funnel/gauge render
+  types (not yet implemented).
+- Editor options are tiered via the shared `editorMode` option (Default =
+  parity-only, Advanced = ECharts extras, API = JSON-only). The core-parity pie
+  options (type, sorting, labels, legend, reduce options) are Default. ECharts-only
+  extras are gated behind Advanced (`showIf: isAdvancedEditorMode`, each omitted at
+  its default): **Rose type** (Nightingale: Radius / Area, `roseType` via
+  `getPieRoseType`), **Min slice angle** (`minAngle`, degrees, via `getPieMinAngle`,
+  enlarges tiny long-tail slices so they stay visible/clickable), **Start angle** /
+  **End angle** (`startAngle` / `endAngle` via `getPieAngles`, enabling half-pie /
+  semicircle-donut layouts), **Label position** (`labelPosition` →
+  `label.position`: Outside / Inside / Center), the legibility options — **Label
+  font size**, **Label overflow/width**, **Min-angle-to-show-label**, **Slice
+  separation border**, and **Custom radius/center** — and the interactivity/polish
+  options — **select/explode**, **rounded corners**, **emphasis**, **label color**,
+  **zero-sum/empty**, **clockwise/avoid-overlap**, and **animation + label text
+  shadow/stroke**. See [docs/options-modes.md](../../../docs/options-modes.md) and
+  the `pie-legibility.json` demo.
+
+## ECharts API support
+
+High-level [ECharts option](https://echarts.apache.org/en/option.html) components
+used by this module. See [echarts.ts](../../lib/echarts/echarts.ts) for the
+registered runtime surface.
+
+| ECharts API                                                                                              | Status          | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `series` (pie)                                                                                           | Partial         | `seriesType: pie`; slice labels (Name/Value/Percent) via `label`; label placement (Outside/Inside/Center) via `label.position` (Advanced `labelPosition`); pie/donut via `radius`; sorting via the resolver; rose (Nightingale) type (Radius/Area) via `roseType` (Advanced); min slice angle via `minAngle` (Advanced); arc range via `startAngle`/`endAngle` (Advanced). Advanced also adds `label.fontSize`/`overflow`/`width`, `minShowLabelAngle`, `itemStyle` border, custom `radius`/`center`, `selectedMode`/`selectedOffset`, `itemStyle.borderRadius`, `emphasis`, `stillShowZeroSum`/`showEmptyCircle`, `clockwise`/`avoidLabelOverlap`, and label color/text-style. |
+| `legend`                                                                                                 | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Interactive per-slice show/hide (via `hideSeriesFrom`) + color (via `byName`) read directly by category.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `tooltip`                                                                                                | Supported       | Grafana-styled; mode maps to `trigger` (item / none).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `animation`                                                                                              | Supported       | Off by default (`PIE_ANIMATION_ENABLED_DEFAULT`, now the shared `ANIMATION_ENABLED_DEFAULT`); Advanced opts in via the "Animation" switch (`animation.enabled`), and Default mode resets it through `applyPartToWholeEditorModeDefaults`.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `color` / `textStyle`                                                                                    | Supported       | Derived from the Grafana theme.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `grid` / `xAxis` / `yAxis`                                                                               | Not implemented | Pie has no cartesian coordinate system.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `visualMap` / `markLine` / `markArea` / `axisPointer` / `brush` / `dataZoom`                             | Not implemented | Cartesian-oriented components; N/A for pie.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `toolbox` / `dataset` / `title` / `graphic` / `timeline` / `aria`                                        | Not implemented | Not registered.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Other coordinate systems (`polar` / `radar` / `parallel` / `singleAxis` / `geo` / `calendar` / `matrix`) | Not implemented | —                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |

@@ -1,16 +1,19 @@
 import { TooltipDisplayMode } from '@grafana/schema';
+import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { partToWholeSeriesTypes } from 'editor/pie';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
+import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
+import { resolveAnimation } from 'lib/echarts/performance/resolvers';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
-import {
-  getCrosshairAxisPointer,
-  getNoTooltipOption,
-  getTooltipOption,
-  grafanaTooltipModeToEChartsTrigger,
-} from 'lib/echarts/tooltip';
+import { NOOP_TOOLTIP_SINK } from 'lib/echarts/tooltip/model';
+import { type TooltipSink } from 'lib/echarts/tooltip/types';
+import { getCrosshairAxisPointer, getNoTooltipOption } from 'lib/echarts/tooltip/option';
+import { buildPanelTooltip } from 'lib/echarts/tooltip/panelTooltip';
+import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
 
 /**
  * Assemble the full ECharts option a panel feeds to `setOption`.
@@ -23,29 +26,46 @@ import {
  * the series type or the module produces no option.
  */
 export function buildPanelChartOption(
-  ctx: ChartContext,
-  { isGrafanaLegend }: { isGrafanaLegend: boolean }
+  rawCtx: ChartContext,
+  { isGrafanaLegend, tooltipSink }: { isGrafanaLegend: boolean; tooltipSink?: TooltipSink }
 ): ECBasicOption {
-  const chartModule = resolveChartModule(ctx.seriesType);
+  const chartModule = resolveChartModule(rawCtx.seriesType);
   if (!chartModule) {
-    throw new Error(`Invalid chart module ${chartModule} for ${ctx.seriesType}`);
+    debug('Invalid chart module', LOG_LEVELS.error, rawCtx);
+    throw new Error(`Invalid chart module for ${rawCtx.seriesType}`);
   }
+
+  // Normalize options by editor mode for every family (before both the series
+  // build and the `animation` read below) so Default mode renders the plain
+  // chart regardless of any stored Advanced values. The dispatch is identity for
+  // families with no Advanced tier, so this is a no-op for them (see
+  // `applyEditorModeDefaults`). This generalizes what was the pie-only
+  // `applyPartToWholeEditorModeDefaults`, which also closes the cartesian
+  // normalization gap noted in `docs/performance.md`.
+  const options = applyEditorModeDefaults(rawCtx.seriesType, rawCtx.options);
+
+  // The React overlay's sink, threaded onto the context so per-series formatters
+  // (pie/hierarchy/heatmap) emit through the same channel as the top-level one.
+  const sink = tooltipSink ?? NOOP_TOOLTIP_SINK;
+
+  // Drop value fields hidden via the legend visibility toggle before building.
+  // The part-to-whole family (pie/funnel) is excluded: it hides slices by
+  // *category* name and reads hidden state internally (see `resolvePieSlices`).
+  // Editor-mode normalization already ran generically above
+  // (`applyEditorModeDefaults`), so both branches use the normalized `options`.
+  const ctx: ChartContext = partToWholeSeriesTypes.includes(rawCtx.seriesType)
+    ? { ...rawCtx, tooltipSink: sink, options }
+    : { ...rawCtx, tooltipSink: sink, options, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
   const hasTimeField = framesHaveTimeField(ctx.frames);
-  const axisType = panelTypeToAxis(ctx.seriesType, hasTimeField);
-  const tooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
-  const tooltipOption = getTooltipOption(
-    grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
-    tooltipMode,
-    ctx.formatValue,
-    ctx.theme
-  );
+  const axisType = panelTypeToAxis(ctx, hasTimeField);
+  const { option: tooltipOption, mode: tooltipMode } = buildPanelTooltip(ctx, chartModule, axisType);
 
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
   if (!echartOption) {
-    console.error('Invalid chart option', ctx);
-    throw new Error(`Invalid chart option resolved for ${chartModule} for ${ctx.seriesType}`);
+    debug('Invalid chart option', LOG_LEVELS.error, ctx);
+    throw new Error(`Invalid chart option resolved for ${ctx.seriesType}`);
   }
 
   // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.
@@ -65,7 +85,10 @@ export function buildPanelChartOption(
   return {
     ...echartOption,
     tooltip: tooltipOption,
-    animation: ctx.options.animation?.enabled,
+    // Animation is opt-in and off by default for every family — density
+    // thresholds were tried and could not fire early enough to help. See
+    // `resolveAnimation`.
+    animation: resolveAnimation(ctx.options),
     ...(axisPointer ? { axisPointer } : {}),
     ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };

@@ -18,6 +18,13 @@ export function getThemeTextStyle(theme: GrafanaTheme2) {
   };
 }
 
+/**
+ * uPlot-style grid/tick line color.
+ */
+export function getUPlotGridColor(theme: GrafanaTheme2): string {
+  return theme.isDark ? 'rgba(240, 250, 255, 0.09)' : 'rgba(0, 10, 23, 0.09)';
+}
+
 export interface CreateBaseOptionsArgs {
   /** Include an empty legend placeholder (pie/radar). */
   includeLegend?: boolean;

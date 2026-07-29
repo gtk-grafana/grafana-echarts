@@ -43,10 +43,7 @@ describe('getTimeAxisLabelFormatter', () => {
       expect(label).toBe(expected);
     });
 
-    it.each([
-      [3 * DAY],
-      [90 * DAY],
-    ])('labels a midnight tick with the date (no 00:00) on a %ims span', (spanMs) => {
+    it.each([[3 * DAY], [90 * DAY]])('labels a midnight tick with the date (no 00:00) on a %ims span', (spanMs) => {
       const midnight = Date.parse('2021-07-13T00:00:00.000Z');
       const label = getTimeAxisLabelFormatter(rangeSpanning(EPOCH, spanMs), 'utc')(midnight);
       expect(label).toBe('07/13');

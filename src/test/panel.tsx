@@ -1,0 +1,238 @@
+import {
+  applyFieldOverrides,
+  createTheme,
+  type DataFrame,
+  dateTime,
+  EventBusSrv,
+  FieldColorModeId,
+  type FieldConfigSource,
+  LoadingState,
+  type PanelData,
+  type PanelProps,
+  type TimeRange,
+} from '@grafana/data';
+import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions, type VizTooltipOptions } from '@grafana/schema';
+import { waitFor } from '@testing-library/react';
+import { type EChartsType } from 'echarts';
+import { seriesTypePath } from 'editor/constants';
+import { type SeriesType } from 'editor/types';
+import { Panel } from 'lib/components/Panel';
+import { type ChartFamily } from 'lib/echarts/charts/autoSeriesType';
+import React from 'react';
+import {
+  DEFAULT_LAYER_SELECTOR,
+  getChart,
+  readAxisCanvasEvents,
+  readCanvasLayer,
+  readLayeredCanvasEvents,
+  SERIES_LAYER_SELECTOR,
+  setupECharts,
+} from 'test/canvas';
+import { type PanelOptions } from 'types';
+
+// Shared harness for the canvas integration tests: render the real <Panel />
+// (React glue + ECharts init + buildPanelChartOption) into a jest-canvas-mock
+// canvas and read back the layered draw calls. See `test/canvas.ts` for how the
+// series/axis/default layers are split by zlevel.
+
+export const width = 400;
+export const height = 300;
+
+export const theme = createTheme();
+
+export const defaultTimeRange: TimeRange = {
+  from: dateTime(1783137094497),
+  to: dateTime(1783147894497),
+  raw: { from: 'now-3h', to: 'now' },
+};
+
+const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
+
+// Set the color palette. Note you can't set defaults in `applyFieldOverrides` and expect it to do its job in tests,
+// `applyFieldOverrides` copies defaults onto fields via the standard field-config registry.
+// Since grafana doesn't expose any way to mock the registry in plugins we're left with manually doing the work of applyFieldOverrides without any of the benefit
+// @todo create an issue for core Grafana to support registry mocking
+//
+// `fieldConfig` (defaults + byName/byType overrides) is applied to the frames the
+// same way real Grafana does before the panel renders, so byName color overrides
+// reach the converter's `getFieldDisplayValues` call.
+export const applyGrafanaFieldDefaults = (
+  frames: DataFrame[],
+  fieldConfig: FieldConfigSource = emptyFieldConfig
+): DataFrame[] =>
+  applyFieldOverrides({
+    data: frames.map((frame) => ({
+      ...frame,
+      fields: frame.fields.map((field) => ({
+        ...field,
+        config: {
+          ...field.config,
+          color: field.config.color ?? { mode: FieldColorModeId.PaletteClassic },
+        },
+      })),
+    })),
+    fieldConfig,
+    replaceVariables: (value) => value,
+    theme,
+    timeZone: 'utc',
+  });
+
+/**
+ * Returns the Panel component with overrideable default props
+ */
+export const getComponent = (
+  frames: DataFrame[],
+  seriesType: SeriesType,
+  panelOptionsOverrides?: Partial<PanelOptions>,
+  panelDataOverrides?: Partial<PanelData>,
+  panelPropsOverrides?: Partial<PanelProps<PanelOptions>>,
+  family: ChartFamily = 'cartesian',
+  // Field config (defaults + byName/byType overrides) applied to the frames and
+  // passed to the panel, so overrides (e.g. a byName fixed color) reach the
+  // converter exactly as they do in real Grafana.
+  fieldConfig: FieldConfigSource = emptyFieldConfig
+) => {
+  const defaultOptions = {
+    legend: {
+      showLegend: true,
+      displayMode: LegendDisplayMode.List,
+      placement: 'bottom',
+      calcs: [],
+    } as VizLegendOptions,
+    width,
+    tooltip: { mode: TooltipDisplayMode.Single } as VizTooltipOptions,
+  };
+
+  const options: PanelOptions = {
+    [seriesTypePath]: seriesType,
+    ...defaultOptions,
+    ...panelOptionsOverrides,
+  };
+
+  const data: PanelData = {
+    state: LoadingState.Done,
+    series: applyGrafanaFieldDefaults(frames, fieldConfig),
+    timeRange: defaultTimeRange,
+    ...panelDataOverrides,
+  };
+
+  const defaultPanelProps: PanelProps<PanelOptions> = {
+    options,
+    data,
+    width,
+    height,
+    timeZone: 'utc',
+    timeRange: defaultTimeRange,
+    id: 1,
+    transparent: false,
+    eventBus: new EventBusSrv(),
+    fieldConfig,
+    renderCounter: 0,
+    title: 'Test panel',
+    onChangeTimeRange: jest.fn(),
+    onFieldConfigChange: jest.fn(),
+    onOptionsChange: jest.fn(),
+    replaceVariables: (value) => value,
+  };
+
+  const props: PanelProps<PanelOptions> = {
+    ...defaultPanelProps,
+    ...panelPropsOverrides,
+  };
+
+  return (
+    <div style={{ height, width }}>
+      <Panel {...props} family={family} />
+    </div>
+  );
+};
+
+/**
+ * Waits for the chart 'finished' event after render and animations are complete.
+ */
+export const waitForFinished = async (chart: EChartsType | undefined) => {
+  let finished = false;
+
+  chart!.on('finished', () => {
+    finished = true;
+  });
+
+  await waitFor(() => expect(finished).toBeTruthy());
+};
+
+/** Render-settled series and default (grid/axis) layer draw calls. */
+export const getCanvasEvents = async (container: HTMLElement) => {
+  const { chartInstanceDom, chart } = setupECharts(container);
+  await waitForFinished(chart);
+  const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
+  return { defaultEvents, seriesEvents };
+};
+
+/**
+ * Render-settled series-layer draw calls, read tolerantly. Axis-less charts
+ * (pie, hierarchy) paint nothing on the default grid layer, so zrender never
+ * creates that canvas; only the series layer is required. Reads both layers
+ * without asserting either exists (unlike `getCanvasEvents`).
+ */
+export const getSeriesCanvasEvents = async (container: HTMLElement) => {
+  const { chartInstanceDom, chart } = getChart(container);
+  await waitForFinished(chart);
+  const defaultEvents = readCanvasLayer(chartInstanceDom, DEFAULT_LAYER_SELECTOR);
+  const seriesEvents = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+  return { defaultEvents, seriesEvents };
+};
+
+/**
+ * Series-layer draw calls for charts that repaint more than once on first render,
+ * captured deterministically.
+ *
+ * ECharts' parallel-coordinates view draws its polylines under a grid clip-path
+ * and then removes it via a `setTimeout` (see ParallelView `createGridClipShape`),
+ * which clears and repaints the series layer a second (and sometimes third) time.
+ * jest-canvas-mock *accumulates* draw calls across repaints and never resets on
+ * `clearRect`, so a capture taken at the `finished` event sees a non-deterministic
+ * number of accumulated paints — the source of the flaky parallel snapshots.
+ *
+ * This drains the deferred repaints, discards the accumulated draw calls, then
+ * forces a single clean full repaint via `resize` (which re-renders everything;
+ * the parallel view is already initialized, so it no longer re-adds the clip-path)
+ * and captures exactly that one paint. Use it instead of `getSeriesCanvasEvents`
+ * for the parallel family; single-paint charts do not need it.
+ */
+export const getSettledSeriesCanvasEvents = async (container: HTMLElement) => {
+  const { chartInstanceDom, chart } = getChart(container);
+  await waitForFinished(chart);
+  chart?.getZr().flush();
+  // Discard the accumulated multi-paint draw calls on every layer canvas.
+  chartInstanceDom.querySelectorAll('canvas').forEach((canvas) => {
+    const ctx = canvas.getContext('2d');
+    expect(ctx).not.toBeNull();
+    if (ctx === null) {
+      throw new Error('Narrow the canvas type');
+    }
+    ctx.__clearEvents?.();
+    ctx.__clearDrawCalls?.();
+  });
+  // Force one clean full repaint (same dimensions) and flush it synchronously, so
+  // the captured events are a single deterministic paint.
+  chart?.resize({ width, height });
+  chart?.getZr().flush();
+  const defaultEvents = readCanvasLayer(chartInstanceDom, DEFAULT_LAYER_SELECTOR);
+  const seriesEvents = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+  return { defaultEvents, seriesEvents };
+};
+
+/**
+ * Render-settled draw calls including the dedicated axis layer. Requires the
+ * panel to be rendered with `zLevel.axis` set (see `AXIS_ZLEVEL`).
+ */
+export const getAxisCanvasEvents = async (container: HTMLElement) => {
+  // The axis is on its own zlevel, which can leave the default (grid) layer with
+  // nothing to paint, so read layers tolerantly instead of asserting each canvas.
+  const { chartInstanceDom, chart } = getChart(container);
+  await waitForFinished(chart);
+  const defaultEvents = readCanvasLayer(chartInstanceDom, DEFAULT_LAYER_SELECTOR);
+  const seriesEvents = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+  const axisEvents = readAxisCanvasEvents(chartInstanceDom);
+  return { defaultEvents, seriesEvents, axisEvents };
+};

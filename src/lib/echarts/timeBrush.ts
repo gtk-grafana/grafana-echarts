@@ -27,7 +27,6 @@ export function getTimeBrushOption(theme: GrafanaTheme2): BrushOption {
     throttleDelay: 80,
     removeOnClick: true,
     // No default toolbox brush buttons; the cursor is armed programmatically.
-    toolbox: [],
     brushStyle: {
       color: theme.colors.action.selected,
       borderColor: theme.colors.border.strong,
@@ -96,7 +95,10 @@ function categoryLabelToEpochMs(label: unknown): number | null {
  * toIdx]` rather than `[fromMs, toMs]`. Indices are rounded/clamped to the data,
  * then mapped to the timestamps of the bounding categories.
  */
-function categoryBrushToTimeRange(coordRange: [number, number], categories: unknown[] | undefined): AbsoluteTimeRange | null {
+function categoryBrushToTimeRange(
+  coordRange: [number, number],
+  categories: unknown[] | undefined
+): AbsoluteTimeRange | null {
   if (!Array.isArray(categories) || categories.length === 0) {
     debug('Category brush without category labels', LOG_LEVELS.warn, { coordRange, categories });
     return null;

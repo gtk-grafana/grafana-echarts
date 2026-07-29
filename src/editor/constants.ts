@@ -1,31 +1,49 @@
 import { DataFrameType, type SelectableValue } from '@grafana/data';
+import { type OptionsWithTooltip, SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import {
-  type CartesianSingleValueSeriesType,
   type CategoricalAxisSeriesType,
   type CategoricalOnlySeriesType,
+  type EditorMode,
   type HeatmapSeriesType,
-  type MultiValueSeriesType,
-  type SeriesType,
+  type HierarchySeriesType,
+  type PerformanceMode,
   type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
-export const seriesTypePath = 'seriesType';
-export const seriesTypeName = 'Type';
-export const seriesTypeDefault: SeriesType = 'line';
 /**
- * Stack series option: panel option path and per-field custom config key share
- * the same name. Only meaningful for `bar` series.
+ * Shared, cross-family editor constants. Family-specific option paths and
+ * series-type lists live in the per-family files (`editor/pie.ts`,
+ * `editor/cartesian.ts`, `editor/radar.ts`); this file keeps the panel-level
+ * `seriesType` path, the editor-mode tier, and the cross-family narrowing lists.
  */
-export const stackSeriesPath = 'stackSeries';
-export const stackSeriesName = 'Stack series';
-/**
- * Shared ECharts `stack` group id. Series that share the same `stack` string are
- * stacked together, so all stacked bar series use this single group.
- * https://echarts.apache.org/en/option.html#series-bar.stack
- */
-export const STACK_GROUP_ID = 'total';
 
-export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar'];
+export const seriesTypePath = 'seriesType';
+
+/**
+ * Shared editor-mode option: tiers the editor surface (Default / Advanced / API).
+ * See `docs/options-modes.md` and `lib/grafana/editor/common/editor-mode.ts`.
+ */
+export const editorModePath = 'editorMode';
+export const editorModeName = 'Editor mode';
+/** Default tier for a fresh/unset panel: critical/parity-only options. */
+export const EDITOR_MODE_DEFAULT: EditorMode = 'default';
+/**
+ * Editor-mode radio options. Only Default + Advanced are offered in the UI;
+ * `'api'` is intentionally omitted so it's settable only via dashboard JSON.
+ */
+export const editorModeOptions: Array<SelectableValue<EditorMode>> = [
+  { value: 'default', label: 'Default' },
+  { value: 'advanced', label: 'Advanced' },
+];
+/**
+ * Single category every Advanced-gated option lives under, so the Advanced tier
+ * adds one clearly-labelled section rather than scattering ECharts-only controls
+ * through the core-parity categories. Baked into the `addAdvanced*` helpers (see
+ * `lib/grafana/editor/common/advanced-options.ts`).
+ */
+export const advancedOptionsCategoryName = 'Advanced';
+
+export const categoricalOnlySeriesType: CategoricalOnlySeriesType[] = ['pie', 'radar', 'funnel'];
 
 /**
  * Series types that support a categorical axis
@@ -51,35 +69,25 @@ export const supportsTimeAxisSeriesTypes: TimeAxisSupportsSeriesType[] = [
   'boxplot',
 ];
 /**
- * Cartesian time series types that render on a time/value grid and consume the
- * converter's `[time, value]` output unchanged (one numeric value per point).
- *
- * Other types (e.g. candlestick, boxplot, heatmap) need multi-value data, and
- * non-cartesian types (e.g. pie, gauge, radar) need different data shaping.
- */
-export const cartesianTimeSeriesTypes: CartesianSingleValueSeriesType[] = ['line', 'bar', 'scatter', 'effectScatter'];
-/**
- * Multi-value cartesian types (Group 3): each x position carries several aligned
- * numeric dimensions (candlestick OHLC, boxplot five-number summary) rather than
- * the single value of line/bar. They render on a category axis via the
- * multi-value converter (see echarts/converters/multiValueCartesian.ts) and,
- * unlike the time series types, are not offered as per-field overrides.
- */
-export const multiValueSeriesTypes: MultiValueSeriesType[] = ['candlestick', 'boxplot'];
-/**
  * Series editor options
  */
 export const seriesCategoryName = 'Series';
 /**
- * Radar types, which use a radar coordinate system (indicators + polygons)
- * rather than the cartesian time/value grid. See echarts/converters/radar.ts.
+ * Editor category grouping the heatmap color scale (ECharts `visualMap`)
+ * options. Kept distinct from the Grafana DOM "Legend" category, which only
+ * governs the cartesian overlay series.
  */
-export const radarSeriesTypes: SeriesType[] = ['radar'];
+export const heatmapLegendCategoryName = 'Heatmap legend';
 /**
- * Pie (and pie-like) types built from the categorical model: each category is a
- * slice valued by the first numeric field. See echarts/converters/pie.ts.
+ * Default tooltip options passed to `commonOptionsBuilder.addTooltipOptions`.
+ * The builder only renders the "Hide zeros" switch when `tooltip.hideZeros` is
+ * defined here (mirrors core's exported `optsWithHideZeros`), so this is what
+ * opts every family into the full common-tooltip control set.
  */
-export const pieSeriesTypes: SeriesType[] = ['pie'];
+export const TOOLTIP_DEFAULT_OPTIONS: Partial<OptionsWithTooltip> = {
+  tooltip: { mode: TooltipDisplayMode.Single, sort: SortOrder.None, hideZeros: false },
+};
+
 /**
  * Heatmap types. Selecting this panel-level type forces every numeric frame to
  * render as a heatmap (each numeric field becomes a bucket row), even when the
@@ -88,34 +96,76 @@ export const pieSeriesTypes: SeriesType[] = ['pie'];
  */
 export const heatmapSeriesTypes: HeatmapSeriesType[] = ['heatmap'];
 /**
- * Cartesian render types offered by the cartesian family panel. These are the
- * in-family render variants selected per panel: the single-value time/category
- * types (line/bar/scatter/...) plus the multi-value types (candlestick/boxplot).
- * The cross-family "flat" picker that mixed unrelated families is retired in
- * favor of per-panel Visualization Suggestions (see each module's suggestions.ts).
+ * Hierarchy types built from a value-weighted tree: treemap (nested rectangles)
+ * and sunburst (radial rings). Both consume the same tree model, reconstructed
+ * from a flame-graph nested-set frame or a flat categorical frame. Selecting the
+ * hierarchy panel picks between these render variants. See
+ * echarts/converters/hierarchy.ts.
  */
-export const cartesianSeriesTypeOptions: Array<SelectableValue<SeriesType>> = [
-  ...cartesianTimeSeriesTypes,
-  ...multiValueSeriesTypes,
-].map((type) => ({
-  value: type,
-  label: type,
-}));
+export const hierarchySeriesTypes: HierarchySeriesType[] = ['treemap', 'sunburst'];
 /**
- * Series types offered as a per-field override (custom field config). Only the
- * single-value cartesian types are listed: they compose on the shared
- * time/value grid, so a field can be drawn as a `bar` while others stay `line`.
- * Multi-value types (candlestick/boxplot) consume several fields at once and
- * cannot be overlaid per field; non-cartesian types (pie/radar) use other
- * coordinate systems; and heatmap is detected from the frame type.
+ * Hierarchy render types offered by the hierarchy family panel, selected per
+ * panel via the panel-level `seriesType`.
  */
-export const cartesianOverrideOptions: Array<SelectableValue<SeriesType>> = cartesianTimeSeriesTypes.map((type) => ({
-  value: type,
-  label: type,
-}));
+export const hierarchySeriesTypeOptions: Array<SelectableValue<HierarchySeriesType>> = [
+  { value: 'treemap', label: 'Treemap' },
+  { value: 'sunburst', label: 'Sunburst' },
+];
 /**
  * Grafana dataplane frame types that carry a heatmap. A frame tagged with one
  * of these (`frame.meta.type`) is rendered as the custom-series heatmap cell
  * layer rather than as cartesian series. See echarts/converters/heatmap.ts.
  */
 export const heatmapFrameTypes: string[] = [DataFrameType.HeatmapRows, DataFrameType.HeatmapCells];
+
+/**
+ * Threshold display control (custom field config `thresholdsStyle.mode`). Grafana
+ * standard options already provide the threshold *steps* editor; this select
+ * chooses how they are drawn (lines and/or filled regions), mirroring core
+ * Grafana's time series "Show thresholds" option. The option list itself comes
+ * from `@grafana/ui`'s `graphFieldOptions.thresholdsDisplayModes` (which already
+ * omits the out-of-scope per-value `Series` mode); see the cartesian module.
+ */
+export const thresholdsCategoryName = 'Thresholds';
+export const thresholdsStyleModePath = 'thresholdsStyle.mode';
+export const thresholdsStyleModeName = 'Show thresholds';
+
+// Performance options (Advanced, cartesian). ECharts' per-point levers (point
+// markers off / LTTB downsampling) are auto-tuned by density so dense charts take
+// the fast path while small charts are visually unchanged; these controls let
+// power users override the auto behavior. Resolvers live in
+// `lib/echarts/performance/resolvers.ts` and the thresholds in
+// `lib/echarts/performance/constants.ts`; the editor fragment is
+// `lib/grafana/editor/common/performance-options.ts`.
+
+/** Tri-state choices (Auto / Always / Never) for a performance override radio. */
+export const performanceModeOptions: Array<SelectableValue<PerformanceMode>> = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'always', label: 'Always' },
+  { value: 'never', label: 'Never' },
+];
+
+export const performanceShowPointsPath = 'performance.showPoints';
+export const performanceShowPointsName = 'Show points';
+/** Default point-marker visibility: auto (hide symbols above the total-points threshold). */
+export const PERFORMANCE_SHOW_POINTS_DEFAULT: PerformanceMode = 'auto';
+
+export const performanceDownsamplingPath = 'performance.downsampling';
+export const performanceDownsamplingName = 'Downsampling (LTTB)';
+/** Default LTTB downsampling: on (sample dense series toward pixel resolution). */
+export const PERFORMANCE_DOWNSAMPLING_DEFAULT = true;
+
+/**
+ * Shared animation toggle, offered as an opt-in Advanced switch by every family
+ * that exposes it (cartesian here, part-to-whole via `pieAnimationEnabledPath`).
+ *
+ * **Off by default, for every panel.** Density thresholds were tried first and
+ * could not work: a panel cannot know a response is dense until it has it, and
+ * any threshold leaves a band below it that still animates on an already-heavy
+ * chart (growing 10 -> 40 series animates, and Grafana re-renders with the
+ * previous data while a query is in flight). Off is also closer to core Grafana,
+ * whose viz panels do not animate at all. See `docs/performance.md`.
+ */
+export const animationEnabledPath = 'animation.enabled';
+export const animationName = 'Animation';
+export const ANIMATION_ENABLED_DEFAULT = false;

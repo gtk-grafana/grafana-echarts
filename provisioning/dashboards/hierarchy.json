@@ -1,0 +1,279 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Treemap from flat categorical data: each category (string field) becomes a top-level tile sized by the first numeric field. This exercises the categorical fallback path of the hierarchy converter (single-level tree). Tooltip mode is 'All', so hovering any tile lists every top-level node with its value (like core Grafana's pie); switch to 'Single' for just the hovered node.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "treemap",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nSales,43\nAdmin,10\nIT,30\nMarketing,18\nSupport,7"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [{ "targetField": "value", "destinationType": "number" }]
+          }
+        }
+      ],
+      "title": "Treemap (flat categorical)",
+      "type": "grafana-echartshierarchy-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Sunburst from the same flat categorical data: each category becomes a first-ring arc sized by the first numeric field.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "sunburst",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,value\nSales,43\nAdmin,10\nIT,30\nMarketing,18\nSupport,7"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [{ "targetField": "value", "destinationType": "number" }]
+          }
+        }
+      ],
+      "title": "Sunburst (flat categorical)",
+      "type": "grafana-echartshierarchy-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Treemap from a flame-graph nested-set frame. Rows are a depth-first traversal: 'level' is the stack depth, so the converter rebuilds a multi-level tree (total > render > draw, plus an io sibling). 'self' is surfaced in the tooltip. See data-plane/flame-graph.md. Detected here by field shape (level + value + label) since TestData cannot set meta.preferredVisualisationType.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "treemap",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "level,value,self,label\n0,100,10,total\n1,60,20,render\n2,40,40,draw\n1,30,30,io"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "level", "destinationType": "number" },
+              { "targetField": "value", "destinationType": "number" },
+              { "targetField": "self", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Treemap (flame-graph nested set)",
+      "type": "grafana-echartshierarchy-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Sunburst from the same flame-graph nested-set frame: the call tree laid out as radial rings sized by cumulative 'value'.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "sunburst",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "level,value,self,label\n0,100,10,total\n1,60,20,render\n2,40,40,draw\n1,30,30,io"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "level", "destinationType": "number" },
+              { "targetField": "value", "destinationType": "number" },
+              { "targetField": "self", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Sunburst (flame-graph nested set)",
+      "type": "grafana-echartshierarchy-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Treemap from Grafana TestData's built-in Flame Graph scenario — a real flame-graph frame. Unlike the CSV panels above, this frame carries meta.preferredVisualisationType = 'flamegraph', so the converter detects it via the canonical meta signal rather than the field-shape fallback, and its 'label' is an enum field resolved through the display processor. See data-plane/flame-graph.md.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "treemap",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "flame_graph"
+        }
+      ],
+      "title": "Treemap (TestData flame graph)",
+      "type": "grafana-echartshierarchy-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "treemap", "sunburst", "hierarchy"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Hierarchy treemap and sunburst",
+  "uid": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+  "version": 1,
+  "weekStart": ""
+}

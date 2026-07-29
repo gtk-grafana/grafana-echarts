@@ -1,39 +1,43 @@
-import {
-  cartesianTimeSeriesTypes,
-  heatmapSeriesTypes,
-  multiValueSeriesTypes,
-  pieSeriesTypes,
-  radarSeriesTypes,
-} from 'editor/constants';
+import { cartesianTimeSeriesTypes, multiValueSeriesTypes } from 'editor/cartesian';
+import { heatmapSeriesTypes, hierarchySeriesTypes } from 'editor/constants';
+import { partToWholeSeriesTypes } from 'editor/pie';
+import { multivariateSeriesTypes } from 'editor/radar';
 import { type SeriesType } from 'editor/types';
-import { isMultiValueSeriesType, isCartesianSingleValueSeriesType } from './narrowing';
+import {
+  isCartesianSingleValueSeriesType,
+  isHierarchySeriesType,
+  isMultiValueSeriesType,
+  isMultivariateSeriesType,
+} from './narrowing';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
-import { pieChartModule } from './pie';
-import { radarChartModule } from './radar';
+import { hierarchyChartModule } from './hierarchy';
+import { multivariateChartModule, radarChartModule } from './multivariate';
+import { partToWholeChartModule, pieChartModule } from './pie';
 import { type ChartModule } from './types';
 
-const pieModule = pieChartModule;
-const radarModule = radarChartModule;
+const partToWholeModule = partToWholeChartModule;
 
 /** All series types with a registered chart module. */
 export const supportedChartSeriesTypes: SeriesType[] = [
   ...cartesianTimeSeriesTypes,
   ...multiValueSeriesTypes,
   ...heatmapSeriesTypes,
-  ...radarSeriesTypes,
-  ...pieSeriesTypes,
+  ...multivariateSeriesTypes,
+  ...partToWholeSeriesTypes,
+  ...hierarchySeriesTypes,
 ];
 
 /**
- * Resolve the chart module for the active series type.
+ * Resolve the chart module for a concrete series type.
  *
- * Each nested panel fixes its own family via `seriesType`, so routing keys off
- * that identity alone: only the heatmap panel (`seriesType === 'heatmap'`) uses
- * the composite heatmap module. Heatmap-tagged frames no longer force any panel
- * into heatmap rendering — that data-driven detection now lives in each panel's
- * Visualization Suggestions supplier, keeping cross-family mixing (heatmap +
- * line) contained to the composite heatmap panel that owns both layers.
+ * Routing keys off the (already-resolved) series type alone: each nested panel
+ * fixes its own family, and `'Auto'`/unset values are resolved to a concrete
+ * type upstream — scoped to the panel's family — before they reach here (see
+ * `resolveSeriesType`/`resolveAutoSeriesType`). Only the heatmap panel
+ * (`seriesType === 'heatmap'`) uses the composite heatmap module; heatmap-tagged
+ * frames no longer force any other panel into heatmap rendering (that data-driven
+ * detection lives in each panel's Visualization Suggestions supplier).
  */
 export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (seriesType === 'heatmap') {
@@ -43,13 +47,28 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (isCartesianSingleValueSeriesType(seriesType) || isMultiValueSeriesType(seriesType)) {
     return cartesianChartModule;
   }
-  if (radarSeriesTypes.includes(seriesType)) {
-    return radarModule;
+  if (isMultivariateSeriesType(seriesType)) {
+    return multivariateChartModule;
   }
-  if (pieSeriesTypes.includes(seriesType)) {
-    return pieModule;
+  // Pie and funnel share the part-to-whole module; the module picks the render
+  // variant from the type.
+  if (partToWholeSeriesTypes.includes(seriesType)) {
+    return partToWholeModule;
+  }
+  // Treemap and sunburst share the hierarchy module; the module picks the render
+  // variant from the type.
+  if (isHierarchySeriesType(seriesType)) {
+    return hierarchyChartModule;
   }
   throw new Error(`Cannot resolve chart module, invalid ${seriesType}!`);
 }
 
-export { cartesianChartModule, heatmapChartModule, pieChartModule, radarChartModule };
+export {
+  cartesianChartModule,
+  heatmapChartModule,
+  hierarchyChartModule,
+  multivariateChartModule,
+  partToWholeChartModule,
+  pieChartModule,
+  radarChartModule,
+};

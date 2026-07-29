@@ -9,6 +9,8 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - This plugins should provide a simple user experience that aligns with core Grafana panels
 - Grafana and EChart APIs should be isolated from each other whenever possible, preferably in different directories
 - Any usage of Grafana or EChart APIs should contain links to the relevant documentation
+- Editor options are tiered via a shared `editorMode` option (Default / Advanced / API); see [docs/options-modes.md](docs/options-modes.md)
+- Dense cartesian charts auto-switch onto ECharts' big-data levers above density thresholds; see [docs/performance.md](docs/performance.md)
 
 ## Critical rules
 
@@ -19,3 +21,4 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Adhere to data plane frame specifications: https://grafana.com/developers/dataplane/, except when explicitly told not to
 - Create provisioned dashboards for all new panel functionality, prompt the user to check existing dashboards that can be impacted by a change
 - Always use eCharts types instead of creating local definitions of the eCharts API. See https://echarts.apache.org/handbook/en/basics/import/#creating-an-option-type-in-typescript
+- Assume data frames are square (all fields have the same number of values) and the frame length matches the value length.

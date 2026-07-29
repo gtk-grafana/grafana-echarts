@@ -1,0 +1,367 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Matrix heatmap layout (heatmapLayout = 'matrix'): a category × category grid drawn by the native ECharts heatmap series. The wide/pivot query has a string field (Service) that supplies the Y row categories and one numeric field per weekday, each becoming an X column category. Every cell is colored by the shared visualMap on the right.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapLayout": "matrix",
+        "heatmapColorScheme": "spectral",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Service,Mon,Tue,Wed,Thu,Fri\nAPI,12,19,3,5,2\nWeb,8,11,14,7,9\nDB,3,6,9,4,15\nCache,20,4,7,12,6"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Mon", "destinationType": "number" },
+              { "targetField": "Tue", "destinationType": "number" },
+              { "targetField": "Wed", "destinationType": "number" },
+              { "targetField": "Thu", "destinationType": "number" },
+              { "targetField": "Fri", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Matrix heatmap (right color scale)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Same matrix data with the color scale placed on the bottom (heatmapColorScale.placement = 'bottom') and the Blues color scheme, exercising the horizontal visualMap placement for the matrix layout.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapLayout": "matrix",
+        "heatmapColorScheme": "blues",
+        "heatmapColorScale": {
+          "placement": "bottom"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Service,Mon,Tue,Wed,Thu,Fri\nAPI,12,19,3,5,2\nWeb,8,11,14,7,9\nDB,3,6,9,4,15\nCache,20,4,7,12,6"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Mon", "destinationType": "number" },
+              { "targetField": "Tue", "destinationType": "number" },
+              { "targetField": "Wed", "destinationType": "number" },
+              { "targetField": "Thu", "destinationType": "number" },
+              { "targetField": "Fri", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Matrix heatmap (bottom color scale, Blues)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field-override demo: the numeric value fields are overridden with unit = currencyUSD and decimals = 2, so the color scale (visualMap) labels read like '$1234.56'. A DECOY unit override (watt) is set on the Service string field; because the scale derives its value display from the numeric value field (xField) and not the Y category field (yField), the decoy is ignored. If the scale ever shows watts, the wrong field is being read.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapLayout": "matrix",
+        "heatmapColorScheme": "spectral",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "number"
+            },
+            "properties": [
+              { "id": "unit", "value": "currencyUSD" },
+              { "id": "decimals", "value": 2 }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Service"
+            },
+            "properties": [{ "id": "unit", "value": "watt" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Service,Mon,Tue,Wed,Thu,Fri\nAPI,1234.56,1900.2,300.75,512.4,220.9\nWeb,845.1,1120.6,1435.25,750.8,995.3\nDB,320.7,655.4,940.9,410.2,1580.65\nCache,2015.3,430.8,725.15,1230.6,640.45"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Mon", "destinationType": "number" },
+              { "targetField": "Tue", "destinationType": "number" },
+              { "targetField": "Wed", "destinationType": "number" },
+              { "targetField": "Thu", "destinationType": "number" },
+              { "targetField": "Fri", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Matrix heatmap (value field unit=currencyUSD, decimals=2)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Field-override demo (bottom scale): the numeric value fields are overridden with unit = decbytes and decimals = 1, so the horizontal color scale labels read like '12.3 MB'. Confirms the value display (unit + SI scaling + decimals) is taken from the numeric value field for the bottom placement too.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapLayout": "matrix",
+        "heatmapColorScheme": "blues",
+        "heatmapColorScale": {
+          "placement": "bottom"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "number"
+            },
+            "properties": [
+              { "id": "unit", "value": "decbytes" },
+              { "id": "decimals", "value": 1 }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Service,Mon,Tue,Wed,Thu,Fri\nAPI,12345678,19002500,3001000,5127000,2209000\nWeb,8451000,11206000,14352500,7508000,9953000\nDB,3207000,6554000,9409000,4102000,15806500\nCache,20153000,4308000,7251500,12306000,6404500"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Mon", "destinationType": "number" },
+              { "targetField": "Tue", "destinationType": "number" },
+              { "targetField": "Wed", "destinationType": "number" },
+              { "targetField": "Thu", "destinationType": "number" },
+              { "targetField": "Fri", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Matrix heatmap (value field unit=decbytes, decimals=1, bottom scale)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Same matrix data with the color scale hidden (heatmapColorScale.placement = 'none'). The visualMap legend is removed and no grid space is reserved for it, so the cells fill the full panel width; the cells stay colored because the value→color mapping still applies.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapLayout": "matrix",
+        "heatmapColorScheme": "spectral",
+        "heatmapColorScale": {
+          "placement": "none"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Service,Mon,Tue,Wed,Thu,Fri\nAPI,12,19,3,5,2\nWeb,8,11,14,7,9\nDB,3,6,9,4,15\nCache,20,4,7,12,6"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Mon", "destinationType": "number" },
+              { "targetField": "Tue", "destinationType": "number" },
+              { "targetField": "Wed", "destinationType": "number" },
+              { "targetField": "Thu", "destinationType": "number" },
+              { "targetField": "Fri", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Matrix heatmap (color scale hidden)",
+      "type": "grafana-echartsheatmap-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "heatmap", "matrix"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Heatmap matrix layout",
+  "uid": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,11 +1,23 @@
 import { type DataFrame, type Field, FieldType, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
+import { type EChartsFieldConfig } from 'editor/types';
 import { getSeriesColor } from 'lib/echarts/style';
+import { isNumberField, isStringField, isTimeField } from 'lib/grafana/narrowing';
+import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
  * First frame with at least one numeric field — the categorical chart source frame.
  */
-export function findCategoricalFrame(series: DataFrame[]): DataFrame | undefined {
-  return series.find((frame) => frame.fields.some((field) => field.type === FieldType.number));
+export function findCategoricalFrame<T>(
+  series: Array<FieldTypedDataFrame<T | number, EChartsFieldConfig>>
+): FieldTypedDataFrame<T | number, EChartsFieldConfig> | undefined {
+  return series.find((frame) => frame.fields.some(isNumberField));
+}
+
+/**
+ * Return first string field as category field
+ */
+export function findCategoryField(frame: DataFrame) {
+  return frame.fields.find(isStringField);
 }
 
 /**
@@ -20,22 +32,24 @@ export function findCategoricalFrame(series: DataFrame[]): DataFrame | undefined
  * See https://grafana.com/developers/dataplane/
  */
 export function framesHaveTimeField(series: DataFrame[]): boolean {
-  return series.some((frame) => frame.fields.some((field) => field.type === FieldType.time));
+  return series.some((frame) => frame.fields.some(isTimeField));
 }
 
 /**
  * Category labels for a frame: string field row values, or row indices as strings.
  */
-export function resolveCategories(frame: DataFrame): string[] {
-  const categoryField = frame.fields.find((field) => field.type === FieldType.string);
-  return Array.from({ length: frame.length }, (_, row) =>
-    categoryField ? String(categoryField.values[row] ?? row) : String(row)
-  );
+export function resolveCategoriesFromFrame(frame: DataFrame): string[] {
+  const categoryField = findCategoryField(frame);
+  return resolveCategoriesFromField(categoryField, frame.length);
+}
+
+export function resolveCategoriesFromField(field: Field<string> | undefined, frameLength: number): string[] {
+  return field?.values ?? Array.from({ length: frameLength }, (_, i) => i.toString());
 }
 
 /** One numeric field mapped to name, positional values, and color. */
 export interface MappedNumericField {
-  field: Field;
+  field: Field<number>;
   name: string;
   color: string;
 }
@@ -43,9 +57,13 @@ export interface MappedNumericField {
 /**
  * Map every numeric field in a frame to display metadata shared by converters and legends.
  */
-export function mapNumericFields(frame: DataFrame, series: DataFrame[], theme: GrafanaTheme2): MappedNumericField[] {
+export function mapNumericFields(
+  frame: FieldTypedDataFrame<unknown, EChartsFieldConfig>,
+  series: DataFrame[],
+  theme: GrafanaTheme2
+): MappedNumericField[] {
   return frame.fields
-    .filter((field) => field.type === FieldType.number)
+    .filter(isNumberField) // numeric fields only
     .map((field) => ({
       field,
       name: getFieldDisplayName(field, frame, series),
@@ -53,21 +71,21 @@ export function mapNumericFields(frame: DataFrame, series: DataFrame[], theme: G
     }));
 }
 
-export interface TimeSeriesFieldRef {
-  frame: DataFrame;
+export interface TimeSeriesFieldRef<T> {
+  frame: FieldTypedDataFrame<T, EChartsFieldConfig>;
   frameIndex: number;
-  field: Field;
+  field: Field<T>;
   fieldIndex: number;
-  timeField: Field;
+  timeField: Field<number>;
 }
 
 /**
  * Resolve the time (or fallback X) field for a frame, matching timeSeries converter logic.
  */
-export function resolveTimeField(frame: DataFrame): Field | undefined {
-  let timeField = frame.fields.find((field) => field.type === FieldType.time);
+export function resolveTimeField(frame: DataFrame) {
+  let timeField = frame.fields.find(isTimeField);
   if (!timeField) {
-    timeField = frame.fields.find((field) => field.type === FieldType.number);
+    timeField = frame.fields.find(isNumberField);
   }
   return timeField;
 }
@@ -76,7 +94,10 @@ export function resolveTimeField(frame: DataFrame): Field | undefined {
  * Iterate numeric value fields across all frames that have a usable time/X field.
  * Skips frames with no time or numeric fallback field.
  */
-export function forEachTimeSeriesField(series: DataFrame[], callback: (ref: TimeSeriesFieldRef) => void): void {
+export function forEachTimeSeriesField<T>(
+  series: Array<FieldTypedDataFrame<T, EChartsFieldConfig>>,
+  callback: (ref: TimeSeriesFieldRef<T>) => void
+): void {
   // @todo convert to for loop
   series.forEach((frame, frameIndex) => {
     const timeField = resolveTimeField(frame);

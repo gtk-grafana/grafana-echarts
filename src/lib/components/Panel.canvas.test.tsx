@@ -1,27 +1,10 @@
-import {
-  applyFieldOverrides,
-  createTheme,
-  type DataFrame,
-  dateTime,
-  EventBusSrv,
-  FieldColorModeId,
-  FieldType,
-  LoadingState,
-  type PanelData,
-  type PanelProps,
-  type TimeRange,
-  toDataFrame,
-} from '@grafana/data';
-import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions } from '@grafana/schema';
-import { render, waitFor } from '@testing-library/react';
-import { type EChartsType } from 'echarts';
-import { cartesianTimeSeriesTypes, seriesTypePath } from 'editor/constants';
-import { type SeriesType } from 'editor/types';
-import { removeCanvasTransforms } from 'jest-canvas-mock-compare';
-import React from 'react';
-import { readLayeredCanvasEvents, removeCanvasClear, SERIES_ZLEVEL, setupECharts } from 'test/canvas';
-import { type PanelOptions } from 'types';
-import { Panel } from './Panel';
+import { DataFrameType, FieldColorModeId, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
+import { GraphThresholdsStyleMode } from '@grafana/schema';
+import { render } from '@testing-library/react';
+import { cartesianTimeSeriesTypes } from 'editor/cartesian';
+import { type CartesianSingleValueSeriesType } from 'editor/types';
+import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
+import { getCanvasEvents, getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 
 // Integration test: render the real <Panel /> (React glue + ECharts init +
 // buildPanelChartOption) into a jest-canvas-mock canvas and snapshot the emitted
@@ -31,126 +14,16 @@ import { Panel } from './Panel';
 // passed as viewer-only context (local jest-canvas-mock-compare payload, kept out
 // of the repo) so the committed snapshot stays small. The layered capture merges
 // the series onto their own zlevel and settles with animation off, so the result
-// is deterministic. See `test/canvas.ts`.
+// is deterministic. Shared render helpers live in `test/panel`; the grid/axis
+// snapshots live in `axis.canvas.test.tsx`. See `test/canvas.ts`.
 
-const width = 400;
-const height = 300;
-
-const theme = createTheme();
-
-const defaultTimeRange: TimeRange = {
-  from: dateTime(1783137094497),
-  to: dateTime(1783147894497),
-  raw: { from: 'now-3h', to: 'now' },
-};
-
-// Set the color palette. Note you can't set defaults in `applyFieldOverrides` and expect it to do its job in tests,
-// `applyFieldOverrides` copies defaults onto fields via the standard field-config registry.
-// Since grafana doesn't expose any way to mock the registry in plugins we're left with manually doing the work of applyFieldOverrides without any of the benefit
-// @todo create an issue for core Grafana to support registry mocking
-const applyGrafanaFieldDefaults = (frames: DataFrame[]): DataFrame[] =>
-  applyFieldOverrides({
-    data: frames.map((frame) => ({
-      ...frame,
-      fields: frame.fields.map((field) => ({
-        ...field,
-        config: {
-          ...field.config,
-          color: field.config.color ?? { mode: FieldColorModeId.PaletteClassic },
-        },
-      })),
-    })),
-    fieldConfig: { defaults: {}, overrides: [] },
-    replaceVariables: (value) => value,
-    theme,
-    timeZone: 'utc',
-  });
-
-/**
- * Returns the Panel component with overrideable default props
- */
-const getComponent = (
-  frames: DataFrame[],
-  seriesType: SeriesType,
-  panelOptionsOverrides?: Partial<PanelOptions>,
-  panelDataOverrides?: Partial<PanelData>,
-  panelPropsOverrides?: Partial<PanelProps<PanelOptions>>
-) => {
-  const defaultOptions = {
-    legend: {
-      showLegend: true,
-      displayMode: LegendDisplayMode.List,
-      placement: 'bottom',
-      calcs: [],
-    } as VizLegendOptions,
-    width,
-    tooltip: { mode: TooltipDisplayMode.Single },
-  };
-
-  const options: PanelOptions = {
-    [seriesTypePath]: seriesType,
-    ...defaultOptions,
-    ...panelOptionsOverrides,
-  };
-
-  const data: PanelData = {
-    state: LoadingState.Done,
-    series: applyGrafanaFieldDefaults(frames),
-    timeRange: defaultTimeRange,
-    ...panelDataOverrides,
-  };
-
-  const defaultPanelProps: PanelProps<PanelOptions> = {
-    options,
-    data,
-    width,
-    height,
-    timeZone: 'utc',
-    timeRange: defaultTimeRange,
-    id: 1,
-    transparent: false,
-    eventBus: new EventBusSrv(),
-    fieldConfig: { defaults: {}, overrides: [] },
-    renderCounter: 0,
-    title: 'Test panel',
-    onChangeTimeRange: jest.fn(),
-    onFieldConfigChange: jest.fn(),
-    onOptionsChange: jest.fn(),
-    replaceVariables: (value) => value,
-  };
-
-  const props: PanelProps<PanelOptions> = {
-    ...defaultPanelProps,
-    ...panelPropsOverrides,
-  };
-
-  return (
-    <div style={{ height, width }}>
-      <Panel {...props} />
-    </div>
-  );
-};
-
-/**
- * Waits for the chart 'finished' event after render and animations are complete.
- */
-const waitForFinished = async (chart: EChartsType | undefined) => {
-  let finished = false;
-
-  chart!.on('finished', () => {
-    finished = true;
-  });
-
-  await waitFor(() => expect(finished).toBeTruthy());
-};
-
-const getCanvasEvents = async (container: HTMLElement) => {
-  const { chartInstanceDom, chart } = setupECharts(container);
-  await waitForFinished(chart);
-  const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
-  return { defaultEvents, seriesEvents };
-};
 describe('Panel canvas renders', () => {
+  // Cartesian panels render in Advanced editor mode so `applyCartesianEditorModeDefaults`
+  // passes the stored options through as-is. In Default mode it resets every advanced
+  // option to its default — including forcing `animation.enabled` back on, which would
+  // clobber the `animation: { enabled: false }` these snapshots rely on for determinism
+  // (same reason the pie canvas tests use Advanced mode). The Default-mode reset itself
+  // is covered by the `applyCartesianEditorModeDefaults` unit tests.
   describe('cartesian', () => {
     const frame = toDataFrame({
       fields: [
@@ -165,26 +38,12 @@ describe('Panel canvas renders', () => {
           getComponent([frame], seriesType, {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
-          width,
-          height,
-        });
-      });
-      it('grid', async () => {
-        const { container } = render(
-          getComponent([frame], 'line', {
-            zLevel: { series: SERIES_ZLEVEL },
-            animation: { enabled: false },
-          })
-        );
-
-        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
-
-        expect(removeCanvasTransforms(removeCanvasClear(defaultEvents))).toMatchCanvasSnapshot(seriesEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -205,12 +64,57 @@ describe('Panel canvas renders', () => {
             stackSeries: true,
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Threshold overlays: markLine + markArea drawn on the series layer from the
+    // field's threshold steps and `thresholdsStyle` display mode.
+    describe('thresholds', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497, 1783144294497, 1783147894497] },
+          {
+            name: 'cpu',
+            type: FieldType.number,
+            values: [10, 50, 90, 30],
+            config: {
+              displayName: 'cpu',
+              custom: { thresholdsStyle: { mode: GraphThresholdsStyleMode.LineAndArea } },
+              thresholds: {
+                mode: ThresholdsMode.Absolute,
+                steps: [
+                  { value: -Infinity, color: 'green' },
+                  { value: 40, color: 'orange' },
+                  { value: 70, color: 'red' },
+                ],
+              },
+            },
+          },
+        ],
+      });
+
+      it('renders lines and filled regions', async () => {
+        const { container } = render(
+          getComponent([frame], 'line', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -235,12 +139,13 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'candlestick', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });
@@ -266,12 +171,452 @@ describe('Panel canvas renders', () => {
           getComponent([frame], 'boxplot', {
             zLevel: { series: SERIES_ZLEVEL },
             animation: { enabled: false },
+            editorMode: 'advanced',
           })
         );
 
         const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
 
-        expect(removeCanvasTransforms(removeCanvasClear(seriesEvents))).toMatchCanvasSnapshot(defaultEvents, {
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Advanced (Bar-chart-parity / ECharts) options. Each case sets one option in
+    // Advanced editor mode and snapshots the series layer, proving the option
+    // reaches the render and changes it (the default renders above cover the
+    // omit-at-default baseline).
+    describe('advanced options', () => {
+      const barFrame = toDataFrame({
+        fields: [
+          { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT'] },
+          { name: 'Budget', type: FieldType.number, values: [43, 10, 30], config: { displayName: 'Budget' } },
+        ],
+      });
+      const lineFrame = toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1783137094497, 1783140694497, 1783144294497, 1783147894497] },
+          { name: 'cpu', type: FieldType.number, values: [10, 40, 20, 50], config: { displayName: 'cpu' } },
+        ],
+      });
+
+      const renderCartesian = async (
+        frames: Parameters<typeof getComponent>[0],
+        seriesType: CartesianSingleValueSeriesType,
+        extra: Record<string, unknown>
+      ) => {
+        const { container } = render(
+          getComponent(frames, seriesType, {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+            ...extra,
+          })
+        );
+        return getCanvasEvents(container);
+      };
+
+      it('shows value labels (Always)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([barFrame], 'bar', { showValues: 'always' });
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('narrows the bars (bar width)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([barFrame], 'bar', { barWidth: 30 });
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('rounds the bar corners (bar radius)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([barFrame], 'bar', { barRadius: 10 });
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('thickens the line (line width)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([lineFrame], 'line', { lineWidth: 6 });
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('fills the area under the line (fill opacity)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([lineFrame], 'line', { fillOpacity: 40 });
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('enlarges the points (point size)', async () => {
+        const { defaultEvents, seriesEvents } = await renderCartesian([lineFrame], 'line', { pointSize: 12 });
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+  });
+
+  // Binned heatmap: dataplane heatmap frames drawn as interval cells via the
+  // custom series (see lib/echarts/converters/binnedHeatmap). One case per major
+  // dataplane frame shape.
+  describe('heatmap', () => {
+    const times = [1783137094497, 1783140694497, 1783144294497, 1783147894497];
+
+    // Matrix layout: a category x category grid via the native ECharts heatmap
+    // series, fed by the wide/pivot shape (string rows + numeric columns).
+    describe('matrix', () => {
+      const frame = toDataFrame({
+        fields: [
+          { name: 'row', type: FieldType.string, values: ['a', 'b', 'c'] },
+          { name: 'c1', type: FieldType.number, values: [1, 5, 9] },
+          { name: 'c2', type: FieldType.number, values: [3, 7, 2] },
+          { name: 'c3', type: FieldType.number, values: [8, 4, 6] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            heatmapLayout: 'matrix',
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // heatmap-rows without `le` labels: each numeric field is an ordinal bucket
+    // row labelled by field name (yLabelPlacement 'center').
+    describe('heatmapRows', () => {
+      const frame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapRows },
+        fields: [
+          { name: 'time', type: FieldType.time, values: times },
+          { name: 'low', type: FieldType.number, values: [5, 6, 7, 8] },
+          { name: 'mid', type: FieldType.number, values: [7, 8, 9, 10] },
+          { name: 'high', type: FieldType.number, values: [9, 10, 11, 12] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Prometheus native histogram: heatmap-rows keyed by `le` upper bounds,
+    // including the open-ended `+Inf` top bucket (yLabelPlacement 'bound').
+    describe('prometheus native histogram', () => {
+      const frame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapRows },
+        fields: [
+          { name: 'time', type: FieldType.time, values: times },
+          { name: 'b1', type: FieldType.number, values: [5, 6, 7, 8], labels: { le: '10' } },
+          { name: 'b2', type: FieldType.number, values: [7, 8, 9, 10], labels: { le: '20' } },
+          { name: 'b3', type: FieldType.number, values: [9, 10, 11, 12], labels: { le: '+Inf' } },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // heatmap-cells (dense): one row per cell with center x/y coordinates and a
+    // value; cell bounds are inferred from the smallest gap between centers.
+    describe('heatmapCells', () => {
+      const frame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapCells },
+        fields: [
+          { name: 'x', type: FieldType.time, values: [times[0], times[0], times[1], times[1]] },
+          { name: 'y', type: FieldType.number, values: [5, 15, 5, 15] },
+          { name: 'Count', type: FieldType.number, values: [3, 7, 5, 9] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Cartesian overlays: a heatmap cell layer plus line/bar series drawn on top.
+    // Overlays render against a secondary y-axis (index 1); without it ECharts
+    // errors during series init (e.g. "yAxis '0' not found" for a bar overlay).
+    describe('overlay', () => {
+      const heatmapFrame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapRows },
+        fields: [
+          { name: 'time', type: FieldType.time, values: times },
+          { name: 'b1', type: FieldType.number, values: [5, 6, 7, 8], labels: { le: '10' } },
+          { name: 'b2', type: FieldType.number, values: [7, 8, 9, 10], labels: { le: '20' } },
+        ],
+      });
+
+      // Overlay frame: a numeric field overridden to a cartesian series type. Its
+      // magnitude (100s) is far outside the bucket range, so it must ride the
+      // secondary y-axis rather than being squashed onto the bucket scale.
+      const overlayFrame = (overlaySeriesType: CartesianSingleValueSeriesType) =>
+        toDataFrame({
+          fields: [
+            { name: 'time', type: FieldType.time, values: times },
+            {
+              name: 'metric',
+              type: FieldType.number,
+              values: [120, 340, 180, 260],
+              config: { displayName: 'overlay-metric', custom: { seriesType: overlaySeriesType } },
+            },
+          ],
+        });
+
+      it.each(['line', 'bar', 'scatter'])('renders a %s overlay', async (overlaySeriesType) => {
+        const { container } = render(
+          getComponent([heatmapFrame, overlayFrame(overlaySeriesType as CartesianSingleValueSeriesType)], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+
+    // Sparse heatmap-cells: explicit xMin/xMax/yMin/yMax bounds per cell.
+    describe('sparseHeatmaps', () => {
+      const frame = toDataFrame({
+        meta: { type: DataFrameType.HeatmapCells },
+        fields: [
+          { name: 'xMin', type: FieldType.time, values: [times[0], times[0], times[2], times[2]] },
+          { name: 'xMax', type: FieldType.time, values: [times[1], times[1], times[3], times[3]] },
+          { name: 'yMin', type: FieldType.number, values: [0, 10, 0, 10] },
+          { name: 'yMax', type: FieldType.number, values: [10, 20, 10, 20] },
+          { name: 'Count', type: FieldType.number, values: [3, 7, 5, 9] },
+        ],
+      });
+
+      it('renders', async () => {
+        const { container } = render(
+          getComponent([frame], 'heatmap', {
+            zLevel: { series: SERIES_ZLEVEL },
+            animation: { enabled: false },
+            editorMode: 'advanced',
+          })
+        );
+
+        const { defaultEvents, seriesEvents } = await getCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+  });
+
+  // Hierarchy family: a value-weighted tree rendered as a treemap (nested
+  // rectangles) or sunburst (radial rings). The tree is reconstructed from a
+  // flame-graph nested-set frame or a flat categorical frame (see
+  // lib/echarts/converters/hierarchy). Rendered with family 'hierarchy' so the
+  // panel resolves the hierarchy chart module.
+  describe('hierarchy', () => {
+    // Flame-graph nested-set frame: rows are a depth-first traversal, so the
+    // converter rebuilds total > render > draw with an io sibling under total.
+    const nestedSetFrame = toDataFrame({
+      fields: [
+        { name: 'level', type: FieldType.number, values: [0, 1, 2, 1] },
+        { name: 'value', type: FieldType.number, values: [100, 60, 40, 30] },
+        { name: 'self', type: FieldType.number, values: [10, 20, 40, 30] },
+        { name: 'label', type: FieldType.string, values: ['total', 'render', 'draw', 'io'] },
+      ],
+    });
+
+    // Flat categorical frame: each category becomes a single top-level node.
+    const categoricalFrame = toDataFrame({
+      fields: [
+        { name: 'category', type: FieldType.string, values: ['Sales', 'Admin', 'IT'] },
+        { name: 'value', type: FieldType.number, values: [43, 10, 30], config: { displayName: 'value' } },
+      ],
+    });
+
+    describe('treemap', () => {
+      it('renders a treemap from a nested-set frame', async () => {
+        const { container } = render(
+          getComponent(
+            [nestedSetFrame],
+            'treemap',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('renders a treemap from a flat categorical frame', async () => {
+        const { container } = render(
+          getComponent(
+            [categoricalFrame],
+            'treemap',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+    });
+    describe('sunburst', () => {
+      it('nested-set frame', async () => {
+        const { container } = render(
+          getComponent(
+            [nestedSetFrame],
+            'sunburst',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+      // The value field's Color scheme drives node colors. A by-value scheme
+      // (continuous here) colors every node from its value, so this render differs
+      // from the classic-palette sunburst above — this snapshot guards that the
+      // scheme is actually applied (previously it was ignored). The color mode is
+      // set on the field (not via panel fieldConfig), which is what Grafana applies
+      // to frames before the panel renders; the canvas harness doesn't run that.
+      it('color-scheme', async () => {
+        const infernoFrame = toDataFrame({
+          fields: [
+            { name: 'level', type: FieldType.number, values: [0, 1, 2, 1] },
+            {
+              name: 'value',
+              type: FieldType.number,
+              values: [100, 60, 40, 30],
+              config: { color: { mode: FieldColorModeId.ContinuousInferno } },
+            },
+            { name: 'self', type: FieldType.number, values: [10, 20, 40, 30] },
+            { name: 'label', type: FieldType.string, values: ['total', 'render', 'draw', 'io'] },
+          ],
+        });
+
+        const { container } = render(
+          getComponent(
+            [infernoFrame],
+            'sunburst',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+          width,
+          height,
+        });
+      });
+
+      it('flat categorical frame', async () => {
+        const { container } = render(
+          getComponent(
+            [categoricalFrame],
+            'sunburst',
+            { zLevel: { series: SERIES_ZLEVEL }, animation: { enabled: false } },
+            undefined,
+            undefined,
+            'hierarchy'
+          )
+        );
+
+        const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
+
+        expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
           width,
           height,
         });

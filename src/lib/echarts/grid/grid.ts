@@ -1,0 +1,64 @@
+import { type VizLegendOptions } from '@grafana/schema';
+import { debug, LOG_LEVELS } from 'development';
+import { type GridOption } from 'echarts/types/dist/shared';
+import { HEATMAP_VISUALMAP_HEIGHT, HEATMAP_VISUALMAP_WIDTH } from 'lib/echarts/options/constants';
+import { type HeatmapColorScalePlacement } from 'lib/echarts/options/types';
+
+const LEGEND_GRID_PADDING = 12;
+const DEFAULT_GRID_PADDING = 8;
+const LEFT_GRID_PADDING = 20;
+
+// @todo need more dynamic way of reserving width for axis labels, long values keep getting truncated!
+export function getCartesianGrid(
+  legend?: VizLegendOptions,
+  // Extra px reserved on each side for stacked (offset) y-axes beyond the first;
+  // `containLabel` only accounts for the innermost axis on each side.
+  extraAxisSpacing?: { left?: number; right?: number }
+): GridOption {
+  const right = (legend?.placement === 'right' ? LEGEND_GRID_PADDING : 0) + (extraAxisSpacing?.right ?? 0);
+  const bottom = legend?.placement === 'bottom' ? LEGEND_GRID_PADDING : 0;
+  const left = DEFAULT_GRID_PADDING + (extraAxisSpacing?.left ?? 0);
+
+  // @todo outerBounds might be solution instead of using deprecated containLabel
+  return { top: DEFAULT_GRID_PADDING, left, right, bottom, containLabel: true };
+}
+
+/**
+ * Reserve space for the visualMap color scale (eCharts native heatmap legend) on whichever side it sits.
+ *
+ * `extraAxisSpacing` reserves additional px for stacked (offset) overlay y-axes
+ * beyond the first on each side, on top of the visualMap width, so overlay right
+ * axes stay inboard of a right-placed visualMap (see `buildBinnedHeatmapOption`).
+ */
+export function getHeatmapGrid(
+  placement: HeatmapColorScalePlacement,
+  legend: VizLegendOptions | undefined,
+  extraAxisSpacing?: { left?: number; right?: number }
+): GridOption {
+  const baseGrid = getCartesianGrid(legend);
+
+  // Add some runtime checks to narrow these types
+  // @todo remove before public release, but we want to leave these in to keep from mixing loose types
+  if (typeof baseGrid.bottom === 'string') {
+    debug('Invalid grid bottom type', LOG_LEVELS.warn, baseGrid.bottom);
+    throw new Error('Invalid grid bottom type');
+  }
+
+  if (typeof baseGrid.right === 'string') {
+    debug('Invalid grid right type', LOG_LEVELS.warn, baseGrid.right);
+    throw new Error('Invalid grid right type');
+  }
+
+  // The visualMap reserves width on the right (its default/`right` placement),
+  // height on the bottom, or nothing when hidden (`none`); overlay axis offset
+  // spacing is reserved regardless so stacked right axes always fit.
+  const visualMapRight = placement === 'right' ? HEATMAP_VISUALMAP_WIDTH : 0;
+  const right = (baseGrid.right ?? 16) + visualMapRight + (extraAxisSpacing?.right ?? 0);
+  const bottom = (baseGrid.bottom ?? 0) + HEATMAP_VISUALMAP_HEIGHT;
+  return {
+    ...baseGrid,
+    left: LEFT_GRID_PADDING + (extraAxisSpacing?.left ?? 0),
+    right,
+    ...(placement === 'bottom' ? { bottom } : {}),
+  };
+}

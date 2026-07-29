@@ -1,0 +1,428 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "1 overlay axis (auto -> right). Query A feeds the heatmap cells (bucket axis pinned left). Query B is one overlay field (bytes) overridden to a line; its value axis defaults to the right so it clears the bucket axis.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "seriesType": "heatmap",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byFrameRefID", "options": "B" },
+            "properties": [{ "id": "custom.seriesType", "value": "line" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Bytes" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,0-10,10-20,20-30,30-40\n2021-01-01T00:00:00Z,2,5,8,3\n2021-01-01T01:00:00Z,3,6,4,7\n2021-01-01T02:00:00Z,5,9,6,2\n2021-01-01T03:00:00Z,4,7,10,5\n2021-01-01T04:00:00Z,6,3,8,9"
+        },
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "B",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Bytes\n2021-01-01T00:00:00Z,1048576\n2021-01-01T01:00:00Z,2097152\n2021-01-01T02:00:00Z,1572864\n2021-01-01T03:00:00Z,3145728\n2021-01-01T04:00:00Z,2621440"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "0-10", "destinationType": "number" },
+              { "targetField": "10-20", "destinationType": "number" },
+              { "targetField": "20-30", "destinationType": "number" },
+              { "targetField": "30-40", "destinationType": "number" },
+              { "targetField": "Bytes", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "1 overlay axis (auto / right)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "2 overlay axes (right-right). Two overlay units (bytes, percent) both default to the right; the second stacks with an offset so labels don't overlap, and grid width is reserved for it inboard of the visualMap.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "seriesType": "heatmap",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byFrameRefID", "options": "B" },
+            "properties": [{ "id": "custom.seriesType", "value": "line" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Bytes" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Percent" },
+            "properties": [{ "id": "unit", "value": "percent" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,0-10,10-20,20-30,30-40\n2021-01-01T00:00:00Z,2,5,8,3\n2021-01-01T01:00:00Z,3,6,4,7\n2021-01-01T02:00:00Z,5,9,6,2\n2021-01-01T03:00:00Z,4,7,10,5\n2021-01-01T04:00:00Z,6,3,8,9"
+        },
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "B",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Bytes,Percent\n2021-01-01T00:00:00Z,1048576,40\n2021-01-01T01:00:00Z,2097152,55\n2021-01-01T02:00:00Z,1572864,45\n2021-01-01T03:00:00Z,3145728,60\n2021-01-01T04:00:00Z,2621440,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "0-10", "destinationType": "number" },
+              { "targetField": "10-20", "destinationType": "number" },
+              { "targetField": "20-30", "destinationType": "number" },
+              { "targetField": "30-40", "destinationType": "number" },
+              { "targetField": "Bytes", "destinationType": "number" },
+              { "targetField": "Percent", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "2 overlay axes (right-right)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "2 overlay axes (left-right). The bytes overlay is forced to the left, stacking outboard of the bucket axis (which owns the innermost left slot); the percent overlay is forced right.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "seriesType": "heatmap",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byFrameRefID", "options": "B" },
+            "properties": [{ "id": "custom.seriesType", "value": "line" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Bytes" },
+            "properties": [
+              { "id": "unit", "value": "bytes" },
+              { "id": "custom.axisPlacement", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Percent" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,0-10,10-20,20-30,30-40\n2021-01-01T00:00:00Z,2,5,8,3\n2021-01-01T01:00:00Z,3,6,4,7\n2021-01-01T02:00:00Z,5,9,6,2\n2021-01-01T03:00:00Z,4,7,10,5\n2021-01-01T04:00:00Z,6,3,8,9"
+        },
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "B",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Bytes,Percent\n2021-01-01T00:00:00Z,1048576,40\n2021-01-01T01:00:00Z,2097152,55\n2021-01-01T02:00:00Z,1572864,45\n2021-01-01T03:00:00Z,3145728,60\n2021-01-01T04:00:00Z,2621440,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "0-10", "destinationType": "number" },
+              { "targetField": "10-20", "destinationType": "number" },
+              { "targetField": "20-30", "destinationType": "number" },
+              { "targetField": "30-40", "destinationType": "number" },
+              { "targetField": "Bytes", "destinationType": "number" },
+              { "targetField": "Percent", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "2 overlay axes (left-right)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "Overlay axis hidden. The bytes overlay draws its right axis while the percent overlay sets axisPlacement=hidden: no axis is drawn but the series still plots against its own auto-scaled axis.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "seriesType": "heatmap",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byFrameRefID", "options": "B" },
+            "properties": [{ "id": "custom.seriesType", "value": "line" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Bytes" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Percent" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.axisPlacement", "value": "hidden" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,0-10,10-20,20-30,30-40\n2021-01-01T00:00:00Z,2,5,8,3\n2021-01-01T01:00:00Z,3,6,4,7\n2021-01-01T02:00:00Z,5,9,6,2\n2021-01-01T03:00:00Z,4,7,10,5\n2021-01-01T04:00:00Z,6,3,8,9"
+        },
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "B",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Bytes,Percent\n2021-01-01T00:00:00Z,1048576,40\n2021-01-01T01:00:00Z,2097152,55\n2021-01-01T02:00:00Z,1572864,45\n2021-01-01T03:00:00Z,3145728,60\n2021-01-01T04:00:00Z,2621440,50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "0-10", "destinationType": "number" },
+              { "targetField": "10-20", "destinationType": "number" },
+              { "targetField": "20-30", "destinationType": "number" },
+              { "targetField": "30-40", "destinationType": "number" },
+              { "targetField": "Bytes", "destinationType": "number" },
+              { "targetField": "Percent", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "Overlay axis hidden (still plots)",
+      "type": "grafana-echartsheatmap-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource"
+      },
+      "description": "3 overlay axes with the color scale on the bottom. Three overlay units (bytes, percent, watt) all default to the right and stack with offsets; with the visualMap moved to the bottom, the right side is free for the stacked overlay axes.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "seriesType": "heatmap",
+        "heatmapColorScale": {
+          "placement": "bottom"
+        },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "right",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byFrameRefID", "options": "B" },
+            "properties": [{ "id": "custom.seriesType", "value": "line" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Bytes" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Percent" },
+            "properties": [{ "id": "unit", "value": "percent" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Watt" },
+            "properties": [{ "id": "unit", "value": "watt" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,0-10,10-20,20-30,30-40\n2021-01-01T00:00:00Z,2,5,8,3\n2021-01-01T01:00:00Z,3,6,4,7\n2021-01-01T02:00:00Z,5,9,6,2\n2021-01-01T03:00:00Z,4,7,10,5\n2021-01-01T04:00:00Z,6,3,8,9"
+        },
+        {
+          "datasource": { "type": "grafana-testdata-datasource" },
+          "refId": "B",
+          "scenarioId": "csv_content",
+          "csvContent": "Time,Bytes,Percent,Watt\n2021-01-01T00:00:00Z,1048576,40,120\n2021-01-01T01:00:00Z,2097152,55,90\n2021-01-01T02:00:00Z,1572864,45,150\n2021-01-01T03:00:00Z,3145728,60,110\n2021-01-01T04:00:00Z,2621440,50,180"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              { "targetField": "Time", "destinationType": "time" },
+              { "targetField": "0-10", "destinationType": "number" },
+              { "targetField": "10-20", "destinationType": "number" },
+              { "targetField": "20-30", "destinationType": "number" },
+              { "targetField": "30-40", "destinationType": "number" },
+              { "targetField": "Bytes", "destinationType": "number" },
+              { "targetField": "Percent", "destinationType": "number" },
+              { "targetField": "Watt", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "title": "3 overlay axes (bottom color scale)",
+      "type": "grafana-echartsheatmap-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "heatmap", "overlay", "y-axis"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2021-01-01T00:00:00.000Z",
+    "to": "2021-01-01T04:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Heatmap overlay y-axis",
+  "uid": "d2e3f4a5-b6c7-48d9-9e0f-2a3b4c5d6e7f",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,11 +1,13 @@
-import { FieldColorModeId, FieldConfigProperty, PanelPlugin } from '@grafana/data';
-import { TooltipDisplayMode } from '@grafana/schema';
+import { PanelPlugin } from '@grafana/data';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { cartesianOverrideOptions, seriesCategoryName, seriesTypeName, seriesTypePath } from 'editor/constants';
+import { cartesianOverrideOptions } from 'editor/cartesian';
+import { heatmapLegendCategoryName, seriesCategoryName } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
-import { LazyPanel } from 'lib/components/LazyPanel';
-import { heatmapColorSchemeDefault } from 'lib/echarts/options/constants';
-import { heatmapColorSchemeOptions } from 'modules/heatmap/constants';
+import { makeLazyPanel } from 'lib/components/LazyPanel';
+import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
+import { heatmapColorSchemeDefault, heatmapLayoutDefault } from 'lib/echarts/options/constants';
+import { heatmapColorSchemeOptions, heatmapLayoutOptions } from 'modules/heatmap/constants';
 import { type PanelOptions } from 'types';
 import { heatmapSuggestionsSupplier } from './suggestions';
 
@@ -17,20 +19,9 @@ import { heatmapSuggestionsSupplier } from './suggestions';
 // is allowed: a numeric frame whose field is overridden to a cartesian type
 // (line/bar/scatter) via the per-field override below is drawn as a cartesian
 // overlay on top of the heatmap cells (see `frameHasCartesianOverride`).
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPanel)
+export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('heatmap'))
   .useFieldConfig({
-    standardOptions: {
-      [FieldConfigProperty.Color]: {
-        settings: {
-          byValueSupport: true,
-          bySeriesSupport: true,
-          preferThresholdsMode: false,
-        },
-        defaultValue: {
-          mode: FieldColorModeId.PaletteClassic,
-        },
-      },
-    },
+    standardOptions: STANDARD_COLOR_OPTIONS,
     // Per-field series type override, scoped to cartesian types. Overriding a
     // numeric frame's field to line/bar/scatter promotes it from a heatmap
     // bucket row to a cartesian overlay drawn over the cells — the sanctioned
@@ -40,24 +31,32 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
         path: 'seriesType',
         name: 'Series type',
         description: 'Draw matching fields as a cartesian overlay on the heatmap (cartesian types only).',
+        hideFromDefaults: true,
         settings: {
           options: cartesianOverrideOptions,
           allowCustomValue: false,
           isClearable: true,
         },
       });
+
+      // Register `custom.hideFrom` so the legend visibility toggle's `byName`
+      // override is applied by Grafana. Only the cartesian overlay series carry
+      // legend items; the chart strips overlay fields flagged `hideFrom.viz`
+      // (see `lib/grafana/fields/seriesConfig.ts`).
+      commonOptionsBuilder.addHideFrom(builder);
     },
   })
   .setPanelOptions((builder) => {
-    // Family is fixed to `heatmap`; a single-option select keeps the shared
-    // Panel routing to the heatmap chart module. Broader render-type choices
-    // and data-driven routing are deferred to later meta-plan steps.
-    builder.addSelect({
-      path: seriesTypePath,
-      name: seriesTypeName,
-      defaultValue: 'heatmap',
+    // Heatmap coordinate model: `binned` (continuous interval cells, the
+    // dataplane default) vs `matrix` (categorical grid via native ECharts heatmap).
+    builder.addRadio({
+      path: 'heatmapLayout',
+      name: 'Layout',
+      description:
+        'Binned draws dataplane heatmap frames as interval cells on continuous axes; Matrix draws a category × category grid.',
+      defaultValue: heatmapLayoutDefault,
       settings: {
-        options: [{ value: 'heatmap', label: 'heatmap' }],
+        options: heatmapLayoutOptions,
       },
       category: [seriesCategoryName],
     });
@@ -72,21 +71,27 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(LazyPane
       category: [seriesCategoryName],
     });
 
-    commonOptionsBuilder.addLegendOptions(builder);
-
+    // Placement of the ECharts visualMap (the heatmap cell color scale). Grouped
+    // separately from the Grafana DOM "Legend" (which governs overlay series).
     builder.addRadio({
-      path: 'tooltip.mode',
-      name: 'Tooltip mode',
-      category: ['Tooltip'],
-      defaultValue: TooltipDisplayMode.Single,
+      path: 'heatmapColorScale.placement',
+      name: 'Placement',
+      description: 'Where to render the heatmap color scale (the ECharts visualMap legend).',
+      defaultValue: 'right',
       settings: {
         options: [
-          { value: TooltipDisplayMode.Single, label: 'Single' },
-          { value: TooltipDisplayMode.Multi, label: 'All' },
-          { value: TooltipDisplayMode.None, label: 'Hidden' },
+          { value: 'right', label: 'Right' },
+          { value: 'bottom', label: 'Bottom' },
+          { value: 'none', label: 'None' },
         ],
       },
+      category: [heatmapLegendCategoryName],
     });
+
+    // @todo We only need this in a somewhat edge-case situation, so it really sucks that we always have to display the
+    // legend in the editor UI because the field config is applied to the data frame after the panel options are already
+    // built. So we don't have the field config override that we want to know if a field has been selected to render as a cartesian series.
+    addCommonLegendAndTooltip(builder);
 
     return builder;
   })

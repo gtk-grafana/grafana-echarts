@@ -1,0 +1,326 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "multivariate", "radar"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Multivariate \u2014 radar shape & style",
+  "uid": "a1b2c3d4-0003-4003-8003-radarshape03",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced \"Shape\" = Circle (radar.shape): a smooth ring grid instead of straight polygon edges. Fill on for contrast. Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "radar",
+        "editorMode": "advanced",
+        "radarShape": "circle",
+        "radarFillArea": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Shape: Circle",
+      "type": "grafana-echartsmultivariate-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced \"Line width\" = 4 (series.lineStyle.width): thicker polygon outlines. Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "radar",
+        "editorMode": "advanced",
+        "radarLineWidth": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Line width: 4",
+      "type": "grafana-echartsmultivariate-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced \"Symbol size\" = 10 (series.symbolSize): larger vertex markers (0 would hide them). Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "radar",
+        "editorMode": "advanced",
+        "radarSymbolSize": 10
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Symbol size: 10",
+      "type": "grafana-echartsmultivariate-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced \"Rings\" = 8 (radar.splitNumber): more concentric grid rings than the default 5. Requires Advanced editor mode.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "radar",
+        "editorMode": "advanced",
+        "radarSplitNumber": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Rings: 8",
+      "type": "grafana-echartsmultivariate-panel"
+    }
+  ]
+}

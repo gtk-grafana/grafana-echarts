@@ -1,10 +1,11 @@
 import {
+  cartesianChartModule,
+  heatmapChartModule,
+  multivariateChartModule,
+  partToWholeChartModule,
+  pieChartModule,
   resolveChartModule,
   supportedChartSeriesTypes,
-  heatmapChartModule,
-  cartesianChartModule,
-  pieChartModule,
-  radarChartModule,
 } from 'lib/echarts/charts/registry';
 
 describe('resolveChartModule', () => {
@@ -12,26 +13,47 @@ describe('resolveChartModule', () => {
     expect(resolveChartModule('heatmap')).toBe(heatmapChartModule);
   });
 
-  it('routes cartesian types to the cartesian module (panel identity fixes the family)', () => {
-    // A heatmap-tagged frame no longer forces heatmap rendering here: the
-    // cartesian panel stays cartesian and never overlays the heatmap composite.
-    // Data-driven heatmap detection lives in the suggestions supplier instead.
+  it('routes cartesian types (single- and multi-value) to the cartesian module', () => {
+    // Panel identity fixes the family; the module picks the build path from the type.
     expect(resolveChartModule('line')).toBe(cartesianChartModule);
     expect(resolveChartModule('bar')).toBe(cartesianChartModule);
+    expect(resolveChartModule('candlestick')).toBe(cartesianChartModule);
+    expect(resolveChartModule('boxplot')).toBe(cartesianChartModule);
   });
 
-  it('routes pie and radar to their modules', () => {
+  it('routes pie to its module and both multivariate types to the multivariate module', () => {
     expect(resolveChartModule('pie')).toBe(pieChartModule);
-    expect(resolveChartModule('radar')).toBe(radarChartModule);
+    // Radar and parallel share the (renamed) multivariate module; the module
+    // picks the coordinate system from the type.
+    expect(resolveChartModule('radar')).toBe(multivariateChartModule);
+    expect(resolveChartModule('parallel')).toBe(multivariateChartModule);
   });
 
-  it('returns null for unsupported types', () => {
+  it('routes the part-to-whole family (pie + funnel) to the shared module', () => {
+    // Pie and funnel share one module (the module picks the variant from the type);
+    // `partToWholeChartModule` is the family alias of `pieChartModule`.
+    expect(resolveChartModule('funnel')).toBe(partToWholeChartModule);
+    expect(resolveChartModule('pie')).toBe(partToWholeChartModule);
+  });
+
+  it('throws for unsupported concrete types', () => {
+    // gauge is a planned part-to-whole variant, not yet registered.
     expect(() => resolveChartModule('gauge')).toThrow();
   });
 
   it('lists all supported series types', () => {
     expect(supportedChartSeriesTypes).toEqual(
-      expect.arrayContaining(['line', 'bar', 'scatter', 'effectScatter', 'heatmap', 'pie', 'radar'])
+      expect.arrayContaining([
+        'line',
+        'bar',
+        'scatter',
+        'effectScatter',
+        'heatmap',
+        'pie',
+        'funnel',
+        'radar',
+        'parallel',
+      ])
     );
   });
 });

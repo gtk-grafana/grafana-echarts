@@ -1,25 +1,54 @@
-import { type ECBasicOption } from 'echarts/types/dist/shared';
-import { type MultiValueSeriesType, type CartesianSingleValueSeriesType } from 'editor/types';
-import { isMultiValueSeriesType, isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
+import { type Field } from '@grafana/data';
+import { type XAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
+import { type CartesianSingleValueSeriesType, type MultiValueSeriesType } from 'editor/types';
+import { buildCartesianYAxes, getAxisGridSpacing } from 'lib/echarts/axes/yAxes';
+import { isCartesianSingleValueSeriesType, isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
-import { framesHaveTimeField } from 'lib/echarts/converters/frames';
-import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
+import {
+  collectTimeSeriesFields,
+  findCategoricalFrame,
+  framesHaveTimeField,
+  mapNumericFields,
+} from 'lib/echarts/converters/frames';
+import {
+  multiValueCartesianToEChartsOption,
+  resolveMultiValueSources,
+} from 'lib/echarts/converters/multiValueCartesian';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
+import { getCartesianGrid } from 'lib/echarts/grid/grid';
 import {
   cartesianCategoryDefaultOptions,
   cartesianTimeDefaultOptions,
   getCartesianAxisStyle,
   getTimeAxisBounds,
+  getXTickRotate,
   mergeAxisStyle,
 } from 'lib/echarts/options/cartesian';
-import { DEFAULT_CHART_LEGEND, getCartesianGrid, getLegendOption } from 'lib/echarts/options/legend';
+import { DEFAULT_CHART_LEGEND, resolveEChartsLegend } from 'lib/echarts/options/legend';
 import {
   buildCategoryCartesianLegendItems,
   buildMultiValueCartesianLegendItems,
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
+import { buildThresholdMarks, type ThresholdMarks } from 'lib/echarts/options/thresholds';
+import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
+import { getFieldValueFormatters } from 'lib/echarts/style';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
+import { getFieldMinMax } from 'lib/grafana/fields/fieldConfig';
+import { isNumberField } from 'lib/grafana/narrowing';
+import {
+  findThresholdField,
+  getThresholdsStyleMode,
+  resolveFieldThresholds,
+  thresholdDisplayForMode,
+} from 'lib/grafana/fields/thresholds';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
-import { type CartesianOption, type ChartContext, type ChartModule } from './types';
+import {
+  type ChartContext,
+  type ChartModule,
+  type EChartCartesianSeriesOption,
+  type EChartMultiValueCartesianSeriesOption,
+} from './types';
 
 // Cartesian family (Groups 1-2). The x-axis mode follows the data, not the
 // series type: time frames render on a `time` axis, while Numeric frames with no
@@ -30,43 +59,46 @@ import { type CartesianOption, type ChartContext, type ChartModule } from './typ
 function buildTimeOption(
   ctx: ChartContext<CartesianSingleValueSeriesType>,
   isGrafanaLegend: boolean
-): ECBasicOption | null {
-  const { theme, options, formatValue } = ctx;
+): EChartCartesianSeriesOption | null {
+  const { theme, options, formatValue, timeZone } = ctx;
 
-  const cartSeries = timeSeriesToEChartsOption(ctx);
-
-  if (!cartSeries || cartSeries.length === 0) {
-    return null;
-  }
+  // Support rendering time without series
+  const cartSeries = timeSeriesToEChartsOption(ctx) ?? [];
 
   const axisStyle = getCartesianAxisStyle(theme);
 
-  const yAxis = mergeAxisStyle(
-    cartesianTimeDefaultOptions.yAxis,
+  // One y-axis per distinct field unit; each series is pinned to its unit's axis.
+  const axes = buildCartesianYAxes({
+    fields: cartesianSeriesFields(ctx),
+    baseYAxis: cartesianTimeDefaultOptions.yAxis,
     axisStyle,
-    {
-      zlevel: options.zLevel?.axis,
-    },
-    formatValue
-  );
+    theme,
+    timeZone,
+    fallbackFormatter: formatValue,
+    zlevel: options.zLevel?.axis,
+  });
+  const indexedSeries = cartSeries.map((cartesian, i) => ({ ...cartesian, yAxisIndex: axes.seriesYAxisIndex[i] ?? 0 }));
+  const series = attachThresholdMarks(indexedSeries, cartesianThresholdMarks(ctx));
 
   // Pin the time axis to the dashboard range so gaps in this panel's data still
   // align with sibling panels sharing the same range. Labels are formatted via
   // Grafana's timezone-aware formatter (ECharts' built-in date labels would
   // render in browser-local time, ignoring the dashboard timezone).
-  const xAxis = mergeAxisStyle(cartesianTimeDefaultOptions.xAxis, axisStyle, {
+  const xAxis = mergeAxisStyle<XAXisOption>(cartesianTimeDefaultOptions.xAxis, axisStyle, {
     ...getTimeAxisBounds(ctx.timeRange),
-    axisLabel: { formatter: getTimeAxisLabelFormatter(ctx.timeRange, ctx.timeZone) },
-    zlevel: options.zLevel?.axis,
+    axisLabel: {
+      formatter: getTimeAxisLabelFormatter(ctx.timeRange, ctx.timeZone),
+      ...getXTickRotate(options.xTickRotate),
+    },
   });
 
   return {
     ...cartesianTimeDefaultOptions,
-    legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
-    grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
+    legend: resolveEChartsLegend(isGrafanaLegend, options.legend, theme),
+    grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend, getAxisGridSpacing(axes)),
     xAxis,
-    yAxis,
-    series: cartSeries,
+    yAxis: axes.yAxis,
+    series,
   };
 }
 
@@ -74,8 +106,8 @@ function buildTimeOption(
 function buildCategoryOption(
   ctx: ChartContext<CartesianSingleValueSeriesType>,
   isGrafanaLegend: boolean
-): CartesianOption | null {
-  const { theme, options, formatValue, seriesType } = ctx;
+): EChartCartesianSeriesOption | null {
+  const { theme, options, formatValue, seriesType, timeZone } = ctx;
 
   if (!isCartesianSingleValueSeriesType(seriesType)) {
     throw new Error(`Categorical-x requires a cartesian series type! ${seriesType}`);
@@ -83,21 +115,41 @@ function buildCategoryOption(
 
   const categoryData = categoryCartesianToEChartsOption({ ...ctx, seriesType });
   const axisStyle = getCartesianAxisStyle(theme);
-  const yAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.yAxis, axisStyle, undefined, formatValue);
+
+  // One y-axis per distinct field unit; each series is pinned to its unit's axis.
+  const axes = buildCartesianYAxes({
+    fields: cartesianSeriesFields(ctx),
+    baseYAxis: cartesianCategoryDefaultOptions.yAxis,
+    axisStyle,
+    theme,
+    timeZone,
+    fallbackFormatter: formatValue,
+    zlevel: options.zLevel?.axis,
+  });
+
+  const baseSeries = categoryData.series;
+  const seriesArray = Array.isArray(baseSeries) ? baseSeries : baseSeries ? [baseSeries] : [];
+  const indexedSeries = seriesArray.map((cartesian, i) => ({
+    ...cartesian,
+    yAxisIndex: axes.seriesYAxisIndex[i] ?? 0,
+  }));
+  const series = attachThresholdMarks(indexedSeries, cartesianThresholdMarks(ctx));
 
   // The category axis carries its labels in `data`; there is no per-tick value
-  // to format, so no value formatter is applied to the x-axis.
+  // to format, so no value formatter is applied to the x-axis. The Advanced "X
+  // tick rotation" is merged into the axis label (omitted at 0).
   const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
     data: categoryData.categories,
+    axisLabel: getXTickRotate(options.xTickRotate),
   });
 
   return {
     ...cartesianCategoryDefaultOptions,
-    legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
-    grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
+    legend: resolveEChartsLegend(isGrafanaLegend, options.legend, theme),
+    grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend, getAxisGridSpacing(axes)),
     xAxis,
-    yAxis,
-    series: categoryData.series,
+    yAxis: axes.yAxis,
+    series,
   };
 }
 
@@ -110,40 +162,164 @@ function buildCategoryOption(
 function buildMultiValueOption(
   ctx: ChartContext<MultiValueSeriesType>,
   isGrafanaLegend: boolean
-): ECBasicOption | null {
+): EChartMultiValueCartesianSeriesOption | null {
   const { theme, options, formatValue, timeRange, timeZone } = ctx;
+  // Hiding every series via the legend strips the value fields the candlestick/
+  // boxplot series is built from, so the converter yields no data. Keep the axes
+  // and render an empty plot (matches core Grafana) instead of dropping the panel.
   const multiValueData = multiValueCartesianToEChartsOption(ctx);
-
-  if (!multiValueData) {
-    return null;
-  }
 
   const axisStyle = getCartesianAxisStyle(theme);
 
-  const yAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.yAxis, axisStyle, undefined, formatValue);
+  // Candlestick/boxplot share one value axis. Source explicit Min/Max from the
+  // first numeric field (the same field backing the panel `formatValue`); any
+  // unset side keeps ECharts' `scale: true` auto-fit.
+  const representativeField = ctx.frames.flatMap((frame) => frame.fields).find(isNumberField);
+  const { min, max } = representativeField ? getFieldMinMax(representativeField) : {};
+
+  const yAxis = mergeAxisStyle(
+    cartesianCategoryDefaultOptions.yAxis,
+    axisStyle,
+    {
+      zlevel: options.zLevel?.axis,
+      min,
+      max,
+    },
+    formatValue
+  );
 
   // Candlestick/boxplot render on a category axis whose labels are ISO
   // timestamps (kept ISO for deterministic categories). Format them for display
   // via Grafana's timezone-aware formatter; non-time categories pass through.
   const xAxis = mergeAxisStyle(cartesianCategoryDefaultOptions.xAxis, axisStyle, {
-    data: multiValueData.categories,
-    axisLabel: { formatter: getTimeAxisLabelFormatter(timeRange, timeZone) },
+    data: multiValueData?.categories ?? [],
+    axisLabel: { formatter: getTimeAxisLabelFormatter(timeRange, timeZone), ...getXTickRotate(options.xTickRotate) },
   });
+
+  const baseSeries = multiValueData?.series;
+  const seriesArray = Array.isArray(baseSeries) ? baseSeries : baseSeries ? [baseSeries] : [];
+  // The multi-value series maps to a legend item by name; drop it when hidden
+  // via the legend toggle. The legend keeps the item (greyed) so it can be
+  // toggled back (see `buildMultiValueCartesianLegendItems`).
+  const seriesNames = seriesArray.map((chartSeries) => String(chartSeries.name ?? ''));
+  const hidden = getHiddenSeriesNames(ctx.fieldConfig, seriesNames);
+  const visibleSeries = seriesArray.filter((chartSeries) => !hidden.has(String(chartSeries.name ?? '')));
+  const series = attachThresholdMarks(visibleSeries, cartesianThresholdMarks(ctx));
 
   return {
     ...cartesianCategoryDefaultOptions,
-    legend: isGrafanaLegend ? { show: false } : getLegendOption(options.legend, theme),
+    legend: resolveEChartsLegend(isGrafanaLegend, options.legend, theme),
     grid: getCartesianGrid(isGrafanaLegend ? undefined : options.legend),
     xAxis,
     yAxis,
-    series: multiValueData.series,
+    series,
   };
+}
+
+/**
+ * Numeric value fields in the same order the converters emit series, so a
+ * tooltip's `seriesIndex` maps back to its source field. Multi-value
+ * (candlestick/boxplot) draws a single series from several fields, so there is
+ * no per-series field to return; the resolver falls back to the panel formatter.
+ */
+function cartesianSeriesFields(ctx: ChartContext): Field[] {
+  if (isMultiValueSeriesType(ctx.seriesType)) {
+    return [];
+  }
+  if (framesHaveTimeField(ctx.frames)) {
+    return collectTimeSeriesFields(ctx.frames);
+  }
+  const frame = findCategoricalFrame(ctx.frames);
+  return frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+}
+
+/**
+ * Threshold line/region overlays for the panel, derived from the first field
+ * with an active threshold display. Thresholds render once on the shared value
+ * axis, so callers attach the result to a single series. Returns `undefined`
+ * when no field requests thresholds.
+ */
+function cartesianThresholdMarks(ctx: ChartContext): ThresholdMarks | undefined {
+  const field = findThresholdField(ctx.frames.flatMap((frame) => frame.fields));
+  if (!field) {
+    return undefined;
+  }
+
+  const display = thresholdDisplayForMode(getThresholdsStyleMode(field));
+  const steps = resolveFieldThresholds(field, ctx.theme);
+  if (!display || !steps) {
+    return undefined;
+  }
+
+  return buildThresholdMarks(steps, display);
+}
+
+/**
+ * Attach threshold overlays to the first series so the horizontal lines/regions
+ * paint once on the shared y-axis rather than being duplicated per series.
+ */
+function attachThresholdMarks<T>(series: T[], marks: ThresholdMarks | undefined): T[] {
+  if (!marks || series.length === 0) {
+    return series;
+  }
+  return [{ ...series[0], ...marks }, ...series.slice(1)];
 }
 
 export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>, { isGrafanaLegend }) {
+  getTooltipValueFormatter(ctx) {
+    const formatters = getFieldValueFormatters(cartesianSeriesFields(ctx), ctx.theme, ctx.timeZone);
+    return indexedFormatterResolver(formatters, ctx.formatValue, 'seriesIndex');
+  },
+
+  getTooltipFieldResolver(ctx) {
+    const seriesType = ctx.seriesType;
+    if (isMultiValueSeriesType(seriesType)) {
+      // Candlestick/boxplot draw one item from several fields at once, so the
+      // hovered *dimension* picks the field while `dataIndex` picks the frame
+      // row the item was rendered from (time-filtered rows shift the two apart).
+      const sources = resolveMultiValueSources({ ...ctx, seriesType });
+      return (item) => {
+        if (sources == null || item.dimensionIndex == null || item.dataIndex == null) {
+          return undefined;
+        }
+        const field = sources.fields[item.dimensionIndex];
+        const rowIndex = sources.rows[item.dataIndex];
+        return field != null && rowIndex != null ? { field, rowIndex } : undefined;
+      };
+    }
+
+    // Same field order as the series (see `cartesianSeriesFields`), so the
+    // hovered item's `seriesIndex` selects its source field and `dataIndex` its
+    // row — the tooltip footer reads that field's data links / labels.
+    const fields = cartesianSeriesFields(ctx);
+    return (item) => {
+      if (item.seriesIndex == null) {
+        return undefined;
+      }
+      const field = fields[item.seriesIndex];
+      return field ? { field, rowIndex: item.dataIndex ?? 0 } : undefined;
+    };
+  },
+
+  getTooltipDimensions(ctx) {
+    // Labels follow each series' own ECharts data order, not the Grafana field
+    // order: candlestick is emitted `[open, close, low, high]` (see
+    // `multiValueCartesian`), which is not the OHLC order its field names use.
+    if (ctx.seriesType === 'candlestick') {
+      return ['Open', 'Close', 'Low', 'High'];
+    }
+    if (ctx.seriesType === 'boxplot') {
+      return ['Min', 'Q1', 'Median', 'Q3', 'Max'];
+    }
+    return undefined;
+  },
+
+  buildOption(
+    ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>,
+    { isGrafanaLegend }
+  ): EChartCartesianSeriesOption | EChartMultiValueCartesianSeriesOption | null {
     // @todo gate invalid frames and always throw in internal methods
 
     const seriesType = ctx.seriesType;
@@ -168,7 +344,7 @@ export const cartesianChartModule: ChartModule = {
       return buildMultiValueCartesianLegendItems({ ...ctx, seriesType });
     }
     return framesHaveTimeField(ctx.frames)
-      ? buildTimeSeriesLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone)
-      : buildCategoryCartesianLegendItems(ctx.frames, ctx.theme, calcs, ctx.timeZone);
+      ? buildTimeSeriesLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone)
+      : buildCategoryCartesianLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
   },
 };

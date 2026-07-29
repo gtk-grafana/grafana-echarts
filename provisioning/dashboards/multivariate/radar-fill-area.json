@@ -1,0 +1,180 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "multivariate", "radar"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Multivariate \u2014 radar fill area",
+  "uid": "a1b2c3d4-0002-4002-8002-radarfill002",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Default-tier \"Fill area\" toggle OFF (radarFillArea unset): polygons are outlined only \u2014 the default render.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "radar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Fill area: Off (outlines)",
+      "type": "grafana-echartsmultivariate-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Default-tier \"Fill area\" toggle ON (radarFillArea: true): each polygon is filled with a translucent tint (series.areaStyle).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "radar",
+        "radarFillArea": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Fill area: On",
+      "type": "grafana-echartsmultivariate-panel"
+    }
+  ]
+}

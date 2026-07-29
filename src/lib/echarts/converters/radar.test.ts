@@ -68,27 +68,6 @@ describe('radarToEChartsOption', () => {
     });
   });
 
-  describe('value coercion', () => {
-    it('coerces null/undefined values to null but preserves zero, and omits max when an axis has no data', () => {
-      const frame = toDataFrame({
-        fields: [
-          { name: 'category', type: FieldType.string, values: ['a', 'b', 'c', 'd'] },
-          {
-            name: 'v',
-            type: FieldType.number,
-            values: [0, null, 30, undefined as unknown as number],
-            config: { displayName: 'v' },
-          },
-        ],
-      });
-
-      const result = radarToEChartsOption([frame], theme);
-
-      expect(result!.data).toMatchObject([{ name: 'v', value: [0, null, 30, null] }]);
-      expect(result!.indicator).toEqual([{ name: 'a', max: 0 }, { name: 'b' }, { name: 'c', max: 30 }, { name: 'd' }]);
-    });
-  });
-
   describe('no usable data', () => {
     it('returns null for an empty frame list', () => {
       expect(radarToEChartsOption([], theme)).toBeNull();

@@ -1,0 +1,168 @@
+import { createTheme, type Field, FieldType, toDataFrame } from '@grafana/data';
+import { TooltipDisplayMode } from '@grafana/schema';
+import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+
+import { type PieSliceModel } from 'lib/echarts/converters/types';
+import { buildPieTooltipModel } from 'lib/echarts/tooltip/pie';
+
+const theme = createTheme();
+
+// ECharts formatter params carry more fields at runtime than the base type; the
+// tests only set the ones the pie formatter reads (dataIndex/name).
+const asParams = (params: unknown) => params as TopLevelFormatterParams;
+
+const sliceField = (value: number): Field =>
+  toDataFrame({ fields: [{ name: 'v', type: FieldType.number, values: [value] }] }).fields[0];
+
+/**
+ * The real frame column a slice was reduced from. Distinct from the synthetic
+ * single-value `field`, which is rebuilt for the legend and carries no data
+ * links — the footer must resolve against this one.
+ */
+const sourceColumn = (): Field =>
+  toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [30, 50, 20] }] }).fields[0];
+
+const slice = (name: string, value: number | undefined, color: string, sourceRowIndex = 0): PieSliceModel => ({
+  name,
+  value,
+  color,
+  hidden: false,
+  field: sliceField(value ?? 0),
+  sourceField: sourceColumn(),
+  sourceRowIndex,
+});
+
+// Three visible slices summing to 100 so percentages read cleanly.
+const slices: PieSliceModel[] = [
+  slice('A', 30, '#aaaaaa', 0),
+  slice('B', 50, '#bbbbbb', 1),
+  slice('C', 20, '#cccccc', 2),
+];
+
+const labels = (rows: Array<{ label: string }>) => rows.map((row) => row.label);
+const values = (rows: Array<{ value: string }>) => rows.map((row) => row.value);
+
+describe('buildPieTooltipModel', () => {
+  describe('Single mode', () => {
+    it('shows only the hovered slice: name header, value, and share of the whole', () => {
+      const model = buildPieTooltipModel(
+        slices,
+        TooltipDisplayMode.Single,
+        theme
+      )(asParams({ dataIndex: 0, name: 'A', value: 30 }));
+
+      expect(model.header).toEqual({ label: 'A', value: '' });
+      expect(model.rows).toHaveLength(1);
+      expect(model.rows[0].value).toBe('30 (30%)');
+      expect(model.rows[0].color).toBe('#aaaaaa');
+      // Other slices are not listed in Single mode.
+      expect(labels(model.rows)).not.toContain('B');
+      // The footer source points at the slice's real backing column and row —
+      // not the synthetic single-value field, which carries no data links.
+      expect(model.source).toEqual({ field: slices[0].sourceField, rowIndex: 0 });
+      expect(model.source?.field).not.toBe(slices[0].field);
+    });
+
+    it('omits the footer source for a slice with no backing column', () => {
+      const orphan: PieSliceModel[] = [{ ...slice('A', 30, '#aaaaaa'), sourceField: undefined }];
+      const model = buildPieTooltipModel(
+        orphan,
+        TooltipDisplayMode.Single,
+        theme
+      )(asParams({ dataIndex: 0, name: 'A', value: 30 }));
+
+      expect(model.source).toBeUndefined();
+    });
+
+    it('never falls back to the ECharts auto series name ("series 0")', () => {
+      const model = buildPieTooltipModel(
+        slices,
+        TooltipDisplayMode.Single,
+        theme
+      )(asParams({ dataIndex: 2, name: 'C', value: 20 }));
+
+      expect(model.header).toEqual({ label: 'C', value: '' });
+      expect(model.header?.label).not.toContain('series');
+    });
+
+    it('resolves the hovered slice by name when dataIndex is absent', () => {
+      const model = buildPieTooltipModel(slices, TooltipDisplayMode.Single, theme)(asParams({ name: 'B', value: 50 }));
+
+      expect(model.header).toEqual({ label: 'B', value: '' });
+      expect(model.rows[0].value).toBe('50 (50%)');
+    });
+  });
+
+  describe('All mode', () => {
+    it('lists every visible slice with value and percentage, headed by the hovered one', () => {
+      const model = buildPieTooltipModel(
+        slices,
+        TooltipDisplayMode.Multi,
+        theme
+      )(asParams({ dataIndex: 1, name: 'B', value: 50 }));
+
+      expect(model.header).toEqual({ label: 'B', value: '' });
+      expect(values(model.rows)).toEqual(['30 (30%)', '50 (50%)', '20 (20%)']);
+      // Each row carries its own slice's row, so the footer follows the click.
+      expect(model.rows.map((row) => row.source?.rowIndex)).toEqual([0, 1, 2]);
+    });
+
+    it('emphasizes exactly the hovered slice row', () => {
+      const model = buildPieTooltipModel(
+        slices,
+        TooltipDisplayMode.Multi,
+        theme
+      )(asParams({ dataIndex: 1, name: 'B', value: 50 }));
+
+      const emphasized = model.rows.filter((row) => row.emphasis);
+      expect(emphasized).toHaveLength(1);
+      expect(emphasized[0].label).toBe('B');
+    });
+
+    it('computes percentages from the total, whole number by default (core Grafana)', () => {
+      const thirds: PieSliceModel[] = [slice('x', 1, '#111111'), slice('y', 2, '#222222')];
+      const model = buildPieTooltipModel(
+        thirds,
+        TooltipDisplayMode.Multi,
+        theme
+      )(asParams({ dataIndex: 0, name: 'x', value: 1 }));
+
+      expect(values(model.rows)).toEqual(['1 (33%)', '2 (67%)']);
+    });
+
+    it('drops zero-value slices when hideZeros is set, keeping slice order and emphasis', () => {
+      const withZero: PieSliceModel[] = [
+        slice('A', 30, '#aaaaaa'),
+        slice('Z', 0, '#000000'),
+        slice('B', 50, '#bbbbbb'),
+      ];
+      const model = buildPieTooltipModel(
+        withZero,
+        TooltipDisplayMode.Multi,
+        theme,
+        undefined,
+        true
+      )(asParams({ dataIndex: 2, name: 'B', value: 50 }));
+
+      // Two rows remain (A and B); the zero slice Z is gone.
+      expect(labels(model.rows)).toEqual(['A', 'B']);
+      // Emphasis still lands on the hovered slice B, whose original index (2) is unchanged.
+      const emphasized = model.rows.filter((row) => row.emphasis);
+      expect(emphasized).toHaveLength(1);
+      expect(emphasized[0].label).toBe('B');
+    });
+
+    it('keeps null-valued slices even when hideZeros is set', () => {
+      const withNull: PieSliceModel[] = [slice('A', 30, '#aaaaaa'), slice('N', undefined, '#999999')];
+      const model = buildPieTooltipModel(
+        withNull,
+        TooltipDisplayMode.Multi,
+        theme,
+        undefined,
+        true
+      )(asParams({ dataIndex: 0, name: 'A', value: 30 }));
+
+      expect(labels(model.rows)).toEqual(['A', 'N']);
+    });
+  });
+});
