@@ -39,6 +39,10 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     });
 
     commonOptionsBuilder.addLegendOptions(builder);
+    // `singleOnly`: a hierarchy hover is always one node, so "All" has nothing to
+    // list. Note `hierarchyChartModule` does *not* set `singleTooltipOnly`, so a
+    // dashboard saved with `multi` before this still builds an axis trigger; see
+    // `ChartModule.singleTooltipOnly`.
     commonOptionsBuilder.addTooltipOptions(builder, true);
 
     return builder;

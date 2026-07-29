@@ -226,7 +226,12 @@ const buildSeries = (
 ) => {
   const series: BinnedHeatmapSeries[] = [];
   series.push(
-    getBinnedHeatmapSeries(heatmap, { theme, timeZone: ctx.timeZone, formatValue }, 0, options.zLevel?.series)
+    getBinnedHeatmapSeries(
+      heatmap,
+      { theme, timeZone: ctx.timeZone, formatValue, tooltipSink: ctx.tooltipSink },
+      0,
+      options.zLevel?.series
+    )
   );
   cartSeries.forEach((cartesian, i) => {
     // Overlay series never animate, even when the panel opts in via

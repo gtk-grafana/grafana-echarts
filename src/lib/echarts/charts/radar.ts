@@ -1,22 +1,39 @@
+import { type Field } from '@grafana/data';
 import { findCategoricalFrame, mapNumericFields } from 'lib/echarts/converters/frames';
 import { radarToEChartsOption } from 'lib/echarts/converters/radar';
 import { getLegendOption, DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { buildRadarLegendItems } from 'lib/echarts/options/legendItems';
 import { radarDefaultOptions } from 'lib/echarts/options/radar';
 import { getFieldValueFormatters } from 'lib/echarts/style';
-import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
 import { type ChartContext, type ChartModule, type EChartRadarSeriesOption } from './types';
 
 export const radarChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
+  // @todo restore "All" once a radar hover expands into one row per indicator.
+  // ECharts hands the formatter a single param whose `value` is the polygon's
+  // whole indicator array, so today an All tooltip would repeat that one row
+  // rather than list the axes. See the multivariate parity doc.
+  singleTooltipOnly: true,
 
   getTooltipValueFormatter(ctx) {
     // Each polygon is one numeric field rendered as a data item in a single
     // series, so the tooltip's `dataIndex` selects the polygon's field formatter.
-    const frame = findCategoricalFrame(ctx.frames);
-    const fields = frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
-    const formatters = getFieldValueFormatters(fields, ctx.theme, ctx.timeZone);
+    const formatters = getFieldValueFormatters(radarSeriesFields(ctx), ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
+  },
+
+  getTooltipFieldResolver(ctx) {
+    // Keyed by `dataIndex` like the value formatter above; a polygon reduces a
+    // whole field, so links resolve at row 0.
+    const fields = radarSeriesFields(ctx);
+    return (item) => {
+      if (item.dataIndex == null) {
+        return undefined;
+      }
+      const field = fields[item.dataIndex];
+      return field ? { field, rowIndex: 0 } : undefined;
+    };
   },
 
   buildOption(ctx: ChartContext<'radar'>, { isGrafanaLegend }): EChartRadarSeriesOption | null {
@@ -45,3 +62,13 @@ export const radarChartModule: ChartModule = {
     return buildRadarLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
   },
 };
+
+/**
+ * The numeric field behind each polygon, in the order radar emits its data items
+ * — so a tooltip's `dataIndex` maps back to its source field. Mirrors
+ * `cartesianSeriesFields`.
+ */
+function radarSeriesFields(ctx: ChartContext): Field[] {
+  const frame = findCategoricalFrame(ctx.frames);
+  return frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+}

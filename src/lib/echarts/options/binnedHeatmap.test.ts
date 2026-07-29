@@ -1,7 +1,6 @@
-import { createTheme, FieldType, type ValueFormatter } from '@grafana/data';
-import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { FieldType } from '@grafana/data';
 import { type BinnedHeatmapData } from 'lib/echarts/converters/binnedHeatmap';
-import { buildBinnedHeatmapTooltip, getBinnedHeatmapBucketAxis } from 'lib/echarts/options/binnedHeatmap';
+import { getBinnedHeatmapBucketAxis } from 'lib/echarts/options/binnedHeatmap';
 
 const baseData = (overrides: Partial<BinnedHeatmapData>): BinnedHeatmapData => ({
   cells: [],
@@ -59,74 +58,5 @@ describe('getBinnedHeatmapBucketAxis', () => {
     const formatter = (axis.axisLabel as { formatter: (v: number) => string }).formatter;
     expect(formatter(0.5)).toBe('a');
     expect(formatter(1.5)).toBe('b');
-  });
-});
-
-describe('buildBinnedHeatmapTooltip', () => {
-  const theme = createTheme();
-  // Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
-  const formatValue: ValueFormatter = (value) => ({ text: value == null || Number.isNaN(value) ? 'null' : `${value}` });
-  const ctx = { theme, timeZone: 'utc', formatValue };
-  // Encoded cell tuple: [xStart, yStart, xEnd, yEnd, value].
-  const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as unknown as TopLevelFormatterParams;
-
-  it('formats the x header as time and shows the value and bucket name', () => {
-    const formatter = buildBinnedHeatmapTooltip(
-      baseData({
-        xIsTime: true,
-        yBuckets: [
-          { start: 0, end: 10, label: '10' },
-          { start: 10, end: 20, label: '20' },
-        ],
-      }),
-      ctx
-    );
-
-    const el = formatter(asParams([0, 10, 60000, 20, 7]));
-
-    // xStart = 0 -> unix epoch in the forced-UTC test timezone.
-    expect(el.textContent).toContain('1970-01-01 00:00:00');
-    expect(el.textContent).toContain('Value');
-    expect(el.textContent).toContain('7');
-    expect(el.textContent).toContain('Name');
-    // Bucket keyed by yStart:yEnd (10:20).
-    expect(el.textContent).toContain('20');
-  });
-
-  it('formats a numeric x header when the axis is not time', () => {
-    const formatter = buildBinnedHeatmapTooltip(
-      baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
-      ctx
-    );
-
-    const el = formatter(asParams([5, 0, 6, 1, 3]));
-
-    expect(el.textContent).toContain('5');
-    expect(el.textContent).toContain('a');
-    expect(el.textContent).toContain('3');
-  });
-
-  it('falls back to the numeric bucket bounds when no label matches', () => {
-    const formatter = buildBinnedHeatmapTooltip(
-      baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
-      ctx
-    );
-
-    const el = formatter(asParams([0, 100, 1, 200, 9]));
-
-    expect(el.textContent).toContain('100 - 200');
-  });
-
-  it('routes null cells through the field formatter for its No value text', () => {
-    const formatter = buildBinnedHeatmapTooltip(
-      baseData({ xIsTime: false, yBuckets: [{ start: 0, end: 1, label: 'a' }] }),
-      ctx
-    );
-
-    const el = formatter(asParams([0, 0, 1, 1, null]));
-
-    // The representative formatter (stub) emits the field's No value text; in
-    // production this is `config.noValue` (default '-'). See getValueFormatter.
-    expect(el.textContent).toContain('null');
   });
 });

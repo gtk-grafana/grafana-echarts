@@ -359,5 +359,22 @@ describe('timeSeriesToEChartsOption', () => {
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('a');
     });
+
+    describe('hover emphasis', () => {
+      // The tooltip marks its focused point with a `highlight` dispatch, which
+      // applies this state; without it the marker would be ECharts' near-invisible
+      // default. See `lib/echarts/tooltip/proximity`.
+      it.each(['line', 'scatter', 'effectScatter'] as const)('scales the %s symbol on emphasis', (seriesType) => {
+        const result = run([multiFrame('a', [1, 2], [10, 20])], seriesType);
+
+        expect(result![0].emphasis).toEqual({ focus: 'none', scale: 2 });
+      });
+
+      it('leaves bars alone: they have no symbol to scale', () => {
+        const result = run([multiFrame('a', [1, 2], [10, 20])], 'bar');
+
+        expect(result![0].emphasis).toBeUndefined();
+      });
+    });
   });
 });

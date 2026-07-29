@@ -25,13 +25,6 @@ import {
 export const hierarchyChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  getTooltipValueFormatter(ctx) {
-    // A single value dimension sizes every node, so all items share the panel's
-    // formatter. The per-series tooltip (see options/hierarchy.ts) overrides the
-    // content anyway; this is the fallback for the generic tooltip path.
-    return () => ctx.formatValue;
-  },
-
   buildOption(ctx: HierarchyChartContext, _base): EChartTreemapSeriesOption | EChartSunburstSeriesOption | null {
     const data = frameToHierarchy(ctx.frames, ctx.theme);
     if (!data) {

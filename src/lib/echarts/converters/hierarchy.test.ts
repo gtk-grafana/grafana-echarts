@@ -54,14 +54,16 @@ describe('frameToHierarchy (nested set)', () => {
           name: 'total',
           value: 100,
           self: 10,
+          sourceRowIndex: 0,
           children: [
             {
               name: 'render',
               value: 60,
               self: 20,
-              children: [{ name: 'draw', value: 40, self: 40 }],
+              sourceRowIndex: 1,
+              children: [{ name: 'draw', value: 40, self: 40, sourceRowIndex: 2 }],
             },
-            { name: 'io', value: 30, self: 30 },
+            { name: 'io', value: 30, self: 30, sourceRowIndex: 3 },
           ],
         },
       ],
@@ -85,7 +87,9 @@ describe('frameToHierarchy (nested set)', () => {
     const result = frameToHierarchy([frame], theme);
 
     expect(result).toEqual({
-      roots: [{ name: 'root', value: 10, children: [{ name: 'child', value: 4 }] }],
+      roots: [
+        { name: 'root', value: 10, sourceRowIndex: 0, children: [{ name: 'child', value: 4, sourceRowIndex: 1 }] },
+      ],
     });
   });
 
@@ -101,7 +105,9 @@ describe('frameToHierarchy (nested set)', () => {
     const result = frameToHierarchy([frame], theme);
 
     expect(result).toEqual({
-      roots: [{ name: 'root', value: 10, children: [{ name: 'child', value: 4 }] }],
+      roots: [
+        { name: 'root', value: 10, sourceRowIndex: 0, children: [{ name: 'child', value: 4, sourceRowIndex: 1 }] },
+      ],
     });
   });
 
@@ -130,9 +136,16 @@ describe('frameToHierarchy (nested set)', () => {
           name: 'total',
           value: 100,
           self: 10,
+          sourceRowIndex: 0,
           children: [
-            { name: 'render', value: 60, self: 20, children: [{ name: 'draw', value: 40, self: 40 }] },
-            { name: 'io', value: 30, self: 30 },
+            {
+              name: 'render',
+              value: 60,
+              self: 20,
+              sourceRowIndex: 1,
+              children: [{ name: 'draw', value: 40, self: 40, sourceRowIndex: 2 }],
+            },
+            { name: 'io', value: 30, self: 30, sourceRowIndex: 3 },
           ],
         },
       ],
@@ -153,9 +166,11 @@ describe('frameToHierarchy (flat categorical)', () => {
 
     expect(result).toEqual({
       roots: [
-        { name: 'A', value: 5 },
-        { name: 'B', value: 3 },
-        { name: 'C', value: 2 },
+        // Each node keeps the row it came from, so the tooltip footer can
+        // resolve that row's data links against the value field.
+        { name: 'A', value: 5, sourceRowIndex: 0 },
+        { name: 'B', value: 3, sourceRowIndex: 1 },
+        { name: 'C', value: 2, sourceRowIndex: 2 },
       ],
     });
   });
@@ -172,8 +187,8 @@ describe('frameToHierarchy (flat categorical)', () => {
 
     expect(result).toEqual({
       roots: [
-        { name: 'A', value: 5 },
-        { name: 'B', value: null },
+        { name: 'A', value: 5, sourceRowIndex: 0 },
+        { name: 'B', value: null, sourceRowIndex: 1 },
       ],
     });
   });

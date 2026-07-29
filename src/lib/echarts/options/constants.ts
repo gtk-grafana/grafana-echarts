@@ -47,6 +47,8 @@ export function getHeatmapColors(scheme?: HeatmapColorScheme): string[] {
 }
 /** Dimension index of the cell value within the encoded heatmap data tuple. */
 export const HEATMAP_VALUE_DIM = 4;
+/** Dimension index of the value within a matrix cell tuple `[xIndex, yIndex, value]`. */
+export const MATRIX_VALUE_DIM = 2;
 /** Reserved width (px) for the vertical visualMap color scale on the right. */
 export const HEATMAP_VISUALMAP_WIDTH = 82;
 /**

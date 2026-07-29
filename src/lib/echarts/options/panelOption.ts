@@ -9,12 +9,10 @@ import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
 import { resolveAnimation } from 'lib/echarts/performance/resolvers';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
-import {
-  getCrosshairAxisPointer,
-  getNoTooltipOption,
-  getTooltipOption,
-  grafanaTooltipModeToEChartsTrigger,
-} from 'lib/echarts/tooltip';
+import { NOOP_TOOLTIP_SINK } from 'lib/echarts/tooltip/model';
+import { type TooltipSink } from 'lib/echarts/tooltip/types';
+import { getCrosshairAxisPointer, getNoTooltipOption } from 'lib/echarts/tooltip/option';
+import { buildPanelTooltip } from 'lib/echarts/tooltip/panelTooltip';
 import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
 
 /**
@@ -29,13 +27,17 @@ import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
  */
 export function buildPanelChartOption(
   rawCtx: ChartContext,
-  { isGrafanaLegend }: { isGrafanaLegend: boolean }
+  { isGrafanaLegend, tooltipSink }: { isGrafanaLegend: boolean; tooltipSink?: TooltipSink }
 ): ECBasicOption {
   const chartModule = resolveChartModule(rawCtx.seriesType);
   if (!chartModule) {
     debug('Invalid chart module', LOG_LEVELS.error, rawCtx);
     throw new Error(`Invalid chart module for ${rawCtx.seriesType}`);
   }
+
+  // The React overlay's sink, threaded onto the context so per-series formatters
+  // (pie/hierarchy/heatmap) emit through the same channel as the top-level one.
+  const sink = tooltipSink ?? NOOP_TOOLTIP_SINK;
 
   // Drop value fields hidden via the legend visibility toggle before building.
   // The part-to-whole family (pie/funnel) is excluded: it hides slices by
@@ -46,22 +48,13 @@ export function buildPanelChartOption(
   // options are Default-visible and pass through untouched (see
   // `applyPartToWholeEditorModeDefaults`).
   const ctx: ChartContext = partToWholeSeriesTypes.includes(rawCtx.seriesType)
-    ? { ...rawCtx, options: applyPartToWholeEditorModeDefaults(rawCtx.options) }
-    : { ...rawCtx, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
+    ? { ...rawCtx, tooltipSink: sink, options: applyPartToWholeEditorModeDefaults(rawCtx.options) }
+    : { ...rawCtx, tooltipSink: sink, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
   const hasTimeField = framesHaveTimeField(ctx.frames);
   const axisType = panelTypeToAxis(ctx, hasTimeField);
-  const tooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
-  const tooltipOption = getTooltipOption(
-    grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
-    tooltipMode,
-    // Per-series resolver so each row honors its field's unit/decimals overrides.
-    chartModule.getTooltipValueFormatter(ctx),
-    ctx.theme,
-    // Common tooltip parity: hide zero-value rows and sort by value (Multi only).
-    { sort: ctx.options.tooltip?.sort, hideZeros: ctx.options.tooltip?.hideZeros }
-  );
+  const { option: tooltipOption, mode: tooltipMode } = buildPanelTooltip(ctx, chartModule, axisType);
 
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
   if (!echartOption) {

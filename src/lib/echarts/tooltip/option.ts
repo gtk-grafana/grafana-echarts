@@ -1,18 +1,19 @@
-import { type GrafanaTheme2 } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type EChartsAxisType } from 'lib/echarts/axes/converters';
-import { type TooltipOption } from 'echarts/types/dist/shared';
-import { convertThemePxToNumeric } from 'lib/grafana/converters/theme';
-import { type CrossStyle, type EChartsTooltipTrigger } from './eChartsTypes';
-import {
-  buildTooltipContent,
-  formatTooltipValue,
-  type TooltipRowOptions,
-  type TooltipValueFormatterResolver,
-} from './template';
+import { type ECBasicOption, type TooltipOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { NOOP_TOOLTIP_SINK, toEmittingFormatter } from './model';
+import { type EChartsTooltipTrigger, type TooltipModel, type TooltipSink } from './types';
 
 /** Crosshair line color from Core Grafana's uPlot panels. */
 const CROSSHAIR_COLOR = 'rgba(120, 120, 130, 0.5)';
+
+/**
+ * ECharts declares `crossStyle` inline on `tooltip.axisPointer` with no named
+ * export, so derive it rather than redeclare it. It widens `lineStyle` with a
+ * `textStyle`, so a value of this type satisfies both keys.
+ * https://echarts.apache.org/en/option.html#tooltip.axisPointer.crossStyle
+ */
+type CrossStyle = NonNullable<NonNullable<TooltipOption['axisPointer']>['crossStyle']>;
 
 /**
  * Pick the ECharts tooltip trigger for the chart's axis type and Grafana tooltip mode.
@@ -41,6 +42,32 @@ export function getNoTooltipOption() {
 }
 
 /**
+ * A per-series `tooltip` for the families that build their own content model
+ * (pie, funnel, hierarchy, both heatmaps) instead of going through the panel's
+ * generic one. Defaulting the sink here is what lets those formatters be
+ * attached unconditionally, including in unit tests that build a series with no
+ * React overlay wired.
+ * https://echarts.apache.org/en/option.html#series-pie.tooltip
+ */
+export function seriesTooltip(produce: (params: TopLevelFormatterParams) => TooltipModel, sink?: TooltipSink) {
+  return { formatter: toEmittingFormatter(produce, sink ?? NOOP_TOOLTIP_SINK) };
+}
+
+/**
+ * Read the resolved `trigger` off a built panel option. `ECBasicOption` types
+ * every component through an index signature, so the value arrives as `unknown`
+ * and has to be narrowed rather than asserted.
+ */
+export function getTooltipTrigger(option: ECBasicOption): EChartsTooltipTrigger {
+  const tooltip: unknown = option.tooltip;
+  if (tooltip == null || typeof tooltip !== 'object' || !('trigger' in tooltip)) {
+    return undefined;
+  }
+  const { trigger } = tooltip;
+  return trigger === 'item' || trigger === 'axis' || trigger === 'none' ? trigger : undefined;
+}
+
+/**
  *  ECharts axisPointer styled to match Core Grafana's uPlot cursor crosshair.
  *  https://echarts.apache.org/en/option.html#tooltip.axisPointer
  */
@@ -56,96 +83,58 @@ export function getCrosshairAxisPointer(): TooltipOption['axisPointer'] {
     // https://echarts.apache.org/en/option.html#tooltip.axisPointer.crossStyle
     crossStyle: lineStyle,
     label: { show: false },
+    // An axis pointer emphasises *every* series at the snapped x by default,
+    // which would mark a whole column of points as active. Only the
+    // proximity-focused point should carry the marker — matching Single mode and
+    // core Grafana, where one hover point is drawn at a time — so the automatic
+    // batch is suppressed and `useEChartsTooltip` highlights the one point
+    // itself.
+    // https://echarts.apache.org/en/option.html#axisPointer.triggerEmphasis
+    triggerEmphasis: false,
   };
 }
 
-/** Gap (px) between the cursor and the tooltip so it never sits under the pointer. */
-const TOOLTIP_CURSOR_GAP = 10;
-
 /**
- * Position the portaled tooltip next to the cursor, flipping at the chart's
- * right/bottom edges so it stays inside the view. Returned coords are
- * chart-local; ECharts transforms them into the `appendTo` container.
- * See https://echarts.apache.org/en/option.html#tooltip.position
- */
-const getTooltipPosition: NonNullable<TooltipOption['position']> = (point, _params, _dom, _rect, size) => {
-  const [cursorX, cursorY] = point;
-  const [tooltipWidth, tooltipHeight] = size.contentSize;
-  const [viewWidth, viewHeight] = size.viewSize;
-
-  const x =
-    cursorX + TOOLTIP_CURSOR_GAP + tooltipWidth > viewWidth
-      ? cursorX - tooltipWidth - TOOLTIP_CURSOR_GAP
-      : cursorX + TOOLTIP_CURSOR_GAP;
-  const y =
-    cursorY + TOOLTIP_CURSOR_GAP + tooltipHeight > viewHeight
-      ? cursorY - tooltipHeight - TOOLTIP_CURSOR_GAP
-      : cursorY + TOOLTIP_CURSOR_GAP;
-
-  // Keep the tooltip inside the chart view after flipping (avoids negative coords
-  // when portaled to document.body).
-  return {
-    left: Math.max(0, Math.min(x, viewWidth - tooltipWidth)),
-    top: Math.max(0, Math.min(y, viewHeight - tooltipHeight)),
-  };
-};
-
-/**
- * Native ECharts tooltip config.
- * Translates Grafana theme into supported eCharts styles
+ * A tooltip config that is functionally active but **visually silent**: ECharts
+ * still does hover hit-testing, multi-series ("All") aggregation, and draws the
+ * crosshair axisPointer, but the HTML box renders nothing (transparent chrome +
+ * empty content). The `formatter` instead converts the hovered `params` into a
+ * {@link TooltipModel} and hands it to `sink`, which the React overlay
+ * (`EChartsTooltip`) renders with `@grafana/ui`'s `VizTooltip`.
+ *
+ * This keeps the ECharts tooltip as the hover/aggregation engine while all
+ * visible tooltip UI is owned by React — so the option layer stays free of
+ * presentation, and the React layer stays free of ECharts (it only consumes the
+ * model). Positioning is owned by `VizTooltipContainer`, so no `position` or
+ * `appendTo` is set here.
  * See https://echarts.apache.org/en/option.html#tooltip
  */
-export function getTooltipOption(
+export function getSilentTooltipOption(
   trigger: EChartsTooltipTrigger,
   mode: TooltipDisplayMode,
-  resolveValueFormatter: TooltipValueFormatterResolver,
-  grafanaTheme: GrafanaTheme2,
-  rowOptions?: TooltipRowOptions
+  produce: (params: TopLevelFormatterParams) => TooltipModel,
+  sink: TooltipSink
 ): TooltipOption {
   if (mode === TooltipDisplayMode.None) {
     return { show: false };
   }
 
-  // Hide-zeros/sort only make sense for the multi-row "All" tooltip, matching
-  // Grafana's common tooltip options (both are gated on Multi mode there).
-  const multiRowOptions = mode === TooltipDisplayMode.Multi ? rowOptions : undefined;
-
   // https://echarts.apache.org/en/option.html#tooltip
   return {
     show: true,
-    // https://echarts.apache.org/en/option.html#grid.tooltip.position
-    position: getTooltipPosition,
     trigger,
     axisPointer: getCrosshairAxisPointer(),
-    // Portal the tooltip out of the panel container.
-    // We use the body instead of the grafana portal container because the zero-height fixed position Grafana portal
-    // doesn't work with the absolutely positioned eCharts tooltip
-    // https://echarts.apache.org/en/option.html#tooltip.appendTo
-    appendTo: document.body,
-    // Custom VizTooltip-style content, built as safe DOM (no innerHTML).
-    // Takes precedence over valueFormatter, which stays as a fallback for the
-    // default template (e.g. per-series tooltips that don't set their own).
+    // Emit the hovered content to React and render nothing native. Returning an
+    // empty string with transparent chrome makes the native box invisible.
     // https://echarts.apache.org/en/option.html#tooltip.formatter
-    formatter: (params) => buildTooltipContent(params, resolveValueFormatter, grafanaTheme, multiRowOptions),
-    // Fallback for the default template (no seriesIndex/dataIndex available here);
-    // resolves to the panel-level formatter.
-    valueFormatter: (eChartValue) => formatTooltipValue(eChartValue, resolveValueFormatter({})),
-    // https://echarts.apache.org/en/option.html#grid.tooltip.backgroundColor
-    backgroundColor: grafanaTheme.colors.background.elevated,
-    //https://echarts.apache.org/en/option.html#tooltip.padding
-    padding: convertThemePxToNumeric(grafanaTheme.spacing(1)),
-    //https://echarts.apache.org/en/option.html#grid.tooltip.textStyle
-    textStyle: {
-      fontSize: grafanaTheme.typography.bodySmall.fontSize,
-      fontFamily: grafanaTheme.typography.fontFamily,
-      color: grafanaTheme.colors.text.primary,
-    },
-    borderColor: grafanaTheme.colors.border.medium,
-    borderRadius: convertThemePxToNumeric(grafanaTheme.shape.radius.default),
-    // @todo get from theme?
-    borderWidth: 1,
-    // CSS for floating layer (e.g. box shadow) rich text so unsanitized strings are vulnerable
-    // https://echarts.apache.org/en/option.html#grid.tooltip.extraCssText
-    extraCssText: `box-shadow: ${grafanaTheme.shadows.z2};`,
+    formatter: toEmittingFormatter(produce, sink),
+    // Neutralize every visual aspect of the native box; the React overlay draws
+    // the real tooltip. `pointer-events: none` keeps the empty box from
+    // intercepting hover.
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    borderWidth: 0,
+    padding: 0,
+    extraCssText: 'box-shadow: none; pointer-events: none;',
   };
 }

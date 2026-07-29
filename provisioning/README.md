@@ -4,9 +4,28 @@ Don't forget to use dashboards v1 format as this repo hasn't set up v2 provision
 Use the local directory (`provisioning/dashboards/local`) to add dashboards that you don't want to commit to the repo.
 
 The provider recurses (`foldersFromFilesStructure: true`), so each subdirectory of
-`dashboards/` becomes a Grafana folder. All committed dashboards are hand-authored
-and backed by the **TestData DB** datasource (uid `trlxrdZVk`), so they work
-without any external data source.
+`dashboards/` becomes a Grafana folder. Committed dashboards are backed by the
+**TestData DB** datasource (uid `trlxrdZVk`), so they work without any external
+data source. All are hand-authored **except `tooltip-showcase.json`** — see below.
+
+## `tooltip-showcase.json` — generated, do not hand-edit
+
+The tooltip showcase is built by
+[`scripts/build-tooltip-showcase.py`](../scripts/build-tooltip-showcase.py); its
+two-dozen near-identical panels are generated so they stay consistent. Edit the
+script and regenerate, or your change is lost the next time anyone runs it:
+
+```sh
+python3 scripts/build-tooltip-showcase.py
+```
+
+The script formats its output through Prettier (which governs `provisioning/**`),
+so the regenerated file passes `pnpm run lint` as-is.
+
+It covers the React `VizTooltip` overlay across every chart family: proximity
+hover, All-mode row emphasis, click-to-pin, and the pinned footer's data links —
+each family resolves a hovered item back to a source field + row differently, so
+each gets its own panel with a data link attached.
 
 ## `part-to-whole/` — pie demos
 
