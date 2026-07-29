@@ -47,11 +47,12 @@
       const PALETTE = ['#7EB26D', '#EAB839', '#6ED0E0', '#EF843C', '#E24D42', '#1F78C1', '#BA43A9', '#705DA0'];
 
       // ---------------------------------------------------------------------
-      // Option builders mirroring the two real code paths:
-      //   buildTuples  -> `main`   (converters/timeSeries.ts on main)
-      //   buildDataset -> branch   (converters/timeSeries.ts on this branch)
-      // `perf` toggles the branch's getSeriesPerfOptions() output, held
-      // identical across both data paths so the dataset delta is isolated.
+      // Option builders mirroring the real data paths:
+      //   buildTuples      -> converters/timeSeries.ts before typed arrays
+      //   buildDataset     -> the rejected `dataset` prototype (docs/dataset.md)
+      //   buildTypedArrays -> converters/timeSeries.ts today (toInterleavedData)
+      // `perf` toggles getSeriesPerfOptions() output, held identical across
+      // every data path so the path delta is isolated.
       // ---------------------------------------------------------------------
       function commonSeriesProps(name, color, perf, density) {
         const s = {
@@ -129,6 +130,39 @@
         return { series: series, dataset: dataset };
       }
 
+      // Mirrors the converter's toInterleavedData(): one flat interleaved
+      // Float64Array per series ([t0, v0, t1, v1, ...], NaN for missing),
+      // Float64 because epoch-ms rules out Float32, and `dimensions` declared
+      // because SOURCE_FORMAT_TYPED_ARRAY cannot infer the dimension count.
+      function buildTypedArrays(frames, perf, density) {
+        const series = [];
+        let n = 0;
+        for (let f = 0; f < frames.length; f++) {
+          const frame = frames[f];
+          for (let v = 0; v < frame.fields.length; v++) {
+            const field = frame.fields[v];
+            const s = commonSeriesProps(field.name, PALETTE[n % PALETTE.length], perf, density);
+            const data = new Float64Array(frame.time.length * 2);
+            for (let i = 0; i < frame.time.length; i++) {
+              const value = field.values[i];
+              data[i * 2] = frame.time[i];
+              data[i * 2 + 1] = typeof value === 'number' ? value : NaN;
+            }
+            s.data = data;
+            s.dimensions = ['time', 'value'];
+            series.push(s);
+            n++;
+          }
+        }
+        return { series: series };
+      }
+
+      const BUILDERS = { tuples: buildTuples, dataset: buildDataset, typed: buildTypedArrays };
+
+      function builderFor(variant) {
+        return BUILDERS[variant.path || (variant.dataset ? 'dataset' : 'tuples')];
+      }
+
       function fullOption(built, perf) {
         return Object.assign(
           {
@@ -169,7 +203,7 @@
 
           // --- Phase 1: build the option (converter-side cost) ---
           const b0 = performance.now();
-          const built = variant.dataset ? buildDataset(frames, perf, density) : buildTuples(frames, perf, density);
+          const built = builderFor(variant)(frames, perf, density);
           const option = fullOption(built, perf);
           const b1 = performance.now();
           const heapAfterBuild = performance.memory ? performance.memory.usedJSHeapSize : 0;
@@ -220,9 +254,7 @@
           const frames = window.__frames[scenarioSpec.key];
           freshChart();
           const density = measureDensity(frames);
-          const built = variant.dataset
-            ? buildDataset(frames, variant.perf, density)
-            : buildTuples(frames, variant.perf, density);
+          const built = builderFor(variant)(frames, variant.perf, density);
           // Force animation off for both so the still is deterministic.
           const option = Object.assign(fullOption(built, variant.perf), { animation: false });
           let done = false;

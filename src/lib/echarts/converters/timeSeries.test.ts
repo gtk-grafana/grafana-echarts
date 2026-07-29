@@ -86,24 +86,20 @@ describe('timeSeriesToEChartsOption', () => {
       const result = runSeries([wideFrame()], 'line');
 
       expect(result).toHaveLength(2);
-      expect(result[0]).toMatchObject({
-        name: 'cpu',
-        type: 'line',
-        data: [
-          [1, 10],
-          [2, 20],
-          [3, 30],
-        ],
-      });
-      expect(result[1]).toMatchObject({
-        name: 'mem',
-        type: 'line',
-        data: [
-          [1, 40],
-          [2, 50],
-          [3, 60],
-        ],
-      });
+      expect(result[0]).toMatchObject({ name: 'cpu', type: 'line' });
+      expect(Array.from(result[0].data as Float64Array)).toEqual([1, 10, 2, 20, 3, 30]);
+      expect(result[1]).toMatchObject({ name: 'mem', type: 'line' });
+      expect(Array.from(result[1].data as Float64Array)).toEqual([1, 40, 2, 50, 3, 60]);
+    });
+
+    // The dense-chart fast path: one flat interleaved buffer per series instead
+    // of per-point [time, value] tuples (SOURCE_FORMAT_TYPED_ARRAY — see
+    // docs/performance.md). `dimensions` is required with a flat buffer.
+    it('emits data as an interleaved Float64Array with declared dimensions', () => {
+      const result = runSeries([wideFrame()], 'line');
+
+      expect(result[0].data).toBeInstanceOf(Float64Array);
+      expect(result[0]).toMatchObject({ dimensions: ['time', 'value'] });
     });
 
     it('resolves a color for each series, shared between symbol and line', () => {
@@ -131,34 +127,23 @@ describe('timeSeriesToEChartsOption', () => {
       expect(result).toHaveLength(2);
 
       expect(result[0].name).toBe('a');
-      expect(result[0].data).toEqual([
-        [1, 10],
-        [2, 20],
-        [3, 30],
-      ]);
+      expect(Array.from(result[0].data as Float64Array)).toEqual([1, 10, 2, 20, 3, 30]);
 
       // Second series keeps its own distinct, non-aligned timestamps.
       expect(result[1].name).toBe('b');
-      expect(result[1].data).toEqual([
-        [5, 60],
-        [6, 80],
-        [9, 90],
-      ]);
+      expect(Array.from(result[1].data as Float64Array)).toEqual([5, 60, 6, 80, 9, 90]);
     });
   });
 
   describe('value coercion', () => {
-    it('coerces null/undefined values to null but preserves zero', () => {
+    // Typed-array data has no null: missing values are NaN, which ECharts treats
+    // as a gap exactly like tuple-form null. Zero is preserved.
+    it('coerces null/undefined values to NaN but preserves zero', () => {
       const frame = multiFrame('a', [1, 2, 3, 4], [0, null, 30, undefined as unknown as number]);
 
       const result = runSeries([frame], 'line');
 
-      expect(result[0].data).toEqual([
-        [1, 0],
-        [2, null],
-        [3, 30],
-        [4, null],
-      ]);
+      expect(Array.from(result[0].data as Float64Array)).toEqual([1, 0, 2, NaN, 3, 30, 4, NaN]);
     });
   });
 

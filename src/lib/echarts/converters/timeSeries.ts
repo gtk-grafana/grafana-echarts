@@ -30,9 +30,32 @@ function resolveFieldStack(field: Field, panelStack = false): boolean {
 }
 
 /**
+ * Flat `[t0, v0, t1, v1, …]` interleaving of a series' time and value columns.
+ * Missing values become `NaN`, which ECharts treats as a gap the same way it
+ * treats `null` in tuple form. Epoch-millisecond timestamps rule out `Float32`
+ * (24-bit mantissa), so the buffer is always `Float64Array`.
+ */
+function toInterleavedData(times: readonly number[], values: ReadonlyArray<number | string>): Float64Array {
+  const data = new Float64Array(times.length * 2);
+  for (let i = 0; i < times.length; i++) {
+    const value = values[i];
+    data[i * 2] = times[i];
+    data[i * 2 + 1] = typeof value === 'number' ? value : NaN;
+  }
+  return data;
+}
+
+/**
  * Convert Grafana time series DataFrames into ECharts series data.
  *
- * Data is emitted as inline `[time, value]` tuples.
+ * Cartesian data is emitted as one flat, interleaved `Float64Array` per series
+ * (see `toInterleavedData`) with `dimensions` declared — ECharts'
+ * `SOURCE_FORMAT_TYPED_ARRAY` path. Unlike the tuple form, its provider is
+ * `pure`/`persistent: false`, so `DataStore` fills its typed chunks in a single
+ * numeric pass and does not retain the source; the per-point tuple allocation
+ * (and its GC churn on dense charts) disappears. The heatmap overlay branch
+ * keeps tuples: it is small and its series carry no `type`.
+ * https://echarts.apache.org/en/option.html#series-line.data
  *
  * Series carry the type-aware performance props from `getSeriesPerfOptions`
  * (symbols off / LTTB for dense lines; `large` for dense scatter/bar), computed
@@ -56,7 +79,6 @@ export function timeSeriesToEChartsOption(
     const color = getSeriesColor(field, theme);
     const resolvedType = resolveFieldSeriesType<CartesianSingleValueSeriesType | HeatmapSeriesType>(field, seriesType);
     const name = getFieldDisplayName(field, frame, frames);
-    const data = timeField.values.map((time, i) => [time, field.values[i] ?? null]);
     const zlevel = options.zLevel?.series;
     // Type-aware fast-path props (symbols/sampling for line; large for
     // scatter/bar). `values` lets the symbol decision spare a series that draws
@@ -66,12 +88,13 @@ export function timeSeriesToEChartsOption(
     // A heatmap-overlay field is not a cartesian series type (`series.type` is
     // omitted), so it keeps the minimal color-only style rather than the Advanced
     // cartesian options — and gets no fast-path props, which are all cartesian.
-    // It still captures hover events so the tooltip can read it.
+    // It still captures hover events so the tooltip can read it. Kept on tuples:
+    // its data volume is small and the typed-array path requires a series type.
     if (resolvedType === 'heatmap') {
       echartsSeries.push({
         name,
         type: undefined,
-        data,
+        data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
         itemStyle: { color },
         lineStyle: { color },
         zlevel,
@@ -84,10 +107,21 @@ export function timeSeriesToEChartsOption(
     // (each omitted at its default) composed with the fast-path props. Only bar
     // supports stacking. `hover` arms the tooltip seam — `triggerEvent` plus, on
     // symbol types, the scaled emphasis marker the `highlight` dispatch drives.
+    // `dimensions` is required by the typed-array data path (ECharts cannot
+    // infer the dimension count from a flat buffer).
     const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
     echartsSeries.push(
       buildCartesianSeries(
-        { name, data, color, zlevel, perf, hover: true, ...(stacked ? { stack: STACK_GROUP_ID } : {}) },
+        {
+          name,
+          data: toInterleavedData(timeField.values, field.values),
+          dimensions: ['time', 'value'],
+          color,
+          zlevel,
+          perf,
+          hover: true,
+          ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+        },
         resolvedType,
         options,
         theme

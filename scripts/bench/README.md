@@ -11,16 +11,17 @@ for e2e) against the exact `echarts` version this repo depends on — the dist
 bundle is injected from `node_modules`, not vendored, so it cannot drift.
 
 ```sh
-pnpm run bench:dataset          # tuples vs dataset, and what the perf levers are worth
+pnpm run bench:dataset          # tuples vs typed arrays vs dataset, and what the perf levers are worth
 pnpm run bench:dataset-tooltip  # what params.value contains under a dataset
 pnpm run bench:dirty-rect       # why useDirtyRect is off: the artifact + the non-benefit
 ```
 
 ## `bench:dataset`
 
-Compares four variants across five data shapes: inline `[time, value]` tuples vs
-a columnar `option.dataset` + `encode`, each with and without the performance
-levers. Human-readable log on stderr, JSON on stdout:
+Compares six variants across five data shapes: inline `[time, value]` tuples vs
+interleaved typed arrays (`SOURCE_FORMAT_TYPED_ARRAY`, the current converter
+path) vs a columnar `option.dataset` + `encode`, each with and without the
+performance levers. Human-readable log on stderr, JSON on stdout:
 
 ```sh
 pnpm run bench:dataset > results.json
@@ -29,11 +30,11 @@ pnpm run bench:dataset > results.json
 Four properties make it trustworthy. Preserve them if you change it:
 
 1. **The performance levers are held identical on both sides of a pair.** They
-   are worth 40–61×; the data path is worth single-digit percent. Vary both at
-   once and you measure the levers.
+   are worth 40–61×; on tuples the data path was worth single-digit percent.
+   Vary both at once and you measure the levers.
 2. **Timing runs to ECharts' `finished` event**, not to `setOption` returning.
    With animation on, most of the work happens after `setOption` returns.
-3. **The canvas is hashed and compared** across the two data paths. A variant
+3. **The canvas is hashed and compared** across the data paths. A variant
    that silently renders less would otherwise look faster.
 4. **Frames are generated once per scenario** and shared by every variant, so no
    measurement includes data generation.
@@ -72,12 +73,12 @@ Run this before proposing the flag again. Rationale:
 
 ## Files
 
-| File                        | Purpose                                                              |
-| --------------------------- | -------------------------------------------------------------------- |
-| `bench.html`                | The page: frame generation, both option builders, the timing harness |
-| `dataset-vs-tuples.mjs`     | Driver for the timing comparison                                     |
-| `dataset-tooltip-probe.mjs` | Driver for the `params.value` probe                                  |
-| `dirty-rect.mjs`            | Self-contained: `useDirtyRect` artifact repro + timing               |
+| File                        | Purpose                                                                   |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `bench.html`                | The page: frame generation, the three option builders, the timing harness |
+| `dataset-vs-tuples.mjs`     | Driver for the timing comparison                                          |
+| `dataset-tooltip-probe.mjs` | Driver for the `params.value` probe                                       |
+| `dirty-rect.mjs`            | Self-contained: `useDirtyRect` artifact repro + timing                    |
 
 `bench.html` builds the option shapes by hand rather than importing the plugin's
 converter, so it has no build step. That is a deliberate trade: it measures the

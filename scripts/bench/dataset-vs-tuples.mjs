@@ -1,6 +1,7 @@
 /**
  * Benchmark: inline `[time, value]` tuples vs a columnar `option.dataset` +
- * per-series `encode`, and what the performance levers are worth on top of each.
+ * per-series `encode` vs interleaved typed arrays (`SOURCE_FORMAT_TYPED_ARRAY`),
+ * and what the performance levers are worth on top of each.
  *
  * Run manually — this is not wired into CI:
  *
@@ -50,10 +51,12 @@ const SCENARIOS = [
 ];
 
 const VARIANTS = [
-  { key: 'main', label: 'tuples, no perf opts', dataset: false, perf: false },
-  { key: 'tuples+perf', label: 'tuples + perf opts', dataset: false, perf: true },
-  { key: 'dataset', label: 'dataset, no perf opts', dataset: true, perf: false },
-  { key: 'dataset+perf', label: 'dataset + perf opts', dataset: true, perf: true },
+  { key: 'main', label: 'tuples, no perf opts', path: 'tuples', perf: false },
+  { key: 'tuples+perf', label: 'tuples + perf opts', path: 'tuples', perf: true },
+  { key: 'typed', label: 'typed arrays, no perf opts', path: 'typed', perf: false },
+  { key: 'typed+perf', label: 'typed arrays + perf opts', path: 'typed', perf: true },
+  { key: 'dataset', label: 'dataset, no perf opts', path: 'dataset', perf: false },
+  { key: 'dataset+perf', label: 'dataset + perf opts', path: 'dataset', perf: true },
 ];
 
 const WARMUP = 2;
@@ -83,16 +86,20 @@ for (const sc of SCENARIOS) {
   process.stderr.write(`\n### ${sc.label}\n`);
   await page.evaluate((spec) => window.makeScenario(spec), sc);
 
-  // Correctness control: do the two data paths paint the same pixels?
+  // Correctness control: do the data paths paint the same pixels?
   const shots = {};
-  for (const v of [VARIANTS[1], VARIANTS[3]]) {
+  for (const v of [VARIANTS[1], VARIANTS[3], VARIANTS[5]]) {
     await page.evaluate(([s, vv]) => window.renderStill(s, vv), [sc, v]);
     const buf = await page.locator('#c').screenshot();
     shots[v.key] = createHash('sha256').update(buf).digest('hex').slice(0, 16);
   }
-  const identical = shots['tuples+perf'] === shots['dataset+perf'];
-  pixelChecks.push({ scenario: sc.key, identical, ...shots });
-  process.stderr.write(`  [pixel check] tuples vs dataset: ${identical ? 'IDENTICAL' : 'DIFFERENT'}\n`);
+  const typedIdentical = shots['tuples+perf'] === shots['typed+perf'];
+  const datasetIdentical = shots['tuples+perf'] === shots['dataset+perf'];
+  pixelChecks.push({ scenario: sc.key, typedIdentical, datasetIdentical, ...shots });
+  process.stderr.write(
+    `  [pixel check] tuples vs typed: ${typedIdentical ? 'IDENTICAL' : 'DIFFERENT'}  ` +
+      `tuples vs dataset: ${datasetIdentical ? 'IDENTICAL' : 'DIFFERENT'}\n`
+  );
 
   for (const v of VARIANTS) {
     const runs = [];
@@ -125,18 +132,20 @@ for (const sc of SCENARIOS) {
     );
   }
 
-  // Isolated dataset delta, same perf settings on both sides.
+  // Isolated data-path deltas, same perf settings on both sides of a pair.
   const get = (vk) => results.find((r) => r.scenario === sc.key && r.variant === vk);
   for (const [a, b, lbl] of [
-    ['main', 'dataset', 'animation on '],
-    ['tuples+perf', 'dataset+perf', 'perf opts on '],
+    ['main', 'dataset', 'dataset, animation on '],
+    ['tuples+perf', 'dataset+perf', 'dataset, perf opts on '],
+    ['main', 'typed', 'typed, animation on  '],
+    ['tuples+perf', 'typed+perf', 'typed, perf opts on  '],
   ]) {
     const ra = get(a);
     const rb = get(b);
     const d = rb.finishedMs - ra.finishedMs;
     const pct = (d / ra.finishedMs) * 100;
     process.stderr.write(
-      `  -> dataset delta (${lbl}): ${d >= 0 ? '+' : ''}${d.toFixed(1)}ms ` +
+      `  -> ${lbl} delta: ${d >= 0 ? '+' : ''}${d.toFixed(1)}ms ` +
         `(${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%)  heap ${(rb.heapTotalMB - ra.heapTotalMB).toFixed(1)}MB\n`
     );
   }

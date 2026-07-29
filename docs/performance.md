@@ -164,6 +164,77 @@ threshold left markers on and that row measured 375 ms instead of 44 ms — an 8
 regression hiding behind a threshold that looked like it was doing its job. Total
 points is the measure that matters; see the note in `performance/constants.ts`.
 
+## Shipped: feed typed arrays, not tuples
+
+A Chrome heap snapshot + CPU profile of the 500×1000 case (the same shape as the
+second bench row) showed where the remaining 3× CPU/memory gap to uPlot lived.
+It was not in the levers — it was in how data reached ECharts.
+
+**Memory.** 225.8MB total heap, of which ~126MB was **1,094,182 two-element
+`[time, value]` tuple arrays** (~116B each: JSArray header + backing store + two
+boxed numbers), built per point by the converter and alive **twice**: once in the
+option handed over (retained by the series model and by the `DataStore`'s
+provider, which is `persistent: true` for the tuple format), and once in
+`OptionManager._optionBackup`, which deep-`clone()`s the whole option on every
+`setOption`. ECharts then parsed the tuples into typed `Float64Array` chunks
+(24MB) — a third copy, and the only efficient one. The Grafana frames themselves
+are ~8–16MB; uPlot stops there.
+
+**CPU.** Per render the panel allocated 500k tuples, ECharts walked them twice
+(clone, then parse/fill), and the allocator churned: the 334ms render task
+contained 12 minor GCs and one major GC (~30ms), with ~65ms of GC across the ~3s
+profile window. Parse/fill (`t.addData`, `_initDataFromProvider`) was ~100ms. (A
+separate one-time cost is ~0.6s of bundle evaluation on page load — module init,
+not data. Per-family registration in `src/lib/echarts/echarts.ts` is a possible
+follow-up, not part of this work.)
+
+**The fix.** `timeSeriesToEChartsOption` now emits one flat interleaved
+`Float64Array` per series (`[t0, v0, t1, v1, …]`, `NaN` for missing values —
+epoch-millisecond timestamps rule out `Float32`) with `dimensions: ['time',
+'value']` declared — ECharts' `SOURCE_FORMAT_TYPED_ARRAY` path
+(`toInterleavedData` in `converters/timeSeries.ts`). Three properties make it a
+strict win over tuples:
+
+- The typed-array provider is `pure: true, persistent: false` — `DataStore`
+  fills its chunks in one tight numeric loop and **drops the source reference**,
+  so ECharts does not retain our array.
+- zrender's `clone()` copies a typed array with `Ctor.from` — a ~8MB memcpy
+  instead of deep-cloning 500k tuple arrays. The `_optionBackup` copy shrinks
+  ~7×.
+- The converter's per-point `map` became one flat fill loop per series — 500
+  allocations instead of 500,000, which removes the GC churn.
+
+Sampling, symbol resolution, stacking, and the tooltip seam are unaffected: they
+read the `DataStore` or the Grafana frames, never the source format.
+
+**Measured** (`pnpm run bench:dataset`, perf levers on — the configuration the
+panel ships; same-run medians, same machine as the table above):
+
+| Scenario               | tuples finish / heap | typed-array finish / heap | CPU delta | Heap delta |
+| ---------------------- | -------------------- | ------------------------- | --------- | ---------- |
+| 500 × 100 (500 frames) | 45.2ms / 6.2MB       | 32.3ms / 5.9MB            | −29%      | −5%        |
+| 500 × 100 (wide frame) | 43.9ms / 6.2MB       | 32.2ms / 5.8MB            | −27%      | −6%        |
+| 500 × 1000             | 191.8ms / 39.6MB     | 87.1ms / 4.8MB            | −55%      | −88%       |
+| 20 × 5000              | 34.6ms / 10.4MB      | 11.0ms / 2.1MB            | −68%      | −80%       |
+| 1 × 100k               | 29.9ms / 5.9MB       | 5.0ms / 4.8MB             | −83%      | −19%       |
+
+Every scenario's canvas hash is **identical** between tuples and typed arrays —
+same pixels, less work. Typed arrays also beat the `dataset` path head-to-head
+(87.1 vs 128.4ms at 500×1000; 5.0 vs 14.2ms at 1×100k), which confirms the
+dataset rejection a second time. The canvas draw-call snapshots
+(`src/lib/components/performance.canvas.test.tsx`, which includes a
+null-separated series) pin gap-rendering parity: `NaN` in a typed array breaks
+line segments exactly like tuple-form `null`.
+
+**Scoped out.** The category-axis converter (`categoryCartesian.ts`) and the
+binned heatmap's `type: undefined` hover-overlay series keep tuples: the former
+is a different x-axis model, the latter is small and untyped. Both are
+revisit-able later. `setAsPrimitive` (zrender's `clone()` escape hatch) on the
+data arrays would eliminate the remaining 8MB backup clone; deferred — it makes
+the backup alias live data, which wants explicit testing around legend toggles
+and stack recomputation. See "Rejected: feeding ECharts through `dataset`" for
+the columnar alternative that measured worse.
+
 ## Rejected: animation density thresholds
 
 Animation was originally auto-disabled above 50 series or 5000 points/series,

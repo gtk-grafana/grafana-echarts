@@ -7,6 +7,7 @@ import {
 } from 'echarts';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type AxisLabelValueFormatter, type TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
+import { type OptionSourceDataTypedArray } from 'echarts/types/src/util/types';
 import {
   type CartesianAxisOption,
   type XAXisOption,
@@ -274,13 +275,26 @@ export function isSymbolSeriesType(type: string | undefined): type is 'line' | '
 }
 
 /**
+ * Series data a converter can hand over: per-point item arrays (the classic
+ * form), or a flat interleaved typed array — ECharts' `SOURCE_FORMAT_TYPED_ARRAY`
+ * path, whose provider does not retain the source and parses without per-point
+ * objects. ECharts supports the typed form at runtime (and requires `dimensions`
+ * with it) but declares only the array form on the per-series `data` types;
+ * the first-party `OptionSourceDataTypedArray` is the closest declaration.
+ * https://echarts.apache.org/en/option.html#series-line.data
+ */
+export type CartesianSeriesData = LineSeriesOption['data'] | OptionSourceDataTypedArray;
+
+/**
  * The data-independent inputs a converter supplies for one cartesian series: its
  * name, positional `data`, resolved color, canvas `zlevel`, and (bar-only) stack
  * group. `buildCartesianSeries` composes these with the Advanced options.
  */
 export interface CartesianSeriesInput {
   name: string;
-  data: LineSeriesOption['data'];
+  data: CartesianSeriesData;
+  /** Dimension names in data order; required when `data` is a typed array. */
+  dimensions?: LineSeriesOption['dimensions'];
   color: string | undefined;
   zlevel: number | undefined;
   stack?: string;
@@ -341,7 +355,7 @@ export function buildCartesianSeries(
   options: PanelOptions,
   theme: GrafanaTheme2
 ): CartesianSeriesEntry {
-  const { name, data, color, zlevel, stack, perf, hover } = input;
+  const { name, data, dimensions, color, zlevel, stack, perf, hover } = input;
   const label = getCartesianValueLabel(options.showValues, options.valueLabelPosition, theme);
   const symbol = resolveCartesianSymbol(options.pointSize, perf);
   // Common (non-discriminating) props every branch shares. `perf` is already
@@ -349,7 +363,13 @@ export function buildCartesianSeries(
   // it whole never writes a key the branch's series type rejects.
   const common = {
     name,
-    data,
+    // The typed-array form of `data` is valid ECharts input (see
+    // `CartesianSeriesData`) but absent from the per-series `.d.ts` declarations,
+    // so it is narrowed back to the declared array form here — the one place the
+    // union meets ECharts' types.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    data: data as LineSeriesOption['data'],
+    ...(dimensions ? { dimensions } : {}),
     zlevel,
     ...(stack ? { stack } : {}),
     ...(label ? { label } : {}),
