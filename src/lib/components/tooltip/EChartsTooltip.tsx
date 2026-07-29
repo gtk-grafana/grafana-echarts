@@ -20,8 +20,8 @@ import {
 } from '@grafana/ui';
 import { type TooltipRow, type TooltipSource } from 'lib/echarts/tooltip/types';
 import React, { useLayoutEffect, useRef } from 'react';
+import { TOOLTIP_MARKER_ATTR, TOOLTIP_OFFSET } from './constants';
 import { type EChartsTooltipState } from './types';
-import { TOOLTIP_MARKER_ATTR, TOOLTIP_OFFSET } from './useEChartsTooltip';
 
 /**
  * `mode`/`maxWidth`/`maxHeight` are the panel's own Grafana tooltip options:

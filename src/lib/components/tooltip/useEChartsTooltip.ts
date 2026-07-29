@@ -3,6 +3,7 @@ import { type EChartsType } from 'lib/echarts/echarts';
 import { findHoveredPoint, type ProximityHit } from 'lib/echarts/tooltip/proximity';
 import { type EChartsTooltipTrigger, type TooltipSink } from 'lib/echarts/tooltip/types';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { TOOLTIP_MARKER_ATTR } from './constants';
 import { type EChartsTooltipController, type EChartsTooltipOptions, type EChartsTooltipState } from './types';
 
 /**
@@ -14,15 +15,11 @@ import { type EChartsTooltipController, type EChartsTooltipOptions, type ECharts
  */
 const HIDE_DELAY_MS = 120;
 
-/** Gap (px) between the cursor and the tooltip; matches core's `TOOLTIP_OFFSET`. */
-export const TOOLTIP_OFFSET = { x: 10, y: 10 };
-
 /**
- * Data attribute marking the rendered tooltip DOM. The outside-click dismiss
- * handler uses it to tell a click inside the (pinned) tooltip from one outside.
+ * The nothing-hovered state: no content, no position, not visible, not pinned.
+ * Both the hook's initial state and the shape every hide path patches back
+ * toward.
  */
-export const TOOLTIP_MARKER_ATTR = 'data-echarts-tooltip';
-
 const HIDDEN: EChartsTooltipState = {
   model: null,
   position: null,
@@ -33,6 +30,7 @@ const HIDDEN: EChartsTooltipState = {
 };
 
 /**
+ * rAF (requestAnimationFrame) state.
  * State written at mouse-move frequency but rendered at most once per animation
  * frame. `latestRef` is the live truth the event handlers read and patch through
  * `update`; `state` is what React renders, set from a coalesced frame so a burst
@@ -228,6 +226,11 @@ export function useEChartsTooltip(
     [chart, update]
   );
 
+  /**
+   * The entry point ECharts' invisible `tooltip.formatter` calls with the hovered
+   * content: adopts the model and shows the tooltip, cancelling any pending hide.
+   * Ignored while pinned, so a hover elsewhere cannot overwrite frozen content.
+   */
   const sink = useCallback<TooltipSink>(
     (model) => {
       if (latestRef.current.pinned) {
@@ -239,6 +242,11 @@ export function useEChartsTooltip(
     [cancelHide, latestRef, update]
   );
 
+  /**
+   * Records whether the panel's tooltip is item- or axis-triggered, which the
+   * hover handlers below branch on. Pushed in by `useChartOption` after each
+   * option rebuild, since ECharts exposes no accessor for the resolved trigger.
+   */
   const reportTrigger = useCallback((trigger: EChartsTooltipTrigger) => {
     triggerRef.current = trigger;
   }, []);
@@ -257,6 +265,12 @@ export function useEChartsTooltip(
     }
     const zr = chart.getZr();
 
+    /**
+     * ZRender `mousemove`: tracks the cursor in window coordinates so the overlay
+     * can follow it, and in proximity mode also resolves the nearest point and
+     * replays it into ECharts — making this handler the owner of show, hide and
+     * emphasis for proximity charts.
+     */
     const onMove = (event: { offsetX: number; offsetY: number }) => {
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) {
@@ -321,6 +335,11 @@ export function useEChartsTooltip(
       chart.dispatchAction({ type: 'showTip', seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex });
     };
 
+    /**
+     * ZRender `globalout` (the cursor left the canvas entirely): hides at once,
+     * with no grace period, since there is no adjacent element the cursor could be
+     * crossing toward. The only hide path for axis ("All") tooltips.
+     */
     const onGlobalOut = () => {
       if (latestRef.current.pinned) {
         return;
@@ -330,11 +349,21 @@ export function useEChartsTooltip(
       update({ visible: false });
     };
 
+    /**
+     * Whether this chart resolves hover by proximity rather than by ECharts'
+     * element hit-testing — read live from the ref, because `series` arrives after
+     * the listeners below are bound and changes on every data update.
+     */
     const inProximityMode = () => {
       const { series: seriesPoints } = proximityRef.current;
       return seriesPoints != null && seriesPoints.length > 0;
     };
 
+    /**
+     * Chart `mouseout` (the cursor left a series element): schedules the deferred
+     * hide for item-triggered tooltips. A no-op for axis tooltips and in proximity
+     * mode, where `globalout` and `onMove` respectively own hiding instead.
+     */
     const onMouseOut = () => {
       if (latestRef.current.pinned) {
         return;
@@ -363,6 +392,11 @@ export function useEChartsTooltip(
       }, HIDE_DELAY_MS);
     };
 
+    /**
+     * Chart `mouseover` (the cursor entered a series element): cancels a pending
+     * hide so moving between adjacent items never flickers, and outside proximity
+     * mode marks the entered series as the active (bold) row.
+     */
     const onMouseOver = (params: ECElementEvent) => {
       if (latestRef.current.pinned) {
         return;
@@ -429,6 +463,11 @@ export function useEChartsTooltip(
       update({ pinned: true, pinnedItem: target });
     };
 
+    /**
+     * Chart `click` (an element was clicked): pins the tooltip onto that item,
+     * unless the ZRender click already pinned this same user click — in which case
+     * it only contributes the `seriesIndex`/`dataIndex` ZRender could not report.
+     */
     const onChartClick = (params: ECElementEvent) => {
       const cur = latestRef.current;
       // The ZRender click runs first and may already have pinned this same user

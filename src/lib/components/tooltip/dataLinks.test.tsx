@@ -6,7 +6,7 @@ import { type SeriesType } from 'editor/types';
 import { getChart } from 'test/canvas';
 import { getComponent, waitForFinished } from 'test/panel';
 import { type PanelOptions } from 'types';
-import { TOOLTIP_MARKER_ATTR } from './useEChartsTooltip';
+import { TOOLTIP_MARKER_ATTR } from './constants';
 
 /**
  * End-to-end cover for the pinned tooltip's data-link footer, driven through
