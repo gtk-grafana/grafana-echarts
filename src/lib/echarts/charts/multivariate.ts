@@ -112,8 +112,6 @@ function buildParallelOption(ctx: ChartContext, isGrafanaLegend: boolean): EChar
     // The `parallel` coordinate component carries the Advanced layout, the
     // layout box and the shared axis styling; the axes are their own top-level
     // `parallelAxis` array — one value axis per category, positioned by `dim`.
-    // A Grafana DOM legend is laid out by `VizLayout` before the canvas exists,
-    // so only a native ECharts legend needs room reserved in the box.
     parallel: getParallelComponent(options.parallelLayout, theme, isGrafanaLegend ? undefined : options.legend),
     parallelAxis: parallel.axes.map((axis, dim) => ({ dim, name: axis.name, type: 'value' })),
     series: [
