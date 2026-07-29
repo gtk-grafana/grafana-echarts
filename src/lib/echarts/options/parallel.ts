@@ -27,31 +27,61 @@ export const parallelDefaultOptions: ECBasicOption = {
  * has no `containLabel`, so the room for labels has to be reserved in real px.
  * ECharts' own defaults (80/80/60/60) leave a 400x300 panel drawing into 240x180
  * — 36% of the canvas — which is why a parallel panel looked so much more padded
- * than its cartesian neighbours. The values below were measured off a rendered
- * chart (see `multivariate.canvas.test.tsx`) as the smallest that clip nothing.
+ * than its cartesian neighbours. The anchor positions below were measured off a
+ * rendered chart (see `multivariate.canvas.test.tsx`).
  */
+
+/**
+ * Vertical allowance for one centred line of axis text.
+ *
+ * ECharts anchors both tick labels and axis names with `textBaseline: 'middle'`,
+ * so half the line box sits above the anchor point. How tall that box actually
+ * is depends on the browser's font rendering, which the jsdom canvas these
+ * values were measured against does *not* reproduce — jsdom reports where the
+ * anchor went, not how far the glyphs reach from it. An earlier value of roughly
+ * half the 12px font looked fine in the measurements and still clipped the top
+ * of the axis names in a real browser, so this is deliberately generous. Prefer
+ * spending a few px here over trusting a metric jsdom cannot give us.
+ */
+const LABEL_HALF_LINE = 16;
+
+/** ECharts' own `nameGap`: the space it leaves between an axis and its name. */
+const AXIS_NAME_GAP = 15;
+
+/** Measured offset of a tick label from its axis line. */
+const TICK_LABEL_GAP = 8;
 
 /**
  * Horizontal layout — axes run vertically, left to right.
  *
- * `top` holds the axis-name row: ECharts centres each name `nameGap` (15px)
- * above its axis line, putting ~21px of text box above the plot. `left`/`right`
- * cover the outermost names, which are centred *on* their axis and so overhang
- * by half their width; tick labels need nothing, being drawn 8px *inside* each
- * axis. `bottom` is half a tick label's line height.
+ * `top` holds the axis-name row, which ECharts centres a `nameGap` above each
+ * axis line. `left`/`right` cover the outermost names, centred *on* their axis
+ * and so overhanging by half their width; tick labels need nothing there, being
+ * drawn inside each axis. `bottom` clears the last tick label.
  */
-const HORIZONTAL_BOX = { top: 24, bottom: 12, left: 40, right: 40 };
+const HORIZONTAL_BOX = {
+  top: AXIS_NAME_GAP + LABEL_HALF_LINE,
+  bottom: LABEL_HALF_LINE,
+  left: 40,
+  right: 40,
+};
 
 /**
  * Vertical layout — axes run horizontally, stacked top to bottom.
  *
  * Not a rotation of the above: ECharts draws each name *past the right end* of
  * its axis and left-aligned, so `right` is a name column rather than padding,
- * and undersizing it pushes the names clean off the canvas. Tick labels sit
- * under each axis (centred on their tick), so `bottom` clears the last row and
- * `left` covers half of the first label.
+ * and undersizing it pushes the names clean off the canvas. The name is centred
+ * on the axis itself rather than offset by a `nameGap`, so `top` only owes it
+ * half a line. Tick labels sit under each axis, so `bottom` clears the last row
+ * and `left` covers half of the first label.
  */
-const VERTICAL_BOX = { top: 16, bottom: 20, left: 16, right: 80 };
+const VERTICAL_BOX = {
+  top: LABEL_HALF_LINE,
+  bottom: TICK_LABEL_GAP + LABEL_HALF_LINE,
+  left: 16,
+  right: 80,
+};
 
 /** Reserved for a native ECharts legend, matching the cartesian grid's gap. */
 const PARALLEL_LEGEND_PADDING = 12;

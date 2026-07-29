@@ -1,3 +1,4 @@
+import { debug, LOG_LEVELS } from 'development';
 import { type ECElementEvent } from 'echarts/core';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { findHoveredPoint, type ProximityHit } from 'lib/echarts/tooltip/proximity';
@@ -58,8 +59,14 @@ const HIDDEN: EChartsTooltipState = {
 function replayTip(chart: EChartsType, target: { seriesIndex?: number; dataIndex?: number }) {
   try {
     chart.dispatchAction({ type: 'showTip', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
-  } catch {
+  } catch (e) {
     // Coordinate system can't resolve a bare (seriesIndex, dataIndex); see above.
+    // Parallel chart throws this when pinning a tooltip when one is already pinned
+    debug('Coordinate system cannot resolve', LOG_LEVELS.warn, {
+      seriesIndex: target.seriesIndex,
+      dataIndex: target.dataIndex,
+      e,
+    });
   }
 }
 

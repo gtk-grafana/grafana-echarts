@@ -86,6 +86,15 @@ describe('getRadarComponent', () => {
     expect(getRadarComponent(indicator, 'polygon', undefined, theme, undefined).radius).toBe('75%');
   });
 
+  // The names have to fit outside the radius at a fixed px cost while the radius
+  // scales, so the stock 15px gap clipped the top name on short panels —
+  // Grafana's default 8-row panel among them. Tightened rather than shrinking
+  // the web.
+  it('tightens the indicator name gap so short panels do not clip', () => {
+    const { axisNameGap } = getRadarComponent(indicator, 'polygon', undefined, theme);
+    expect(axisNameGap).toBe(8);
+  });
+
   // Same mismatch the parallel axis labels had: ECharts' own indicator-name
   // color is a muted grey, dimmer than every other panel's labels.
   it('themes the indicator names', () => {

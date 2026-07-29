@@ -19,10 +19,7 @@ export function getThemeTextStyle(theme: GrafanaTheme2) {
 }
 
 /**
- * uPlot-style grid/tick line color. Lives here rather than with the cartesian
- * axes because it is a plain theme primitive: the parallel coordinate system
- * styles its ticks from it too, and importing it across families would make
- * multivariate depend on cartesian.
+ * uPlot-style grid/tick line color.
  */
 export function getUPlotGridColor(theme: GrafanaTheme2): string {
   return theme.isDark ? 'rgba(240, 250, 255, 0.09)' : 'rgba(0, 10, 23, 0.09)';

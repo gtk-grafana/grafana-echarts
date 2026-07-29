@@ -83,6 +83,16 @@ Thresholds) have limited meaning for the categorical axes.
   two-thirds of a panel on padding. The horizontal and vertical boxes are not
   rotations of each other: with `vertical`, ECharts draws each axis name past the
   _right_ end of its axis and left-aligned, making that side a name column.
+- Label allowances in both families are deliberately generous rather than
+  minimal. ECharts anchors tick labels and axis names with
+  `textBaseline: 'middle'`, so half the line box overhangs the anchor — and the
+  jsdom canvas these values are measured against reports where the anchor landed,
+  not how far the glyphs reach from it. Sizing the parallel name row from the
+  anchor plus half the font looked correct in the measurements and still clipped
+  the top of the axis names in a real browser; the same miss clipped radar's top
+  indicator on short panels. Hence `LABEL_HALF_LINE` and the tightened
+  `RADAR_AXIS_NAME_GAP`. Measure anchors in jsdom, but budget for glyphs it
+  cannot see.
 - **Radar cannot be fitted to the canvas as precisely as parallel.** It takes no
   layout box — `RadarModel` declares no `layoutMode = 'box'`, so
   `left`/`top`/`right`/`bottom` are ignored — and its `radius` is a percentage of

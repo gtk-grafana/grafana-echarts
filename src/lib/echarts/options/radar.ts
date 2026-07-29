@@ -91,6 +91,21 @@ const RADAR_OUTER_RADIUS = '75%';
 const RADAR_OUTER_RADIUS_WITH_LEGEND = '62%';
 
 /**
+ * Gap between the web and its indicator names, tightened from ECharts' 15px.
+ *
+ * The names are the one thing that has to fit *outside* the radius, and their
+ * cost is fixed px while the radius is a proportion — so on a short panel the
+ * top name is squeezed against the canvas edge. With the stock gap the top name
+ * clips below roughly 250px of panel height, which includes Grafana's default
+ * 8-row panel; at 8px it clears down to about 190px. Buying that back through
+ * the gap rather than a smaller radius keeps the web the size it should be, and
+ * labels sitting closer to their axis reads more like the rest of Grafana
+ * anyway. Same lesson as the parallel `LABEL_HALF_LINE`: a centred label reaches
+ * further from its anchor than a jsdom measurement suggests.
+ */
+const RADAR_AXIS_NAME_GAP = 8;
+
+/**
  * The ECharts `radar` coordinate component: the data-derived `indicator` axes,
  * the web radius and themed indicator names, plus the Advanced "Shape"
  * (`polygon` default / `circle`) and "Rings" (`splitNumber`). The two Advanced
@@ -111,6 +126,7 @@ export function getRadarComponent(
   return {
     indicator,
     radius: hasNativeLegend ? RADAR_OUTER_RADIUS_WITH_LEGEND : RADAR_OUTER_RADIUS,
+    axisNameGap: RADAR_AXIS_NAME_GAP,
     axisName: { ...getThemeTextStyle(theme), fontSize: AXIS_FONT_SIZE },
     ...(shape === 'circle' ? { shape: 'circle' } : {}),
     ...(splitNumber != null && splitNumber > 0 ? { splitNumber } : {}),

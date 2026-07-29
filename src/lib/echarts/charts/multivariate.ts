@@ -96,8 +96,7 @@ function buildParallelOption(ctx: ChartContext, isGrafanaLegend: boolean): EChar
   // toggle. Width and smooth are omitted at their defaults so an untouched
   // parallel chart renders on ECharts' own. Opacity is the exception: it resolves
   // through our own default (fully opaque) because ECharts' 0.45 is too faint —
-  // see `PARALLEL_LINE_OPACITY_DEFAULT`. Cleared-to-empty therefore lands on 100,
-  // not 0.45; `??` keeps an explicit 0 intact.
+  // see `PARALLEL_LINE_OPACITY_DEFAULT`. Cleared-to-empty therefore lands on 100
   const lineOpacity = options.parallelLineOpacity ?? PARALLEL_LINE_OPACITY_DEFAULT;
   const lineStyle = getParallelLineStyle(options.parallelLineWidth, lineOpacity);
   const smooth = options.parallelSmooth ?? PARALLEL_SMOOTH_DEFAULT;
@@ -116,21 +115,19 @@ function buildParallelOption(ctx: ChartContext, isGrafanaLegend: boolean): EChar
     // A Grafana DOM legend is laid out by `VizLayout` before the canvas exists,
     // so only a native ECharts legend needs room reserved in the box.
     parallel: getParallelComponent(options.parallelLayout, theme, isGrafanaLegend ? undefined : options.legend),
-    parallelAxis: parallel.axes.map((axis, dim) => ({ dim, name: axis.name, type: 'value' as const })),
+    parallelAxis: parallel.axes.map((axis, dim) => ({ dim, name: axis.name, type: 'value' })),
     series: [
       {
         type: 'parallel',
         // Per-line color rides on each data item's `lineStyle.color` (the
         // documented per-line form); the series-level `lineStyle` below carries
         // the shared width/opacity.
-        //
-        // `name` matters beyond labelling: the whole family renders as *one*
-        // series, so `series.name` can't identify a line, and the tooltip header
-        // (`getHeaderText`) reads `params.name` — which ECharts fills from the
-        // data item's own `name`. Dropping it here is what left the parallel
-        // tooltip headerless while radar, which passes its items through with
-        // their names, was fine.
-        data: parallel.data.map((line) => ({ name: line.name, value: line.value, lineStyle: line.lineStyle })),
+        data: parallel.data.map((line) => ({
+          // `name` is needed for tooltip header
+          name: line.name,
+          value: line.value,
+          lineStyle: line.lineStyle,
+        })),
         ...(smooth ? { smooth: true } : {}),
         ...(lineStyle ? { lineStyle } : {}),
         // Place the series on its own canvas layer (see the panel's

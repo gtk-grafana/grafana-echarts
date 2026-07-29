@@ -24,23 +24,6 @@ equivalent to compare against.
 The rows are collapsed because the panels are deliberately heavy — open one at a
 time.
 
-The core-Grafana comparison panels are hand-authored JSON. **When one of them is
-wrong, fix it by configuring the panel in the Grafana UI and copying the exported
-`options` in verbatim** — do not derive the config from `@grafana/schema`'s
-published types. The xychart panel is the worked example; its mapping must be
-exactly:
-
-```json
-"mapping": "manual",
-"series": [
-  {
-    "frame": { "matcher": { "id": "byIndex", "options": 0 } },
-    "x": { "matcher": { "id": "byName", "options": "time" } },
-    "y": { "matcher": { "id": "byName", "options": "A-series" } }
-  }
-]
-```
-
 Three things that each broke it: `mapping: 'auto'` (which ignores `series[]`
 entirely — it is the _manual_ mapping config), a `byType` y matcher, and giving
 the query an `alias` (which renames the value field away from `A-series`, the

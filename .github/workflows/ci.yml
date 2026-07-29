@@ -32,7 +32,7 @@ jobs:
       # understand which version to install.
       - uses: pnpm/action-setup@v6
       - name: Setup Node.js environment
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: 'pnpm'
@@ -149,7 +149,7 @@ jobs:
 
       - name: Resolve Grafana E2E versions
         id: resolve-versions
-        uses: grafana/plugin-actions/e2e-version@e2e-version/v3.0.1
+        uses: grafana/plugin-actions/e2e-version@e2e-version/v3.0.2
 
   playwright-tests:
     needs: [resolve-versions, build]
@@ -180,7 +180,7 @@ jobs:
       # understand which version to install.
       - uses: pnpm/action-setup@v6
       - name: Setup Node.js environment
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: 'pnpm'
@@ -194,7 +194,7 @@ jobs:
           ANONYMOUS_AUTH_ENABLED=false DEVELOPMENT=false GRAFANA_VERSION=${{ matrix.GRAFANA_IMAGE.VERSION }} GRAFANA_IMAGE=${{ matrix.GRAFANA_IMAGE.NAME }} docker compose up -d
 
       - name: Wait for grafana server
-        uses: grafana/plugin-actions/wait-for-grafana@wait-for-grafana/v1.0.2
+        uses: grafana/plugin-actions/wait-for-grafana@wait-for-grafana/v1.0.5
         with:
           url: http://127.0.0.1:3001/login
 
