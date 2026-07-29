@@ -47,6 +47,11 @@ the query an `alias` (which renames the value field away from `A-series`, the
 default name the matcher targets). Note that the field names are load-bearing, so
 this config is coupled to the `random_walk` scenario.
 
+Even authored exactly as above, the mapping appears to be rewritten when the
+dashboard is provisioned rather than authored in the editor. That is written up
+separately, with minimal v1 and v2 reproductions, in
+[bugs/grafana-xychart-manual-mapping.md](./bugs/grafana-xychart-manual-mapping.md).
+
 Two things to know when a change to this file doesn't appear in Grafana:
 provisioned dashboards poll every 10s by default, and because `default.yaml` sets
 no `allowUiUpdates`, Grafana **rejects UI saves** for them — so panel edits made

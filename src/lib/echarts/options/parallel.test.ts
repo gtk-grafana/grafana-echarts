@@ -1,3 +1,5 @@
+import { createTheme } from '@grafana/data';
+import { type VizLegendOptions } from '@grafana/schema';
 import {
   ADVANCED_PARALLEL_DEFAULTS,
   applyParallelEditorModeDefaults,
@@ -6,14 +8,58 @@ import {
 } from 'lib/echarts/options/parallel';
 import { type PanelOptions } from 'types';
 
+const theme = createTheme();
+
 describe('getParallelComponent', () => {
   it('omits the layout at the horizontal default', () => {
-    expect(getParallelComponent('horizontal')).toEqual({});
-    expect(getParallelComponent(undefined)).toEqual({});
+    expect(getParallelComponent('horizontal', theme).layout).toBeUndefined();
+    expect(getParallelComponent(undefined, theme).layout).toBeUndefined();
   });
 
   it('emits the vertical layout when selected', () => {
-    expect(getParallelComponent('vertical')).toEqual({ layout: 'vertical' });
+    expect(getParallelComponent('vertical', theme).layout).toBe('vertical');
+  });
+
+  // `parallel` has no `containLabel`, so the box is the only thing keeping the
+  // chart off ECharts' 80/80/60/60 defaults — which spent well over half a
+  // panel on padding.
+  it('reserves a tight layout box instead of ECharts defaults', () => {
+    const component = getParallelComponent('horizontal', theme);
+    // Names overhang the outer axes; ticks and the name row need far less.
+    expect(component).toMatchObject({ top: 24, bottom: 12, left: 40, right: 40 });
+  });
+
+  it('gives the vertical layout a right-hand name column', () => {
+    // Axes are horizontal now and ECharts draws each name past the *right* end
+    // of its axis, left-aligned — so this side is a name column, not padding.
+    // Too small and the names render off the canvas entirely.
+    expect(getParallelComponent('vertical', theme)).toMatchObject({ top: 16, bottom: 20, left: 16, right: 80 });
+  });
+
+  it('reserves extra room only for a native ECharts legend', () => {
+    const bottom = getParallelComponent('horizontal', theme, { placement: 'bottom' } as VizLegendOptions);
+    const right = getParallelComponent('horizontal', theme, { placement: 'right' } as VizLegendOptions);
+    expect(bottom.bottom).toBe(12 + 12);
+    expect(right.right).toBe(40 + 12);
+    // A Grafana DOM legend is laid out before the canvas exists, so it passes
+    // no legend and gets no reservation.
+    expect(getParallelComponent('horizontal', theme).bottom).toBe(12);
+  });
+
+  // The reported mismatch: ECharts' own axis label color is a muted grey that
+  // reads dimmer than every other panel's ticks.
+  it('styles axis labels and names from the theme', () => {
+    const axisDefault = getParallelComponent('horizontal', theme).parallelAxisDefault;
+    expect(axisDefault?.axisLabel).toMatchObject({
+      color: theme.colors.text.primary,
+      fontFamily: theme.typography.fontFamily,
+      fontSize: 12,
+    });
+    expect(axisDefault?.nameTextStyle).toMatchObject({ color: theme.colors.text.primary });
+    // The spine stays drawn — on parallel it carries the axis, unlike cartesian
+    // where the split lines do that job.
+    expect(axisDefault?.axisLine).toMatchObject({ show: true });
+    expect(axisDefault?.splitLine).toBeUndefined();
   });
 });
 

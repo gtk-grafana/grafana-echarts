@@ -1,0 +1,8052 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`categorical cartesian per-field overrides draws a line overlay over categorical bars 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -40.5,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -40.5,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -64.8,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -64.8,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -243,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -243,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -162,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -162,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 245,
+      "width": 384,
+      "x": 17,
+      "y": 7,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 245,
+            "width": 384,
+            "x": 17,
+            "y": 7,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "clip",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "bevel",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 65.75,
+      "y": 226.699997,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 161.25,
+      "y": 170,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 256.75,
+      "y": 89,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 352.25,
+      "y": 8,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 65.75,
+            "y": 226.699997,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 161.25,
+            "y": 170,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 256.75,
+            "y": 89,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 352.25,
+            "y": 8,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 65.75,
+      "f": 226.699997,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": 0.666667,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 161.25,
+      "f": 170,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 256.75,
+      "f": 89,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 352.25,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -40.5,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -40.5,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -64.8,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -64.8,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -243,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -243,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -162,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -162,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 245,
+      "width": 384,
+      "x": 17,
+      "y": 7,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 245,
+            "width": 384,
+            "x": 17,
+            "y": 7,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "clip",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "bevel",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 65.75,
+      "y": 226.699997,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 161.25,
+      "y": 170,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 256.75,
+      "y": 89,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 352.25,
+      "y": 8,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 65.75,
+            "y": 226.699997,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 161.25,
+            "y": 170,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 256.75,
+            "y": 89,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 352.25,
+            "y": 8,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 65.75,
+      "f": 226.699997,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": 0.666667,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 161.25,
+      "f": 170,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 256.75,
+      "f": 89,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 352.25,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`categorical cartesian per-field overrides draws a scatter overlay over categorical bars 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -40.5,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -40.5,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -64.8,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -64.8,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -243,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -243,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -162,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -162,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 65.75,
+      "f": 226.7,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 161.25,
+      "f": 170,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 256.75,
+      "f": 89,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 352.25,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -40.5,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -40.5,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -64.8,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -64.8,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -243,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -243,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -162,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -162,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 65.75,
+      "f": 226.7,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 161.25,
+      "f": 170,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 256.75,
+      "f": 89,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 352.25,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`categorical cartesian per-field overrides draws bar, line, scatter and effectScatter series together 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -40.5,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -40.5,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -64.8,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -64.8,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -243,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -243,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -162,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -162,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 65.75,
+      "f": 226.7,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#b877d9",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 161.25,
+      "f": 170,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 256.75,
+      "f": 89,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 352.25,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 65.75,
+      "f": 105.2,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#e0b400",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 161.25,
+      "f": 202.4,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 256.75,
+      "f": 137.6,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 352.25,
+      "f": 178.1,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 245,
+      "width": 384,
+      "x": 17,
+      "y": 7,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 245,
+            "width": 384,
+            "x": 17,
+            "y": 7,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "clip",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "bevel",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 65.75,
+      "y": 153.800003,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 161.25,
+      "y": 121.400002,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 256.75,
+      "y": 56.599998,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 352.25,
+      "y": 40.400002,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 65.75,
+            "y": 153.800003,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 161.25,
+            "y": 121.400002,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 256.75,
+            "y": 56.599998,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 352.25,
+            "y": 40.400002,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 65.75,
+      "f": 153.800003,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": 0.666667,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 161.25,
+      "f": 121.400002,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 256.75,
+      "f": 56.599998,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 352.25,
+      "f": 40.400002,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -40.5,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -40.5,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -64.8,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -64.8,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -243,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -243,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -162,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -162,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 65.75,
+      "f": 226.7,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#b877d9",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 161.25,
+      "f": 170,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 256.75,
+      "f": 89,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 352.25,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 65.75,
+      "f": 105.2,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#e0b400",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 161.25,
+      "f": 202.4,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 256.75,
+      "f": 137.6,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 352.25,
+      "f": 178.1,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 245,
+      "width": 384,
+      "x": 17,
+      "y": 7,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 245,
+            "width": 384,
+            "x": 17,
+            "y": 7,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "clip",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "bevel",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 65.75,
+      "y": 153.800003,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 161.25,
+      "y": 121.400002,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 256.75,
+      "y": 56.599998,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 352.25,
+      "y": 40.400002,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 65.75,
+            "y": 153.800003,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 161.25,
+            "y": 121.400002,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 256.75,
+            "y": 56.599998,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 352.25,
+            "y": 40.400002,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 65.75,
+      "f": 153.800003,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": 0.666667,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 161.25,
+      "f": 121.400002,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 256.75,
+      "f": 56.599998,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 352.25,
+      "f": 40.400002,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`categorical cartesian per-field overrides joins series by category label across frames with different orders and subsets 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -30.375,
+      "width": 52.716,
+      "x": 29.842,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -30.375,
+            "width": 52.716,
+            "x": 29.842,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -48.6,
+      "width": 52.716,
+      "x": 106.242,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -48.6,
+            "width": 52.716,
+            "x": 106.242,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -182.25,
+      "width": 52.716,
+      "x": 182.642,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -182.25,
+            "width": 52.716,
+            "x": 182.642,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -121.5,
+      "width": 52.716,
+      "x": 259.042,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -121.5,
+            "width": 52.716,
+            "x": 259.042,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 209,
+      "f": 129.5,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 285.4,
+      "f": 68.75,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 361.8,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -30.375,
+      "width": 52.716,
+      "x": 29.842,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -30.375,
+            "width": 52.716,
+            "x": 29.842,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -48.6,
+      "width": 52.716,
+      "x": 106.242,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -48.6,
+            "width": 52.716,
+            "x": 106.242,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -182.25,
+      "width": 52.716,
+      "x": 182.642,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -182.25,
+            "width": 52.716,
+            "x": 182.642,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -121.5,
+      "width": 52.716,
+      "x": 259.042,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -121.5,
+            "width": 52.716,
+            "x": 259.042,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 209,
+      "f": 129.5,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 0.8,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 285.4,
+      "f": 68.75,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 5,
+      "b": 0,
+      "c": 0,
+      "d": 5,
+      "e": 361.8,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`categorical cartesian per-field overrides stacks bar fields while an overridden line field stays out of the stack 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -48.6,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -48.6,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -19.44,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -19.44,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -72.9,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -72.9,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -4.86,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -4.86,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -111.78,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 202.4,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -111.78,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 202.4,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -48.6,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 231.56,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -48.6,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 231.56,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -145.8,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 178.1,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -145.8,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 178.1,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -53.46,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 246.14,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -53.46,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 246.14,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 245,
+      "width": 384,
+      "x": 17,
+      "y": 7,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 245,
+            "width": 384,
+            "x": 17,
+            "y": 7,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "clip",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "bevel",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 65.75,
+      "y": 56.599998,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 161.25,
+      "y": 163.520004,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 256.75,
+      "y": 8,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 352.25,
+      "y": 173.240005,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 65.75,
+            "y": 56.599998,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 161.25,
+            "y": 163.520004,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 256.75,
+            "y": 8,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 352.25,
+            "y": 173.240005,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 65.75,
+      "f": 56.599998,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": 0.666667,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 161.25,
+      "f": 163.520004,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 256.75,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 352.25,
+      "f": 173.240005,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -48.6,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -48.6,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -19.44,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -19.44,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -72.9,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -72.9,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -4.86,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 251,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -4.86,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 251,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -111.78,
+      "width": 65.895,
+      "x": 32.8025,
+      "y": 202.4,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -111.78,
+            "width": 65.895,
+            "x": 32.8025,
+            "y": 202.4,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -48.6,
+      "width": 65.895,
+      "x": 128.3025,
+      "y": 231.56,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -48.6,
+            "width": 65.895,
+            "x": 128.3025,
+            "y": 231.56,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -145.8,
+      "width": 65.895,
+      "x": 223.8025,
+      "y": 178.1,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -145.8,
+            "width": 65.895,
+            "x": 223.8025,
+            "y": 178.1,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": -53.46,
+      "width": 65.895,
+      "x": 319.3025,
+      "y": 246.14,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": -53.46,
+            "width": 65.895,
+            "x": 319.3025,
+            "y": 246.14,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 245,
+      "width": 384,
+      "x": 17,
+      "y": 7,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 245,
+            "width": 384,
+            "x": 17,
+            "y": 7,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "clip",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "bevel",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 65.75,
+      "y": 56.599998,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 161.25,
+      "y": 163.520004,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 256.75,
+      "y": 8,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 352.25,
+      "y": 173.240005,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 65.75,
+            "y": 56.599998,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 161.25,
+            "y": 163.520004,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 256.75,
+            "y": 8,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 352.25,
+            "y": 173.240005,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 65.75,
+      "f": 56.599998,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ffffff",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": 0.666667,
+    },
+    "type": "lineWidth",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 161.25,
+      "f": 163.520004,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 256.75,
+      "f": 8,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 3,
+      "b": 0,
+      "c": 0,
+      "d": 3,
+      "e": 352.25,
+      "f": 173.240005,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;

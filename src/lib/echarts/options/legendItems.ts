@@ -16,6 +16,7 @@ import { type SortOrder } from '@grafana/schema';
 import { type VizLegendItem } from '@grafana/ui';
 import type { MultiValueSeriesType, PieLegendValue } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
+import { framesToCategoryCartesian } from 'lib/echarts/converters/categoryCartesianModel';
 import { findCategoricalFrame, forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
 import { formatPieShare, getPieSliceTotal, resolvePieSlices } from 'lib/echarts/converters/pie';
@@ -115,6 +116,11 @@ export function buildNumericFieldLegendItems(
 /**
  * Legend items for a category-axis cartesian chart, mirroring the series the
  * category converter emits (item-key prefix `series-`).
+ *
+ * Built from `framesToCategoryCartesian` rather than by re-filtering the first
+ * frame's fields, so the legend covers every frame's series and stays in the same
+ * order as the chart (see `CategoryCartesianModel`). The item key is the series
+ * index for that reason — a field index would collide across frames.
  */
 export function buildCategoryCartesianLegendItems(
   series: DataFrame[],
@@ -123,7 +129,27 @@ export function buildCategoryCartesianLegendItems(
   fieldConfig: FieldConfigSource,
   timeZone?: string
 ): VizLegendItem[] {
-  return buildNumericFieldLegendItems(series, theme, calcs, fieldConfig, timeZone, 'series');
+  const model = framesToCategoryCartesian(series, theme);
+  if (!model) {
+    return [];
+  }
+
+  // Hidden state from `fieldConfig` keeps the legend in lockstep with the chart.
+  const hidden = getHiddenSeriesNames(
+    fieldConfig,
+    model.series.map(({ name }) => name)
+  );
+
+  return model.series.map(({ field, name, color }, index) => ({
+    label: name,
+    fieldName: name,
+    color,
+    yAxis: 1,
+    // Kept in the legend when hidden from the viz so it can be toggled back.
+    disabled: hidden.has(name),
+    getItemKey: () => `series-${index}`,
+    getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
+  }));
 }
 
 /**

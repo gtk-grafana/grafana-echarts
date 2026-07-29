@@ -2,6 +2,7 @@ import {
   createTheme,
   type DataFrame,
   FieldType,
+  formattedValueToString,
   getDefaultTimeRange,
   ThresholdsMode,
   toDataFrame,
@@ -474,5 +475,119 @@ describe('applyCartesianEditorModeDefaults', () => {
   it('passes stored advanced values through untouched in Advanced mode', () => {
     const options = withMode('advanced', { barWidth: 60, fillOpacity: 40 });
     expect(applyCartesianEditorModeDefaults(options)).toBe(options);
+  });
+});
+
+/**
+ * The category-axis path derives its field list three times over — the converter
+ * (ECharts `series`), `cartesianSeriesFields` (`yAxisIndex`, tooltip value
+ * formatters, tooltip field resolver), and the legend builder — and each zips its
+ * result against the series index positionally. Multi-frame responses are where
+ * they would drift, so these lock the three together.
+ */
+describe('category-axis series/axis/legend alignment', () => {
+  const theme = createTheme();
+  const formatValue: ValueFormatter = (value) => ({ text: value == null ? '' : String(value) });
+
+  const makeContext = (frames: DataFrame[]): ChartContext<CartesianSingleValueSeriesType> => ({
+    frames,
+    theme,
+    timeZone: 'utc',
+    timeRange: getDefaultTimeRange(),
+    options: { [seriesTypePath]: 'bar' } as PanelOptions,
+    seriesType: 'bar',
+    formatValue,
+    replaceVariables: (value: string) => value,
+    fieldConfig: { defaults: {}, overrides: [] },
+  });
+
+  const seriesOf = (result: unknown): Array<Record<string, unknown>> => {
+    const series = (result as { series: unknown }).series;
+    return (Array.isArray(series) ? series : [series]) as Array<Record<string, unknown>>;
+  };
+
+  // Two frames whose value fields carry *different units*, so each lands on its
+  // own y-axis — that makes a misaligned `yAxisIndex` observable.
+  const barFrame = (): DataFrame =>
+    toDataFrame({
+      refId: 'Bar',
+      fields: [
+        { name: 'label', type: FieldType.string, values: ['x', 'a', 'b'] },
+        { name: 'value', type: FieldType.number, values: [5, 8, 30], config: { displayName: 'value', unit: 'ppm' } },
+      ],
+    });
+
+  const markerFrame = (): DataFrame =>
+    toDataFrame({
+      refId: 'Marker',
+      fields: [
+        { name: 'markerLabel', type: FieldType.string, values: ['x', 'a', 'b'] },
+        {
+          name: 'markerValue',
+          type: FieldType.number,
+          values: [3, 10, 20],
+          config: { displayName: 'markerValue', unit: 'bytes', custom: { seriesType: 'scatter' } },
+        },
+      ],
+    });
+
+  it('renders a scatter overlay from a second query on the categorical bar axis', () => {
+    const result = cartesianChartModule.buildOption(makeContext([barFrame(), markerFrame()]), {
+      isGrafanaLegend: true,
+    });
+
+    expect((result as { xAxis: { type: string; data: unknown } }).xAxis).toMatchObject({
+      type: 'category',
+      data: ['x', 'a', 'b'],
+    });
+    expect(seriesOf(result)).toMatchObject([
+      { name: 'value', type: 'bar' },
+      { name: 'markerValue', type: 'scatter' },
+    ]);
+  });
+
+  it('pins each frame’s series to its own unit y-axis', () => {
+    const result = cartesianChartModule.buildOption(makeContext([barFrame(), markerFrame()]), {
+      isGrafanaLegend: true,
+    });
+
+    const series = seriesOf(result);
+    // Distinct units => two axes, and the two series must not share an index.
+    expect(series[0].yAxisIndex).not.toEqual(series[1].yAxisIndex);
+  });
+
+  it('resolves the tooltip back to the right field for every series', () => {
+    const ctx = makeContext([barFrame(), markerFrame()]);
+    const resolveField = cartesianChartModule.getTooltipFieldResolver;
+    if (!resolveField) {
+      throw new Error('cartesian module must supply a tooltip field resolver');
+    }
+    const resolve = resolveField(ctx);
+
+    expect(resolve({ seriesIndex: 0, dataIndex: 2 })?.field.name).toBe('value');
+    expect(resolve({ seriesIndex: 1, dataIndex: 2 })?.field.name).toBe('markerValue');
+  });
+
+  it('formats each series’ tooltip value with its own field unit', () => {
+    const ctx = makeContext([barFrame(), markerFrame()]);
+    const resolveFormatter = cartesianChartModule.getTooltipValueFormatter;
+    if (!resolveFormatter) {
+      throw new Error('cartesian module must supply a tooltip value formatter');
+    }
+    // The resolver maps a hovered item to that series' formatter, which is then
+    // applied to the value.
+    const resolve = resolveFormatter(ctx);
+
+    // 'ppm' and 'bytes' render differently, so a swapped formatter is visible.
+    expect(formattedValueToString(resolve({ seriesIndex: 0 })(30))).toContain('ppm');
+    expect(formattedValueToString(resolve({ seriesIndex: 1 })(20))).toContain('B');
+  });
+
+  it('builds one legend item per series across every frame, in series order', () => {
+    const ctx = makeContext([barFrame(), markerFrame()]);
+    const items = cartesianChartModule.buildLegendItems(ctx, []);
+
+    expect(items.map((item) => item.label)).toEqual(['value', 'markerValue']);
+    expect(new Set(items.map((item) => item.getItemKey?.())).size).toBe(items.length);
   });
 });

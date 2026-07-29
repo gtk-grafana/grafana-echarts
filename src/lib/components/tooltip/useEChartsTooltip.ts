@@ -30,6 +30,40 @@ const HIDDEN: EChartsTooltipState = {
 };
 
 /**
+ * Replay a point into ECharts as a `showTip`, so the (silent) tooltip formatter
+ * re-runs and the sink receives that item's model. The pin path needs this to
+ * rebuild content for a newly clicked item — proximity especially, where the
+ * click often lands on empty grid rather than on an element.
+ *
+ * Not every coordinate system can service it. ECharts resolves an
+ * index-addressed `showTip` through `findPointFromSeries`, which calls
+ * `coordSys.dataToPoint(values)` with one argument, while
+ * `Parallel.prototype.dataToPoint(value, dim)` also requires the dimension and
+ * throws on `undefined`. (Radar escapes this by defining `getTooltipPosition`,
+ * which is checked first; parallel defines neither.)
+ *
+ * Swallowing that leaves the pin itself intact: the hover that preceded the
+ * click already put the clicked item's model in state, so the tooltip pins with
+ * the right content and its data-link footer renders. Only re-pinning straight
+ * from one line to another is affected — the outside-click dismiss clears the
+ * model first, and with no replay to refill it that click lands unpinned. Moving
+ * the cursor re-hovers and the next click pins.
+ *
+ * The positional form (`showTip` with x/y) is deliberately *not* used as a
+ * fallback: it is a no-op for parallel. ECharts routes it through
+ * `updateAxisPointer` and an axis-tooltip lookup that a parallel coordinate
+ * system has nothing to answer with, so it emits nothing even when
+ * `findHover` lands squarely on the polyline (verified against a live chart).
+ */
+function replayTip(chart: EChartsType, target: { seriesIndex?: number; dataIndex?: number }) {
+  try {
+    chart.dispatchAction({ type: 'showTip', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
+  } catch {
+    // Coordinate system can't resolve a bare (seriesIndex, dataIndex); see above.
+  }
+}
+
+/**
  * rAF (requestAnimationFrame) state.
  * State written at mouse-move frequency but rendered at most once per animation
  * frame. `latestRef` is the live truth the event handlers read and patch through
@@ -451,7 +485,7 @@ export function useEChartsTooltip(
         chart.dispatchAction({ type: 'highlight', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
         // Runs `tooltip.formatter` synchronously, so `sink` has refreshed the
         // model by the time this returns.
-        chart.dispatchAction({ type: 'showTip', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
+        replayTip(chart, target);
       }
 
       // Nothing resolved to show (e.g. a click on empty grid after the previous

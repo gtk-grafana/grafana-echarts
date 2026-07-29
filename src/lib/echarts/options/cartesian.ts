@@ -27,7 +27,7 @@ import {
   type CartesianSingleValueSeriesType,
   type CartesianValueLabelPosition,
 } from 'editor/types';
-import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';
+import { AXIS_FONT_SIZE, createBaseOptions, getUPlotGridColor } from 'lib/echarts/options/base';
 import { applyAdvancedDefaults } from 'lib/echarts/options/editorMode';
 import { getThemedLabelStyle } from 'lib/echarts/options/labels';
 import { type PerfSeriesOptions } from 'lib/echarts/performance/types';
@@ -41,11 +41,6 @@ import { type PanelOptions } from 'types';
  */
 export function getTimeAxisBounds(timeRange: TimeRange): { min: number; max: number } {
   return { min: timeRange.from.valueOf(), max: timeRange.to.valueOf() };
-}
-
-/** uPlot-style grid line color for cartesian axes. */
-export function getUPlotGridColor(theme: GrafanaTheme2): string {
-  return theme.isDark ? 'rgba(240, 250, 255, 0.09)' : 'rgba(0, 10, 23, 0.09)';
 }
 
 /**

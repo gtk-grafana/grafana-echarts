@@ -66,6 +66,18 @@ override is `bar`.
   color picker sets a fixed color; color persists as a `byName` override and
   visibility as the core `hideSeriesFrom` system override.
   **Hide in area** registers all three toggles but only `viz` is honored.
+- Per-field `seriesType` / `stackSeries` overrides apply on the **category** x-axis
+  as well as the time axis, so a categorical bar chart can carry a line or scatter
+  overlay (e.g. actuals as bars with a target as a line). Previously these were
+  read only on the time-axis path, leaving the editor control visible but inert on
+  categorical data.
+- **Exceeds core here:** core Bar chart requires a single frame and errors on more.
+  This module merges every frame on the category axis, joining series by category
+  label (union of labels in first-appearance order; a category a frame has no row
+  for renders as a gap). That is what lets a scatter overlay come from its own
+  query rather than a joined column. See
+  [todo/multiple-frames.md](../../../../todo/multiple-frames.md) for the contract
+  and the parts still open (matrix heatmap).
 
 ## ECharts API support
 

@@ -4,12 +4,13 @@ import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSettledSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
-// Multivariate (parallel coordinates) canvas snapshots, mirroring
-// `part-to-whole.canvas.test.tsx`. Parallel shares the categorical model with
-// radar: each category is one `parallelAxis`, each numeric field one polyline
-// (colored by the field color). Rendered with family 'multivariate' and
-// seriesType 'parallel' so the panel resolves the multivariate chart module's
-// parallel branch. The polylines are placed on SERIES_ZLEVEL, so only that
+// Multivariate canvas snapshots, mirroring `part-to-whole.canvas.test.tsx`.
+// Both render types share the categorical model — each category is one
+// `parallelAxis` / radar indicator, each numeric field one polyline / polygon
+// (colored by the field color) — so they share the render options below and
+// differ only in the seriesType the panel resolves. Most cases exercise
+// parallel, whose options are the richer set; the radar block at the bottom
+// covers the other branch. Series are placed on SERIES_ZLEVEL, so only that
 // series-layer draw call set is committed (the axes paint on the default layer);
 // see `Panel.canvas.test.tsx` for the layered-capture rationale.
 //
@@ -20,7 +21,7 @@ import { type PanelOptions } from 'types';
 // `animation: { enabled: false }` these snapshots rely on for determinism. The
 // Default-mode reset itself is covered by the `applyParallelEditorModeDefaults`
 // unit tests.
-const parallelOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
+const canvasOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
   zLevel: { series: SERIES_ZLEVEL },
   animation: { enabled: false },
   editorMode: 'advanced',
@@ -33,7 +34,7 @@ const renderParallel = async (
   fieldConfig?: FieldConfigSource
 ) => {
   const { container } = render(
-    getComponent(frames, 'parallel', parallelOptions(options), undefined, undefined, 'multivariate', fieldConfig)
+    getComponent(frames, 'parallel', canvasOptions(options), undefined, undefined, 'multivariate', fieldConfig)
   );
   return getSettledSeriesCanvasEvents(container);
 };
@@ -169,6 +170,32 @@ describe('multivariate (parallel) canvas renders', () => {
         width,
         height,
       });
+    });
+  });
+});
+
+// The family's other render type, over the same frames. Radar's web size is a
+// percentage of the canvas rather than a layout box (see `getRadarComponent`),
+// so the polygon vertices in this snapshot are what pins the radius down —
+// there is no axis-layer geometry to assert against.
+describe('multivariate (radar) canvas renders', () => {
+  const teamsFrame = toDataFrame({
+    fields: [
+      { name: 'category', type: FieldType.string, values: ['Speed', 'Power', 'Range', 'Durability'] },
+      { name: 'Team A', type: FieldType.number, values: [80, 70, 60, 90], config: { displayName: 'Team A' } },
+      { name: 'Team B', type: FieldType.number, values: [60, 90, 50, 70], config: { displayName: 'Team B' } },
+    ],
+  });
+
+  it('one polygon per numeric field, filling the canvas', async () => {
+    const { container } = render(
+      getComponent([teamsFrame], 'radar', canvasOptions(), undefined, undefined, 'multivariate', undefined)
+    );
+    const { defaultEvents, seriesEvents } = await getSettledSeriesCanvasEvents(container);
+
+    expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
+      width,
+      height,
     });
   });
 });

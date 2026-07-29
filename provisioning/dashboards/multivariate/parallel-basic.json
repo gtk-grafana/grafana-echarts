@@ -175,6 +175,82 @@
       ],
       "title": "Smooth",
       "type": "grafana-echartsmultivariate-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Data links on the tooltip. Click directly on a polyline to pin the tooltip — the footer with data links only renders while pinned. Dismiss with Escape, the close button, or a click outside.\n\nTwo things differ from a time series panel here, both inherent to the parallel coordinate system: there is no proximity hover, so you must click *on* a line rather than near it; and re-pinning straight from one line to another takes a second click, because ECharts cannot replay a parallel tooltip by index. See modules/multivariate/parity.md.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "links": [
+            {
+              "title": "Open Grafana docs for ${__field.name}",
+              "url": "https://grafana.com/docs/?team=${__field.name}",
+              "targetBlank": true
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "parallel"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "indicator,Team A,Team B,Team C\nSpeed,80,60,70\nPower,70,90,50\nRange,60,50,85\nDurability,90,70,60\nPrecision,55,80,95"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Team A",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team B",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Team C",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Data links (click a line to pin)",
+      "type": "grafana-echartsmultivariate-panel"
     }
   ]
 }

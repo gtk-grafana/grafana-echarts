@@ -1,3 +1,5 @@
+import { createTheme } from '@grafana/data';
+import { type VizLegendOptions } from '@grafana/schema';
 import { RADAR_FILL_AREA_OPACITY } from 'editor/radar';
 import { type RadarIndicator } from 'lib/echarts/converters/radar';
 import {
@@ -47,22 +49,51 @@ describe('getRadarSymbol', () => {
 });
 
 describe('getRadarComponent', () => {
+  const theme = createTheme();
   const indicator: RadarIndicator[] = [
     { name: 'Speed', max: 80 },
     { name: 'Power', max: 90 },
   ];
 
   it('keeps the indicators and omits shape/splitNumber at their defaults', () => {
-    expect(getRadarComponent(indicator, 'polygon', undefined)).toEqual({ indicator });
-    expect(getRadarComponent(indicator, undefined, 0)).toEqual({ indicator });
+    expect(getRadarComponent(indicator, 'polygon', undefined, theme)).not.toHaveProperty('shape');
+    expect(getRadarComponent(indicator, undefined, 0, theme)).not.toHaveProperty('splitNumber');
+    expect(getRadarComponent(indicator, 'polygon', undefined, theme).indicator).toBe(indicator);
   });
 
   it('emits circle shape when selected', () => {
-    expect(getRadarComponent(indicator, 'circle', undefined)).toEqual({ indicator, shape: 'circle' });
+    expect(getRadarComponent(indicator, 'circle', undefined, theme).shape).toBe('circle');
   });
 
   it('emits the ring count when set', () => {
-    expect(getRadarComponent(indicator, 'polygon', 8)).toEqual({ indicator, splitNumber: 8 });
+    expect(getRadarComponent(indicator, 'polygon', 8, theme).splitNumber).toBe(8);
+  });
+
+  // ECharts' own 50% is a quarter of the panel's smaller dimension, which left
+  // the web small in the middle of an otherwise empty canvas.
+  it('grows the web well past the ECharts default', () => {
+    expect(getRadarComponent(indicator, 'polygon', undefined, theme).radius).toBe('75%');
+  });
+
+  // Radar cannot reserve space via a layout box (`RadarModel` has no
+  // `layoutMode`), so it shrinks to make room for a native legend instead.
+  it('shrinks the web for a native ECharts legend only', () => {
+    const bottom = { placement: 'bottom' } as VizLegendOptions;
+    const right = { placement: 'right' } as VizLegendOptions;
+    expect(getRadarComponent(indicator, 'polygon', undefined, theme, bottom).radius).toBe('62%');
+    expect(getRadarComponent(indicator, 'polygon', undefined, theme, right).radius).toBe('62%');
+    // A Grafana DOM legend passes nothing — `VizLayout` already shrank the canvas.
+    expect(getRadarComponent(indicator, 'polygon', undefined, theme, undefined).radius).toBe('75%');
+  });
+
+  // Same mismatch the parallel axis labels had: ECharts' own indicator-name
+  // color is a muted grey, dimmer than every other panel's labels.
+  it('themes the indicator names', () => {
+    expect(getRadarComponent(indicator, 'polygon', undefined, theme).axisName).toMatchObject({
+      color: theme.colors.text.primary,
+      fontFamily: theme.typography.fontFamily,
+      fontSize: 12,
+    });
   });
 });
 

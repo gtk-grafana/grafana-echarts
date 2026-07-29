@@ -38,8 +38,14 @@ export const PARALLEL_LINE_WIDTH_DEFAULT: number | undefined = undefined;
 
 /** Panel option path for the parallel line opacity 0–100 (ECharts `series.lineStyle.opacity`). Advanced. */
 export const parallelLineOpacityPath = 'parallelLineOpacity';
-/** Default parallel line opacity: unset (ECharts default), so nothing is written. */
-export const PARALLEL_LINE_OPACITY_DEFAULT: number | undefined = undefined;
+/**
+ * Default parallel line opacity: fully opaque. Deliberately *not* ECharts' own
+ * default — `series-parallel.lineStyle.opacity` is 0.45 there, which reads as a
+ * washed-out line against Grafana's palette and doesn't match the solid strokes
+ * every other family draws. Lowering it is still the right move for dense line
+ * bundles, so it stays an Advanced lever; it just opts in rather than out.
+ */
+export const PARALLEL_LINE_OPACITY_DEFAULT = 100;
 
 /**
  * Default animation: off, from the shared `ANIMATION_ENABLED_DEFAULT` — animation

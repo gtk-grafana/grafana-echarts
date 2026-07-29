@@ -4,12 +4,8 @@ import { type CartesianSingleValueSeriesType, type MultiValueSeriesType } from '
 import { buildCartesianYAxes, getAxisGridSpacing } from 'lib/echarts/axes/yAxes';
 import { isCartesianSingleValueSeriesType, isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
-import {
-  collectTimeSeriesFields,
-  findCategoricalFrame,
-  framesHaveTimeField,
-  mapNumericFields,
-} from 'lib/echarts/converters/frames';
+import { categoryCartesianFields } from 'lib/echarts/converters/categoryCartesianModel';
+import { collectTimeSeriesFields, framesHaveTimeField } from 'lib/echarts/converters/frames';
 import {
   multiValueCartesianToEChartsOption,
   resolveMultiValueSources,
@@ -229,8 +225,9 @@ function cartesianSeriesFields(ctx: ChartContext): Field[] {
   if (framesHaveTimeField(ctx.frames)) {
     return collectTimeSeriesFields(ctx.frames);
   }
-  const frame = findCategoricalFrame(ctx.frames);
-  return frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+  // Same model the category converter emits series from, so index N here is the
+  // field behind series N (see `CategoryCartesianModel`).
+  return categoryCartesianFields(ctx.frames, ctx.theme);
 }
 
 /**
