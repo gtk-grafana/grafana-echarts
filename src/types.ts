@@ -20,6 +20,7 @@ import {
   type PieLabelPosition,
   type PieLegendValue,
   type PieRoseType,
+  type PerformanceMode,
   type PieSelectedMode,
   type ParallelLayout,
   type RadarShape,
@@ -473,10 +474,32 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    */
   funnelLabelPosition?: FunnelLabelPosition;
 
-  // @internal
+  /**
+   * Animation toggle, shared by every family that offers it (cartesian and
+   * part-to-whole both register it as an Advanced switch). Read via
+   * `resolveAnimation`, which defaults it to **off** — see
+   * `ANIMATION_ENABLED_DEFAULT` for why density thresholds were tried and
+   * abandoned.
+   * https://echarts.apache.org/en/option.html#animation
+   */
   animation?: {
-    // https://echarts.apache.org/en/option.html#animation
     enabled: boolean;
+  };
+
+  /**
+   * Advanced-only performance overrides for the cartesian time-series fast path.
+   * ECharts' big-data levers are auto-enabled above density thresholds; these
+   * override the auto behavior. `showPoints` maps to per-series `showSymbol`
+   * (Auto hides symbols once the chart's *total* point count is high) and
+   * `downsampling` toggles LTTB
+   * `sampling`. Unset fields resolve to their defaults (`auto` / `true`).
+   * Animation is not here — it is the shared `animation.enabled` above. See
+   * `lib/echarts/performance/resolvers.ts` and the `addPerformanceOptions`
+   * editor fragment.
+   */
+  performance?: {
+    showPoints?: PerformanceMode;
+    downsampling?: boolean;
   };
 
   // @internal

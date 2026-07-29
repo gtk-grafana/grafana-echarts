@@ -30,6 +30,7 @@ import {
 import { AXIS_FONT_SIZE, createBaseOptions } from 'lib/echarts/options/base';
 import { applyAdvancedDefaults } from 'lib/echarts/options/editorMode';
 import { getThemedLabelStyle } from 'lib/echarts/options/labels';
+import { type PerfSeriesOptions } from 'lib/echarts/performance/types';
 import { type PanelOptions } from 'types';
 
 /**
@@ -252,6 +253,32 @@ export function getXTickRotate(xTickRotate: number | undefined): { rotate?: numb
 export type CartesianSeriesEntry = BarSeriesOption | LineSeriesOption | ScatterSeriesOption | EffectScatterSeriesOption;
 
 /**
+ * Emphasis (hover) state for a datapoint, applied by the tooltip's `highlight`
+ * dispatch to mark the focused point — core Grafana's hover marker.
+ *
+ * `scale` enlarges the symbol relative to the series' `symbolSize` (6px by
+ * default), which is what makes the point read as focused; for a dense line
+ * whose symbols aren't rendered, ECharts creates one on demand to carry this
+ * state. `focus: 'none'` keeps the other series at full opacity — ECharts would
+ * otherwise dim them, which core does not do.
+ *
+ * The symbol inherits the series' `itemStyle.color`, so no colour is set here.
+ * Bars have no symbol to scale (and `scale` is not part of their emphasis
+ * options), so they keep ECharts' default emphasis; their hit area is already
+ * large enough not to need a marker.
+ * https://echarts.apache.org/en/option.html#series-line.emphasis
+ */
+export const HOVER_POINT_EMPHASIS = {
+  focus: 'none',
+  scale: 2,
+} as const;
+
+/** Series types drawn with a symbol, so a scaled emphasis marker applies. */
+export function isSymbolSeriesType(type: string | undefined): type is 'line' | 'scatter' | 'effectScatter' {
+  return type === 'line' || type === 'scatter' || type === 'effectScatter';
+}
+
+/**
  * The data-independent inputs a converter supplies for one cartesian series: its
  * name, positional `data`, resolved color, canvas `zlevel`, and (bar-only) stack
  * group. `buildCartesianSeries` composes these with the Advanced options.
@@ -262,6 +289,46 @@ export interface CartesianSeriesInput {
   color: string | undefined;
   zlevel: number | undefined;
   stack?: string;
+  /**
+   * Density-resolved fast-path props from `getSeriesPerfOptions` (symbols off /
+   * LTTB for dense lines; `large` for dense scatter/bar). Already narrowed to the
+   * series' render type by the resolver, so it is spread as-is.
+   */
+  perf?: PerfSeriesOptions;
+  /**
+   * Whether this series participates in tooltip hover: emits `triggerEvent` and,
+   * for symbol types, the scaled `HOVER_POINT_EMPHASIS` marker. Set by the
+   * time-axis converter, whose tooltip dispatches `highlight` at the focused
+   * point. Category-axis charts do not opt in (see `categoryCartesianToEChartsOption`).
+   */
+  hover?: boolean;
+}
+
+/**
+ * Compose the Advanced "Point size" symbol keys with the Performance layer's
+ * density-resolved `showSymbol`.
+ *
+ * The two options own different halves of the same ECharts surface: Point size
+ * sets the marker *size*, while Performance "Show points" decides *visibility* —
+ * hiding markers once a chart crosses the total-points threshold, and sparing a
+ * series that draws no line and would otherwise render as nothing (see
+ * `resolveShowSymbol`). So the size is kept and visibility normally comes from
+ * the performance layer.
+ *
+ * They only disagree when Point size is explicitly `0`, which is itself a direct
+ * "no markers" request; it wins, and the density answer is dropped. That matches
+ * how the performance layer treats its own explicit modes — Always/Never are
+ * obeyed literally, and only the Auto heuristic promises to keep data visible.
+ */
+function resolveCartesianSymbol(
+  pointSize: number | undefined,
+  perf: PerfSeriesOptions | undefined
+): { symbolSize?: number; showSymbol?: boolean } {
+  const symbol = getCartesianSymbol(pointSize);
+  if (symbol.showSymbol === false) {
+    return symbol;
+  }
+  return { ...symbol, ...(perf?.showSymbol != null ? { showSymbol: perf.showSymbol } : {}) };
 }
 
 /**
@@ -279,11 +346,24 @@ export function buildCartesianSeries(
   options: PanelOptions,
   theme: GrafanaTheme2
 ): CartesianSeriesEntry {
-  const { name, data, color, zlevel, stack } = input;
+  const { name, data, color, zlevel, stack, perf, hover } = input;
   const label = getCartesianValueLabel(options.showValues, options.valueLabelPosition, theme);
-  const symbol = getCartesianSymbol(options.pointSize);
-  // Common (non-discriminating) props every branch shares.
-  const common = { name, data, zlevel, ...(stack ? { stack } : {}), ...(label ? { label } : {}) };
+  const symbol = resolveCartesianSymbol(options.pointSize, perf);
+  // Common (non-discriminating) props every branch shares. `perf` is already
+  // narrowed to this series' render type by `getSeriesPerfOptions`, so spreading
+  // it whole never writes a key the branch's series type rejects.
+  const common = {
+    name,
+    data,
+    zlevel,
+    ...(stack ? { stack } : {}),
+    ...(label ? { label } : {}),
+    ...(hover ? { triggerEvent: true } : {}),
+    ...perf,
+  };
+  // Symbol types carry the scaled hover marker the tooltip's `highlight` dispatch
+  // drives; bars have no symbol to scale.
+  const emphasis = hover && isSymbolSeriesType(resolvedType) ? { emphasis: HOVER_POINT_EMPHASIS } : {};
   const barWidth = getBarWidth(options.barWidth);
 
   switch (resolvedType) {
@@ -304,12 +384,20 @@ export function buildCartesianSeries(
         lineStyle: getCartesianLineStyle(color, options.lineWidth),
         ...(areaStyle ? { areaStyle } : {}),
         ...symbol,
+        ...emphasis,
       };
     }
     case 'scatter':
-      return { ...common, type: 'scatter', itemStyle: { color }, ...symbol };
+      return { ...common, type: 'scatter', itemStyle: { color }, ...symbol, ...emphasis };
     case 'effectScatter':
-      return { ...common, type: 'effectScatter', itemStyle: { color }, showEffectOn: 'emphasis', ...symbol };
+      return {
+        ...common,
+        type: 'effectScatter',
+        itemStyle: { color },
+        showEffectOn: 'emphasis',
+        ...symbol,
+        ...emphasis,
+      };
   }
 }
 

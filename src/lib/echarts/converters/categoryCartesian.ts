@@ -6,6 +6,7 @@ import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { findCategoryField, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
+import { getDensityFromSeriesValues, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 
 /**
  * Convert Grafana Numeric frames into an ECharts category-axis cartesian chart
@@ -47,8 +48,15 @@ export function categoryCartesianToEChartsOption(
   }
 
   const stacked = seriesType === 'bar' && options.stackSeries;
-  // Per-series color plus the Advanced value-label / geometry / style options;
-  // every extra is omitted at its default so untouched panels are unchanged.
+  // Density drives the same fast-path props as the time-axis converter, computed
+  // once over every series so a dense chart never renders half on the fast path.
+  // Without this the Advanced Performance options were visible but inert on
+  // category-axis charts. See lib/echarts/performance/resolvers.ts.
+  const density = getDensityFromSeriesValues(categorical.series.map(({ values }) => values));
+  // Per-series color plus the Advanced value-label / geometry / style options and
+  // the fast-path props; every extra is omitted at its default so untouched
+  // panels are unchanged. `hover` is not set: unlike the time axis, category
+  // charts keep ECharts' native hit-testing and default emphasis.
   const echartsSeries: CartesianOption['series'] = categorical.series.map((field) =>
     buildCartesianSeries(
       {
@@ -56,6 +64,7 @@ export function categoryCartesianToEChartsOption(
         data: field.values,
         color: field.color,
         zlevel: options.zLevel?.series,
+        perf: getSeriesPerfOptions({ type: seriesType, density, options, values: field.values }),
         ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       },
       seriesType,

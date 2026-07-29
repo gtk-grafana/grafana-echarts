@@ -1,19 +1,15 @@
 import { createTheme, FieldType, getDisplayProcessor, type Field, type ValueFormatter } from '@grafana/data';
-import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type MatrixHeatmapData } from 'lib/echarts/converters/matrixHeatmap';
-import {
-  buildMatrixHeatmapTooltip,
-  getMatrixHeatmapSeries,
-  getMatrixHeatmapVisualMap,
-} from 'lib/echarts/options/matrixHeatmap';
+import { getMatrixHeatmapSeries, getMatrixHeatmapVisualMap } from 'lib/echarts/options/matrixHeatmap';
 import { COLOR_SCHEMES } from 'lib/echarts/options/constants';
 
 const theme = createTheme();
-// Mirrors getValueFormatter: empty values (null/undefined/NaN) render No value text.
-const formatValue: ValueFormatter = (value) => ({ text: value == null || Number.isNaN(value) ? 'null' : `${value}` });
+const formatValue: ValueFormatter = (value) => ({ text: `${value}` });
+// The series only threads this through to its tooltip formatter.
 const ctx = { theme, timeZone: 'utc', formatValue };
 
 const xField: Field<number> = { name: 'c1', type: FieldType.number, values: [1, 4], config: {} };
+const xField2: Field<number> = { name: 'c2', type: FieldType.number, values: [2, 3], config: {} };
 const yField: Field<string> = { name: 'row', type: FieldType.string, values: ['a', 'b'], config: {} };
 const formatDisplayValue = getDisplayProcessor({ theme, field: yField });
 
@@ -27,6 +23,7 @@ const data: MatrixHeatmapData = {
   valueMin: 1,
   valueMax: 4,
   xField,
+  xFields: [xField, xField2],
   yField,
 };
 
@@ -136,28 +133,5 @@ describe('getMatrixHeatmapVisualMap', () => {
     });
     expect(visualMap.min).toBe(5);
     expect(visualMap.max).toBe(6);
-  });
-});
-
-describe('buildMatrixHeatmapTooltip', () => {
-  const asParams = (tuple: Array<number | null>) => ({ value: tuple }) as TopLevelFormatterParams;
-
-  it('maps cell indices back to their category labels and value', () => {
-    const formatter = buildMatrixHeatmapTooltip(data, ctx);
-    const el = formatter(asParams([1, 0, 3]));
-    // X category header, then Value row and the Y category name.
-    expect(el.textContent).toContain('c2');
-    expect(el.textContent).toContain('Value');
-    expect(el.textContent).toContain('3');
-    expect(el.textContent).toContain('Name');
-    expect(el.textContent).toContain('a');
-  });
-
-  it('routes null cells through the field formatter for its No value text', () => {
-    const formatter = buildMatrixHeatmapTooltip(data, ctx);
-    const el = formatter(asParams([0, 0, null]));
-    // The representative formatter (stub) emits the field's No value text; in
-    // production this is `config.noValue` (default '-'). See getValueFormatter.
-    expect(el.textContent).toContain('null');
   });
 });

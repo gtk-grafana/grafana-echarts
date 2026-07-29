@@ -76,9 +76,12 @@ describe('applyRadarEditorModeDefaults', () => {
     expect(resolved.radarLineWidth).toBe(ADVANCED_RADAR_DEFAULTS.radarLineWidth);
   });
 
+  // Asserted against the default rather than a literal: animation is off by
+  // default for every family, so the point is that Default mode *resets* the
+  // stored value, whichever way the default points. Mirrors the pie's test.
   it('resets the shared animation option in Default mode', () => {
-    const resolved = applyRadarEditorModeDefaults(withMode('default', { animation: { enabled: false } }));
-    expect(resolved.animation).toEqual({ enabled: true });
+    const resolved = applyRadarEditorModeDefaults(withMode('default', { animation: { enabled: true } }));
+    expect(resolved.animation).toEqual(ADVANCED_RADAR_DEFAULTS.animation);
   });
 
   it('keeps the Default-tier fill area (never reset)', () => {

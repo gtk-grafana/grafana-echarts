@@ -10,6 +10,7 @@ import { seriesTypePath } from 'editor/constants';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
+import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_TOTAL_POINTS } from 'lib/echarts/performance/constants';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -20,13 +21,14 @@ const formatValue: ValueFormatter = (value) => ({ text: value == null ? '' : Str
 const makeContext = (
   frames: DataFrame[],
   seriesType: CartesianSingleValueSeriesType,
-  stackSeries?: boolean
+  stackSeries?: boolean,
+  extraOptions?: Partial<PanelOptions>
 ): ChartContext<CartesianSingleValueSeriesType> => ({
   frames,
   theme,
   timeZone: 'utc',
   timeRange: getDefaultTimeRange(),
-  options: { [seriesTypePath]: seriesType, stackSeries } as PanelOptions,
+  options: { [seriesTypePath]: seriesType, stackSeries, ...extraOptions } as PanelOptions,
   seriesType,
   formatValue,
   replaceVariables: (value: string) => value,
@@ -34,8 +36,15 @@ const makeContext = (
 });
 
 /** Run the converter, normalizing the ECharts `Arrayable` series into an array. */
-const run = (frames: DataFrame[], seriesType: CartesianSingleValueSeriesType, stackSeries?: boolean) => {
-  const { categories, series } = categoryCartesianToEChartsOption(makeContext(frames, seriesType, stackSeries));
+const run = (
+  frames: DataFrame[],
+  seriesType: CartesianSingleValueSeriesType,
+  stackSeries?: boolean,
+  extraOptions?: Partial<PanelOptions>
+) => {
+  const { categories, series } = categoryCartesianToEChartsOption(
+    makeContext(frames, seriesType, stackSeries, extraOptions)
+  );
   expect(Array.isArray(series)).toBe(true);
 
   if (!Array.isArray(series)) {
@@ -126,6 +135,70 @@ describe('categoryCartesianToEChartsOption', () => {
         // Although eCharts does support setting stack on scatter and line, I think those usages are for when scatter/line shares a stack group with a bar chart which is probably fine to set aside for now
         expect(s).not.toHaveProperty('stack');
       }
+    });
+  });
+
+  // The Advanced Performance options are registered for the whole cartesian
+  // family, so the category-axis path resolves the same levers as the time-axis
+  // one. Before this was wired the controls were visible here but inert.
+  describe('performance fast-path props', () => {
+    /** A category frame with `series` numeric fields of `rows` values each. */
+    const densityFrame = (rows: number, series = 1): DataFrame =>
+      toDataFrame({
+        fields: [
+          {
+            name: 'category',
+            type: FieldType.string,
+            values: Array.from({ length: rows }, (_, i) => `c${i}`),
+          },
+          ...Array.from({ length: series }, (_, s) => ({
+            name: `v${s}`,
+            type: FieldType.number,
+            values: Array.from({ length: rows }, (_, i) => i + s),
+            config: { displayName: `v${s}` },
+          })),
+        ],
+      });
+
+    it('keeps symbols on a sparse category line chart', () => {
+      const { series } = run([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS)], 'line');
+
+      expect(series[0]).toMatchObject({ showSymbol: true });
+    });
+
+    it('drops symbols once the category chart total crosses the threshold', () => {
+      const { series } = run([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1)], 'line');
+
+      expect(series[0]).toMatchObject({ showSymbol: false });
+    });
+
+    // Same total-not-per-series rule as the time axis: two short series still add
+    // up to more markers than the chart should draw.
+    it('measures the total across every category series, not the longest', () => {
+      const rows = Math.ceil((SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1) / 2);
+      const { series } = run([densityFrame(rows, 2)], 'line');
+
+      expect(series.every((s) => 'showSymbol' in s && s.showSymbol === false)).toBe(true);
+    });
+
+    it('honors the Show points = Always override', () => {
+      const { series } = run([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1)], 'line', undefined, {
+        performance: { showPoints: 'always' },
+      });
+
+      expect(series[0]).toMatchObject({ showSymbol: true });
+    });
+
+    it('enables large mode on a dense category bar chart', () => {
+      const { series } = run([densityFrame(LARGE_MODE_THRESHOLD)], 'bar');
+
+      expect(series[0]).toMatchObject({ large: true, largeThreshold: LARGE_MODE_THRESHOLD });
+    });
+
+    it('leaves a sparse category bar chart untouched', () => {
+      const { series } = run([densityFrame(10)], 'bar');
+
+      expect(series[0]).not.toHaveProperty('large');
     });
   });
 

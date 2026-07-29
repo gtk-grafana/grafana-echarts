@@ -10,7 +10,10 @@ import {
   framesHaveTimeField,
   mapNumericFields,
 } from 'lib/echarts/converters/frames';
-import { multiValueCartesianToEChartsOption } from 'lib/echarts/converters/multiValueCartesian';
+import {
+  multiValueCartesianToEChartsOption,
+  resolveMultiValueSources,
+} from 'lib/echarts/converters/multiValueCartesian';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
 import { getCartesianGrid } from 'lib/echarts/grid/grid';
 import {
@@ -30,7 +33,7 @@ import {
 import { buildThresholdMarks, type ThresholdMarks } from 'lib/echarts/options/thresholds';
 import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import { getFieldValueFormatters } from 'lib/echarts/style';
-import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
 import { getFieldMinMax } from 'lib/grafana/fields/fieldConfig';
 import { isNumberField } from 'lib/grafana/narrowing';
 import {
@@ -268,6 +271,49 @@ export const cartesianChartModule: ChartModule = {
   getTooltipValueFormatter(ctx) {
     const formatters = getFieldValueFormatters(cartesianSeriesFields(ctx), ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'seriesIndex');
+  },
+
+  getTooltipFieldResolver(ctx) {
+    const seriesType = ctx.seriesType;
+    if (isMultiValueSeriesType(seriesType)) {
+      // Candlestick/boxplot draw one item from several fields at once, so the
+      // hovered *dimension* picks the field while `dataIndex` picks the frame
+      // row the item was rendered from (time-filtered rows shift the two apart).
+      const sources = resolveMultiValueSources({ ...ctx, seriesType });
+      return (item) => {
+        if (sources == null || item.dimensionIndex == null || item.dataIndex == null) {
+          return undefined;
+        }
+        const field = sources.fields[item.dimensionIndex];
+        const rowIndex = sources.rows[item.dataIndex];
+        return field != null && rowIndex != null ? { field, rowIndex } : undefined;
+      };
+    }
+
+    // Same field order as the series (see `cartesianSeriesFields`), so the
+    // hovered item's `seriesIndex` selects its source field and `dataIndex` its
+    // row — the tooltip footer reads that field's data links / labels.
+    const fields = cartesianSeriesFields(ctx);
+    return (item) => {
+      if (item.seriesIndex == null) {
+        return undefined;
+      }
+      const field = fields[item.seriesIndex];
+      return field ? { field, rowIndex: item.dataIndex ?? 0 } : undefined;
+    };
+  },
+
+  getTooltipDimensions(ctx) {
+    // Labels follow each series' own ECharts data order, not the Grafana field
+    // order: candlestick is emitted `[open, close, low, high]` (see
+    // `multiValueCartesian`), which is not the OHLC order its field names use.
+    if (ctx.seriesType === 'candlestick') {
+      return ['Open', 'Close', 'Low', 'High'];
+    }
+    if (ctx.seriesType === 'boxplot') {
+      return ['Min', 'Q1', 'Median', 'Q3', 'Max'];
+    }
+    return undefined;
   },
 
   buildOption(

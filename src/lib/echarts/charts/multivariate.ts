@@ -1,3 +1,4 @@
+import { type Field } from '@grafana/data';
 import { PARALLEL_SMOOTH_DEFAULT } from 'editor/parallel';
 import { findCategoricalFrame, mapNumericFields } from 'lib/echarts/converters/frames';
 import { parallelToEChartsOption } from 'lib/echarts/converters/parallel';
@@ -13,7 +14,7 @@ import {
   radarDefaultOptions,
 } from 'lib/echarts/options/radar';
 import { getFieldValueFormatters } from 'lib/echarts/style';
-import { indexedFormatterResolver } from 'lib/echarts/tooltip/template';
+import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
 import {
   type BaseOptionParts,
   type ChartContext,
@@ -122,13 +123,34 @@ function buildParallelOption(ctx: ChartContext, isGrafanaLegend: boolean): EChar
 export const multivariateChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
+  // @todo restore "All" once a hover expands into one row per indicator/axis.
+  // ECharts hands the formatter a single param whose `value` is the whole
+  // indicator/axis array for that polygon or polyline, so today an All tooltip
+  // would repeat that one row rather than list the axes. True of both render
+  // types, so the family-wide flag is correct. Expanding it needs a dedicated
+  // family model builder rather than `getTooltipDimensions`, whose
+  // `expandMultiValueRows` assumes ECharts' index-prefixed multi-value packing.
+  // See `modules/multivariate/parity.md`.
+  singleTooltipOnly: true,
+
   getTooltipValueFormatter(ctx) {
-    // Each polygon is one numeric field rendered as a data item in a single
-    // series, so the tooltip's `dataIndex` selects the polygon's field formatter.
-    const frame = findCategoricalFrame(ctx.frames);
-    const fields = frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
-    const formatters = getFieldValueFormatters(fields, ctx.theme, ctx.timeZone);
+    // Each polygon/polyline is one numeric field rendered as a data item in a
+    // single series, so the tooltip's `dataIndex` selects that field's formatter.
+    const formatters = getFieldValueFormatters(multivariateSeriesFields(ctx), ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'dataIndex');
+  },
+
+  getTooltipFieldResolver(ctx) {
+    // Keyed by `dataIndex` like the value formatter above; a polygon/polyline
+    // reduces a whole field, so links resolve at row 0.
+    const fields = multivariateSeriesFields(ctx);
+    return (item) => {
+      if (item.dataIndex == null) {
+        return undefined;
+      }
+      const field = fields[item.dataIndex];
+      return field ? { field, rowIndex: 0 } : undefined;
+    };
   },
 
   buildOption(
@@ -147,6 +169,18 @@ export const multivariateChartModule: ChartModule = {
     return buildRadarLegendItems(ctx.frames, ctx.theme, calcs, ctx.fieldConfig, ctx.timeZone);
   },
 };
+
+/**
+ * The numeric field behind each polygon/polyline, in the order the family emits
+ * its data items — so a tooltip's `dataIndex` maps back to its source field.
+ * Both render types build from the same categorical model (one numeric field to
+ * one data item of a single series), so one helper serves both. Mirrors
+ * `cartesianSeriesFields`.
+ */
+function multivariateSeriesFields(ctx: ChartContext): Field[] {
+  const frame = findCategoricalFrame(ctx.frames);
+  return frame ? mapNumericFields(frame, ctx.frames, ctx.theme).map(({ field }) => field) : [];
+}
 
 /**
  * Transition alias: the family was renamed from `radar` to `multivariate` to

@@ -6,12 +6,14 @@ import {
   type GrafanaTheme2,
 } from '@grafana/data';
 import { type SunburstSeriesOption, type TreemapSeriesOption } from 'echarts';
-import { type ECBasicOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type HierarchyChartContext } from 'lib/echarts/charts/types';
 import { type HierarchyData, type HierarchyNode } from 'lib/echarts/converters/hierarchy';
 import { createBaseOptions } from 'lib/echarts/options/base';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
-import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
+import { buildHierarchyTooltipModel } from 'lib/echarts/tooltip/hierarchy';
+import { seriesTooltip } from 'lib/echarts/tooltip/option';
+import { type HierarchyTreeItem } from 'lib/echarts/tooltip/types';
 import { getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 
 /**
@@ -22,24 +24,6 @@ import { getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 export const hierarchyDefaultOptions: ECBasicOption = {
   ...createBaseOptions(),
 };
-
-/**
- * ECharts tree data item shared by the treemap and sunburst series (both accept
- * `{ name, value, children, itemStyle }`). `self` is carried through as an extra
- * field so the tooltip can surface it; ECharts preserves unknown data props.
- */
-interface HierarchyTreeItem {
-  name: string;
-  value?: number;
-  self?: number;
-  itemStyle?: { color: string };
-  children?: HierarchyTreeItem[];
-}
-
-/** Type guard so tooltip params (`data`) narrow without a type assertion. */
-function isHierarchyTreeItem(value: unknown): value is HierarchyTreeItem {
-  return typeof value === 'object' && value !== null && 'name' in value;
-}
 
 /** Context needed to build a hierarchy series (colors + tooltip formatting). */
 export interface HierarchySeriesContext extends HierarchyChartContext {
@@ -111,6 +95,9 @@ function toTreeData(nodes: HierarchyNode[], resolveColor: HierarchyColorResolver
     if (node.self != null) {
       item.self = node.self;
     }
+    if (node.sourceRowIndex != null) {
+      item.sourceRowIndex = node.sourceRowIndex;
+    }
     const color = resolveColor(node.name, node.value, index, depth);
     if (color != null) {
       item.itemStyle = { color };
@@ -123,54 +110,28 @@ function toTreeData(nodes: HierarchyNode[], resolveColor: HierarchyColorResolver
 }
 
 /**
- * Tooltip for hierarchy series. Returns safe DOM (no innerHTML) via the shared
- * tooltip shell. https://echarts.apache.org/en/option.html#series-treemap.tooltip
- *
- * - Single: the hovered node — its name as header, cumulative `value`, and (when
- *   present) `self`.
- * - All (`Multi`): every top-level node listed with a color swatch and value
- *   (the same set as the legend), regardless of which node is hovered — mirroring
- *   core Grafana's pie "All" mode. Hierarchy always hovers per item (category
- *   axis, no shared axis pointer), so this is built in the formatter rather than
- *   via an axis-triggered tooltip.
- */
-function buildHierarchyTooltip(ctx: HierarchySeriesContext): (params: TopLevelFormatterParams) => HTMLElement {
-  return (params) => {
-    const shell = buildTooltipShell(ctx.theme);
-    const param = Array.isArray(params) ? params[0] : params;
-    const hovered = isHierarchyTreeItem(param?.data) ? param.data : undefined;
-    shell.appendHeader(hovered?.name ?? String(param?.name ?? ''));
-    shell.appendRow({
-      color: typeof param?.color === 'string' ? param.color : undefined,
-      label: 'Value',
-      value: formatTooltipValue(hovered?.value ?? null, ctx.formatValue),
-    });
-    if (hovered?.self != null) {
-      shell.appendRow({ label: 'Self', value: formatTooltipValue(hovered.self, ctx.formatValue) });
-    }
-    return shell.root;
-  };
-}
-
-/**
  * Treemap series: nested rectangles sized by `value`. `zlevel` places the series
  * on its own canvas layer (see the panel's `zLevel.series`) so layered canvas
  * capture can isolate it, matching the other families.
  * https://echarts.apache.org/en/option.html#series-treemap
  */
 export function getTreemapSeries(data: HierarchyData, ctx: HierarchySeriesContext): TreemapSeriesOption {
-  console.log('treemap', data, ctx);
   return {
     type: 'treemap',
-    // Off by default: keep the panel static like the other families (no
-    // click-to-zoom breadcrumb navigation).
+    // Off: keep the panel static like the other families (no click-to-zoom
+    // breadcrumb navigation). `nodeClick` must stay off for the tooltip too —
+    // ECharts' zoom-to-node consumes the click that pins the tooltip, so with it
+    // on a node's data links are unreachable.
     roam: false,
     leafDepth: 5,
-    nodeClick: 'zoomToNode',
+    nodeClick: false,
+    // Inert as configured: ECharts only draws the breadcrumb trail for
+    // zoom-to-node navigation, which `nodeClick: false` above rules out. Kept so
+    // the sizing is already correct if the panel ever opts back into zooming.
     breadcrumb: { show: ctx.options.legend.isVisible, width: ctx.options.legend.width },
     zlevel: ctx.options.zLevel?.series,
     data: toTreeData(data.roots, makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField)),
-    tooltip: { formatter: buildHierarchyTooltip(ctx) },
+    tooltip: seriesTooltip(buildHierarchyTooltipModel(ctx), ctx.tooltipSink),
   };
 }
 
@@ -187,6 +148,6 @@ export function getSunburstSeries(data: HierarchyData, ctx: HierarchySeriesConte
     nodeClick: false,
     zlevel: ctx.options.zLevel?.series,
     data: toTreeData(data.roots, makeHierarchyColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField)),
-    tooltip: { formatter: buildHierarchyTooltip(ctx) },
+    tooltip: seriesTooltip(buildHierarchyTooltipModel(ctx), ctx.tooltipSink),
   };
 }

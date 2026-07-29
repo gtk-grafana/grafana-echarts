@@ -6,11 +6,12 @@ import {
   toDataFrame,
   type ValueFormatter,
 } from '@grafana/data';
-import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
+import { type LineSeriesOption } from 'echarts';
 import { seriesTypePath } from 'editor/constants';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { timeSeriesToEChartsOption } from 'lib/echarts/converters/timeSeries';
+import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_TOTAL_POINTS } from 'lib/echarts/performance/constants';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -21,21 +22,37 @@ const formatValue: ValueFormatter = (value) => ({ text: value == null ? '' : Str
 const makeContext = (
   frames: DataFrame[],
   seriesType: CartesianSingleValueSeriesType,
-  stackSeries?: boolean
+  options?: Partial<PanelOptions>
 ): ChartContext<CartesianSingleValueSeriesType> => ({
   frames,
   theme,
   timeZone: 'utc',
   timeRange: getDefaultTimeRange(),
-  options: { [seriesTypePath]: seriesType, stackSeries } as PanelOptions,
+  options: { [seriesTypePath]: seriesType, ...options } as PanelOptions,
   seriesType,
   formatValue,
   replaceVariables: (value: string) => value,
   fieldConfig: { defaults: {}, overrides: [] },
 });
 
-const run = (frames: DataFrame[], seriesType: CartesianSingleValueSeriesType, stackSeries?: boolean) =>
-  timeSeriesToEChartsOption(makeContext(frames, seriesType, stackSeries));
+const run = (frames: DataFrame[], seriesType: CartesianSingleValueSeriesType, options?: Partial<PanelOptions>) =>
+  timeSeriesToEChartsOption(makeContext(frames, seriesType, options));
+
+/**
+ * `run` for the cases that must produce series, narrowing away the converter's
+ * `null` (which only the "cannot produce time series" block below exercises).
+ */
+const runSeries = (
+  frames: DataFrame[],
+  seriesType: CartesianSingleValueSeriesType,
+  options?: Partial<PanelOptions>
+) => {
+  const result = run(frames, seriesType, options);
+  if (result === null) {
+    throw new Error('expected the converter to produce series');
+  }
+  return result;
+};
 
 const wideFrame = (): DataFrame =>
   toDataFrame({
@@ -54,13 +71,22 @@ const multiFrame = (name: string, times: number[], values: Array<number | null>)
     ],
   });
 
+/** A single-series time frame with `points` rows (for density-threshold tests). */
+const densityFrame = (points: number): DataFrame =>
+  toDataFrame({
+    fields: [
+      { name: 'time', type: FieldType.time, values: Array.from({ length: points }, (_, i) => i) },
+      { name: 'value', type: FieldType.number, values: Array.from({ length: points }, (_, i) => i) },
+    ],
+  });
+
 describe('timeSeriesToEChartsOption', () => {
   describe('Wide format (one frame, shared time field, many value fields)', () => {
     it('returns one series per numeric field sharing the time field', () => {
-      const result = run([wideFrame()], 'line');
+      const result = runSeries([wideFrame()], 'line');
 
       expect(result).toHaveLength(2);
-      expect(result![0]).toMatchObject({
+      expect(result[0]).toMatchObject({
         name: 'cpu',
         type: 'line',
         data: [
@@ -69,7 +95,7 @@ describe('timeSeriesToEChartsOption', () => {
           [3, 30],
         ],
       });
-      expect(result![1]).toMatchObject({
+      expect(result[1]).toMatchObject({
         name: 'mem',
         type: 'line',
         data: [
@@ -81,10 +107,18 @@ describe('timeSeriesToEChartsOption', () => {
     });
 
     it('resolves a color for each series, shared between symbol and line', () => {
-      const result = run([wideFrame()], 'line');
+      const result = runSeries([wideFrame()], 'line');
 
-      const series = result![0] as LineSeriesOption;
+      const series = result[0] as LineSeriesOption;
       expect(series.itemStyle?.color).toEqual('#808080');
+    });
+
+    // The canvas snapshot harness (src/test/canvas.ts) relies on the series layer
+    // being split onto its own zlevel; keep it pinned at the converter.
+    it('puts every series on the configured series zlevel', () => {
+      const result = runSeries([wideFrame()], 'line', { zLevel: { series: 1 } });
+
+      expect(result.every((series) => series.zlevel === 1)).toBe(true);
     });
   });
 
@@ -92,20 +126,20 @@ describe('timeSeriesToEChartsOption', () => {
     it('returns one series per frame, preserving each frame non-aligned timestamps', () => {
       const frames = [multiFrame('a', [1, 2, 3], [10, 20, 30]), multiFrame('b', [5, 6, 9], [60, 80, 90])];
 
-      const result = run(frames, 'line');
+      const result = runSeries(frames, 'line');
 
       expect(result).toHaveLength(2);
 
-      expect(result![0].name).toBe('a');
-      expect(result![0].data).toEqual([
+      expect(result[0].name).toBe('a');
+      expect(result[0].data).toEqual([
         [1, 10],
         [2, 20],
         [3, 30],
       ]);
 
       // Second series keeps its own distinct, non-aligned timestamps.
-      expect(result![1].name).toBe('b');
-      expect(result![1].data).toEqual([
+      expect(result[1].name).toBe('b');
+      expect(result[1].data).toEqual([
         [5, 60],
         [6, 80],
         [9, 90],
@@ -117,9 +151,9 @@ describe('timeSeriesToEChartsOption', () => {
     it('coerces null/undefined values to null but preserves zero', () => {
       const frame = multiFrame('a', [1, 2, 3, 4], [0, null, 30, undefined as unknown as number]);
 
-      const result = run([frame], 'line');
+      const result = runSeries([frame], 'line');
 
-      expect(result![0].data).toEqual([
+      expect(result[0].data).toEqual([
         [1, 0],
         [2, null],
         [3, 30],
@@ -132,9 +166,9 @@ describe('timeSeriesToEChartsOption', () => {
     it.each(['line', 'bar', 'scatter', 'effectScatter'] as CartesianSingleValueSeriesType[])(
       'propagates the requested series type "%s" to every series',
       (seriesType) => {
-        const result = run([wideFrame()], seriesType);
+        const result = runSeries([wideFrame()], seriesType);
 
-        expect(result!.every((series) => series.type === seriesType)).toBe(true);
+        expect(result.every((series) => series.type === seriesType)).toBe(true);
       }
     );
   });
@@ -149,11 +183,11 @@ describe('timeSeriesToEChartsOption', () => {
         ],
       });
 
-      const result = run([frame], 'line');
+      const result = runSeries([frame], 'line');
 
       // Overridden field becomes a bar; the other keeps the panel default line.
-      expect(result![0]).toMatchObject({ name: 'requests', type: 'bar' });
-      expect(result![1]).toMatchObject({ name: 'latency', type: 'line' });
+      expect(result[0]).toMatchObject({ name: 'requests', type: 'bar' });
+      expect(result[1]).toMatchObject({ name: 'latency', type: 'line' });
     });
 
     it('ignores a non-cartesian override and falls back to the default', () => {
@@ -164,29 +198,29 @@ describe('timeSeriesToEChartsOption', () => {
         ],
       });
 
-      const result = run([frame], 'line');
+      const result = runSeries([frame], 'line');
 
-      expect(result![0].type).toBe('line');
+      expect(result[0].type).toBe('line');
     });
   });
 
   describe('stacking', () => {
     it('adds a shared stack group to bar series when the panel default is on', () => {
-      const result = run([wideFrame()], 'bar', true);
+      const result = runSeries([wideFrame()], 'bar', { stackSeries: true });
 
-      expect(result!.every((series) => (series as LineSeriesOption).stack === 'total')).toBe(true);
+      expect(result.every((series) => (series as LineSeriesOption).stack === 'total')).toBe(true);
     });
 
     it('does not stack when the panel default is off', () => {
-      const result = run([wideFrame()], 'bar', false);
+      const result = runSeries([wideFrame()], 'bar', { stackSeries: false });
 
-      expect(result!.every((series) => (series as LineSeriesOption).stack === undefined)).toBe(true);
+      expect(result.every((series) => (series as LineSeriesOption).stack === undefined)).toBe(true);
     });
 
     it('never stacks non-bar series even when stacking is on', () => {
-      const result = run([wideFrame()], 'line', true);
+      const result = runSeries([wideFrame()], 'line', { stackSeries: true });
 
-      expect(result!.every((series) => (series as LineSeriesOption).stack === undefined)).toBe(true);
+      expect(result.every((series) => (series as LineSeriesOption).stack === undefined)).toBe(true);
     });
 
     it('lets a per-field stackSeries override win over the panel default', () => {
@@ -198,10 +232,10 @@ describe('timeSeriesToEChartsOption', () => {
         ],
       });
 
-      const result = run([frame], 'bar', false);
+      const result = runSeries([frame], 'bar', { stackSeries: false });
 
-      expect(result![0]).toMatchObject({ name: 'stacked', stack: 'total' });
-      expect((result![1] as LineSeriesOption).stack).toBeUndefined();
+      expect(result[0]).toMatchObject({ name: 'stacked', stack: 'total' });
+      expect((result[1] as LineSeriesOption).stack).toBeUndefined();
     });
 
     it('only stacks a field whose type override renders it as bar', () => {
@@ -214,11 +248,77 @@ describe('timeSeriesToEChartsOption', () => {
       });
 
       // Panel default is line; only the bar-overridden field stacks.
-      const result = run([frame], 'line', true);
+      const result = runSeries([frame], 'line', { stackSeries: true });
 
-      expect(result![0]).toMatchObject({ name: 'asBar', type: 'bar', stack: 'total' });
-      expect(result![1]).toMatchObject({ name: 'asLine', type: 'line' });
-      expect((result![1] as LineSeriesOption).stack).toBeUndefined();
+      expect(result[0]).toMatchObject({ name: 'asBar', type: 'bar', stack: 'total' });
+      expect(result[1]).toMatchObject({ name: 'asLine', type: 'line' });
+      expect((result[1] as LineSeriesOption).stack).toBeUndefined();
+    });
+  });
+
+  describe('performance fast-path props', () => {
+    it('keeps symbols on a sparse line series (below the density threshold)', () => {
+      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS)], 'line');
+
+      expect(result[0]).toMatchObject({ showSymbol: true });
+    });
+
+    it('drops symbols on a dense line series', () => {
+      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1)], 'line');
+
+      expect(result[0]).toMatchObject({ showSymbol: false, sampling: 'lttb' });
+    });
+
+    // LTTB carries no threshold of ours — ECharts gates it on the rendered width,
+    // so it is armed on every line series unless the user turns it off.
+    it('arms LTTB even on a sparse line series (ECharts gates it on pixel width)', () => {
+      const result = runSeries([densityFrame(10)], 'line');
+
+      expect(result[0]).toMatchObject({ sampling: 'lttb' });
+    });
+
+    // A series with no two adjacent non-null values draws no line, so hiding its
+    // markers would render it as nothing at all.
+    it('keeps symbols on a single-point series even past the total threshold', () => {
+      const frames = Array.from({ length: SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1 }, (_, i) =>
+        toDataFrame({
+          fields: [
+            { name: 'time', type: FieldType.time, values: [i] },
+            { name: `s${i}`, type: FieldType.number, values: [i] },
+          ],
+        })
+      );
+
+      const result = runSeries(frames, 'line');
+
+      expect(result).toHaveLength(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1);
+      expect(result.every((series) => (series as LineSeriesOption).showSymbol === true)).toBe(true);
+    });
+
+    it('honors the Show points = Never override on a sparse series', () => {
+      const result = runSeries([densityFrame(10)], 'line', { performance: { showPoints: 'never' } });
+
+      expect(result[0]).toMatchObject({ showSymbol: false });
+    });
+
+    it('honors the Downsampling = off override on a dense series', () => {
+      const result = runSeries([densityFrame(SYMBOL_VISIBLE_MAX_TOTAL_POINTS + 1)], 'line', {
+        performance: { downsampling: false },
+      });
+
+      expect((result[0] as LineSeriesOption).sampling).toBeUndefined();
+    });
+
+    it('enables large mode on a dense scatter series', () => {
+      const result = runSeries([densityFrame(LARGE_MODE_THRESHOLD)], 'scatter');
+
+      expect(result[0]).toMatchObject({ large: true, largeThreshold: LARGE_MODE_THRESHOLD });
+    });
+
+    it('leaves a sparse scatter series untouched by large mode', () => {
+      const result = runSeries([densityFrame(10)], 'scatter');
+
+      expect(result[0]).not.toHaveProperty('large');
     });
   });
 
@@ -255,8 +355,26 @@ describe('timeSeriesToEChartsOption', () => {
         fields: [{ name: 'cpu', type: FieldType.number, values: [1, 2] }],
       });
 
-      const result = run([invalid, valid], 'line');
-      expect(result![0].name).toBe('a');
+      const result = runSeries([invalid, valid], 'line');
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('a');
+    });
+
+    describe('hover emphasis', () => {
+      // The tooltip marks its focused point with a `highlight` dispatch, which
+      // applies this state; without it the marker would be ECharts' near-invisible
+      // default. See `lib/echarts/tooltip/proximity`.
+      it.each(['line', 'scatter', 'effectScatter'] as const)('scales the %s symbol on emphasis', (seriesType) => {
+        const result = run([multiFrame('a', [1, 2], [10, 20])], seriesType);
+
+        expect(result![0].emphasis).toEqual({ focus: 'none', scale: 2 });
+      });
+
+      it('leaves bars alone: they have no symbol to scale', () => {
+        const result = run([multiFrame('a', [1, 2], [10, 20])], 'bar');
+
+        expect(result![0].emphasis).toBeUndefined();
+      });
     });
   });
 });

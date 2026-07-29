@@ -14,11 +14,22 @@ import { type PanelOptions } from 'types';
  * single-value slice is meaningless (its own Percent / Value control replaces
  * it). Callers that need to drop an individual control (e.g. the pie's
  * `tooltip.sort`) call `removeOption` after this.
+ *
+ * `singleTooltipOnly` (default `false`) drops the "All" tooltip choice, leaving
+ * Single/Hidden. Pass `true` for a family whose hover already carries the whole
+ * item — the multivariate one, where a single formatter param holds every
+ * indicator/axis value, so "All" would repeat one row rather than list the axes.
+ * It must agree with the chart module's own `singleTooltipOnly`, which clamps
+ * Multi to Single at render time (see `buildPanelTooltip`); this only hides the
+ * choice in the editor.
  */
 export function addCommonLegendAndTooltip(
   builder: PanelOptionsEditorBuilder<PanelOptions>,
-  { includeLegendCalcs = true }: { includeLegendCalcs?: boolean } = {}
+  {
+    includeLegendCalcs = true,
+    singleTooltipOnly = false,
+  }: { includeLegendCalcs?: boolean; singleTooltipOnly?: boolean } = {}
 ): void {
   commonOptionsBuilder.addLegendOptions(builder, includeLegendCalcs);
-  commonOptionsBuilder.addTooltipOptions(builder, false, false, TOOLTIP_DEFAULT_OPTIONS);
+  commonOptionsBuilder.addTooltipOptions(builder, singleTooltipOnly, false, TOOLTIP_DEFAULT_OPTIONS);
 }

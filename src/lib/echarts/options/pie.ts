@@ -42,8 +42,7 @@ import {
   resolveContrastLabelColor,
   type ThemedLabelStyleOptions,
 } from 'lib/echarts/options/labels';
-import { getValueFormatter } from 'lib/echarts/style';
-import { formatTooltipValue } from 'lib/echarts/tooltip/template';
+import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import { type PanelOptions } from 'types';
 
 /** Base option for pie charts. Series data is merged at render time. */
@@ -418,7 +417,7 @@ export function buildPieLabelLines(
       parts.push(slice.name);
     }
     if (selected.includes('value')) {
-      parts.push(formatTooltipValue(slice.value ?? null, formatters[index]));
+      parts.push(formatEChartsValue(slice.value ?? null, formatters[index]));
     }
     if (selected.includes('percent')) {
       parts.push(formatPieShare(slice.value, total, slice.field.config.decimals));
@@ -524,7 +523,7 @@ export function getPieCenterTitle(
   if (typeof aggregate !== 'number' || !Number.isFinite(aggregate)) {
     return undefined;
   }
-  const valueText = formatTooltipValue(aggregate, getValueFormatter(field, theme, timeZone));
+  const valueText = formatEChartsValue(aggregate, getValueFormatter(field, theme, timeZone));
   const reducerName = fieldReducers.getIfExists(reducerId)?.name ?? reducerId;
   return {
     // Anchor the text block's center on the pie center (tracks centerX/centerY).

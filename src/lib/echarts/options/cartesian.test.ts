@@ -375,6 +375,75 @@ describe('buildCartesianSeries', () => {
       lineStyle: { color: '#111111' },
     });
   });
+
+  // The Advanced style layer and the density-driven performance layer both write
+  // into the same series. These cover where they meet.
+  describe('performance composition', () => {
+    it('spreads the density-resolved fast-path props', () => {
+      const series = buildCartesianSeries(
+        { ...input, perf: { showSymbol: false, sampling: 'lttb' } },
+        'line',
+        {} as PanelOptions,
+        theme
+      );
+      expect(series).toMatchObject({ showSymbol: false, sampling: 'lttb' });
+    });
+
+    it('keeps the Point size while the performance layer decides visibility', () => {
+      // Size is the style layer's; `showSymbol` is the performance layer's, so a
+      // dense chart hides markers that still have an explicit size.
+      const series = buildCartesianSeries(
+        { ...input, perf: { showSymbol: false } },
+        'line',
+        { pointSize: 10 } as PanelOptions,
+        theme
+      );
+      expect(series).toMatchObject({ symbolSize: 10, showSymbol: false });
+    });
+
+    it('lets an explicit Point size of 0 override the performance layer', () => {
+      // `0` is a direct "no markers" request, so it wins over Show points: Always.
+      const series = buildCartesianSeries(
+        { ...input, perf: { showSymbol: true } },
+        'line',
+        { pointSize: 0 } as PanelOptions,
+        theme
+      );
+      expect(series).toMatchObject({ showSymbol: false });
+      expect(series).not.toHaveProperty('symbolSize');
+    });
+
+    it('passes large-mode props through for bar/scatter', () => {
+      const series = buildCartesianSeries(
+        { ...input, perf: { large: true, largeThreshold: 2000 } },
+        'scatter',
+        {} as PanelOptions,
+        theme
+      );
+      expect(series).toMatchObject({ large: true, largeThreshold: 2000 });
+    });
+  });
+
+  // `hover` is the tooltip seam: the time-axis converter opts in, the
+  // category-axis one does not (it keeps ECharts' native hit-testing).
+  describe('hover seam', () => {
+    it('emits triggerEvent and a scaled emphasis marker for symbol types', () => {
+      const series = buildCartesianSeries({ ...input, hover: true }, 'line', {} as PanelOptions, theme);
+      expect(series).toMatchObject({ triggerEvent: true, emphasis: { focus: 'none', scale: 2 } });
+    });
+
+    it('emits triggerEvent but no emphasis marker for bars (no symbol to scale)', () => {
+      const series = buildCartesianSeries({ ...input, hover: true }, 'bar', {} as PanelOptions, theme);
+      expect(series).toMatchObject({ triggerEvent: true });
+      expect(series).not.toHaveProperty('emphasis');
+    });
+
+    it('omits both when hover is not requested', () => {
+      const series = buildCartesianSeries(input, 'line', {} as PanelOptions, theme);
+      expect(series).not.toHaveProperty('triggerEvent');
+      expect(series).not.toHaveProperty('emphasis');
+    });
+  });
 });
 
 describe('applyCartesianEditorModeDefaults', () => {
@@ -389,9 +458,12 @@ describe('applyCartesianEditorModeDefaults', () => {
     expect(resolved.valueLabelPosition).toBe(ADVANCED_CARTESIAN_DEFAULTS.valueLabelPosition);
   });
 
+  // Asserted against the default rather than a literal: animation is off by
+  // default for every family, so the point is that Default mode *resets* the
+  // stored value, whichever way the default points. Mirrors the pie's test.
   it('resets the shared animation option in Default mode', () => {
-    const resolved = applyCartesianEditorModeDefaults(withMode('default', { animation: { enabled: false } }));
-    expect(resolved.animation).toEqual({ enabled: true });
+    const resolved = applyCartesianEditorModeDefaults(withMode('default', { animation: { enabled: true } }));
+    expect(resolved.animation).toEqual(ADVANCED_CARTESIAN_DEFAULTS.animation);
   });
 
   it('keeps the Default-tier showValues (never reset)', () => {

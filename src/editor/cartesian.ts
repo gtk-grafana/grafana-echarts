@@ -1,4 +1,5 @@
 import { type SelectableValue } from '@grafana/data';
+import { ANIMATION_ENABLED_DEFAULT } from 'editor/constants';
 import {
   type CartesianShowValues,
   type CartesianSingleValueSeriesType,
@@ -210,5 +211,8 @@ export const xTickRotatePath = 'xTickRotate';
 /** Default x tick rotation: 0 (horizontal labels; omitted). */
 export const CARTESIAN_X_TICK_ROTATE_DEFAULT = 0;
 
-/** Default animation state: enabled (matches ECharts). Reset in Default editor mode. */
-export const CARTESIAN_ANIMATION_ENABLED_DEFAULT = true;
+/**
+ * Default animation: off, from the shared `ANIMATION_ENABLED_DEFAULT` — animation
+ * is opt-in for every family. See that constant for why, and `docs/performance.md`.
+ */
+export const CARTESIAN_ANIMATION_ENABLED_DEFAULT = ANIMATION_ENABLED_DEFAULT;

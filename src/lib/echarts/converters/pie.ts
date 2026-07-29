@@ -142,6 +142,10 @@ function computePieSlices(
         : display.display.color || getPaletteColorByIndex(index, theme),
       hidden: hidden.has(name) || (alias !== undefined && isSeriesHiddenByName(fieldConfig, alias)),
       field: toSliceField(display, name, value),
+      // The real backing column + row, so the tooltip footer resolves the
+      // slice's data links (the synthetic `field` above carries none).
+      sourceField: sourceField(display),
+      sourceRowIndex: display.rowIndex ?? 0,
     };
   });
 
@@ -201,10 +205,19 @@ function toSliceField(display: FieldDisplay, name: string, value: number | undef
 
 /** The raw name of the source field a slice was reduced from (`''` when unavailable). */
 function sourceFieldName(display: FieldDisplay): string {
+  return sourceField(display)?.name ?? '';
+}
+
+/**
+ * The real frame column a slice was reduced from — the field that still carries
+ * `getLinks` and `config.links`, unlike the synthetic single-value slice field.
+ * `undefined` for the "No data" placeholder (no `colIndex`).
+ */
+function sourceField(display: FieldDisplay): Field | undefined {
   if (display.colIndex === undefined) {
-    return '';
+    return undefined;
   }
-  return display.view?.dataFrame.fields[display.colIndex]?.name ?? '';
+  return display.view?.dataFrame.fields[display.colIndex];
 }
 
 /**

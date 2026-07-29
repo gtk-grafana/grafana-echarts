@@ -14,6 +14,7 @@ import {
 import { seriesTypePath } from 'editor/constants';
 import { type EChartsGraphFieldConfig, type SeriesTypeOption } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
+import { framesLookMultiValue } from 'lib/echarts/converters/multiValueCartesian';
 import { addCartesianBarRadiusOptions } from 'lib/grafana/editor/cartesian/bar-radius';
 import { addCartesianBarWidthOptions } from 'lib/grafana/editor/cartesian/bar-width';
 import { addCartesianFillOpacityOptions } from 'lib/grafana/editor/cartesian/fill-opacity';
@@ -21,11 +22,10 @@ import { addCartesianLineWidthOptions } from 'lib/grafana/editor/cartesian/line-
 import { addCartesianPointSizeOptions } from 'lib/grafana/editor/cartesian/point-size';
 import { addCartesianValueLabelOptions } from 'lib/grafana/editor/cartesian/value-labels';
 import { addCartesianXTickRotateOptions } from 'lib/grafana/editor/cartesian/x-tick-rotate';
-import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
-import { framesLookMultiValue } from 'lib/echarts/converters/multiValueCartesian';
+import { addPerformanceOptions } from 'lib/grafana/editor/common/performance-options';
 import { type PanelOptions } from 'types';
 import { cartesianSuggestionsSupplier } from './suggestions';
 
@@ -115,8 +115,8 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
     // Editor mode (Default / Advanced) — tiers the editor surface. Registered
     // first so it renders at the top. The core-parity controls below are always
     // shown; ECharts-only options (bar/line geometry, value-label position, tick
-    // rotation, animation) gate on Advanced via `showIf: isAdvancedEditorMode`.
-    // See docs/options-modes.md.
+    // rotation) and the Performance overrides gate on Advanced via
+    // `showIf: isAdvancedEditorMode`. See docs/options-modes.md.
     addEditorModeOption(builder);
 
     // Panel-level series type: the base render type applied to every field (the
@@ -156,11 +156,17 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
     addCartesianFillOpacityOptions(builder); // areaStyle.opacity (line → area)
     addCartesianPointSizeOptions(builder); // symbolSize / showSymbol (line/scatter)
     addCartesianXTickRotateOptions(builder); // xAxis.axisLabel.rotate
-    addAnimationOption(builder); // shared animation toggle
 
     // Standard Core Grafana "Legend" (Visibility, Mode, Placement, Width, Limit,
     // Values) + "Tooltip" options, registered in their own categories.
     addCommonLegendAndTooltip(builder);
+
+    // Advanced-gated performance overrides (Show points / Downsampling /
+    // Animation). ECharts' big-data levers are auto-tuned above density
+    // thresholds; these let power users override the auto behavior. Cartesian
+    // only — the time-series fast path doesn't apply to the other families, which
+    // register the shared animation switch on its own via `addAnimationOption`.
+    addPerformanceOptions(builder);
 
     return builder;
   })

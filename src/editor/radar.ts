@@ -1,4 +1,5 @@
 import { type SelectableValue } from '@grafana/data';
+import { ANIMATION_ENABLED_DEFAULT } from 'editor/constants';
 import { type MultivariateSeriesType, type RadarShape, type SeriesType, type SeriesTypeOption } from 'editor/types';
 
 /**
@@ -98,5 +99,8 @@ export const radarSplitNumberPath = 'radarSplitNumber';
 /** Default radar ring count: unset (ECharts default, 5 rings), so nothing is written. */
 export const RADAR_SPLIT_NUMBER_DEFAULT: number | undefined = undefined;
 
-/** Default animation state: enabled (matches ECharts). Reset in Default editor mode. */
-export const RADAR_ANIMATION_ENABLED_DEFAULT = true;
+/**
+ * Default animation: off, from the shared `ANIMATION_ENABLED_DEFAULT` — animation
+ * is opt-in for every family. See that constant for why, and `docs/performance.md`.
+ */
+export const RADAR_ANIMATION_ENABLED_DEFAULT = ANIMATION_ENABLED_DEFAULT;

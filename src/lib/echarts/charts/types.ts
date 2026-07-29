@@ -32,9 +32,11 @@ import {
 } from 'echarts';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
-// Imported from the module (not the barrel) to avoid a cycle: the tooltip barrel
-// pulls in `option.ts` -> `axes/converters` -> this file.
-import { type TooltipValueFormatterResolver } from 'lib/echarts/tooltip/template';
+import {
+  type TooltipFieldResolver,
+  type TooltipSink,
+  type TooltipValueFormatterResolver,
+} from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
@@ -54,6 +56,11 @@ export interface ChartContext<T = SeriesType> {
   // Grafana's `getFieldDisplayValues`, which the pie resolver uses to reduce
   // slices and to interpolate field display-name templates.
   replaceVariables: InterpolateFunction;
+  // Receives the hovered tooltip content model so the React overlay
+  // (`EChartsTooltip`) can render it. Injected by `buildPanelChartOption` from
+  // the value the `EChart` component supplies; optional so chart modules can be
+  // built without a React sink in unit tests (formatters fall back to a no-op).
+  tooltipSink?: TooltipSink;
 }
 
 export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
@@ -168,9 +175,39 @@ export interface ChartModule {
   /**
    * Resolve the value formatter for a hovered tooltip item so each series
    * formats with its own field's unit/decimals overrides. Chart families map the
-   * item to a field differently (by `seriesIndex` or `dataIndex`).
+   * item to a field differently (by `seriesIndex` or `dataIndex`). Optional:
+   * families whose items all share the panel formatter omit it and
+   * `buildPanelTooltip` falls back to `ctx.formatValue`.
    */
-  getTooltipValueFormatter(ctx: ChartContext): TooltipValueFormatterResolver;
+  getTooltipValueFormatter?(ctx: ChartContext): TooltipValueFormatterResolver;
+  /**
+   * Resolve the source `Field` + row index for a hovered tooltip item, so the
+   * tooltip footer can surface that field's data links and label-based ad-hoc
+   * filters. Optional: families whose items have no clean field mapping
+   * (multi-value cartesian, heatmap cells, hierarchy nodes) omit it and render no
+   * footer.
+   */
+  getTooltipFieldResolver?(ctx: ChartContext): TooltipFieldResolver;
+  /**
+   * Labels for the dimensions a multi-value series packs into one item, so the
+   * tooltip lists them all instead of just the last. Only families that draw
+   * several values per x (candlestick, boxplot) implement this; see
+   * {@link TooltipModelOptions.multiValueDimensions}.
+   */
+  getTooltipDimensions?(ctx: ChartContext): string[] | undefined;
+  /**
+   * The family has no meaningful "All" tooltip, so a persisted
+   * `tooltip.mode: multi` is clamped back to Single when building the option.
+   * Its editor should also pass `singleOnly` to `addTooltipOptions`; this covers
+   * dashboards saved before the option was withdrawn.
+   *
+   * Only radar sets this today. Hierarchy's editor passes `singleOnly` (see
+   * `modules/hierarchy/module.tsx`) but `hierarchyChartModule` does not set this,
+   * so a dashboard saved with `multi` still builds an axis trigger there. Left
+   * alone deliberately: setting it would change what those saved dashboards
+   * render.
+   */
+  singleTooltipOnly?: boolean;
 }
 
 export type CartesianOption = ComposeOption<

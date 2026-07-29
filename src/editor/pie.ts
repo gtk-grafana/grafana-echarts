@@ -1,5 +1,6 @@
 import { ReducerID, type SelectableValue } from '@grafana/data';
 import { SortOrder } from '@grafana/schema';
+import { ANIMATION_ENABLED_DEFAULT } from 'editor/constants';
 import { funnelSeriesTypes } from 'editor/funnel';
 import {
   type PartToWholeSeriesType,
@@ -302,8 +303,12 @@ export const PIE_AVOID_LABEL_OVERLAP_DEFAULT = true;
  * `buildPanelChartOption`.
  */
 export const pieAnimationEnabledPath = 'animation.enabled';
-/** Default animation: enabled (matches ECharts). */
-export const PIE_ANIMATION_ENABLED_DEFAULT = true;
+/**
+ * Default animation: off, from the shared `ANIMATION_ENABLED_DEFAULT` — animation
+ * is opt-in for every family, not just the cartesian one. See that constant for
+ * why, and `docs/performance.md`.
+ */
+export const PIE_ANIMATION_ENABLED_DEFAULT = ANIMATION_ENABLED_DEFAULT;
 /** Panel option path for the pie slice-label text-shadow re-enable toggle (Advanced). */
 export const pieLabelTextShadowPath = 'labelTextShadow';
 /** Panel option path for the pie slice-label text-stroke re-enable toggle (Advanced). */

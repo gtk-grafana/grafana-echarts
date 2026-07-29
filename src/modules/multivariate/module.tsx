@@ -74,9 +74,15 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     addParallelLineWidthOptions(builder);
     addParallelLineOpacityOptions(builder);
 
+    // The family has no per-point fast path, so it registers the shared animation
+    // switch directly rather than the cartesian `addPerformanceOptions` bundle
+    // (whose Show points / Downsampling levers would be inert here).
     addAnimationOption(builder);
 
-    addCommonLegendAndTooltip(builder);
+    // Single/Hidden only: one formatter param carries the whole polygon/polyline,
+    // so "All" has no extra rows to list. Matches `singleTooltipOnly` on
+    // `multivariateChartModule`, which clamps the mode at render time.
+    addCommonLegendAndTooltip(builder, { singleTooltipOnly: true });
     return builder;
   })
   // Advertise fitness for multi-metric numeric data (opts in via `"suggestions": true`).

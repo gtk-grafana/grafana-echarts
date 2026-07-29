@@ -18,10 +18,33 @@ This converter reuses the shared [categorical model](./categorical.md), so it
 consumes the **Numeric** kind (wide / pivot shape) — see
 https://grafana.com/developers/dataplane/numeric — and pivots it into a matrix.
 
+## Why the native series is only safe here
+
+ECharts' native `heatmap` series on a cartesian coordinate system requires **two
+category axes**, both with `boundaryGap: true` (`axis.onBand`): right after that
+check it sizes every tile from `calcBandWidth(xAxis)` / `calcBandWidth(yAxis)`,
+which only means anything for a band axis.
+
+The runtime does assert this — `HeatmapView` throws
+`'Heatmap on cartesian must have two category axes'` and
+`'Heatmap on cartesian must have two axes with boundaryGap true'` — but both
+throws sit inside an `if (__DEV__)` block, which is stripped from production
+builds. In a released Grafana the assertions therefore never fire, and a heatmap
+pointed at a `time` axis **silently misrenders** instead of erroring.
+
+That is the hard justification for the custom-series
+[binned heatmap](./heatmap-binned.md): it draws explicit cell rectangles in data
+space, so it can keep a continuous `time` (or numeric) x-axis. The matrix
+heatmap can use the native series precisely because both of its axes are
+categorical.
+
+Verified against ECharts 6.1.0, `HeatmapView.ts` (see References).
+
 ## How a frame is read
 
-`frameToMatrixHeatmap` uses the same `findCategoricalFrame` / `resolveCategories`
-/ `mapNumericFields` helpers as the categorical model:
+`frameToMatrixHeatmap` uses the same `findCategoricalFrame` /
+`resolveCategoriesFromFrame` / `mapNumericFields` helpers as the categorical
+model:
 
 | Grafana field        | Used as                                           |
 | -------------------- | ------------------------------------------------- |
@@ -50,3 +73,10 @@ Because it is built on the categorical model, it inherits the same limitations
 
 `frameToMatrixHeatmap` returns `null` when no frame has a numeric field, so the
 caller can render an empty panel.
+
+## References
+
+- ECharts heatmap series option:
+  https://echarts.apache.org/en/option.html#series-heatmap
+- `HeatmapView` cartesian `__DEV__` assertions (ECharts 6.1.0):
+  https://github.com/apache/echarts/blob/6.1.0/src/chart/heatmap/HeatmapView.ts

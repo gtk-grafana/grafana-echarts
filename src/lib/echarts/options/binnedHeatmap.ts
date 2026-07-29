@@ -1,6 +1,6 @@
-import { dateTimeFormat, type DisplayProcessor, type GrafanaTheme2 } from '@grafana/data';
+import { type DisplayProcessor, type GrafanaTheme2 } from '@grafana/data';
 import { type CustomSeriesOption, type CustomSeriesRenderItem } from 'echarts';
-import { type ContinuousVisualMapOption, type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type ContinuousVisualMapOption } from 'echarts/types/dist/shared';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
 import type { CartesianAxisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { type ZRRectLike } from 'echarts/types/src/util/types';
@@ -12,12 +12,10 @@ import {
 import { HEATMAP_VALUE_DIM } from 'lib/echarts/options/constants';
 import { getHeatmapVisualMap } from 'lib/echarts/options/heatmapVisualMap';
 import { isRect } from 'lib/echarts/options/narrowing';
-import {
-  type BinnedHeatmapTooltipContext,
-  type HeatmapColorScalePlacement,
-  type HeatmapColorScheme,
-} from 'lib/echarts/options/types';
-import { buildTooltipShell, formatTooltipValue } from 'lib/echarts/tooltip/template';
+import { type HeatmapColorScalePlacement, type HeatmapColorScheme } from 'lib/echarts/options/types';
+import { buildBinnedHeatmapTooltipModel } from 'lib/echarts/tooltip/binnedHeatmap';
+import { seriesTooltip } from 'lib/echarts/tooltip/option';
+import { type BinnedHeatmapTooltipContext } from 'lib/echarts/tooltip/types';
 
 /**
  * Custom tick/label/grid-line placement for the heatmap bucket (Y) axis so the
@@ -160,52 +158,6 @@ export function makeBinnedHeatmapRenderItem(emphasisShadow: BinnedHeatmapCellSha
 }
 
 /**
- * Per-cell tooltip for the binned heatmap custom series. Unlike the generic
- * tooltip (which would show the series name "Heatmap" and the raw cell value),
- * this matches core Grafana: the X (time/value) in the header, then a "Value"
- * row and the bucket "Name" row. The bucket label is recovered from the cell's Y
- * bounds via {@link BinnedHeatmapData.yBuckets}, the same labels the bucket axis
- * uses.
- *
- * ECharts hands `params.value` back the encoded `[xStart, yStart, xEnd, yEnd,
- * value]` tuple (item trigger). Returns safe DOM (no innerHTML) via the shared
- * tooltip shell. See https://echarts.apache.org/en/option.html#series-custom.tooltip
- */
-export function buildBinnedHeatmapTooltip(
-  data: BinnedHeatmapData,
-  ctx: BinnedHeatmapTooltipContext
-): (params: TopLevelFormatterParams) => HTMLElement {
-  const bucketLabels = new Map<string, string>();
-  for (const bucket of data.yBuckets) {
-    bucketLabels.set(`${bucket.start}:${bucket.end}`, bucket.label);
-  }
-
-  const formatX = (x: number): string => {
-    if (!Number.isFinite(x)) {
-      return String(x);
-    }
-    return data.xIsTime ? dateTimeFormat(x, { timeZone: ctx.timeZone }) : formatBucketBound(x);
-  };
-
-  return (params) => {
-    const param = Array.isArray(params) ? params[0] : params;
-    const tuple = Array.isArray(param?.value) ? param.value : [];
-    const xStart = Number(tuple[0]);
-    const yStart = Number(tuple[1]);
-    const yEnd = Number(tuple[3]);
-    const value = tuple[HEATMAP_VALUE_DIM] ?? null;
-
-    const bucket = bucketLabels.get(`${yStart}:${yEnd}`) ?? `${formatBucketBound(yStart)} - ${formatBucketBound(yEnd)}`;
-
-    const shell = buildTooltipShell(ctx.theme);
-    shell.appendHeader(formatX(xStart));
-    shell.appendRow({ label: 'Value', value: formatTooltipValue(value, ctx.formatValue) });
-    shell.appendRow({ label: 'Name', value: bucket });
-    return shell.root;
-  };
-}
-
-/**
  * Build the binned heatmap custom series. `yAxisIndex` defaults to 0 (the bucket
  * axis). `zlevel` places the cells on the series canvas layer (see the panel's
  * `zLevel.series`), matching the cartesian series so layered canvas capture can
@@ -233,7 +185,7 @@ export function getBinnedHeatmapSeries(
     legendHoverLink: false,
     // Per-series tooltip so a hovered cell reads like core Grafana's heatmap.
     // https://echarts.apache.org/en/option.html#series-custom.tooltip
-    tooltip: { formatter: buildBinnedHeatmapTooltip(data, tooltipCtx) },
+    tooltip: seriesTooltip(buildBinnedHeatmapTooltipModel(data, tooltipCtx), tooltipCtx.tooltipSink),
   };
 }
 

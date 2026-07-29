@@ -19,6 +19,13 @@ export interface BinnedHeatmapCell {
   yStart: number;
   yEnd: number;
   value: number | null;
+  /**
+   * The numeric field this cell's value was read from, and its row within that
+   * field. Both layouts build one cell per (field, row) pair, so the tooltip
+   * footer can resolve the hovered cell's data links (see `EChartsTooltip`).
+   */
+  field: Field<number>;
+  rowIndex: number;
 }
 
 /**
@@ -197,6 +204,8 @@ function rowsToCells(frame: FieldTypedDataFrame<number, EChartsFieldConfig>, ser
         yStart,
         yEnd,
         value: typeof value === 'number' ? value : null,
+        field,
+        rowIndex: i,
       });
     }
   }
@@ -249,6 +258,8 @@ function cellsToCells(frame: NumericFrame): FrameHeatmap {
       yStart: ys,
       yEnd: ye,
       value: typeof value === 'number' ? value : null,
+      field: valueField,
+      rowIndex: i,
     });
 
     const key = `${ys}:${ye}`;

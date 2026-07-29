@@ -35,4 +35,14 @@ export interface PieSliceModel {
    * (`getCalcDisplayValues`) — a slice is one value, so any reducer resolves to it.
    */
   field: Field;
+  /**
+   * The real source field (with its `getLinks` supplier and `config.links`) and
+   * the row this slice reduced, so the tooltip footer can surface the slice's
+   * data links. The synthetic {@link field} above is rebuilt for the legend and
+   * carries no links, so it cannot serve this. `undefined` when the slice has no
+   * backing frame column (the "No data" placeholder).
+   */
+  sourceField?: Field;
+  /** Row index within {@link sourceField} the slice's value came from. */
+  sourceRowIndex?: number;
 }

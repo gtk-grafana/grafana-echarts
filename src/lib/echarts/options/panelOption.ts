@@ -7,13 +7,12 @@ import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
+import { resolveAnimation } from 'lib/echarts/performance/resolvers';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
-import {
-  getCrosshairAxisPointer,
-  getNoTooltipOption,
-  getTooltipOption,
-  grafanaTooltipModeToEChartsTrigger,
-} from 'lib/echarts/tooltip';
+import { NOOP_TOOLTIP_SINK } from 'lib/echarts/tooltip/model';
+import { type TooltipSink } from 'lib/echarts/tooltip/types';
+import { getCrosshairAxisPointer, getNoTooltipOption } from 'lib/echarts/tooltip/option';
+import { buildPanelTooltip } from 'lib/echarts/tooltip/panelTooltip';
 import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
 
 /**
@@ -28,7 +27,7 @@ import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
  */
 export function buildPanelChartOption(
   rawCtx: ChartContext,
-  { isGrafanaLegend }: { isGrafanaLegend: boolean }
+  { isGrafanaLegend, tooltipSink }: { isGrafanaLegend: boolean; tooltipSink?: TooltipSink }
 ): ECBasicOption {
   const chartModule = resolveChartModule(rawCtx.seriesType);
   if (!chartModule) {
@@ -40,8 +39,14 @@ export function buildPanelChartOption(
   // build and the `animation` read below) so Default mode renders the plain
   // chart regardless of any stored Advanced values. The dispatch is identity for
   // families with no Advanced tier, so this is a no-op for them (see
-  // `applyEditorModeDefaults`).
+  // `applyEditorModeDefaults`). This generalizes what was the pie-only
+  // `applyPartToWholeEditorModeDefaults`, which also closes the cartesian
+  // normalization gap noted in `docs/performance.md`.
   const options = applyEditorModeDefaults(rawCtx.seriesType, rawCtx.options);
+
+  // The React overlay's sink, threaded onto the context so per-series formatters
+  // (pie/hierarchy/heatmap) emit through the same channel as the top-level one.
+  const sink = tooltipSink ?? NOOP_TOOLTIP_SINK;
 
   // Drop value fields hidden via the legend visibility toggle before building.
   // The part-to-whole family (pie/funnel) is excluded: it hides slices by
@@ -49,22 +54,13 @@ export function buildPanelChartOption(
   // Editor-mode normalization already ran generically above
   // (`applyEditorModeDefaults`), so both branches use the normalized `options`.
   const ctx: ChartContext = partToWholeSeriesTypes.includes(rawCtx.seriesType)
-    ? { ...rawCtx, options }
-    : { ...rawCtx, options, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
+    ? { ...rawCtx, tooltipSink: sink, options }
+    : { ...rawCtx, tooltipSink: sink, options, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
   const hasTimeField = framesHaveTimeField(ctx.frames);
   const axisType = panelTypeToAxis(ctx, hasTimeField);
-  const tooltipMode = ctx.options.tooltip?.mode ?? TooltipDisplayMode.Single;
-  const tooltipOption = getTooltipOption(
-    grafanaTooltipModeToEChartsTrigger(axisType, tooltipMode),
-    tooltipMode,
-    // Per-series resolver so each row honors its field's unit/decimals overrides.
-    chartModule.getTooltipValueFormatter(ctx),
-    ctx.theme,
-    // Common tooltip parity: hide zero-value rows and sort by value (Multi only).
-    { sort: ctx.options.tooltip?.sort, hideZeros: ctx.options.tooltip?.hideZeros }
-  );
+  const { option: tooltipOption, mode: tooltipMode } = buildPanelTooltip(ctx, chartModule, axisType);
 
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
   if (!echartOption) {
@@ -89,7 +85,10 @@ export function buildPanelChartOption(
   return {
     ...echartOption,
     tooltip: tooltipOption,
-    animation: ctx.options.animation?.enabled,
+    // Animation is opt-in and off by default for every family — density
+    // thresholds were tried and could not fire early enough to help. See
+    // `resolveAnimation`.
+    animation: resolveAnimation(ctx.options),
     ...(axisPointer ? { axisPointer } : {}),
     ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };
