@@ -1,5 +1,5 @@
 import { type Field } from '@grafana/data';
-import { PARALLEL_SMOOTH_DEFAULT } from 'editor/parallel';
+import { PARALLEL_LINE_OPACITY_DEFAULT, PARALLEL_SMOOTH_DEFAULT } from 'editor/parallel';
 import { findCategoricalFrame, mapNumericFields } from 'lib/echarts/converters/frames';
 import { parallelToEChartsOption } from 'lib/echarts/converters/parallel';
 import { radarToEChartsOption } from 'lib/echarts/converters/radar';
@@ -56,8 +56,17 @@ function buildRadarOption(ctx: ChartContext, isGrafanaLegend: boolean): EChartRa
       theme,
       radar.data.map((polygon) => polygon.name)
     ),
-    // Advanced shape / rings on the radar coordinate component.
-    radar: getRadarComponent(radar.indicator, options.radarShape, options.radarSplitNumber),
+    // Advanced shape / rings on the radar coordinate component, plus its layout
+    // box and themed indicator names. As with parallel, only a native ECharts
+    // legend needs room reserved — a Grafana DOM legend is laid out by
+    // `VizLayout` before the canvas exists.
+    radar: getRadarComponent(
+      radar.indicator,
+      options.radarShape,
+      options.radarSplitNumber,
+      theme,
+      isGrafanaLegend ? undefined : options.legend
+    ),
     series: [
       {
         type: 'radar',
@@ -84,9 +93,12 @@ function buildParallelOption(ctx: ChartContext, isGrafanaLegend: boolean): EChar
   }
 
   // Advanced series style (line width / opacity) and the Default-tier smooth
-  // toggle, each omitted at its default so an untouched parallel chart renders on
-  // ECharts' own defaults.
-  const lineStyle = getParallelLineStyle(options.parallelLineWidth, options.parallelLineOpacity);
+  // toggle. Width and smooth are omitted at their defaults so an untouched
+  // parallel chart renders on ECharts' own. Opacity is the exception: it resolves
+  // through our own default (fully opaque) because ECharts' 0.45 is too faint —
+  // see `PARALLEL_LINE_OPACITY_DEFAULT`. Cleared-to-empty therefore lands on 100
+  const lineOpacity = options.parallelLineOpacity ?? PARALLEL_LINE_OPACITY_DEFAULT;
+  const lineStyle = getParallelLineStyle(options.parallelLineWidth, lineOpacity);
   const smooth = options.parallelSmooth ?? PARALLEL_SMOOTH_DEFAULT;
 
   return {
@@ -97,18 +109,23 @@ function buildParallelOption(ctx: ChartContext, isGrafanaLegend: boolean): EChar
       theme,
       parallel.data.map((line) => line.name)
     ),
-    // The `parallel` coordinate component carries the Advanced layout; the axes
-    // are their own top-level `parallelAxis` array — one value axis per category,
-    // positioned by `dim`.
-    parallel: getParallelComponent(options.parallelLayout),
-    parallelAxis: parallel.axes.map((axis, dim) => ({ dim, name: axis.name, type: 'value' as const })),
+    // The `parallel` coordinate component carries the Advanced layout, the
+    // layout box and the shared axis styling; the axes are their own top-level
+    // `parallelAxis` array — one value axis per category, positioned by `dim`.
+    parallel: getParallelComponent(options.parallelLayout, theme, isGrafanaLegend ? undefined : options.legend),
+    parallelAxis: parallel.axes.map((axis, dim) => ({ dim, name: axis.name, type: 'value' })),
     series: [
       {
         type: 'parallel',
         // Per-line color rides on each data item's `lineStyle.color` (the
         // documented per-line form); the series-level `lineStyle` below carries
         // the shared width/opacity.
-        data: parallel.data.map((line) => ({ value: line.value, lineStyle: line.lineStyle })),
+        data: parallel.data.map((line) => ({
+          // `name` is needed for tooltip header
+          name: line.name,
+          value: line.value,
+          lineStyle: line.lineStyle,
+        })),
         ...(smooth ? { smooth: true } : {}),
         ...(lineStyle ? { lineStyle } : {}),
         // Place the series on its own canvas layer (see the panel's

@@ -1,6 +1,7 @@
 import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { multivariateChartModule, radarChartModule } from 'lib/echarts/charts/multivariate';
 import { type ChartContext } from 'lib/echarts/charts/types';
+import { type PanelOptions } from 'types';
 
 const theme = createTheme();
 
@@ -61,5 +62,39 @@ describe('multivariateChartModule tooltips', () => {
 
   it('keeps the radar alias pointing at the family module', () => {
     expect(radarChartModule).toBe(multivariateChartModule);
+  });
+});
+
+describe('multivariateChartModule parallel option', () => {
+  const buildParallel = (options: Partial<PanelOptions> = {}) => {
+    const ctx = {
+      frames: [tableFrame()],
+      theme,
+      timeZone: 'utc',
+      seriesType: 'parallel',
+      formatValue: (value: unknown) => ({ text: String(value) }),
+      options,
+    } as unknown as ChartContext;
+    return multivariateChartModule.buildOption(ctx, { isGrafanaLegend: true } as never) as {
+      series: Array<{ data: Array<{ name?: string }>; lineStyle?: { opacity?: number } }>;
+    };
+  };
+
+  // The family renders one series, so `series.name` cannot identify a line and
+  // the tooltip header falls back to the data item's own `name`. Dropping it
+  // here is what left the parallel tooltip with an empty header.
+  it('names each polyline so the tooltip header can label it', () => {
+    expect(buildParallel().series[0].data.map((item) => item.name)).toEqual(['Budget', 'Actual']);
+  });
+
+  // ECharts' own default is 0.45, which reads as washed out against Grafana's
+  // palette; an unset opacity must resolve to our fully-opaque default instead.
+  it('draws fully opaque lines when no opacity is configured', () => {
+    expect(buildParallel().series[0].lineStyle?.opacity).toBe(1);
+  });
+
+  it('still honours a configured opacity, including zero', () => {
+    expect(buildParallel({ parallelLineOpacity: 40 }).series[0].lineStyle?.opacity).toBe(0.4);
+    expect(buildParallel({ parallelLineOpacity: 0 }).series[0].lineStyle?.opacity).toBe(0);
   });
 });

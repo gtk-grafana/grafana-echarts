@@ -1,11 +1,12 @@
-import { createTheme, type Field, FieldType, type ValueFormatter, toDataFrame } from '@grafana/data';
+import { createTheme, type Field, FieldType, toDataFrame, type ValueFormatter } from '@grafana/data';
 import { AxisPlacement } from '@grafana/schema';
 import { AXIS_OFFSET_STEP, buildCartesianYAxes, getAxisGridSpacing } from 'lib/echarts/axes/yAxes';
 import { getCartesianAxisStyle } from 'lib/echarts/options/cartesian';
 
 const theme = createTheme();
 const axisStyle = getCartesianAxisStyle(theme);
-const baseYAxis = { type: 'value' as const, scale: true };
+const type: 'value' = 'value';
+const baseYAxis = { type, scale: true };
 const fallback: ValueFormatter = (value) => ({ text: `fb:${value}` });
 
 /** Build a numeric field with a unit and optional per-field axis placement. */

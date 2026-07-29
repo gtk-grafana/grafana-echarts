@@ -65,12 +65,11 @@ function buildMarkLine(steps: ThresholdMark[], dashed: boolean): MarkLineCompone
  * `-Infinity` base and the open top never reach ECharts as coordinates.
  */
 function buildMarkArea(steps: ThresholdMark[]): MarkAreaComponentOption {
+  const relativeTo: 'coordinate' = 'coordinate';
   const data: MarkArea2DDataItemOption[] = steps.map((step, index) => {
     const next = steps[index + 1];
-    const lower = Number.isFinite(step.value)
-      ? { yAxis: step.value }
-      : { y: '100%', relativeTo: 'coordinate' as const };
-    const upper = next ? { yAxis: next.value } : { y: '0%', relativeTo: 'coordinate' as const };
+    const lower = Number.isFinite(step.value) ? { yAxis: step.value } : { y: '100%', relativeTo };
+    const upper: MarkArea2DDataItemOption[1] = next ? { yAxis: next.value } : { y: '0%', relativeTo };
 
     return [{ ...lower, itemStyle: { color: step.color, opacity: AREA_OPACITY } }, upper];
   });
