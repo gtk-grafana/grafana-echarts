@@ -4,8 +4,10 @@ import {
   isCartesianSingleValueSeriesType,
   isMultiValueSeriesType,
   isMultivariateSeriesType,
+  isRelationsSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { ADVANCED_CARTESIAN_DEFAULTS } from 'lib/echarts/options/cartesian';
+import { ADVANCED_RELATIONS_DEFAULTS } from 'lib/echarts/options/graph';
 import { ADVANCED_PARALLEL_DEFAULTS } from 'lib/echarts/options/parallel';
 import { ADVANCED_PIE_DEFAULTS } from 'lib/echarts/options/pie';
 import { ADVANCED_RADAR_DEFAULTS } from 'lib/echarts/options/radar';
@@ -62,6 +64,9 @@ export function applyEditorModeDefaults(seriesType: SeriesType, options: PanelOp
   }
   if (isMultivariateSeriesType(seriesType)) {
     return applyAdvancedDefaults(options, ADVANCED_RADAR_DEFAULTS);
+  }
+  if (isRelationsSeriesType(seriesType)) {
+    return applyAdvancedDefaults(options, ADVANCED_RELATIONS_DEFAULTS);
   }
   return options;
 }

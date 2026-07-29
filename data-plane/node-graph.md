@@ -8,11 +8,17 @@ frame and an optional **nodes** frame.
 > (Numeric, Heatmap, ...), node graph is **out of the Grafana data plane
 > contract**. It carries no `frame.meta.type`. Grafana identifies it through a
 > separate routing signal (`frame.meta.preferredVisualisationType`) and field/
-> frame naming conventions. This doc documents the **input frame format** Grafana
-> expects; the plugin does **not** consume these frames yet (see
-> [../todo/node-graph.md](../todo/node-graph.md) for the proposed panel, and
+> frame naming conventions.
+>
+> The plugin consumes these frames through the **relations** family panel
+> (`src/modules/relations/`), which renders them as an ECharts `graph` series;
+> `sankey` and `chord` are planned variants of the same panel. The converter is
+> `frameToNodeGraph` (`src/lib/echarts/converters/nodeGraph.ts`) and the editor
+> options are tracked in
+> [../src/modules/relations/parity.md](../src/modules/relations/parity.md). See
 > [../docs/relations-data-sources.md](../docs/relations-data-sources.md) for which
-> data sources can produce this shape and how to reshape the ones that cannot).
+> data sources can produce this shape and how to reshape the ones that cannot, and
+> [../todo/node-graph.md](../todo/node-graph.md) for the remaining variants.
 
 Field names below come from Grafana's `NodeGraphDataFrameFieldNames` enum
 (`packages/grafana-data/src/utils/nodeGraph.ts`) and the node graph
@@ -162,10 +168,45 @@ source_. Positioned nodes (`fixedx`/`fixedy`) plus a `graph` series with
 [echarts-coverage.md](./echarts-coverage.md) and the rationale in
 [../todo/node-graph.md](../todo/node-graph.md).
 
+## How a frame is read
+
+`frameToNodeGraph` (`src/lib/echarts/converters/nodeGraph.ts`) returns a
+chart-agnostic `{ nodes, links }` model. The **edges** frame is required; the
+**nodes** frame only adds metadata.
+
+| Grafana field                                | Used as                                                                                             |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| edge `id`                                    | Link id; synthesised as `<source>--<target>` when absent                                            |
+| edge `source` / `target`                     | Link endpoints, matched against node `id`. A row missing either is **dropped**                      |
+| edge `mainstat`                              | Link weight, when numeric — else `thickness`, else `1`                                              |
+| edge `thickness`                             | `lineStyle.width` (and the weight fallback)                                                         |
+| edge `color`                                 | `lineStyle.color`                                                                                   |
+| edge `strokedasharray`                       | `lineStyle.type`, approximated to `dotted` (leading dash ≤ 2) or `dashed`                           |
+| node `id`                                    | ECharts node key, so links resolve against it                                                       |
+| node `title`                                 | `name` — the label text; falls back to `id`                                                         |
+| node `mainstat`                              | `value`, driving by-value color and the tooltip                                                     |
+| node `subtitle`                              | Tooltip row                                                                                         |
+| node `secondarystat`                         | Tooltip row; kept as a string when it is one                                                        |
+| node `noderadius`                            | `symbolSize`, overriding the panel-level node size                                                  |
+| node `color`                                 | `itemStyle.color` when it is an HTML **string**; a numeric value defers to the field's Color scheme |
+| node `fixedx` / `fixedy`                     | `x`/`y`; selects `layout: 'none'` when **every** node supplies both                                 |
+| `arc__*`, `icon`, `detail__*`, `highlighted` | Not rendered — see the pitfalls below                                                               |
+
+Field names are matched **lowercased**. Frames are assumed square.
+
+**Edges-only responses** derive the node set from the union of `source`/`target`, with
+each node's `value` set to its degree — the only stat available without a nodes frame.
+Endpoints referenced by an edge but missing from the nodes frame are appended for the
+same reason: ECharts' `addEdge` silently fails on an unknown endpoint, so the edge
+would otherwise vanish.
+
+`frameToNodeGraph` returns `null` when there is no edges frame or no usable link,
+letting callers fall back to a no-data view.
+
 ## Pitfalls for a converter
 
-No converter ships yet; these are the traps a future one has to handle, recorded here
-because each is a property of the data or of ECharts rather than of the code.
+Traps inherent to the data or to ECharts rather than to any particular
+implementation. The first is the reason `sankey` is not simply switched on.
 
 - **A sankey built from a real service graph crashes the panel.** `sankeyLayout.ts`
   runs Kahn's algorithm and then
@@ -177,22 +218,22 @@ because each is a property of the data or of ECharts rather than of the code.
   possible cycle"_. Cycles must therefore be broken **before** the links reach
   ECharts. `graph` and `chord` are unaffected.
 - **Self-loops.** An edge whose `source === target` has no sankey representation and
-  must be dropped there.
-- **No link weight.** `mainstat` is optional and may be a string. A sankey/chord
-  converter needs a numeric fallback chain (`mainstat` → `thickness` → a constant)
-  or every ribbon collapses.
-- **`arc__*` has no native equivalent.** None of the four series can draw a
-  multi-section ring around a node. Approximating with a single border color loses
-  the proportions; a faithful version needs a `custom` series or a composed pie
-  symbol.
-- **`icon` is not a symbol name.** The values are Grafana built-in icon names and
-  need resolving before they can become an ECharts `symbol`.
-- **`detail__*` has nowhere to go.** Grafana renders it in a node/edge context menu;
-  ECharts has no such surface, so it can only fold into tooltip content.
-- **`highlighted` is deprecated** for edges since Grafana 10.5 — prefer `color`.
-- **Edges-only responses are legal.** Grafana derives the node set and its stats from
-  `source`/`target` when no nodes frame is present; a converter has to do the same or
-  it will render nothing for a valid response.
+  must be dropped there. `graph` renders them fine, so nothing drops them today.
+- **`mainstat` may be a string,** so it cannot be coerced for anything geometric.
+  `frameToNodeGraph` resolves link weight through `mainstat` → `thickness` → `1`;
+  sankey and chord size their ribbons from that number and would otherwise collapse.
+- **`arc__*` proportions are lost.** None of the four series can draw a
+  multi-section ring around a node, so the converter approximates it with a single
+  border in the **dominant** section's color (`resolveArcBorderColor`). A faithful
+  version needs a `custom` series or a composed pie symbol.
+- **`icon` is dropped.** The values are Grafana built-in icon names and need
+  resolving before they could become an ECharts `symbol`.
+- **`detail__*` is dropped.** Grafana renders it in a node/edge context menu; ECharts
+  has no such surface, so it could only fold into tooltip content.
+- **`highlighted` is dropped** — deprecated for edges since Grafana 10.5; use `color`.
+- **Edges-only responses are legal**, and handled: Grafana derives the node set and
+  its stats from `source`/`target` when no nodes frame is present, so a converter
+  that required both frames would render nothing for a valid response.
 
 ## Example
 

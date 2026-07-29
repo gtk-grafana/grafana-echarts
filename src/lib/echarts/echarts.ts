@@ -6,6 +6,7 @@ import {
   CustomChart,
   EffectScatterChart,
   FunnelChart,
+  GraphChart,
   HeatmapChart,
   LineChart,
   ParallelChart,
@@ -66,6 +67,9 @@ registerEChartsModules([
   ParallelChart, // multivariate family: parallel coordinates (one axis per category, one polyline per field)
   TreemapChart, // hierarchy family: nested rectangles sized by value
   SunburstChart, // hierarchy family: radial rings sized by value
+  // relations family: nodes + links. Self-contained — it ships its own `View`
+  // coordinate system, so no extra component registration is needed.
+  GraphChart,
   CustomChart, // binned heatmap cells are drawn as a custom series
   HeatmapChart, // native series for the matrix heatmap layout (category x category grid)
   // ToolboxComponent,

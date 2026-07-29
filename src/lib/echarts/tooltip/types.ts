@@ -190,6 +190,53 @@ export interface HierarchyTooltipContext {
   valueField?: Field;
 }
 
+/**
+ * A relations (`graph`) node data item. ECharts preserves unknown data props, so
+ * the extra fields ride along for the tooltip to read back off `params.data`.
+ * https://echarts.apache.org/en/option.html#series-graph.data
+ */
+export interface RelationsNodeItem {
+  id: string;
+  name: string;
+  value?: number;
+  symbolSize?: number;
+  itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
+  x?: number;
+  y?: number;
+  /** `subtitle`, surfaced as a tooltip row. */
+  subtitle?: string;
+  /** `secondarystat`, tooltip only; may be a string per the frame spec. */
+  secondary?: number | string;
+  /** Source row in the nodes frame, for footer data links. Unset on derived nodes. */
+  sourceRowIndex?: number;
+}
+
+/**
+ * A relations (`graph`) link data item.
+ * https://echarts.apache.org/en/option.html#series-graph.links
+ */
+export interface RelationsLinkItem {
+  source: string;
+  target: string;
+  value?: number;
+  lineStyle?: { color?: string; width?: number; type?: 'solid' | 'dashed' | 'dotted'; curveness?: number };
+  /** Source row in the edges frame, for footer data links. */
+  sourceRowIndex?: number;
+}
+
+/**
+ * Formatting context the relations tooltip reads. Mirrors
+ * {@link HierarchyTooltipContext}: narrower than the series context that supplies
+ * it, so the tooltip layer never imports the option layer back.
+ */
+export interface RelationsTooltipContext {
+  formatValue: ValueFormatter;
+  /** The numeric `mainstat` field; the footer resolves its data links. */
+  valueField?: Field;
+  /** The edges frame's `mainstat`, for a hovered link's footer. */
+  linkValueField?: Field;
+}
+
 /** Theme + formatting context the binned heatmap tooltip needs to match Grafana. */
 export interface BinnedHeatmapTooltipContext {
   theme: GrafanaTheme2;

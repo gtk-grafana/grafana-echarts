@@ -84,6 +84,11 @@ describe('resolveAutoSeriesType', () => {
       expect(resolveAutoSeriesType('hierarchy', [multiNumericFrame()])).toBe('treemap');
       expect(resolveAutoSeriesType('hierarchy', [])).toBe('treemap');
     });
+
+    it('relations stays graph', () => {
+      expect(resolveAutoSeriesType('relations', [multiNumericFrame()])).toBe('graph');
+      expect(resolveAutoSeriesType('relations', [])).toBe('graph');
+    });
   });
 });
 

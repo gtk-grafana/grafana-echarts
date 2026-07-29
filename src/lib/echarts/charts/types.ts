@@ -16,6 +16,7 @@ import {
   type CustomSeriesOption,
   type EffectScatterSeriesOption,
   type FunnelSeriesOption,
+  type GraphSeriesOption,
   type GridComponentOption,
   type HeatmapSeriesOption,
   type LegendComponentOption,
@@ -64,6 +65,11 @@ export interface ChartContext<T = SeriesType> {
 }
 
 export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
+/**
+ * Relations family context. Narrowed to the render types the family actually hosts;
+ * `sankey` and `chord` join the union when their variants land.
+ */
+export type RelationsChartContext = ChartContext<'graph'>;
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
@@ -128,6 +134,9 @@ export type EChartFunnelSeriesOption = ComposeOption<FunnelSeriesOption>;
 // Hierarchy families render a value-weighted tree; no cartesian axis component.
 export type EChartTreemapSeriesOption = ComposeOption<TreemapSeriesOption>;
 export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
+// Relations (graph) renders nodes plus links. The `graph` series ships its own
+// `View` coordinate system, so no coordinate component is composed in.
+export type EChartGraphSeriesOption = ComposeOption<GraphSeriesOption>;
 /**
  * @todo revisit
  * A single pie slice data item. ECharts types a pie series' `data` as
@@ -159,6 +168,7 @@ export type EChartBuildOption =
   | EChartFunnelSeriesOption
   | EChartTreemapSeriesOption
   | EChartSunburstSeriesOption
+  | EChartGraphSeriesOption
   | EChartCandlestickSeriesOption
   | EChartBoxPlotSeriesOption
   | EChartEffectScatterSeriesOption

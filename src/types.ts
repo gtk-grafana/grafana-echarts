@@ -24,6 +24,8 @@ import {
   type PieSelectedMode,
   type ParallelLayout,
   type RadarShape,
+  type RelationsGraphLayout,
+  type RelationsLinkColor,
   type SeriesTypeOption,
 } from 'editor/types';
 
@@ -473,6 +475,92 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * `getFunnelLabel` and `resolveFunnelLabelColor`.
    */
   funnelLabelPosition?: FunnelLabelPosition;
+
+  /**
+   * Relations graph layout (Default tier; ECharts `series.graph.layout`): `force`,
+   * `circular`, or `none`. Unset resolves to `force`, except when every node
+   * carries `fixedx`/`fixedy`, where `none` is used so server-provided positions
+   * are honored. See `getGraphLayout`.
+   */
+  relationsLayout?: RelationsGraphLayout;
+
+  /**
+   * Relations node labels (Default tier; ECharts `series.graph.label.show`): draw
+   * each node's name beside it. Defaults to on — an unlabelled topology is hard to
+   * read. See `getGraphLabel`.
+   */
+  relationsShowNodeLabels?: boolean;
+
+  /**
+   * Relations node size in px (Default tier; ECharts `series.graph.symbolSize`).
+   * Only applies to nodes with no `noderadius` value, which always wins. Unset uses
+   * `RELATIONS_NODE_SIZE_DEFAULT`. See `getGraphNodeSize`.
+   */
+  relationsNodeSize?: number;
+
+  /**
+   * Relations zoom & pan (Advanced; ECharts `series.graph.roam`). Off by default,
+   * matching the other families' static panels. See `buildGraphOption`.
+   */
+  relationsRoam?: boolean;
+
+  /**
+   * Relations draggable nodes (Advanced; ECharts `series.graph.draggable`). Only
+   * meaningful under the force layout. Off by default. See `buildGraphOption`.
+   */
+  relationsDraggable?: boolean;
+
+  /**
+   * Relations force-layout repulsion (Advanced; ECharts
+   * `series.graph.force.repulsion`). Higher values spread nodes further apart.
+   * Unset uses ECharts' default; only applies to the force layout. See
+   * `getGraphForce`.
+   */
+  relationsRepulsion?: number;
+
+  /**
+   * Relations force-layout edge length in px (Advanced; ECharts
+   * `series.graph.force.edgeLength`). Unset uses ECharts' default; force layout
+   * only. See `getGraphForce`.
+   */
+  relationsEdgeLength?: number;
+
+  /**
+   * Relations force-layout gravity (Advanced; ECharts `series.graph.force.gravity`),
+   * the pull toward the centre. Unset uses ECharts' default; force layout only. See
+   * `getGraphForce`.
+   */
+  relationsGravity?: number;
+
+  /**
+   * Relations edge arrows (Advanced; ECharts `series.graph.edgeSymbol`). Draws an
+   * arrowhead at the target end, making direction readable. Off by default so the
+   * key is omitted. See `getGraphEdgeSymbol`.
+   */
+  relationsEdgeArrows?: boolean;
+
+  /**
+   * Relations link curveness 0–1 (Advanced; ECharts
+   * `series.graph.lineStyle.curveness`). Curving links separates the two directions
+   * of a bidirectional pair. `0` (default) draws straight links and omits the key.
+   * See `getGraphLinkStyle`.
+   */
+  relationsCurveness?: number;
+
+  /**
+   * Relations hover emphasis (Advanced; ECharts `series.graph.emphasis.focus`):
+   * when on, hovering a node fades everything except it and its neighbours
+   * (`'adjacency'`). Off by default so the key is omitted. See `getGraphEmphasis`.
+   */
+  relationsFocusAdjacency?: boolean;
+
+  /**
+   * Relations link color mode (Advanced; ECharts `series.graph.lineStyle.color`
+   * keywords): inherit the `source` node's color, the `target`'s, or a `gradient`
+   * between them. An explicit per-edge `color` field always wins. Unset uses
+   * `RELATIONS_LINK_COLOR_DEFAULT` (`source`). See `getGraphLinkColor`.
+   */
+  relationsLinkColor?: RelationsLinkColor;
 
   /**
    * Animation toggle, shared by every family that offers it (cartesian and

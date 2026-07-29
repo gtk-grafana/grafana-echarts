@@ -46,6 +46,28 @@ export type HeatmapSeriesType = Extract<SeriesType, 'heatmap'>;
 // Hierarchy charts (treemap/sunburst) render a value-weighted tree rather than a
 // cartesian axis. See echarts/converters/hierarchy.ts.
 export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
+/**
+ * Relations (graph / flow) render types: a set of nodes plus the links between
+ * them. `graph` ships today; `sankey` and `chord` are planned variants of the same
+ * family, since all three ECharts series read the identical node/link input. Built
+ * from Grafana's node-graph frame pair — see echarts/converters/nodeGraph.ts and
+ * `data-plane/node-graph.md`. `lines` is deliberately excluded: it needs
+ * coordinate-pair polylines, not node references (see `todo/node-graph.md`).
+ */
+export type RelationsSeriesType = Extract<SeriesType, 'graph' | 'sankey' | 'chord'>;
+/**
+ * Relations graph layout (ECharts `series.graph.layout`): `force` (physics
+ * simulation), `circular` (nodes on a ring), or `none` (honor server-provided
+ * `fixedx`/`fixedy`). Default-tier. See `getGraphLayout`.
+ */
+export type RelationsGraphLayout = 'force' | 'circular' | 'none';
+/**
+ * How a relations link is colored — ECharts `series.graph.lineStyle.color` accepts
+ * these keywords: inherit the `source` node's color, the `target`'s, or blend both
+ * as a `gradient`. An explicit per-edge `color` field always wins. Advanced-only.
+ * See `getGraphLinkColor`.
+ */
+export type RelationsLinkColor = 'source' | 'target' | 'gradient';
 /** Funnel render type of the part-to-whole family. Reuses the pie slice model. */
 export type FunnelSeriesType = Extract<SeriesType, 'funnel'>;
 /**

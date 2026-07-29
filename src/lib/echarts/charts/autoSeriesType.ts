@@ -6,7 +6,7 @@ import { resolveMultiValueSeriesType } from 'lib/echarts/converters/multiValueCa
  * A nested ECharts panel family. Each nested plugin registers exactly one, fixed
  * by the plugin's identity (see each `modules/<family>/module.tsx`).
  */
-export type ChartFamily = 'cartesian' | 'heatmap' | 'part-to-whole' | 'multivariate' | 'hierarchy';
+export type ChartFamily = 'cartesian' | 'heatmap' | 'part-to-whole' | 'multivariate' | 'hierarchy' | 'relations';
 
 /**
  * Resolve `'Auto'` (or an unset series type) to a concrete `SeriesType`, scoped
@@ -35,6 +35,8 @@ export function resolveAutoSeriesType(family: ChartFamily, frames: DataFrame[]):
       return 'radar';
     case 'hierarchy':
       return 'treemap';
+    case 'relations':
+      return 'graph';
   }
 }
 

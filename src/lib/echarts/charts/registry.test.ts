@@ -4,6 +4,7 @@ import {
   multivariateChartModule,
   partToWholeChartModule,
   pieChartModule,
+  relationsChartModule,
   resolveChartModule,
   supportedChartSeriesTypes,
 } from 'lib/echarts/charts/registry';
@@ -36,9 +37,18 @@ describe('resolveChartModule', () => {
     expect(resolveChartModule('pie')).toBe(partToWholeChartModule);
   });
 
+  it('routes graph to the relations module', () => {
+    expect(resolveChartModule('graph')).toBe(relationsChartModule);
+  });
+
   it('throws for unsupported concrete types', () => {
     // gauge is a planned part-to-whole variant, not yet registered.
     expect(() => resolveChartModule('gauge')).toThrow();
+    // sankey and chord are planned relations variants; until they are added to
+    // `relationsSeriesTypes` they must still throw rather than silently render as a
+    // graph.
+    expect(() => resolveChartModule('sankey')).toThrow();
+    expect(() => resolveChartModule('chord')).toThrow();
   });
 
   it('lists all supported series types', () => {
@@ -53,6 +63,7 @@ describe('resolveChartModule', () => {
         'funnel',
         'radar',
         'parallel',
+        'graph',
       ])
     );
   });

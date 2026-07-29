@@ -7,6 +7,7 @@ import {
   type HeatmapSeriesType,
   type HierarchySeriesType,
   type PerformanceMode,
+  type RelationsSeriesType,
   type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
@@ -111,6 +112,25 @@ export const hierarchySeriesTypeOptions: Array<SelectableValue<HierarchySeriesTy
   { value: 'treemap', label: 'Treemap' },
   { value: 'sunburst', label: 'Sunburst' },
 ];
+/**
+ * Relations types: nodes plus the links between them, built from Grafana's
+ * node-graph frame pair. Only `graph` is implemented; `sankey` and `chord` are
+ * planned variants of this same family (all three ECharts series consume the
+ * identical node/link input), so they join this list when they land. See
+ * echarts/converters/nodeGraph.ts.
+ */
+export const relationsSeriesTypes: RelationsSeriesType[] = ['graph'];
+/**
+ * Relations render types offered by the relations family panel, selected per panel
+ * via the panel-level `seriesType`. A single entry today, so the panel skips the
+ * "Chart type" radio entirely (see `modules/relations/module.tsx`) — mirroring how
+ * the multivariate panel gates its picker on `length > 1`.
+ */
+export const relationsSeriesTypeOptions: Array<SelectableValue<RelationsSeriesType>> = [
+  { value: 'graph', label: 'Graph' },
+];
+/** Editor category holding the relations family's Default-tier options. */
+export const relationsCategoryName = 'Relations';
 /**
  * Grafana dataplane frame types that carry a heatmap. A frame tagged with one
  * of these (`frame.meta.type`) is rendered as the custom-series heatmap cell

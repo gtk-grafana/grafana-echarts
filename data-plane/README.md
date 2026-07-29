@@ -18,21 +18,27 @@ signal, falling back to the nested-set field shape (`level` + `value` + `label`)
 for datasources that cannot set meta. Every other chart infers its shape from
 the fields present.
 
+Node graph is the other out-of-contract kind, and it is detected from **field shape
+alone** (`isNodeGraphFrames`, `src/lib/echarts/converters/nodeGraph.ts`): `source`
+and `target` are required on an edges frame, so the shape check is already
+sufficient, and the metadata signals do not survive the paths that matter
+(provisioned CSV fixtures and SQL Expression outputs can set neither).
+
 ## Models
 
-| Doc                                          | ECharts charts                                                    | Grafana kind consumed                                   |
-| -------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------- |
-| [categorical.md](./categorical.md)           | category-axis line / bar / scatter (shared base model)            | Numeric (`NumericWide`/`Multi`/`Long`)                  |
-| [time-series.md](./time-series.md)           | time-axis line / bar / scatter                                    | Time series (`TimeSeriesWide` / `TimeSeriesMulti`)      |
-| [part-to-whole.md](./part-to-whole.md)       | pie, funnel                                                       | Any numeric field, reduced via standard `reduceOptions` |
-| [multivariate.md](./multivariate.md)         | radar                                                             | Numeric, through the categorical model                  |
-| [multi-value.md](./multi-value.md)           | candlestick, boxplot                                              | TimeSeriesWide / Numeric (by name convention)           |
-| [hierarchy.md](./hierarchy.md)               | treemap, sunburst                                                 | Flame-graph nested set, or Numeric (flat fallback)      |
-| [flame-graph.md](./flame-graph.md)           | input frame format for treemap / sunburst                         | Flame graph (out of contract — nested set)              |
-| [heatmap-binned.md](./heatmap-binned.md)     | continuous-axis heatmap (custom cell series)                      | Heatmap (`heatmap-rows` / `heatmap-cells`)              |
-| [heatmap-matrix.md](./heatmap-matrix.md)     | category x category heatmap (native series)                       | Numeric (wide / pivot) — _not_ the Heatmap kind         |
-| [node-graph.md](./node-graph.md)             | input frame format for graph / sankey / chord — _not implemented_ | Node graph (out of contract — nodes + edges)            |
-| [echarts-coverage.md](./echarts-coverage.md) | every ECharts series type — implementation support matrix         | —                                                       |
+| Doc                                          | ECharts charts                                            | Grafana kind consumed                                   |
+| -------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------- |
+| [categorical.md](./categorical.md)           | category-axis line / bar / scatter (shared base model)    | Numeric (`NumericWide`/`Multi`/`Long`)                  |
+| [time-series.md](./time-series.md)           | time-axis line / bar / scatter                            | Time series (`TimeSeriesWide` / `TimeSeriesMulti`)      |
+| [part-to-whole.md](./part-to-whole.md)       | pie, funnel                                               | Any numeric field, reduced via standard `reduceOptions` |
+| [multivariate.md](./multivariate.md)         | radar                                                     | Numeric, through the categorical model                  |
+| [multi-value.md](./multi-value.md)           | candlestick, boxplot                                      | TimeSeriesWide / Numeric (by name convention)           |
+| [hierarchy.md](./hierarchy.md)               | treemap, sunburst                                         | Flame-graph nested set, or Numeric (flat fallback)      |
+| [flame-graph.md](./flame-graph.md)           | input frame format for treemap / sunburst                 | Flame graph (out of contract — nested set)              |
+| [heatmap-binned.md](./heatmap-binned.md)     | continuous-axis heatmap (custom cell series)              | Heatmap (`heatmap-rows` / `heatmap-cells`)              |
+| [heatmap-matrix.md](./heatmap-matrix.md)     | category x category heatmap (native series)               | Numeric (wide / pivot) — _not_ the Heatmap kind         |
+| [node-graph.md](./node-graph.md)             | graph (sankey / chord planned)                            | Node graph (out of contract — nodes + edges)            |
+| [echarts-coverage.md](./echarts-coverage.md) | every ECharts series type — implementation support matrix | —                                                       |
 
 These docs describe the frame formats. For **which data sources emit a given shape**,
 and how to reshape a response that does not, see the sourcing guides in `docs/` —
