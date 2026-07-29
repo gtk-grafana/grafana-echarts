@@ -24,7 +24,7 @@ todos:
     content: Add MultiValueCartesian converter for candlestick/boxplot in the cartesian panel (Group 3)
     status: completed
   - id: roadmap-remaining
-    content: Document Groups 7-11 (hierarchy, graph/flow, geo, stream, custom) as roadmap nested panels; note dataplane gaps
+    content: 'Document Groups 7-11 (hierarchy, graph/flow, geo, stream, custom) as roadmap nested panels; note dataplane gaps. Group 7 shipped (hierarchy family). Group 8 documented: data-plane/node-graph.md, todo/node-graph.md, docs/relations-data-sources.md + provisioning/dashboards/relations/. Groups 9-11 (geo, stream, custom) still outstanding.'
     status: pending
   - id: parity-docs
     content: 'Editor option parity docs per nested panel: src/modules/heatmap/parity.md, src/modules/cartesian/parity/{timeseries,barchart,xychart,candlestick,boxplot}.md, src/modules/part-to-whole/parity.md, src/modules/multivariate/parity.md'
@@ -191,6 +191,17 @@ Grouping is by **shared intermediate data model** and **shared option/axis patte
 ### Group 8 — Graph / flow / relations (not implemented)
 
 **Types:** graph, sankey, chord, lines
+
+> **Now documented in detail.** See [data-plane/node-graph.md](../../data-plane/node-graph.md)
+> (frame format, frame roles, ECharts specs, converter pitfalls),
+> [todo/node-graph.md](../../todo/node-graph.md) (proposed `relations` panel — one panel,
+> three render variants), and
+> [docs/relations-data-sources.md](../../docs/relations-data-sources.md) (which data
+> sources can produce the shape, and Prometheus/Loki/SQL reshaping via SQL Expressions).
+> Two findings that change the design below: **sankey throws in production on cyclic
+> data** (`sankeyLayout.ts`, not `__DEV__`-guarded), so cycles must be broken in the
+> converter; and **`lines` does not consume this frame pair at all** — it needs
+> coordinate-pair polylines, so it is deferred rather than implemented.
 
 **ECharts:** graph creates its own view; sankey/chord self-layout; **lines** uses cartesian/polar/geo/singleAxis depending on context (flow lines, map routes).
 

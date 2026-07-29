@@ -1,0 +1,123 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "TestData `node_graph` with `nodes.type: response_small` — a saved, deterministic service-map response. Baseline reference: prefer the saved responses over `random` for anything that should look the same twice.\n\nRendered with the core Node graph panel because the ECharts relations panel does not exist yet. Once it ships, add ECharts panels beside these for a side-by-side comparison.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "nodes": { "type": "response_small" },
+          "refId": "A",
+          "scenarioId": "node_graph"
+        }
+      ],
+      "title": "Saved response (small)",
+      "type": "nodeGraph"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "TestData `node_graph` with `nodes.type: response_medium` — a larger saved service-map response. Useful for checking layout behaviour and label collision at a realistic node count.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "nodes": { "type": "response_medium" },
+          "refId": "A",
+          "scenarioId": "node_graph"
+        }
+      ],
+      "title": "Saved response (medium)",
+      "type": "nodeGraph"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Adversarial case for sankey.** TestData `node_graph` with `nodes.type: random` deliberately introduces cycles — `generateRandomNodes` has a loop commented \"Add some random edges to create possible cycle\".\n\nECharts' sankey layout throws `'Sankey is a DAG, the original data has cycle!'` on cyclic input, and that throw is **not** behind a `__DEV__` guard, so it reaches production. Any sankey converter must break cycles before handing links to ECharts; this panel is the fixture that proves it. `graph` and `chord` accept cycles fine.\n\nNote `seed` only drives edge topology — per-node stats, `icon`, `noderadius` and `highlighted` use bare `Math.random()`, so this panel is not pixel-reproducible.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "id": 3,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "nodes": { "count": 10, "seed": 1, "type": "random" },
+          "refId": "A",
+          "scenarioId": "node_graph"
+        }
+      ],
+      "title": "Random — contains cycles (sankey adversarial case)",
+      "type": "nodeGraph"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "TestData `node_graph` with `nodes.type: \"random edges\"` — emits a **single edges frame** and no nodes frame.\n\nThis is legal input: Grafana derives the node set and its stats from `source`/`target` when no nodes frame is present. A converter that requires both frames renders nothing here, so this is the edge-only regression fixture.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "id": 4,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "nodes": { "count": 8, "seed": 1, "type": "random edges" },
+          "refId": "A",
+          "scenarioId": "node_graph"
+        }
+      ],
+      "title": "Edges only (no nodes frame)",
+      "type": "nodeGraph"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "TestData `node_graph` with `nodes.type: feature_showcase` — exercises the optional node fields, notably `arc__*` (the multi-section coloured ring) and `icon`.\n\nNeither has a native equivalent in any ECharts relationship series: `arc__*` would need a custom symbol or composed pie to render faithfully, and `icon` values are Grafana built-in icon names that need resolving before they can become an ECharts `symbol`. This panel shows what the first pass will approximate or drop — see data-plane/node-graph.md.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
+      "id": 5,
+      "options": {},
+      "targets": [
+        {
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "nodes": { "type": "feature_showcase" },
+          "refId": "A",
+          "scenarioId": "node_graph"
+        }
+      ],
+      "title": "Feature showcase (arc__*, icon)",
+      "type": "nodeGraph"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "node-graph"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — node graph test data",
+  "uid": "echarts-relations-node-graph-testdata",
+  "version": 1,
+  "weekStart": ""
+}

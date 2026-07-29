@@ -27,6 +27,27 @@ hover, All-mode row emphasis, click-to-pin, and the pinned footer's data links �
 each family resolves a hovered item back to a source field + row differently, so
 each gets its own panel with a data link attached.
 
+## `relations/` — node graph fixtures (no ECharts panel yet)
+
+Groundwork for the planned **relations** family (ECharts graph / sankey / chord; see
+[../todo/node-graph.md](../todo/node-graph.md)). The ECharts panel does not exist yet,
+so these render with the **core Node graph panel** — swap the panel type once the
+nested panel ships.
+
+- **`node-graph-testdata.json`** — all five TestData `node_graph` sub-types, one panel
+  each. Three are deliberate regression fixtures: `random` (which **generates cycles**,
+  the case that makes ECharts' sankey throw in production), `random edges` (an
+  **edges-only** response, which is legal input), and `feature_showcase` (`arc__*` and
+  `icon`, neither of which has a native ECharts equivalent).
+- **`node-graph-sql-expressions.json`** — reshaping a flat call table into the
+  nodes + edges frame pair with two **SQL Expressions**, kept TestData-backed so it
+  needs no external data source. Demonstrates why node-graph detection has to key on
+  field shape: the reshaped frames are named `B`/`C` by refId and carry no frame
+  metadata. Requires the `sqlExpressions` feature toggle (GA, on by default).
+
+Which real data sources can produce this shape, and the Prometheus/Loki/SQL recipes,
+are in [../docs/relations-data-sources.md](../docs/relations-data-sources.md).
+
 ## `part-to-whole/` — pie demos
 
 Demonstrates the ECharts **Part-to-whole** (pie) panel, which reduces data with
