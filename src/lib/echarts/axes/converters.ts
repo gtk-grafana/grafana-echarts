@@ -3,6 +3,7 @@ import {
   isCategoricalOnlySeriesType,
   isHeatmapSeriesType,
   isHierarchySeriesType,
+  isMultivariateSeriesType,
   isTimeAxisSupportedForSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { supportedChartSeriesTypes } from 'lib/echarts/charts/registry';
@@ -47,6 +48,14 @@ export const panelTypeToAxis = (ctx: ChartContext, hasTimeField = true): ECharts
   // Hierarchy charts (treemap/sunburst) use their own non-cartesian layout; like
   // pie/radar, ECharts treats them as categorical for tooltip purposes.
   if (isHierarchySeriesType(seriesType)) {
+    return 'category';
+  }
+
+  // Multivariate charts render on their own coordinate systems (radar's polar
+  // grid, parallel's `parallelAxis`), not the cartesian time/value grid. Radar is
+  // also caught by `isCategoricalOnlySeriesType` above; parallel needs this branch
+  // so it resolves to `category` rather than throwing.
+  if (isMultivariateSeriesType(seriesType)) {
     return 'category';
   }
 

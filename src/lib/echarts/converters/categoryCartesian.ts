@@ -1,10 +1,11 @@
 import { debug, LOG_LEVELS } from 'development';
-import { STACK_GROUP_ID } from 'editor/constants';
+import { STACK_GROUP_ID } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type CartesianOption, type ChartContext } from 'lib/echarts/charts/types';
 import { frameToCategorical } from 'lib/echarts/converters/categorical';
 import { findCategoryField, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
+import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
 import { getDensityFromSeriesValues, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 
 /**
@@ -52,16 +53,25 @@ export function categoryCartesianToEChartsOption(
   // Without this the Advanced Performance options were visible but inert on
   // category-axis charts. See lib/echarts/performance/resolvers.ts.
   const density = getDensityFromSeriesValues(categorical.series.map(({ values }) => values));
-  const echartsSeries: CartesianOption['series'] = categorical.series.map((field) => ({
-    name: field.name,
-    type: seriesType,
-    zlevel: options.zLevel?.series,
-    data: field.values,
-    itemStyle: { color: field.color },
-    lineStyle: { color: field.color },
-    ...(stacked ? { stack: STACK_GROUP_ID } : {}),
-    ...getSeriesPerfOptions({ type: seriesType, density, options, values: field.values }),
-  }));
+  // Per-series color plus the Advanced value-label / geometry / style options and
+  // the fast-path props; every extra is omitted at its default so untouched
+  // panels are unchanged. `hover` is not set: unlike the time axis, category
+  // charts keep ECharts' native hit-testing and default emphasis.
+  const echartsSeries: CartesianOption['series'] = categorical.series.map((field) =>
+    buildCartesianSeries(
+      {
+        name: field.name,
+        data: field.values,
+        color: field.color,
+        zlevel: options.zLevel?.series,
+        perf: getSeriesPerfOptions({ type: seriesType, density, options, values: field.values }),
+        ...(stacked ? { stack: STACK_GROUP_ID } : {}),
+      },
+      seriesType,
+      options,
+      theme
+    )
+  );
 
   return { categories: categorical.categories, series: echartsSeries };
 }

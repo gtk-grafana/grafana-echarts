@@ -14,10 +14,11 @@ import { type PanelOptions } from 'types';
 
 // Advanced editor mode purely for snapshot determinism: the funnel layout options
 // these tests exercise (orient, labels, …) live in the always-visible "Funnel"
-// category and so are respected in any mode, but in Default mode
-// `applyPartToWholeEditorModeDefaults` still forces `animation.enabled` back on (a
-// pie advanced default), which would break the `animation: { enabled: false }`
-// these snapshots rely on.
+// category and so are respected in any mode, but Default mode would reset the pie
+// advanced defaults these snapshots also lean on
+// (`applyPartToWholeEditorModeDefaults`). The explicit `animation: { enabled: false }`
+// is belt-and-braces: animation is off by default for every family, so Default mode
+// would reset it to off too rather than re-enable it.
 const funnelOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
   zLevel: { series: SERIES_ZLEVEL },
   animation: { enabled: false },

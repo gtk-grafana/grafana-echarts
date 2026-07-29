@@ -22,7 +22,7 @@ interface Dispatched {
  * these tests trivial to reason about — the real coordinate maths is covered
  * against a live chart in `lib/echarts/tooltip/proximity.test.ts`.
  */
-function createFakeChart() {
+function createFakeChart({ throwOnIndexedShowTip = false }: { throwOnIndexedShowTip?: boolean } = {}) {
   const zrHandlers: Record<string, Array<(arg: unknown) => void>> = {};
   const chartHandlers: Record<string, Array<(arg: unknown) => void>> = {};
   const dispatched: Dispatched[] = [];
@@ -39,7 +39,14 @@ function createFakeChart() {
       chartHandlers[event] = (chartHandlers[event] ?? []).filter((h) => h !== handler);
     },
     isDisposed: () => false,
-    dispatchAction: (payload: Dispatched) => void dispatched.push(payload),
+    dispatchAction: (payload: Dispatched) => {
+      // Stands in for the parallel coordinate system, where ECharts' own
+      // `findPointFromSeries` throws on an index-addressed `showTip`.
+      if (throwOnIndexedShowTip && payload.type === 'showTip' && payload.seriesIndex != null) {
+        throw new TypeError("Cannot read properties of undefined (reading 'dataToCoord')");
+      }
+      dispatched.push(payload);
+    },
     containPixel: () => true,
     convertFromPixel: (_finder: unknown, point: number[]) => point,
     convertToPixel: (finder: { seriesIndex: number }, value: number[]) => [
@@ -214,6 +221,26 @@ describe('useEChartsTooltip', () => {
       expect(view.result.current.state.pinned).toBe(true);
       return view;
     };
+
+    // The pin is what mounts the data-link footer, so a coordinate system whose
+    // `showTip` ECharts cannot resolve by index would otherwise have no data
+    // links at all — the failure reported against parallel coordinates. The
+    // hover that preceded the click already supplied the content, so the throw
+    // must not take the pin down with it.
+    it('still pins when ECharts throws on the indexed showTip replay', () => {
+      const fake = createFakeChart({ throwOnIndexedShowTip: true });
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.sink(model);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 1 });
+      });
+
+      expect(view.result.current.state.pinned).toBe(true);
+      expect(view.result.current.state.pinnedItem).toEqual({ seriesIndex: 0, dataIndex: 1 });
+      // The emphasis still lands, so the pinned line stays highlighted.
+      expect(fake.dispatched).toContainEqual({ type: 'highlight', seriesIndex: 0, dataIndex: 1 });
+    });
 
     it('dismisses when an ancestor of the chart scrolls', () => {
       const { result } = pin();

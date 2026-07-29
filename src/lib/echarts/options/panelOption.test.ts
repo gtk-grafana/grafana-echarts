@@ -374,9 +374,15 @@ describe('buildPanelChartOption animation resolution', () => {
     expect(animationOf(option)).toBe(false);
   });
 
-  it('is on when explicitly enabled', () => {
+  // The Animation switch is Advanced-gated, and Default editor mode resets every
+  // Advanced value before the render reads it (see `applyEditorModeDefaults`), so
+  // the opt-in only takes effect in Advanced/API mode. Cartesian used not to
+  // normalize at all, which is why this case previously passed without a mode;
+  // it now behaves like the pie family, whose `ADVANCED_PIE_DEFAULTS` has always
+  // reset `animation`.
+  it('is on when explicitly enabled in Advanced mode', () => {
     const option = buildPanelChartOption(
-      makeContext([timeFrame()], 'line', visible, { animation: { enabled: true } }),
+      makeContext([timeFrame()], 'line', visible, { editorMode: 'advanced', animation: { enabled: true } }),
       { isGrafanaLegend: true }
     );
     expect(animationOf(option)).toBe(true);
@@ -386,10 +392,24 @@ describe('buildPanelChartOption animation resolution', () => {
   // and there is no threshold left to overrule them.
   it('stays on when explicitly enabled on a dense chart', () => {
     const option = buildPanelChartOption(
-      makeContext([denseTimeFrame(10_000)], 'line', visible, { animation: { enabled: true } }),
+      makeContext([denseTimeFrame(10_000)], 'line', visible, {
+        editorMode: 'advanced',
+        animation: { enabled: true },
+      }),
       { isGrafanaLegend: true }
     );
     expect(animationOf(option)).toBe(true);
+  });
+
+  // The other half of the contract above: a stored opt-in is inert while the
+  // switch that sets it is hidden, so a Default-mode panel renders unanimated
+  // even with `animation.enabled: true` in its JSON.
+  it('is off when enabled but the editor is in Default mode', () => {
+    const option = buildPanelChartOption(
+      makeContext([timeFrame()], 'line', visible, { editorMode: 'default', animation: { enabled: true } }),
+      { isGrafanaLegend: true }
+    );
+    expect(animationOf(option)).toBe(false);
   });
 
   it('stays off on a dense chart when unset', () => {

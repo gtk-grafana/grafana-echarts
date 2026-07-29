@@ -1,39 +1,14 @@
 import { type Field, getFieldDisplayName } from '@grafana/data';
-import { STACK_GROUP_ID } from 'editor/constants';
+import { STACK_GROUP_ID } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type HeatmapSeriesType } from 'editor/types';
 import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
+import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
 import { getSeriesDensity, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 import { getSeriesColor } from 'lib/echarts/style';
 import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
-
-/**
- * Emphasis (hover) state for a datapoint, applied by the tooltip's `highlight`
- * dispatch to mark the focused point — core Grafana's hover marker.
- *
- * `scale` enlarges the symbol relative to the series' `symbolSize` (6px by
- * default), which is what makes the point read as focused; for a dense line
- * whose symbols aren't rendered, ECharts creates one on demand to carry this
- * state. `focus: 'none'` keeps the other series at full opacity — ECharts would
- * otherwise dim them, which core does not do.
- *
- * The symbol inherits the series' `itemStyle.color`, so no colour is set here.
- * Bars have no symbol to scale (and `scale` is not part of their emphasis
- * options), so they keep ECharts' default emphasis; their hit area is already
- * large enough not to need a marker.
- * https://echarts.apache.org/en/option.html#series-line.emphasis
- */
-const HOVER_POINT_EMPHASIS = {
-  focus: 'none',
-  scale: 2,
-} as const;
-
-/** Series types drawn with a symbol, so a scaled emphasis marker applies. */
-function isSymbolSeriesType(type: string | undefined): type is 'line' | 'scatter' | 'effectScatter' {
-  return type === 'line' || type === 'scatter' || type === 'effectScatter';
-}
 
 /**
  * Resolve the series type for a single value field: field override wins when cartesian.
@@ -80,41 +55,44 @@ export function timeSeriesToEChartsOption(
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);
     const resolvedType = resolveFieldSeriesType<CartesianSingleValueSeriesType | HeatmapSeriesType>(field, seriesType);
-    // Only bar supports stacked
-    const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
-    // Heatmap doesn't support series.type
-    const type = resolvedType === 'heatmap' ? undefined : resolvedType;
-    // Only effectScatter supports showEffectOn
-    // https://echarts.apache.org/en/option.html#series-effectScatter.showEffectOn
-    // Annotated, not inferred: hoisting this into `common` below would otherwise
-    // widen the fresh `'emphasis'` literal to `string` and stop the object
-    // matching any member of the series union.
-    const showEffectOn: 'emphasis' | undefined = resolvedType === 'effectScatter' ? 'emphasis' : undefined;
+    const name = getFieldDisplayName(field, frame, frames);
+    const data = timeField.values.map((time, i) => [time, field.values[i] ?? null]);
+    const zlevel = options.zLevel?.series;
+    // Type-aware fast-path props (symbols/sampling for line; large for
+    // scatter/bar). `values` lets the symbol decision spare a series that draws
+    // no line, which would otherwise render as nothing at all.
+    const perf = getSeriesPerfOptions({ type: resolvedType, density, options, values: field.values });
 
-    const common = {
-      name: getFieldDisplayName(field, frame, frames),
-      data: timeField.values.map((time, i) => [time, field.values[i] ?? null]),
-      itemStyle: { color },
-      lineStyle: { color },
-      zlevel: options.zLevel?.series,
-      // capture hover events on line hover
-      triggerEvent: true,
-      ...(stacked ? { stack: STACK_GROUP_ID } : {}),
-      // Type-aware fast-path props (symbols/sampling for line; large for
-      // scatter/bar). `values` lets the symbol decision spare a series that draws
-      // no line, which would otherwise render as nothing at all.
-      ...getSeriesPerfOptions({ type: resolvedType, density, options, values: field.values }),
-      showEffectOn,
-    };
-
-    // Split on the discriminant so `emphasis.scale` typechecks: it is a
-    // symbol-only option, absent from `BarSeriesOption`, and a union-typed
-    // `type` would make the literal assignable to no member of the series union.
-    if (isSymbolSeriesType(type)) {
-      echartsSeries.push({ ...common, type, emphasis: HOVER_POINT_EMPHASIS });
+    // A heatmap-overlay field is not a cartesian series type (`series.type` is
+    // omitted), so it keeps the minimal color-only style rather than the Advanced
+    // cartesian options — and gets no fast-path props, which are all cartesian.
+    // It still captures hover events so the tooltip can read it.
+    if (resolvedType === 'heatmap') {
+      echartsSeries.push({
+        name,
+        type: undefined,
+        data,
+        itemStyle: { color },
+        lineStyle: { color },
+        zlevel,
+        triggerEvent: true,
+      });
       return;
     }
-    echartsSeries.push({ ...common, type });
+
+    // Cartesian series get the Advanced value-label / geometry / style options
+    // (each omitted at its default) composed with the fast-path props. Only bar
+    // supports stacking. `hover` arms the tooltip seam — `triggerEvent` plus, on
+    // symbol types, the scaled emphasis marker the `highlight` dispatch drives.
+    const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
+    echartsSeries.push(
+      buildCartesianSeries(
+        { name, data, color, zlevel, perf, hover: true, ...(stacked ? { stack: STACK_GROUP_ID } : {}) },
+        resolvedType,
+        options,
+        theme
+      )
+    );
   });
 
   if (echartsSeries.length === 0) {

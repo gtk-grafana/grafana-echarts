@@ -34,7 +34,7 @@ describe('isLegendVisible', () => {
 describe('resolveLegendOptions', () => {
   it('merges module defaults with user options, user wins', () => {
     const options = {
-      legend: { placement: 'right' as const, width: 300 },
+      legend: { placement: 'right', width: 300 },
     } as PanelOptions;
 
     const resolved = resolveLegendOptions(cartesianChartModule, options);
@@ -46,14 +46,14 @@ describe('resolveLegendOptions', () => {
 
   it('uses module calcs when user omits them', () => {
     const module = { ...cartesianChartModule, legend: { ...DEFAULT_CHART_LEGEND, calcs: ['lastNotNull'] } };
-    const options = { legend: { placement: 'bottom' as const } } as PanelOptions;
+    const options = { legend: { placement: 'bottom' } } as PanelOptions;
 
     expect(resolveLegendOptions(module, options).calcs).toEqual(['lastNotNull']);
   });
 
   it('prefers user calcs over module defaults', () => {
     const module = { ...cartesianChartModule, legend: { ...DEFAULT_CHART_LEGEND, calcs: ['lastNotNull'] } };
-    const options = { legend: { calcs: ['mean'], placement: 'bottom' as const } } as PanelOptions;
+    const options = { legend: { calcs: ['mean'], placement: 'bottom' } } as PanelOptions;
 
     expect(resolveLegendOptions(module, options).calcs).toEqual(['mean']);
   });

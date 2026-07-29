@@ -71,17 +71,20 @@ export function buildTimeSeriesLegendItems(
 }
 
 /**
- * Legend items for a category-axis cartesian chart: one entry per
- * numeric field in the categorical source frame, mirroring the series the
- * category converter emits. The time-series builder above cannot be reused
- * because it keys off a time field, which Numeric (category) frames lack.
+ * Legend items for an axis-less numeric-field chart: one entry per numeric field
+ * in the categorical source frame, mirroring the series/polygons the categorical
+ * converter emits. Shared by the category-axis cartesian and radar builders,
+ * which differ only in the item-key prefix (`series-` vs `polygon-`). The
+ * time-series builder above cannot be reused because it keys off a time field,
+ * which Numeric (category) frames lack.
  */
-export function buildCategoryCartesianLegendItems(
+export function buildNumericFieldLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
   calcs: string[],
   fieldConfig: FieldConfigSource,
-  timeZone?: string
+  timeZone: string | undefined,
+  keyPrefix: string
 ): VizLegendItem[] {
   const frame = findCategoricalFrame(series);
   if (!frame) {
@@ -104,9 +107,23 @@ export function buildCategoryCartesianLegendItems(
     color: getSeriesColor(field, theme),
     yAxis: 1,
     disabled: hidden.has(label),
-    getItemKey: () => `series-${fieldIndex}`,
+    getItemKey: () => `${keyPrefix}-${fieldIndex}`,
     getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
   }));
+}
+
+/**
+ * Legend items for a category-axis cartesian chart, mirroring the series the
+ * category converter emits (item-key prefix `series-`).
+ */
+export function buildCategoryCartesianLegendItems(
+  series: DataFrame[],
+  theme: GrafanaTheme2,
+  calcs: string[],
+  fieldConfig: FieldConfigSource,
+  timeZone?: string
+): VizLegendItem[] {
+  return buildNumericFieldLegendItems(series, theme, calcs, fieldConfig, timeZone, 'series');
 }
 
 /**
@@ -142,6 +159,10 @@ export function buildMultiValueCartesianLegendItems(ctx: ChartContext<MultiValue
   });
 }
 
+/**
+ * Legend items for a radar chart: one entry per numeric field (polygon),
+ * mirroring the polygons the radar converter emits (item-key prefix `polygon-`).
+ */
 export function buildRadarLegendItems(
   series: DataFrame[],
   theme: GrafanaTheme2,
@@ -149,30 +170,7 @@ export function buildRadarLegendItems(
   fieldConfig: FieldConfigSource,
   timeZone?: string
 ): VizLegendItem[] {
-  const frame = findCategoricalFrame(series);
-  if (!frame) {
-    return [];
-  }
-
-  const numericFields = frame.fields
-    .map((field, fieldIndex) => ({ field, fieldIndex, label: getFieldDisplayName(field, frame, series) }))
-    .filter(({ field }) => field.type === FieldType.number);
-
-  // Hidden state from `fieldConfig` keeps the legend in lockstep with the chart.
-  const hidden = getHiddenSeriesNames(
-    fieldConfig,
-    numericFields.map(({ label }) => label)
-  );
-
-  return numericFields.map(({ field, fieldIndex, label }) => ({
-    label,
-    fieldName: label,
-    color: getSeriesColor(field, theme),
-    yAxis: 1,
-    disabled: hidden.has(label),
-    getItemKey: () => `polygon-${fieldIndex}`,
-    getDisplayValues: () => getCalcDisplayValues(calcs, field, theme, timeZone),
-  }));
+  return buildNumericFieldLegendItems(series, theme, calcs, fieldConfig, timeZone, 'polygon');
 }
 
 /**

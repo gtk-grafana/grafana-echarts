@@ -125,6 +125,46 @@ function emitViaShowTip(
   return { emitted, chart };
 }
 
+/**
+ * Mount a live chart and hover the graphic element ECharts drew for `dataIndex`,
+ * by dispatching a ZRender `mousemove` at one of its own points. For coordinate
+ * systems that cannot be addressed by `showTip` (see the parallel case below),
+ * this is the only way to exercise the real formatter params — and it is what a
+ * browser does anyway.
+ */
+function emitViaHover(ctx: ChartContext, dataIndex: number): { emitted: TooltipModel[]; chart: EChartsType } {
+  const emitted: TooltipModel[] = [];
+  const option = buildPanelChartOption(ctx, { isGrafanaLegend: true, tooltipSink: (model) => emitted.push(model) });
+  const dom = document.createElement('div');
+  dom.style.width = '400px';
+  dom.style.height = '300px';
+  document.body.appendChild(dom);
+  const chart = init(dom);
+  chart.setOption(option, { notMerge: true });
+
+  const zr = chart.getZr() as unknown as {
+    storage: { getDisplayList: () => Array<{ shape?: { points?: number[][] } }> };
+    handler: { dispatch: (name: string, event: unknown) => void };
+  };
+  // Polylines carry their points as [x, y] pairs; ask ECharts where it put them
+  // rather than hard-coding pixels that shift with the layout box.
+  const polylines = zr.storage.getDisplayList().filter((el) => Array.isArray(el.shape?.points?.[0]));
+  const point = polylines[dataIndex]?.shape?.points?.[0];
+  if (point == null) {
+    throw new Error(`no polyline drawn for dataIndex ${dataIndex}`);
+  }
+  zr.handler.dispatch('mousemove', {
+    zrX: point[0],
+    zrY: point[1],
+    offsetX: point[0],
+    offsetY: point[1],
+    preventDefault: () => {},
+    stopPropagation: () => {},
+    stopImmediatePropagation: () => {},
+  });
+  return { emitted, chart };
+}
+
 describe('tooltip emission through a real ECharts instance', () => {
   it('line / Single: emits the hovered item with a Grafana-formatted time header and its source', () => {
     const { emitted, chart } = emitViaShowTip(makeContext([timeFrame()], 'line', TooltipDisplayMode.Single), {
@@ -217,6 +257,32 @@ describe('tooltip emission through a real ECharts instance', () => {
     expect(model.rows).toHaveLength(1);
     // Radar keys its resolvers by `dataIndex` (one data item per polygon), so
     // index 1 is the second numeric field.
+    expect(model.source?.field.name).toBe('bravo');
+    chart.dispose();
+  });
+
+  // Parallel shares radar's frames and resolvers but reaches ECharts through a
+  // different coordinate system, so it needs its own end-to-end case — and it
+  // cannot use `emitViaShowTip`: ECharts throws on an index-addressed `showTip`
+  // for a parallel coordinate system (`Parallel.dataToPoint` needs a `dim` that
+  // `findPointFromSeries` never passes). Hovering is the path the panel actually
+  // uses, so this drives the ZRender handler the way a browser would.
+  it('parallel: emits the hovered polyline, names it in the header, and resolves its field for the footer', () => {
+    const { emitted, chart } = emitViaHover(
+      makeContext([radarFrame()], 'parallel', TooltipDisplayMode.Single),
+      // Second polyline: the family renders one series whose data items are the
+      // numeric fields, so index 1 is `bravo`.
+      1
+    );
+
+    expect(emitted).toHaveLength(1);
+    const [model] = emitted;
+    expect(model.rows).toHaveLength(1);
+    // The header reads `params.name`, which ECharts fills from the data item's
+    // own `name` — the thing `buildParallelOption` used to drop.
+    expect(model.header?.value).toBe('bravo');
+    // Keyed by `dataIndex`, and what the pinned tooltip's data-link footer
+    // resolves its links from.
     expect(model.source?.field.name).toBe('bravo');
     chart.dispose();
   });

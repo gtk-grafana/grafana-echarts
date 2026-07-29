@@ -2,6 +2,7 @@ import { type EventBus, type FieldConfigSource } from '@grafana/data';
 import { type VizLegendOptions } from '@grafana/schema';
 import { LegendDisplayMode, SeriesVisibilityChangeBehavior, type VizLegend } from '@grafana/ui';
 import { render, renderHook, screen } from '@testing-library/react';
+import { type SeriesType } from 'editor/types';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
 import React from 'react';
 import { useLegend } from './useLegend';
@@ -23,12 +24,14 @@ const chartModule = {
   ],
 } as unknown as ChartModule;
 
+const defaultSeriesType: SeriesType = 'line';
+
 const options = (overrides: Partial<Parameters<typeof useLegend>[0]> = {}) => ({
   chartModule,
   chartContext: ctx,
   resolvedLegend,
   isVizLegend: true,
-  seriesType: 'line' as const,
+  seriesType: defaultSeriesType,
   fieldConfig,
   onFieldConfigChange: jest.fn(),
   eventBus,
@@ -93,7 +96,8 @@ describe('useLegend', () => {
   it('hides just the clicked item for slice and multi-value families', () => {
     // Pie slices and candlestick dimensions are not 1:1 with fields, so isolating
     // "the others" has no coherent meaning.
-    for (const seriesType of ['pie', 'funnel', 'candlestick', 'boxplot'] as const) {
+    const seriesTypes: SeriesType[] = ['pie', 'funnel', 'candlestick', 'boxplot'];
+    for (const seriesType of seriesTypes) {
       const { result } = renderHook(() => useLegend(options({ seriesType })));
 
       expect(legendProps(result.current.renderLegend()).seriesVisibilityChangeBehavior).toBe(

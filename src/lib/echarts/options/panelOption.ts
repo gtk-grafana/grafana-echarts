@@ -6,7 +6,7 @@ import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
-import { applyPartToWholeEditorModeDefaults } from 'lib/echarts/options/pie';
+import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
 import { resolveAnimation } from 'lib/echarts/performance/resolvers';
 import { getTimeBrushOption } from 'lib/echarts/timeBrush';
 import { NOOP_TOOLTIP_SINK } from 'lib/echarts/tooltip/model';
@@ -35,6 +35,15 @@ export function buildPanelChartOption(
     throw new Error(`Invalid chart module for ${rawCtx.seriesType}`);
   }
 
+  // Normalize options by editor mode for every family (before both the series
+  // build and the `animation` read below) so Default mode renders the plain
+  // chart regardless of any stored Advanced values. The dispatch is identity for
+  // families with no Advanced tier, so this is a no-op for them (see
+  // `applyEditorModeDefaults`). This generalizes what was the pie-only
+  // `applyPartToWholeEditorModeDefaults`, which also closes the cartesian
+  // normalization gap noted in `docs/performance.md`.
+  const options = applyEditorModeDefaults(rawCtx.seriesType, rawCtx.options);
+
   // The React overlay's sink, threaded onto the context so per-series formatters
   // (pie/hierarchy/heatmap) emit through the same channel as the top-level one.
   const sink = tooltipSink ?? NOOP_TOOLTIP_SINK;
@@ -42,14 +51,11 @@ export function buildPanelChartOption(
   // Drop value fields hidden via the legend visibility toggle before building.
   // The part-to-whole family (pie/funnel) is excluded: it hides slices by
   // *category* name and reads hidden state internally (see `resolvePieSlices`).
-  // It also normalizes its options by editor mode here (before both the series
-  // build and the `animation` read below) so Default mode drops any stored pie
-  // Advanced values (and resets the shared `animation`); the funnel's layout
-  // options are Default-visible and pass through untouched (see
-  // `applyPartToWholeEditorModeDefaults`).
+  // Editor-mode normalization already ran generically above
+  // (`applyEditorModeDefaults`), so both branches use the normalized `options`.
   const ctx: ChartContext = partToWholeSeriesTypes.includes(rawCtx.seriesType)
-    ? { ...rawCtx, tooltipSink: sink, options: applyPartToWholeEditorModeDefaults(rawCtx.options) }
-    : { ...rawCtx, tooltipSink: sink, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
+    ? { ...rawCtx, tooltipSink: sink, options }
+    : { ...rawCtx, tooltipSink: sink, options, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 
   // Axis type is data-driven for the cartesian family: Numeric frames render on a category axis, which changes the tooltip trigger and drops the time crosshair.
   const hasTimeField = framesHaveTimeField(ctx.frames);

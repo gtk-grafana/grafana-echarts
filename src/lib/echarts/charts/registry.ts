@@ -1,29 +1,29 @@
-import {
-  cartesianTimeSeriesTypes,
-  heatmapSeriesTypes,
-  hierarchySeriesTypes,
-  multiValueSeriesTypes,
-  radarSeriesTypes,
-} from 'editor/constants';
+import { cartesianTimeSeriesTypes, multiValueSeriesTypes } from 'editor/cartesian';
+import { heatmapSeriesTypes, hierarchySeriesTypes } from 'editor/constants';
 import { partToWholeSeriesTypes } from 'editor/pie';
+import { multivariateSeriesTypes } from 'editor/radar';
 import { type SeriesType } from 'editor/types';
-import { isHierarchySeriesType, isMultiValueSeriesType, isCartesianSingleValueSeriesType } from './narrowing';
+import {
+  isCartesianSingleValueSeriesType,
+  isHierarchySeriesType,
+  isMultiValueSeriesType,
+  isMultivariateSeriesType,
+} from './narrowing';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
 import { hierarchyChartModule } from './hierarchy';
+import { multivariateChartModule, radarChartModule } from './multivariate';
 import { partToWholeChartModule, pieChartModule } from './pie';
-import { radarChartModule } from './radar';
 import { type ChartModule } from './types';
 
 const partToWholeModule = partToWholeChartModule;
-const radarModule = radarChartModule;
 
 /** All series types with a registered chart module. */
 export const supportedChartSeriesTypes: SeriesType[] = [
   ...cartesianTimeSeriesTypes,
   ...multiValueSeriesTypes,
   ...heatmapSeriesTypes,
-  ...radarSeriesTypes,
+  ...multivariateSeriesTypes,
   ...partToWholeSeriesTypes,
   ...hierarchySeriesTypes,
 ];
@@ -47,8 +47,8 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (isCartesianSingleValueSeriesType(seriesType) || isMultiValueSeriesType(seriesType)) {
     return cartesianChartModule;
   }
-  if (radarSeriesTypes.includes(seriesType)) {
-    return radarModule;
+  if (isMultivariateSeriesType(seriesType)) {
+    return multivariateChartModule;
   }
   // Pie and funnel share the part-to-whole module; the module picks the render
   // variant from the type.
@@ -67,6 +67,7 @@ export {
   cartesianChartModule,
   heatmapChartModule,
   hierarchyChartModule,
+  multivariateChartModule,
   partToWholeChartModule,
   pieChartModule,
   radarChartModule,
