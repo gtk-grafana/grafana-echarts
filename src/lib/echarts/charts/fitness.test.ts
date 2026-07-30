@@ -8,6 +8,7 @@ import {
 } from '@grafana/data';
 import {
   exceedsChordNodeBudget,
+  resolveHeatmapOverlayRefIds,
   resolveMultiValueSuggestion,
   resolvePartToWholeSlices,
   scoreCartesian,
@@ -62,6 +63,20 @@ const timeFrame = (numericFields: number, rows: number, type?: DataFrameType) =>
         type: FieldType.number,
         values: Array.from({ length: rows }, (_, row) => row + field),
       })),
+    ],
+  });
+
+/**
+ * An untagged wide histogram: a time column plus one numeric column per bucket,
+ * named by its bound. What TestData's exponential bucket scenario returns (`1`, `2`,
+ * `4`, …) and what a pivoted SQL histogram returns (`0-10`, `10-20`, …). Provisioned
+ * `csv_content` cannot set `meta.type`, so these carry none.
+ */
+const bucketFrame = (names: string[]) =>
+  createDataFrame({
+    fields: [
+      { name: 'time', type: FieldType.time, values: [0, 100] },
+      ...names.map((name) => ({ name, type: FieldType.number, values: [1, 2] })),
     ],
   });
 
@@ -157,8 +172,57 @@ describe('scoreHeatmap', () => {
     expect(scoreHeatmap(summaryOf(bucket('0.1'), bucket('0.5')))).toBe(VisualizationSuggestionScore.Best);
   });
 
+  // `heatmap-overlay.json`'s shape. `Number('0-10')` is NaN, so a numeric-parse-only
+  // bucket check rejected this whole dashboard — including its overlay-free panel.
+  it('scores Best for range-named bucket columns', () => {
+    expect(scoreHeatmap(summaryOf(bucketFrame(['0-10', '10-20', '20-30', '30-40'])))).toBe(
+      VisualizationSuggestionScore.Best
+    );
+  });
+
+  it('scores Best for a +Inf top bucket', () => {
+    expect(scoreHeatmap(summaryOf(bucketFrame(['1', '2', '+Inf'])))).toBe(VisualizationSuggestionScore.Best);
+  });
+
+  // The family's differentiator over core is cartesian overlays on top of the cells,
+  // and an overlay arrives as an extra frame of ordinary named series. Requiring
+  // every numeric field to be a bucket let one overlay field veto the whole card.
+  it('still fits when an overlay frame accompanies the buckets', () => {
+    const overlay = createDataFrame({
+      fields: [
+        { name: 'time', type: FieldType.time, values: [0, 100] },
+        { name: 'Trend', type: FieldType.number, values: [1.5, 2.2] },
+        { name: 'Baseline', type: FieldType.number, values: [2.0, 2.1] },
+      ],
+    });
+
+    expect(scoreHeatmap(summaryOf(bucketFrame(['0-10', '10-20', '20-30', '30-40']), overlay))).toBe(
+      VisualizationSuggestionScore.Best
+    );
+    // TestData's exponential bucket scenario (a single wide frame, no meta) + overlay.
+    expect(scoreHeatmap(summaryOf(bucketFrame(['1', '2', '4', '8', '16']), overlay))).toBe(
+      VisualizationSuggestionScore.Best
+    );
+  });
+
   it('does not fit a plain time series frame', () => {
     expect(scoreHeatmap(summaryOf(timeFrame(1, 2, DataFrameType.TimeSeriesWide)))).toBeUndefined();
+  });
+
+  it('does not fit an overlay-only response, with no buckets to draw', () => {
+    expect(
+      scoreHeatmap(
+        summaryOf(
+          createDataFrame({
+            fields: [
+              { name: 'time', type: FieldType.time, values: [0, 100] },
+              { name: 'Trend', type: FieldType.number, values: [1.5, 2.2] },
+              { name: 'Baseline', type: FieldType.number, values: [2.0, 2.1] },
+            ],
+          })
+        )
+      )
+    ).toBeUndefined();
   });
 
   it('does not fit a time frame with named (non-bucket) metrics', () => {
@@ -178,6 +242,91 @@ describe('scoreHeatmap', () => {
         )
       )
     ).toBeUndefined();
+  });
+});
+
+describe('resolveHeatmapOverlayRefIds', () => {
+  const withRefId = <T extends DataFrame>(frame: T, refId: string): DataFrame => ({ ...frame, refId });
+  const overlayFrame = (refId: string, ...names: string[]) =>
+    withRefId(
+      createDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [0, 100] },
+          ...names.map((name) => ({ name, type: FieldType.number, values: [1, 2] })),
+        ],
+      }),
+      refId
+    );
+
+  it('marks a plain series frame alongside bucketed frames as an overlay', () => {
+    const buckets = withRefId(bucketFrame(['0-10', '10-20', '20-30']), 'A');
+
+    expect(resolveHeatmapOverlayRefIds(summaryOf(buckets, overlayFrame('B', 'Trend', 'Baseline')))).toEqual(['B']);
+  });
+
+  it('marks a plain series frame alongside a dataplane-tagged heatmap as an overlay', () => {
+    const tagged = withRefId(
+      createDataFrame({
+        meta: { type: DataFrameType.HeatmapRows },
+        fields: [
+          { name: 'xMax', type: FieldType.time, values: [0, 100] },
+          { name: '1', type: FieldType.number, values: [1, 2] },
+        ],
+      }),
+      'A'
+    );
+
+    expect(resolveHeatmapOverlayRefIds(summaryOf(tagged, overlayFrame('B', 'Trend')))).toEqual(['B']);
+  });
+
+  it('returns nothing for a heatmap response with no companion frame', () => {
+    expect(resolveHeatmapOverlayRefIds(summaryOf(withRefId(bucketFrame(['1', '2']), 'A')))).toEqual([]);
+  });
+
+  // A Prometheus histogram is one `le`-labelled field per frame, all under one refId.
+  // Every frame is a cell source; none of them is an overlay.
+  it('never treats a bucketed frame as an overlay', () => {
+    const bucket = (le: string) =>
+      withRefId(
+        createDataFrame({
+          fields: [
+            { name: 'time', type: FieldType.time, values: [0, 100] },
+            { name: 'value', type: FieldType.number, values: [1, 2], labels: { le } },
+          ],
+        }),
+        'A'
+      );
+
+    expect(resolveHeatmapOverlayRefIds(summaryOf(bucket('0.1'), bucket('0.5')))).toEqual([]);
+  });
+
+  // A `byFrameRefID` override hits every frame under that refId, so overlaying a
+  // shared one would pull the cells out of the heatmap as well.
+  it('withholds a refId shared with a heatmap source frame', () => {
+    const buckets = withRefId(bucketFrame(['1', '2']), 'A');
+
+    expect(resolveHeatmapOverlayRefIds(summaryOf(buckets, overlayFrame('A', 'Trend')))).toEqual([]);
+  });
+
+  it('withholds a frame with no refId to match on', () => {
+    const buckets = withRefId(bucketFrame(['1', '2']), 'A');
+
+    expect(resolveHeatmapOverlayRefIds(summaryOf(buckets, overlayFrame('', 'Trend')))).toEqual([]);
+  });
+
+  it('withholds a companion frame with no time field to plot against', () => {
+    const buckets = withRefId(bucketFrame(['1', '2']), 'A');
+    const table = withRefId(categoryFrame(1, 3), 'B');
+
+    expect(resolveHeatmapOverlayRefIds(summaryOf(buckets, table))).toEqual([]);
+  });
+
+  it('deduplicates refIds across a multi-frame overlay query', () => {
+    const buckets = withRefId(bucketFrame(['1', '2']), 'A');
+
+    expect(
+      resolveHeatmapOverlayRefIds(summaryOf(buckets, overlayFrame('B', 'Trend'), overlayFrame('B', 'Baseline')))
+    ).toEqual(['B']);
   });
 });
 

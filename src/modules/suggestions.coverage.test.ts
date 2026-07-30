@@ -88,6 +88,24 @@ const FIXTURES: Record<string, DataFrame[]> = {
       ],
     }),
   ],
+  // An untagged pivoted histogram plus a cartesian overlay — the shape
+  // `heatmap-overlay.json` provisions, and the family's differentiator over core.
+  'bucketed histogram with overlay': [
+    createDataFrame({
+      fields: [
+        { name: 'Time', type: FieldType.time, values: [0, 100] },
+        { name: '0-10', type: FieldType.number, values: [2, 3] },
+        { name: '10-20', type: FieldType.number, values: [5, 6] },
+        { name: '20-30', type: FieldType.number, values: [8, 4] },
+      ],
+    }),
+    createDataFrame({
+      fields: [
+        { name: 'Time', type: FieldType.time, values: [0, 100] },
+        { name: 'Trend', type: FieldType.number, values: [1.5, 2.2] },
+      ],
+    }),
+  ],
   'flame graph': [
     createDataFrame({
       fields: [

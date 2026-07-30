@@ -6,13 +6,9 @@ data plane kind: cells with explicit bounds drawn against a continuous x-axis
 
 - Converter: `frameToBinnedHeatmap` — `src/lib/echarts/converters/binnedHeatmap.ts`
 - Chart family: the composite **Heatmap** panel (`seriesType === 'heatmap'`)
-- Suggested automatically when Grafana tags a frame `HeatmapRows` or
-  `HeatmapCells`, and for an untagged **histogram over time** — a time frame whose
-  numeric fields all name a bucket, either by the name itself (`0.1`, `0.5`, `1`) or
-  by carrying Prometheus' `le`/`ge` label. Two buckets minimum; one is a plain time
-  series. That is core Grafana's own heuristic, and it matters because the shapes
-  that produce it are common and untagged. See `scoreHeatmap` in
-  `src/lib/echarts/charts/fitness.ts` and `src/modules/heatmap/suggestions.ts`.
+- Suggested automatically when Grafana tags a frame `HeatmapRows` / `HeatmapCells`,
+  and for an untagged **histogram over time** — see
+  [Suggestions](#suggestions) below.
 
 ## Grafana data plane equivalent
 
@@ -70,6 +66,73 @@ is treated as time **only when every contributing frame** uses a time X field; a
 single numeric-X frame drops the whole layer to a value axis. Bucket labels sit
 at their bounds unless every frame is ordinal (field-name rows), in which case
 they are centered (`yLabelPlacement`).
+
+## Suggestions
+
+`scoreHeatmap` (`src/lib/echarts/charts/fitness.ts`) scores `Best` on either signal:
+
+1. **Grafana tagged it** — any frame with `meta.type` of `heatmap-rows` /
+   `heatmap-cells`.
+2. **It is a histogram over time in all but its `meta.type`** — at least two
+   _bucket-named_ numeric fields on time-bearing frames. A field counts as
+   bucket-named when it carries Prometheus' `le`/`ge` label, when its name **is** the
+   bound (`0.1`, `1`, `512`, `+Inf`), or when its name is a bound **range** (`0-10`,
+   `0.5..1.5`). Two buckets minimum; one is a plain time series.
+
+The second signal carries most of the weight, because provisioned TestData
+`csv_content` cannot set frame metadata at all — so every heatmap fixture dashboard
+in this repo depends on it, as does TestData's exponential bucket scenario (a single
+wide frame of `1`, `2`, `4`, … columns and no `meta`).
+
+**Both signals tolerate extra frames, deliberately.** This family's differentiator
+over core's heatmap is that it draws cartesian _overlays_ on the cells (line/bar/
+scatter series selected per field, see `getOverlayFrames` in
+`src/lib/echarts/charts/binnedHeatmap.ts`), and an overlay arrives as an extra time
+frame of ordinary named series (`Trend`, `Baseline`). `hasDataFrameType` already asks "does _any_ frame carry this type", and
+the bucket signal **counts** matching fields rather than requiring all of them to
+match — an earlier version required every numeric field to be a bucket, which let a
+single overlay field veto the card and left `heatmap-overlay.json` with no suggestion
+at any of its panels.
+
+### The suggestion configures the overlay itself
+
+Scoring the card is not sufficient on its own. `frameToBinnedHeatmap` merges **every**
+frame it is handed into one cell set, and `splitFrames` only holds a frame back when one
+of its fields carries a cartesian `seriesType` override — which is user field config,
+and does not exist yet when a suggestion is built. So a heatmap-plus-overlay response
+previewed with the overlay's `Trend`/`Baseline` series turned into two extra bucket
+rows: both frames in the cells, which is what neither frame means.
+
+`resolveHeatmapOverlayRefIds` (`src/lib/echarts/charts/fitness.ts`) therefore splits the
+frames, and the supplier emits one `byFrameRefID` → `custom.seriesType: 'line'` override
+per overlay `refId` — byte-identical to what `heatmap-overlay.json` sets by hand, so a
+suggested panel and a hand-built one agree. A frame is an overlay when it is **not** a
+cell source (not tagged, no bucket-named field), it has a time field and a numeric field
+to draw, and its `refId` is present and not shared with any cell-source frame. That last
+condition matters because a `byFrameRefID` override applies to every field of every
+frame under that `refId`, so overlaying a shared one would pull the cells out of the
+heatmap too; in that case no override is emitted and the frames merge as before.
+
+Bucketed frames are never treated as overlays — several histogram queries merge into one
+cell set, which is this family's documented [multi-frame](#multiple-frames) behaviour.
+
+The override lives on the suggestion's `fieldConfig`, not in
+`cardOptions.previewModifier`. The modifier runs against a `cloneDeep` of the suggestion,
+so a preview-only fix would show the right chart on the card and then build the wrong one
+when the user clicked it. Grafana passes `fieldConfig` straight to the card's
+`PanelRenderer`, so one definition covers both.
+
+### Two honest limits
+
+- **This cannot outrank core's Heatmap card.** `sortSuggestions` places built-in
+  panels ahead of every third-party one regardless of score, so `Best` only makes this
+  the family's first card _within this plugin's suggestions_ — core's Heatmap still
+  renders above it even though core cannot draw the overlays.
+- **A plain multi-series time frame is not suggested**, even though
+  `frameToBinnedHeatmap` would happily render it as ordinal rows (see
+  [HeatmapRows](#heatmaprows)). The bucket-name signal is what distinguishes "this is
+  a distribution" from "this is several metrics", and without it every time-series
+  panel would carry a heatmap card.
 
 ## Divergences from the data plane spec
 

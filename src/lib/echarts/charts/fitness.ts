@@ -6,6 +6,7 @@ import {
   VisualizationSuggestionScore,
   type PanelDataSummary,
 } from '@grafana/data';
+import { heatmapFrameTypes } from 'editor/constants';
 import { type MultiValueSeriesType } from 'editor/types';
 import {
   ALL_VALUES_MAX_ROWS,
@@ -89,12 +90,19 @@ const framesOf = (summary: PanelDataSummary): DataFrame[] => summary.rawFrames ?
 
 /**
  * Heatmap (binned): Grafana tagged the frame as a heatmap (rows or cells), or the
- * frame is a histogram-over-time in all but its `meta.type`.
+ * frames are a histogram-over-time in all but their `meta.type`.
  *
- * The second case is core Grafana's own heuristic, and it matters because the
- * shapes that produce it are common and untagged: a Prometheus histogram
- * (`TimeSeriesMulti`, one `le`-labelled field per frame) and a wide frame whose
- * numeric columns are named for their bucket bounds (`0.1`, `0.5`, `1`).
+ * The second case is core Grafana's own heuristic, and it carries most of the weight
+ * here because the shapes that produce it are common *and* untagged: a Prometheus
+ * histogram (one `le`-labelled field per frame), a wide frame of bucket-named columns
+ * (`1`, `2`, `4` — TestData's exponential bucket scenario), and a pivoted SQL
+ * histogram of range-named columns (`0-10`, `10-20`). Provisioned TestData
+ * `csv_content` cannot set frame metadata at all, so every fixture dashboard in this
+ * repo depends on it.
+ *
+ * Note both branches tolerate **extra frames**: `hasDataFrameType` already asks "does
+ * any frame carry this type", and {@link isBucketedTimeFrames} counts rather than
+ * requires-all. That is what lets a heatmap-plus-overlay response score — see there.
  */
 export const scoreHeatmap = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined => {
   if (summary.hasDataFrameType(DataFrameType.HeatmapRows) || summary.hasDataFrameType(DataFrameType.HeatmapCells)) {
@@ -104,9 +112,26 @@ export const scoreHeatmap = (summary: PanelDataSummary): VisualizationSuggestion
 };
 
 /**
- * Whether a numeric field names a histogram bucket: either the name *is* the
- * bucket bound (`0.1`, `1`, `+Inf`-adjacent columns of a wide histogram) or the
- * field carries Prometheus' `le`/`ge` boundary label.
+ * A bucket bound expressed as a *range* rather than a single edge — `0-10`,
+ * `10-20`, `0.5..1.5`. Not a Prometheus convention, but it is what a pivoted SQL
+ * histogram and this plugin's own `heatmap-overlay.json` fixture look like, and
+ * `frameToBinnedHeatmap` renders such names as ordinal row labels
+ * (`labelsAtBounds: false`). Accepts `-`, an en dash, or `..` as the separator, and
+ * signed bounds on either side.
+ */
+const BUCKET_RANGE_NAME = /^-?\d+(?:\.\d+)?\s*(?:-|–|\.\.)\s*-?\d+(?:\.\d+)?$/;
+
+/**
+ * Whether a numeric field names a histogram bucket, by any of the conventions
+ * `frameToBinnedHeatmap` can label a row from:
+ *
+ * - Prometheus' `le`/`ge` boundary label (the only one that yields true bounds)
+ * - a name that *is* the bound: `0.1`, `1`, `512`, `+Inf`
+ * - a name that is a bound *range*: `0-10` (see {@link BUCKET_RANGE_NAME})
+ *
+ * The range form matters: `Number('0-10')` is `NaN`, so a numeric-parse-only check
+ * rejected the whole `heatmap-overlay.json` dashboard — including the panel with no
+ * overlay at all.
  */
 const isBucketField = (field: Field): boolean => {
   if (!isNumberField(field)) {
@@ -116,23 +141,85 @@ const isBucketField = (field: Field): boolean => {
     return true;
   }
   const name = field.name.trim();
-  return name !== '' && Number.isFinite(Number(name));
+  if (name === '') {
+    return false;
+  }
+  return name === '+Inf' || Number.isFinite(Number(name)) || BUCKET_RANGE_NAME.test(name);
 };
 
 /**
- * Whether these frames are a histogram over time: every numeric field on a
- * time-bearing frame names a bucket, and there are at least two of them (one
- * bucket is a plain time series, not a distribution).
+ * Whether these frames carry a histogram over time: **at least two bucket-named
+ * numeric fields** on time-bearing frames.
  *
- * Counted across frames rather than within one, so both shapes are caught — a wide
- * frame of bucket columns, and a `TimeSeriesMulti` response of one `le`-labelled
- * field per frame.
+ * Counted across frames, so both accepted shapes match — a wide frame of bucket
+ * columns, and a `TimeSeriesMulti` response of one `le`-labelled field per frame.
+ *
+ * Deliberately a **count, not an `every`**. This family's whole differentiator over
+ * core's heatmap is that it draws cartesian *overlays* on top of the cells, and an
+ * overlay arrives as an extra time frame of ordinary named series (`Trend`,
+ * `Baseline`). Requiring every numeric field to be a bucket let a single overlay
+ * field veto detection, so the exact panels built to show the feature off —
+ * `heatmap-overlay.json`, and TestData's exponential bucket scenario plus an overlay
+ * query — were the ones that never got a card. Non-bucket fields now simply do not
+ * count toward the total.
  */
 const isBucketedTimeFrames = (frames: DataFrame[]): boolean => {
-  const numericFields = frames
+  const bucketFields = frames
     .filter((frame) => frame.fields.some(isTimeField))
-    .flatMap((frame) => frame.fields.filter(isNumberField));
-  return numericFields.length >= 2 && numericFields.every(isBucketField);
+    .flatMap((frame) => frame.fields.filter(isBucketField));
+  return bucketFields.length >= 2;
+};
+
+/**
+ * Whether this frame contributes **cells** to the heatmap layer, as opposed to being
+ * an overlay. Either Grafana tagged it, or it carries at least one bucket-named
+ * numeric field.
+ *
+ * One bucket field is enough here, unlike {@link isBucketedTimeFrames}' total of two:
+ * a Prometheus histogram arrives as one `le`-labelled field *per frame*, so a
+ * per-frame floor of two would misread every one of those frames as an overlay. The
+ * two-bucket minimum is a property of the response, not of each frame.
+ */
+const isHeatmapSourceFrame = (frame: DataFrame): boolean =>
+  (frame.meta?.type != null && heatmapFrameTypes.includes(frame.meta.type)) || frame.fields.some(isBucketField);
+
+/**
+ * The query `refId`s whose frames should be drawn as cartesian **overlays** on the
+ * heatmap cells rather than folded into them.
+ *
+ * `frameToBinnedHeatmap` merges every frame it is handed into one cell set, and
+ * `splitFrames` only holds a frame back when one of its fields carries a cartesian
+ * `seriesType` override — which is user field config, and does not exist yet when a
+ * suggestion is built. So a heatmap-plus-overlay response previews with the overlay's
+ * `Trend`/`Baseline` series turned into extra bucket rows, which is not what either
+ * frame means. The heatmap supplier turns this list into `byFrameRefID` overrides so
+ * the card (and the panel created from it) starts out configured the way
+ * `heatmap-overlay.json` is configured by hand.
+ *
+ * A frame is an overlay when it is not a heatmap source (see
+ * {@link isHeatmapSourceFrame}), it has a time field and a numeric field to draw, and
+ * its `refId` is both present and not shared with any heatmap-source frame — a
+ * `byFrameRefID` override applies to every field of every frame with that `refId`, so
+ * a shared one would pull the cells out of the heatmap too. Frames that *are* bucketed
+ * stay in the cell layer and merge, which is this family's documented multi-frame
+ * behaviour (see `data-plane/heatmap-binned.md`).
+ */
+export const resolveHeatmapOverlayRefIds = (summary: PanelDataSummary): string[] => {
+  const frames = framesOf(summary);
+  const sourceRefIds = new Set(frames.filter(isHeatmapSourceFrame).map((frame) => frame.refId));
+  const overlayRefIds = new Set<string>();
+
+  for (const frame of frames) {
+    const refId = frame.refId;
+    if (isHeatmapSourceFrame(frame) || refId == null || refId === '' || sourceRefIds.has(refId)) {
+      continue;
+    }
+    if (frame.fields.some(isTimeField) && frame.fields.some(isNumberField)) {
+      overlayRefIds.add(refId);
+    }
+  }
+
+  return [...overlayRefIds];
 };
 
 /**

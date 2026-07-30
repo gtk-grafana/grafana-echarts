@@ -1,7 +1,7 @@
-import { type VisualizationSuggestionsSupplier } from '@grafana/data';
+import { type FieldConfigSource, FieldMatcherID, type VisualizationSuggestionsSupplier } from '@grafana/data';
 import { seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
-import { scoreHeatmap, scoreMatrixHeatmap } from 'lib/echarts/charts/fitness';
+import { resolveHeatmapOverlayRefIds, scoreHeatmap, scoreMatrixHeatmap } from 'lib/echarts/charts/fitness';
 import { previewCardOptions } from 'lib/echarts/charts/suggestionCards';
 import { type PanelOptions } from 'types';
 
@@ -17,6 +17,31 @@ import { type PanelOptions } from 'types';
 // string column instead. Each branch emits at one score, so the family always
 // renders as a single contiguous group in the suggestions pane.
 // https://grafana.com/developers/plugin-tools/how-to-guides/panel-plugins/add-suggestions-support
+
+/**
+ * Field config marking each overlay `refId` as a line series, so a
+ * heatmap-plus-overlay response renders as cells *plus lines* instead of folding the
+ * overlay's series into the cell layer as extra bucket rows.
+ *
+ * `frameToBinnedHeatmap` merges every frame it is given, and `splitFrames` only holds
+ * a frame back when a field carries a cartesian `seriesType` override — user field
+ * config that does not exist yet at suggestion time. This supplies it. The matcher
+ * and property are exactly what `provisioning/dashboards/heatmap-overlay.json` sets by
+ * hand, so a suggested panel and a hand-built one agree.
+ *
+ * Deliberately on the suggestion's `fieldConfig` rather than in
+ * `cardOptions.previewModifier`: the modifier runs on a throwaway clone, so a
+ * preview-only fix would show the right chart on the card and then build the wrong one
+ * when the user clicks it.
+ */
+const overlayFieldConfig = (refIds: string[]): FieldConfigSource<Partial<EChartsFieldConfig>> => ({
+  defaults: {},
+  overrides: refIds.map((refId) => ({
+    matcher: { id: FieldMatcherID.byFrameRefID, options: refId },
+    properties: [{ id: 'custom.seriesType', value: 'line' }],
+  })),
+});
+
 export const heatmapSuggestionsSupplier: VisualizationSuggestionsSupplier<PanelOptions, EChartsFieldConfig> = (
   dataSummary
 ) => {
@@ -24,11 +49,13 @@ export const heatmapSuggestionsSupplier: VisualizationSuggestionsSupplier<PanelO
 
   const binnedScore = scoreHeatmap(dataSummary);
   if (binnedScore != null) {
+    const overlayRefIds = resolveHeatmapOverlayRefIds(dataSummary);
     return [
       {
         name: 'Heatmap (binned)',
         score: binnedScore,
         options: { [seriesTypePath]: 'heatmap', heatmapLayout: 'binned' },
+        ...(overlayRefIds.length > 0 ? { fieldConfig: overlayFieldConfig(overlayRefIds) } : {}),
         cardOptions,
       },
     ];
