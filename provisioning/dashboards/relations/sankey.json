@@ -1,0 +1,463 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "A clean DAG: no cycles, weighted flow splitting at each stage. This is what the sankey variant is for.\n\nNo nodes frame — the node set is derived from the edges, so labels are the raw ids.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,Visitors,Signup,4200\ne2,Visitors,Bounce,5800\ne3,Signup,Trial,3100\ne4,Signup,Abandon,1100\ne5,Trial,Paid,900\ne6,Trial,Churn,2200",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Conversion funnel — a natural sankey",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The same frames with Flow direction set to Vertical (`series.sankey.orient`), so the node columns become rows.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,Visitors,Signup,4200\ne2,Visitors,Bounce,5800\ne3,Signup,Trial,3100\ne4,Signup,Abandon,1100\ne5,Trial,Paid,900\ne6,Trial,Churn,2200",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Same funnel, vertical flow",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsSankeyOrient": "vertical"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "**The case this variant exists to survive.** These edges contain a cycle (`api -> db` and `db -> api`). ECharts' sankey layout throws on cyclic input — and the throw is not `__DEV__`-guarded, so a production build would render a blank, broken panel.\n\nThe converter breaks the cycle before ECharts sees the links (`converters/dag.ts`) and reports the cost in the bottom-left note. Compare the node graph to the right to see which link was removed.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 3,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Cyclic service graph — SANKEY (cycle broken)",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The same edges in core Grafana's Node graph, which has no DAG restriction. Every link is drawn here, including the `db -> api` back-edge the sankey drops.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 4,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Cyclic service graph — core Node graph (full topology)",
+      "type": "nodeGraph"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Identical queries to the sankey on the left of the row above, rendered by the `graph` variant instead. One converter, two layouts: switching Chart type re-renders the same `{ nodes, links }` model, and `graph` keeps the cycle because it accepts any digraph.\n\nLayout is Circular for a stable picture; the panel default is Force.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "id": 5,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Same frames as GRAPH — the variant switch",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "An edges frame plus a nodes frame (two `csv_content` queries, detected by field shape rather than frame name). The nodes frame's `title` supplies each label, so the sankey reads \"Database\" rather than the raw `db` id.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "id": 6,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        },
+        {
+          "csvContent": "id,title,mainstat\ngateway,Gateway,1200\napi,API,2450\nweb,Web,800\nauth,Auth,650\ndb,Database,1200",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "B",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Named nodes — titles as labels",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "TestData's `node_graph` random scenario deliberately generates cycles (its `generateRandomNodes` has a loop commented \"Add some random edges to create possible cycle\"). A stress case for the cycle policy: the dropped-link count in the note tracks however many back-edges the generator produced.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "id": 7,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "nodes": {
+            "count": 10,
+            "seed": 1,
+            "type": "random"
+          },
+          "refId": "A",
+          "scenarioId": "node_graph"
+        }
+      ],
+      "title": "TestData random — generated cycles",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "TestData's `random edges` produces an edges frame with no nodes frame. The converter derives the node set from the `source`/`target` union, so a valid response still renders.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "id": 8,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "nodes": {
+            "count": 8,
+            "seed": 1,
+            "type": "random edges"
+          },
+          "refId": "A",
+          "scenarioId": "node_graph"
+        }
+      ],
+      "title": "Edges only — derived node set",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced-tier options: wider node bars (`nodeWidth`), a larger gap (`nodeGap`), less translucent ribbons (`lineStyle.opacity`) and right-aligned columns (`nodeAlign`). Switch the editor back to Default mode and every one of these resets.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 9,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,Visitors,Signup,4200\ne2,Visitors,Bounce,5800\ne3,Signup,Trial,3100\ne4,Signup,Abandon,1100\ne5,Trial,Paid,900\ne6,Trial,Churn,2200",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Advanced — node geometry and ribbon opacity",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "editorMode": "advanced",
+        "relationsSankeyNodeWidth": 28,
+        "relationsSankeyNodeGap": 18,
+        "relationsSankeyLinkOpacity": 0.6,
+        "relationsSankeyNodeAlign": "right"
+      }
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "sankey", "node-graph"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — sankey",
+  "uid": "echarts-relations-sankey",
+  "version": 1,
+  "weekStart": ""
+}

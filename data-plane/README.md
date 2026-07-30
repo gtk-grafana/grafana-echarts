@@ -18,6 +18,12 @@ signal, falling back to the nested-set field shape (`level` + `value` + `label`)
 for datasources that cannot set meta. Every other chart infers its shape from
 the fields present.
 
+Node graph is the other out-of-contract kind, and it is detected from **field shape
+alone** (`isNodeGraphFrames`, `src/lib/echarts/converters/nodeGraph.ts`): `source`
+and `target` are required on an edges frame, so the shape check is already
+sufficient, and the metadata signals do not survive the paths that matter
+(provisioned CSV fixtures and SQL Expression outputs can set neither).
+
 ## Models
 
 | Doc                                          | ECharts charts                                            | Grafana kind consumed                                   |
@@ -33,8 +39,13 @@ the fields present.
 | [flame-graph.md](./flame-graph.md)           | input frame format for treemap / sunburst                 | Flame graph (out of contract — nested set)              |
 | [heatmap-binned.md](./heatmap-binned.md)     | continuous-axis heatmap (custom cell series)              | Heatmap (`heatmap-rows` / `heatmap-cells`)              |
 | [heatmap-matrix.md](./heatmap-matrix.md)     | category x category heatmap (native series)               | Numeric (wide / pivot) — _not_ the Heatmap kind         |
-| [node-graph.md](./node-graph.md)             | _spec only, not implemented_                              | Node graph (out of contract — nodes + edges)            |
+| [node-graph.md](./node-graph.md)             | graph, sankey, chord                                      | Node graph (out of contract — nodes + edges)            |
 | [echarts-coverage.md](./echarts-coverage.md) | every ECharts series type — implementation support matrix | —                                                       |
+
+These docs describe the frame formats. For **which data sources emit a given shape**,
+and how to reshape a response that does not, see the sourcing guides in `docs/` —
+currently [../docs/relations-data-sources.md](../docs/relations-data-sources.md)
+(graph / sankey / chord).
 
 ## Conventions shared across models
 

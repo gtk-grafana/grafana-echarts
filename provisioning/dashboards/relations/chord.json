@@ -1,0 +1,377 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Bidirectional traffic between every pair of regions, plus two self-loops (`us-east -> us-east`, `eu-west -> eu-west`). A force graph turns this into a hairball and a sankey **cannot draw it at all** — every pair is a cycle and every self-loop would be dropped. A chord reads it directly.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,us-east,us-west,420\ne2,us-west,us-east,380\ne3,us-east,eu-west,310\ne4,eu-west,us-east,290\ne5,us-west,ap-south,180\ne6,ap-south,us-west,160\ne7,eu-west,ap-south,140\ne8,ap-south,eu-west,130\ne9,us-east,us-east,90\ne10,eu-west,eu-west,70",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Dense adjacency — what a chord is for",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Identical queries, `graph` variant, Circular layout. Same `{ nodes, links }` model; switching Chart type is a layout change, not a data change.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,us-east,us-west,420\ne2,us-west,us-east,380\ne3,us-east,eu-west,310\ne4,eu-west,us-east,290\ne5,us-west,ap-south,180\ne6,ap-south,us-west,160\ne7,eu-west,ap-south,140\ne8,ap-south,eu-west,130\ne9,us-east,us-east,90\ne10,eu-west,eu-west,70",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "The same data as a graph — for contrast",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The same fixture as the sankey dashboard, which contains a cycle (`api -> db` and `db -> api`).\n\n**Chord has no DAG restriction**, so all seven links are drawn and there is no cycle-breaking and no dropped-link note. Compare the sankey panel on the \"ECharts Relations — sankey\" dashboard, which drops one link to survive.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "id": 3,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Cyclic service graph — CHORD keeps every link",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The same seven edges as a sankey, for side-by-side comparison: the `db -> api` back-edge is removed before ECharts sees it (otherwise the panel would throw and render blank) and the bottom-left note reports the cost.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "id": 4,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Cyclic service graph — SANKEY drops one link",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "An edges frame plus a nodes frame (two `csv_content` queries, detected by field shape). The nodes frame's `title` supplies each arc label, so the ring reads \"Database\" rather than the raw `db` id.\n\nWorth noting: ECharts labels a chord node with its raw **data index** by default, so this needs an explicit label formatter — see `getChordLabel`.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "id": 5,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        },
+        {
+          "csvContent": "id,title,mainstat\ngateway,Gateway,1200\napi,API,2450\nweb,Web,800\nauth,Auth,650\ndb,Database,1200",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "B",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Named nodes — titles as labels",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "TestData's `node_graph` random scenario deliberately generates cycles. A chord takes them as-is, so this needs none of the sankey path's rewriting.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "id": 6,
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "nodes": {
+            "count": 10,
+            "seed": 1,
+            "type": "random"
+          },
+          "refId": "A",
+          "scenarioId": "node_graph"
+        }
+      ],
+      "title": "TestData random — generated cycles",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord"
+      }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Advanced-tier options: the ring starts at 0° and runs counter-clockwise, with a wider angular gap between arcs and less translucent ribbons.\n\n`padAngle` is the chord analogue of a node gap and it is **angular** — `series.chord` has no `nodeWidth`/`nodeGap` at all (those are sankey keys). Switch the editor back to Default mode and every option here resets.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "id": 7,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,us-east,us-west,420\ne2,us-west,us-east,380\ne3,us-east,eu-west,310\ne4,eu-west,us-east,290\ne5,us-west,ap-south,180\ne6,ap-south,us-west,160\ne7,eu-west,ap-south,140\ne8,ap-south,eu-west,130\ne9,us-east,us-east,90\ne10,eu-west,eu-west,70",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Advanced — ring geometry",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord",
+        "editorMode": "advanced",
+        "relationsChordStartAngle": 0,
+        "relationsChordClockwise": false,
+        "relationsChordPadAngle": 8,
+        "relationsChordLinkOpacity": 0.55,
+        "relationsFocusAdjacency": true
+      }
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "chord", "node-graph"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — chord",
+  "uid": "echarts-relations-chord",
+  "version": 1,
+  "weekStart": ""
+}

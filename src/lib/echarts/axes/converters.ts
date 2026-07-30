@@ -4,6 +4,7 @@ import {
   isHeatmapSeriesType,
   isHierarchySeriesType,
   isMultivariateSeriesType,
+  isRelationsSeriesType,
   isStreamSeriesType,
   isTimeAxisSupportedForSeriesType,
 } from 'lib/echarts/charts/narrowing';
@@ -57,6 +58,14 @@ export const panelTypeToAxis = (ctx: ChartContext, hasTimeField = true): ECharts
   // also caught by `isCategoricalOnlySeriesType` above; parallel needs this branch
   // so it resolves to `category` rather than throwing.
   if (isMultivariateSeriesType(seriesType)) {
+    return 'category';
+  }
+
+  // Relations charts self-layout with no cartesian axis at all — `graph` builds its
+  // own `View` coordinate system, `sankey` a box layout. Like pie/radar/hierarchy
+  // they resolve to `category` so the tooltip uses an item trigger rather than an
+  // axis pointer.
+  if (isRelationsSeriesType(seriesType)) {
     return 'category';
   }
 

@@ -46,9 +46,14 @@ const config = async (env: Env): Promise<Configuration> => {
     new CopyWebpackPlugin({
       patterns: [
         // Context defaults to the compiler context (`src`), so this matches
-        // `src/<family>/img/...` and excludes the root `src/img` (already
+        // `src/modules/<family>/img/...` and excludes the root `src/img` (already
         // copied via the base config's logo patterns).
-        { from: '*/img/**', to: '[path][name][ext]', noErrorOnMissing: true },
+        //
+        // Note the two path segments: nested panels live at
+        // `src/modules/<family>/img/`, so a single-segment `*/img/**` glob resolves
+        // to `src/*/img/**` and silently matches nothing — every nested
+        // `plugin.json` then points at a logo that was never emitted.
+        { from: 'modules/*/img/**', to: '[path][name][ext]', noErrorOnMissing: true },
       ],
     }),
     // Enabled via `pnpm run build:analyze` (passes `--env analyze`). Writes a
