@@ -3,14 +3,17 @@ import {
   BarChart,
   BoxplotChart,
   CandlestickChart,
+  ChordChart,
   CustomChart,
   EffectScatterChart,
   FunnelChart,
+  GraphChart,
   HeatmapChart,
   LineChart,
   ParallelChart,
   PieChart,
   RadarChart,
+  SankeyChart,
   ScatterChart,
   SunburstChart,
   TreemapChart,
@@ -66,6 +69,17 @@ registerEChartsModules([
   ParallelChart, // multivariate family: parallel coordinates (one axis per category, one polyline per field)
   TreemapChart, // hierarchy family: nested rectangles sized by value
   SunburstChart, // hierarchy family: radial rings sized by value
+  // relations family: nodes + links. Self-contained — it ships its own `View`
+  // coordinate system, so no extra component registration is needed.
+  GraphChart,
+  // relations family: the same node/link model laid out as weighted flow ribbons.
+  // Also self-contained (box layout, no coordinate component). Note its layout
+  // throws on cyclic input, which `converters/dag.ts` prevents.
+  SankeyChart,
+  // relations family: the same node/link model as a ring of arcs joined by ribbons.
+  // Self-contained — it pins `coordinateSystem: 'none'`. New in ECharts 6.0.0, and
+  // unrelated to the `chord` series removed in 3.x.
+  ChordChart,
   CustomChart, // binned heatmap cells are drawn as a custom series
   HeatmapChart, // native series for the matrix heatmap layout (category x category grid)
   // ToolboxComponent,

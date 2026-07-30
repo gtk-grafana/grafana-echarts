@@ -190,6 +190,65 @@ export interface HierarchyTooltipContext {
   valueField?: Field;
 }
 
+/**
+ * A relations (`graph`) node data item. ECharts preserves unknown data props, so
+ * the extra fields ride along for the tooltip to read back off `params.data`.
+ * https://echarts.apache.org/en/option.html#series-graph.data
+ */
+export interface RelationsNodeItem {
+  id: string;
+  name: string;
+  value?: number;
+  /**
+   * The node's `mainstat`, when it is carried *outside* `value`.
+   *
+   * The sankey variant does not set `value`: ECharts derives a sankey node's height
+   * from its flow, but `computeNodeValues` takes
+   * `Math.max(inSum, outSum, nodeRawValue)` — so a declared `value` acts as a floor
+   * and a `mainstat` unrelated to the flow (a latency, an error rate) would inflate
+   * the node out of step with its own ribbons. The stat rides here instead, for the
+   * tooltip only. `graph` keeps using `value`, which it reads for tooltips and
+   * `visualMap` but never for geometry.
+   */
+  stat?: number | null;
+  symbolSize?: number;
+  itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
+  x?: number;
+  y?: number;
+  /** `subtitle`, surfaced as a tooltip row. */
+  subtitle?: string;
+  /** `secondarystat`, tooltip only; may be a string per the frame spec. */
+  secondary?: number | string;
+  /** Source row in the nodes frame, for footer data links. Unset on derived nodes. */
+  sourceRowIndex?: number;
+}
+
+/**
+ * A relations (`graph`) link data item.
+ * https://echarts.apache.org/en/option.html#series-graph.links
+ */
+export interface RelationsLinkItem {
+  source: string;
+  target: string;
+  value?: number;
+  lineStyle?: { color?: string; width?: number; type?: 'solid' | 'dashed' | 'dotted'; curveness?: number };
+  /** Source row in the edges frame, for footer data links. */
+  sourceRowIndex?: number;
+}
+
+/**
+ * Formatting context the relations tooltip reads. Mirrors
+ * {@link HierarchyTooltipContext}: narrower than the series context that supplies
+ * it, so the tooltip layer never imports the option layer back.
+ */
+export interface RelationsTooltipContext {
+  formatValue: ValueFormatter;
+  /** The numeric `mainstat` field; the footer resolves its data links. */
+  valueField?: Field;
+  /** The edges frame's `mainstat`, for a hovered link's footer. */
+  linkValueField?: Field;
+}
+
 /** Theme + formatting context the binned heatmap tooltip needs to match Grafana. */
 export interface BinnedHeatmapTooltipContext {
   theme: GrafanaTheme2;

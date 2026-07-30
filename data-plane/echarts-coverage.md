@@ -60,34 +60,42 @@ Verdicts use exactly four buckets:
 | `heatmap`       | `[[xIndex, yIndex, value], ...]` against **two category axes** (see below)                  | `NumericWide` pivoted to a category x category matrix               | works today                                 | Enabled — [heatmap-matrix.md](./heatmap-matrix.md)                               |
 | `map`           | `[{ name: <regionName>, value }, ...]` plus a GeoJSON registered via `registerMap`          | Any frame with a region-name string field and a numeric field       | needs a reshape or an out-of-contract frame | Throws — **out of scope this pass**                                              |
 | `parallel`      | `[[d0, d1, ..., dn], ...]`; one row per polyline, one `parallelAxis` per dimension          | `NumericWide` — every numeric field becomes an axis                 | good fit, needs a converter                 | Throws                                                                           |
-| `lines`         | `[{ coords: [[x1, y1], [x2, y2], ...] }, ...]`; polylines in cartesian or geo space         | none — no kind carries coordinate-pair polylines                    | no Grafana source                           | Throws                                                                           |
-| `graph`         | `data`/`nodes` plus `links`/`edges`; arbitrary topology, cycles allowed                     | Node graph nodes + edges frames                                     | needs a reshape or an out-of-contract frame | Throws — [node-graph.md](./node-graph.md)                                        |
-| `sankey`        | `data`/`nodes` plus `links`/`edges`, **DAG only** (see below)                               | Node graph nodes + edges frames                                     | needs a reshape or an out-of-contract frame | Throws — [node-graph.md](./node-graph.md)                                        |
+| `lines`         | `[{ coords: [[x1, y1], [x2, y2], ...] }, ...]`; polylines in cartesian or geo space         | none — no kind carries coordinate-pair polylines                    | no Grafana source                           | Throws — deferred, [../todo/lines.md](../todo/lines.md)                          |
+| `graph`         | `data`/`nodes` plus `links`/`edges`; arbitrary topology, cycles allowed                     | Node graph nodes + edges frames                                     | works today                                 | Enabled — [node-graph.md](./node-graph.md)                                       |
+| `sankey`        | `data`/`nodes` plus `links`/`edges`, **DAG only** (see below)                               | Node graph nodes + edges frames                                     | works today (converter breaks cycles)       | Enabled — [node-graph.md](./node-graph.md)                                       |
 | `funnel`        | `[{ name, value }, ...]`; same slice model as `pie`                                         | Same as `pie`                                                       | works today                                 | Enabled — [part-to-whole.md](./part-to-whole.md)                                 |
 | `gauge`         | `[{ name, value }, ...]`, normally one item                                                 | Any numeric frame reduced to a single value                         | good fit, needs a converter                 | Throws                                                                           |
 | `pictorialBar`  | Bar data (`number[]` or `[[x, y]]`) plus a `symbol` (path/image) per item                   | Same as `bar`                                                       | good fit, needs a converter                 | Throws                                                                           |
 | `themeRiver`    | Flat `[[time, value, name], ...]` triples (see below)                                       | `TimeSeriesLong` — near-identical column layout                     | good fit, needs a converter                 | Throws                                                                           |
-| `chord`         | `data`/`nodes` plus `links`/`edges` with weights; new in 6.0.0 (see below)                  | Node graph nodes + edges frames                                     | needs a reshape or an out-of-contract frame | Throws — [node-graph.md](./node-graph.md)                                        |
+| `chord`         | `data`/`nodes` plus `links`/`edges` with weights; new in 6.0.0 (see below)                  | Node graph nodes + edges frames                                     | works today                                 | Enabled — [node-graph.md](./node-graph.md)                                       |
 | `custom`        | No fixed spec — whatever `renderItem` reads, addressed through `encode`                     | Anything, by construction                                           | works today                                 | Registered but not routable — [heatmap-binned.md](./heatmap-binned.md)           |
 
 ### Counts
 
-Resolving the constituent arrays of `supportedChartSeriesTypes` gives **12
-enabled** and **11 throwing**:
+Resolving the constituent arrays of `supportedChartSeriesTypes` gives **16
+enabled** and **7 throwing**:
 
 | Array                      | Defined in                | Members                                       |
 | -------------------------- | ------------------------- | --------------------------------------------- |
-| `cartesianTimeSeriesTypes` | `src/editor/constants.ts` | `line`, `bar`, `scatter`, `effectScatter` (4) |
-| `multiValueSeriesTypes`    | `src/editor/constants.ts` | `candlestick`, `boxplot` (2)                  |
+| `cartesianTimeSeriesTypes` | `src/editor/cartesian.ts` | `line`, `bar`, `scatter`, `effectScatter` (4) |
+| `multiValueSeriesTypes`    | `src/editor/cartesian.ts` | `candlestick`, `boxplot` (2)                  |
 | `heatmapSeriesTypes`       | `src/editor/constants.ts` | `heatmap` (1)                                 |
-| `radarSeriesTypes`         | `src/editor/constants.ts` | `radar` (1)                                   |
+| `multivariateSeriesTypes`  | `src/editor/radar.ts`     | `radar`, `parallel` (2)                       |
 | `partToWholeSeriesTypes`   | `src/editor/pie.ts`       | `pie` + `funnel` (2)                          |
 | `hierarchySeriesTypes`     | `src/editor/constants.ts` | `treemap`, `sunburst` (2)                     |
+| `relationsSeriesTypes`     | `src/editor/constants.ts` | `graph`, `sankey`, `chord` (3)                |
 
-4 + 2 + 1 + 1 + 2 + 2 = **12**. The remaining 11 of the 23 `SeriesType` members
-— `tree`, `map`, `parallel`, `lines`, `graph`, `sankey`, `gauge`,
-`pictorialBar`, `themeRiver`, `chord`, `custom` — throw from
-`resolveChartModule`.
+4 + 2 + 1 + 2 + 2 + 2 + 3 = **16**. The remaining 7 of the 23 `SeriesType` members
+— `tree`, `map`, `lines`, `gauge`, `pictorialBar`, `themeRiver`, `custom` — throw
+from `resolveChartModule`.
+
+The **relations** family is now complete: `graph`, `sankey` and `chord` all consume
+the identical node/link model, differing only in layout (and, for sankey, in the
+cycle policy its layout forces). `lines` is the one member of ECharts' relationship
+group left out, and deliberately — it needs coordinate-pair polylines, which no
+Grafana frame carries. See [../todo/node-graph.md](../todo/node-graph.md) for the
+three that shipped and [../todo/lines.md](../todo/lines.md) for why the fourth did
+not.
 
 `custom` is the odd one out: `CustomChart` **is** registered in
 `src/lib/echarts/echarts.ts` and the binned heatmap renders through it
@@ -273,6 +281,14 @@ and drop back-edges, or refuse and fall back) rather than passing edges through.
 `graph` and `chord` have no such restriction. See
 [node-graph.md](./node-graph.md) for the edges/nodes frame format.
 
+**Implemented** in `src/lib/echarts/converters/dag.ts`: the sankey path drops
+self-loops, merges duplicate `source → target` pairs, and removes back-edges found
+by a deterministic depth-first traversal, before the links reach ECharts. It runs
+unconditionally — the only alternative to breaking a cycle is crashing, so there is
+no user option — and reports the number of links removed, which the panel surfaces
+as a note. See the cycle policy section in
+[`src/modules/relations/parity.md`](../src/modules/relations/parity.md).
+
 ### Chord is new in 6.0.0
 
 `series.chord` was added in **ECharts 6.0.0**; the option reference tags it
@@ -302,8 +318,9 @@ Currently registered:
 
 - **Series** — `LineChart`, `BarChart`, `ScatterChart`, `EffectScatterChart`,
   `CandlestickChart`, `BoxplotChart`, `PieChart`, `FunnelChart`, `RadarChart`,
-  `TreemapChart`, `SunburstChart`, `CustomChart`, `HeatmapChart` (13 — one more
-  than the 12 routable types, because `CustomChart` backs the binned heatmap).
+  `ParallelChart`, `TreemapChart`, `SunburstChart`, `GraphChart`, `SankeyChart`,
+  `ChordChart`, `CustomChart`, `HeatmapChart` (17 — one more than the 16 routable
+  types, because `CustomChart` backs the binned heatmap).
 - **Components** — `GridComponent`, `TooltipComponent`, `LegendComponent`,
   `TitleComponent`, `AxisPointerComponent`, `BrushComponent`, `RadarComponent`,
   `VisualMapContinuousComponent`, `MarkLineComponent`, `MarkAreaComponent`.
@@ -320,18 +337,18 @@ Not registered and relevant here: `DatasetComponent` and `TransformComponent`
 What each roadmap type would additionally need to import from `echarts/charts`
 (and, where applicable, `echarts/components`):
 
-| Roadmap type   | Chart import        | Extra component import                                                                                                     |
-| -------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `tree`         | `TreeChart`         | none — self-contained                                                                                                      |
-| `parallel`     | `ParallelChart`     | none — its `install` calls `use(ParallelComponent)` internally                                                             |
-| `lines`        | `LinesChart`        | `GridComponent` (already registered) for cartesian; `GeoComponent` for geo                                                 |
-| `graph`        | `GraphChart`        | none — ships its own `View` coordinate system                                                                              |
-| `sankey`       | `SankeyChart`       | none — self-contained                                                                                                      |
-| `gauge`        | `GaugeChart`        | none — self-contained                                                                                                      |
-| `pictorialBar` | `PictorialBarChart` | none — shares the bar grid layout, which `GridComponent` already covers                                                    |
-| `themeRiver`   | `ThemeRiverChart`   | **`SingleAxisComponent`** — `ThemeRiverSeriesModel.dependencies = ['singleAxis']` and its `install` does _not_ register it |
-| `chord`        | `ChordChart`        | none — self-contained                                                                                                      |
-| `map`          | `MapChart`          | none at import time — its `install` calls `use(installGeo)`; but a GeoJSON still has to be supplied via `registerMap`      |
+| Roadmap type   | Chart import        | Extra component import                                                                                                             |
+| -------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `tree`         | `TreeChart`         | none — self-contained                                                                                                              |
+| `parallel`     | `ParallelChart`     | none — its `install` calls `use(ParallelComponent)` internally                                                                     |
+| `lines`        | `LinesChart`        | `GridComponent` (already registered) for cartesian; `GeoComponent` for geo — and note it **defaults** to `coordinateSystem: 'geo'` |
+| `graph`        | `GraphChart`        | **registered** — ships its own `View` coordinate system, so nothing extra was needed                                               |
+| `sankey`       | `SankeyChart`       | **registered** — self-contained (box layout, no coordinate component)                                                              |
+| `gauge`        | `GaugeChart`        | none — self-contained                                                                                                              |
+| `pictorialBar` | `PictorialBarChart` | none — shares the bar grid layout, which `GridComponent` already covers                                                            |
+| `themeRiver`   | `ThemeRiverChart`   | **`SingleAxisComponent`** — `ThemeRiverSeriesModel.dependencies = ['singleAxis']` and its `install` does _not_ register it         |
+| `chord`        | `ChordChart`        | **registered** — self-contained (pins `coordinateSystem: 'none'`)                                                                  |
+| `map`          | `MapChart`          | none at import time — its `install` calls `use(installGeo)`; but a GeoJSON still has to be supplied via `registerMap`              |
 
 Adopting `dataset` for any series would additionally require registering
 `DatasetComponent` (and `TransformComponent` if ECharts-side transforms such as
@@ -339,7 +356,7 @@ Adopting `dataset` for any series would additionally require registering
 
 ## Unverified
 
-Three items were checked but are recorded with reservations:
+Two items were checked but are recorded with reservations:
 
 - **`gauge` `dataset` support — partially verified, behaviour unconfirmed.**
   `GaugeSeriesModel.prototype.getInitialData` calls
@@ -349,12 +366,13 @@ Three items were checked but are recorded with reservations:
   `extend({ encodeDefine: seriesModel.getEncode() }, opt)` branch, so
   `series.encode` is not applied. Whether a `dataset` + gauge combination
   actually renders sensibly end to end was not tested and is not documented.
-- **`lines` `value` semantics — unverified.** The option reference documents only
-  `name`, `coords`, `lineStyle` and `label` for `series.lines.data`, but
-  `LinesSeriesModel.prototype.getInitialData` reads `dataItem.value` and indexes
-  into it (`value[dimIndex]`) when the item is an object rather than a bare
-  coordinate array. What that value is _for_ — `visualMap` input, tooltip, effect
-  sizing — is not stated anywhere and was not confirmed.
+- **`lines` `value` semantics — now resolved**, recorded here because the option
+  reference still does not state it. `getInitialData` builds
+  `new SeriesData(['value'], this)` — a single value dimension — with a custom getter
+  that yields `NaN` for a bare coordinate-array item and reads `dataItem.value` for an
+  object item. So `value` is tooltip/`visualMap` metadata only and never affects
+  geometry, which comes exclusively from `coords`. See
+  [../todo/lines.md](../todo/lines.md).
 - **`treemap` parent auto-summing — verified in source, undocumented upstream.**
   Both `TreemapSeries.js` and `SunburstSeries.js` define a private
   `completeTreeValue(dataNode)` that post-order traverses the tree and, with the

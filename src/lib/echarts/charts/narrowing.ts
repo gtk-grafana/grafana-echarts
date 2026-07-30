@@ -4,6 +4,7 @@ import {
   categoricalOnlySeriesType,
   heatmapSeriesTypes,
   hierarchySeriesTypes,
+  relationsSeriesTypes,
   supportsTimeAxisSeriesTypes,
 } from 'editor/constants';
 import { multivariateSeriesTypes } from 'editor/radar';
@@ -15,6 +16,7 @@ import {
   type HierarchySeriesType,
   type MultiValueSeriesType,
   type MultivariateSeriesType,
+  type RelationsSeriesType,
   type SeriesType,
   type SeriesTypeOption,
   type TimeAxisSupportsSeriesType,
@@ -60,4 +62,10 @@ export function isHierarchySeriesType(type: SeriesType): type is HierarchySeries
 // the multivariate family panel and chart module.
 export function isMultivariateSeriesType(type: SeriesType): type is MultivariateSeriesType {
   return multivariateSeriesTypes.some((t) => t === type);
+}
+
+// Relations charts (graph today; sankey and chord planned) render nodes plus the
+// links between them, from Grafana's node-graph frame pair.
+export function isRelationsSeriesType(type: SeriesType): type is RelationsSeriesType {
+  return relationsSeriesTypes.some((t) => t === type);
 }

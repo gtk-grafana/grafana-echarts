@@ -65,3 +65,25 @@ export const scorePartToWhole = (summary: PanelDataSummary): VisualizationSugges
 /** Multivariate (radar): several numeric metrics to place around the axes. */
 export const scoreMultivariate = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined =>
   summary.fieldCountByType(FieldType.number) >= 2 ? VisualizationSuggestionScore.OK : undefined;
+
+/**
+ * Relations (graph): **never suggested — always `undefined`.**
+ *
+ * Node-graph data is identified by an `id`/`source`/`target` field shape (see
+ * `isNodeGraphFrames`) or by `meta.preferredVisualisationType`, and
+ * `PanelDataSummary` exposes neither: it reports field *types* and dataplane frame
+ * types, not field names, and node/edge frames carry no `frame.meta.type` at all.
+ * The same wall blocks hierarchy's flame-graph path (see
+ * `modules/hierarchy/suggestions.ts`).
+ *
+ * Scoring on a reachable proxy — "two or more string fields and instant data" —
+ * would match any ordinary table, so the panel would be suggested for data it
+ * cannot render. Staying silent is the better failure: the panel is still
+ * selectable manually, exactly like hierarchy over a flame graph. Closing this
+ * properly needs `PanelDataSummary` extended upstream to surface
+ * `preferredVisualisationType` (or field names).
+ *
+ * Kept as a function, rather than omitted, so every family still has one entry
+ * point here and the reasoning lives with its siblings.
+ */
+export const scoreRelations = (_summary: PanelDataSummary): VisualizationSuggestionScore | undefined => undefined;

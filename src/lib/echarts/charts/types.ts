@@ -12,10 +12,12 @@ import {
   type BarSeriesOption,
   type BoxplotSeriesOption,
   type CandlestickSeriesOption,
+  type ChordSeriesOption,
   type ComposeOption,
   type CustomSeriesOption,
   type EffectScatterSeriesOption,
   type FunnelSeriesOption,
+  type GraphSeriesOption,
   type GridComponentOption,
   type HeatmapSeriesOption,
   type LegendComponentOption,
@@ -24,6 +26,7 @@ import {
   type PieSeriesOption,
   type RadarComponentOption,
   type RadarSeriesOption,
+  type SankeySeriesOption,
   type ScatterSeriesOption,
   type SunburstSeriesOption,
   type TitleComponentOption,
@@ -64,6 +67,8 @@ export interface ChartContext<T = SeriesType> {
 }
 
 export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
+/** Relations family context, narrowed to the render types the family hosts. */
+export type RelationsChartContext = ChartContext<'graph' | 'sankey' | 'chord'>;
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
@@ -128,6 +133,16 @@ export type EChartFunnelSeriesOption = ComposeOption<FunnelSeriesOption>;
 // Hierarchy families render a value-weighted tree; no cartesian axis component.
 export type EChartTreemapSeriesOption = ComposeOption<TreemapSeriesOption>;
 export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
+// Relations (graph) renders nodes plus links. The `graph` series ships its own
+// `View` coordinate system, so no coordinate component is composed in.
+export type EChartGraphSeriesOption = ComposeOption<GraphSeriesOption>;
+// Relations (sankey) lays the same node/link model out as weighted flow ribbons.
+// Composes the `title` component too: a sankey may carry a bottom-left note
+// reporting links removed by the cycle policy (see `getSankeyDroppedNote`).
+export type EChartSankeySeriesOption = ComposeOption<SankeySeriesOption | TitleComponentOption>;
+// Relations (chord) lays the same node/link model out as a ring of arcs joined by
+// ribbons. Self-contained: it pins `coordinateSystem: 'none'`, so nothing is composed in.
+export type EChartChordSeriesOption = ComposeOption<ChordSeriesOption>;
 /**
  * @todo revisit
  * A single pie slice data item. ECharts types a pie series' `data` as
@@ -159,6 +174,9 @@ export type EChartBuildOption =
   | EChartFunnelSeriesOption
   | EChartTreemapSeriesOption
   | EChartSunburstSeriesOption
+  | EChartGraphSeriesOption
+  | EChartSankeySeriesOption
+  | EChartChordSeriesOption
   | EChartCandlestickSeriesOption
   | EChartBoxPlotSeriesOption
   | EChartEffectScatterSeriesOption
