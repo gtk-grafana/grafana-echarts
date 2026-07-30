@@ -22,6 +22,22 @@ const categoryFrame = (numericFields: number, rows: number) =>
     ],
   });
 
+/**
+ * A one-frame-per-series time series: what TestData `random_walk` with
+ * `seriesCount: N` returns, and the shape
+ * `provisioning/dashboards/part-to-whole/pie-parity.json` reduces into slices.
+ */
+const multiSeriesTimeFrames = (series: number, rows: number) =>
+  Array.from({ length: series }, () =>
+    createDataFrame({
+      meta: { type: DataFrameType.TimeSeriesMulti },
+      fields: [
+        { name: 'time', type: FieldType.time, values: Array.from({ length: rows }, (_, row) => row * 1000) },
+        { name: 'value', type: FieldType.number, values: Array.from({ length: rows }, (_, row) => row) },
+      ],
+    })
+  );
+
 describe('partToWholeSuggestionsSupplier', () => {
   it('returns void when there is no numeric field', () => {
     const result = partToWholeSuggestionsSupplier(
@@ -32,7 +48,9 @@ describe('partToWholeSuggestionsSupplier', () => {
     expect(result).toBeUndefined();
   });
 
-  it('returns void for multi-point (non-instant, non-numeric) time series', () => {
+  // Withheld because reducing a single numeric field is one 100% slice — not because
+  // the data has a time dimension (see the multi-series case below).
+  it('returns void for a single-series time series', () => {
     const result = partToWholeSuggestionsSupplier(
       getPanelDataSummary([
         createDataFrame({
@@ -44,6 +62,27 @@ describe('partToWholeSuggestionsSupplier', () => {
       ])
     );
     expect(result).toBeUndefined();
+  });
+
+  // The `pie-parity.json` case: TestData random_walk with seriesCount 5, reduced by
+  // `mean` to one slice per series. Core suggests Pie chart / Donut chart for this,
+  // and a blanket snapshot-shape gate made this plugin silent on its own comparison
+  // dashboard.
+  it('suggests all three variants for a reduced multi-series time series', () => {
+    const result = partToWholeSuggestionsSupplier(getPanelDataSummary(multiSeriesTimeFrames(5, 200)));
+
+    expect(result).toHaveLength(3);
+    expect(result!.map((suggestion) => suggestion.name)).toEqual(['Pie', 'Donut', 'Funnel']);
+    expect(result!.every((suggestion) => suggestion.score === VisualizationSuggestionScore.Good)).toBe(true);
+    // Reduced, not one slice per row — 200 rows would be 200 slices.
+    expect(result!.every((suggestion) => suggestion.options?.reduceOptions?.values === false)).toBe(true);
+    expect(result!.every((suggestion) => suggestion.options?.reduceOptions?.calcs[0] === 'sum')).toBe(true);
+  });
+
+  it(`returns void for a ${SLICE_MAX * 10}-series response, where core is silent too`, () => {
+    expect(
+      partToWholeSuggestionsSupplier(getPanelDataSummary(multiSeriesTimeFrames(SLICE_MAX * 10, 20)))
+    ).toBeUndefined();
   });
 
   // The regression case for the defect this family shipped with: a SQL/TestData

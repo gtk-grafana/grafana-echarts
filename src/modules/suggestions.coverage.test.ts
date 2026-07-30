@@ -71,6 +71,9 @@ const numericFrame = (...names: string[]) =>
 /** One realistic response per shape the plugin claims to serve. */
 const FIXTURES: Record<string, DataFrame[]> = {
   'wide time series': [timeFrame(3)],
+  // TestData random_walk with seriesCount 5 — the shape part-to-whole reduces into
+  // one slice per series, and the one hierarchy must *not* claim (it has no reducer).
+  'multi-frame time series': Array.from({ length: 5 }, () => timeFrame(1, 200)),
   'ohlc frame': [numericFrame('open', 'high', 'low', 'close')],
   'five-number summary': [numericFrame('min', 'q1', 'median', 'q3', 'max')],
   'two numeric columns': [numericFrame('x', 'y')],

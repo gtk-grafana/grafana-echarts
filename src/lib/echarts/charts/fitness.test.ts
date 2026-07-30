@@ -65,6 +65,13 @@ const timeFrame = (numericFields: number, rows: number, type?: DataFrameType) =>
     ],
   });
 
+/**
+ * A one-frame-per-series time series: what TestData `random_walk` with
+ * `seriesCount: N` returns, and the shape `pie-parity.json` reduces into slices.
+ */
+const multiSeriesTimeFrames = (series: number, rows: number) =>
+  Array.from({ length: series }, () => timeFrame(1, rows, DataFrameType.TimeSeriesMulti));
+
 /** A node-graph edges frame with `rows` edges. */
 const edgesFrame = (rows: number) =>
   createDataFrame({
@@ -368,6 +375,20 @@ describe('resolvePartToWholeSlices', () => {
     expect(resolvePartToWholeSlices(summaryOf(categoryFrame(4, 10)))).toEqual({ mode: 'calculate', count: 4 });
   });
 
+  // Calculate mode reduces each numeric field across every frame, so the row count
+  // never reaches the chart and a time dimension is not disqualifying.
+  it('reduces one slice per series for a multi-frame time series', () => {
+    expect(resolvePartToWholeSlices(summaryOf(...multiSeriesTimeFrames(5, 200)))).toEqual({
+      mode: 'calculate',
+      count: 5,
+    });
+  });
+
+  // A row per slice only makes sense when rows are categories, not timestamps.
+  it('never reads rows as slices when the data carries a time dimension', () => {
+    expect(resolvePartToWholeSlices(summaryOf(timeFrame(1, 10)))).toEqual({ mode: 'calculate', count: 1 });
+  });
+
   it(`reads rows up to ${ALL_VALUES_MAX_ROWS} and reduces above it`, () => {
     expect(resolvePartToWholeSlices(summaryOf(categoryFrame(1, ALL_VALUES_MAX_ROWS)))).toEqual({
       mode: 'allValues',
@@ -391,8 +412,28 @@ describe('scorePartToWhole', () => {
     ).toBeUndefined();
   });
 
-  it('does not fit a multi-point (non-instant, non-numeric) time series', () => {
+  // Withheld because reducing one numeric field is one 100% slice — not because the
+  // data has a time dimension. See the multi-series case below.
+  it('does not fit a single-series time series', () => {
     expect(scorePartToWhole(summaryOf(timeFrame(1, 3)))).toBeUndefined();
+  });
+
+  // The regression the `pie-parity.json` dashboard caught: reduced multi-series time
+  // series is the commonest pie in Grafana (core suggests Pie chart / Donut chart for
+  // exactly this), and a blanket snapshot-shape gate withheld the whole family.
+  it('fits a multi-frame time series, which Calculate mode reduces to one slice per series', () => {
+    expect(scorePartToWhole(summaryOf(...multiSeriesTimeFrames(5, 200)))).toBe(VisualizationSuggestionScore.Good);
+  });
+
+  it('fits a wide time frame with several value columns', () => {
+    expect(scorePartToWhole(summaryOf(timeFrame(4, 200, DataFrameType.TimeSeriesWide)))).toBe(
+      VisualizationSuggestionScore.Good
+    );
+  });
+
+  // Core is observably silent here too, so the slice ceiling is the parity boundary.
+  it(`does not fit a ${SLICE_MAX * 10}-series response`, () => {
+    expect(scorePartToWhole(summaryOf(...multiSeriesTimeFrames(SLICE_MAX * 10, 20)))).toBeUndefined();
   });
 
   // Defect 3: `isInstant` is only ever assigned while walking a time field, so a
@@ -492,6 +533,16 @@ describe('scoreHierarchy', () => {
 
   it('does not fit a multi-point time series', () => {
     expect(scoreHierarchy(summaryOf(timeFrame(1, 3)))).toBeUndefined();
+  });
+
+  // The asymmetry with part-to-whole, which *does* fit this shape: hierarchy has no
+  // `reduceOptions`, so `frameToCategorical` would emit one node per timestamp
+  // labelled "0", "1", … instead of one node per series.
+  it('does not fit a multi-frame time series, unlike part-to-whole', () => {
+    const summary = summaryOf(...multiSeriesTimeFrames(5, 200));
+
+    expect(scorePartToWhole(summary)).toBe(VisualizationSuggestionScore.Good);
+    expect(scoreHierarchy(summary)).toBeUndefined();
   });
 });
 

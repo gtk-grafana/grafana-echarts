@@ -258,11 +258,21 @@ export interface PartToWholeSlices {
  *
  * A single numeric column has to be read **row per slice**: reducing one field
  * produces one value, i.e. a single 100% slice — a pie of nothing. So a lone
- * numeric field switches to all-values mode, while the row count is small enough
- * to be a category list rather than a series (`ALL_VALUES_MAX_ROWS`).
+ * numeric field switches to all-values mode, provided the data is a snapshot shape
+ * (a row per slice only makes sense when rows are *categories*, not timestamps) and
+ * the row count is small enough to be a category list rather than a series
+ * (`ALL_VALUES_MAX_ROWS`).
  *
  * Everything else reduces per field, which is Grafana's default and what
- * `getFieldDisplayValues` does with `values: false`.
+ * `getFieldDisplayValues` does with `values: false`. **That path deliberately has no
+ * shape requirement**: `resolvePieSlices` documents Calculate as "each numeric field
+ * across every frame becomes one slice, reduced by `reduceOptions.calcs[0]`", so the
+ * reducer collapses the time dimension itself and the row count never reaches the
+ * chart. A five-series Prometheus/TestData response reduced by `mean` is five slices
+ * — the single most common pie in Grafana, and what
+ * `provisioning/dashboards/part-to-whole/pie-parity.json` exists to compare against
+ * core. Requiring a snapshot shape for it (as an earlier version of this file did)
+ * withheld the family from exactly that dashboard.
  *
  * Always returns a shape; whether that shape is *worth suggesting* is
  * `scorePartToWhole`'s call.
@@ -270,7 +280,7 @@ export interface PartToWholeSlices {
 export const resolvePartToWholeSlices = (summary: PanelDataSummary): PartToWholeSlices => {
   const numericFields = summary.fieldCountByType(FieldType.number);
   const rows = summary.rowCountMax;
-  if (numericFields === 1 && rows >= SLICE_MIN && rows <= ALL_VALUES_MAX_ROWS) {
+  if (numericFields === 1 && isSnapshotShape(summary) && rows >= SLICE_MIN && rows <= ALL_VALUES_MAX_ROWS) {
     return { mode: 'allValues', count: rows };
   }
   return { mode: 'calculate', count: numericFields };
@@ -283,17 +293,21 @@ const isCanonicalCategoryFrame = (summary: PanelDataSummary): boolean =>
   summary.fieldCountByType(FieldType.number) === 1;
 
 /**
- * Part-to-whole (pie/donut/funnel): one value per category, so it needs a snapshot
- * shape (see {@link isSnapshotShape}) and a slice count that actually shows a
- * share of a whole.
+ * Part-to-whole (pie/donut/funnel): a slice count that actually shows a share of a
+ * whole. **The gate is the slice count, not the frame shape** — see
+ * {@link resolvePartToWholeSlices} for why Calculate mode makes a dense time series
+ * a perfectly good pie, and note that the count is what a shape check would really
+ * have been protecting: a lone numeric field that cannot be read row-per-slice
+ * reduces to a single 100% slice and is withheld on `SLICE_MIN` anyway.
  *
  * Withheld outside `[SLICE_MIN, SLICE_MAX]`: one slice is always 100%, and past 30
- * the arcs are slivers — the same ceiling core piechart applies. `Best` for the
- * canonical one-label-plus-one-value table, matching core piechart, which treats
- * that shape as its own.
+ * the arcs are slivers — the same ceiling core piechart applies, and core is
+ * observably silent at 500 series too. `Best` for the canonical
+ * one-label-plus-one-value table, matching core piechart, which treats that shape as
+ * its own.
  */
 export const scorePartToWhole = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined => {
-  if (!summary.hasData || !summary.hasFieldType(FieldType.number) || !isSnapshotShape(summary)) {
+  if (!summary.hasData || !summary.hasFieldType(FieldType.number)) {
     return undefined;
   }
   const { count } = resolvePartToWholeSlices(summary);
@@ -305,9 +319,16 @@ export const scorePartToWhole = (summary: PanelDataSummary): VisualizationSugges
 
 /**
  * Hierarchy (treemap/sunburst): a flame graph is the ideal fit and is detected
- * outright; otherwise the family reads the same flat categorical shape as
- * part-to-whole, so it delegates rather than restating the gate (which is what the
+ * outright; otherwise the family reads a flat categorical shape, sharing
+ * part-to-whole's slice bounds rather than restating them (which is what the
  * supplier used to do, in a copy that had already drifted).
+ *
+ * **It cannot share part-to-whole's shape tolerance, though.** This family has no
+ * `reduceOptions`: `frameToHierarchy`'s flat path calls `frameToCategorical` and
+ * emits one node per *row*, labelled by the string field or the row index. So where
+ * a pie reduces a five-series time series to five slices, a treemap over the same
+ * data would draw one node per timestamp named `"0"`, `"1"`, … — hence the explicit
+ * `isSnapshotShape` gate here, which keeps a time dimension out.
  *
  * Both flame-graph signals are checked. `meta.preferredVisualisationType` is
  * Grafana's canonical one and the summary surfaces it directly; the nested-set
@@ -317,6 +338,9 @@ export const scorePartToWhole = (summary: PanelDataSummary): VisualizationSugges
 export const scoreHierarchy = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined => {
   if (summary.hasPreferredVisualisationType('flamegraph') || framesOf(summary).some(isFlameGraphFrame)) {
     return VisualizationSuggestionScore.Best;
+  }
+  if (!isSnapshotShape(summary)) {
+    return undefined;
   }
   return scorePartToWhole(summary);
 };

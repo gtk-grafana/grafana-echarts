@@ -113,23 +113,34 @@ the user or suggested. `scorePartToWhole` (`src/lib/echarts/charts/fitness.ts`) 
 the suggestion gate:
 
 - No `number` field, or no data → no score at all.
-- The data must be a **snapshot shape**: a `NumericWide` / `NumericMulti` /
-  `NumericLong` frame, instant (single-timestamp) data, or a frame with no `time`
-  field at all. Multi-point time series is excluded, because a slice is a single
-  value per category.
 - The slice count must land in `[SLICE_MIN, SLICE_MAX]` (2–30, the same ceiling
-  core piechart applies). One slice is always 100%, and past 30 the arcs are
-  slivers. `resolvePartToWholeSlices` decides what the slices are: a lone numeric
-  field is read one slice per **row** (up to `ALL_VALUES_MAX_ROWS`), since reducing
-  one field yields a single 100% slice; anything else reduces per field.
+  core piechart applies — core is observably silent at 500 series too). One slice
+  is always 100%, and past 30 the arcs are slivers.
 - Exactly one string column plus one numeric column scores `Best` — core
   piechart's own shape. Everything else that passes scores `Good`.
 
-The third snapshot branch is load-bearing and was missing for a long time.
-`PanelDataSummaryImpl` only assigns `isInstant` while walking a `time` field, so a
-SQL/TestData category table — no time column, no `meta.type`, i.e. the canonical
-pie source — leaves it `undefined`, and the older `isNumericFrame || isInstant`
-gate dropped it.
+**The gate is the slice count, not the frame shape.** `resolvePartToWholeSlices`
+decides where slices come from, and only one of its two modes cares about shape:
+
+| Mode                          | Slices                                        | Shape requirement                                                                          |
+| ----------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `allValues` (`values: true`)  | one per **row** of the single numeric field   | snapshot shape, and rows ≤ `ALL_VALUES_MAX_ROWS` — rows must be categories, not timestamps |
+| `calculate` (`values: false`) | one per **numeric field, across every frame** | none — `calcs[0]` collapses the rows itself                                                |
+
+A lone numeric field needs `allValues` because reducing one field yields a single
+100% slice. Everything else reduces, and **a multi-point time series is fine there**:
+TestData `random_walk` with `seriesCount: 5` reduced by `mean` is five slices, which
+is the commonest pie in Grafana and what
+`provisioning/dashboards/part-to-whole/pie-parity.json` compares against core. An
+earlier version of this gate required a snapshot shape for _both_ modes and was
+therefore silent on that very dashboard.
+
+A "snapshot shape" is a `NumericWide` / `NumericMulti` / `NumericLong` frame, instant
+(single-timestamp) data, **or a frame with no `time` field at all**. That third
+branch is load-bearing and was missing for a long time: `PanelDataSummaryImpl` only
+assigns `isInstant` while walking a `time` field, so a SQL/TestData category table —
+no time column, no `meta.type` — leaves it `undefined`, and the older
+`isNumericFrame || isInstant` gate dropped it.
 
 `partToWholeSuggestionsSupplier` (`src/modules/part-to-whole/suggestions.ts`)
 turns the score into Pie / Donut / Funnel cards, each carrying the `reduceOptions`
