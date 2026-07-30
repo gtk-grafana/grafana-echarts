@@ -1,33 +1,13 @@
-import { type Field, getFieldDisplayName } from '@grafana/data';
+import { getFieldDisplayName } from '@grafana/data';
 import { STACK_GROUP_ID } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type HeatmapSeriesType } from 'editor/types';
-import { isCartesianSingleValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
+import { resolveFieldSeriesType, resolveFieldStack } from 'lib/echarts/converters/fieldOverrides';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
 import { getSeriesDensity, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 import { getSeriesColor } from 'lib/echarts/style';
-import { getFieldConfigFromField } from 'lib/grafana/fields/fieldConfig';
 import { type FieldTypedDataFrame } from 'lib/grafana/types';
-
-/**
- * Resolve the series type for a single value field: field override wins when cartesian.
- */
-function resolveFieldSeriesType<T>(field: Field, defaultType: T): T | CartesianSingleValueSeriesType {
-  const seriesTypeOverride = getFieldConfigFromField(field).custom?.seriesType;
-  if (seriesTypeOverride && isCartesianSingleValueSeriesType(seriesTypeOverride)) {
-    return seriesTypeOverride;
-  }
-  return defaultType;
-}
-/**
- * Whether a bar field should stack: field override wins over the panel default.
- * Only bar series stack, so callers gate on the resolved render type.
- */
-function resolveFieldStack(field: Field, panelStack = false): boolean {
-  const override = getFieldConfigFromField(field).custom?.stackSeries;
-  return override ?? panelStack;
-}
 
 /**
  * Convert Grafana time series DataFrames into ECharts series data.

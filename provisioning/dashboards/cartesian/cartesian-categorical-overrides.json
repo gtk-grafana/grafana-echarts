@@ -1,0 +1,1064 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "cartesian", "bar", "categorical", "overrides"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "Cartesian \u2014 categorical x series overrides",
+  "uid": "echarts-cart-cat-ovr",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The reported case. Two csv_content queries; a byFrameRefID override draws the Marker frame as scatter over the Bar frame's bars. Before per-field overrides were wired on the category axis, the Marker frame was dropped entirely.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Marker"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "scatter"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "bar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Bar",
+          "scenarioId": "csv_content",
+          "csvContent": "label,value\nx,5\na,8\nb,30\nc,20"
+        },
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Marker",
+          "scenarioId": "csv_content",
+          "csvContent": "markerLabel,markerValue\nx,3\na,10\nb,20\nc,30"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "markerValue",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Scatter overlay on categorical bar (two queries)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Same two-query shape, overridden to line \u2014 a trend line over categorical bars.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Marker"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "line"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "bar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Bar",
+          "scenarioId": "csv_content",
+          "csvContent": "label,value\nx,5\na,8\nb,30\nc,20"
+        },
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Marker",
+          "scenarioId": "csv_content",
+          "csvContent": "markerLabel,markerValue\nx,3\na,10\nb,20\nc,30"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "markerValue",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Line overlay on categorical bar (two queries)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Panel type is line; the second query is overridden to bar. Demonstrates the override winning over the panel-level series type in either direction.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Bars"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "bar"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "line"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Line",
+          "scenarioId": "csv_content",
+          "csvContent": "label,value\nx,5\na,8\nb,30\nc,20"
+        },
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Bars",
+          "scenarioId": "csv_content",
+          "csvContent": "markerLabel,markerValue\nx,3\na,10\nb,20\nc,30"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "markerValue",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Bar overlay on categorical line",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "effectScatter (ripple on hover) as the overlay type. Its ripple is meant for a few highlighted points, so it takes no large-mode fast path.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Marker"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "effectScatter"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "bar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Bar",
+          "scenarioId": "csv_content",
+          "csvContent": "label,value\nx,5\na,8\nb,30\nc,20"
+        },
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Marker",
+          "scenarioId": "csv_content",
+          "csvContent": "markerLabel,markerValue\nx,3\na,10\nb,20\nc,30"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "markerValue",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "effectScatter overlay on categorical bar",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Four queries on a shared category axis, each overridden to a different render type: bar (panel default), line, scatter, effectScatter. Every single-value cartesian type an override can select.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Line"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "line"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Scatter"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "scatter"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Effect"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "effectScatter"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "bar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Bars",
+          "scenarioId": "csv_content",
+          "csvContent": "label,bars\nx,5\na,8\nb,30\nc,20"
+        },
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Line",
+          "scenarioId": "csv_content",
+          "csvContent": "lineLabel,lineValue\nx,12\na,16\nb,24\nc,26"
+        },
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Scatter",
+          "scenarioId": "csv_content",
+          "csvContent": "scatterLabel,scatterValue\nx,3\na,10\nb,20\nc,30"
+        },
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Effect",
+          "scenarioId": "csv_content",
+          "csvContent": "effectLabel,effectValue\nx,18\na,6\nb,14\nc,9"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "bars",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "lineValue",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "scatterValue",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "effectValue",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "All cartesian overlays on one categorical axis",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "A single wide CSV whose three value columns are overridden by name. The same per-field override works whether the series come from one frame or several.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Actual"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "line"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Forecast"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "scatter"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "bar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,Budget,Actual,Forecast\nSales,43,50,46\nAdmin,30,24,27\nIT,55,48,52\nOps,22,28,25"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Forecast",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Mixed types from one frame (byName overrides)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Per-field custom.stackSeries stacks the two bar fields while the line field stays out of the stack group. Stacking follows the resolved render type, so a field overridden away from bar never joins the stack.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Q1"
+            },
+            "properties": [
+              {
+                "id": "custom.stackSeries",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Q2"
+            },
+            "properties": [
+              {
+                "id": "custom.stackSeries",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Target"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "line"
+              },
+              {
+                "id": "custom.stackSeries",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "bar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,Q1,Q2,Target\nSales,20,23,50\nAdmin,14,10,28\nIT,25,30,60\nOps,11,11,26"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Q1",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Q2",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Target",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Stacked bars with an unstacked line overlay",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The two frames list categories in different orders and cover different subsets. Categories are the union in first-appearance order and each series is joined by label, not row position; a category a frame has no row for renders as a gap.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "Marker"
+            },
+            "properties": [
+              {
+                "id": "custom.seriesType",
+                "value": "scatter"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "bar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Bar",
+          "scenarioId": "csv_content",
+          "csvContent": "label,value\nx,5\na,8\nb,30\nc,20"
+        },
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "Marker",
+          "scenarioId": "csv_content",
+          "csvContent": "markerLabel,markerValue\nc,30\nb,20\nd,40"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "value",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "markerValue",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Label join across frames (different order and subsets)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Baseline categorical bar: every series inherits the panel-level series type. Reference for the mixed panels above.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 0,
+        "y": 36
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "bar"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,Budget,Actual\nSales,43,50\nAdmin,30,24\nIT,55,48\nOps,22,28"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Categorical Bar (no overrides)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Baseline categorical line: every series inherits the panel-level series type. Reference for the mixed panels above.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 6,
+        "y": 36
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "line"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,Budget,Actual\nSales,43,50\nAdmin,30,24\nIT,55,48\nOps,22,28"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Categorical Line (no overrides)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Baseline categorical scatter: every series inherits the panel-level series type. Reference for the mixed panels above.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 12,
+        "y": 36
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "scatter"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,Budget,Actual\nSales,43,50\nAdmin,30,24\nIT,55,48\nOps,22,28"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Categorical Scatter (no overrides)",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Baseline categorical effectScatter: every series inherits the panel-level series type. Reference for the mixed panels above.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 36
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "effectScatter"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content",
+          "csvContent": "category,Budget,Actual\nSales,43,50\nAdmin,30,24\nIT,55,48\nOps,22,28"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "Budget",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "Actual",
+                "destinationType": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "title": "Categorical effectScatter (no overrides)",
+      "type": "grafana-echartscartesian-panel"
+    }
+  ]
+}

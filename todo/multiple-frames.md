@@ -7,30 +7,51 @@ The categorical converters only read the **first** frame that has a numeric fiel
 time series "Multi" format, or one-frame-per-series datasources like Prometheus)
 are **not** merged.
 
-This affects the whole category family that shares the helper:
+## Status
 
-- `frameToCategorical` (line / bar / scatter on a category axis)
+**Contract A is implemented for the category-axis cartesian path only**
+(`converters/categoryCartesianModel.ts`). Still single-frame:
+
 - `frameToMatrixHeatmap` (matrix heatmap layout)
+- `frameToCategorical` — retained as-is for radar / parallel / hierarchy
 
-## Current behavior
+## Implemented contract (category cartesian)
 
-Only a single frame is supported. For matrix, that first frame supplies the Y
-(row) categories from its string field, and each numeric field becomes an X
-(column). Additional frames are silently dropped.
+`framesToCategoryCartesian` splits on how many frames carry values, because
+merging is only needed — and only unambiguous — when more than one does:
 
-## Why it's not fixed yet
+- **One value frame**: categories are that frame's labels verbatim and each numeric
+  field keeps its values positionally. Duplicate labels are preserved (ECharts
+  draws repeated category ticks), so this is byte-for-byte the old single-frame
+  output. This is what keeps existing panels and canvas snapshots unchanged.
+- **Several value frames**: categories are the union of every frame's labels in
+  first-appearance order, and each series is joined onto them **by label** rather
+  than by row position, so frames may order categories differently or cover
+  different subsets. Resolutions for the questions this doc used to leave open:
+  - _row ordering_ — union in first-appearance order, frames in response order
+  - _missing cell_ — `null`, so it renders as a gap rather than a zero
+  - _duplicate labels within a frame_ — first row wins, with a `debug()` warning
+    (silently plotting the last would hide discarded data)
+  - _shared vs chart-specific helper_ — chart-specific, to avoid changing radar /
+    parallel / hierarchy behaviour as a side effect
 
-"Merge frames" is ambiguous and needs a decided data-shape contract before
-implementation:
+A frame with no string field still falls back to row indices (`"0"`, `"1"`, ...),
+which degrades the join to positional — the same fallback the single-frame model
+uses.
 
-- **A** — one frame per column: union rows by category label, each frame = an X
-  column (most idiomatic for Grafana Multi / Prometheus). Requires a
-  positional -> label-keyed row join.
-- **B** — vertical stacking: same wide schema across frames, concatenated as more
-  rows.
-- **C** — long format `[xCat, yCat, value]`: the canonical matrix shape, but a
-  different single-frame shape we also don't support today.
+### Why the order is centralized
 
-Open questions: row ordering, missing-cell handling (null tile), duplicate
-labels, and whether the fix lives in a shared helper (consistent across category
-charts) or matrix-only.
+Three derivations zip against the series index positionally — the converter, the
+`cartesianSeriesFields` list (`yAxisIndex`, tooltip value formatters, tooltip field
+resolver), and the legend builder. All three now read the same model, so the order
+cannot drift between them. Anything added here must keep that property.
+
+## Still open
+
+- **Matrix heatmap**: needs its own decision. The remaining candidates from the
+  original note are **B** — vertical stacking, same wide schema concatenated as more
+  rows — and **C** — long format `[xCat, yCat, value]`, the canonical matrix shape
+  but a different single-frame shape we also don't support today.
+- Whether radar / parallel / hierarchy should adopt contract A too. Nothing blocks
+  it; it just has not been asked for, and each has its own notion of what a second
+  frame would mean.

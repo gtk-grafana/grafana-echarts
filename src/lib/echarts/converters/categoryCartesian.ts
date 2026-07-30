@@ -2,44 +2,38 @@ import { debug, LOG_LEVELS } from 'development';
 import { STACK_GROUP_ID } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType } from 'editor/types';
 import { type CartesianOption, type ChartContext } from 'lib/echarts/charts/types';
-import { frameToCategorical } from 'lib/echarts/converters/categorical';
-import { findCategoryField, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
+import { fallbackCategories, framesToCategoryCartesian } from 'lib/echarts/converters/categoryCartesianModel';
+import { resolveFieldSeriesType, resolveFieldStack } from 'lib/echarts/converters/fieldOverrides';
 import { type CategoryCartesianData } from 'lib/echarts/converters/types';
 import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
 import { getDensityFromSeriesValues, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 
 /**
- * Convert Grafana Numeric frames into an ECharts category-axis cartesian chart
+ * Convert Grafana Numeric frames into an ECharts category-axis cartesian chart.
  *
- * This is a thin adapter over the shared categorical model
- * (see echarts/converters/categorical.ts):
- * - The string field becomes the shared category x-axis.
- * - Each numeric field becomes one series, its positional values plotted against
- *   the categories.
+ * The string field becomes the shared category x-axis and each numeric field
+ * becomes one series, its values plotted against those categories. Series span
+ * every frame in the response, joined by category label; see
+ * `framesToCategoryCartesian` for that contract.
  *
- * All series share the panel-level `seriesType` (line/bar/...). Per-field render
- * and stack overrides are only wired for the time-axis path today; here stacking
- * follows the panel-level `panelStack` flag and applies only when the panel type
- * is `bar`. See echarts/converters/timeSeries.ts.
- *
- * Inherits the categorical model's trade-offs (single frame, time fields
- * ignored, positional alignment).
+ * Per-field `custom.seriesType` and `custom.stackSeries` overrides are honored
+ * here exactly as they are on the time axis (both read the shared resolvers in
+ * `converters/fieldOverrides.ts`), so a panel can mix render types — e.g. a
+ * scatter overlay on a categorical bar chart. An unset field inherits the
+ * panel-level series type.
  */
-
 export function categoryCartesianToEChartsOption(
   ctx: ChartContext<CartesianSingleValueSeriesType>
 ): CategoryCartesianData {
   const { frames, theme, seriesType, options } = ctx;
-  const categorical = frameToCategorical(frames, theme);
+  const model = framesToCategoryCartesian(frames, theme);
 
-  if (!categorical) {
-    // Hiding every series via the legend strips all numeric value fields,
-    // leaving a category frame with no series. Keep the category axis and render
-    // nothing (matches core Grafana) by reusing the category labels from the
-    // remaining frame (string field, else row indices).
-    const categoryFrame = frames.find((frame) => findCategoryField(frame)) ?? frames[0];
-    if (categoryFrame) {
-      return { categories: resolveCategoriesFromFrame(categoryFrame), series: [] };
+  if (!model) {
+    // Hiding every series via the legend strips all numeric value fields, leaving
+    // frames with no series. Keep the category axis and render nothing (matches
+    // core Grafana) by reusing the labels from the remaining frame.
+    if (frames.length > 0) {
+      return { categories: fallbackCategories(frames), series: [] };
     }
 
     // We should bail for empty/invalid frames earlier then this
@@ -47,31 +41,34 @@ export function categoryCartesianToEChartsOption(
     throw new Error('Categorical-x cartesian plots must have categorical data');
   }
 
-  const stacked = seriesType === 'bar' && options.stackSeries;
   // Density drives the same fast-path props as the time-axis converter, computed
   // once over every series so a dense chart never renders half on the fast path.
-  // Without this the Advanced Performance options were visible but inert on
-  // category-axis charts. See lib/echarts/performance/resolvers.ts.
-  const density = getDensityFromSeriesValues(categorical.series.map(({ values }) => values));
-  // Per-series color plus the Advanced value-label / geometry / style options and
-  // the fast-path props; every extra is omitted at its default so untouched
-  // panels are unchanged. `hover` is not set: unlike the time axis, category
-  // charts keep ECharts' native hit-testing and default emphasis.
-  const echartsSeries: CartesianOption['series'] = categorical.series.map((field) =>
-    buildCartesianSeries(
+  const density = getDensityFromSeriesValues(model.series.map(({ values }) => values));
+
+  const echartsSeries: CartesianOption['series'] = model.series.map(({ field, name, color, values }) => {
+    // Per-field override wins over the panel type; a non-single-value override
+    // (candlestick/boxplot/Auto) falls back to it. Only bar stacks, so the stack
+    // group is gated on the *resolved* type rather than the panel's.
+    const resolvedType = resolveFieldSeriesType<CartesianSingleValueSeriesType>(field, seriesType);
+    const stacked = resolvedType === 'bar' && resolveFieldStack(field, options.stackSeries);
+
+    return buildCartesianSeries(
       {
-        name: field.name,
-        data: field.values,
-        color: field.color,
+        name,
+        data: values,
+        color,
         zlevel: options.zLevel?.series,
-        perf: getSeriesPerfOptions({ type: seriesType, density, options, values: field.values }),
+        // Keyed off the resolved type: line and bar/scatter arm different levers
+        // (LTTB sampling vs `large`), so passing the panel type would put an
+        // overridden field on the wrong fast path.
+        perf: getSeriesPerfOptions({ type: resolvedType, density, options, values }),
         ...(stacked ? { stack: STACK_GROUP_ID } : {}),
       },
-      seriesType,
+      resolvedType,
       options,
       theme
-    )
-  );
+    );
+  });
 
-  return { categories: categorical.categories, series: echartsSeries };
+  return { categories: model.categories, series: echartsSeries };
 }
