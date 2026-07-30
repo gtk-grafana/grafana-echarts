@@ -1,0 +1,428 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "The contract's corners, each rendered rather than described: one layer, too many layers, nulls-as-zero, negative values, a single timestamp, and a layer that starts late. Every panel should render without console errors. The absolute time range matches the fixed csv_content timestamps. See data-plane/stream.md and src/modules/stream/parity.md.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "A single ribbon is still a stacked river, not an area chart: there is no value axis and no flat baseline, so the band is centred by the boundary gap. Useful as a sanity check — if this renders, the coordinate system and the layout are sound.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 1,
+          "startValue": 50
+        }
+      ],
+      "title": "One layer",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Nothing truncates a high-cardinality response. Twenty ribbons is roughly where a theme river stops being readable (colors repeat past the palette length, and the thin bands are impossible to follow), and Prometheus grouped by pod will happily produce a hundred. The suggestion scorer withholds the panel outside a sane layer count, but a hand-built panel is the user's call. The fix is upstream: a top-N + \"other\" SQL expression, documented in data-plane/stream-sources.md.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 20,
+          "startValue": 50
+        }
+      ],
+      "title": "Twenty layers — past the readable limit",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`a` has a null in the middle. A stacked ribbon has no way to draw a hole, so the null becomes `0` and the band pinches shut instead of breaking. **An outage therefore looks exactly like a legitimate zero.** This is the one contract rule that differs sharply from the cartesian families (where a null stays a gap), and there is no code workaround — ECharts cannot break a ribbon.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "csvContent": "time,a,b\n2026-07-29T00:00:00Z,10,5\n2026-07-29T01:00:00Z,,5\n2026-07-29T02:00:00Z,12,6\n2026-07-29T03:00:00Z,9,7\n2026-07-29T04:00:00Z,11,5",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Nulls read as zero — the family's sharpest footgun",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "a"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "b"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`a` dips below zero twice. Negative values are passed through unclamped rather than rejected, and the stacked baseline stops reading as a total — the bands cross and the river folds back on itself. Shown on purpose so this is recognised as the data's shape rather than debugged as a rendering bug.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "csvContent": "time,a,b\n2026-07-29T00:00:00Z,10,5\n2026-07-29T01:00:00Z,-8,6\n2026-07-29T02:00:00Z,12,5\n2026-07-29T03:00:00Z,-4,7\n2026-07-29T04:00:00Z,11,5",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Negative values distort the baseline",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "a"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "b"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Three layers, one timestamp each. With no second point there is nothing to interpolate between, so ECharts draws **no polygon at all** — the panel is empty even though the legend lists every layer (the converter did produce them). This is what an *instant* Prometheus query produces, which is why data-plane/stream-sources.md marks instant queries as unusable for this family: the failure is silent rather than an error.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "csvContent": "time,a,b,c\n2026-07-29T02:30:00Z,10,5,7",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "A single timestamp",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "a"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "b"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "c"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`late` reports nothing for the first three timestamps. The option reference warns that a theme river needs \"an event or theme with a complete time quantum as main river … once they are beyond the main river, the layout would be wrong\". ECharts 6.1.0 satisfies that itself: `ThemeRiverSeriesModel.fixData` zero-fills every layer to the **union** of observed timestamps, so the converter emits observed points only and this still lays out correctly. If the `late` band ever renders detached or misaligned, that assumption has broken.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "csvContent": "time,steady,late\n2026-07-29T00:00:00Z,10,\n2026-07-29T01:00:00Z,11,\n2026-07-29T02:00:00Z,9,\n2026-07-29T03:00:00Z,12,6\n2026-07-29T04:00:00Z,10,8",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "A layer that starts late — the main-river check",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "steady"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "late"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "stream", "themeriver", "edge-cases"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2026-07-29T00:00:00.000Z",
+    "to": "2026-07-29T05:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Stream — theme river edge cases",
+  "uid": "echarts-stream-themeriver-edge-cases",
+  "version": 1,
+  "weekStart": ""
+}

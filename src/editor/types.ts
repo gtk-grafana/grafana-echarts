@@ -233,10 +233,19 @@ export type FunnelLabelPosition = 'inside' | 'left' | 'right' | 'top' | 'bottom'
  *
  * The explicit modes exist because the ambiguous case is real: a SQL table of
  * `time, level, count, errors` can legitimately mean "two metrics" or "one metric
- * per level". JSON-only in Phase 0 — the editor radio lands with the rest of the
- * option surface. See `data-plane/stream.md`.
+ * per level". Exposed as the Default-tier "Layers from" radio. See
+ * `data-plane/stream.md`.
  */
 export type StreamLayerSource = 'auto' | 'fields' | 'labels';
+
+/**
+ * Stream hover emphasis (ECharts `series-themeRiver.emphasis.focus`): `none`
+ * (ECharts' default — only the hovered ribbon lifts), `self` (fade every other
+ * ribbon), or `series` (highlight the whole river). Mirrors `PieEmphasisFocus`;
+ * `themeRiver` emits one series, so `series` reads as "highlight everything".
+ * https://echarts.apache.org/en/option.html#series-themeRiver.emphasis.focus
+ */
+export type StreamEmphasisFocus = 'none' | 'self' | 'series';
 
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s

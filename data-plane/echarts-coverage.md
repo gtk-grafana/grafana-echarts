@@ -15,7 +15,8 @@ Two different questions, two different sets of docs:
   `src/modules/cartesian/parity/candlestick.md`,
   `src/modules/cartesian/parity/boxplot.md`,
   `src/modules/part-to-whole/parity.md`,
-  `src/modules/multivariate/parity.md` and `src/modules/heatmap/parity.md` —
+  `src/modules/multivariate/parity.md`, `src/modules/stream/parity.md` and
+  `src/modules/heatmap/parity.md` —
   track **editor options** for the panels that already ship: which ECharts and
   core-Grafana options are exposed, which are hard-coded, which are missing.
   They are per-panel.

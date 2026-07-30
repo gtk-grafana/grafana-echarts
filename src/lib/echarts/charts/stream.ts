@@ -64,7 +64,12 @@ export const streamChartModule: ChartModule = {
       // padding. Only a native ECharts legend needs room reserved there — a Grafana
       // DOM legend is laid out by `VizLayout` before the canvas exists (same
       // reasoning as `getParallelComponent`).
-      singleAxis: getStreamSingleAxis(ctx.timeRange, ctx.theme, isGrafanaLegend ? undefined : ctx.options.legend),
+      singleAxis: getStreamSingleAxis(
+        ctx.timeRange,
+        ctx.timeZone,
+        ctx.theme,
+        isGrafanaLegend ? undefined : ctx.options.legend
+      ),
       series: [getThemeRiverSeries(data, streamCtx)],
     };
   },
