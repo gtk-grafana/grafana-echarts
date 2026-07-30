@@ -1,22 +1,60 @@
 import { type SelectableValue } from '@grafana/data';
 import { ANIMATION_ENABLED_DEFAULT } from 'editor/constants';
-import { type StreamEmphasisFocus, type StreamLayerSource, type StreamSeriesType } from 'editor/types';
+import {
+  type StreamChartType,
+  type StreamEmphasisFocus,
+  type StreamLayerSource,
+  type StreamSeriesType,
+} from 'editor/types';
+import { type PanelOptions } from 'types';
 
 /**
  * Single-axis stream family editor constants (mirrors `editor/parallel.ts`).
  *
- * The family renders on the ECharts `singleAxis` coordinate system; `themeRiver`
- * is its only render type today, so there is no "Chart type" picker (the panel's
- * `'Auto'` resolver returns `themeRiver`). See `data-plane/stream.md` and
- * `modules/stream/parity.md`.
+ * The family renders two variants on the ECharts `singleAxis` coordinate system —
+ * a theme river and a punch-card bubble timeline — selected by the family-local
+ * `streamChartType` rather than the shared `seriesType` (see {@link StreamChartType}
+ * for why). See `data-plane/stream.md` and `modules/stream/parity.md`.
  */
 
 /**
- * Series types the stream family renders. `themeRiver` is the only ECharts series
+ * Series types the stream family routes on. `themeRiver` is the only ECharts series
  * that *requires* `singleAxis` (`ThemeRiverSeriesModel.dependencies`), which is
  * why the family exists as its own panel rather than a cartesian render variant.
+ *
+ * It stays the family's single routing token even for the bubble variant, which
+ * emits `scatter` series: `scatter` is owned by the cartesian family in
+ * `resolveChartModule`, so the variant is carried by `streamChartType` instead.
  */
 export const streamSeriesTypes: StreamSeriesType[] = ['themeRiver'];
+
+/**
+ * Panel option path for the render variant (River / Bubble). Default tier — it
+ * picks between two genuinely different readings of the same layers.
+ */
+export const streamChartTypePath = 'streamChartType';
+/** Render-variant options (River / Bubble). */
+export const streamChartTypeOptions: Array<SelectableValue<StreamChartType>> = [
+  { value: 'river', label: 'River' },
+  { value: 'bubble', label: 'Bubble' },
+];
+/** Default variant: the theme river, the family's reason to exist. */
+export const STREAM_CHART_TYPE_DEFAULT: StreamChartType = 'river';
+
+/** Resolve the effective render variant, defaulting unset panels to the river. */
+export function resolveStreamChartType(options: Pick<PanelOptions, 'streamChartType'>): StreamChartType {
+  return options.streamChartType ?? STREAM_CHART_TYPE_DEFAULT;
+}
+
+/** Whether the theme river is selected — gates the ribbon-shaped options. */
+export function isStreamRiverSelected(options: PanelOptions): boolean {
+  return resolveStreamChartType(options) === 'river';
+}
+
+/** Whether the bubble timeline is selected — gates the symbol-size option. */
+export function isStreamBubbleSelected(options: PanelOptions): boolean {
+  return resolveStreamChartType(options) === 'bubble';
+}
 
 /**
  * Editor category for the family's Default-tier chart-shape options ("Layers from"
@@ -123,6 +161,19 @@ export const streamEmphasisFocusOptions: Array<SelectableValue<StreamEmphasisFoc
 ];
 /** Default emphasis focus: `none`, matching ECharts' own default. */
 export const STREAM_EMPHASIS_FOCUS_DEFAULT: StreamEmphasisFocus = 'none';
+
+/**
+ * Panel option path for the bubble variant's largest symbol diameter in px
+ * (ECharts `series-scatter.symbolSize`). Advanced, bubble only.
+ */
+export const streamBubbleMaxSizePath = 'streamBubbleMaxSize';
+/**
+ * Default largest bubble diameter. Sizes are scaled from this by **area** (see
+ * `resolveBubbleSymbolSize`), so this is the diameter the layer set's largest value
+ * gets; 20px reads at typical Grafana row heights without neighbouring bubbles
+ * colliding on an hourly series.
+ */
+export const STREAM_BUBBLE_MAX_SIZE_DEFAULT = 20;
 
 /**
  * Default animation: off, from the shared `ANIMATION_ENABLED_DEFAULT` — animation

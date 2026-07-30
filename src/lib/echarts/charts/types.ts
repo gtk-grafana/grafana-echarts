@@ -137,13 +137,16 @@ export type EChartFunnelSeriesOption = ComposeOption<FunnelSeriesOption>;
 export type EChartTreemapSeriesOption = ComposeOption<TreemapSeriesOption>;
 export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
 /**
- * The stream family's option: the themeRiver series plus the `singleAxis`
- * coordinate component it is laid out on. Like the parallel option above, the
+ * The stream family's option: its series plus the `singleAxis` coordinate
+ * component(s) they are laid out on. Like the parallel option above, the
  * coordinate component is added by hand rather than through `ComposeOption`'s
  * dependency mechanism — `SingleAxisOption` carries no `mainType: 'singleAxis'`
  * literal for `GetDependency` to key on.
+ *
+ * Two shapes: the river emits one `themeRiver` over one axis, the bubble variant
+ * emits one `scatter` per layer over an *array* of axes (see `options/streamBubble.ts`).
  */
-export type EChartStreamSeriesOption = ComposeOption<ThemeRiverSeriesOption> & {
+export type EChartStreamSeriesOption = ComposeOption<ThemeRiverSeriesOption | ScatterSeriesOption> & {
   singleAxis?: SingleAxisOption | SingleAxisOption[];
 };
 /**

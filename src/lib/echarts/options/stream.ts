@@ -7,6 +7,7 @@ import {
   STREAM_ANIMATION_ENABLED_DEFAULT,
   STREAM_BORDER_WIDTH_DEFAULT,
   STREAM_BOUNDARY_GAP_PERCENT_DEFAULT,
+  STREAM_BUBBLE_MAX_SIZE_DEFAULT,
   STREAM_EMPHASIS_FOCUS_DEFAULT,
   STREAM_FILL_OPACITY_DEFAULT,
   STREAM_LABEL_FONT_SIZE_DEFAULT,
@@ -36,15 +37,56 @@ export const streamDefaultOptions: ECBasicOption = {
 };
 
 /** Padding around the single axis' layout rect, which the river reuses. */
-const AXIS_PADDING = 8;
+export const AXIS_PADDING = 8;
 /**
  * Extra room under the axis line for the tick labels. The single axis defaults to
  * `position: 'bottom'`, so its labels are drawn below its rect and would be
  * clipped without this (there is no `containLabel` equivalent outside `grid`).
  */
-const AXIS_LABEL_HEIGHT = 24;
+export const AXIS_LABEL_HEIGHT = 24;
 /** Reserved for a native ECharts legend, matching the cartesian grid's gap. */
-const LEGEND_PADDING = 12;
+export const LEGEND_PADDING = 12;
+
+/**
+ * The time-axis half of a stream `singleAxis`: the axis type, the dashboard bounds,
+ * the shared plugin axis styling, and a timezone-correct tick formatter. Shared by
+ * both render variants — the river lays one of these out over the whole panel, the
+ * bubble variant stacks one per layer (see `options/streamBubble.ts`) — so the two
+ * cannot drift in how they read time.
+ *
+ * `splitLine` is off: a single axis rules the *whole* plot area with it, which reads
+ * as a grid drawn over the ribbons rather than under them.
+ * https://echarts.apache.org/en/option.html#singleAxis
+ */
+export function getStreamTimeAxisBase(
+  timeRange: TimeRange,
+  timeZone: string,
+  theme: GrafanaTheme2,
+  showLabels = true
+): SingleAxisOption {
+  const axisStyle = getCartesianAxisStyle(theme);
+
+  return {
+    type: 'time',
+    // Pin to the dashboard window so a gappy river still spans the panel and
+    // lines up with sibling panels (as the cartesian x-axis does).
+    ...getTimeAxisBounds(timeRange),
+    ...axisStyle,
+    // `show` is passed in rather than patched onto the returned axis: `axisLabel` is
+    // a union across ECharts' axis types, so re-spreading it downstream widens
+    // `formatter` back to the category signature and stops assigning.
+    axisLabel: {
+      ...axisStyle.axisLabel,
+      show: showLabels,
+      // ECharts only has a global `useUTC` and no IANA timezone support, so its
+      // own time labels would render in browser-local time whatever the dashboard
+      // is set to. Format each tick with Grafana's timezone, as the cartesian
+      // x-axis and the heatmap both do.
+      formatter: getTimeAxisLabelFormatter(timeRange, timeZone),
+    },
+    splitLine: { show: false },
+  };
+}
 
 /**
  * The ECharts `singleAxis` component the river is laid out on: a time axis pinned
@@ -61,29 +103,12 @@ export function getStreamSingleAxis(
   theme: GrafanaTheme2,
   legend?: VizLegendOptions
 ): SingleAxisOption {
-  const axisStyle = getCartesianAxisStyle(theme);
-
   return {
-    type: 'time',
-    // Pin to the dashboard window so a gappy river still spans the panel and
-    // lines up with sibling panels (as the cartesian x-axis does).
-    ...getTimeAxisBounds(timeRange),
+    ...getStreamTimeAxisBase(timeRange, timeZone, theme),
     top: AXIS_PADDING,
     left: AXIS_PADDING,
     right: AXIS_PADDING + (legend?.placement === 'right' ? LEGEND_PADDING : 0),
     bottom: AXIS_LABEL_HEIGHT + (legend?.placement === 'bottom' ? LEGEND_PADDING : 0),
-    ...axisStyle,
-    axisLabel: {
-      ...axisStyle.axisLabel,
-      // ECharts only has a global `useUTC` and no IANA timezone support, so its
-      // own time labels would render in browser-local time whatever the dashboard
-      // is set to. Format each tick with Grafana's timezone, as the cartesian
-      // x-axis and the heatmap both do.
-      formatter: getTimeAxisLabelFormatter(timeRange, timeZone),
-    },
-    // A single axis rules the whole plot area with `splitLine`, which reads as a
-    // grid drawn *over* the ribbons; the ticks alone are enough here.
-    splitLine: { show: false },
   };
 }
 
@@ -198,9 +223,13 @@ export function getStreamItemStyle(
  * ECharts `series.emphasis` for the Advanced "Hover emphasis" option. Omitted at
  * the `none` default (ECharts' own), so a default panel keeps the plain hover
  * lift; `self` fades the other ribbons and `series` highlights the whole river.
+ *
+ * Returns the bare `{ focus }` shape rather than a series-specific `emphasis` type
+ * so both render variants can use it: on the river it dims the other ribbons, on the
+ * bubble punch card the other rows.
  * https://echarts.apache.org/en/option.html#series-themeRiver.emphasis.focus
  */
-export function getStreamEmphasis(focus: StreamEmphasisFocus | undefined): ThemeRiverSeriesOption['emphasis'] {
+export function getStreamEmphasis(focus: StreamEmphasisFocus | undefined): { focus: StreamEmphasisFocus } | undefined {
   if (!focus || focus === STREAM_EMPHASIS_FOCUS_DEFAULT) {
     return undefined;
   }
@@ -266,6 +295,7 @@ export const ADVANCED_STREAM_DEFAULTS: Partial<PanelOptions> = {
   streamBorderWidth: STREAM_BORDER_WIDTH_DEFAULT,
   streamBorderColor: undefined,
   streamEmphasisFocus: STREAM_EMPHASIS_FOCUS_DEFAULT,
+  streamBubbleMaxSize: STREAM_BUBBLE_MAX_SIZE_DEFAULT,
   animation: { enabled: STREAM_ANIMATION_ENABLED_DEFAULT },
 };
 

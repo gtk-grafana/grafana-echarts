@@ -10,6 +10,8 @@ import {
   type streamBorderColorPath,
   type streamBorderWidthPath,
   type streamBoundaryGapPath,
+  type streamBubbleMaxSizePath,
+  type streamChartTypePath,
   type streamEmphasisFocusPath,
   type streamFillOpacityPath,
   type streamLabelFontSizePath,
@@ -36,6 +38,7 @@ import {
   type ParallelLayout,
   type RadarShape,
   type SeriesTypeOption,
+  type StreamChartType,
   type StreamEmphasisFocus,
   type StreamLayerSource,
 } from 'editor/types';
@@ -486,6 +489,24 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * `getFunnelLabel` and `resolveFunnelLabelColor`.
    */
   funnelLabelPosition?: FunnelLabelPosition;
+
+  /**
+   * Stream (single-axis) render variant ("Stream" category): `river` (stacked
+   * ribbons over one shared axis) or `bubble` (a punch-card timeline, one axis per
+   * layer). Defaults to `STREAM_CHART_TYPE_DEFAULT` (`river`).
+   *
+   * Family-local rather than the shared `seriesType` because `scatter` — the series
+   * the bubble emits — is already routed to the cartesian family; see
+   * {@link StreamChartType}.
+   */
+  [streamChartTypePath]?: StreamChartType;
+
+  /**
+   * Stream bubble-variant largest symbol diameter in px (Advanced, bubble only;
+   * ECharts `series-scatter.symbolSize`). Sizes scale from this by area. Defaults to
+   * `STREAM_BUBBLE_MAX_SIZE_DEFAULT`. See `resolveBubbleSymbolSize`.
+   */
+  [streamBubbleMaxSizePath]?: number;
 
   /**
    * Stream (single-axis) layer source: where the river layers come from —

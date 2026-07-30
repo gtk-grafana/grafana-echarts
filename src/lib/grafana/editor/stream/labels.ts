@@ -1,5 +1,6 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import {
+  isStreamRiverSelected,
   STREAM_LABEL_FONT_SIZE_DEFAULT,
   STREAM_LABEL_MARGIN_DEFAULT,
   STREAM_SHOW_LABELS_DEFAULT,
@@ -12,11 +13,12 @@ import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-optio
 import { type PanelOptions } from 'types';
 
 /**
- * Whether the layer labels are on, so their position / font size only show once
- * there is a label to place. Reads the stored value against the plugin default
- * (off), not ECharts'.
+ * Whether the layer labels are on *and* the river is the selected variant, so their
+ * offset / font size only show once there is a label to place. Reads the stored
+ * value against the plugin default (off), not ECharts'.
  */
-const isShowingStreamLabels = (options: PanelOptions) => options.streamShowLabels ?? STREAM_SHOW_LABELS_DEFAULT;
+const isShowingStreamLabels = (options: PanelOptions) =>
+  isStreamRiverSelected(options) && (options.streamShowLabels ?? STREAM_SHOW_LABELS_DEFAULT);
 
 /**
  * Register the stream layer-label options: the Default-tier "Layer labels" switch
@@ -31,6 +33,9 @@ const isShowingStreamLabels = (options: PanelOptions) => options.streamShowLabel
  * There is no "position" control: ECharts 6.1.0 ignores
  * `series-themeRiver.label.position` and places the label from `margin` alone (see
  * `streamLabelMarginPath`), so a Left/Right radio would be a dead option.
+ *
+ * River-only. The bubble variant names each row with its axis `name` instead, so a
+ * per-point label there would just repeat the row.
  */
 export function addStreamLabelOptions(builder: PanelOptionsEditorBuilder<PanelOptions>) {
   builder.addBooleanSwitch({
@@ -39,6 +44,7 @@ export function addStreamLabelOptions(builder: PanelOptionsEditorBuilder<PanelOp
     category: [streamCategoryName],
     description: 'Draw each ribbon’s name on the band. Off by default — the legend already names them.',
     defaultValue: STREAM_SHOW_LABELS_DEFAULT,
+    showIf: isStreamRiverSelected,
   });
 
   addAdvancedNumberInput(builder, {

@@ -283,6 +283,28 @@ describe('stream (themeRiver) canvas snapshots', () => {
     });
   });
 
+  describe('bubble variant', () => {
+    // The family's second render: one `singleAxis` row per layer, each with a
+    // `scatter` whose symbol size encodes the value. A different series type and a
+    // different number of axes, so nothing about this can look like the river.
+    it('one row of value-sized bubbles per layer', async () => {
+      const { defaultEvents, seriesEvents } = await renderStream([logVolumeFrame], { streamChartType: 'bubble' });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // `symbolSize` scales every row from the layer set's shared maximum, so raising
+    // the cap grows every bubble.
+    it('max bubble size', async () => {
+      const { defaultEvents, seriesEvents } = await renderStream([logVolumeFrame], {
+        streamChartType: 'bubble',
+        streamBubbleMaxSize: 40,
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
   describe('emphasis', () => {
     // `emphasis.focus: 'self'` only changes the *hover* state, so the resting paint
     // is identical to base by design — the snapshot guards the option reaching
@@ -400,6 +422,13 @@ describe('stream (themeRiver) options reach ECharts', () => {
           },
         ],
       },
+    },
+    // The second render variant, and the one option that only applies to it.
+    { name: 'bubble variant', options: { streamChartType: 'bubble' } },
+    {
+      name: 'max bubble size',
+      options: { streamChartType: 'bubble', streamBubbleMaxSize: 40 },
+      against: { streamChartType: 'bubble' },
     },
   ];
 

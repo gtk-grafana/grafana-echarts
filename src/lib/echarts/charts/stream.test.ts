@@ -80,6 +80,39 @@ describe('streamChartModule', () => {
       expect(streamChartModule.buildOption(makeContext([numericOnly]), { isGrafanaLegend: true })).toBeNull();
     });
 
+    it('builds one scatter row per layer for the bubble variant', () => {
+      // The variant rides on the family-local `streamChartType`, not `seriesType`:
+      // `scatter` is routed to the cartesian family by `resolveChartModule`.
+      const option = streamChartModule.buildOption(
+        makeContext([wideFrame()], { defaults: {}, overrides: [] }, { streamChartType: 'bubble' }),
+        { isGrafanaLegend: true }
+      );
+
+      const series = Array.isArray(option?.series) ? option?.series : [option?.series];
+      expect(series?.map((entry) => entry?.type)).toEqual(['scatter', 'scatter']);
+      // One axis per row, so the stack and the `singleAxisIndex` pairing line up.
+      expect(Array.isArray(option?.singleAxis) ? option?.singleAxis : []).toHaveLength(2);
+    });
+
+    it('drops a hidden layer’s row from the bubble stack, not just its series', () => {
+      // An axis left behind would render an empty labelled row.
+      const option = streamChartModule.buildOption(
+        makeContext([wideFrame()], hideByName('error'), { streamChartType: 'bubble' }),
+        { isGrafanaLegend: true }
+      );
+
+      const series = Array.isArray(option?.series) ? option?.series : [option?.series];
+      expect(series).toHaveLength(1);
+      expect(Array.isArray(option?.singleAxis) ? option?.singleAxis : []).toHaveLength(1);
+    });
+
+    it('renders the river when the variant is unset', () => {
+      const option = streamChartModule.buildOption(makeContext(), { isGrafanaLegend: true });
+
+      const series = Array.isArray(option?.series) ? option?.series : [option?.series];
+      expect(series?.[0]).toMatchObject({ type: 'themeRiver' });
+    });
+
     it('still builds an option when every layer is hidden', () => {
       // Hiding the last visible layer from the legend must not take the panel down:
       // `buildPanelChartOption` throws on a null option.

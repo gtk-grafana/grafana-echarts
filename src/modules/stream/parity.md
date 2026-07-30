@@ -1,9 +1,16 @@
-# Stream (theme river) editor option parity
+# Stream (theme river + bubble) editor option parity
 
-Covers the ECharts **Stream** module ([module.tsx](./module.tsx)), which renders
-`seriesType: themeRiver` — stacked ribbons on the ECharts `singleAxis` coordinate
-system — from the stream layer model
-([data-plane/stream.md](../../../data-plane/stream.md)).
+Covers the ECharts **Stream** module ([module.tsx](./module.tsx)), which renders two
+variants on the ECharts `singleAxis` coordinate system from one layer model
+([data-plane/stream.md](../../../data-plane/stream.md)):
+
+| Variant    | ECharts                                                | Reads as                                                                 |
+| ---------- | ------------------------------------------------------ | ------------------------------------------------------------------------ |
+| **River**  | one `themeRiver` over one axis                         | how a composition changed over time — stacked ribbons on a shared spine  |
+| **Bubble** | one `scatter` per layer, each on its own axis, stacked | what happened when and how big it was — a punch-card / activity timeline |
+
+Both read the _same_ `StreamData`, so the "Chart type" radio re-renders one dataset
+coherently (as radar↔parallel do over the categorical model).
 
 ## No core Grafana equivalent
 
@@ -15,8 +22,71 @@ composition over time is the thing you see. There is therefore no
 option-for-option parity target — this doc records what the module exposes,
 compares against ECharts semantics, and is explicit about what is inert.
 
-`provisioning/dashboards/stream/themeriver-basic.json` puts the two side by side on
-the same query so the difference in read is directly comparable.
+Core has **no punch-card timeline** either. A heatmap is the nearest read and a
+different one: it bins observations into cells and encodes by color, where the
+bubble variant plots each observation and encodes by area — so sparse, event-shaped
+data (deploys per service, errors per endpoint) stays legible instead of being
+flattened into a bin.
+
+`provisioning/dashboards/stream/themeriver-basic.json` puts the river beside core's
+stacked area, and `bubble-timeline.json` puts the two variants beside each other on
+one dataset, so both comparisons are direct.
+
+## Why the variant is not `seriesType`
+
+Every other multi-variant family (pie↔funnel, treemap↔sunburst, radar↔parallel)
+carries its variant in the shared panel-level `seriesType`. This one **cannot**, and
+that is the single most load-bearing design decision in the module.
+
+`seriesType` is the plugin's routing key: `resolveChartModule` maps it to a chart
+module, and its values are ECharts series names each owned by exactly one family.
+`scatter` is already owned by **cartesian**
+(`isCartesianSingleValueSeriesType`), so a stream panel with
+`seriesType: 'scatter'` would resolve to `cartesianChartModule` and render a
+cartesian scatter chart. Making the registry family-aware instead would have meant
+`scatter` meaning two different things across five shared surfaces —
+`resolveChartModule`, `supportedChartSeriesTypes` (which would list it twice),
+`panelTypeToAxis`, `applyEditorModeDefaults`, and the per-field
+`EChartsFieldConfig.seriesType` override — and would break the one-row-per-type
+premise of [echarts-coverage.md](../../../data-plane/echarts-coverage.md)'s master
+table.
+
+So the family keeps `themeRiver` as its single routing token and the variant lives in
+a family-local `streamChartType`. The cost is one inconsistency with the other
+families; the alternative was reworking the plugin's central routing invariant for
+one optional variant.
+
+## Bubble variant render notes
+
+- **One `singleAxis` per layer, stacked**, all pinned to the same time window — rows
+  are only comparable if they share an x extent. Only the **last** row draws tick
+  labels; N identical sets would be noise.
+- **Rows are laid out in percentages**, not px: the option build never sees the
+  panel's pixel size (`useChartOption` memoizes it away so a resize does not rebuild
+  the option), and a proportional stack also degrades gracefully as rows are added.
+- **Each row's rect is deliberately near-flat**, so the row _is_ its baseline.
+  `Single.dataToPoint` centres every point on the rect's cross extent
+  (`rect.y + rect.height / 2`) while the axis line — and with it the axis `name` —
+  is drawn at the rect's edge, so a tall rect floats the bubbles half a rect above
+  their own row label. Collapsing the rect makes centre and edge coincide.
+- **Size encodes by area**: diameter grows with the square root of the value, so a
+  value four times larger covers four times the ink rather than sixteen. A
+  non-positive value (which includes the family's null-becomes-zero rule) draws
+  nothing at all — on a punch card, absence of ink is the honest reading of "nothing
+  happened".
+- **The size scale is shared across rows**, not per row. A per-row scale would make
+  the chart unreadable in exactly the way it is meant to be read: every row's own
+  maximum would draw at full size.
+- **A tiny nonzero value is floored** to a visible diameter. Without a floor an area
+  scale collapses small-but-real observations to sub-pixel dots that read as missing
+  data — which would be actively wrong here, since a genuine zero is the thing that
+  draws nothing.
+- **A hidden layer drops its axis too**, not just its series, or the stack would
+  leave an empty labelled row behind.
+- **`effectScatter` is not offered.** Only `ScatterSeriesModel` declares `singleAxis`
+  among its `dependencies`; `EffectScatterSeriesModel.dependencies` is
+  `['grid', 'polar']`. (The roadmap plan listed both as single-axis capable; only
+  `scatter` is.)
 
 ## Data model
 
@@ -38,29 +108,30 @@ as a legitimate zero**. See [Notes / gaps](#notes--gaps).
 
 ## Editor options
 
-| Area                  | ECharts Stream                                            | Notes                                                                                                                                       |
-| --------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Editor mode           | Default / Advanced radio                                  | Default shows the two options below; Advanced adds the rest. `applyStreamEditorModeDefaults` resets every Advanced value in Default mode    |
-| Layers from           | `Auto` / `Fields` / `Labels` (Default)                    | Which column becomes a ribbon; read by `frameToStream`. Default-tier because it is the difference between a real stream and one flat ribbon |
-| Layer labels          | `series.label.show` (Default)                             | **Off by default**, unlike ECharts. Themed when on (Grafana font + text color, no ECharts shadow/stroke)                                    |
-| Layer label offset    | `series.label.margin` (Advanced)                          | Horizontal offset left of the ribbon start; negative moves the label onto the band. The family's _only_ working placement lever — see Notes |
-| Layer label font size | `series.label.fontSize` (Advanced)                        | Empty leaves ECharts' own 11px for this series (its `defaultOption` bakes one in, unlike pie)                                               |
-| Boundary gap          | `series.boundaryGap` (Advanced)                           | Orthogonal padding above and below the ribbons, as a percentage of the plot height. One value for both sides; omitted at ECharts' 10%       |
-| Ribbon opacity        | `series.itemStyle.opacity` (Advanced)                     | 0–100 scaled to ECharts' 0–1. Empty is fully opaque                                                                                         |
-| Ribbon border         | `series.itemStyle.borderWidth` / `borderColor` (Advanced) | A stroke around each band, which is how two similarly-colored neighbours are told apart. The color only shows once a width is set           |
-| Hover emphasis        | `series.emphasis.focus` (Advanced)                        | `Self` fades the other ribbons — the one that pays off here, since tracing one band through a busy river is the point of the viz            |
-| Legend                | Grafana legend via `addLegendOptions`                     | One item per layer, in layer order, with the ribbon's color. Interactive show/hide + color persist as field-config overrides                |
-| Tooltip: mode         | `tooltip.mode` (Single / Hidden)                          | **All is withdrawn** — see the TODO in Notes                                                                                                |
-| Animation             | `animation.enabled` (Advanced)                            | **Off by default** for every family; opt in via the Advanced switch or panel JSON                                                           |
+The **Variant** column says which render each option reaches; an option that does
+not apply to the selected variant is hidden rather than left inert.
+
+| Area                  | ECharts Stream                                            | Variant | Notes                                                                                                                                                            |
+| --------------------- | --------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Editor mode           | Default / Advanced radio                                  | both    | Default shows the Default-tier rows; Advanced adds the rest. `applyStreamEditorModeDefaults` resets every Advanced value in Default mode                         |
+| Chart type            | River / Bubble (Default)                                  | both    | Family-local `streamChartType`, **not** the shared `seriesType` — see [Why the variant is not `seriesType`](#why-the-variant-is-not-seriestype)                  |
+| Layers from           | `Auto` / `Fields` / `Labels` (Default)                    | both    | Which column becomes a layer; read by `frameToStream`. Default-tier because it is the difference between a real stream and one flat ribbon                       |
+| Layer labels          | `series.label.show` (Default)                             | river   | **Off by default**, unlike ECharts. Themed when on (Grafana font + text color, no ECharts shadow/stroke). The bubble names each row with its axis `name` instead |
+| Layer label offset    | `series.label.margin` (Advanced)                          | river   | Horizontal offset left of the ribbon start; negative moves the label onto the band. The family's _only_ working placement lever — see Notes                      |
+| Layer label font size | `series.label.fontSize` (Advanced)                        | river   | Empty leaves ECharts' own 11px for this series (its `defaultOption` bakes one in, unlike pie)                                                                    |
+| Boundary gap          | `series.boundaryGap` (Advanced)                           | river   | Orthogonal padding above and below the ribbons, as a percentage of the plot height. One value for both sides; omitted at ECharts' 10%                            |
+| Ribbon opacity        | `series.itemStyle.opacity` (Advanced)                     | river   | 0–100 scaled to ECharts' 0–1. Empty is fully opaque                                                                                                              |
+| Ribbon border         | `series.itemStyle.borderWidth` / `borderColor` (Advanced) | river   | A stroke around each band, which is how two similarly-colored neighbours are told apart. The color only shows once a width is set                                |
+| Max bubble size       | `series-scatter.symbolSize` (Advanced)                    | bubble  | Diameter of the layer set's largest value; everything scales down by area. The one knob trading legibility against crowding                                      |
+| Hover emphasis        | `series.emphasis.focus` (Advanced)                        | both    | `Self` fades the other ribbons — or the other rows — which is how you follow one layer through a busy chart                                                      |
+| Legend                | Grafana legend via `addLegendOptions`                     | both    | One item per layer, in layer order, with the layer's color. Interactive show/hide + color persist as field-config overrides                                      |
+| Tooltip: mode         | `tooltip.mode` (Single / Hidden)                          | both    | **All is withdrawn** — see the TODO in Notes                                                                                                                     |
+| Animation             | `animation.enabled` (Advanced)                            | both    | **Off by default** for every family; opt in via the Advanced switch or panel JSON                                                                                |
 
 Every Advanced option **omits its ECharts key at its default**, so an untouched
 panel's series option carries no `boundaryGap`, `itemStyle` or `emphasis` at all.
 `label` is the one deliberate exception: ECharts shows layer labels by default, so
 "off" has to be an explicit `show: false`.
-
-There is **no "Chart type" picker**: `themeRiver` is the family's only render type,
-and the panel's `'Auto'` resolver returns it. One would arrive if the planned
-single-axis bubble variant lands.
 
 ## Standard (field-config) options
 
@@ -143,6 +214,13 @@ here rather than papered over by removing the control:
   `ThemeRiverSeriesModel.defaultOption` bakes a `fontSize` in (pie's does not, so
   pie inherits the theme). The Advanced font size is how you match the rest of the
   panel's text.
+- **The bubble variant is the one place the family shows gaps honestly.** The river's
+  null-becomes-zero rule pinches a ribbon shut, which reads as a quiet period rather
+  than as no data; the bubble simply draws nothing. When "did anything happen here?"
+  is the question, the punch card is the variant that answers it.
+- **Cardinality bites the bubble variant sooner.** Rows divide the panel height, so
+  20 layers give each row a few pixels — worse than 20 thin ribbons, which at least
+  stay contiguous. The same top-N recipe applies.
 
 ## ECharts API support
 
@@ -150,17 +228,19 @@ High-level [ECharts option](https://echarts.apache.org/en/option.html) component
 used by this module. See [echarts.ts](../../lib/echarts/echarts.ts) for the
 registered runtime surface.
 
-| ECharts API                                                                    | Status          | Notes                                                                                                                                |
-| ------------------------------------------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `series` (themeRiver)                                                          | Supported       | `[time, value, name]` triples; Default labels + Advanced offset / font size / boundary gap / ribbon style / emphasis.                |
-| `singleAxis` (coordinate system)                                               | Supported       | A time axis pinned to the dashboard time range. Carries the panel padding — the series has no box of its own — with `splitLine` off. |
-| `legend`                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Show/hide + color persist as field-config overrides.                  |
-| `tooltip`                                                                      | Supported       | React `@grafana/ui` `VizTooltip` overlay via a family-specific model (`buildStreamTooltipModel`). Single / Hidden only.              |
-| `animation`                                                                    | Supported       | Off by default for every family; opt in via the Advanced switch or `animation.enabled` in panel JSON.                                |
-| `color` / `textStyle`                                                          | Supported       | Derived from the Grafana theme; ribbon colors fed as the series palette in layer order.                                              |
-| `grid` / `xAxis` / `yAxis`                                                     | Not implemented | This family uses `singleAxis`, not a cartesian grid.                                                                                 |
-| `brush` / `dataZoom` / `axisPointer`                                           | Not implemented | No grid to attach to; drag-to-zoom is explicitly gated off.                                                                          |
-| `visualMap` / `markLine` / `markArea`                                          | Not implemented | Cartesian-oriented; there is no value axis here for thresholds to live on.                                                           |
-| `dataset`                                                                      | Not implemented | `ThemeRiverSeriesModel.getInitialData` reads `option.data` directly, so this series can never see a `dataset` + `encode`.            |
-| `toolbox` / `title` / `graphic` / `timeline` / `aria`                          | Not implemented | Not registered.                                                                                                                      |
-| Other coordinate systems (`polar` / `parallel` / `radar` / `geo` / `calendar`) | Not implemented | —                                                                                                                                    |
+| ECharts API                                                                    | Status          | Notes                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------ | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `series` (themeRiver)                                                          | Supported       | River variant. `[time, value, name]` triples; Default labels + Advanced offset / font size / boundary gap / ribbon style / emphasis.                                                                                              |
+| `series` (scatter)                                                             | Supported       | Bubble variant. `[time, value]` pairs, one series per layer on `coordinateSystem: 'singleAxis'`; area-encoded `symbolSize`.                                                                                                       |
+| `singleAxis` (coordinate system)                                               | Supported       | A time axis pinned to the dashboard time range. One for the river (which reuses its box, so it carries the panel padding), one **per layer** for the bubble stack. `splitLine` off.                                               |
+| `legend`                                                                       | Supported       | Grafana DOM legend (`addLegendOptions`); native legend hidden. Show/hide + color persist as field-config overrides. Shared by both variants unchanged.                                                                            |
+| `tooltip`                                                                      | Supported       | React `@grafana/ui` `VizTooltip` overlay via a per-variant model (`buildStreamTooltipModel` / `buildStreamBubbleTooltipModel` — the river indexes layers by flat `dataIndex`, the bubble by `seriesIndex`). Single / Hidden only. |
+| `animation`                                                                    | Supported       | Off by default for every family; opt in via the Advanced switch or `animation.enabled` in panel JSON.                                                                                                                             |
+| `color` / `textStyle`                                                          | Supported       | Derived from the Grafana theme. The river feeds layer colors as the series palette in layer order; the bubble sets each series' `itemStyle.color` directly (scatter is `colorBy: 'series'`).                                      |
+| `series` (effectScatter)                                                       | Not implemented | `EffectScatterSeriesModel.dependencies` is `['grid', 'polar']` — no `singleAxis` support, unlike `scatter`.                                                                                                                       |
+| `grid` / `xAxis` / `yAxis`                                                     | Not implemented | This family uses `singleAxis`, not a cartesian grid.                                                                                                                                                                              |
+| `brush` / `dataZoom` / `axisPointer`                                           | Not implemented | No grid to attach to; drag-to-zoom is explicitly gated off.                                                                                                                                                                       |
+| `visualMap` / `markLine` / `markArea`                                          | Not implemented | Cartesian-oriented; there is no value axis here for thresholds to live on.                                                                                                                                                        |
+| `dataset`                                                                      | Not implemented | `ThemeRiverSeriesModel.getInitialData` reads `option.data` directly, so this series can never see a `dataset` + `encode`.                                                                                                         |
+| `toolbox` / `title` / `graphic` / `timeline` / `aria`                          | Not implemented | Not registered.                                                                                                                                                                                                                   |
+| Other coordinate systems (`polar` / `parallel` / `radar` / `geo` / `calendar`) | Not implemented | —                                                                                                                                                                                                                                 |

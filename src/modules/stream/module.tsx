@@ -7,6 +7,8 @@ import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addStreamBoundaryGapOptions } from 'lib/grafana/editor/stream/boundary-gap';
+import { addStreamBubbleOptions } from 'lib/grafana/editor/stream/bubble';
+import { addStreamChartTypeOptions } from 'lib/grafana/editor/stream/chart-type';
 import { addStreamEmphasisOptions } from 'lib/grafana/editor/stream/emphasis';
 import { addStreamLabelOptions } from 'lib/grafana/editor/stream/labels';
 import { addStreamLayerSourceOptions } from 'lib/grafana/editor/stream/layer-source';
@@ -40,18 +42,25 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // See docs/options-modes.md.
     addEditorModeOption(builder);
 
-    // Default-tier "Stream" category: which column becomes a ribbon, and whether
-    // the ribbons carry their names. Both are parity-critical rather than
-    // decorative — the first decides whether the panel is a stream at all, and the
-    // second undoes an ECharts default (labels on, unthemed) the plugin turns off.
+    // Default-tier "Stream" category: which of the two single-axis renders to draw,
+    // which column becomes a layer, and whether the ribbons carry their names. All
+    // parity-critical rather than decorative — the first two decide what the panel
+    // *is*, and the third undoes an ECharts default (labels on, unthemed).
+    //
+    // "Chart type" writes the family-local `streamChartType`, not the shared
+    // `seriesType`: the bubble variant emits `scatter`, which `resolveChartModule`
+    // routes to the cartesian family. See `StreamChartType`.
+    addStreamChartTypeOptions(builder);
     addStreamLayerSourceOptions(builder);
     addStreamLabelOptions(builder);
 
-    // Advanced "Advanced" category: ECharts-only ribbon geometry and styling. Each
-    // helper omits its ECharts key at the default (see options/stream.ts), and
-    // `applyStreamEditorModeDefaults` resets them all in Default mode.
+    // Advanced "Advanced" category: ECharts-only geometry and styling. Each helper
+    // omits its ECharts key at the default (see options/stream.ts), and
+    // `applyStreamEditorModeDefaults` resets them all in Default mode. The
+    // ribbon-shaped ones gate on the river; "Max bubble size" gates on the bubble.
     addStreamBoundaryGapOptions(builder);
     addStreamRibbonStyleOptions(builder);
+    addStreamBubbleOptions(builder);
     addStreamEmphasisOptions(builder);
 
     // The family has no per-point fast path (one series carries every ribbon), so

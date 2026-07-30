@@ -239,6 +239,23 @@ export type FunnelLabelPosition = 'inside' | 'left' | 'right' | 'top' | 'bottom'
 export type StreamLayerSource = 'auto' | 'fields' | 'labels';
 
 /**
+ * Render variant of the stream (single-axis) family: `river` (a themeRiver — one
+ * stacked ribbon per layer over one shared axis) or `bubble` (a punch-card
+ * timeline — one `singleAxis` *per* layer with a `scatter` whose symbol size
+ * encodes the value).
+ *
+ * Deliberately **not** the shared panel-level `seriesType`, unlike every other
+ * multi-variant family. `seriesType` is the plugin's routing key
+ * (`resolveChartModule`) and its values are ECharts series names owned by exactly
+ * one family — but `scatter` is already owned by cartesian, so selecting it here
+ * would route a stream panel into `cartesianChartModule`. Keeping the variant in a
+ * family-local option leaves `SeriesType` an honest one-family-per-name union (the
+ * premise of `data-plane/echarts-coverage.md`'s master table) and leaves the shared
+ * registry untouched. See `modules/stream/parity.md`.
+ */
+export type StreamChartType = 'river' | 'bubble';
+
+/**
  * Stream hover emphasis (ECharts `series-themeRiver.emphasis.focus`): `none`
  * (ECharts' default — only the hovered ribbon lifts), `self` (fade every other
  * ribbon), or `series` (highlight the whole river). Mirrors `PieEmphasisFocus`;
