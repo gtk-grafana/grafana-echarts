@@ -4,6 +4,7 @@ import {
   multivariateChartModule,
   partToWholeChartModule,
   pieChartModule,
+  relationsChartModule,
   resolveChartModule,
   streamChartModule,
   supportedChartSeriesTypes,
@@ -37,6 +38,14 @@ describe('resolveChartModule', () => {
     expect(resolveChartModule('pie')).toBe(partToWholeChartModule);
   });
 
+  it('routes all three relations types to the shared module', () => {
+    // Graph, sankey and chord share one module (the module picks the variant from the
+    // type), since all three ECharts series read the identical node/link input.
+    expect(resolveChartModule('graph')).toBe(relationsChartModule);
+    expect(resolveChartModule('sankey')).toBe(relationsChartModule);
+    expect(resolveChartModule('chord')).toBe(relationsChartModule);
+  });
+
   it('routes themeRiver to the stream module', () => {
     expect(resolveChartModule('themeRiver')).toBe(streamChartModule);
   });
@@ -44,6 +53,9 @@ describe('resolveChartModule', () => {
   it('throws for unsupported concrete types', () => {
     // gauge is a planned part-to-whole variant, not yet registered.
     expect(() => resolveChartModule('gauge')).toThrow();
+    // `lines` is a deliberate deferral, not an oversight: it needs coordinate-pair
+    // polylines, which no Grafana frame carries. See todo/node-graph.md.
+    expect(() => resolveChartModule('lines')).toThrow();
   });
 
   it('lists all supported series types', () => {
@@ -58,6 +70,7 @@ describe('resolveChartModule', () => {
         'funnel',
         'radar',
         'parallel',
+        'graph',
         'themeRiver',
       ])
     );

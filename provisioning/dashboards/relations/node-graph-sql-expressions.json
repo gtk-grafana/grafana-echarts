@@ -1,0 +1,132 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "The **input**: a flat call table, one row per caller/callee pair with a count. This is the shape Prometheus, Loki and SQL actually return — the rows already describe edges, but the column names do not match the node-graph convention and there is no `id` column.\n\nNote `api -> db` and `db -> api` form a cycle, on purpose: the reshaped output is therefore also a sankey adversarial fixture.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {},
+      "targets": [
+        {
+          "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Input — flat call table",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "__expr__", "uid": "__expr__" },
+      "description": "The **edges frame**, produced by a SQL Expression over query A. Renames `caller`/`callee` to `source`/`target`, synthesises the required `id`, and casts the count to a number for `mainstat`.\n\nThe `CAST` matters: SQL Expressions run **server-side, before** frontend transformations, so a `convertFieldType` transformation cannot be used to prepare data for them. `csv_content` delivers untyped columns, and MySQL `CAST` is a no-op on a value that is already numeric — so casting is safe regardless of source.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "options": {},
+      "targets": [
+        {
+          "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "hide": true,
+          "refId": "A",
+          "scenarioId": "csv_content"
+        },
+        {
+          "datasource": { "type": "__expr__", "uid": "__expr__" },
+          "expression": "SELECT CONCAT(caller, '->', callee) AS id,\n       caller AS source,\n       callee AS target,\n       CAST(calls AS DECIMAL(20, 4)) AS mainstat\nFROM A",
+          "refId": "B",
+          "type": "sql"
+        }
+      ],
+      "title": "Reshaped — edges frame",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "__expr__", "uid": "__expr__" },
+      "description": "The **nodes frame**, produced by a second SQL Expression over the same query A. Both endpoint columns are `UNION`ed and de-duplicated so a service appearing as both caller and callee yields one node.\n\nThis frame is **optional** — Grafana derives the node set from `source`/`target` when no nodes frame is present. Add it when nodes need titles, subtitles or their own stats.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "options": {},
+      "targets": [
+        {
+          "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "hide": true,
+          "refId": "A",
+          "scenarioId": "csv_content"
+        },
+        {
+          "datasource": { "type": "__expr__", "uid": "__expr__" },
+          "expression": "SELECT DISTINCT n.id AS id, n.id AS title\nFROM (SELECT caller AS id FROM A\n      UNION\n      SELECT callee AS id FROM A) AS n",
+          "refId": "C",
+          "type": "sql"
+        }
+      ],
+      "title": "Reshaped — nodes frame",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "__expr__", "uid": "__expr__" },
+      "description": "Both reshaped frames feeding a node graph. Query A is hidden — it still executes because the expressions reference it, but it is not displayed.\n\n**This is the case that forces field-shape detection.** The two frames reaching the panel are named `B` and `C` by refId; they are not called `nodes`/`edges`, and a SQL Expression cannot set `meta.preferredVisualisationType`. Of Grafana's three node-graph detection signals, only field shape survives — `B` is the edges frame because it carries `source`, `C` is nodes because it does not.\n\nRendered with the core Node graph panel; swap in the ECharts relations panel once it ships.\n\nRequires the `sqlExpressions` feature toggle (GA, on by default). Not available on 32-bit ARM hosts; arm64 including Apple Silicon is fine.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 9 },
+      "id": 4,
+      "options": {},
+      "targets": [
+        {
+          "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "hide": true,
+          "refId": "A",
+          "scenarioId": "csv_content"
+        },
+        {
+          "datasource": { "type": "__expr__", "uid": "__expr__" },
+          "expression": "SELECT CONCAT(caller, '->', callee) AS id,\n       caller AS source,\n       callee AS target,\n       CAST(calls AS DECIMAL(20, 4)) AS mainstat\nFROM A",
+          "refId": "B",
+          "type": "sql"
+        },
+        {
+          "datasource": { "type": "__expr__", "uid": "__expr__" },
+          "expression": "SELECT DISTINCT n.id AS id, n.id AS title\nFROM (SELECT caller AS id FROM A\n      UNION\n      SELECT callee AS id FROM A) AS n",
+          "refId": "C",
+          "type": "sql"
+        }
+      ],
+      "title": "Node graph from the reshaped frames",
+      "type": "nodeGraph"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "node-graph", "sql-expressions"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — reshaping with SQL Expressions",
+  "uid": "echarts-relations-sql-expressions",
+  "version": 1,
+  "weekStart": ""
+}
