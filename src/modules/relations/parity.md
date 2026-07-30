@@ -48,30 +48,52 @@ removes back-edges first. See [Cycle policy](#cycle-policy). `chord` is the vari
 reach for on cyclic service-graph data: it takes cycles _and_ self-loops directly, and a
 dense adjacency matrix reads better as a ring than as a force layout.
 
+## Coverage columns
+
+Every option table below carries two columns that track _proof_ rather than
+implementation — "was it built" (Status) versus "is it shown to work":
+
+- **Regression test** — the automated test that pins the behaviour. `canvas:` names a
+  case in the [canvas snapshot suite][canvas] (the recorded draw calls); `unit:` names
+  an option-mapping or converter test. "needs e2e" marks an option a canvas snapshot
+  _cannot_ prove — the Grafana DOM legend, tooltip content, pan/zoom and drag
+  gestures — which needs a [`@grafana/plugin-e2e`](../../../tests/panel.spec.ts) test
+  instead; none of those are written yet. `—` means no coverage of any kind.
+- **Demo panel** — the provisioned dashboard panel that exercises the option: the first
+  link is the committed JSON, the second the same panel in a running Grafana. Live
+  links assume `docker compose up` on the default `GRAFANA_PORT`
+  (`http://localhost:3001`) with the plugin built into `dist/`. `—` means no
+  provisioned panel moves this option off its default — the relations demos are built
+  around _data_ shapes (cyclic, edges-only, named nodes) rather than around the styling
+  controls, so most Advanced options have tests but no demo.
+
+Both columns describe what exists **today** — the gaps are a to-do list, not a claim
+that the option is broken.
+
 ## Panel options
 
-| Core Grafana option                   | ECharts equivalent                                                    | Status                      |
-| ------------------------------------- | --------------------------------------------------------------------- | --------------------------- |
-| Layout algorithm (Layered/Force/Grid) | "Layout" (Force / Circular / Fixed) — `series.graph.layout`           | Partial / different set     |
-| Zoom mode (Cooperative/Greedy)        | "Zoom and pan" switch — `series.graph.roam` (Advanced)                | Partial                     |
-| Nodes: main stat unit                 | standard **Unit** on the `mainstat` field                             | Supported (different route) |
-| Nodes: secondary stat unit            | standard **Unit** on the `secondarystat` field                        | Partial                     |
-| Nodes: arcs (`arc__*` field/color)    | approximated — see [Notes / gaps](#notes--gaps)                       | Not supported\*             |
-| Edges: main stat unit                 | standard **Unit** on the edges `mainstat` field                       | Supported (different route) |
-| Edges: secondary stat unit            | _not read_                                                            | Not supported\*             |
-| Node/edge context menu (`detail__*`)  | tooltip content only                                                  | Not supported\*             |
-| —                                     | "Show node labels" — `series.graph.label.show`                        | ECharts-only                |
-| —                                     | "Node size" — `series.graph.symbolSize`                               | ECharts-only                |
-| —                                     | "Draggable nodes" — `series.graph.draggable` (Advanced)               | ECharts-only                |
-| —                                     | Repulsion / Edge length / Gravity — `series.graph.force.*` (Advanced) | ECharts-only                |
-| —                                     | "Edge arrows" — `series.graph.edgeSymbol` (Advanced)                  | ECharts-only                |
-| —                                     | "Link curveness" — `lineStyle.curveness` (Advanced)                   | ECharts-only                |
-| —                                     | "Highlight adjacency" — `emphasis.focus` (Advanced)                   | ECharts-only                |
-| —                                     | "Link color" (Source/Target/Gradient) — `lineStyle.color` (Advanced)  | ECharts-only                |
-| —                                     | Grafana legend (`addLegendOptions`)                                   | ECharts-only                |
-| —                                     | Tooltip mode (Single/Hidden)                                          | ECharts-only                |
-| —                                     | Animation — `animation.enabled` (Advanced)                            | ECharts-only                |
-| —                                     | "Chart type" (Graph / Sankey / Chord) — panel `seriesType`            | ECharts-only                |
+| Core Grafana option                   | ECharts equivalent                                                    | Status                      | Regression test                                                                                                                                                                                   | Demo panel                                                                                                                                                   |
+| ------------------------------------- | --------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Layout algorithm (Layered/Force/Grid) | "Layout" (Force / Circular / Fixed) — `series.graph.layout`           | Partial / different set     | [canvas: honors fixed coordinates from the data][canvas] (Fixed), [unit: getGraphLayout][graph-opts]; `force` is deliberately not snapshotted                                                     | [node-graph-testdata.json][db-testdata] · [#6 live][live-testdata-6] (Circular)                                                                              |
+| Zoom mode (Cooperative/Greedy)        | "Zoom and pan" switch — `series.graph.roam` (Advanced)                | Partial                     | [unit: keeps roam and draggable off by default][graph-opts], [unit: pins draggable and roam off][sankey-opts], [unit: emits roam but never draggable][chord-opts]; the pan/zoom gesture needs e2e | —                                                                                                                                                            |
+| Nodes: main stat unit                 | standard **Unit** on the `mainstat` field                             | Supported (different route) | —                                                                                                                                                                                                 | —                                                                                                                                                            |
+| Nodes: secondary stat unit            | standard **Unit** on the `secondarystat` field                        | Partial                     | —                                                                                                                                                                                                 | —                                                                                                                                                            |
+| Nodes: arcs (`arc__*` field/color)    | approximated — see [Notes / gaps](#notes--gaps)                       | Not supported\*             | n/a                                                                                                                                                                                               | n/a                                                                                                                                                          |
+| Edges: main stat unit                 | standard **Unit** on the edges `mainstat` field                       | Supported (different route) | [unit: link weight fallback chain][ng-conv] (the value, not its formatting)                                                                                                                       | —                                                                                                                                                            |
+| Edges: secondary stat unit            | _not read_                                                            | Not supported\*             | n/a                                                                                                                                                                                               | n/a                                                                                                                                                          |
+| Node/edge context menu (`detail__*`)  | tooltip content only                                                  | Not supported\*             | n/a                                                                                                                                                                                               | n/a                                                                                                                                                          |
+| —                                     | "Show node labels" — `series.graph.label.show`                        | ECharts-only                | [canvas: hides node labels when switched off][canvas] (all three variants), [unit: getGraphLabel][graph-opts], [unit: getSankeyLabel][sankey-opts], [unit: getChordLabel][chord-opts]             | —                                                                                                                                                            |
+| —                                     | "Node size" — `series.graph.symbolSize`                               | ECharts-only                | [unit: getGraphSeries — relationsNodeSize][graph-opts]                                                                                                                                            | —                                                                                                                                                            |
+| —                                     | "Draggable nodes" — `series.graph.draggable` (Advanced)               | ECharts-only                | [unit: keeps roam and draggable off by default][graph-opts], [unit: pins draggable and roam off][sankey-opts]; the drag itself needs e2e                                                          | —                                                                                                                                                            |
+| —                                     | Repulsion / Edge length / Gravity — `series.graph.force.*` (Advanced) | ECharts-only                | [unit: getGraphForce][graph-opts]; a physics simulation cannot be snapshotted                                                                                                                     | —                                                                                                                                                            |
+| —                                     | "Edge arrows" — `series.graph.edgeSymbol` (Advanced)                  | ECharts-only                | [canvas: draws arrowheads at the target end][canvas], [unit: getGraphEdgeSymbol][graph-opts]                                                                                                      | —                                                                                                                                                            |
+| —                                     | "Link curveness" — `lineStyle.curveness` (Advanced)                   | ECharts-only                | [canvas: curves links][canvas], [unit: getGraphLinkStyle][graph-opts]                                                                                                                             | —                                                                                                                                                            |
+| —                                     | "Highlight adjacency" — `emphasis.focus` (Advanced)                   | ECharts-only                | [unit: getGraphEmphasis][graph-opts], [unit: getSankeyEmphasis][sankey-opts], [unit: getChordEmphasis][chord-opts]; the hover state needs e2e                                                     | [chord.json][db-chord] · [#7 live][live-chord-7]                                                                                                             |
+| —                                     | "Link color" (Source/Target/Gradient) — `lineStyle.color` (Advanced)  | ECharts-only                | [canvas: blends link color between endpoints in gradient mode][canvas], [unit: getGraphLinkStyle][graph-opts], [unit: getChordLinkStyle][chord-opts]                                              | —                                                                                                                                                            |
+| —                                     | Grafana legend (`addLegendOptions`)                                   | ECharts-only                | [unit: buildLegendItems — one entry per node, stable keys, swatch color][rel-chart], [unit: useLegend][use-legend]; the rendered DOM legend needs e2e                                             | [node-graph-testdata.json][db-testdata] · [#6 live][live-testdata-6]                                                                                         |
+| —                                     | Tooltip mode (Single/Hidden)                                          | ECharts-only                | [unit: declares singleTooltipOnly][rel-chart]; the tooltip content has no test of its own and needs e2e                                                                                           | [node-graph-testdata.json][db-testdata] · [#6 live][live-testdata-6]                                                                                         |
+| —                                     | Animation — `animation.enabled` (Advanced)                            | ECharts-only                | —                                                                                                                                                                                                 | —                                                                                                                                                            |
+| —                                     | "Chart type" (Graph / Sankey / Chord) — panel `seriesType`            | ECharts-only                | [canvas: sankey variant, chord variant][canvas], [unit: buildOption per variant][rel-chart]                                                                                                       | [sankey.json][db-sankey] · [#1 live][live-sankey-1] vs [#5 live][live-sankey-5], [chord.json][db-chord] · [#1 live][live-chord-1] vs [#2 live][live-chord-2] |
 
 Graph-only controls are hidden for the other two variants (`isGraphVariant`): Layout,
 Node size, Repulsion / Edge length / Gravity, Edge arrows and Link curveness — sankey and
@@ -84,15 +106,15 @@ all.
 No core Grafana equivalent, so these are compared against ECharts semantics. Each
 omits its ECharts key at its default; all gate on `isSankeyVariant`.
 
-| Tier     | Option            | ECharts key                         |
-| -------- | ----------------- | ----------------------------------- |
-| Default  | Flow direction    | `series.sankey.orient`              |
-| Default  | Node alignment    | `series.sankey.nodeAlign`           |
-| Advanced | Node width        | `series.sankey.nodeWidth`           |
-| Advanced | Node gap          | `series.sankey.nodeGap`             |
-| Advanced | Ribbon curveness  | `series.sankey.lineStyle.curveness` |
-| Advanced | Ribbon opacity    | `series.sankey.lineStyle.opacity`   |
-| Advanced | Layout iterations | `series.sankey.layoutIterations`    |
+| Tier     | Option            | ECharts key                         | Regression test                                                                                                 | Demo panel                                          |
+| -------- | ----------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Default  | Flow direction    | `series.sankey.orient`              | [canvas: lays out vertically when the flow direction is switched][canvas], [unit: getSankeyOrient][sankey-opts] | [sankey.json][db-sankey] · [#2 live][live-sankey-2] |
+| Default  | Node alignment    | `series.sankey.nodeAlign`           | [unit: getSankeyNodeAlign][sankey-opts]                                                                         | [sankey.json][db-sankey] · [#9 live][live-sankey-9] |
+| Advanced | Node width        | `series.sankey.nodeWidth`           | [canvas: sizes node bars from node width and gap][canvas], [unit: getSankeySeries][sankey-opts]                 | [sankey.json][db-sankey] · [#9 live][live-sankey-9] |
+| Advanced | Node gap          | `series.sankey.nodeGap`             | [canvas: sizes node bars from node width and gap][canvas], [unit: getSankeySeries][sankey-opts]                 | [sankey.json][db-sankey] · [#9 live][live-sankey-9] |
+| Advanced | Ribbon curveness  | `series.sankey.lineStyle.curveness` | [unit: getSankeyLinkStyle][sankey-opts]                                                                         | —                                                   |
+| Advanced | Ribbon opacity    | `series.sankey.lineStyle.opacity`   | [canvas: raises ribbon opacity][canvas], [unit: getSankeyLinkStyle][sankey-opts]                                | [sankey.json][db-sankey] · [#9 live][live-sankey-9] |
+| Advanced | Layout iterations | `series.sankey.layoutIterations`    | [unit: getSankeySeries][sankey-opts]                                                                            | —                                                   |
 
 Shared with the graph variant: Show node labels, Link color, Zoom and pan, Draggable
 nodes, Highlight adjacency, Animation.
@@ -103,13 +125,13 @@ Also no core equivalent. `series.chord` is **new in ECharts 6.0.0** and unrelate
 `chord` series removed in 3.x, so every key below was checked against the installed
 6.1.0 source rather than assumed. All Advanced, all gated on `isChordVariant`.
 
-| Tier     | Option            | ECharts key                      |
-| -------- | ----------------- | -------------------------------- |
-| Advanced | Start angle       | `series.chord.startAngle`        |
-| Advanced | Clockwise         | `series.chord.clockwise`         |
-| Advanced | Arc gap           | `series.chord.padAngle`          |
-| Advanced | Minimum arc angle | `series.chord.minAngle`          |
-| Advanced | Ribbon opacity    | `series.chord.lineStyle.opacity` |
+| Tier     | Option            | ECharts key                      | Regression test                                                                        | Demo panel                                       |
+| -------- | ----------------- | -------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Advanced | Start angle       | `series.chord.startAngle`        | [canvas: rotates and reverses the ring][canvas], [unit: getChordSeries][chord-opts]    | [chord.json][db-chord] · [#7 live][live-chord-7] |
+| Advanced | Clockwise         | `series.chord.clockwise`         | [canvas: rotates and reverses the ring][canvas], [unit: getChordSeries][chord-opts]    | [chord.json][db-chord] · [#7 live][live-chord-7] |
+| Advanced | Arc gap           | `series.chord.padAngle`          | [canvas: widens the gap between node arcs][canvas], [unit: getChordSeries][chord-opts] | [chord.json][db-chord] · [#7 live][live-chord-7] |
+| Advanced | Minimum arc angle | `series.chord.minAngle`          | [unit: getChordSeries][chord-opts]                                                     | —                                                |
+| Advanced | Ribbon opacity    | `series.chord.lineStyle.opacity` | [unit: getChordLinkStyle][chord-opts]                                                  | [chord.json][db-chord] · [#7 live][live-chord-7] |
 
 **`series.chord` has no `nodeWidth` or `nodeGap`** — those are sankey keys, and wiring
 them here by analogy would have produced two controls that silently do nothing. The
@@ -147,17 +169,18 @@ name, No value, Thresholds, Value mappings, Data links), customizing only Color
 (PaletteClassic, byValue + bySeries). Core's Node graph keeps the full set too, but
 routes stat units through its own panel options rather than the standard Unit.
 
-| Option         | Meaningful here? | Notes                                                                                                                                                                                                   |
-| -------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Color scheme   | **Yes**          | The load-bearing one. Three tiers: byName fixed-color override → the node's own `color` field → the `mainstat` field's by-value scheme → classic palette by position. See `makeRelationsColorResolver`. |
-| Unit           | **Yes**          | Formats `mainstat` / `secondarystat` / link weight in the tooltip.                                                                                                                                      |
-| Decimals       | **Yes**          | Same path as Unit.                                                                                                                                                                                      |
-| Value mappings | **Yes**          | Applied through the field's display processor.                                                                                                                                                          |
-| Data links     | **Yes**          | The pinned tooltip footer resolves a hovered node back to its nodes-frame row, and a hovered link to its edges-frame row. Nodes _derived_ from the edges frame carry no row, so they show no footer.    |
-| Min / Max      | Marginal         | Only bounds the by-value color domain.                                                                                                                                                                  |
-| No value       | Marginal         | A null `mainstat` renders a node with no stat.                                                                                                                                                          |
-| Thresholds     | Marginal         | Reachable only as a by-value color scheme; there is no `markLine` equivalent because there are no axes.                                                                                                 |
-| Display name   | **Inert**        | Node and link names come from frame _rows_ (`title` / `id`), not from field names — the same limitation pie and candlestick have.                                                                       |
+| Option         | Meaningful here? | Notes                                                                                                                                                                                                   | Regression test                                                                                                                     | Demo panel |
+| -------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Color scheme   | **Yes**          | The load-bearing one. Three tiers: byName fixed-color override → the node's own `color` field → the `mainstat` field's by-value scheme → classic palette by position. See `makeRelationsColorResolver`. | [canvas: colors nodes from the color field, honors a byName color override][canvas], [unit: makeRelationsColorResolver][graph-opts] | —          |
+| Unit           | **Yes**          | Formats `mainstat` / `secondarystat` / link weight in the tooltip.                                                                                                                                      | —                                                                                                                                   | —          |
+| Decimals       | **Yes**          | Same path as Unit.                                                                                                                                                                                      | —                                                                                                                                   | —          |
+| Value mappings | **Yes**          | Applied through the field's display processor.                                                                                                                                                          | —                                                                                                                                   | —          |
+| Data links     | **Yes**          | The pinned tooltip footer resolves a hovered node back to its nodes-frame row, and a hovered link to its edges-frame row. Nodes _derived_ from the edges frame carry no row, so they show no footer.    | —                                                                                                                                   | —          |
+| Min            | Marginal         | Only bounds the by-value color domain.                                                                                                                                                                  | —                                                                                                                                   | —          |
+| Max            | Marginal         | Only bounds the by-value color domain.                                                                                                                                                                  | —                                                                                                                                   | —          |
+| No value       | Marginal         | A null `mainstat` renders a node with no stat.                                                                                                                                                          | [unit: optional edge and node fields][ng-conv] (a missing `mainstat` reaches the model as undefined)                                | —          |
+| Thresholds     | Marginal         | Reachable only as a by-value color scheme; there is no `markLine` equivalent because there are no axes.                                                                                                 | —                                                                                                                                   | —          |
+| Display name   | **Inert**        | Node and link names come from frame _rows_ (`title` / `id`), not from field names — the same limitation pie and candlestick have.                                                                       | n/a (inert)                                                                                                                         | n/a        |
 
 Not registered, deliberately:
 
@@ -286,3 +309,27 @@ runtime surface.
 | `grid` / `xAxis` / `yAxis`       | N/A       | `graph` creates its own `View` coordinate system; `sankey` uses a box layout                                                                        |
 | `visualMap`                      | Not used  | By-value node color goes through the field's Color scheme instead                                                                                   |
 | `dataZoom` / `brush` / `toolbox` | Not used  | —                                                                                                                                                   |
+
+<!-- Regression test targets -->
+
+[canvas]: ../../lib/components/relations.canvas.test.tsx
+[graph-opts]: ../../lib/echarts/options/graph.test.ts
+[sankey-opts]: ../../lib/echarts/options/sankey.test.ts
+[chord-opts]: ../../lib/echarts/options/chord.test.ts
+[rel-chart]: ../../lib/echarts/charts/relations.test.ts
+[ng-conv]: ../../lib/echarts/converters/nodeGraph.test.ts
+[use-legend]: ../../lib/components/hooks/useLegend.test.tsx
+
+<!-- Provisioned dashboards: committed JSON, then the panel in a running Grafana -->
+
+[db-testdata]: ../../../provisioning/dashboards/relations/node-graph-testdata.json
+[live-testdata-6]: http://localhost:3001/d/echarts-relations-node-graph-testdata?viewPanel=6
+[db-sankey]: ../../../provisioning/dashboards/relations/sankey.json
+[live-sankey-1]: http://localhost:3001/d/echarts-relations-sankey?viewPanel=1
+[live-sankey-2]: http://localhost:3001/d/echarts-relations-sankey?viewPanel=2
+[live-sankey-5]: http://localhost:3001/d/echarts-relations-sankey?viewPanel=5
+[live-sankey-9]: http://localhost:3001/d/echarts-relations-sankey?viewPanel=9
+[db-chord]: ../../../provisioning/dashboards/relations/chord.json
+[live-chord-1]: http://localhost:3001/d/echarts-relations-chord?viewPanel=1
+[live-chord-2]: http://localhost:3001/d/echarts-relations-chord?viewPanel=2
+[live-chord-7]: http://localhost:3001/d/echarts-relations-chord?viewPanel=7
