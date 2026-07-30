@@ -84,6 +84,12 @@ export type RelationsSankeyNodeAlign = 'justify' | 'left' | 'right';
 /** Funnel render type of the part-to-whole family. Reuses the pie slice model. */
 export type FunnelSeriesType = Extract<SeriesType, 'funnel'>;
 /**
+ * Single-axis stream charts. `themeRiver` is the only ECharts series that
+ * *requires* the `singleAxis` coordinate system (its `dependencies` are
+ * `['singleAxis']`), and the only member today. See `data-plane/stream.md`.
+ */
+export type StreamSeriesType = Extract<SeriesType, 'themeRiver'>;
+/**
  * Render variants of the part-to-whole family, selected per panel via the
  * panel-level `seriesType`: `pie` (radial) and `funnel` (stacked trapezoids).
  * Both are built from the same categorical slice model (see resolvePieSlices);
@@ -250,6 +256,22 @@ export type FunnelAlign = 'left' | 'center' | 'right';
  * https://echarts.apache.org/en/option.html#series-funnel.label.position
  */
 export type FunnelLabelPosition = 'inside' | 'left' | 'right' | 'top' | 'bottom' | 'center';
+
+/**
+ * Where the stream (single-axis) family reads its river layers from:
+ *
+ * - `auto` — pick per frame: a long-shaped frame (time + exactly one numeric +
+ *   at least one string field) pivots on its first string field, anything else
+ *   maps one layer per numeric field. The default.
+ * - `fields` — always one layer per numeric field (the wide/multi shape).
+ * - `labels` — always pivot on the first string field (the long shape).
+ *
+ * The explicit modes exist because the ambiguous case is real: a SQL table of
+ * `time, level, count, errors` can legitimately mean "two metrics" or "one metric
+ * per level". JSON-only in Phase 0 — the editor radio lands with the rest of the
+ * option surface. See `data-plane/stream.md`.
+ */
+export type StreamLayerSource = 'auto' | 'fields' | 'labels';
 
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s

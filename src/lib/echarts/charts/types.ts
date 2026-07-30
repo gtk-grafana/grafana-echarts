@@ -29,10 +29,16 @@ import {
   type SankeySeriesOption,
   type ScatterSeriesOption,
   type SunburstSeriesOption,
+  type ThemeRiverSeriesOption,
   type TitleComponentOption,
   type TreemapSeriesOption,
   type VisualMapComponentOption,
 } from 'echarts';
+// `SingleAxisOption` (the singleAxis coordinate component the stream family
+// renders on) is declared in ECharts' shared types but not re-exported from the
+// `echarts` barrel, so it is imported from there directly (as `ECBasicOption` and
+// `TooltipOption` are elsewhere in this codebase).
+import { type SingleAxisOption } from 'echarts/types/dist/shared';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
 import {
@@ -69,6 +75,8 @@ export interface ChartContext<T = SeriesType> {
 export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
 /** Relations family context, narrowed to the render types the family hosts. */
 export type RelationsChartContext = ChartContext<'graph' | 'sankey' | 'chord'>;
+
+export type StreamChartContext = ChartContext<'themeRiver'>;
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
@@ -144,6 +152,16 @@ export type EChartSankeySeriesOption = ComposeOption<SankeySeriesOption | TitleC
 // ribbons. Self-contained: it pins `coordinateSystem: 'none'`, so nothing is composed in.
 export type EChartChordSeriesOption = ComposeOption<ChordSeriesOption>;
 /**
+ * The stream family's option: the themeRiver series plus the `singleAxis`
+ * coordinate component it is laid out on. Like the parallel option above, the
+ * coordinate component is added by hand rather than through `ComposeOption`'s
+ * dependency mechanism — `SingleAxisOption` carries no `mainType: 'singleAxis'`
+ * literal for `GetDependency` to key on.
+ */
+export type EChartStreamSeriesOption = ComposeOption<ThemeRiverSeriesOption> & {
+  singleAxis?: SingleAxisOption | SingleAxisOption[];
+};
+/**
  * @todo revisit
  * A single pie slice data item. ECharts types a pie series' `data` as
  * `(number | '-' | number[] | PieDataItemOption)[]`; we exclude the primitive
@@ -177,6 +195,7 @@ export type EChartBuildOption =
   | EChartGraphSeriesOption
   | EChartSankeySeriesOption
   | EChartChordSeriesOption
+  | EChartStreamSeriesOption
   | EChartCandlestickSeriesOption
   | EChartBoxPlotSeriesOption
   | EChartEffectScatterSeriesOption
@@ -226,6 +245,14 @@ export interface ChartModule {
    * render.
    */
   singleTooltipOnly?: boolean;
+  /**
+   * The family renders on a time axis but cannot host the drag-to-zoom brush, so
+   * `buildPanelChartOption` omits the `brush` component even though the axis type
+   * is `time`. Set by the stream family: `BrushComponent` attaches to a cartesian
+   * `grid`, and a `singleAxis` chart has none, so the cursor would arm a drag that
+   * never resolves to a time range.
+   */
+  disableTimeBrush?: boolean;
 }
 
 export type CartesianOption = ComposeOption<

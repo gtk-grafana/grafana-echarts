@@ -89,6 +89,11 @@ describe('resolveAutoSeriesType', () => {
       expect(resolveAutoSeriesType('relations', [multiNumericFrame()])).toBe('graph');
       expect(resolveAutoSeriesType('relations', [])).toBe('graph');
     });
+
+    it('stream stays themeRiver', () => {
+      expect(resolveAutoSeriesType('stream', [timeNumberFrame()])).toBe('themeRiver');
+      expect(resolveAutoSeriesType('stream', [])).toBe('themeRiver');
+    });
   });
 });
 

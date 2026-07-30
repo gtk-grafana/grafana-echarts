@@ -1,0 +1,286 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "stream", "themeriver"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2026-07-29T00:00:00.000Z",
+    "to": "2026-07-29T05:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Stream — theme river basics",
+  "uid": "echarts-stream-themeriver-basic",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Theme river over a one-frame-per-series response (the Prometheus/Loki shape): each numeric field becomes one stacked ribbon, colored from its own Color scheme. The single time axis is pinned to the dashboard time range, so it lines up with the panel beside it.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Theme river (fields path)",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The same query in core's stacked-area time series — the closest thing core Grafana has to a stream graph. Compare the reads: the area chart keeps a value axis and a flat baseline, the theme river centres each band so relative composition is easier to follow.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 70,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Core time series — stacked area (reference)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Theme river over a long frame (time + one numeric + a label column) — the shape SQL `GROUP BY time, dim` and every SQL expression return. The `level` column is pivoted into one ribbon per value; the two `convertFieldType` conversions are only needed because TestData's `csv_content` returns every column as a string. See data-plane/stream-sources.md.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver"
+      },
+      "targets": [
+        {
+          "csvContent": "time,level,count\n2026-07-29T00:00:00Z,error,4\n2026-07-29T00:00:00Z,warn,9\n2026-07-29T00:00:00Z,info,22\n2026-07-29T01:00:00Z,error,6\n2026-07-29T01:00:00Z,warn,7\n2026-07-29T01:00:00Z,info,26\n2026-07-29T02:00:00Z,error,3\n2026-07-29T02:00:00Z,warn,11\n2026-07-29T02:00:00Z,info,19\n2026-07-29T03:00:00Z,error,9\n2026-07-29T03:00:00Z,warn,6\n2026-07-29T03:00:00Z,info,24\n2026-07-29T04:00:00Z,error,5\n2026-07-29T04:00:00Z,warn,8\n2026-07-29T04:00:00Z,info,21",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Theme river (labels path — long frame)",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "count"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ],
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Contract edge cases on one panel. `a` has a null in the middle: a stacked ribbon cannot draw a hole, so the gap renders as zero rather than breaking the band — the one semantic that differs sharply from the cartesian families. `b` starts late, which ECharts zero-fills back to the union of timestamps.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver"
+      },
+      "targets": [
+        {
+          "csvContent": "time,a,b\n2026-07-29T00:00:00Z,10,\n2026-07-29T01:00:00Z,,5\n2026-07-29T02:00:00Z,12,6\n2026-07-29T03:00:00Z,9,7\n2026-07-29T04:00:00Z,11,5",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Gaps read as zero (contract edge case)",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "a"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "b"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ],
+      "type": "grafana-echartsstream-panel"
+    }
+  ],
+  "description": "Theme river (stream family) basics. The time range is absolute because two panels feed fixed csv_content timestamps; the random_walk panels render in any range. See data-plane/stream.md for the frame contract."
+}

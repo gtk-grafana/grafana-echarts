@@ -30,6 +30,8 @@ sufficient, and the metadata signals do not survive the paths that matter
 | -------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------- |
 | [categorical.md](./categorical.md)           | category-axis line / bar / scatter (shared base model)    | Numeric (`NumericWide`/`Multi`/`Long`)                  |
 | [time-series.md](./time-series.md)           | time-axis line / bar / scatter                            | Time series (`TimeSeriesWide` / `TimeSeriesMulti`)      |
+| [stream.md](./stream.md)                     | themeRiver (stacked ribbons on a single time axis)        | Time series, wide/multi **or** long (pivoted)           |
+| [stream-sources.md](./stream-sources.md)     | which data sources feed the stream family                 | —                                                       |
 | [part-to-whole.md](./part-to-whole.md)       | pie, funnel                                               | Any numeric field, reduced via standard `reduceOptions` |
 | [multivariate.md](./multivariate.md)         | radar                                                     | Numeric, through the categorical model                  |
 | [multi-value.md](./multi-value.md)           | candlestick, boxplot                                      | TimeSeriesWide / Numeric (by name convention)           |
@@ -64,7 +66,7 @@ datasources like Prometheus) are not merged. They pick it with
 with a numeric field; hierarchy's flame-graph path likewise takes the first
 flame-graph frame. See `todo/multiple-frames.md`.
 
-Three models are genuine exceptions and do read every frame:
+Four models are genuine exceptions and do read every frame:
 
 - **Part-to-whole** (pie, funnel) delegates to Grafana's own
   `getFieldDisplayValues` (`resolvePieSlices` in
@@ -77,3 +79,8 @@ Three models are genuine exceptions and do read every frame:
 - **Time series** walks the numeric fields of every frame that has a usable time
   (or fallback numeric) X field (`forEachTimeSeriesField`,
   `src/lib/echarts/converters/frames.ts`).
+- **Stream** (themeRiver) uses that same walk for its wide/multi path, and merges
+  the layers pivoted out of any long-shaped frames alongside them
+  (`frameToStream`, `src/lib/echarts/converters/stream.ts`). It is also the only
+  model that **pivots a long frame** — one layer per value of a label column —
+  which the models above explicitly do not do.

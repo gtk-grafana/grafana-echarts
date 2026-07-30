@@ -6,6 +6,7 @@ import {
   pieChartModule,
   relationsChartModule,
   resolveChartModule,
+  streamChartModule,
   supportedChartSeriesTypes,
 } from 'lib/echarts/charts/registry';
 
@@ -45,6 +46,10 @@ describe('resolveChartModule', () => {
     expect(resolveChartModule('chord')).toBe(relationsChartModule);
   });
 
+  it('routes themeRiver to the stream module', () => {
+    expect(resolveChartModule('themeRiver')).toBe(streamChartModule);
+  });
+
   it('throws for unsupported concrete types', () => {
     // gauge is a planned part-to-whole variant, not yet registered.
     expect(() => resolveChartModule('gauge')).toThrow();
@@ -66,6 +71,7 @@ describe('resolveChartModule', () => {
         'radar',
         'parallel',
         'graph',
+        'themeRiver',
       ])
     );
   });

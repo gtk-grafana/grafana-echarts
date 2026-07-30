@@ -2,6 +2,7 @@ import { cartesianTimeSeriesTypes, multiValueSeriesTypes } from 'editor/cartesia
 import { heatmapSeriesTypes, hierarchySeriesTypes, relationsSeriesTypes } from 'editor/constants';
 import { partToWholeSeriesTypes } from 'editor/pie';
 import { multivariateSeriesTypes } from 'editor/radar';
+import { streamSeriesTypes } from 'editor/stream';
 import { type SeriesType } from 'editor/types';
 import {
   isCartesianSingleValueSeriesType,
@@ -9,6 +10,7 @@ import {
   isMultiValueSeriesType,
   isMultivariateSeriesType,
   isRelationsSeriesType,
+  isStreamSeriesType,
 } from './narrowing';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
@@ -16,6 +18,7 @@ import { hierarchyChartModule } from './hierarchy';
 import { multivariateChartModule, radarChartModule } from './multivariate';
 import { partToWholeChartModule, pieChartModule } from './pie';
 import { relationsChartModule } from './relations';
+import { streamChartModule } from './stream';
 import { type ChartModule } from './types';
 
 const partToWholeModule = partToWholeChartModule;
@@ -29,6 +32,7 @@ export const supportedChartSeriesTypes: SeriesType[] = [
   ...partToWholeSeriesTypes,
   ...hierarchySeriesTypes,
   ...relationsSeriesTypes,
+  ...streamSeriesTypes,
 ];
 
 /**
@@ -68,6 +72,10 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (isRelationsSeriesType(seriesType)) {
     return relationsChartModule;
   }
+  // themeRiver is the stream family's only render type (ECharts `singleAxis`).
+  if (isStreamSeriesType(seriesType)) {
+    return streamChartModule;
+  }
   throw new Error(`Cannot resolve chart module, invalid ${seriesType}!`);
 }
 
@@ -80,4 +88,5 @@ export {
   pieChartModule,
   radarChartModule,
   relationsChartModule,
+  streamChartModule,
 };
