@@ -1,19 +1,24 @@
 import { cartesianTimeSeriesTypes, multiValueSeriesTypes } from 'editor/cartesian';
-import { heatmapSeriesTypes, hierarchySeriesTypes } from 'editor/constants';
+import { heatmapSeriesTypes, hierarchySeriesTypes, relationsSeriesTypes } from 'editor/constants';
 import { partToWholeSeriesTypes } from 'editor/pie';
 import { multivariateSeriesTypes } from 'editor/radar';
+import { streamSeriesTypes } from 'editor/stream';
 import { type SeriesType } from 'editor/types';
 import {
   isCartesianSingleValueSeriesType,
   isHierarchySeriesType,
   isMultiValueSeriesType,
   isMultivariateSeriesType,
+  isRelationsSeriesType,
+  isStreamSeriesType,
 } from './narrowing';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
 import { hierarchyChartModule } from './hierarchy';
 import { multivariateChartModule, radarChartModule } from './multivariate';
 import { partToWholeChartModule, pieChartModule } from './pie';
+import { relationsChartModule } from './relations';
+import { streamChartModule } from './stream';
 import { type ChartModule } from './types';
 
 const partToWholeModule = partToWholeChartModule;
@@ -26,6 +31,8 @@ export const supportedChartSeriesTypes: SeriesType[] = [
   ...multivariateSeriesTypes,
   ...partToWholeSeriesTypes,
   ...hierarchySeriesTypes,
+  ...relationsSeriesTypes,
+  ...streamSeriesTypes,
 ];
 
 /**
@@ -60,6 +67,15 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (isHierarchySeriesType(seriesType)) {
     return hierarchyChartModule;
   }
+  // Graph (and, once they land, sankey/chord) share the relations module; all
+  // three ECharts series consume the same node/link model.
+  if (isRelationsSeriesType(seriesType)) {
+    return relationsChartModule;
+  }
+  // themeRiver is the stream family's only render type (ECharts `singleAxis`).
+  if (isStreamSeriesType(seriesType)) {
+    return streamChartModule;
+  }
   throw new Error(`Cannot resolve chart module, invalid ${seriesType}!`);
 }
 
@@ -71,4 +87,6 @@ export {
   partToWholeChartModule,
   pieChartModule,
   radarChartModule,
+  relationsChartModule,
+  streamChartModule,
 };

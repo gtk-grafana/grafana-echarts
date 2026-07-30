@@ -4,6 +4,8 @@ import {
   isHeatmapSeriesType,
   isHierarchySeriesType,
   isMultivariateSeriesType,
+  isRelationsSeriesType,
+  isStreamSeriesType,
   isTimeAxisSupportedForSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { supportedChartSeriesTypes } from 'lib/echarts/charts/registry';
@@ -57,6 +59,23 @@ export const panelTypeToAxis = (ctx: ChartContext, hasTimeField = true): ECharts
   // so it resolves to `category` rather than throwing.
   if (isMultivariateSeriesType(seriesType)) {
     return 'category';
+  }
+
+  // Relations charts self-layout with no cartesian axis at all — `graph` builds its
+  // own `View` coordinate system, `sankey` a box layout. Like pie/radar/hierarchy
+  // they resolve to `category` so the tooltip uses an item trigger rather than an
+  // axis pointer.
+  if (isRelationsSeriesType(seriesType)) {
+    return 'category';
+  }
+
+  // The stream family (themeRiver) always renders on a time `singleAxis`: the
+  // model is time-ordered by contract, and a response with no time field yields no
+  // layers at all (`frameToStream` returns null) rather than a category fallback.
+  // Checked before the generic time-axis branch below, which would throw for this
+  // type when a frame happens to carry no time field.
+  if (isStreamSeriesType(seriesType)) {
+    return 'time';
   }
 
   // Heatmap can support either time or categorical axis so make sure we check the manual setting first

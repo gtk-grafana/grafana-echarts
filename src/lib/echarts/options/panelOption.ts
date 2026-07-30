@@ -79,8 +79,9 @@ export function buildPanelChartOption(
 
   // Drag-to-zoom is only meaningful on a time axis, where the brush selection
   // maps to an absolute time range the dashboard can adopt. The cursor is armed
-  // programmatically in Panel.tsx after `setOption`.
-  const isTimeAxis = hasTimeField && axisType === 'time';
+  // programmatically in Panel.tsx after `setOption`. Families whose time axis is
+  // not a cartesian grid axis opt out (see `ChartModule.disableTimeBrush`).
+  const isTimeAxis = hasTimeField && axisType === 'time' && !chartModule.disableTimeBrush;
 
   return {
     ...echartOption,

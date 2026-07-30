@@ -1,0 +1,339 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "The stream family's long (labels) path: how a `time, label, value` frame becomes one ribbon per label, how that compares to pivoting upstream with Partition by values, and what happens to duplicate `(label, time)` rows. The time range is absolute because every panel feeds fixed `csv_content` timestamps. See data-plane/stream.md and data-plane/stream-sources.md.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "One ribbon per distinct `level`, pivoted straight out of a long frame (time + one numeric + a label column) — the shape SQL `GROUP BY time, dim` and every SQL expression return. `Layers from` is left on Auto, which detects this shape on its own. The two `convertFieldType` conversions are only needed because TestData's `csv_content` returns every column as a string; note that `level` is deliberately *not* converted (a string→string conversion wraps the values in literal quotes).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamLayerSource": "labels"
+      },
+      "targets": [
+        {
+          "csvContent": "time,level,Value\n2026-07-29T00:00:00Z,error,4\n2026-07-29T00:00:00Z,warn,9\n2026-07-29T00:00:00Z,info,22\n2026-07-29T01:00:00Z,error,6\n2026-07-29T01:00:00Z,warn,7\n2026-07-29T01:00:00Z,info,26\n2026-07-29T02:00:00Z,error,3\n2026-07-29T02:00:00Z,warn,11\n2026-07-29T02:00:00Z,info,19\n2026-07-29T03:00:00Z,error,9\n2026-07-29T03:00:00Z,warn,6\n2026-07-29T03:00:00Z,info,24\n2026-07-29T04:00:00Z,error,5\n2026-07-29T04:00:00Z,warn,8\n2026-07-29T04:00:00Z,info,21",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Labels source — the long frame as it arrives",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "Value"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The same rows reshaped by core's **Partition by values** transform into one frame per `level`, then read on the fields path. This panel and the one beside it must look **identical**: same ribbons, same order, same colors. That is the point — the converter's built-in pivot is a convenience, not a different answer. `naming.asLabels: false` names each partition frame after its `level`, and the value column is called `Value`, so the layer name resolves to the frame name alone.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamLayerSource": "fields"
+      },
+      "targets": [
+        {
+          "csvContent": "time,level,Value\n2026-07-29T00:00:00Z,error,4\n2026-07-29T00:00:00Z,warn,9\n2026-07-29T00:00:00Z,info,22\n2026-07-29T01:00:00Z,error,6\n2026-07-29T01:00:00Z,warn,7\n2026-07-29T01:00:00Z,info,26\n2026-07-29T02:00:00Z,error,3\n2026-07-29T02:00:00Z,warn,11\n2026-07-29T02:00:00Z,info,19\n2026-07-29T03:00:00Z,error,9\n2026-07-29T03:00:00Z,warn,6\n2026-07-29T03:00:00Z,info,24\n2026-07-29T04:00:00Z,error,5\n2026-07-29T04:00:00Z,warn,8\n2026-07-29T04:00:00Z,info,21",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Fields source — the same data, pivoted upstream",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "Value"
+              }
+            ],
+            "fields": {}
+          }
+        },
+        {
+          "id": "partitionByValues",
+          "options": {
+            "fields": ["level"],
+            "keepFields": false,
+            "naming": {
+              "asLabels": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Two rows share every `(level, time)` key for `error`. A stacked ribbon has no defined baseline for two segments at one timestamp, so the converter **sums** them — the only aggregation consistent with stacking. Compare the `error` band here with the panel beside it: they must match.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamLayerSource": "labels"
+      },
+      "targets": [
+        {
+          "csvContent": "time,level,Value\n2026-07-29T00:00:00Z,error,2\n2026-07-29T00:00:00Z,error,2\n2026-07-29T00:00:00Z,warn,9\n2026-07-29T01:00:00Z,error,3\n2026-07-29T01:00:00Z,error,3\n2026-07-29T01:00:00Z,warn,7\n2026-07-29T02:00:00Z,error,1\n2026-07-29T02:00:00Z,error,2\n2026-07-29T02:00:00Z,warn,11\n2026-07-29T03:00:00Z,error,4\n2026-07-29T03:00:00Z,error,5\n2026-07-29T03:00:00Z,warn,6\n2026-07-29T04:00:00Z,error,2\n2026-07-29T04:00:00Z,error,3\n2026-07-29T04:00:00Z,warn,8",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Duplicate (layer, time) rows are summed",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "Value"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The same duplicated rows, summed by core's **Group by** transform before they reach the panel. This is the documented alternative to relying on the converter's own summing: it is explicit, it shows up in the query inspector, and it lets you pick a different aggregation (mean, max) than sum.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamLayerSource": "labels"
+      },
+      "targets": [
+        {
+          "csvContent": "time,level,Value\n2026-07-29T00:00:00Z,error,2\n2026-07-29T00:00:00Z,error,2\n2026-07-29T00:00:00Z,warn,9\n2026-07-29T01:00:00Z,error,3\n2026-07-29T01:00:00Z,error,3\n2026-07-29T01:00:00Z,warn,7\n2026-07-29T02:00:00Z,error,1\n2026-07-29T02:00:00Z,error,2\n2026-07-29T02:00:00Z,warn,11\n2026-07-29T03:00:00Z,error,4\n2026-07-29T03:00:00Z,error,5\n2026-07-29T03:00:00Z,warn,6\n2026-07-29T04:00:00Z,error,2\n2026-07-29T04:00:00Z,error,3\n2026-07-29T04:00:00Z,warn,8",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "…or collapse them upstream with Group by",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "Value"
+              }
+            ],
+            "fields": {}
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "time": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "level": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Value": {
+                "aggregations": ["sum"],
+                "operation": "aggregate"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "stream", "themeriver", "long"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2026-07-29T00:00:00.000Z",
+    "to": "2026-07-29T05:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Stream — long frames and the labels path",
+  "uid": "echarts-stream-themeriver-long",
+  "version": 1,
+  "weekStart": ""
+}

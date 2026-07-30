@@ -24,7 +24,7 @@ todos:
     content: Add MultiValueCartesian converter for candlestick/boxplot in the cartesian panel (Group 3)
     status: completed
   - id: roadmap-remaining
-    content: Document Groups 7-11 (hierarchy, graph/flow, geo, stream, custom) as roadmap nested panels; note dataplane gaps
+    content: 'Document Groups 7-11 (hierarchy, graph/flow, geo, stream, custom) as roadmap nested panels; note dataplane gaps. Group 7 shipped (hierarchy family). Group 8 SHIPPED as the relations family (src/modules/relations/): graph + sankey + chord over one node-graph converter, with converters/dag.ts breaking cycles for sankey; lines deferred with rationale in todo/lines.md. Groups 9-11 (geo, stream, custom) still outstanding.'
     status: pending
   - id: parity-docs
     content: 'Editor option parity docs per nested panel: src/modules/heatmap/parity.md, src/modules/cartesian/parity/{timeseries,barchart,xychart,candlestick,boxplot}.md, src/modules/part-to-whole/parity.md, src/modules/multivariate/parity.md'
@@ -188,9 +188,34 @@ Grouping is by **shared intermediate data model** and **shared option/axis patte
 
 ---
 
-### Group 8 — Graph / flow / relations (not implemented)
+### Group 8 — Graph / flow / relations (shipped)
 
-**Types:** graph, sankey, chord, lines
+**Types:** graph, sankey, chord (shipped); lines (deferred)
+
+> **Shipped** as the **relations** family, `src/modules/relations/` (panel id
+> `grafana-echartsrelations-panel`): one panel, three render variants over one
+> converter, selected by a "Chart type" picker — matching the hierarchy and
+> part-to-whole families. Options are tracked in
+> [src/modules/relations/parity.md](../../src/modules/relations/parity.md).
+>
+> Reference docs: [data-plane/node-graph.md](../../data-plane/node-graph.md) (frame
+> format, frame roles, ECharts specs, read path, converter pitfalls),
+> [todo/node-graph.md](../../todo/node-graph.md) (the design record),
+> [docs/relations-data-sources.md](../../docs/relations-data-sources.md) (which data
+> sources can produce the shape, and Prometheus/Loki/SQL reshaping via SQL
+> Expressions), and [todo/lines.md](../../todo/lines.md) (why the fourth type is not
+> built).
+>
+> Four ECharts findings shaped the result, all verified against 6.1.0 source rather
+> than the option reference: **sankey throws in production on cyclic data**
+> (`sankeyLayout.ts`, not `__DEV__`-guarded), so `converters/dag.ts` breaks cycles
+> before ECharts sees the links; **sankey and chord treat a declared node `value` as a
+> layout floor**, so `mainstat` is carried as tooltip-only metadata; **neither labels
+> from the node name by default** (sankey uses the graph key, chord the raw data
+> index), so both pin a label formatter; and **`series.chord` has no
+> `nodeWidth`/`nodeGap`** — those are sankey keys, so its gap control is the angular
+> `padAngle`. **`lines` does not consume this frame pair at all** — it needs
+> coordinate-pair polylines — so it is deferred rather than implemented.
 
 **ECharts:** graph creates its own view; sankey/chord self-layout; **lines** uses cartesian/polar/geo/singleAxis depending on context (flow lines, map routes).
 

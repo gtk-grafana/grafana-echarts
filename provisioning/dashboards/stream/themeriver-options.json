@@ -1,0 +1,654 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "One panel per editor option, so each can be checked against the option table in src/modules/stream/parity.md. Every panel but the first is in Advanced editor mode; the first is the Default-mode reference render they are all compared against. The absolute time range keeps the two csv_content panels at the bottom aligned; the random_walk panels render in any range.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The reference render every panel below is compared against. In Default editor mode, and with no Advanced value stored, the series option carries no `boundaryGap`, `itemStyle` or `emphasis` key — the chart is ECharts' own geometry with Grafana's colors. Layer labels are the one thing the plugin overrides by default: ECharts shows them, this panel does not.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "default"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Default — no styling keys at all",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.label.show`. The Default-tier switch that undoes ECharts' unthemed label default. Names are drawn just left of where each ribbon starts, in the Grafana text color and font.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamShowLabels": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Layer labels on",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.label.margin: -40`. The offset is measured *left* of the ribbon's start, so a negative value pushes the name onto the band, where it is legible against the fill. This is the family's only working placement lever: ECharts 6.1.0 ignores `series-themeRiver.label.position` (`ThemeRiverView` nulls it out and positions the label by hand), so the editor offers an offset rather than a Left/Right radio.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamShowLabels": true,
+        "streamLabelMargin": -40
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Layer label offset — onto the ribbon",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.label.fontSize: 18`. Left empty, layer labels keep the 11px that `ThemeRiverSeriesModel.defaultOption` bakes in — smaller than the rest of the panel's text, which is why the override exists.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamShowLabels": true,
+        "streamLabelFontSize": 18
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Layer label font size",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.boundaryGap: [\"0%\", \"0%\"]`. The orthogonal padding above and below the ribbons, dropped to nothing so the river uses the whole plot height. Compare with the 30% panel beside it and the 10% default at the top.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamBoundaryGap": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Boundary gap 0% — fill the plot",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.boundaryGap: [\"30%\", \"30%\"]`. The other extreme: the river is squeezed into the middle of the plot, clear of the axis line.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamBoundaryGap": 30
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Boundary gap 30% — a tight band",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.itemStyle.opacity: 0.5` (the editor takes 0–100). The ribbons are stacked rather than layered, so translucency is a styling choice here rather than a legibility fix — it softens the chart and lets a background stand through.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamFillOpacity": 50
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Ribbon opacity",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.itemStyle.borderWidth: 2` with an explicit `borderColor`. A stroke around each band, which is how two similarly-colored neighbours are told apart — the failure mode a stacked river is most prone to. The color picker only appears once a width is set.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamBorderWidth": 2,
+        "streamBorderColor": "#000000"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Ribbon border",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.emphasis.focus: 'self'`. Hover a ribbon: every other band fades, so a single layer can be traced across the whole time range. This is the one option whose effect is invisible at rest — the resting paint is identical to the default panel, by design.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamEmphasisFocus": "self"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "max": 100,
+          "min": 0,
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 4,
+          "startValue": 50
+        }
+      ],
+      "title": "Hover emphasis — Self (hover to see)",
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The ambiguous frame: `time, level, Value, bytes`. Read as **Fields** it is two metrics (`Value` and `bytes`) and the `level` column is ignored — and because a `GROUP BY time, level` table has one row *per level per timestamp*, each metric now carries two points at every timestamp and the ribbons zigzag. That degenerate render is the honest Fields reading of this frame, and Auto picks it (two numeric fields make the long reading a guess rather than a deduction), so it is also the signal to switch the radio to Labels. Compare with the panel below.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamLayerSource": "fields"
+      },
+      "targets": [
+        {
+          "csvContent": "time,level,Value,bytes\n2026-07-29T00:00:00Z,error,4,40\n2026-07-29T00:00:00Z,warn,9,90\n2026-07-29T01:00:00Z,error,6,60\n2026-07-29T01:00:00Z,warn,7,70\n2026-07-29T02:00:00Z,error,3,30\n2026-07-29T02:00:00Z,warn,11,110\n2026-07-29T03:00:00Z,error,9,90\n2026-07-29T03:00:00Z,warn,6,60\n2026-07-29T04:00:00Z,error,5,50\n2026-07-29T04:00:00Z,warn,8,80",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Layers from: Fields — two metrics",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "Value"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "bytes"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The *same* frame read as **Labels**: one ribbon per `level`, valued from the first numeric field (`Value`), with `bytes` ignored — no duplicate timestamps, so the bands are smooth. Neither reading is wrong for this frame, which is exactly why the radio is Default-tier rather than Advanced.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamLayerSource": "labels"
+      },
+      "targets": [
+        {
+          "csvContent": "time,level,Value,bytes\n2026-07-29T00:00:00Z,error,4,40\n2026-07-29T00:00:00Z,warn,9,90\n2026-07-29T01:00:00Z,error,6,60\n2026-07-29T01:00:00Z,warn,7,70\n2026-07-29T02:00:00Z,error,3,30\n2026-07-29T02:00:00Z,warn,11,110\n2026-07-29T03:00:00Z,error,9,90\n2026-07-29T03:00:00Z,warn,6,60\n2026-07-29T04:00:00Z,error,5,50\n2026-07-29T04:00:00Z,warn,8,80",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Layers from: Labels — one metric per level",
+      "type": "grafana-echartsstream-panel",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "Value"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "bytes"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "stream", "themeriver", "options"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2026-07-29T00:00:00.000Z",
+    "to": "2026-07-29T05:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Stream — theme river options",
+  "uid": "echarts-stream-themeriver-options",
+  "version": 1,
+  "weekStart": ""
+}

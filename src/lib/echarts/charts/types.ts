@@ -12,10 +12,12 @@ import {
   type BarSeriesOption,
   type BoxplotSeriesOption,
   type CandlestickSeriesOption,
+  type ChordSeriesOption,
   type ComposeOption,
   type CustomSeriesOption,
   type EffectScatterSeriesOption,
   type FunnelSeriesOption,
+  type GraphSeriesOption,
   type GridComponentOption,
   type HeatmapSeriesOption,
   type LegendComponentOption,
@@ -24,12 +26,19 @@ import {
   type PieSeriesOption,
   type RadarComponentOption,
   type RadarSeriesOption,
+  type SankeySeriesOption,
   type ScatterSeriesOption,
   type SunburstSeriesOption,
+  type ThemeRiverSeriesOption,
   type TitleComponentOption,
   type TreemapSeriesOption,
   type VisualMapComponentOption,
 } from 'echarts';
+// `SingleAxisOption` (the singleAxis coordinate component the stream family
+// renders on) is declared in ECharts' shared types but not re-exported from the
+// `echarts` barrel, so it is imported from there directly (as `ECBasicOption` and
+// `TooltipOption` are elsewhere in this codebase).
+import { type SingleAxisOption } from 'echarts/types/dist/shared';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import { type SeriesType } from 'editor/types';
 import {
@@ -64,6 +73,10 @@ export interface ChartContext<T = SeriesType> {
 }
 
 export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
+/** Relations family context, narrowed to the render types the family hosts. */
+export type RelationsChartContext = ChartContext<'graph' | 'sankey' | 'chord'>;
+
+export type StreamChartContext = ChartContext<'themeRiver'>;
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
@@ -128,6 +141,29 @@ export type EChartFunnelSeriesOption = ComposeOption<FunnelSeriesOption>;
 // Hierarchy families render a value-weighted tree; no cartesian axis component.
 export type EChartTreemapSeriesOption = ComposeOption<TreemapSeriesOption>;
 export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
+// Relations (graph) renders nodes plus links. The `graph` series ships its own
+// `View` coordinate system, so no coordinate component is composed in.
+export type EChartGraphSeriesOption = ComposeOption<GraphSeriesOption>;
+// Relations (sankey) lays the same node/link model out as weighted flow ribbons.
+// Composes the `title` component too: a sankey may carry a bottom-left note
+// reporting links removed by the cycle policy (see `getSankeyDroppedNote`).
+export type EChartSankeySeriesOption = ComposeOption<SankeySeriesOption | TitleComponentOption>;
+// Relations (chord) lays the same node/link model out as a ring of arcs joined by
+// ribbons. Self-contained: it pins `coordinateSystem: 'none'`, so nothing is composed in.
+export type EChartChordSeriesOption = ComposeOption<ChordSeriesOption>;
+/**
+ * The stream family's option: its series plus the `singleAxis` coordinate
+ * component(s) they are laid out on. Like the parallel option above, the
+ * coordinate component is added by hand rather than through `ComposeOption`'s
+ * dependency mechanism — `SingleAxisOption` carries no `mainType: 'singleAxis'`
+ * literal for `GetDependency` to key on.
+ *
+ * Two shapes: the river emits one `themeRiver` over one axis, the bubble variant
+ * emits one `scatter` per layer over an *array* of axes (see `options/streamBubble.ts`).
+ */
+export type EChartStreamSeriesOption = ComposeOption<ThemeRiverSeriesOption | ScatterSeriesOption> & {
+  singleAxis?: SingleAxisOption | SingleAxisOption[];
+};
 /**
  * @todo revisit
  * A single pie slice data item. ECharts types a pie series' `data` as
@@ -159,6 +195,10 @@ export type EChartBuildOption =
   | EChartFunnelSeriesOption
   | EChartTreemapSeriesOption
   | EChartSunburstSeriesOption
+  | EChartGraphSeriesOption
+  | EChartSankeySeriesOption
+  | EChartChordSeriesOption
+  | EChartStreamSeriesOption
   | EChartCandlestickSeriesOption
   | EChartBoxPlotSeriesOption
   | EChartEffectScatterSeriesOption
@@ -208,6 +248,14 @@ export interface ChartModule {
    * render.
    */
   singleTooltipOnly?: boolean;
+  /**
+   * The family renders on a time axis but cannot host the drag-to-zoom brush, so
+   * `buildPanelChartOption` omits the `brush` component even though the axis type
+   * is `time`. Set by the stream family: `BrushComponent` attaches to a cartesian
+   * `grid`, and a `singleAxis` chart has none, so the cursor would arm a drag that
+   * never resolves to a time range.
+   */
+  disableTimeBrush?: boolean;
 }
 
 export type CartesianOption = ComposeOption<
