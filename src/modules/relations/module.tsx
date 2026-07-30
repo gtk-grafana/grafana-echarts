@@ -11,14 +11,15 @@ import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/int
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
+import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { type PanelOptions } from 'types';
 import { relationsSuggestionsSupplier } from './suggestions';
 
 // Relations family panel: nodes plus the links between them, built from Grafana's
-// node-graph frame pair (an edges frame, plus an optional nodes frame). Only the
-// `graph` render variant ships; `sankey` and `chord` are planned variants of the
-// same family, since all three ECharts series consume the identical node/link
-// input. See data-plane/node-graph.md and lib/echarts/converters/nodeGraph.ts.
+// node-graph frame pair (an edges frame, plus an optional nodes frame). The `graph`
+// and `sankey` render variants ship; `chord` is a planned third, since all three
+// ECharts series consume the identical node/link input. See
+// data-plane/node-graph.md and lib/echarts/converters/nodeGraph.ts.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({
     standardOptions: STANDARD_COLOR_OPTIONS,
@@ -46,9 +47,15 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     }
 
     // Default tier: layout and node presentation — the controls a user coming from
-    // core Grafana's Node graph panel expects.
+    // core Grafana's Node graph panel expects. Each graph-only control gates on
+    // `isGraphVariant` internally.
     addRelationsLayoutOptions(builder);
     addRelationsNodeOptions(builder);
+
+    // Sankey-only: its Default-tier layout controls get a dedicated always-visible
+    // category, plus Advanced geometry/ribbon knobs. Every control gates on
+    // `isSankeyVariant` internally, mirroring the funnel variant's options.
+    addRelationsSankeyOptions(builder);
 
     // Advanced tier: interaction, force tuning, link styling.
     addRelationsInteractionOptions(builder);

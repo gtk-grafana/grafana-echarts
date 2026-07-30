@@ -1,4 +1,4 @@
-# Relations (graph) editor option parity
+# Relations (graph, sankey) editor option parity
 
 Compares the editor options of this ECharts **Relations** module
 ([module.tsx](./module.tsx)) against core Grafana's **Node graph** panel
@@ -27,10 +27,25 @@ tier stays close to core's small surface. See
 [docs/options-modes.md](../../../docs/options-modes.md).
 
 The family is named `relations` rather than `graph` because `graph` collides with both
-the `graph` `SeriesType` value and Grafana's legacy "Graph" panel name. `sankey` and
-`chord` are planned variants of this same panel — all three ECharts series read the
-identical node/link model — so they will appear as a "Chart type" picker rather than
-as separate panels.
+the `graph` `SeriesType` value and Grafana's legacy "Graph" panel name. `chord` is a
+planned third variant of this same panel — all three ECharts series read the identical
+node/link model — so it will join the "Chart type" picker rather than becoming a
+separate panel.
+
+## Render variants
+
+The "Chart type" picker selects between two layouts over one converter. Core Grafana
+has no sankey panel at all, so only `graph` has a parity baseline; the sankey options
+are compared against ECharts semantics instead (the `multivariate/parity.md` pattern).
+
+| Variant  | Topology accepted     | Node size             | Link size                       |
+| -------- | --------------------- | --------------------- | ------------------------------- |
+| `graph`  | any digraph           | `noderadius` or px    | `thickness` (`lineStyle.width`) |
+| `sankey` | **DAG only** (forced) | flow through the node | the link weight                 |
+
+Switching variants re-renders the same frames — it is a layout change, not a data
+change. The one asymmetry is topological: a sankey **cannot** draw a cycle, so the
+converter removes back-edges first. See [Cycle policy](#cycle-policy).
 
 ## Panel options
 
@@ -55,6 +70,38 @@ as separate panels.
 | —                                     | Grafana legend (`addLegendOptions`)                                   | ECharts-only                |
 | —                                     | Tooltip mode (Single/Hidden)                                          | ECharts-only                |
 | —                                     | Animation — `animation.enabled` (Advanced)                            | ECharts-only                |
+| —                                     | "Chart type" (Graph / Sankey) — panel `seriesType`                    | ECharts-only                |
+
+Graph-only controls are hidden when the sankey variant is selected (`isGraphVariant`):
+Layout, Node size, Repulsion / Edge length / Gravity, Edge arrows and Link curveness —
+a sankey self-layouts, sizes nodes from flow, runs no simulation, has no `edgeSymbol`
+at all, and carries its own curveness option because the ECharts default differs.
+
+### Sankey options
+
+No core Grafana equivalent, so these are compared against ECharts semantics. Each
+omits its ECharts key at its default; all gate on `isSankeyVariant`.
+
+| Tier     | Option            | ECharts key                         |
+| -------- | ----------------- | ----------------------------------- |
+| Default  | Flow direction    | `series.sankey.orient`              |
+| Default  | Node alignment    | `series.sankey.nodeAlign`           |
+| Advanced | Node width        | `series.sankey.nodeWidth`           |
+| Advanced | Node gap          | `series.sankey.nodeGap`             |
+| Advanced | Ribbon curveness  | `series.sankey.lineStyle.curveness` |
+| Advanced | Ribbon opacity    | `series.sankey.lineStyle.opacity`   |
+| Advanced | Layout iterations | `series.sankey.layoutIterations`    |
+
+Shared with the graph variant: Show node labels, Link color, Zoom and pan, Draggable
+nodes, Highlight adjacency, Animation.
+
+Two sankey keys are **pinned rather than omitted**, because ECharts' sankey defaults
+disagree with the family's:
+
+- **`draggable`** — ECharts defaults a sankey to `true`, where `graph` is `false`. It
+  is emitted as `false` so both variants are static out of the box.
+- **`lineStyle.color`** — ECharts defaults to a neutral gray; the family default is
+  `source`, so ribbons inherit node colors as the graph variant's edges do.
 
 **Layout differs rather than matching.** Core offers Layered / Force / Grid; ECharts'
 `graph` offers `force` / `circular` / `none`. **Force** is common to both. Core's
@@ -96,8 +143,58 @@ conditionally hidden**, and **cannot be regrouped** — `StandardOptionConfig` i
 `@grafana/data` exposes only `defaultValue`, `settings` and `hideFromDefaults`, with
 no `category`.
 
+## Cycle policy
+
+**Sankey only.** ECharts' `sankeyLayout.ts` runs Kahn's algorithm and then
+`throw new Error('Sankey is a DAG, the original data has cycle!')`. That throw is
+**not** behind a `__DEV__` guard, so it survives into production builds: a cyclic edge
+set would be a blank, broken panel rather than a degraded render. Service graphs
+routinely contain cycles (retries, bidirectional RPC, A→B→A chains), and TestData's
+`node_graph` scenario generates them on purpose.
+
+So the sankey path sanitizes the links **before ECharts sees them**
+([converters/dag.ts](../../lib/echarts/converters/dag.ts)), unconditionally:
+
+1. self-loops (`source === target`) are dropped — a sankey has no way to draw one;
+2. duplicate `source → target` pairs are merged, summing their weights;
+3. back-edges found by a deterministic depth-first traversal are dropped.
+
+**This is not a user option.** The only alternative to breaking a cycle is crashing, so
+there is nothing to toggle. Traversal order follows frame row order, so the _same_ edge
+is dropped on every render — an unstable choice would change the panel's shape between
+refreshes.
+
+Because dropping links silently changes the graph, the panel reports the count in a
+bottom-left note ("N links hidden to remove cycles"), rendered through the same
+ECharts `title` mechanism as the pie's donut-center readout. Acyclic data shows no
+note. A merge is not counted, since summing weights loses no flow.
+
+`graph` accepts any digraph and never runs this pass, so the two variants over the same
+frames can legitimately show a different number of links.
+
 ## Notes / gaps
 
+- **Sankey drops `thickness` and `strokedasharray`.** Ribbon size _is_ the link weight
+  (`edge.getValue()`), so `lineStyle.width` has no effect; and a ribbon is a filled
+  area rather than a stroked line, so a dash type has nothing to apply to. Both are
+  honored by the graph variant. `thickness` still contributes as the weight fallback
+  (`mainstat` → `thickness` → 1).
+- **Sankey drops `noderadius`, `fixedx` and `fixedy`.** Node thickness is the
+  series-level `nodeWidth` and node length is the flow, so a per-node radius has no
+  meaning; and a sankey positions with `localX`/`localY`/`depth` rather than the pixel
+  coordinates the graph variant's `layout: 'none'` consumes.
+- **Sankey node `mainstat` is tooltip-only.** ECharts computes a sankey node's size
+  from its flow, but `computeNodeValues` takes
+  `Math.max(inSum, outSum, nodeRawValue)` — so declaring `mainstat` as the item's
+  `value` would act as a floor and inflate a node past its own ribbons whenever the
+  stat is not itself a flow (a latency, an error rate). It is carried separately and
+  read only by the tooltip.
+- **Sankey labels need an explicit formatter.** `SankeyView` labels a node with
+  `defaultText: node.id` — the graph _key_, which the converter sets from the frame's
+  `id` so links resolve against it. Left alone, a nodes frame's human-readable `title`
+  would never appear. The series pins `label.formatter: '{b}'` (the data name) so both
+  variants label alike. The graph variant needs no such correction: `Symbol.js` labels
+  from `data.getName(idx)`.
 - **`arc__*` is approximated, not rendered.** No ECharts relationship series can draw
   a multi-section ring around a node. Core's Node graph draws proportional arc
   segments; this panel does not, and the proportions are lost. A faithful version
@@ -122,7 +219,9 @@ no `category`.
   positions depend on iteration count and timing, so the canvas tests pin `circular`
   and `none` instead; force _option mapping_ is covered by unit tests in
   `lib/echarts/options/graph.test.ts`. See
-  [relations.canvas.test.tsx](../../lib/components/relations.canvas.test.tsx).
+  [relations.canvas.test.tsx](../../lib/components/relations.canvas.test.tsx). The
+  sankey variant needs no such pinning — it self-layouts deterministically from the
+  weights, so its snapshots include the default layout.
 - **Never auto-suggested.** `PanelDataSummary` exposes neither field names nor
   `meta.preferredVisualisationType`, so no reachable signal identifies node-graph
   data; the supplier deliberately returns nothing rather than matching ordinary
@@ -137,15 +236,19 @@ High-level [ECharts option](https://echarts.apache.org/en/option.html) component
 by this module. See [echarts.ts](../../lib/echarts/echarts.ts) for the registered
 runtime surface.
 
-| ECharts API                      | Status    | Notes                                                                                                                           |
-| -------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `series.graph`                   | Partial   | `data`, `links`, `layout`, `force`, `label`, `lineStyle`, `edgeSymbol`, `emphasis`, `roam`, `draggable`, `symbolSize`, `zlevel` |
-| `series.graph.categories`        | Not used  | Would give ECharts-native legend grouping; the Grafana DOM legend is used instead                                               |
-| `series.graph.itemStyle`         | Partial   | Per-node `color` only; `borderColor`/`borderWidth` reserved for the `arc__*` approximation                                      |
-| `tooltip`                        | Partial   | Item trigger with a per-series formatter feeding the React overlay                                                              |
-| `legend`                         | Not used  | Grafana DOM legend instead (`buildLegendItems`)                                                                                 |
-| `animation`                      | Supported | Off by default via the shared switch                                                                                            |
-| `grid` / `xAxis` / `yAxis`       | N/A       | `graph` creates its own `View` coordinate system                                                                                |
-| `visualMap`                      | Not used  | By-value node color goes through the field's Color scheme instead                                                               |
-| `dataZoom` / `brush` / `toolbox` | Not used  | —                                                                                                                               |
-| `series.sankey` / `series.chord` | Planned   | Same node/link model; see [todo/node-graph.md](../../../todo/node-graph.md)                                                     |
+| ECharts API                      | Status    | Notes                                                                                                                                               |
+| -------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `series.graph`                   | Partial   | `data`, `links`, `layout`, `force`, `label`, `lineStyle`, `edgeSymbol`, `emphasis`, `roam`, `draggable`, `symbolSize`, `zlevel`                     |
+| `series.graph.categories`        | Not used  | Would give ECharts-native legend grouping; the Grafana DOM legend is used instead                                                                   |
+| `series.graph.itemStyle`         | Partial   | Per-node `color` only; `borderColor`/`borderWidth` reserved for the `arc__*` approximation                                                          |
+| `series.sankey`                  | Partial   | `data`, `links`, `orient`, `nodeAlign`, `nodeWidth`, `nodeGap`, `layoutIterations`, `label`, `lineStyle`, `emphasis`, `draggable`, `roam`, `zlevel` |
+| `series.sankey.levels`           | Not used  | Per-depth styling; no Grafana field maps to a sankey depth                                                                                          |
+| `series.sankey.edgeLabel`        | Not used  | Ribbon labels would collide at any realistic edge count                                                                                             |
+| `tooltip`                        | Partial   | Item trigger with a per-series formatter feeding the React overlay                                                                                  |
+| `legend`                         | Not used  | Grafana DOM legend instead (`buildLegendItems`)                                                                                                     |
+| `animation`                      | Supported | Off by default via the shared switch                                                                                                                |
+| `title`                          | Partial   | `subtext` only, for the sankey dropped-link note (`getSankeyDroppedNote`)                                                                           |
+| `grid` / `xAxis` / `yAxis`       | N/A       | `graph` creates its own `View` coordinate system; `sankey` uses a box layout                                                                        |
+| `visualMap`                      | Not used  | By-value node color goes through the field's Color scheme instead                                                                                   |
+| `dataZoom` / `brush` / `toolbox` | Not used  | —                                                                                                                                                   |
+| `series.chord`                   | Planned   | Same node/link model; see [todo/node-graph.md](../../../todo/node-graph.md)                                                                         |

@@ -26,6 +26,8 @@ import {
   type RadarShape,
   type RelationsGraphLayout,
   type RelationsLinkColor,
+  type RelationsSankeyNodeAlign,
+  type RelationsSankeyOrient,
   type SeriesTypeOption,
 } from 'editor/types';
 
@@ -561,6 +563,57 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * `RELATIONS_LINK_COLOR_DEFAULT` (`source`). See `getGraphLinkColor`.
    */
   relationsLinkColor?: RelationsLinkColor;
+
+  /**
+   * Sankey flow direction (ECharts `series.sankey.orient`): node columns run
+   * left-to-right (`horizontal`) or top-to-bottom (`vertical`). Default-tier;
+   * omitted at the horizontal default. See `getSankeyOrient`.
+   */
+  relationsSankeyOrient?: RelationsSankeyOrient;
+
+  /**
+   * Sankey column placement for nodes that could sit in more than one (ECharts
+   * `series.sankey.nodeAlign`). Default-tier; omitted at the `justify` default.
+   * See `getSankeyNodeAlign`.
+   */
+  relationsSankeyNodeAlign?: RelationsSankeyNodeAlign;
+
+  /**
+   * Sankey node thickness in px (Advanced; ECharts `series.sankey.nodeWidth`).
+   * Omitted at ECharts' default of 20. See `getSankeySeries`.
+   */
+  relationsSankeyNodeWidth?: number;
+
+  /**
+   * Gap in px between adjacent sankey nodes in the same column (Advanced; ECharts
+   * `series.sankey.nodeGap`). Omitted at ECharts' default of 8. See `getSankeySeries`.
+   */
+  relationsSankeyNodeGap?: number;
+
+  /**
+   * Sankey ribbon curvature 0–1 (Advanced; ECharts
+   * `series.sankey.lineStyle.curveness`). Separate from `relationsCurveness`
+   * because the ECharts defaults differ — 0.5 for sankey, 0 for graph — so one
+   * shared option could not omit its key at both. See `getSankeyLinkStyle`.
+   */
+  relationsSankeyCurveness?: number;
+
+  /**
+   * Sankey ribbon translucency 0–1 (Advanced; ECharts
+   * `series.sankey.lineStyle.opacity`). Overlapping ribbons are normal in a sankey,
+   * so this is the main legibility lever. Omitted at ECharts' default of 0.2.
+   * See `getSankeyLinkStyle`.
+   */
+  relationsSankeyLinkOpacity?: number;
+
+  /**
+   * Sankey layout relaxation passes (Advanced; ECharts
+   * `series.sankey.layoutIterations`) — how many times node positions are refined to
+   * reduce ribbon crossings. Omitted at ECharts' default of 32. Inert when any node
+   * has zero flow, since ECharts then skips iteration entirely.
+   * See `getSankeySeries`.
+   */
+  relationsSankeyLayoutIterations?: number;
 
   /**
    * Animation toggle, shared by every family that offers it (cartesian and

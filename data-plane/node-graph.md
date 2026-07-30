@@ -11,8 +11,8 @@ frame and an optional **nodes** frame.
 > frame naming conventions.
 >
 > The plugin consumes these frames through the **relations** family panel
-> (`src/modules/relations/`), which renders them as an ECharts `graph` series;
-> `sankey` and `chord` are planned variants of the same panel. The converter is
+> (`src/modules/relations/`), which renders them as an ECharts `graph` or `sankey`
+> series selected per panel; `chord` is a planned third variant. The converter is
 > `frameToNodeGraph` (`src/lib/echarts/converters/nodeGraph.ts`) and the editor
 > options are tracked in
 > [../src/modules/relations/parity.md](../src/modules/relations/parity.md). See
@@ -203,10 +203,30 @@ would otherwise vanish.
 `frameToNodeGraph` returns `null` when there is no edges frame or no usable link,
 letting callers fall back to a no-data view.
 
+### What each render variant reads
+
+The converter is variant-agnostic; the options layer decides what a given series can
+express. Fields the **sankey** variant cannot use:
+
+| Field                    | Sankey                                                                |
+| ------------------------ | --------------------------------------------------------------------- |
+| edge `thickness`         | Not applied — ribbon size _is_ the weight. Still the weight fallback. |
+| edge `strokedasharray`   | Not applied — a ribbon is a filled area, not a stroked line           |
+| node `noderadius`        | Not applied — node thickness is the series-level `nodeWidth`          |
+| node `fixedx` / `fixedy` | Not applied — a sankey positions with `localX`/`localY`/`depth`       |
+| node `mainstat`          | Tooltip only, **not** the item `value` — see the pitfall below        |
+
+The sankey path additionally rewrites the link set to satisfy the DAG restriction
+(`converters/dag.ts`): self-loops dropped, duplicate pairs merged with summed weights,
+back-edges dropped by a deterministic traversal. So a sankey over cyclic frames
+legitimately draws fewer links than the same frames as a `graph`, and the panel notes
+how many.
+
 ## Pitfalls for a converter
 
 Traps inherent to the data or to ECharts rather than to any particular
-implementation. The first is the reason `sankey` is not simply switched on.
+implementation. The first four are why the `sankey` variant is more than a layout
+swap; each is handled, with the handling named.
 
 - **A sankey built from a real service graph crashes the panel.** `sankeyLayout.ts`
   runs Kahn's algorithm and then
@@ -216,9 +236,23 @@ implementation. The first is the reason `sankey` is not simply switched on.
   and the TestData `node_graph` scenario generates them on purpose — its
   `generateRandomNodes` has a loop commented _"Add some random edges to create
   possible cycle"_. Cycles must therefore be broken **before** the links reach
-  ECharts. `graph` and `chord` are unaffected.
+  ECharts. `graph` and `chord` are unaffected. **Handled** in `converters/dag.ts`.
 - **Self-loops.** An edge whose `source === target` has no sankey representation and
-  must be dropped there. `graph` renders them fine, so nothing drops them today.
+  must be dropped there. `graph` renders them fine, so only the sankey path drops
+  them (`converters/dag.ts`).
+- **A sankey node's declared `value` is a floor, not a label.** `computeNodeValues`
+  takes `Math.max(inSum, outSum, nodeRawValue)`, so passing `mainstat` as the item's
+  `value` inflates the node past its own ribbons whenever the stat is not itself a
+  flow — a latency or an error rate would silently distort the layout. The sankey
+  path therefore omits `value` and carries `mainstat` separately for the tooltip.
+  `graph` reads item values only for tooltips and `visualMap`, never geometry, so it
+  is unaffected.
+- **A sankey labels from the node _key_, not its name.** `SankeyView` passes
+  `defaultText: node.id`, where `id` is whatever `createGraphFromNodeEdge`'s
+  `retrieve(id, name, dataIndex)` resolved to — the frame's `id` field, since links
+  must resolve against it. A nodes frame's human-readable `title` would therefore
+  never reach the label without an explicit `label.formatter: '{b}'`. `graph` labels
+  from `data.getName(idx)` (`Symbol.js`) and needs no correction.
 - **`mainstat` may be a string,** so it cannot be coerced for anything geometric.
   `frameToNodeGraph` resolves link weight through `mainstat` → `thickness` → `1`;
   sankey and chord size their ribbons from that number and would otherwise collapse.

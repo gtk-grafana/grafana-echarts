@@ -1,4 +1,5 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
+import { isGraphVariant } from 'editor/sankey';
 import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
@@ -8,7 +9,11 @@ import { type PanelOptions } from 'types';
  * layouts and so are hidden there.
  * https://echarts.apache.org/en/option.html#series-graph.force
  */
-const isForceLayout = (options: PanelOptions) => (options.relationsLayout ?? 'force') === 'force';
+// Also requires the graph variant: `relationsLayout` persists across a variant
+// switch, so a panel saved as a force graph would otherwise keep showing force
+// tuning after switching to sankey, where there is no simulation at all.
+const isForceLayout = (options: PanelOptions) =>
+  isGraphVariant(options) && (options.relationsLayout ?? 'force') === 'force';
 
 export function addRelationsForceOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   addAdvancedNumberInput(builder, {

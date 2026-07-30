@@ -60,9 +60,10 @@ export const panelTypeToAxis = (ctx: ChartContext, hasTimeField = true): ECharts
     return 'category';
   }
 
-  // Relations charts (graph) build their own `View` coordinate system and have no
-  // cartesian axis at all; like pie/radar/hierarchy they resolve to `category` so
-  // the tooltip uses an item trigger rather than an axis pointer.
+  // Relations charts self-layout with no cartesian axis at all — `graph` builds its
+  // own `View` coordinate system, `sankey` a box layout. Like pie/radar/hierarchy
+  // they resolve to `category` so the tooltip uses an item trigger rather than an
+  // axis pointer.
   if (isRelationsSeriesType(seriesType)) {
     return 'category';
   }

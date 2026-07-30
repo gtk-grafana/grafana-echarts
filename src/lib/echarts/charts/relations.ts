@@ -8,7 +8,13 @@ import {
   type RelationsSeriesContext,
 } from 'lib/echarts/options/graph';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
-import { type ChartModule, type EChartGraphSeriesOption, type RelationsChartContext } from './types';
+import { getSankeyDroppedNote, getSankeySeries } from 'lib/echarts/options/sankey';
+import {
+  type ChartModule,
+  type EChartGraphSeriesOption,
+  type EChartSankeySeriesOption,
+  type RelationsChartContext,
+} from './types';
 
 /**
  * The edges frame's `mainstat`, used to format a hovered link's value and resolve
@@ -25,15 +31,15 @@ function getLinkValueField(frames: DataFrame[]): Field | undefined {
  * Relations chart family: nodes plus the links between them, built from Grafana's
  * node-graph frame pair (see echarts/converters/nodeGraph.ts).
  *
- * Only the `graph` render variant ships today. `sankey` and `chord` are planned
- * variants of this same module — all three ECharts series read the identical
- * node/link input — and will dispatch on `ctx.seriesType` here, the way the
- * hierarchy module picks treemap vs sunburst.
+ * `graph` and `sankey` ship today and `ctx.seriesType` selects between them, the way
+ * the hierarchy module picks treemap vs sunburst. `chord` is a planned third variant
+ * of this same module — all three ECharts series read the identical node/link input,
+ * so a variant is a layout change rather than a data change.
  */
 export const relationsChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx: RelationsChartContext, _base): EChartGraphSeriesOption | null {
+  buildOption(ctx: RelationsChartContext, _base): EChartGraphSeriesOption | EChartSankeySeriesOption | null {
     const data = frameToNodeGraph(ctx.frames, ctx.theme);
     if (!data) {
       return null;
@@ -44,6 +50,15 @@ export const relationsChartModule: ChartModule = {
       valueField: getNodeGraphValueField(ctx.frames),
       linkValueField: getLinkValueField(ctx.frames),
     };
+
+    if (ctx.seriesType === 'sankey') {
+      // `getSankeySeries` breaks cycles itself — ECharts' sankey layout throws on
+      // cyclic input even in production — and reports how many links that cost, which
+      // becomes a bottom-left note so the edit is visible.
+      const { series, droppedCount } = getSankeySeries(data, seriesCtx);
+      const note = getSankeyDroppedNote(droppedCount, ctx.theme);
+      return { ...relationsDefaultOptions, series: [series], ...(note ? { title: note } : {}) };
+    }
 
     return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx)] };
   },

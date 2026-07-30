@@ -68,6 +68,19 @@ export type RelationsGraphLayout = 'force' | 'circular' | 'none';
  * See `getGraphLinkColor`.
  */
 export type RelationsLinkColor = 'source' | 'target' | 'gradient';
+/**
+ * Sankey flow direction (ECharts `series.sankey.orient`, typed `LayoutOrient`
+ * there): `horizontal` lays the node columns left-to-right, `vertical` top-to-bottom.
+ * Default-tier. See `getSankeyOrient`.
+ */
+export type RelationsSankeyOrient = 'horizontal' | 'vertical';
+/**
+ * Where a sankey places nodes that could sit in more than one column — ECharts
+ * `series.sankey.nodeAlign`: `justify` pushes sinks to the far edge, `left`/`right`
+ * pin every node to the earliest/latest column it can occupy. Default-tier.
+ * See `getSankeyNodeAlign`.
+ */
+export type RelationsSankeyNodeAlign = 'justify' | 'left' | 'right';
 /** Funnel render type of the part-to-whole family. Reuses the pie slice model. */
 export type FunnelSeriesType = Extract<SeriesType, 'funnel'>;
 /**

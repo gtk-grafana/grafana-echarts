@@ -199,6 +199,18 @@ export interface RelationsNodeItem {
   id: string;
   name: string;
   value?: number;
+  /**
+   * The node's `mainstat`, when it is carried *outside* `value`.
+   *
+   * The sankey variant does not set `value`: ECharts derives a sankey node's height
+   * from its flow, but `computeNodeValues` takes
+   * `Math.max(inSum, outSum, nodeRawValue)` — so a declared `value` acts as a floor
+   * and a `mainstat` unrelated to the flow (a latency, an error rate) would inflate
+   * the node out of step with its own ribbons. The stat rides here instead, for the
+   * tooltip only. `graph` keeps using `value`, which it reads for tooltips and
+   * `visualMap` but never for geometry.
+   */
+  stat?: number | null;
   symbolSize?: number;
   itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
   x?: number;

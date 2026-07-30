@@ -40,6 +40,28 @@ const renderGraph = async (
   return getSeriesCanvasEvents(container);
 };
 
+// The sankey variant needs no layout pinning: it self-layouts into columns from the
+// link weights, with no physics simulation, so its geometry is already deterministic.
+// `relationsLayout` is left off since it is a graph-only option.
+const renderSankey = async (
+  frames: Parameters<typeof getComponent>[0],
+  options: Partial<PanelOptions> = {},
+  fieldConfig?: FieldConfigSource
+) => {
+  const { container } = render(
+    getComponent(
+      frames,
+      'sankey',
+      { ...canvasOptions(options), relationsLayout: undefined },
+      undefined,
+      undefined,
+      'relations',
+      fieldConfig
+    )
+  );
+  return getSeriesCanvasEvents(container);
+};
+
 describe('relations (graph) canvas renders', () => {
   // A small service graph: gateway fans out to api and web, both of which call db.
   const nodesFrame = toDataFrame({
@@ -196,6 +218,80 @@ describe('relations (graph) canvas renders', () => {
         ],
       };
       const { defaultEvents, seriesEvents } = await renderGraph([nodesFrame, edgesFrame], {}, fieldConfig);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
+  // The sankey render variant over the same frames — one converter, two layouts.
+  describe('sankey variant', () => {
+    it('lays the same nodes and links out as flow ribbons', async () => {
+      const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, edgesFrame]);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('renders an edges-only response', async () => {
+      const { defaultEvents, seriesEvents } = await renderSankey([edgesFrame]);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // **The single most important case in this file.** Without the converter's cycle
+    // policy, `sankeyLayout.ts` throws here — in production too, since the throw is
+    // not `__DEV__`-guarded — and the panel renders blank rather than degraded. A
+    // non-empty series layer is the proof that it does not.
+    //
+    // Weights differ from the acyclic fixture deliberately: with matching weights the
+    // surviving 4 links would be identical to the base case, and the snapshot would
+    // duplicate it instead of pinning this render.
+    it('renders a cyclic edge set instead of throwing', async () => {
+      const cyclicEdges = toDataFrame({
+        name: 'edges',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['e1', 'e2', 'e3', 'e4', 'e5'] },
+          { name: 'source', type: FieldType.string, values: ['gateway', 'gateway', 'api', 'web', 'db'] },
+          { name: 'target', type: FieldType.string, values: ['api', 'web', 'db', 'db', 'gateway'] },
+          // `db -> gateway` closes the cycle and is the link expected to be dropped.
+          { name: 'mainstat', type: FieldType.number, values: [70, 30, 65, 25, 15] },
+        ],
+      });
+      const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, cyclicEdges]);
+
+      expect(seriesEvents.length).toBeGreaterThan(0);
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('lays out vertically when the flow direction is switched', async () => {
+      const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, edgesFrame], {
+        relationsSankeyOrient: 'vertical',
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('hides node labels when switched off', async () => {
+      const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, edgesFrame], {
+        relationsShowNodeLabels: false,
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // Node geometry is series-level for a sankey, not per-node as with `noderadius`.
+    it('sizes node bars from node width and gap (Advanced)', async () => {
+      const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, edgesFrame], {
+        relationsSankeyNodeWidth: 32,
+        relationsSankeyNodeGap: 20,
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('raises ribbon opacity (Advanced)', async () => {
+      const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, edgesFrame], {
+        relationsSankeyLinkOpacity: 0.7,
+      });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });

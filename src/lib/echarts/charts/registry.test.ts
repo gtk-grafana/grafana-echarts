@@ -37,17 +37,19 @@ describe('resolveChartModule', () => {
     expect(resolveChartModule('pie')).toBe(partToWholeChartModule);
   });
 
-  it('routes graph to the relations module', () => {
+  it('routes both relations types to the shared module', () => {
+    // Graph and sankey share one module (the module picks the variant from the
+    // type), since both ECharts series read the identical node/link input.
     expect(resolveChartModule('graph')).toBe(relationsChartModule);
+    expect(resolveChartModule('sankey')).toBe(relationsChartModule);
   });
 
   it('throws for unsupported concrete types', () => {
     // gauge is a planned part-to-whole variant, not yet registered.
     expect(() => resolveChartModule('gauge')).toThrow();
-    // sankey and chord are planned relations variants; until they are added to
-    // `relationsSeriesTypes` they must still throw rather than silently render as a
+    // chord is a planned relations variant; until it is added to
+    // `relationsSeriesTypes` it must still throw rather than silently render as a
     // graph.
-    expect(() => resolveChartModule('sankey')).toThrow();
     expect(() => resolveChartModule('chord')).toThrow();
   });
 

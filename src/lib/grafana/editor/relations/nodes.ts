@@ -1,5 +1,6 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { relationsCategoryName } from 'editor/constants';
+import { isGraphVariant } from 'editor/sankey';
 import { RELATIONS_NODE_SIZE_DEFAULT, RELATIONS_SHOW_NODE_LABELS_DEFAULT } from 'lib/echarts/options/graph';
 import { type PanelOptions } from 'types';
 
@@ -7,6 +8,10 @@ import { type PanelOptions } from 'types';
  * Node presentation options, Default tier: whether node names are drawn, and the
  * fallback node size. Both mirror what a user coming from core Grafana's Node
  * graph panel expects to be able to control.
+ *
+ * Labels are shared by every render variant; "Node size" is graph-only, since a
+ * sankey node is a rectangle whose thickness is the series-level `nodeWidth` and
+ * whose length is its flow — see `addRelationsSankeyOptions`.
  * https://echarts.apache.org/en/option.html#series-graph.label
  * https://echarts.apache.org/en/option.html#series-graph.symbolSize
  */
@@ -26,5 +31,6 @@ export function addRelationsNodeOptions(builder: PanelOptionsEditorBuilder<Panel
     category: [relationsCategoryName],
     defaultValue: RELATIONS_NODE_SIZE_DEFAULT,
     settings: { min: 4, max: 80, step: 1 },
+    showIf: isGraphVariant,
   });
 }

@@ -73,7 +73,9 @@ export function buildRelationsTooltipModel(
       {
         color,
         label: 'Value',
-        value: formatEChartsValue(node?.value ?? null, ctx.formatValue),
+        // `stat` first: the sankey variant carries `mainstat` there rather than in
+        // `value`, which it leaves to ECharts' flow computation. See `RelationsNodeItem`.
+        value: formatEChartsValue(node?.stat ?? node?.value ?? null, ctx.formatValue),
         source,
       },
     ];

@@ -25,7 +25,22 @@ const edgesFrame = toDataFrame({
   ],
 });
 
-const ctx = (frames: DataFrame[], fieldConfig: FieldConfigSource = emptyFieldConfig): RelationsChartContext =>
+/** A cyclic edge set (A->B->A), the shape that throws out of ECharts' sankey layout. */
+const cyclicEdgesFrame = toDataFrame({
+  name: 'edges',
+  fields: [
+    { name: 'id', type: FieldType.string, values: ['e1', 'e2'] },
+    { name: 'source', type: FieldType.string, values: ['a', 'b'] },
+    { name: 'target', type: FieldType.string, values: ['b', 'a'] },
+    { name: 'mainstat', type: FieldType.number, values: [5, 3] },
+  ],
+});
+
+const ctx = (
+  frames: DataFrame[],
+  fieldConfig: FieldConfigSource = emptyFieldConfig,
+  seriesType: RelationsChartContext['seriesType'] = 'graph'
+): RelationsChartContext =>
   ({
     frames,
     theme,
@@ -35,11 +50,14 @@ const ctx = (frames: DataFrame[], fieldConfig: FieldConfigSource = emptyFieldCon
       legend: { showLegend: true, displayMode: 'list', placement: 'bottom', calcs: [] },
       tooltip: { mode: 'single' },
     } as unknown as PanelOptions,
-    seriesType: 'graph',
+    seriesType,
     formatValue: (value: unknown) => ({ text: String(value) }),
     fieldConfig,
     replaceVariables: (value: string) => value,
   }) as unknown as RelationsChartContext;
+
+/** The same context, narrowed to the sankey render variant. */
+const sankeyCtx = (frames: DataFrame[]): RelationsChartContext => ctx(frames, emptyFieldConfig, 'sankey');
 
 const base = { isGrafanaLegend: true };
 
@@ -64,6 +82,48 @@ describe('relationsChartModule', () => {
     it('returns null when there is no edges frame, so the panel shows no-data', () => {
       expect(relationsChartModule.buildOption(ctx([nodesFrame]), base)).toBeNull();
       expect(relationsChartModule.buildOption(ctx([]), base)).toBeNull();
+    });
+
+    // The variant is picked from `ctx.seriesType`, the way the hierarchy module picks
+    // treemap vs sunburst — one module, one converter, two layouts.
+    it('builds a sankey series from the same frames when the variant is selected', () => {
+      const option = relationsChartModule.buildOption(sankeyCtx([nodesFrame, edgesFrame]), base);
+      const series = option!.series as Array<Record<string, unknown>>;
+
+      expect(series).toHaveLength(1);
+      expect(series[0].type).toBe('sankey');
+      expect(series[0].data).toHaveLength(2);
+      expect(series[0].links).toHaveLength(1);
+    });
+
+    it('returns null for the sankey variant when there is no edges frame', () => {
+      expect(relationsChartModule.buildOption(sankeyCtx([nodesFrame]), base)).toBeNull();
+    });
+
+    it('adds no dropped-link note for an acyclic sankey', () => {
+      const option = relationsChartModule.buildOption(sankeyCtx([nodesFrame, edgesFrame]), base);
+
+      expect(option).not.toHaveProperty('title');
+    });
+
+    // Without the cycle policy this edge set throws out of `sankeyLayout.ts` in a
+    // production build, blanking the panel.
+    it('breaks a cycle for the sankey variant and notes the dropped link', () => {
+      const option = relationsChartModule.buildOption(sankeyCtx([nodesFrame, cyclicEdgesFrame]), base);
+      const series = option!.series as Array<Record<string, unknown>>;
+
+      expect(series[0].links).toHaveLength(1);
+      expect(option).toHaveProperty('title');
+      expect((option as { title?: { subtext?: string } }).title?.subtext).toBe('1 link hidden to remove cycles');
+    });
+
+    // The graph series accepts any digraph, so the same frames must keep both edges.
+    it('keeps the cycle for the graph variant', () => {
+      const option = relationsChartModule.buildOption(ctx([nodesFrame, cyclicEdgesFrame]), base);
+      const series = option!.series as Array<Record<string, unknown>>;
+
+      expect(series[0].links).toHaveLength(2);
+      expect(option).not.toHaveProperty('title');
     });
   });
 

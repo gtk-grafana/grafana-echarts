@@ -66,8 +66,10 @@ All three series take **identical input** — `GraphSeries`, `SankeySeries` and
 option.nodes`, then build the graph with the shared `createGraphFromNodeEdge` helper.
 So these are layout variants over one converter, not three converters.
 
-- **`sankey`** — for weighted, directed, acyclic flows. Map `mainstat`/`thickness`
-  to link `value`; nodes/links reuse the same frames.
+- **`sankey`** — **shipped.** Weighted, directed, acyclic flows. Link `value` comes
+  from the converter's `mainstat` → `thickness` → `1` chain; nodes/links reuse the
+  same frames. Options in `src/lib/echarts/options/sankey.ts`, cycle policy in
+  `src/lib/echarts/converters/dag.ts`.
 
   > **Cycles crash the panel in production.** `sankeyLayout.ts` runs Kahn's
   > algorithm and then `throw new Error('Sankey is a DAG, the original data has
@@ -80,6 +82,12 @@ cycle!')`. That throw is **not** behind a `__DEV__` guard, so a production build
   > traversal (an unstable one would drop different edges on each render). This is
   > not something a user-facing "allow cycles" option can express — the only
   > alternative to breaking them is crashing.
+  >
+  > Implemented exactly so, with the removed-link count surfaced as a panel note.
+  > Two further ECharts divergences surfaced while building it, both documented in
+  > [../data-plane/node-graph.md](../data-plane/node-graph.md#pitfalls-for-a-converter):
+  > a declared node `value` acts as a layout _floor_, and a sankey labels from the
+  > node key rather than its name.
 
 - **`chord`** (added in ECharts **6.0.0**) — for dense adjacency where a circular
   relationship view reads better than a force layout. Pins
@@ -213,6 +221,9 @@ and with Grafana's legacy "Graph" panel name.
   content — but `mainstat` may be a **string**, so every geometric use needs a numeric
   fallback chain. Whether link weight should additionally be user-selectable (rather
   than pure convention, as `multiValueCartesian` does it) is undecided.
-- **Reporting dropped edges.** Sankey cycle-breaking silently changes the graph.
-  Surfacing a count (a panel note, or a tooltip line) avoids a correctness surprise,
-  but there is no precedent in this plugin for a panel-level advisory message.
+- ~~**Reporting dropped edges.**~~ **Resolved.** The count is surfaced as an ECharts
+  `title` carrying only `subtext`, bottom-left ("N links hidden to remove cycles"),
+  shown only when something was actually dropped. That reuses the one panel-level
+  advisory mechanism the plugin already has — the same conditional `title` the pie's
+  donut-center readout uses — rather than inventing a React overlay for it. See
+  `getSankeyDroppedNote`.

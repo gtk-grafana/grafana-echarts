@@ -37,7 +37,7 @@ sufficient, and the metadata signals do not survive the paths that matter
 | [flame-graph.md](./flame-graph.md)           | input frame format for treemap / sunburst                 | Flame graph (out of contract — nested set)              |
 | [heatmap-binned.md](./heatmap-binned.md)     | continuous-axis heatmap (custom cell series)              | Heatmap (`heatmap-rows` / `heatmap-cells`)              |
 | [heatmap-matrix.md](./heatmap-matrix.md)     | category x category heatmap (native series)               | Numeric (wide / pivot) — _not_ the Heatmap kind         |
-| [node-graph.md](./node-graph.md)             | graph (sankey / chord planned)                            | Node graph (out of contract — nodes + edges)            |
+| [node-graph.md](./node-graph.md)             | graph, sankey (chord planned)                             | Node graph (out of contract — nodes + edges)            |
 | [echarts-coverage.md](./echarts-coverage.md) | every ECharts series type — implementation support matrix | —                                                       |
 
 These docs describe the frame formats. For **which data sources emit a given shape**,

@@ -114,20 +114,21 @@ export const hierarchySeriesTypeOptions: Array<SelectableValue<HierarchySeriesTy
 ];
 /**
  * Relations types: nodes plus the links between them, built from Grafana's
- * node-graph frame pair. Only `graph` is implemented; `sankey` and `chord` are
- * planned variants of this same family (all three ECharts series consume the
- * identical node/link input), so they join this list when they land. See
+ * node-graph frame pair. `graph` and `sankey` are implemented; `chord` is a planned
+ * variant of this same family (all three ECharts series consume the identical
+ * node/link input), so it joins this list when it lands. See
  * echarts/converters/nodeGraph.ts.
  */
-export const relationsSeriesTypes: RelationsSeriesType[] = ['graph'];
+export const relationsSeriesTypes: RelationsSeriesType[] = ['graph', 'sankey'];
 /**
  * Relations render types offered by the relations family panel, selected per panel
- * via the panel-level `seriesType`. A single entry today, so the panel skips the
- * "Chart type" radio entirely (see `modules/relations/module.tsx`) — mirroring how
- * the multivariate panel gates its picker on `length > 1`.
+ * via the panel-level `seriesType`. `graph` draws an arbitrary topology; `sankey`
+ * lays the same nodes and links out as weighted flow ribbons, which requires an
+ * acyclic edge set (broken automatically — see `converters/dag.ts`).
  */
 export const relationsSeriesTypeOptions: Array<SelectableValue<RelationsSeriesType>> = [
   { value: 'graph', label: 'Graph' },
+  { value: 'sankey', label: 'Sankey' },
 ];
 /** Editor category holding the relations family's Default-tier options. */
 export const relationsCategoryName = 'Relations';

@@ -62,7 +62,7 @@ Verdicts use exactly four buckets:
 | `parallel`      | `[[d0, d1, ..., dn], ...]`; one row per polyline, one `parallelAxis` per dimension          | `NumericWide` — every numeric field becomes an axis                 | good fit, needs a converter                 | Throws                                                                           |
 | `lines`         | `[{ coords: [[x1, y1], [x2, y2], ...] }, ...]`; polylines in cartesian or geo space         | none — no kind carries coordinate-pair polylines                    | no Grafana source                           | Throws                                                                           |
 | `graph`         | `data`/`nodes` plus `links`/`edges`; arbitrary topology, cycles allowed                     | Node graph nodes + edges frames                                     | works today                                 | Enabled — [node-graph.md](./node-graph.md)                                       |
-| `sankey`        | `data`/`nodes` plus `links`/`edges`, **DAG only** (see below)                               | Node graph nodes + edges frames                                     | needs a reshape or an out-of-contract frame | Throws — [node-graph.md](./node-graph.md)                                        |
+| `sankey`        | `data`/`nodes` plus `links`/`edges`, **DAG only** (see below)                               | Node graph nodes + edges frames                                     | works today (converter breaks cycles)       | Enabled — [node-graph.md](./node-graph.md)                                       |
 | `funnel`        | `[{ name, value }, ...]`; same slice model as `pie`                                         | Same as `pie`                                                       | works today                                 | Enabled — [part-to-whole.md](./part-to-whole.md)                                 |
 | `gauge`         | `[{ name, value }, ...]`, normally one item                                                 | Any numeric frame reduced to a single value                         | good fit, needs a converter                 | Throws                                                                           |
 | `pictorialBar`  | Bar data (`number[]` or `[[x, y]]`) plus a `symbol` (path/image) per item                   | Same as `bar`                                                       | good fit, needs a converter                 | Throws                                                                           |
@@ -72,8 +72,8 @@ Verdicts use exactly four buckets:
 
 ### Counts
 
-Resolving the constituent arrays of `supportedChartSeriesTypes` gives **14
-enabled** and **9 throwing**:
+Resolving the constituent arrays of `supportedChartSeriesTypes` gives **15
+enabled** and **8 throwing**:
 
 | Array                      | Defined in                | Members                                       |
 | -------------------------- | ------------------------- | --------------------------------------------- |
@@ -83,16 +83,15 @@ enabled** and **9 throwing**:
 | `multivariateSeriesTypes`  | `src/editor/radar.ts`     | `radar`, `parallel` (2)                       |
 | `partToWholeSeriesTypes`   | `src/editor/pie.ts`       | `pie` + `funnel` (2)                          |
 | `hierarchySeriesTypes`     | `src/editor/constants.ts` | `treemap`, `sunburst` (2)                     |
-| `relationsSeriesTypes`     | `src/editor/constants.ts` | `graph` (1)                                   |
+| `relationsSeriesTypes`     | `src/editor/constants.ts` | `graph`, `sankey` (2)                         |
 
-4 + 2 + 1 + 2 + 2 + 2 + 1 = **14**. The remaining 9 of the 23 `SeriesType` members
-— `tree`, `map`, `lines`, `sankey`, `gauge`, `pictorialBar`, `themeRiver`, `chord`,
+4 + 2 + 1 + 2 + 2 + 2 + 2 = **15**. The remaining 8 of the 23 `SeriesType` members
+— `tree`, `map`, `lines`, `gauge`, `pictorialBar`, `themeRiver`, `chord`,
 `custom` — throw from `resolveChartModule`.
 
-`sankey` and `chord` are the near-term additions: both are planned variants of the
-**relations** family and consume the exact same node/link model `graph` already
-uses, so only their layout options and (for sankey) a cycle-breaking pass are
-missing. See [../todo/node-graph.md](../todo/node-graph.md).
+`chord` is the near-term addition: a planned variant of the **relations** family,
+consuming the exact same node/link model `graph` and `sankey` already use, so only
+its layout options are missing. See [../todo/node-graph.md](../todo/node-graph.md).
 
 `custom` is the odd one out: `CustomChart` **is** registered in
 `src/lib/echarts/echarts.ts` and the binned heatmap renders through it
@@ -278,6 +277,14 @@ and drop back-edges, or refuse and fall back) rather than passing edges through.
 `graph` and `chord` have no such restriction. See
 [node-graph.md](./node-graph.md) for the edges/nodes frame format.
 
+**Implemented** in `src/lib/echarts/converters/dag.ts`: the sankey path drops
+self-loops, merges duplicate `source → target` pairs, and removes back-edges found
+by a deterministic depth-first traversal, before the links reach ECharts. It runs
+unconditionally — the only alternative to breaking a cycle is crashing, so there is
+no user option — and reports the number of links removed, which the panel surfaces
+as a note. See the cycle policy section in
+[`src/modules/relations/parity.md`](../src/modules/relations/parity.md).
+
 ### Chord is new in 6.0.0
 
 `series.chord` was added in **ECharts 6.0.0**; the option reference tags it
@@ -307,9 +314,9 @@ Currently registered:
 
 - **Series** — `LineChart`, `BarChart`, `ScatterChart`, `EffectScatterChart`,
   `CandlestickChart`, `BoxplotChart`, `PieChart`, `FunnelChart`, `RadarChart`,
-  `ParallelChart`, `TreemapChart`, `SunburstChart`, `GraphChart`, `CustomChart`,
-  `HeatmapChart` (15 — one more than the 14 routable types, because `CustomChart`
-  backs the binned heatmap).
+  `ParallelChart`, `TreemapChart`, `SunburstChart`, `GraphChart`, `SankeyChart`,
+  `CustomChart`, `HeatmapChart` (16 — one more than the 15 routable types, because
+  `CustomChart` backs the binned heatmap).
 - **Components** — `GridComponent`, `TooltipComponent`, `LegendComponent`,
   `TitleComponent`, `AxisPointerComponent`, `BrushComponent`, `RadarComponent`,
   `VisualMapContinuousComponent`, `MarkLineComponent`, `MarkAreaComponent`.
@@ -332,7 +339,7 @@ What each roadmap type would additionally need to import from `echarts/charts`
 | `parallel`     | `ParallelChart`     | none — its `install` calls `use(ParallelComponent)` internally                                                             |
 | `lines`        | `LinesChart`        | `GridComponent` (already registered) for cartesian; `GeoComponent` for geo                                                 |
 | `graph`        | `GraphChart`        | **registered** — ships its own `View` coordinate system, so nothing extra was needed                                       |
-| `sankey`       | `SankeyChart`       | none — self-contained                                                                                                      |
+| `sankey`       | `SankeyChart`       | **registered** — self-contained (box layout, no coordinate component)                                                      |
 | `gauge`        | `GaugeChart`        | none — self-contained                                                                                                      |
 | `pictorialBar` | `PictorialBarChart` | none — shares the bar grid layout, which `GridComponent` already covers                                                    |
 | `themeRiver`   | `ThemeRiverChart`   | **`SingleAxisComponent`** — `ThemeRiverSeriesModel.dependencies = ['singleAxis']` and its `install` does _not_ register it |
