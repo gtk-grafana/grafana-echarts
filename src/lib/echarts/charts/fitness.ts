@@ -65,3 +65,32 @@ export const scorePartToWhole = (summary: PanelDataSummary): VisualizationSugges
 /** Multivariate (radar): several numeric metrics to place around the axes. */
 export const scoreMultivariate = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined =>
   summary.fieldCountByType(FieldType.number) >= 2 ? VisualizationSuggestionScore.OK : undefined;
+
+/**
+ * Stream (theme river): the same time + numeric gate as cartesian — a river is a
+ * time chart, and instant data has only one timestamp to stack at — plus a
+ * requirement for **more than one layer**, since a single-ribbon river is just a
+ * filled area chart that the cartesian family draws better.
+ *
+ * Layers come from either shape the family accepts (see `frameToStream`): one per
+ * numeric field (so a wide frame's field count, or a `TimeSeriesMulti` response's
+ * frame count), or one per value of a label column — whose cardinality the summary
+ * cannot see, so the presence of a string field is taken as pivotable.
+ *
+ * Caps at `OK`, deliberately. A stream graph trades a readable value axis for
+ * composition-over-time, so it is the "there are likely better options" case that
+ * score documents rather than a rival to the cartesian suggestion.
+ */
+export const scoreStream = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined => {
+  if (
+    !summary.hasFieldType(FieldType.time) ||
+    !summary.hasFieldType(FieldType.number) ||
+    summary.rowCountTotal < 2 ||
+    summary.isInstant
+  ) {
+    return undefined;
+  }
+  const fieldLayers = Math.max(summary.frameCount, summary.fieldCountByType(FieldType.number));
+  const isPivotable = summary.hasFieldType(FieldType.string);
+  return fieldLayers > 1 || isPivotable ? VisualizationSuggestionScore.OK : undefined;
+};

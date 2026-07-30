@@ -190,6 +190,18 @@ export interface HierarchyTooltipContext {
   valueField?: Field;
 }
 
+/**
+ * Formatting context the stream (single-axis) tooltip reads: the time zone for its
+ * header, the panel formatter, and the theme it needs to build a per-layer
+ * formatter from that layer's field. Narrower than the chart context that
+ * supplies it, which keeps the tooltip layer from importing the option layer back.
+ */
+export interface StreamTooltipContext {
+  theme: GrafanaTheme2;
+  timeZone: string;
+  formatValue: ValueFormatter;
+}
+
 /** Theme + formatting context the binned heatmap tooltip needs to match Grafana. */
 export interface BinnedHeatmapTooltipContext {
   theme: GrafanaTheme2;

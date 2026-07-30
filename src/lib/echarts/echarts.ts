@@ -13,6 +13,7 @@ import {
   RadarChart,
   ScatterChart,
   SunburstChart,
+  ThemeRiverChart,
   TreemapChart,
 } from 'echarts/charts';
 import {
@@ -24,6 +25,7 @@ import {
   MarkLineComponent,
   ParallelComponent,
   RadarComponent,
+  SingleAxisComponent,
   TitleComponent,
   TooltipComponent,
   VisualMapContinuousComponent,
@@ -66,6 +68,7 @@ registerEChartsModules([
   ParallelChart, // multivariate family: parallel coordinates (one axis per category, one polyline per field)
   TreemapChart, // hierarchy family: nested rectangles sized by value
   SunburstChart, // hierarchy family: radial rings sized by value
+  ThemeRiverChart, // stream family: stacked ribbons over a single time axis
   CustomChart, // binned heatmap cells are drawn as a custom series
   HeatmapChart, // native series for the matrix heatmap layout (category x category grid)
   // ToolboxComponent,
@@ -78,6 +81,10 @@ registerEChartsModules([
   BrushComponent, // drag-select on the time axis for range zoom
   RadarComponent, // radar coordinate system
   ParallelComponent, // parallel-coordinates coordinate system (parallel + parallelAxis)
+  // singleAxis coordinate system, required by themeRiver:
+  // `ThemeRiverSeriesModel.dependencies` is `['singleAxis']` and `ThemeRiverChart`'s
+  // own `install` does not register it, so the series would not lay out without this.
+  SingleAxisComponent,
   VisualMapContinuousComponent, // heatmap color gradient
   MarkLineComponent, // threshold lines on cartesian series
   MarkAreaComponent, // threshold filled regions on cartesian series

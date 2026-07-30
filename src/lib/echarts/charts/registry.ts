@@ -3,17 +3,20 @@ import { heatmapSeriesTypes, hierarchySeriesTypes } from 'editor/constants';
 import { partToWholeSeriesTypes } from 'editor/pie';
 import { multivariateSeriesTypes } from 'editor/radar';
 import { type SeriesType } from 'editor/types';
+import { streamSeriesTypes } from 'editor/stream';
 import {
   isCartesianSingleValueSeriesType,
   isHierarchySeriesType,
   isMultiValueSeriesType,
   isMultivariateSeriesType,
+  isStreamSeriesType,
 } from './narrowing';
 import { cartesianChartModule } from './cartesian';
 import { heatmapChartModule } from './heatmap';
 import { hierarchyChartModule } from './hierarchy';
 import { multivariateChartModule, radarChartModule } from './multivariate';
 import { partToWholeChartModule, pieChartModule } from './pie';
+import { streamChartModule } from './stream';
 import { type ChartModule } from './types';
 
 const partToWholeModule = partToWholeChartModule;
@@ -26,6 +29,7 @@ export const supportedChartSeriesTypes: SeriesType[] = [
   ...multivariateSeriesTypes,
   ...partToWholeSeriesTypes,
   ...hierarchySeriesTypes,
+  ...streamSeriesTypes,
 ];
 
 /**
@@ -60,6 +64,10 @@ export function resolveChartModule(seriesType: SeriesType): ChartModule {
   if (isHierarchySeriesType(seriesType)) {
     return hierarchyChartModule;
   }
+  // themeRiver is the stream family's only render type (ECharts `singleAxis`).
+  if (isStreamSeriesType(seriesType)) {
+    return streamChartModule;
+  }
   throw new Error(`Cannot resolve chart module, invalid ${seriesType}!`);
 }
 
@@ -71,4 +79,5 @@ export {
   partToWholeChartModule,
   pieChartModule,
   radarChartModule,
+  streamChartModule,
 };

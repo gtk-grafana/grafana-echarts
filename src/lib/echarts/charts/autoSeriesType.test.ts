@@ -84,6 +84,11 @@ describe('resolveAutoSeriesType', () => {
       expect(resolveAutoSeriesType('hierarchy', [multiNumericFrame()])).toBe('treemap');
       expect(resolveAutoSeriesType('hierarchy', [])).toBe('treemap');
     });
+
+    it('stream stays themeRiver', () => {
+      expect(resolveAutoSeriesType('stream', [timeNumberFrame()])).toBe('themeRiver');
+      expect(resolveAutoSeriesType('stream', [])).toBe('themeRiver');
+    });
   });
 });
 

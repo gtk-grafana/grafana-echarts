@@ -6,6 +6,7 @@ import {
   type VizLegendOptions,
 } from '@grafana/schema';
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
+import { type streamLayerSourcePath } from 'editor/stream';
 import {
   type CartesianShowValues,
   type CartesianValueLabelPosition,
@@ -25,6 +26,7 @@ import {
   type ParallelLayout,
   type RadarShape,
   type SeriesTypeOption,
+  type StreamLayerSource,
 } from 'editor/types';
 
 import {
@@ -473,6 +475,15 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
    * `getFunnelLabel` and `resolveFunnelLabelColor`.
    */
   funnelLabelPosition?: FunnelLabelPosition;
+
+  /**
+   * Stream (single-axis) layer source: where the river layers come from —
+   * `auto` (infer per frame), `fields` (one layer per numeric field), or `labels`
+   * (pivot on the first string field). Defaults to `STREAM_LAYER_SOURCE_DEFAULT`
+   * (`auto`) when unset. JSON-only until the family's editor surface lands. See
+   * `frameToStream` and `data-plane/stream.md`.
+   */
+  [streamLayerSourcePath]?: StreamLayerSource;
 
   /**
    * Animation toggle, shared by every family that offers it (cartesian and

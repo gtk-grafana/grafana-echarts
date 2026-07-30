@@ -64,6 +64,13 @@ describe('panelTypeToAxis', () => {
     expect(panelTypeToAxis(makeContext('radar'))).toBe('category');
   });
 
+  it('keeps the stream family on a time axis, with or without a time field', () => {
+    // The `singleAxis` river is time-ordered by contract; a response with no time
+    // field yields no layers at all rather than falling back to a category axis.
+    expect(panelTypeToAxis(makeContext('themeRiver'))).toBe('time');
+    expect(panelTypeToAxis(makeContext('themeRiver'), false)).toBe('time');
+  });
+
   it('routes multi-value types by axis support: candlestick needs a time field, boxplot falls back to category', () => {
     expect(panelTypeToAxis(makeContext('candlestick'))).toBe('time');
     expect(panelTypeToAxis(makeContext('boxplot'))).toBe('time');
