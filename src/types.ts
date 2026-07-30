@@ -6,7 +6,19 @@ import {
   type VizLegendOptions,
 } from '@grafana/schema';
 import { type editorModePath, type seriesTypePath } from 'editor/constants';
-import { type streamLayerSourcePath } from 'editor/stream';
+import {
+  type streamBorderColorPath,
+  type streamBorderWidthPath,
+  type streamBoundaryGapPath,
+  type streamBubbleMaxSizePath,
+  type streamChartTypePath,
+  type streamEmphasisFocusPath,
+  type streamFillOpacityPath,
+  type streamLabelFontSizePath,
+  type streamLabelMarginPath,
+  type streamLayerSourcePath,
+  type streamShowLabelsPath,
+} from 'editor/stream';
 import {
   type CartesianShowValues,
   type CartesianValueLabelPosition,
@@ -30,6 +42,8 @@ import {
   type RelationsSankeyNodeAlign,
   type RelationsSankeyOrient,
   type SeriesTypeOption,
+  type StreamChartType,
+  type StreamEmphasisFocus,
   type StreamLayerSource,
 } from 'editor/types';
 
@@ -655,13 +669,92 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsChordLinkOpacity?: number;
 
   /**
+   * Stream (single-axis) render variant ("Stream" category): `river` (stacked
+   * ribbons over one shared axis) or `bubble` (a punch-card timeline, one axis per
+   * layer). Defaults to `STREAM_CHART_TYPE_DEFAULT` (`river`).
+   *
+   * Family-local rather than the shared `seriesType` because `scatter` — the series
+   * the bubble emits — is already routed to the cartesian family; see
+   * {@link StreamChartType}.
+   */
+  [streamChartTypePath]?: StreamChartType;
+
+  /**
+   * Stream bubble-variant largest symbol diameter in px (Advanced, bubble only;
+   * ECharts `series-scatter.symbolSize`). Sizes scale from this by area. Defaults to
+   * `STREAM_BUBBLE_MAX_SIZE_DEFAULT`. See `resolveBubbleSymbolSize`.
+   */
+  [streamBubbleMaxSizePath]?: number;
+
+  /**
    * Stream (single-axis) layer source: where the river layers come from —
    * `auto` (infer per frame), `fields` (one layer per numeric field), or `labels`
    * (pivot on the first string field). Defaults to `STREAM_LAYER_SOURCE_DEFAULT`
-   * (`auto`) when unset. JSON-only until the family's editor surface lands. See
-   * `frameToStream` and `data-plane/stream.md`.
+   * (`auto`) when unset. Default tier ("Stream" category). See `frameToStream` and
+   * `data-plane/stream.md`.
    */
   [streamLayerSourcePath]?: StreamLayerSource;
+
+  /**
+   * Stream layer labels ("Stream" category; ECharts `series.label.show`): draw each
+   * ribbon's name on the band itself. Defaults to `STREAM_SHOW_LABELS_DEFAULT`
+   * (**off**) — ECharts shows them by default, illegibly. See `getStreamLabel`.
+   */
+  [streamShowLabelsPath]?: boolean;
+
+  /**
+   * Stream layer-label horizontal offset in px (Advanced; ECharts
+   * `series.label.margin`), measured left of the ribbon's start — negative values
+   * move the label onto the ribbon. This is the family's placement lever because
+   * `label.position` is inert in ECharts 6.1.0; see `streamLabelMarginPath`.
+   * Defaults to `STREAM_LABEL_MARGIN_DEFAULT` (`4`), so the key is omitted. Only
+   * read when the labels are on. See `getStreamLabel`.
+   */
+  [streamLabelMarginPath]?: number;
+
+  /**
+   * Stream layer-label font size in px (Advanced; ECharts `series.label.fontSize`).
+   * Unset keeps the themed label size. Only read when the labels are on. See
+   * `getStreamLabel`.
+   */
+  [streamLabelFontSizePath]?: number;
+
+  /**
+   * Stream orthogonal ribbon padding as a percentage of the single axis' cross
+   * extent (Advanced; ECharts `series.boundaryGap`, applied to both sides).
+   * Defaults to `STREAM_BOUNDARY_GAP_PERCENT_DEFAULT` (`10`, ECharts' own default),
+   * so the key is omitted. See `getStreamBoundaryGap`.
+   */
+  [streamBoundaryGapPath]?: number;
+
+  /**
+   * Stream ribbon opacity 0–100 (Advanced; ECharts `series.itemStyle.opacity`).
+   * Unset leaves the ribbons fully opaque and writes no key. See
+   * `getStreamItemStyle`.
+   */
+  [streamFillOpacityPath]?: number;
+
+  /**
+   * Stream ribbon border width in px (Advanced; ECharts
+   * `series.itemStyle.borderWidth`). A border separates similarly-colored
+   * neighbouring ribbons. `0` (the default) draws none. See `getStreamItemStyle`.
+   */
+  [streamBorderWidthPath]?: number;
+
+  /**
+   * Stream ribbon border color (Advanced; ECharts
+   * `series.itemStyle.borderColor`), paired with the border width and only read
+   * once a width is set. See `getStreamItemStyle`.
+   */
+  [streamBorderColorPath]?: string;
+
+  /**
+   * Stream hover emphasis (Advanced; ECharts `series.emphasis.focus`): fade the
+   * other ribbons (`self`) or highlight the whole river (`series`). Defaults to
+   * `STREAM_EMPHASIS_FOCUS_DEFAULT` (`none`), so the key is omitted. See
+   * `getStreamEmphasis`.
+   */
+  [streamEmphasisFocusPath]?: StreamEmphasisFocus;
 
   /**
    * Animation toggle, shared by every family that offers it (cartesian and

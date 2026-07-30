@@ -268,10 +268,36 @@ export type FunnelLabelPosition = 'inside' | 'left' | 'right' | 'top' | 'bottom'
  *
  * The explicit modes exist because the ambiguous case is real: a SQL table of
  * `time, level, count, errors` can legitimately mean "two metrics" or "one metric
- * per level". JSON-only in Phase 0 — the editor radio lands with the rest of the
- * option surface. See `data-plane/stream.md`.
+ * per level". Exposed as the Default-tier "Layers from" radio. See
+ * `data-plane/stream.md`.
  */
 export type StreamLayerSource = 'auto' | 'fields' | 'labels';
+
+/**
+ * Render variant of the stream (single-axis) family: `river` (a themeRiver — one
+ * stacked ribbon per layer over one shared axis) or `bubble` (a punch-card
+ * timeline — one `singleAxis` *per* layer with a `scatter` whose symbol size
+ * encodes the value).
+ *
+ * Deliberately **not** the shared panel-level `seriesType`, unlike every other
+ * multi-variant family. `seriesType` is the plugin's routing key
+ * (`resolveChartModule`) and its values are ECharts series names owned by exactly
+ * one family — but `scatter` is already owned by cartesian, so selecting it here
+ * would route a stream panel into `cartesianChartModule`. Keeping the variant in a
+ * family-local option leaves `SeriesType` an honest one-family-per-name union (the
+ * premise of `data-plane/echarts-coverage.md`'s master table) and leaves the shared
+ * registry untouched. See `modules/stream/parity.md`.
+ */
+export type StreamChartType = 'river' | 'bubble';
+
+/**
+ * Stream hover emphasis (ECharts `series-themeRiver.emphasis.focus`): `none`
+ * (ECharts' default — only the hovered ribbon lifts), `self` (fade every other
+ * ribbon), or `series` (highlight the whole river). Mirrors `PieEmphasisFocus`;
+ * `themeRiver` emits one series, so `series` reads as "highlight everything".
+ * https://echarts.apache.org/en/option.html#series-themeRiver.emphasis.focus
+ */
+export type StreamEmphasisFocus = 'none' | 'self' | 'series';
 
 /**
  * Per-field custom field config, registered via `useFieldConfig`'s

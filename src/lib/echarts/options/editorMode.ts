@@ -5,6 +5,7 @@ import {
   isMultiValueSeriesType,
   isMultivariateSeriesType,
   isRelationsSeriesType,
+  isStreamSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { ADVANCED_CARTESIAN_DEFAULTS } from 'lib/echarts/options/cartesian';
 import { ADVANCED_CHORD_DEFAULTS } from 'lib/echarts/options/chord';
@@ -13,6 +14,7 @@ import { ADVANCED_PARALLEL_DEFAULTS } from 'lib/echarts/options/parallel';
 import { ADVANCED_PIE_DEFAULTS } from 'lib/echarts/options/pie';
 import { ADVANCED_RADAR_DEFAULTS } from 'lib/echarts/options/radar';
 import { ADVANCED_SANKEY_DEFAULTS } from 'lib/echarts/options/sankey';
+import { ADVANCED_STREAM_DEFAULTS } from 'lib/echarts/options/stream';
 import { isAdvancedEditorMode, isApiEditorMode } from 'lib/grafana/editor/common/editor-mode';
 import { type PanelOptions } from 'types';
 
@@ -44,9 +46,9 @@ export function applyAdvancedDefaults(options: PanelOptions, defaults: Partial<P
  * tier (heatmap, hierarchy) return the options unchanged (identity).
  *
  * The per-family defaults are dereferenced lazily inside the switch — not from a
- * top-level map literal — so the `pie`/`cartesian`/`radar` ↔ `editorMode` import
- * cycle resolves safely: each `ADVANCED_*_DEFAULTS` is only read at call (render)
- * time, by which point every module has finished initializing.
+ * top-level map literal — so the `pie`/`cartesian`/`radar`/`stream` ↔ `editorMode`
+ * import cycle resolves safely: each `ADVANCED_*_DEFAULTS` is only read at call
+ * (render) time, by which point every module has finished initializing.
  */
 export function applyEditorModeDefaults(seriesType: SeriesType, options: PanelOptions): PanelOptions {
   // The part-to-whole family (pie + funnel) shares the pie Advanced defaults; the
@@ -80,6 +82,9 @@ export function applyEditorModeDefaults(seriesType: SeriesType, options: PanelOp
       ...ADVANCED_SANKEY_DEFAULTS,
       ...ADVANCED_CHORD_DEFAULTS,
     });
+  }
+  if (isStreamSeriesType(seriesType)) {
+    return applyAdvancedDefaults(options, ADVANCED_STREAM_DEFAULTS);
   }
   return options;
 }

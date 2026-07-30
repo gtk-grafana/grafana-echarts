@@ -1,0 +1,479 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "The stream family's bubble variant: a punch-card timeline built from the same layer model as the theme river, with one singleAxis row per layer and scatter symbol sizes encoding the value. The time range is absolute because every panel feeds fixed csv_content timestamps. See src/modules/stream/parity.md.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The family's second render: each numeric field gets its own `singleAxis` row, and a `scatter` draws one bubble per observation, sized by value. Sparse, event-shaped data is what this is for — deploys per service, errors per endpoint, jobs per queue. Rows share one time window and one size scale, so ink is comparable both along a row and between rows. Bubble sizes scale by **area** (diameter ∝ √value), so the 20 at 04:30 covers twenty times the ink of the 1 at 02:00, not twenty times the width.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamChartType": "bubble"
+      },
+      "targets": [
+        {
+          "csvContent": "time,api,worker,cron\n2026-07-29T00:00:00Z,3,,\n2026-07-29T00:30:00Z,,1,\n2026-07-29T01:00:00Z,12,,2\n2026-07-29T01:30:00Z,,,\n2026-07-29T02:00:00Z,1,4,\n2026-07-29T02:30:00Z,,,1\n2026-07-29T03:00:00Z,7,,\n2026-07-29T03:30:00Z,,9,\n2026-07-29T04:00:00Z,2,,4\n2026-07-29T04:30:00Z,20,2,",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Bubble punch card (fields path)",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "api"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "worker"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "cron"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "Identical layers, the other render. The river answers \"how did the mix change\"; the punch card answers \"what happened when, and how big was it\". Note what the river cannot show: the gaps. Its null-becomes-zero rule pinches each ribbon shut, which reads as a quiet period rather than as no event — the bubble variant simply draws nothing, which is unambiguous.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamChartType": "river"
+      },
+      "targets": [
+        {
+          "csvContent": "time,api,worker,cron\n2026-07-29T00:00:00Z,3,,\n2026-07-29T00:30:00Z,,1,\n2026-07-29T01:00:00Z,12,,2\n2026-07-29T01:30:00Z,,,\n2026-07-29T02:00:00Z,1,4,\n2026-07-29T02:30:00Z,,,1\n2026-07-29T03:00:00Z,7,,\n2026-07-29T03:30:00Z,,9,\n2026-07-29T04:00:00Z,2,,4\n2026-07-29T04:30:00Z,20,2,",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "The same data as a river",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "api"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "worker"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "cron"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The same punch card built from a `time, service, Value` long frame — the SQL / SQL-expression shape — pivoted on `service` into one row per value. Both render variants read the *same* converter output, so the \"Layers from\" radio works identically for either.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamChartType": "bubble",
+        "streamLayerSource": "labels"
+      },
+      "targets": [
+        {
+          "csvContent": "time,service,Value\n2026-07-29T00:00:00Z,api,3\n2026-07-29T00:30:00Z,worker,1\n2026-07-29T01:00:00Z,api,12\n2026-07-29T01:00:00Z,cron,2\n2026-07-29T02:00:00Z,api,1\n2026-07-29T02:00:00Z,worker,4\n2026-07-29T02:30:00Z,cron,1\n2026-07-29T03:00:00Z,api,7\n2026-07-29T03:30:00Z,worker,9\n2026-07-29T04:00:00Z,api,2\n2026-07-29T04:00:00Z,cron,4\n2026-07-29T04:30:00Z,api,20\n2026-07-29T04:30:00Z,worker,2",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Bubble from a long frame (labels path)",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "Value"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series-scatter.symbolSize` raised from the 20px default. The one option specific to this variant: it trades legibility against crowding. Raise it on a sparse series like this one; lower it when neighbouring bubbles start to collide. Because the scale is shared and area-based, every bubble grows together.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamChartType": "bubble",
+        "streamBubbleMaxSize": 40
+      },
+      "targets": [
+        {
+          "csvContent": "time,api,worker,cron\n2026-07-29T00:00:00Z,3,,\n2026-07-29T00:30:00Z,,1,\n2026-07-29T01:00:00Z,12,,2\n2026-07-29T01:30:00Z,,,\n2026-07-29T02:00:00Z,1,4,\n2026-07-29T02:30:00Z,,,1\n2026-07-29T03:00:00Z,7,,\n2026-07-29T03:30:00Z,,9,\n2026-07-29T04:00:00Z,2,,4\n2026-07-29T04:30:00Z,20,2,",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Max bubble size 40",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "api"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "worker"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "cron"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "`series.emphasis.focus: 'self'` is shared with the river: hovering a bubble fades every *other* row, which is how you follow one service through a busy card. Invisible at rest, by design.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamChartType": "bubble",
+        "streamEmphasisFocus": "self"
+      },
+      "targets": [
+        {
+          "csvContent": "time,api,worker,cron\n2026-07-29T00:00:00Z,3,,\n2026-07-29T00:30:00Z,,1,\n2026-07-29T01:00:00Z,12,,2\n2026-07-29T01:30:00Z,,,\n2026-07-29T02:00:00Z,1,4,\n2026-07-29T02:30:00Z,,,1\n2026-07-29T03:00:00Z,7,,\n2026-07-29T03:30:00Z,,9,\n2026-07-29T04:00:00Z,2,,4\n2026-07-29T04:30:00Z,20,2,",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Hover emphasis — Self (hover to see)",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "api"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "worker"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "cron"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "grafana-echartsstream-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "A single layer still gets the full stack treatment: one row, its name in the left column, one shared set of tick labels underneath. Worth checking because the row layout divides the panel by layer count — the n=1 case is where a percentage-based stack is most likely to look wrong.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "themeRiver",
+        "editorMode": "advanced",
+        "streamChartType": "bubble"
+      },
+      "targets": [
+        {
+          "csvContent": "time,api\n2026-07-29T00:00:00Z,3\n2026-07-29T01:00:00Z,12\n2026-07-29T02:00:00Z,1\n2026-07-29T03:00:00Z,7\n2026-07-29T04:00:00Z,20",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "One row",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "destinationType": "time",
+                "targetField": "time"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "api"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "grafana-echartsstream-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "stream", "bubble"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2026-07-29T00:00:00.000Z",
+    "to": "2026-07-29T05:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Stream — bubble timeline",
+  "uid": "echarts-stream-bubble",
+  "version": 1,
+  "weekStart": ""
+}

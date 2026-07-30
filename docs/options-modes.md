@@ -24,10 +24,18 @@ forcing every advanced option back to its default (including the shared
 New families that gate options behind Advanced should apply the same
 normalization.
 
-> **Known gap:** cartesian does not do this yet. There is no cartesian
-> equivalent of `applyPartToWholeEditorModeDefaults`, so a stored
-> `performance.showPoints: 'never'` (or an explicit `animation.enabled`) keeps
-> applying after the user switches back to Default. The values are all
+The families that normalize by mode, each dispatched from
+`applyEditorModeDefaults` (`lib/echarts/options/editorMode.ts`):
+**part-to-whole** (`ADVANCED_PIE_DEFAULTS`), **cartesian**
+(`ADVANCED_CARTESIAN_DEFAULTS`), **radar** and **parallel** (their own defaults,
+parallel checked first because it shares the multivariate family), and **stream**
+(`ADVANCED_STREAM_DEFAULTS`). Heatmap and hierarchy have no Advanced tier, so the
+dispatch is the identity for them.
+
+> **Known gap:** cartesian's `performance.*` options are not in
+> `ADVANCED_CARTESIAN_DEFAULTS`, so a stored `performance.showPoints: 'never'`
+> keeps applying after the user switches back to Default (the rest of cartesian's
+> Advanced surface, `animation.enabled` included, does reset). The values are all
 > performance-oriented and their defaults are the fast path, so nothing renders
 > _worse_ — but the behavior is inconsistent with the rule above and should be
 > closed when cartesian gains its next Advanced option.
