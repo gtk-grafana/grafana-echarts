@@ -12,6 +12,7 @@ import {
   type BarSeriesOption,
   type BoxplotSeriesOption,
   type CandlestickSeriesOption,
+  type ChordSeriesOption,
   type ComposeOption,
   type CustomSeriesOption,
   type EffectScatterSeriesOption,
@@ -66,11 +67,8 @@ export interface ChartContext<T = SeriesType> {
 }
 
 export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
-/**
- * Relations family context. Narrowed to the render types the family actually hosts;
- * `chord` joins the union when its variant lands.
- */
-export type RelationsChartContext = ChartContext<'graph' | 'sankey'>;
+/** Relations family context, narrowed to the render types the family hosts. */
+export type RelationsChartContext = ChartContext<'graph' | 'sankey' | 'chord'>;
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
@@ -142,6 +140,9 @@ export type EChartGraphSeriesOption = ComposeOption<GraphSeriesOption>;
 // Composes the `title` component too: a sankey may carry a bottom-left note
 // reporting links removed by the cycle policy (see `getSankeyDroppedNote`).
 export type EChartSankeySeriesOption = ComposeOption<SankeySeriesOption | TitleComponentOption>;
+// Relations (chord) lays the same node/link model out as a ring of arcs joined by
+// ribbons. Self-contained: it pins `coordinateSystem: 'none'`, so nothing is composed in.
+export type EChartChordSeriesOption = ComposeOption<ChordSeriesOption>;
 /**
  * @todo revisit
  * A single pie slice data item. ECharts types a pie series' `data` as
@@ -175,6 +176,7 @@ export type EChartBuildOption =
   | EChartSunburstSeriesOption
   | EChartGraphSeriesOption
   | EChartSankeySeriesOption
+  | EChartChordSeriesOption
   | EChartCandlestickSeriesOption
   | EChartBoxPlotSeriesOption
   | EChartEffectScatterSeriesOption

@@ -6,6 +6,7 @@ import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
+import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
@@ -16,8 +17,8 @@ import { type PanelOptions } from 'types';
 import { relationsSuggestionsSupplier } from './suggestions';
 
 // Relations family panel: nodes plus the links between them, built from Grafana's
-// node-graph frame pair (an edges frame, plus an optional nodes frame). The `graph`
-// and `sankey` render variants ship; `chord` is a planned third, since all three
+// node-graph frame pair (an edges frame, plus an optional nodes frame). Three render
+// variants — `graph`, `sankey` and `chord` — over one converter, since all three
 // ECharts series consume the identical node/link input. See
 // data-plane/node-graph.md and lib/echarts/converters/nodeGraph.ts.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('relations'))
@@ -56,6 +57,9 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // category, plus Advanced geometry/ribbon knobs. Every control gates on
     // `isSankeyVariant` internally, mirroring the funnel variant's options.
     addRelationsSankeyOptions(builder);
+
+    // Chord-only ring geometry, all Advanced (gated on `isChordVariant` internally).
+    addRelationsChordOptions(builder);
 
     // Advanced tier: interaction, force tuning, link styling.
     addRelationsInteractionOptions(builder);

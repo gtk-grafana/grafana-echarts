@@ -616,6 +616,43 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsSankeyLayoutIterations?: number;
 
   /**
+   * Chord ring start angle in degrees (Advanced; ECharts
+   * `series.chord.startAngle`). Omitted at ECharts' default of 90 (twelve o'clock).
+   * See `getChordSeries`.
+   */
+  relationsChordStartAngle?: number;
+
+  /**
+   * Chord arc layout direction (Advanced; ECharts `series.chord.clockwise`).
+   * Omitted at ECharts' default of `true`; only `false` is emitted.
+   * See `getChordSeries`.
+   */
+  relationsChordClockwise?: boolean;
+
+  /**
+   * Angular gap in degrees between adjacent chord node arcs (Advanced; ECharts
+   * `series.chord.padAngle`). This is the chord analogue of a node gap — and it is
+   * angular, because `series.chord` has **no** `nodeWidth`/`nodeGap` at all (those
+   * are sankey keys). Omitted at ECharts' default of 3. See `getChordSeries`.
+   */
+  relationsChordPadAngle?: number;
+
+  /**
+   * Minimum chord arc angle in degrees (Advanced; ECharts `series.chord.minAngle`),
+   * keeping a low-flow node visible instead of collapsing to nothing. Omitted at
+   * ECharts' default of 0. See `getChordSeries`.
+   */
+  relationsChordMinAngle?: number;
+
+  /**
+   * Chord ribbon translucency 0–1 (Advanced; ECharts
+   * `series.chord.lineStyle.opacity`). A chord is dense by nature, so this is its
+   * main legibility lever. Omitted at ECharts' default of 0.2.
+   * See `getChordLinkStyle`.
+   */
+  relationsChordLinkOpacity?: number;
+
+  /**
    * Animation toggle, shared by every family that offers it (cartesian and
    * part-to-whole both register it as an Advanced switch). Read via
    * `resolveAnimation`, which defaults it to **off** — see

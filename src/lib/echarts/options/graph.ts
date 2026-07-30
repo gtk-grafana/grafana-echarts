@@ -18,9 +18,10 @@ import { getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 import { type PanelOptions } from 'types';
 
 /**
- * Base option for relations charts. Series data is merged at render time. The
- * native ECharts legend is omitted: nodes are surfaced through the Grafana DOM
- * legend (see charts/relations.ts `buildLegendItems`).
+ * Base option shared by every relations render variant (graph, sankey, chord).
+ * Series data is merged at render time. The native ECharts legend is omitted: nodes
+ * are surfaced through the Grafana DOM legend (see charts/relations.ts
+ * `buildLegendItems`).
  */
 export const relationsDefaultOptions: ECBasicOption = {
   ...createBaseOptions(),

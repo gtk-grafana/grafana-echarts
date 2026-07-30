@@ -62,6 +62,27 @@ const renderSankey = async (
   return getSeriesCanvasEvents(container);
 };
 
+// Chord self-layouts into a ring from the link weights, so like sankey it needs no
+// layout pinning and `relationsLayout` (graph-only) is left off.
+const renderChord = async (
+  frames: Parameters<typeof getComponent>[0],
+  options: Partial<PanelOptions> = {},
+  fieldConfig?: FieldConfigSource
+) => {
+  const { container } = render(
+    getComponent(
+      frames,
+      'chord',
+      { ...canvasOptions(options), relationsLayout: undefined },
+      undefined,
+      undefined,
+      'relations',
+      fieldConfig
+    )
+  );
+  return getSeriesCanvasEvents(container);
+};
+
 describe('relations (graph) canvas renders', () => {
   // A small service graph: gateway fans out to api and web, both of which call db.
   const nodesFrame = toDataFrame({
@@ -291,6 +312,65 @@ describe('relations (graph) canvas renders', () => {
     it('raises ribbon opacity (Advanced)', async () => {
       const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, edgesFrame], {
         relationsSankeyLinkOpacity: 0.7,
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
+  // The chord render variant. Like sankey it self-layouts deterministically, so no
+  // pinning is needed; unlike sankey it accepts cycles and self-loops directly.
+  describe('chord variant', () => {
+    it('lays the same nodes and links out as a ring of arcs', async () => {
+      const { defaultEvents, seriesEvents } = await renderChord([nodesFrame, edgesFrame]);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('renders an edges-only response', async () => {
+      const { defaultEvents, seriesEvents } = await renderChord([edgesFrame]);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // The counterpart to the sankey cycle case: chord has no DAG restriction, so the
+    // cyclic edge set renders with **every** link intact and no dropped-link note.
+    it('renders a cyclic edge set with no links dropped', async () => {
+      const cyclicEdges = toDataFrame({
+        name: 'edges',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['e1', 'e2', 'e3', 'e4', 'e5'] },
+          { name: 'source', type: FieldType.string, values: ['gateway', 'gateway', 'api', 'web', 'db'] },
+          { name: 'target', type: FieldType.string, values: ['api', 'web', 'db', 'db', 'gateway'] },
+          { name: 'mainstat', type: FieldType.number, values: [70, 30, 65, 25, 15] },
+        ],
+      });
+      const { defaultEvents, seriesEvents } = await renderChord([nodesFrame, cyclicEdges]);
+
+      expect(seriesEvents.length).toBeGreaterThan(0);
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('hides node labels when switched off', async () => {
+      const { defaultEvents, seriesEvents } = await renderChord([nodesFrame, edgesFrame], {
+        relationsShowNodeLabels: false,
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('rotates and reverses the ring (Advanced)', async () => {
+      const { defaultEvents, seriesEvents } = await renderChord([nodesFrame, edgesFrame], {
+        relationsChordStartAngle: 0,
+        relationsChordClockwise: false,
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('widens the gap between node arcs (Advanced)', async () => {
+      const { defaultEvents, seriesEvents } = await renderChord([nodesFrame, edgesFrame], {
+        relationsChordPadAngle: 12,
       });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });

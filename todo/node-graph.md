@@ -1,14 +1,26 @@
 # ECharts graphs for node graph frames
 
+> **Status: delivered.** All three proposed variants ship in the **relations** family
+> panel (`src/modules/relations/`) — `graph`, `sankey` and `chord` over one converter,
+> selected by a "Chart type" picker. `lines` remains a deliberate deferral (see
+> [Not a fit: `lines`](#not-a-fit-lines)).
+>
+> This doc is kept as the design record: the proposal, what was verified, and the
+> ECharts traps found along the way. For what shipped, see
+> [../src/modules/relations/parity.md](../src/modules/relations/parity.md) (options and
+> divergences) and [../data-plane/node-graph.md](../data-plane/node-graph.md) (frame
+> spec and read path). The sections below are marked where reality diverged from the
+> proposal.
+
 ## Problem
 
 Grafana emits **node graph** data (a nodes + edges frame pair, see
 [../data-plane/node-graph.md](../data-plane/node-graph.md)) from tracing/service-map
-sources (Tempo, AWS X-Ray, ...). The plugin has no converter, chart module, or
-registered ECharts series for it. `graph`, `sankey`, and `chord` already exist in
-the `SeriesType` union (`src/editor/types.ts`) but are unimplemented, and none of
-the relationship series types are registered in the tree-shaken runtime
-(`src/lib/echarts/echarts.ts`).
+sources (Tempo, AWS X-Ray, ...). _At the time of writing_ the plugin had no converter,
+chart module, or registered ECharts series for it: `graph`, `sankey` and `chord`
+already existed in the `SeriesType` union (`src/editor/types.ts`) but were
+unimplemented, and none of the relationship series types were registered in the
+tree-shaken runtime (`src/lib/echarts/echarts.ts`).
 
 Tracing sources emit the pair natively, but the data sources most users have —
 Prometheus, Loki and SQL — do not; they return flat tables whose rows happen to
@@ -16,8 +28,8 @@ describe edges. Reshaping those into the frame pair is a prerequisite for the pa
 being useful to anyone without Tempo, and is written up separately in
 [../docs/relations-data-sources.md](../docs/relations-data-sources.md).
 
-This doc proposes which ECharts series fit these frames and how a converter/panel
-would map them. No code is written here.
+This doc proposed which ECharts series fit these frames and how a converter/panel
+would map them.
 
 ## Proposal
 
@@ -89,12 +101,18 @@ cycle!')`. That throw is **not** behind a `__DEV__` guard, so a production build
   > a declared node `value` acts as a layout _floor_, and a sankey labels from the
   > node key rather than its name.
 
-- **`chord`** (added in ECharts **6.0.0**) — for dense adjacency where a circular
-  relationship view reads better than a force layout. Pins
-  `coordinateSystem: 'none'` and has **no** DAG restriction, so it takes cyclic
-  service graphs directly. Note it is unrelated to the `chord` series that existed in
-  ECharts 2 and was removed in 3.x; pre-3.x examples do not apply, and its option
-  surface is the least documented of the three.
+- **`chord`** (added in ECharts **6.0.0**) — **shipped.** For dense adjacency where a
+  circular relationship view reads better than a force layout. Pins
+  `coordinateSystem: 'none'` and has **no** DAG restriction, so it takes cyclic service
+  graphs — and self-loops — directly, with no converter work at all. Options in
+  `src/lib/echarts/options/chord.ts`.
+
+  > Its option surface being the least documented of the three was the real risk, and it
+  > bit. **`series.chord` has no `nodeWidth`/`nodeGap`** — sankey keys, assumed here by
+  > analogy in an earlier draft of this doc. Its `emphasis.focus` defaults to
+  > `'adjacency'` where the other two default to none. And `ChordPiece` labels nodes
+  > with their raw **data index** unless given a formatter. All three were caught by
+  > checking the installed 6.1.0 source rather than reasoning from sankey.
 
 ### Not a fit: `lines`
 
@@ -112,12 +130,12 @@ explicitly out of scope in `echarts-coverage.md`), and cartesian OD-flow needs a
 series with `layout: 'none'` over `fixedx`/`fixedy` nodes — which draws the same
 edges _and_ the nodes — non-geo `lines` adds almost nothing.
 
-**Deferred.** Building it would need, in order: a decision on whether geo is in scope
-(it currently is not), a frame convention for coordinate pairs if it is not, and
-verification of `series.lines.data`'s `value` semantics — which
-[../data-plane/echarts-coverage.md](../data-plane/echarts-coverage.md) still lists as
-unverified. None of those is blocked by the relations panel, so `lines` can be picked
-up independently once there is a reason to.
+**Deferred**, and written up separately in [lines.md](./lines.md): the two candidate
+scopes (geo routes, cartesian OD-flow) with their prerequisites, and the ECharts
+details that matter if either is picked up — including that the series **defaults to
+`coordinateSystem: 'geo'`** and that its `value` dimension turns out to be metadata
+only, never geometry. None of it is blocked by the relations panel, so `lines` can be
+picked up independently once there is a reason to.
 
 `tree` / `treemap` / `sunburst` are **not** proposed here either — those target the
 flame-graph nested-set frame (`preferredVisualisationType: 'flamegraph'`), a
@@ -137,6 +155,13 @@ different Grafana format, and treemap/sunburst already ship in the hierarchy fam
 - **`highlighted`** is deprecated for edges (use `color`); support `color` first.
 
 ## Implementation sketch
+
+> **Built as sketched**, with the file list below accurate to what shipped. Two
+> additions the sketch did not anticipate: `src/editor/sankey.ts` and
+> `src/editor/chord.ts` hold each variant's option paths, defaults and `showIf`
+> predicates (mirroring `editor/funnel.ts`), and the sankey path needed
+> `options/sankey.ts` to own the cycle-breaking call so no caller can build a
+> throwing series.
 
 Follows the existing heatmap/radar pattern (converter → chart → options →
 registry, plus a nested panel):

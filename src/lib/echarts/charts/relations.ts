@@ -7,10 +7,12 @@ import {
   relationsDefaultOptions,
   type RelationsSeriesContext,
 } from 'lib/echarts/options/graph';
+import { getChordSeries } from 'lib/echarts/options/chord';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNote, getSankeySeries } from 'lib/echarts/options/sankey';
 import {
   type ChartModule,
+  type EChartChordSeriesOption,
   type EChartGraphSeriesOption,
   type EChartSankeySeriesOption,
   type RelationsChartContext,
@@ -31,15 +33,19 @@ function getLinkValueField(frames: DataFrame[]): Field | undefined {
  * Relations chart family: nodes plus the links between them, built from Grafana's
  * node-graph frame pair (see echarts/converters/nodeGraph.ts).
  *
- * `graph` and `sankey` ship today and `ctx.seriesType` selects between them, the way
- * the hierarchy module picks treemap vs sunburst. `chord` is a planned third variant
- * of this same module — all three ECharts series read the identical node/link input,
- * so a variant is a layout change rather than a data change.
+ * All three render variants ship, and `ctx.seriesType` selects between them the way
+ * the hierarchy module picks treemap vs sunburst. Every ECharts series here reads the
+ * identical node/link input, so a variant is a layout change rather than a data
+ * change — with one exception: `sankey` cannot draw a cycle, so its path rewrites the
+ * link set first (`converters/dag.ts`). `graph` and `chord` take any digraph.
  */
 export const relationsChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  buildOption(ctx: RelationsChartContext, _base): EChartGraphSeriesOption | EChartSankeySeriesOption | null {
+  buildOption(
+    ctx: RelationsChartContext,
+    _base
+  ): EChartGraphSeriesOption | EChartSankeySeriesOption | EChartChordSeriesOption | null {
     const data = frameToNodeGraph(ctx.frames, ctx.theme);
     if (!data) {
       return null;
@@ -58,6 +64,12 @@ export const relationsChartModule: ChartModule = {
       const { series, droppedCount } = getSankeySeries(data, seriesCtx);
       const note = getSankeyDroppedNote(droppedCount, ctx.theme);
       return { ...relationsDefaultOptions, series: [series], ...(note ? { title: note } : {}) };
+    }
+
+    // Chord takes the model unchanged: it has no DAG restriction, so cyclic
+    // service-graph data needs no rewriting and there is nothing to report.
+    if (ctx.seriesType === 'chord') {
+      return { ...relationsDefaultOptions, series: [getChordSeries(data, seriesCtx)] };
     }
 
     return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx)] };

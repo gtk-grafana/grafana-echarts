@@ -11,8 +11,8 @@ frame and an optional **nodes** frame.
 > frame naming conventions.
 >
 > The plugin consumes these frames through the **relations** family panel
-> (`src/modules/relations/`), which renders them as an ECharts `graph` or `sankey`
-> series selected per panel; `chord` is a planned third variant. The converter is
+> (`src/modules/relations/`), which renders them as an ECharts `graph`, `sankey` or
+> `chord` series selected per panel. The converter is
 > `frameToNodeGraph` (`src/lib/echarts/converters/nodeGraph.ts`) and the editor
 > options are tracked in
 > [../src/modules/relations/parity.md](../src/modules/relations/parity.md). See

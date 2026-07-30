@@ -58,6 +58,8 @@ const ctx = (
 
 /** The same context, narrowed to the sankey render variant. */
 const sankeyCtx = (frames: DataFrame[]): RelationsChartContext => ctx(frames, emptyFieldConfig, 'sankey');
+/** The same context, narrowed to the chord render variant. */
+const chordCtx = (frames: DataFrame[]): RelationsChartContext => ctx(frames, emptyFieldConfig, 'chord');
 
 const base = { isGrafanaLegend: true };
 
@@ -120,6 +122,30 @@ describe('relationsChartModule', () => {
     // The graph series accepts any digraph, so the same frames must keep both edges.
     it('keeps the cycle for the graph variant', () => {
       const option = relationsChartModule.buildOption(ctx([nodesFrame, cyclicEdgesFrame]), base);
+      const series = option!.series as Array<Record<string, unknown>>;
+
+      expect(series[0].links).toHaveLength(2);
+      expect(option).not.toHaveProperty('title');
+    });
+
+    it('builds a chord series from the same frames when the variant is selected', () => {
+      const option = relationsChartModule.buildOption(chordCtx([nodesFrame, edgesFrame]), base);
+      const series = option!.series as Array<Record<string, unknown>>;
+
+      expect(series).toHaveLength(1);
+      expect(series[0].type).toBe('chord');
+      expect(series[0].data).toHaveLength(2);
+      expect(series[0].links).toHaveLength(1);
+    });
+
+    it('returns null for the chord variant when there is no edges frame', () => {
+      expect(relationsChartModule.buildOption(chordCtx([nodesFrame]), base)).toBeNull();
+    });
+
+    // Chord has no DAG restriction, so unlike sankey it keeps every link and adds no
+    // dropped-link note.
+    it('keeps the cycle for the chord variant and adds no note', () => {
+      const option = relationsChartModule.buildOption(chordCtx([nodesFrame, cyclicEdgesFrame]), base);
       const series = option!.series as Array<Record<string, unknown>>;
 
       expect(series[0].links).toHaveLength(2);
