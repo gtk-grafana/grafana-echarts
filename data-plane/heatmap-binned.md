@@ -7,7 +7,12 @@ data plane kind: cells with explicit bounds drawn against a continuous x-axis
 - Converter: `frameToBinnedHeatmap` — `src/lib/echarts/converters/binnedHeatmap.ts`
 - Chart family: the composite **Heatmap** panel (`seriesType === 'heatmap'`)
 - Suggested automatically when Grafana tags a frame `HeatmapRows` or
-  `HeatmapCells` — `src/modules/heatmap/suggestions.ts`
+  `HeatmapCells`, and for an untagged **histogram over time** — a time frame whose
+  numeric fields all name a bucket, either by the name itself (`0.1`, `0.5`, `1`) or
+  by carrying Prometheus' `le`/`ge` label. Two buckets minimum; one is a plain time
+  series. That is core Grafana's own heuristic, and it matters because the shapes
+  that produce it are common and untagged. See `scoreHeatmap` in
+  `src/lib/echarts/charts/fitness.ts` and `src/modules/heatmap/suggestions.ts`.
 
 ## Grafana data plane equivalent
 

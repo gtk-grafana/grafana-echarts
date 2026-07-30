@@ -254,10 +254,17 @@ frames can legitimately show a different number of links.
   [relations.canvas.test.tsx](../../lib/components/relations.canvas.test.tsx). The
   sankey variant needs no such pinning — it self-layouts deterministically from the
   weights, so its snapshots include the default layout.
-- **Never auto-suggested.** `PanelDataSummary` exposes neither field names nor
-  `meta.preferredVisualisationType`, so no reachable signal identifies node-graph
-  data; the supplier deliberately returns nothing rather than matching ordinary
-  tables. See [suggestions.ts](./suggestions.ts) and `scoreRelations`.
+- **Auto-suggested from the edge field shape.** `PanelDataSummary` does expose the
+  two signals this bullet once said it did not: `rawFrames` (so `isNodeGraphFrames`
+  can look for a `source`+`target` field pair) and `hasPreferredVisualisationType`
+  (Grafana's `nodeGraph` hint, scored `Best`; the shape alone scores `Good`).
+  Requiring **both** `source` and `target` is what keeps an ordinary table with a
+  `source` column from being claimed — the risk that motivated the original silence.
+  Graph, Sankey and Chord cards are emitted together, since all three consume the
+  identical node/link model; Chord is dropped past `RELATIONS_CHORD_MAX_NODES`,
+  where a ring runs out of circumference, and the family withholds entirely past
+  `RELATIONS_MAX_EDGES`. See [suggestions.ts](./suggestions.ts), `scoreRelations` and
+  `exceedsChordNodeBudget`.
 - **Single frame per role.** The first edges frame and the first nodes frame win;
   additional frames are dropped. Consistent with the other non-cartesian families —
   see [todo/multiple-frames.md](../../../todo/multiple-frames.md).

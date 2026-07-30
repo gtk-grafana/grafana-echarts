@@ -196,11 +196,13 @@ here rather than papered over by removing the control:
   `itemStyle.color` would clear `colorFromPalette` and paint every ribbon alike,
   so the ribbon-style option deliberately never sets one. A hidden layer must
   leave the palette _and_ the data together, or every ribbon after it shifts color.
-- **Cardinality is not capped.** A high-cardinality query (Prometheus by pod) makes
-  an unreadable 100-layer river. Nothing truncates silently; the suggestion scorer
-  withholds the panel outside a sane layer count, and the top-N + "other" SQL
-  expression recipe is documented in
-  [stream-sources.md](../../../data-plane/stream-sources.md).
+- **Cardinality is not capped at render time.** A high-cardinality query (Prometheus
+  by pod) makes an unreadable 100-layer river. Nothing truncates silently. The
+  suggestion scorer withholds the _card_ outside `[STREAM_MIN_LAYERS,
+STREAM_MAX_LAYERS]` (2–20, in `src/lib/echarts/charts/suggestionLimits.ts`) — the
+  ceiling this bullet described before it existed — but a panel selected by hand
+  still renders every layer, and the top-N + "other" SQL expression recipe is
+  documented in [stream-sources.md](../../../data-plane/stream-sources.md).
 - **Layer labels take the theme text color, not a per-ribbon contrast color.**
   Pie picks a readable color per slice for its `inside` labels
   (`resolvePieLabelColor` → `theme.colors.getContrastText`); this family cannot.

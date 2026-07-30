@@ -44,6 +44,13 @@ looks at `frame.meta.type`. It accepts **two unrelated input shapes**:
 matching frame takes the nested-set path. If no frame matches, every frame falls
 through to the flat categorical path.
 
+`isFlameGraphFrame` has a second caller: `scoreHierarchy`
+(`src/lib/echarts/charts/fitness.ts`) applies it to `summary.rawFrames` so the
+family is suggested at `Best` for flame-graph data, rather than only when the panel
+is picked by hand. Render and suggestion therefore agree by construction. Data that
+matches neither branch falls back to the same flat categorical gate part-to-whole
+uses.
+
 `isFlameGraphFrame` returns true when either of the following holds:
 
 - `frame.meta.preferredVisualisationType === 'flamegraph'` — the canonical
