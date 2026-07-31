@@ -1,5 +1,4 @@
-import { type GrafanaTheme2 } from '@grafana/data';
-import { type SankeySeriesOption, type TitleComponentOption } from 'echarts';
+import { type SankeySeriesOption } from 'echarts';
 import {
   SANKEY_CURVENESS_DEFAULT,
   SANKEY_LAYOUT_ITERATIONS_DEFAULT,
@@ -14,6 +13,7 @@ import { toSankeyLinks } from 'lib/echarts/converters/dag';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/nodeGraph';
 import {
   ARC_BORDER_WIDTH,
+  getRelationsNodeLabelFormatter,
   makeRelationsColorResolver,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
@@ -95,7 +95,10 @@ export function getSankeyLabel(ctx: RelationsSeriesContext): SankeySeriesOption[
   }
   return {
     show: true,
-    formatter: '{b}',
+    // With "Show node values" on, the shared formatter emits the name *and* the
+    // stat, so it replaces the `'{b}'` correction (it reads `params.name`, which
+    // is the same value `'{b}'` resolves to).
+    formatter: getRelationsNodeLabelFormatter(ctx) ?? '{b}',
     color: ctx.theme.colors.text.primary,
     fontFamily: ctx.theme.typography.fontFamily,
   };
@@ -207,31 +210,21 @@ function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {
 }
 
 /**
- * An in-panel note reporting links removed by the cycle policy, so the edit is not
- * a silent correctness surprise. Returns `undefined` when nothing was dropped, so a
- * well-formed DAG renders no note at all.
+ * Text reporting links removed by the cycle policy, so the edit is not a silent
+ * correctness surprise. Returns `undefined` when nothing was dropped, so a
+ * well-formed DAG reports nothing at all.
  *
- * Rendered as an ECharts `title` carrying only `subtext`, bottom-left — the same
- * mechanism the pie's donut-center readout uses (`getPieCenterTitle`), and the only
- * panel-level advisory surface this plugin has. `TitleComponent` is already
- * registered for that reason. `setOption` runs with `notMerge`, so the note cannot
- * outlive the render that produced it.
+ * Surfaced as a panel corner notice (`ChartModule.getNotices` ->
+ * `ChartNotices`), not as canvas text: it is an advisory about the *data*, so it
+ * does not belong inside the plot, where it also collided with the bottom-left
+ * ribbon of a horizontal sankey.
  */
-export function getSankeyDroppedNote(droppedCount: number, theme: GrafanaTheme2): TitleComponentOption | undefined {
+export function getSankeyDroppedNoticeText(droppedCount: number): string | undefined {
   if (droppedCount <= 0) {
     return undefined;
   }
   const links = droppedCount === 1 ? 'link' : 'links';
-  return {
-    left: 0,
-    bottom: 0,
-    subtext: `${droppedCount} ${links} hidden to remove cycles`,
-    subtextStyle: {
-      color: theme.colors.text.secondary,
-      fontFamily: theme.typography.fontFamily,
-      fontSize: 11,
-    },
-  };
+  return `${droppedCount} ${links} hidden to remove cycles`;
 }
 
 /** A built sankey series, plus how many links the cycle policy removed. */

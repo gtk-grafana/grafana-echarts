@@ -102,30 +102,38 @@ describe('relationsChartModule', () => {
       expect(relationsChartModule.buildOption(sankeyCtx([nodesFrame]), base)).toBeNull();
     });
 
-    it('adds no dropped-link note for an acyclic sankey', () => {
-      const option = relationsChartModule.buildOption(sankeyCtx([nodesFrame, edgesFrame]), base);
+    it('reports no notice for an acyclic sankey', () => {
+      const context = sankeyCtx([nodesFrame, edgesFrame]);
 
-      expect(option).not.toHaveProperty('title');
+      expect(relationsChartModule.buildOption(context, base)).not.toHaveProperty('title');
+      expect(relationsChartModule.getNotices?.(context)).toEqual([]);
     });
 
     // Without the cycle policy this edge set throws out of `sankeyLayout.ts` in a
     // production build, blanking the panel.
-    it('breaks a cycle for the sankey variant and notes the dropped link', () => {
-      const option = relationsChartModule.buildOption(sankeyCtx([nodesFrame, cyclicEdgesFrame]), base);
+    it('breaks a cycle for the sankey variant and reports the dropped link as a notice', () => {
+      const context = sankeyCtx([nodesFrame, cyclicEdgesFrame]);
+      const option = relationsChartModule.buildOption(context, base);
       const series = option!.series as Array<Record<string, unknown>>;
 
       expect(series[0].links).toHaveLength(1);
-      expect(option).toHaveProperty('title');
-      expect((option as { title?: { subtext?: string } }).title?.subtext).toBe('1 link hidden to remove cycles');
+      // The note is a panel corner notice now, not an ECharts canvas `title`.
+      expect(option).not.toHaveProperty('title');
+      expect(relationsChartModule.getNotices?.(context)).toEqual([
+        { severity: 'warning', text: '1 link hidden to remove cycles' },
+      ]);
     });
 
     // The graph series accepts any digraph, so the same frames must keep both edges.
     it('keeps the cycle for the graph variant', () => {
-      const option = relationsChartModule.buildOption(ctx([nodesFrame, cyclicEdgesFrame]), base);
+      const context = ctx([nodesFrame, cyclicEdgesFrame]);
+      const option = relationsChartModule.buildOption(context, base);
       const series = option!.series as Array<Record<string, unknown>>;
 
       expect(series[0].links).toHaveLength(2);
       expect(option).not.toHaveProperty('title');
+      // Only sankey rewrites links, so graph never reports a cycle notice.
+      expect(relationsChartModule.getNotices?.(context)).toEqual([]);
     });
 
     it('builds a chord series from the same frames when the variant is selected', () => {
@@ -175,6 +183,90 @@ describe('relationsChartModule', () => {
 
     it('is empty when there is no usable graph', () => {
       expect(relationsChartModule.buildLegendItems(ctx([]), [])).toEqual([]);
+    });
+  });
+
+  // Legend rows are nodes (frame rows), so Grafana's override engine has nothing
+  // to apply `hideFrom` to — the family reads the override itself, as pie does.
+  describe('legend visibility', () => {
+    /** The `hideSeriesFrom` system override core writes: keep only `keptNames`. */
+    const hidingAllBut = (keptNames: string[]): FieldConfigSource => ({
+      defaults: {},
+      overrides: [
+        {
+          __systemRef: 'hideSeriesFrom',
+          matcher: { id: 'byNames', options: { mode: 'exclude', names: keptNames, prefix: 'All except:' } },
+          properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: true } }],
+        } as unknown as FieldConfigSource['overrides'][number],
+      ],
+    });
+
+    const nodesOf = (fieldConfig: FieldConfigSource) => {
+      const series = relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame], fieldConfig), base)!
+        .series as Array<Record<string, unknown>>;
+      return series[0];
+    };
+
+    it('drops a hidden node from the rendered series', () => {
+      const series = nodesOf(hidingAllBut(['Gateway']));
+
+      expect((series.data as Array<{ name: string }>).map((node) => node.name)).toEqual(['Gateway']);
+    });
+
+    // An edge whose endpoint is gone has nothing to attach to.
+    it('drops every link touching a hidden node', () => {
+      expect(nodesOf(hidingAllBut(['Gateway'])).links).toEqual([]);
+    });
+
+    it('keeps the hidden node listed in the legend, greyed, so it can be restored', () => {
+      const items = relationsChartModule.buildLegendItems(ctx([nodesFrame, edgesFrame], hidingAllBut(['Gateway'])), []);
+
+      expect(items.map((item) => item.label)).toEqual(['Gateway', 'API']);
+      expect(items.map((item) => item.disabled)).toEqual([false, true]);
+    });
+
+    // Palette colors are positional, so filtering the list would otherwise shift
+    // every node after the hidden one onto its neighbour's color.
+    it('keeps the surviving nodes on their original palette colors', () => {
+      const before = relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame]), base)!.series as Array<
+        Record<string, unknown>
+      >;
+      const apiColorBefore = (before[0].data as Array<{ name: string; itemStyle?: { color?: string } }>).find(
+        (node) => node.name === 'API'
+      )?.itemStyle?.color;
+
+      const after = nodesOf(hidingAllBut(['API']));
+      const apiColorAfter = (after.data as Array<{ name: string; itemStyle?: { color?: string } }>)[0].itemStyle?.color;
+
+      expect(apiColorAfter).toBe(apiColorBefore);
+    });
+  });
+
+  describe('getLegendHighlightTargets', () => {
+    it('emphasises the hovered node and every link touching it', () => {
+      const targets = relationsChartModule.getLegendHighlightTargets?.(ctx([nodesFrame, edgesFrame]), 'Gateway');
+
+      expect(targets).toEqual([
+        { dataType: 'node', dataIndex: [0] },
+        { dataType: 'edge', dataIndex: [0] },
+      ]);
+    });
+
+    it('matches a node with no links to just itself', () => {
+      const isolated = toDataFrame({
+        name: 'nodes',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['a', 'b', 'c'] },
+          { name: 'title', type: FieldType.string, values: ['Gateway', 'API', 'Orphan'] },
+        ],
+      });
+      const targets = relationsChartModule.getLegendHighlightTargets?.(ctx([isolated, edgesFrame]), 'Orphan');
+
+      expect(targets).toEqual([{ dataType: 'node', dataIndex: [2] }]);
+    });
+
+    it('returns nothing for a label that matches no node', () => {
+      expect(relationsChartModule.getLegendHighlightTargets?.(ctx([nodesFrame, edgesFrame]), 'nope')).toEqual([]);
     });
   });
 

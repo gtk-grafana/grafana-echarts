@@ -9,6 +9,7 @@ import {
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/nodeGraph';
 import {
   ARC_BORDER_WIDTH,
+  getRelationsNodeLabelFormatter,
   makeRelationsColorResolver,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
@@ -67,7 +68,10 @@ export function getChordLabel(ctx: RelationsSeriesContext): ChordSeriesOption['l
   }
   return {
     show: true,
-    formatter: '{b}',
+    // With "Show node values" on, the shared formatter emits the name *and* the
+    // stat, replacing the `'{b}'` correction below (it reads `params.name`, which
+    // is what `'{b}'` resolves to — so the index-labelling bug stays fixed).
+    formatter: getRelationsNodeLabelFormatter(ctx) ?? '{b}',
     color: ctx.theme.colors.text.primary,
     fontFamily: ctx.theme.typography.fontFamily,
   };

@@ -4,7 +4,7 @@ import { type NodeGraphData } from 'lib/echarts/converters/nodeGraph';
 import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
 import { type RelationsSeriesContext } from 'lib/echarts/options/graph';
 import {
-  getSankeyDroppedNote,
+  getSankeyDroppedNoticeText,
   getSankeyEmphasis,
   getSankeyLabel,
   getSankeyLinkStyle,
@@ -147,6 +147,20 @@ describe('getSankeyLabel', () => {
     expect(getSankeyLabel(ctx())?.formatter).toBe('{b}');
   });
 
+  // The shared formatter reads `params.name` — the same value `'{b}'` resolves to —
+  // so swapping it in keeps titles working while adding the stat.
+  it('swaps in the shared formatter when node values are switched on', () => {
+    const formatter = getSankeyLabel(ctx(baseOptions({ relationsShowNodeValues: true })))?.formatter;
+
+    expect(typeof formatter).toBe('function');
+    // A sankey carries its stat as `stat`; `value` is ECharts' flow computation.
+    expect(
+      typeof formatter === 'function'
+        ? formatter({ name: 'Gateway', data: { id: 'gw', name: 'Gateway', stat: 1200 } } as never)
+        : undefined
+    ).toBe('Gateway\n1200');
+  });
+
   it('hides labels when switched off', () => {
     expect(getSankeyLabel(ctx(baseOptions({ relationsShowNodeLabels: false })))).toEqual({ show: false });
   });
@@ -190,17 +204,17 @@ describe('getSankeyEmphasis', () => {
   });
 });
 
-describe('getSankeyDroppedNote', () => {
+describe('getSankeyDroppedNoticeText', () => {
   it('returns nothing when no links were dropped', () => {
-    expect(getSankeyDroppedNote(0, theme)).toBeUndefined();
+    expect(getSankeyDroppedNoticeText(0)).toBeUndefined();
   });
 
   it('reports a single dropped link in the singular', () => {
-    expect(getSankeyDroppedNote(1, theme)?.subtext).toBe('1 link hidden to remove cycles');
+    expect(getSankeyDroppedNoticeText(1)).toBe('1 link hidden to remove cycles');
   });
 
   it('reports several dropped links in the plural', () => {
-    expect(getSankeyDroppedNote(3, theme)?.subtext).toBe('3 links hidden to remove cycles');
+    expect(getSankeyDroppedNoticeText(3)).toBe('3 links hidden to remove cycles');
   });
 });
 

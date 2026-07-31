@@ -59,6 +59,19 @@ describe('getChordLabel', () => {
     expect(getChordLabel(ctx())?.formatter).toBe('{b}');
   });
 
+  // The shared formatter reads `params.name`, so the index-labelling bug above stays
+  // fixed while the stat is appended.
+  it('swaps in the shared formatter when node values are switched on', () => {
+    const formatter = getChordLabel(ctx(baseOptions({ relationsShowNodeValues: true })))?.formatter;
+
+    expect(typeof formatter).toBe('function');
+    expect(
+      typeof formatter === 'function'
+        ? formatter({ name: 'us-east', data: { id: 'us-east', name: 'us-east', stat: 420 } } as never)
+        : undefined
+    ).toBe('us-east\n420');
+  });
+
   // `position: 'outside'` is ECharts' own chord default and is left alone.
   it('does not override the ECharts label position', () => {
     expect(getChordLabel(ctx())).not.toHaveProperty('position');

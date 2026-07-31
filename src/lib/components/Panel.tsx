@@ -5,11 +5,14 @@ import { seriesTypePath } from 'editor/constants';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
+import { type EChartsType } from 'lib/echarts/echarts';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { type PanelOptions } from 'types';
+import { ChartNotices } from './ChartNotices';
 import { EChart } from './EChart';
 import { useLegend } from './hooks/useLegend';
+import { useLegendHighlight } from './hooks/useLegendHighlight';
 import { type ChartFamily, resolveSeriesType } from 'lib/echarts/charts/autoSeriesType';
 
 interface Props extends PanelProps<PanelOptions> {
@@ -69,6 +72,16 @@ export const Panel: React.FC<Props> = ({
     [data.series, theme, timeZone, timeRange, options, seriesType, formatValue, fieldConfig, replaceVariables]
   );
 
+  // Advisories for renders where the chart had to change the data to draw it
+  // (e.g. the sankey cycle policy). Most families supply none.
+  const notices = useMemo(() => chartModule.getNotices?.(chartContext) ?? [], [chartModule, chartContext]);
+
+  // The legend is `VizLayout`'s sibling, not `EChart`'s child, so its hover
+  // emphasis reaches the chart through this ref rather than through the chart
+  // instance state `EChart` keeps for its own hooks.
+  const chartInstanceRef = useRef<EChartsType | null>(null);
+  useLegendHighlight(chartInstanceRef, chartModule, chartContext, eventBus);
+
   const { items: legendItems, renderLegend } = useLegend({
     chartModule,
     chartContext,
@@ -87,14 +100,19 @@ export const Panel: React.FC<Props> = ({
   return (
     <VizLayout width={width} height={height} legend={legendItems.length > 0 ? renderLegend() : null}>
       {(vizWidth: number, vizHeight: number) => (
-        <EChart
-          chartContext={chartContext}
-          chartModule={chartModule}
-          isGrafanaLegend={isVizLegend}
-          onChangeTimeRange={onChangeTimeRange}
-          width={vizWidth}
-          height={vizHeight}
-        />
+        // Positioned so `ChartNotices` can pin itself to the viz area's corner.
+        <div style={{ position: 'relative', width: vizWidth, height: vizHeight }}>
+          <EChart
+            chartContext={chartContext}
+            chartModule={chartModule}
+            isGrafanaLegend={isVizLegend}
+            onChangeTimeRange={onChangeTimeRange}
+            width={vizWidth}
+            height={vizHeight}
+            instanceRef={chartInstanceRef}
+          />
+          <ChartNotices notices={notices} />
+        </div>
       )}
     </VizLayout>
   );

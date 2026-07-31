@@ -11,7 +11,7 @@ import {
 } from '@grafana/ui';
 import { partToWholeSeriesTypes } from 'editor/pie';
 import { type SeriesType } from 'editor/types';
-import { isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
+import { isMultiValueSeriesType, isRelationsSeriesType } from 'lib/echarts/charts/narrowing';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
 import React, { useCallback, useMemo } from 'react';
 import { useLegendItems } from './useLegendItems';
@@ -28,6 +28,10 @@ interface Options {
   seriesType: SeriesType;
   fieldConfig: FieldConfigSource;
   onFieldConfigChange: (config: FieldConfigSource) => void;
+  /**
+   * Also the channel legend hover reaches the chart on: `VizLegend` publishes
+   * `DataHoverEvent` here on mouse-over. See `useLegendHighlight`.
+   */
   eventBus: EventBus;
 }
 
@@ -68,12 +72,16 @@ export function useLegend({
     [panelContext, eventBus, onSeriesColorChange, onToggleSeriesVisibility]
   );
 
-  // Part-to-whole slices (pie/funnel) and candlestick/boxplot series map to
-  // legend items individually (not 1:1 with fields), so each click toggles that
-  // one item (Hide behavior) rather than the isolate-others default used by
-  // per-field families.
+  // Part-to-whole slices (pie/funnel), candlestick/boxplot series and relations
+  // nodes map to legend items individually (not 1:1 with fields), so each click
+  // toggles that one item (Hide behavior) rather than the isolate-others default
+  // used by per-field families. For relations specifically, isolating a node would
+  // leave a graph of one node and no links, which says nothing — hiding it and its
+  // links is the useful operation.
   const seriesVisibilityChangeBehavior =
-    partToWholeSeriesTypes.includes(seriesType) || isMultiValueSeriesType(seriesType)
+    partToWholeSeriesTypes.includes(seriesType) ||
+    isMultiValueSeriesType(seriesType) ||
+    isRelationsSeriesType(seriesType)
       ? SeriesVisibilityChangeBehavior.Hide
       : SeriesVisibilityChangeBehavior.Isolate;
 

@@ -37,6 +37,12 @@ export interface RelationNode {
    * edges frame, which have no backing row.
    */
   sourceRowIndex?: number;
+  /**
+   * Position in the *unfiltered* node list. Set only once the legend has hidden
+   * something (see `withoutHiddenNodes`), so palette colors stay attached to their
+   * node instead of shifting up as nodes above them are toggled off.
+   */
+  paletteIndex?: number;
 }
 
 /** A single directed edge. `value` is the numeric weight sankey/chord need. */

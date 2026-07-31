@@ -3,6 +3,7 @@ import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { partToWholeSeriesTypes } from 'editor/pie';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
+import { isRelationsSeriesType } from 'lib/echarts/charts/narrowing';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
@@ -49,11 +50,20 @@ export function buildPanelChartOption(
   const sink = tooltipSink ?? NOOP_TOOLTIP_SINK;
 
   // Drop value fields hidden via the legend visibility toggle before building.
-  // The part-to-whole family (pie/funnel) is excluded: it hides slices by
-  // *category* name and reads hidden state internally (see `resolvePieSlices`).
+  //
+  // Two families are excluded, both because their legend rows are frame *rows*
+  // rather than fields, so the override names categories and never matches a
+  // field: part-to-whole (pie/funnel slices — see `resolvePieSlices`) and
+  // relations (graph/sankey/chord nodes — see `withoutHiddenNodes`). Both read
+  // the hidden set themselves. Running the strip on them would be actively
+  // wrong, not merely useless: the `byNames` matcher is in *exclude* mode, so a
+  // list of category names marks every real numeric field hidden and the stat
+  // column that sizes and colours the chart would be deleted.
+  //
   // Editor-mode normalization already ran generically above
   // (`applyEditorModeDefaults`), so both branches use the normalized `options`.
-  const ctx: ChartContext = partToWholeSeriesTypes.includes(rawCtx.seriesType)
+  const hidesByRowName = partToWholeSeriesTypes.includes(rawCtx.seriesType) || isRelationsSeriesType(rawCtx.seriesType);
+  const ctx: ChartContext = hidesByRowName
     ? { ...rawCtx, tooltipSink: sink, options }
     : { ...rawCtx, tooltipSink: sink, options, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 

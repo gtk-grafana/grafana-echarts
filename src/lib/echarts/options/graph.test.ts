@@ -1,4 +1,5 @@
 import { createTheme, FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
+import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData } from 'lib/echarts/converters/nodeGraph';
 import {
@@ -10,6 +11,7 @@ import {
   getGraphLayout,
   getGraphLinkStyle,
   getGraphSeries,
+  getRelationsNodeLabelFormatter,
   makeRelationsColorResolver,
   RELATIONS_NODE_SIZE_DEFAULT,
 } from 'lib/echarts/options/graph';
@@ -135,6 +137,56 @@ describe('getGraphLabel', () => {
 
   it('hides labels when switched off', () => {
     expect(getGraphLabel(ctx(baseOptions({ relationsShowNodeLabels: false })))).toEqual({ show: false });
+  });
+
+  // A graph node is labelled from `data.getName(idx)` already, so the formatter is
+  // dead weight until there is a value to append.
+  it('omits the formatter while node values are off', () => {
+    expect(getGraphLabel(ctx())).not.toHaveProperty('formatter');
+  });
+
+  it('adds a formatter when node values are switched on', () => {
+    const label = getGraphLabel(ctx(baseOptions({ relationsShowNodeValues: true })));
+
+    expect(typeof label).toBe('object');
+    expect(typeof (label as { formatter?: unknown }).formatter).toBe('function');
+  });
+});
+
+describe('getRelationsNodeLabelFormatter', () => {
+  const params = (name: string, item: Record<string, unknown>) =>
+    ({ name, data: item }) as unknown as CallbackDataParams;
+
+  it('returns nothing while the option is off, so each variant keeps its own formatter', () => {
+    expect(getRelationsNodeLabelFormatter(ctx())).toBeUndefined();
+  });
+
+  // `graph` carries the stat as `value`; `sankey` and `chord` leave `value` to
+  // ECharts' flow computation and carry it as `stat`.
+  it('reads the stat from `value` (graph items)', () => {
+    const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
+
+    expect(formatter(params('A', { id: 'a', name: 'A', value: 42 }))).toBe('A\n42');
+  });
+
+  it('reads the stat from `stat` (sankey/chord items)', () => {
+    const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
+
+    expect(formatter(params('B', { id: 'b', name: 'B', stat: 7 }))).toBe('B\n7');
+  });
+
+  // `stat` wins so a sankey's ECharts-computed `value` cannot shadow the mainstat,
+  // matching the tooltip's precedence.
+  it('prefers `stat` over `value`', () => {
+    const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
+
+    expect(formatter(params('C', { id: 'c', name: 'C', stat: 5, value: 900 }))).toBe('C\n5');
+  });
+
+  it('leaves a statless node on one line rather than adding a blank one', () => {
+    const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
+
+    expect(formatter(params('D', { id: 'd', name: 'D' }))).toBe('D');
   });
 });
 

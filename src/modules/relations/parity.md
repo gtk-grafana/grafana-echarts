@@ -217,10 +217,16 @@ there is nothing to toggle. Traversal order follows frame row order, so the _sam
 is dropped on every render — an unstable choice would change the panel's shape between
 refreshes.
 
-Because dropping links silently changes the graph, the panel reports the count in a
-bottom-left note ("N links hidden to remove cycles"), rendered through the same
-ECharts `title` mechanism as the pie's donut-center readout. Acyclic data shows no
-note. A merge is not counted, since summing weights loses no flow.
+Because dropping links silently changes the graph, the panel reports the count as a
+corner notice ("N links hidden to remove cycles") — a hoverable warning icon in the
+top-right of the viz area, built by `relationsChartModule.getNotices` and rendered by
+`ChartNotices`. Acyclic data shows no notice. A merge is not counted, since summing
+weights loses no flow.
+
+The notice is drawn by the panel rather than handed to Grafana's panel _chrome_: that
+slot is fed only from `DataFrame.meta.notices` on the scene's data object (see
+`PanelNoticesRenderer`, which reads `sceneGraph.getData(model).useState()`), which a
+panel plugin receives read-only.
 
 `graph` accepts any digraph and never runs this pass, so the two variants over the same
 frames can legitimately show a different number of links.
@@ -260,11 +266,23 @@ frames can legitimately show a different number of links.
 - **`detail__*` has no context menu.** Core surfaces these in a node/edge context menu
   header; this panel has no such surface, so they can only fold into tooltip content
   (not yet done).
-- **No legend hide toggle.** `addHideFrom` is not registered, because nodes are frame
-  _rows_: a byName `custom.hideFrom` override would never match a node, and
-  `stripHiddenValueFields` could only strip the underlying stat column. The hierarchy
-  family omits it for the same reason. Hiding individual nodes would need
-  row-level filtering inside the converter, as `resolvePieSlices` does for slices.
+- **Legend hide and hover emphasis** work the way pie's do, since a node is a frame
+  _row_ rather than a field. `addHideFrom` **is** registered — not so Grafana's
+  override engine can apply it (a byName `custom.hideFrom` override never matches a
+  node), but because Grafana discards override properties no plugin registered, so
+  without it a legend click would write a config that is thrown away. The family then
+  reads the hidden set by name itself in `withoutHiddenNodes`
+  (`charts/relations.ts`), dropping the node **and every link touching it**, and
+  relations is excluded from `stripHiddenValueFields` — which, given a `byNames`
+  matcher in exclude mode listing node names, would strip the stat column instead of
+  a node (see `options/panelOption.ts`). Clicking uses `Hide` semantics, not the
+  per-field `Isolate` default: isolating one node leaves a graph of one node and no
+  links.
+  Hover emphasis arrives over the panel event bus rather than through props —
+  `VizLegend` declares `onLabelMouseOver`/`onLabelMouseOut` but its implementation
+  ignores them and publishes `DataHoverEvent`/`DataHoverClearEvent` instead. See
+  `useLegendHighlight` and `relationsChartModule.getLegendHighlightTargets`, which
+  emphasises the node plus its incident links via ECharts' `dataType` discriminator.
 - **No proximity hover.** Hovering _near_ a node or link does nothing; you must be on
   it. The proximity gate (`tooltip/proximity.ts`) admits only
   `line`/`scatter`/`effectScatter`, and `graph` fails its structural preconditions —
@@ -305,7 +323,7 @@ runtime surface.
 | `tooltip`                        | Partial   | Item trigger with a per-series formatter feeding the React overlay                                                                                  |
 | `legend`                         | Not used  | Grafana DOM legend instead (`buildLegendItems`)                                                                                                     |
 | `animation`                      | Supported | Off by default via the shared switch                                                                                                                |
-| `title`                          | Partial   | `subtext` only, for the sankey dropped-link note (`getSankeyDroppedNote`)                                                                           |
+| `title`                          | Not used  | The sankey dropped-link note is a panel corner notice (`ChartNotices`), not canvas text                                                             |
 | `grid` / `xAxis` / `yAxis`       | N/A       | `graph` creates its own `View` coordinate system; `sankey` uses a box layout                                                                        |
 | `visualMap`                      | Not used  | By-value node color goes through the field's Color scheme instead                                                                                   |
 | `dataZoom` / `brush` / `toolbox` | Not used  | —                                                                                                                                                   |

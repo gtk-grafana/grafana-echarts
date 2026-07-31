@@ -1,4 +1,5 @@
 import { PanelPlugin } from '@grafana/data';
+import { commonOptionsBuilder } from '@grafana/ui';
 import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
@@ -24,10 +25,19 @@ import { relationsSuggestionsSupplier } from './suggestions';
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({
     standardOptions: STANDARD_COLOR_OPTIONS,
-    // No `useCustomConfig`/`addHideFrom`: nodes are frame *rows*, not fields, so a
-    // byName `custom.hideFrom` override would never match one and
-    // `stripHiddenValueFields` could only strip the underlying stat column. The
-    // hierarchy family omits it for the same reason; see parity.md.
+    // Register `custom.hideFrom` so the legend visibility toggle's override is
+    // kept — Grafana skips override properties no plugin registered, so without
+    // this a legend click writes a config that is discarded and nothing hides.
+    //
+    // Nodes are frame *rows*, not fields, so the override never matches a field
+    // and Grafana's engine applies nothing; the family reads the hidden set by
+    // name instead (`withoutHiddenNodes` in `charts/relations.ts`). That is the
+    // same arrangement pie/funnel use for slices. For the same reason relations
+    // is excluded from `stripHiddenValueFields`, which would otherwise strip the
+    // stat column rather than a node — see `options/panelOption.ts`.
+    useCustomConfig: (builder) => {
+      commonOptionsBuilder.addHideFrom(builder);
+    },
   })
   .setPanelOptions((builder) => {
     // Editor mode (Default / Advanced) — registered first so it renders at the top.

@@ -6,11 +6,11 @@ import {
   type GrafanaTheme2,
 } from '@grafana/data';
 import { type GraphSeriesOption } from 'echarts';
-import { type ECBasicOption } from 'echarts/types/dist/shared';
+import { type CallbackDataParams, type ECBasicOption } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/nodeGraph';
 import { createBaseOptions } from 'lib/echarts/options/base';
-import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { formatEChartsValue, getPaletteColorByIndex } from 'lib/echarts/style';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
@@ -35,6 +35,8 @@ export const RELATIONS_LINK_COLOR_DEFAULT = 'source';
 export const RELATIONS_LAYOUT_DEFAULT = 'force';
 /** Node labels on by default — an unlabelled topology is hard to read. */
 export const RELATIONS_SHOW_NODE_LABELS_DEFAULT = true;
+/** Node values off by default: a second label line on every node is a lot of ink. */
+export const RELATIONS_SHOW_NODE_VALUES_DEFAULT = false;
 /**
  * Border width in px used to approximate an `arc__*` ring. Wide enough to read as a
  * ring rather than an outline, since it is standing in for a multi-section circle.
@@ -109,10 +111,15 @@ export function makeRelationsColorResolver(
     if (node.color != null) {
       return node.color;
     }
+    // `paletteIndex` is the node's position before the legend filtered anything, so
+    // hiding a node does not re-colour the ones after it. See `RelationNode`.
+    const paletteIndex = node.paletteIndex ?? index;
     if (display) {
-      return (node.value != null ? display(node.value).color : undefined) ?? getPaletteColorByIndex(index, theme);
+      return (
+        (node.value != null ? display(node.value).color : undefined) ?? getPaletteColorByIndex(paletteIndex, theme)
+      );
     }
-    return getPaletteColorByIndex(index, theme);
+    return getPaletteColorByIndex(paletteIndex, theme);
   };
 }
 
@@ -150,6 +157,53 @@ export function getGraphForce(options: PanelOptions): GraphSeriesOption['force']
 }
 
 /**
+ * The node label's `formatter`, shared by all three render variants so a node
+ * labels identically however it is drawn.
+ *
+ * Returns `undefined` when "Show node values" is off, letting each variant keep
+ * the formatter it needs for the *name* alone (`'{b}'` for sankey and chord,
+ * nothing for graph — see `getSankeyLabel` / `getChordLabel`).
+ *
+ * When on, the stat goes on a second line. It is read off the item rather than
+ * from `params.value` because the three variants carry it differently: `graph`
+ * sets `value`, while `sankey` and `chord` leave `value` to ECharts' own flow
+ * computation and ride the stat as `stat`. That is the same `stat ?? value`
+ * precedence the tooltip uses, so the label and the tooltip cannot disagree.
+ * A node with no stat keeps a one-line label rather than gaining a blank one.
+ * https://echarts.apache.org/en/option.html#series-graph.label.formatter
+ */
+export function getRelationsNodeLabelFormatter(
+  ctx: RelationsSeriesContext
+): ((params: CallbackDataParams) => string) | undefined {
+  if ((ctx.options.relationsShowNodeValues ?? RELATIONS_SHOW_NODE_VALUES_DEFAULT) !== true) {
+    return undefined;
+  }
+  return (params) => {
+    const name = String(params.name ?? '');
+    const stat = readNodeStat(params.data);
+    if (stat == null) {
+      return name;
+    }
+    return `${name}\n${formatEChartsValue(stat, ctx.formatValue)}`;
+  };
+}
+
+/**
+ * The stat carried on a relations node item, whichever key the variant used.
+ * `params.data` is typed as the loose `OptionDataItem`, so this narrows structurally
+ * rather than asserting the item shape back.
+ */
+function readNodeStat(data: CallbackDataParams['data']): number | string | undefined {
+  if (typeof data !== 'object' || data === null) {
+    return undefined;
+  }
+  const stat: unknown = 'stat' in data ? data.stat : undefined;
+  const value: unknown = 'value' in data ? data.value : undefined;
+  const raw = stat ?? value;
+  return typeof raw === 'number' || typeof raw === 'string' ? raw : undefined;
+}
+
+/**
  * Node label config. On by default; the label sits below the node.
  * https://echarts.apache.org/en/option.html#series-graph.label
  */
@@ -158,9 +212,13 @@ export function getGraphLabel(ctx: RelationsSeriesContext): GraphSeriesOption['l
   if (!show) {
     return { show: false };
   }
+  const formatter = getRelationsNodeLabelFormatter(ctx);
   return {
     show: true,
     position: 'bottom',
+    // Omitted unless values are shown: `Symbol.js` labels a graph node from
+    // `data.getName(idx)`, which is already the name.
+    ...(formatter ? { formatter } : {}),
     color: ctx.theme.colors.text.primary,
     fontFamily: ctx.theme.typography.fontFamily,
   };

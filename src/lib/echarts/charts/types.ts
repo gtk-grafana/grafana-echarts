@@ -145,9 +145,7 @@ export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
 // `View` coordinate system, so no coordinate component is composed in.
 export type EChartGraphSeriesOption = ComposeOption<GraphSeriesOption>;
 // Relations (sankey) lays the same node/link model out as weighted flow ribbons.
-// Composes the `title` component too: a sankey may carry a bottom-left note
-// reporting links removed by the cycle policy (see `getSankeyDroppedNote`).
-export type EChartSankeySeriesOption = ComposeOption<SankeySeriesOption | TitleComponentOption>;
+export type EChartSankeySeriesOption = ComposeOption<SankeySeriesOption>;
 // Relations (chord) lays the same node/link model out as a ring of arcs joined by
 // ribbons. Self-contained: it pins `coordinateSystem: 'none'`, so nothing is composed in.
 export type EChartChordSeriesOption = ComposeOption<ChordSeriesOption>;
@@ -206,12 +204,54 @@ export type EChartBuildOption =
   | EChartMultiValueCartesianSeriesOption;
 
 /** Self-contained chart family: option building, legend, and tooltip metadata. */
+/**
+ * An advisory the panel surfaces in its corner, for when the chart had to change
+ * the user's data to render it at all (today: the sankey cycle policy).
+ *
+ * Deliberately not a Grafana panel-*chrome* notice. That slot is fed only from
+ * `DataFrame.meta.notices` on the scene's data object — `PanelNoticesRenderer`
+ * reads `sceneGraph.getData(model).useState()` — which a panel plugin does not
+ * own and cannot write without mutating a prop it was handed. So the panel renders
+ * its own equivalent affordance (icon + tooltip) inside the viz area instead.
+ */
+export interface ChartNotice {
+  severity: 'info' | 'warning';
+  /** Short sentence shown in the notice tooltip. */
+  text: string;
+}
+
+/**
+ * Chart items to emphasise while a legend row is hovered, as an ECharts
+ * `highlight`/`downplay` payload. One entry per data table involved: graph-like
+ * series (graph / sankey / chord) keep nodes and edges in two tables addressed by
+ * `dataType`, so emphasising a node *and its links* takes two.
+ * https://echarts.apache.org/en/api.html#action.highlight
+ */
+export interface LegendHighlightTarget {
+  /** `'node'` / `'edge'` for graph-like series; omit for single-table series. */
+  dataType?: 'node' | 'edge';
+  /** Rows within that table. Batched, since ECharts accepts an array. */
+  dataIndex: number[];
+}
+
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
   // @todo replace null with reason why chart cannot render?
   buildOption(ctx: ChartContext, base: BaseOptionParts): EChartBuildOption | null;
   buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];
+  /**
+   * Advisories to show in the panel's corner for this render — see
+   * {@link ChartNotice}. Optional; families with nothing to report omit it and
+   * the panel renders no badge.
+   */
+  getNotices?(ctx: ChartContext): ChartNotice[];
+  /**
+   * Chart items to emphasise while the legend row labelled `label` is hovered —
+   * see {@link LegendHighlightTarget}. Optional; families that omit it get no
+   * legend hover emphasis, which is the existing behaviour everywhere else.
+   */
+  getLegendHighlightTargets?(ctx: ChartContext, label: string): LegendHighlightTarget[];
   /**
    * Resolve the value formatter for a hovered tooltip item so each series
    * formats with its own field's unit/decimals overrides. Chart families map the
