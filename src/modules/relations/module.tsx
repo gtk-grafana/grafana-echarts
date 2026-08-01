@@ -1,11 +1,10 @@
 import { PanelPlugin } from '@grafana/data';
-import { commonOptionsBuilder } from '@grafana/ui';
 import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { addHiddenSeriesHideFrom, STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
@@ -35,9 +34,11 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // same arrangement pie/funnel use for slices. For the same reason relations
     // is excluded from `stripHiddenValueFields`, which would otherwise strip the
     // stat column rather than a node — see `options/panelOption.ts`.
-    useCustomConfig: (builder) => {
-      commonOptionsBuilder.addHideFrom(builder);
-    },
+    //
+    // Registered with no editor at all: a `byName` override can only name a real
+    // field, so a user-facing "Hide in area" control here could only ever target
+    // `mainstat`/`source`/… and do nothing. See `addHiddenSeriesHideFrom`.
+    useCustomConfig: addHiddenSeriesHideFrom,
   })
   .setPanelOptions((builder) => {
     // Editor mode (Default / Advanced) — registered first so it renders at the top.
