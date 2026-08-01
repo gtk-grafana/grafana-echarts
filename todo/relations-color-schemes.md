@@ -15,6 +15,33 @@
 > `node_modules` are to the built ESM files and are given so the claims are
 > re-checkable, not as a suggestion to depend on them.
 
+> ## Resolution — **do not close this doc.** Hierarchy still needs the fix
+>
+> [../data-plane/graph-wide.md](../data-plane/graph-wide.md) removes the _relations_ half
+> of this by deletion: when a mark is a field, colour is `field.display(value).color` and
+> `makeRelationsColorResolver` goes away entirely, so all eight modes work because
+> `applyFieldOverrides` already resolved them. But `hierarchy.ts:64-69` carries the
+> **byte-identical** guard and hierarchy is not pivoting, so the bug survives there.
+>
+> | Item                                               | Disposition                                                                                                                                                                                                                                                                             |
+> | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | Problem 1 — two-branch dispatch drops six modes    | **Closed for relations by deletion; STILL OPEN for hierarchy**                                                                                                                                                                                                                          |
+> | Problem 2 — cannot target one node or one edge     | **Closed.** A `byName` override                                                                                                                                                                                                                                                         |
+> | A1 — complete the dispatch in a shared helper      | **Still needed**, for hierarchy                                                                                                                                                                                                                                                         |
+> | A2 — make value and scheme come from one field     | **Dissolves.** There is no "which field's scheme applies to which number" when the mark _is_ the field                                                                                                                                                                                  |
+> | A3 — bound the by-value domain                     | **Dissolves for wide input.** Measured: a wide nodes frame gives `field.state.range` `{min: 8, max: 12}` where the legacy equivalent (with `noderadius`, `arc__ok`) gives `{min: 0.5, max: 60}`                                                                                         |
+> | A4 — theme-resolve the `byName` fixed colour       | **Already true upstream.** `applyFieldOverrides` resolves `dark-red` → `#C4162A` before the panel sees it (measured). The defect is that pie/relations re-resolve from `fieldConfig` instead of reading `field.display`; worth fixing at the source, because pie and hierarchy still do |
+> | B1 / B2 — legend as the targeting surface          | **Unnecessary for wide input.** The legend colour picker writes a plain `byName` override the engine applies                                                                                                                                                                            |
+> | B3 — register a custom matcher                     | **Still rejected**, and now unnecessary                                                                                                                                                                                                                                                 |
+> | B4 — panel option holding a per-item map           | **Do not build**                                                                                                                                                                                                                                                                        |
+> | B5 — honour `byRegexp` in `getSeriesColorOverride` | **Dissolves** — and its hazard becomes a documented behaviour instead: `byRegexp` tests the **display name**, so `/^e1$/` fails against a labelled field whose display name is `e1 {source="a", target="b"}`                                                                            |
+>
+> Step 8 of the concrete next steps — a provisioned `colors.json` — is partly served by
+> `provisioning/dashboards/relations/graph-wide.json`, which exercises fixed colour on a
+> node and on an edge; a per-scheme sweep for hierarchy is still unwritten.
+>
+> Rewrite plan: [graph-wide-migration.md](./graph-wide-migration.md).
+
 ## Problem
 
 Two reported symptoms, one shared cause and one genuine gap.

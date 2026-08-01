@@ -2,10 +2,11 @@ import { type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { useTheme2, VizLayout } from '@grafana/ui';
 import { seriesTypePath } from 'editor/constants';
+import { type ChartFamily, resolveSeriesType } from 'lib/echarts/charts/autoSeriesType';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
-import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { type EChartsType } from 'lib/echarts/echarts';
+import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useMemo, useRef } from 'react';
 import { type PanelOptions } from 'types';
@@ -13,7 +14,6 @@ import { ChartNotices } from './ChartNotices';
 import { EChart } from './EChart';
 import { useLegend } from './hooks/useLegend';
 import { useLegendHighlight } from './hooks/useLegendHighlight';
-import { type ChartFamily, resolveSeriesType } from 'lib/echarts/charts/autoSeriesType';
 
 interface Props extends PanelProps<PanelOptions> {
   /** The nested plugin's chart family, used to resolve an `'Auto'` series type. */
@@ -35,6 +35,7 @@ export const Panel: React.FC<Props> = ({
   onFieldConfigChange,
   replaceVariables,
 }) => {
+  console.log('data', data);
   const theme = useTheme2();
   // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel).
   // Resolve it to a concrete type once — from the data and scoped to this panel's

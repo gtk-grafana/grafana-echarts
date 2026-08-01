@@ -11,6 +11,13 @@ Both consume the same input: Grafana's node-graph frame pair. See
 [docs/relations-data-sources.md](../../../docs/relations-data-sources.md) for which
 data sources can produce it.
 
+> **A field-based alternative is specified but not implemented.**
+> [data-plane/graph-wide.md](../../../data-plane/graph-wide.md) defines
+> `graph-nodes-wide` / `graph-edges-wide`, where one node is one **field** and one edge is
+> one **field**. Nothing in this module reads it yet, so every row below describes the row
+> format. Some rows carry a **[wide: …]** marker inline; the full list is under
+> [What `graph-*-wide` would change](#what-graph--wide-would-change).
+
 ## Design difference
 
 Core's Node graph is a bespoke SVG renderer with a deliberately tiny option surface —
@@ -180,15 +187,18 @@ routes stat units through its own panel options rather than the standard Unit.
 | Max            | Marginal         | Only bounds the by-value color domain.                                                                                                                                                                  | —                                                                                                                                   | —          |
 | No value       | Marginal         | A null `mainstat` renders a node with no stat.                                                                                                                                                          | [unit: optional edge and node fields][ng-conv] (a missing `mainstat` reaches the model as undefined)                                | —          |
 | Thresholds     | Marginal         | Reachable only as a by-value color scheme; there is no `markLine` equivalent because there are no axes.                                                                                                 | —                                                                                                                                   | —          |
-| Display name   | **Inert**        | Node and link names come from frame _rows_ (`title` / `id`), not from field names — the same limitation pie and candlestick have.                                                                       | n/a (inert)                                                                                                                         | n/a        |
+| Display name   | **Inert**        | Node and link names come from frame _rows_ (`title` / `id`), not from field names — the same limitation pie and candlestick have. **[wide: Yes (as field override or for single node charts)]**         | n/a (inert)                                                                                                                         | n/a        |
 
 Not registered, deliberately:
 
 - **`reduceOptions`** (`addStandardDataReduceOptions`) — rows _are_ the entities, so
   there is nothing to reduce. Unlike part-to-whole, this family never calls it.
+  **[wide: registered]** — `calcs[0]` becomes the main stat and `calcs[1]` the secondary.
 - **Legend calcs** — `includeLegendCalcs: false`, since legend entries are nodes, not
-  fields, so there are no series values to reduce.
+  fields, so there are no series values to reduce. **[wide: reconsider]** — a legend entry
+  would be a field again.
 - **`custom.hideFrom`** (`commonOptionsBuilder.addHideFrom`) — see the gap below.
+  **[wide: register the real one]**
 
 Two structural limits apply here as they do everywhere else in this plugin (see
 [heatmap/parity.md](../heatmap/parity.md)): standard options **cannot be
@@ -302,6 +312,33 @@ frames can legitimately show a different number of links.
 - **Single frame per role.** The first edges frame and the first nodes frame win;
   additional frames are dropped. Consistent with the other non-cartesian families —
   see [todo/multiple-frames.md](../../../todo/multiple-frames.md).
+
+## What `graph-*-wide` would change
+
+Every row of this doc that reads **Inert**, **Not supported\*** or **No** because a mark
+is a frame _row_ rather than a field, and what
+[data-plane/graph-wide.md](../../../data-plane/graph-wide.md) does to it. Nothing here is
+implemented — the plan is
+[todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md), and the evidence is
+`provisioning/dashboards/relations/graph-wide.json`.
+
+| Row / gap in this doc                                                                    | Under `graph-*-wide`                                                                                                               |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Display name — Inert**                                                                 | **Flips to Yes.** A mark's name _is_ its field's display name; `config.displayName` replaces the `title` column                    |
+| **Color scheme** — "three tiers ... See `makeRelationsColorResolver`"                    | The resolver is **deleted**. Colour is `field.display(value).color`, so all eight modes work                                       |
+| **Unit / Decimals / Value mappings** — one column, one format for every mark             | Per mark. Two nodes can carry different units, which core's Node graph cannot express at all                                       |
+| **Data links** — "nodes _derived_ from the edges frame carry no row, so no footer"       | Per mark via `config.links`. Derived nodes stay **partially open** — no field either                                               |
+| **Min / Max — Marginal** ("only bounds the by-value color domain")                       | Still the colour domain, but the domain stops being contaminated: measured `{min: 8, max: 12}` vs the legacy `{min: 0.5, max: 60}` |
+| **Thresholds — Marginal**                                                                | Per mark, and the approximate replacement for `arc__*`                                                                             |
+| **`reduceOptions` not registered**                                                       | **Registered.** `calcs[0]` = main stat, `calcs[1]` = secondary                                                                     |
+| **Legend calcs `includeLegendCalcs: false`**                                             | Reconsider — a legend entry is a field again                                                                                       |
+| **`custom.hideFrom` registered with no reachable editor**                                | Register the real `commonOptionsBuilder.addHideFrom`; a `byName` override hides exactly one mark                                   |
+| **Legend hide re-implemented by name; relations excluded from `stripHiddenValueFields`** | Both become unnecessary for wide input, and both must stay for legacy input                                                        |
+| **`arc__*` approximated**                                                                | **Unchanged.** No ECharts relationship series draws a multi-section ring in either form                                            |
+| **`icon` dropped**                                                                       | Becomes `custom.icon`, still unrendered — Grafana icon names need resolving to a symbol                                            |
+| **`detail__*` has no context menu**                                                      | Becomes `field.labels`, still no surface                                                                                           |
+| **Cycle policy**                                                                         | **Unchanged.** The sankey DAG restriction is an ECharts constraint, not a data-shape one                                           |
+| **Never auto-suggested** (`PanelDataSummary` exposes no field names)                     | **Unchanged**, and possibly harder: a wide graph frame looks like any other numeric-wide frame to the summary                      |
 
 ## ECharts API support
 

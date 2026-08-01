@@ -9,6 +9,51 @@ defer to this doc.
 Everything below was verified against Grafana 13.1.0 and ECharts 6 in a running instance,
 not inferred from types alone.
 
+> ## Resolution — the question is dissolved, not answered
+>
+> **The recommendation below (option 1, `options.relationsItemRules`) is superseded and
+> should not be built.** Every option in this doc assumes the mark stays a frame **row**.
+> [../data-plane/graph-wide.md](../data-plane/graph-wide.md) makes it a **field** instead
+> — `graph-nodes-wide` / `graph-edges-wide`, one node per field and one edge per field —
+> at which point "colour `eu-west` red" is an ordinary `byName` override with no new
+> editor, no new schema and no core change. Demonstrated in
+> `provisioning/dashboards/relations/graph-wide.json`, which achieves per-node colour,
+> per-edge colour, a link on exactly one node, `custom.hideFrom` on exactly one edge, and
+> differing units on two nodes using `fieldConfig.overrides` alone.
+>
+> **What in this doc is now wrong:**
+>
+> - The recommendation. Option 1 is not needed for this family. Nothing in the proof
+>   dashboard uses a plugin-local per-item mechanism.
+> - The "is the field override UI useless" table: every **No** becomes a **Yes** for wide
+>   input, including `custom.hideFrom` and "anything targeting one node or one edge".
+> - The first open question — _should an item rule beat a data-driven `color` column_ —
+>   dissolves. There is no second rule system, and `rowsToFields` converts a legacy
+>   `color` column into `config.color.fixedColor`, where a field override beats it exactly
+>   as it does in every other Grafana panel.
+>
+> **What in this doc is still correct and still load-bearing:**
+>
+> - "Why the obvious route is closed" — all of it. `FieldMatcher` is still
+>   `(field, frame, allFrames) => boolean`; the matcher list is still five entries
+>   (re-confirmed on 13.1.0: `byName`, `byRegexp`, `byType`, `byFrameRefID`, `byValue`);
+>   `fieldMatchersUI` is still a global singleton. The wall is real — the pivot walks
+>   around it rather than through it.
+> - "What is actually per-item in ECharts". Sankey `nodeWidth` / `nodeGap` are still
+>   series-level and must stay panel options however marks are modelled.
+> - Option 4's framing, narrowed: graph frames do not need
+>   [#129905](https://github.com/grafana/grafana/pull/129905), and by the same argument
+>   nor do pie or hierarchy — but canvas elements and geomap features are marks that
+>   cannot be fields, so the general case survives. If a core change is wanted anyway,
+>   the cheaper door is **`MatcherScope`**, which already ships (`'series' | 'nested' |
+'annotation' | 'exemplar'`, plus a `scope` parameter on `applyFieldOverrides` and a
+>   `MatcherScopeSelector` in `@grafana/ui`) and which the override editor already writes
+>   into dashboard JSON — observed as `scope: 'series'` in a saved 13.1.0 dashboard.
+>   A `'node'` / `'edge'` scope is a far smaller ask than a parallel override system.
+>
+> Rewrite plan and per-gap disposition:
+> [graph-wide-migration.md](./graph-wide-migration.md).
+
 ## Is the field override UI useless for relations?
 
 **No — and it should not be hidden.** It is _field_-scoped, which covers rather more than it

@@ -1,5 +1,35 @@
 # Data links for relations (graph / sankey / chord)
 
+> ## Resolution — gaps 1–3 close structurally; gap 4 stays partially open
+>
+> [../data-plane/graph-wide.md](../data-plane/graph-wide.md) makes one node one **field**
+> and one edge one **field**, so `config.links` on a mark's own field is a link on that
+> mark and nothing else. Demonstrated in
+> `provisioning/dashboards/relations/graph-wide.json`: a `byName` override puts a link on
+> node `a` only, and `b` / `c` render no link at all.
+>
+> | Gap                                              | Under `graph-*-wide`                                                                                                                                                                                                                                           |
+> | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | 1 — a link on `mainstat` is a link on every node | **Closed for wide input.** One field, one mark                                                                                                                                                                                                                 |
+> | 2 — only `mainstat` is ever consulted            | **Closed for wide input.** Each mark carries its own field                                                                                                                                                                                                     |
+> | 3 — a node can be handed the edges frame's field | **Closed for wide input.** Structurally impossible                                                                                                                                                                                                             |
+> | 4 — derived nodes have no row                    | **Partially open.** A derived node has no _field_ either, so nothing to configure. What changes is that supplying a nodes frame becomes cheap and side-effect-free, so "add a nodes frame" is a real answer. The union-of-incident-edges question is unchanged |
+> | 5 — pinning an edge replays a node tooltip       | Already fixed; unaffected                                                                                                                                                                                                                                      |
+>
+> **"Closed for wide input" is not "closed".** An adapter inside the panel runs _after_
+> `applyFieldOverrides`, so legacy row-format input can never gain per-mark links however
+> the panel reshapes it. Only a user-added **Rows to fields** transformation runs early
+> enough. That asymmetry is why the migration plan surfaces a notice rather than adapting
+> silently — see [graph-wide-migration.md](./graph-wide-migration.md).
+>
+> Of the options considered here: **B** and **C** remain the answer for legacy input and
+> become unnecessary for wide input; **D** (`link__*` column convention) is now clearly
+> the wrong shape, since `config.links` is the real thing; **E** stays rejected. The
+> observation that relations still has **no case in `dataLinks.test.tsx`** stands, and
+> matters more now.
+>
+> Everything below remains an accurate description of the row-format behaviour.
+
 ## Problem
 
 Users want a data link on **one node** or **one edge** — "clicking `eu-west` opens its

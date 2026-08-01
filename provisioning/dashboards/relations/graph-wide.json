@@ -1,0 +1,430 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "description": "Proof for the graph-nodes-wide / graph-edges-wide contract (data-plane/graph-wide.md). Every styled panel is paired with an unstyled control, and every styled panel achieves its effect with fieldConfig.overrides alone — no plugin-local per-item mechanism. The ECharts relations panel cannot read the wide form yet (todo/graph-wide-migration.md), so the five per-mark demonstrations use core panels, whose marks are already fields.",
+  "panels": [
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Wide edges frame, four per-edge overrides — the whole point of the contract.**\n\nFixture = worked example 3, with a leading `row` string column as the categorical row dimension. Each of the four edges is a numeric field, so each is addressable by `byName`:\n\n- `a->c` — a fixed colour (`dark-red`)\n- `b->d` — `custom.hideFrom` (Viz + Legend + Tooltip): the bar is simply gone\n- `a->b` — Unit `ms`, Decimals 0\n- `c->d` — Unit `s`, Decimals 2\n\nCompare with the control on the right. All four are impossible in the legacy row format, where every edge shares the `mainstat` column.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "fillOpacity": 80 } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "a->c" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "b->d" },
+            "properties": [{ "id": "custom.hideFrom", "value": { "legend": true, "tooltip": true, "viz": true } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "a->b" },
+            "properties": [
+              { "id": "unit", "value": "ms" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "c->d" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 2 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "orientation": "auto",
+        "tooltip": { "mode": "multi" },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "csvContent": "row,a->b,a->c,b->d,c->d\ntotal,60,40,60,40",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Wide edges — four per-edge overrides",
+      "type": "barchart"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Control.** Identical query, `overrides: []`. Four bars, palette colours, no units, nothing hidden.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "fillOpacity": 80 } },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "orientation": "auto",
+        "tooltip": { "mode": "multi" },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "csvContent": "row,a->b,a->c,b->d,c->d\ntotal,60,40,60,40",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Control — same wide edges, no overrides",
+      "type": "barchart"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Wide nodes frame, per-node colour and per-node units.**\n\nFixture = worked example 4, wide form. One numeric field per node, reduced by `reduceOptions.calcs[0]` — the replacement for the `mainstat` column.\n\n- `a` — fixed colour `dark-red`, Unit `ms`, Decimals 0\n- `b` — Unit `percentunit`, Decimals 2 (so `8` reads as `800.00%`)\n- `c` — untouched\n\nTwo nodes with *different* units is the demonstration: core's Node graph has one \"main stat unit\" panel option for every node at once.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "a" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } },
+              { "id": "unit", "value": "ms" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "b" },
+            "properties": [
+              { "id": "unit", "value": "percentunit" },
+              { "id": "decimals", "value": 2 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+      "id": 3,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true
+      },
+      "targets": [
+        {
+          "csvContent": "a,b,c\n12,8,3",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Wide nodes — per-node colour and per-node units",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Control.** Identical query, `overrides: []`. Three palette-coloured bars, no units.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+      "id": 4,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true
+      },
+      "targets": [
+        {
+          "csvContent": "a,b,c\n12,8,3",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Control — same wide nodes, no overrides",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**A data link on exactly one node.**\n\nSame wide nodes fixture. `config.links` is set by a `byName` override on field `a` only, so `a`'s value renders as a link and `b`/`c` do not — visible without clicking.\n\nThis is gap 1 of `todo/relations-data-links.md`: in the legacy form a link lives on the `mainstat` *column*, so it paints on **every** node and `${__data.fields.id}` can vary only its destination, never its presence.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "a" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Runbook for a",
+                    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              { "id": "unit", "value": "ms" },
+              { "id": "decimals", "value": 0 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 17 },
+      "id": 5,
+      "options": { "cellHeight": "sm", "showHeader": true },
+      "targets": [
+        {
+          "csvContent": "a,b,c\n12,8,3",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Wide nodes — a data link on exactly one node",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Control.** Identical query, `overrides: []`. No cell is a link.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "align": "auto" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 17 },
+      "id": 6,
+      "options": { "cellHeight": "sm", "showHeader": true },
+      "targets": [
+        {
+          "csvContent": "a,b,c\n12,8,3",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Control — same wide nodes, no links",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**The migration path, end to end.**\n\nThis is the *unmodified* legacy edges CSV from [sankey.json](./sankey.json), run through **Convert field type** (`mainstat` → number) and then **Rows to fields** with **no options at all**.\n\nAuto-detection takes the first string column (`id`) as the field name and the first numeric column (`mainstat`) as the value; every other column falls through to `field.labels`. The column headers below are the resulting display names — `e1 {source=\"gateway\", target=\"api\"}` — which is `field.name` followed by the label set.\n\nThe `convertFieldType` step is mandatory: with no numeric field, `rowsToFields` silently returns its input unchanged.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "e4" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 7,
+      "options": { "cellHeight": "sm", "showHeader": true },
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Legacy CSV → wide, via Rows to fields (no options)",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": { "conversions": [{ "destinationType": "number", "targetField": "mainstat" }] }
+        },
+        { "id": "rowsToFields", "options": {} }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**The \"before\".** The same legacy CSV with no transformations, rendered by the ECharts relations panel as it works today. Seven edges, one `mainstat` column, no per-edge anything.\n\nThe override picker on this panel lists exactly `id, source, target, mainstat` — four fields for seven edges — which is the wall `todo/relations-item-overrides.md` documents.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 8,
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Legacy input today — the relations panel renders it",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Dense, edge-per-field.** Worked example 5: three nodes fully connected is six edge fields — the N·(N−1) growth. Every ribbon stays individually addressable, and `b->a` carries a fixed colour to prove it at density.\n\nAt 30 nodes this form is 870 fields, which is the ceiling the contract states.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "fillOpacity": 80 } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "b->a" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 32 },
+      "id": 9,
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "orientation": "auto",
+        "tooltip": { "mode": "multi" },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "csvContent": "row,a->b,a->c,b->a,b->c,c->a,c->b\ntotal,10,20,30,40,50,60",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Dense — edge-per-field (6 fields for 3 nodes)",
+      "type": "barchart"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Dense, adjacency matrix.** The same six edges, produced from the *legacy* dense CSV by core's **Grouping to matrix** (Column `target`, Row `source`, Cell `mainstat`). Four fields instead of six, and the count grows as N rather than N².\n\nNote what the transform actually emits: the key column is named `source\\target`, the target columns appear in first-appearance order rather than sorted, and the frame is **not square** — a node that never appears as a source gets no row.\n\nThe override on column `a` is the normative rule: **a matrix column is a node**, not its inbound edges. Per-edge config is unavailable here, because an edge is a cell.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "a" },
+            "properties": [{ "id": "displayName", "value": "a (node, not its inbound edges)" }]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 32 },
+      "id": 10,
+      "options": { "cellHeight": "sm", "showHeader": true },
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\na->b,a,b,10\na->c,a,c,20\nb->a,b,a,30\nb->c,b,c,40\nc->a,c,a,50\nc->b,c,b,60",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Dense — adjacency matrix (4 fields for 3 nodes)",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": { "conversions": [{ "destinationType": "number", "targetField": "mainstat" }] }
+        },
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "target",
+            "emptyValue": "null",
+            "rowField": "source",
+            "valueField": "mainstat"
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**Ranged edges — one frame per edge, no aggregation.**\n\nFour TestData series, aliased with edge ids, standing in for a Prometheus `time_series` instant/range query with `legendFormat: {{client}}->{{server}}`. This is the `graph-edges-multi` variant: the value field is named `Value` in every frame, so `getFieldDisplayName` substitutes the frame name and each series is identified by its edge id.\n\n`a->c` carries a fixed colour, proving each edge is addressable. The hazard is on the same page: `byName: Value` would match **every** edge at once, because the raw field name is shared.\n\nThe legacy form cannot consume this at all — it needs one row per edge, which is why `docs/relations-data-sources.md` requires instant queries plus two SQL Expressions.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "a->c" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "b->d" },
+            "properties": [{ "id": "custom.hideFrom", "value": { "legend": true, "tooltip": true, "viz": true } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 41 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "alias": "a->b",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "60,55,70,65,60"
+        },
+        {
+          "alias": "a->c",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "B",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "40,45,30,35,40"
+        },
+        {
+          "alias": "b->d",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "C",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "60,55,70,65,60"
+        },
+        {
+          "alias": "c->d",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "D",
+          "scenarioId": "csv_metric_values",
+          "stringInput": "40,45,30,35,40"
+        }
+      ],
+      "title": "Ranged / multi — one frame per edge, reduced by calcs[0]",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**The gap this contract does not close on its own — expected to error today.**\n\nThe same wide edges fixture as the top-left panel, handed to the ECharts relations panel. `frameToNodeGraph` requires fields literally named `source` and `target`, finds none, returns `null`, and `buildOption` throws.\n\nThat is not a graceful degradation, and fixing it is phase 1 of [todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md): detect the wide shape, read it, and surface a notice rather than an exception. This panel is kept as the regression target.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 50 },
+      "id": 12,
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "seriesType": "graph",
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "csvContent": "a->b,a->c,b->d,c->d\n60,40,60,40",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "WIDE input today — the relations panel errors (regression target)",
+      "type": "grafana-echartsrelations-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "node-graph", "data-plane", "graph-wide"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — graph-*-wide contract proof",
+  "uid": "echarts-relations-graph-wide",
+  "version": 1,
+  "weekStart": ""
+}
