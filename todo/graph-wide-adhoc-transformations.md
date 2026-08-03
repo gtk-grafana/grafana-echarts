@@ -350,7 +350,7 @@ VizPanel`, then `vizPanel.getPlugin()`. So inside `transform()` the transformer 
 
 1. resolve its parent `VizPanel` → `vizPanel.getPlugin()` → the `PanelPlugin`;
 2. read an optional hook off the plugin — the plugin, not the dashboard, not the query;
-3. call it with the source frames and prepend whatever `DataTransformerConfig[]` it returns.
+3. call it with the source frames and prepend whatever it returns.
 
 No datasource is involved and nothing is guessed. The knowledge flows **panel → transformer**,
 in the same direction as `fieldConfigRegistry` and `dataSupport` already do. A panel that
@@ -360,13 +360,34 @@ The hook is _conditional on the data_, which is what makes it safe to leave on p
 
 ```ts
 // Illustrative only — not an API proposal.
-relationsPlugin.setPipelinePrefix((frames) =>
-  isGraphWideFrames(frames) ? [] : legacyToWideTransformerConfigs(frames)
-);
+relationsPlugin.setPipelinePrefix((frames) => (isGraphWideFrames(frames) ? [] : [legacyToWideOperator]));
 ```
 
-Wide input → `[]` → nothing happens. Legacy input → a `rowsToFields`-shaped prefix. A
-datasource that later emits wide frames natively silently stops triggering it.
+Wide input → `[]` → nothing happens. Legacy input → the conversion. A datasource that later
+emits wide frames natively silently stops triggering it.
+
+**What it returns must be `Array<DataTransformerConfig | CustomTransformOperator>`, not
+`DataTransformerConfig[]`.** An earlier draft of this section said a `rowsToFields`-shaped
+config; that has since been measured to be insufficient. `configMapHandlers`
+(`fieldToConfigMapping.ts`, v13.1.0) is a closed list of thirteen handlers whose only config
+targets are `max`, `min`, `unit`, `decimals`, `displayName`, `color`, `thresholds` and
+`mappings` — **no `custom.*`, no `links`** — and `rowsToFields` builds its output frame from
+scratch, so `meta` never survives. A JSON-configured prefix therefore cannot emit the
+contract's `custom.lineWidth` / `custom.nodeRadius` / `custom.icon` / `custom.subtitle`
+mappings, cannot emit per-mark `links`, and cannot set `meta.type: 'graph-edges-wide'`.
+
+The union costs nothing: `transformDataFrame` is already typed
+`Array<DataTransformerConfig | CustomTransformOperator>`
+(`@grafana/data` 13.1.1, `transformDataFrame.d.ts:12`) and
+`SceneDataTransformerState.transformations` is already
+`Array<DataTransformerConfig | CustomTransformerDefinition>` (`SceneDataTransformer.ts:25`),
+so the widening is one type on `PanelPlugin` and no change to either. It also removes two of
+the three objections this doc raises against delegating to `transformDataFrame`: a custom
+operator is dispatched by `typeof config === 'function'` **before**
+`standardTransformersRegistry` is consulted, so there is no host-registry dependence and no
+jest unmockability; and because a function cannot round-trip dashboard JSON, the prefix is
+non-persistable and non-editable structurally rather than by convention. Design and
+measurements: [adhoc-transformations-split.md](./adhoc-transformations-split.md#why-the-return-type-is-a-union-and-why-the-union-is-free).
 
 ### Why this fixes the override picker, which is the actual blocker
 
@@ -408,8 +429,11 @@ pipeline prefix on the plugin**, executed by the transformer rather than by the 
 Sketch, deliberately not an API proposal:
 
 - `PanelPlugin` gains an optional hook that, given the source frames, returns
-  `DataTransformerConfig[]` — for the relations family, `[]` for wide input and a
-  `rowsToFields`-shaped config for legacy input.
+  `Array<DataTransformerConfig | CustomTransformOperator>` — for the relations family, `[]`
+  for wide input and a single `CustomTransformOperator` for legacy input. The operator form is
+  required, not preferred: see
+  [above](#how-would-grafana-know-the-panel-wants-wide-frames-the-mechanism) for why a
+  `rowsToFields`-shaped config cannot carry `custom.*`, `links` or `meta`.
 - `SceneDataTransformer.transform()` prepends its result to `interpolatedTransformations`
   at `SceneDataTransformer.ts:265`, before the `transformDataFrame` call at `:296`. It
   needs the plugin, which it can reach the same way #129544's

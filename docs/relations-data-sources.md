@@ -301,14 +301,26 @@ pivot. On the canonical `id,source,target,mainstat` shape it needs **no options 
 | anything else (`source`, `target`, `detail__*`) | `field.labels`        | automatic — the documented fall-through                     |
 | `title`                                         | `config.displayName`  | needs one explicit mapping                                  |
 
-Two rules that are easy to get wrong:
+Three rules that are easy to get wrong:
 
 - **Add `Convert field type` first for `csv_content`.** CSV columns arrive as strings, and
   with no numeric column `rowsToFields` silently returns its input unchanged. This is the
-  same `convertFieldType` step the part-to-whole long-format dashboards use.
+  same `convertFieldType` step the part-to-whole long-format dashboards use. A frame that
+  already has a numeric `mainstat` — as Tempo's and TestData's do — needs no such step.
 - **Column order matters.** Auto-detection takes the _first_ string and _first_ numeric
   column. `source,target,id,mainstat` would name the output fields after `source` values.
   Reorder with `Organize fields`, or state the mapping explicitly.
+- **Write mappings against the column's _display name_, not its name.**
+  `evaluateFieldMappings` keys everything on `getFieldDisplayName(field, frame)`, and the
+  natively-long producers set `config.displayName` on exactly the stat and arc columns. So
+  the mapping for `mainstat` must say `Average response time` (Tempo) or
+  `Transactions per second` (TestData) — never `mainstat`. **Getting this wrong is a silent
+  no-op of the entire transformation**, not of the one mapping: a `Field value` mapping that
+  matches nothing suppresses the auto-pick-first-numeric branch, `valueField` stays
+  undefined, and `rowsToFields` returns the input frame untouched (measured — the returned
+  object is identical to the input). The panel then receives a legacy frame and there is no
+  warning anywhere. It also means a pivot recipe **is not portable between datasources**,
+  because it is keyed on strings the datasource chose.
 
 **The natively-long sources need explicit mappings, not zero config.** Tempo, AWS X-Ray
 and TestData emit `id` columns that are opaque row keys, not names. Measured against
@@ -322,6 +334,35 @@ mappings:
 | ----- | -------------------------------------------------------------------------------------------------------------- |
 | nodes | `title` → **Field name**, `secondarystat` → **Field value**                                                    |
 | edges | `sourceName` / `targetName` left unmapped (they become the endpoint labels), `secondarystat` → **Field value** |
+
+### What the pivot cannot carry, however it is configured
+
+`Rows to fields` writes field config through `configMapHandlers`, a closed list of thirteen
+handlers whose only targets are `max`, `min`, `unit`, `decimals`, `displayName`, `color`,
+`thresholds` and `mappings`. **No handler writes `config.custom.*` and none writes
+`config.links`.** So on a legacy node-graph frame:
+
+| Column                                                           | Outcome                                                                     |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `color`                                                          | Real field config, automatically — a genuine bonus                          |
+| `title`                                                          | `displayName`, with one mapping                                             |
+| `source` / `target` / `detail__*`                                | `field.labels` — the conformant endpoint carrier                            |
+| `subtitle`, `icon`, `noderadius`, `thickness`, `strokedasharray` | `field.labels`, **not** the `custom.*` the contract wants                   |
+| `secondarystat`                                                  | `field.labels`, losing its type, unit and decimals                          |
+| `arc__*`                                                         | `field.labels`, or a structurally invalid `thresholds` set if mapped        |
+| the value column's own `unit` / `decimals` / `displayName`       | **discarded** — output config is built from row values, not from the column |
+| `meta.preferredVisualisationType`, frame `name`                  | **discarded** — output is `{ fields, length, refId }` only                  |
+
+The last two rows matter for more than fidelity: because `meta` does not survive, no
+transformation can set `meta.type: 'graph-edges-wide'`, and a frame that carried no `refId`
+comes out as the literal `rowsToFields-undefined` — so both pivoted frames share a refId and
+can no longer be told apart by one. Full measurements:
+[../data-plane/graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+
+**This is the reason the recipe below is a debugging aid rather than the shipping plan.** A
+faithful conversion has to write `custom.*`, `links` and `meta`, which no core transformation
+can, so it belongs in a `CustomTransformOperator` registered as a pipeline prefix — see
+[../todo/adhoc-transformations-split.md](../todo/adhoc-transformations-split.md).
 
 So the wide form is dramatically cheaper to source from Prometheus, Loki and SQL, and
 modestly more fiddly from the datasources that already emit the long form natively.

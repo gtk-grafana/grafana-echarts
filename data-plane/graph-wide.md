@@ -169,13 +169,17 @@ first two are here in full; the rest are summarised in
 
 ### More measured behaviours
 
-| Behaviour                                         | Observed                                                                                                                                                                                                                 | Detail                                                                           |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| All three separator forms work as field names     | `a-->b`, `a→b` and `my-svc-->other-svc` all survive `csv_content` as field names, and a `byName` override targets each exactly. But shortest-first separator matching mis-splits `a-->b` into `a-` / `b`.                | [The separator](#the-separator)                                                  |
-| Duplicate field names are individually targetable | Two fields may share a name; only the **display** name is disambiguated (`a-->b 1` / `a-->b 2`). `byName` on the raw name hits both; on an ordinal, exactly one. The ordinal is positional within the frame.             | [Parallel edges](#parallel-edges-require-labels)                                 |
-| `PanelDataSummary` exposes the meta signals       | 13.1.1 has `hasDataFrameType`, `hasPreferredVisualisationType` and `rawFrames`, so suggestions are reachable for both formats. The repo's own "exposes neither" comment is stale.                                        | [Frame meta](#frame-meta)                                                        |
-| A real service map pivots poorly by default       | TestData `node_graph` `response_small` (a saved X-Ray map) through zero-config `rowsToFields` yields node fields named `0` … `16` and takes the edge value from `secondarystat`, because X-Ray's `mainstat` is a string. | [Reality check](#reality-check-the-natively-long-producers-are-the-awkward-case) |
-| Frame shape changes pipeline cost by ~200×        | 5 000 marks: 0.1 ms in long, 18.6 ms in edge-per-field wide, 0.3 ms in the adjacency matrix. ECharts is unaffected either way.                                                                                           | [Performance](#performance-which-frame-shape-is-cheapest)                        |
+| Behaviour                                                      | Observed                                                                                                                                                                                                                      | Detail                                                                           |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| All three separator forms work as field names                  | `a-->b`, `a→b` and `my-svc-->other-svc` all survive `csv_content` as field names, and a `byName` override targets each exactly. But shortest-first separator matching mis-splits `a-->b` into `a-` / `b`.                     | [The separator](#the-separator)                                                  |
+| Duplicate field names are individually targetable              | Two fields may share a name; only the **display** name is disambiguated (`a-->b 1` / `a-->b 2`). `byName` on the raw name hits both; on an ordinal, exactly one. The ordinal is positional within the frame.                  | [Parallel edges](#parallel-edges-require-labels)                                 |
+| `PanelDataSummary` exposes the meta signals                    | 13.1.1 has `hasDataFrameType`, `hasPreferredVisualisationType` and `rawFrames`, so suggestions are reachable for both formats. The repo's own "exposes neither" comment is stale.                                             | [Frame meta](#frame-meta)                                                        |
+| A real service map pivots poorly by default                    | TestData `node_graph` `response_small` (a saved X-Ray map) through zero-config `rowsToFields` yields node fields named `0` … `16` and takes the edge value from `secondarystat`, because X-Ray's `mainstat` is a string.      | [Reality check](#reality-check-the-natively-long-producers-are-the-awkward-case) |
+| Frame shape changes pipeline cost by ~200×                     | 5 000 marks: 0.1 ms in long, 18.6 ms in edge-per-field wide, 0.3 ms in the adjacency matrix. ECharts is unaffected either way.                                                                                                | [Performance](#performance-which-frame-shape-is-cheapest)                        |
+| No transformation can write `custom.*` or `links`              | `configMapHandlers` is a closed list of thirteen; its only config targets are `max`, `min`, `unit`, `decimals`, `displayName`, `color`, `thresholds` and `mappings`. Seven contract mappings are unsourceable this way.       | [What a native pivot cannot carry](#what-a-native-pivot-cannot-carry)            |
+| `rowsToFields` mappings key on the **display** name            | `evaluateFieldMappings` matches `getFieldDisplayName(field, frame)`, so a mapping must say `Average response time`, not `mainstat`. A raw-name mapping returns the **input frame identically** — a silent no-op.              | [Two traps](#two-traps-in-rowstofields-itself)                                   |
+| The pivot discards `meta`, `name` and the stat column's config | Output is `{ fields, length, refId }`; `preferredVisualisationType` is lost, `meta.type` unsettable, and frames with no `refId` both become `rowsToFields-undefined`. `unit` / `decimals` on the value column are not copied. | [Three losses](#three-losses-that-are-not-handler-gaps)                          |
+| `secondarystat` cannot survive an instant pivot                | Output is `length: 1`, so `calcs[0]` and `calcs[1]` reduce the same value and must agree. The second stat degrades to a label, losing type, unit and decimals.                                                                | [Three losses](#three-losses-that-are-not-handler-gaps)                          |
 
 ## Frame role resolution
 
@@ -490,6 +494,16 @@ safe at the scale a real topology needs. On a single-row instant frame every red
 that returns a value returns that value, so `lastNotNull`, `last`, `mean`, `min`, `max`
 and `sum` all agree — the calc only starts to matter once there is a row dimension.
 
+**That last sentence has a consequence the `calcs[1]` mapping has to own: on the instant
+form a secondary stat is not expressible.** `calcs[0]` and `calcs[1]` reduce the same single
+value and therefore return it twice. Two calcs are two _views of one series_, which is not
+what the long form's `mainstat` / `secondarystat` are — Tempo's are average response time and
+requests per second, two independent measurements. So `calcs[1]` replaces `secondarystat`
+only on the [ranged](#row-dimension-variants) variant. On instant data a second stat needs a
+second carrier: a label (what a native pivot produces, at the cost of its type and unit), or
+a second numeric field excluded from the mark matcher via `reduceOptions.fields`. Measured in
+[What a native pivot cannot carry](#what-a-native-pivot-cannot-carry).
+
 ## Identity, display names and override targeting
 
 Three behaviours, all measured, that together decide how the contract must be authored.
@@ -690,7 +704,7 @@ or the reason it has none. Acceptance requires this table to be exhaustive.
 | `source`          | `field.labels.source`, or the name split      | Label key configurable                                                                                    |
 | `target`          | `field.labels.target`, or the name split      | Label key configurable                                                                                    |
 | `mainstat`        | the field's **values**, reduced by `calcs[0]` | Cannot be a string any more — a field has one type, and the mark's field is numeric                       |
-| `secondarystat`   | `calcs[1]`                                    | Same field, second reducer                                                                                |
+| `secondarystat`   | `calcs[1]`                                    | Same field, second reducer — **ranged variant only**; on instant data both calcs return the same value    |
 | `detail__*`       | `field.labels.*`                              | Still no context menu; labels can fold into tooltip rows                                                  |
 | `thickness`       | `config.custom.lineWidth`                     | Was also the weight fallback; the weight is now the field's own value, so the fallback is gone            |
 | `color`           | `config.color`                                | All eight modes, not just an HTML string                                                                  |
@@ -705,7 +719,7 @@ or the reason it has none. Acceptance requires this table to be exhaustive.
 | `title`          | `config.displayName`                         | `rowsToFields` maps a `title` column onto it with one explicit mapping                                                                                                                              |
 | `subtitle`       | `config.custom.subtitle`                     | Plugin-declared                                                                                                                                                                                     |
 | `mainstat`       | values, reduced by `calcs[0]`                | —                                                                                                                                                                                                   |
-| `secondarystat`  | `calcs[1]`                                   | —                                                                                                                                                                                                   |
+| `secondarystat`  | `calcs[1]`                                   | **Ranged variant only.** On an instant frame both calcs reduce the same value — see [the `reduceOptions` contract](#the-reduceoptions-contract)                                                     |
 | `arc__*`         | `config.thresholds` steps                    | **Approximation.** A threshold set is an ordered colour partition of the value domain, not arbitrary proportions summing to 1; and no ECharts relationship series draws a multi-section ring anyway |
 | `detail__*`      | `field.labels.*`                             | —                                                                                                                                                                                                   |
 | `color` (string) | `config.color.fixedColor`                    | `rowsToFields` converts a legacy `color` column automatically (verified)                                                                                                                            |
@@ -716,6 +730,15 @@ or the reason it has none. Acceptance requires this table to be exhaustive.
 | `fixedx`         | `config.custom.fixedX`                       | All-or-nothing rule is unchanged                                                                                                                                                                    |
 | `fixedy`         | `config.custom.fixedY`                       | Same                                                                                                                                                                                                |
 | `isinstrumented` | **dropped**                                  | Never rendered by this plugin in either form; it is a core-panel styling hint                                                                                                                       |
+
+**Whether a transformation can _produce_ these rows is a separate question from whether the
+contract can express them, and the answer is narrower than the tables suggest.** Every
+`config.custom.*` row above, in both tables, plus `config.links`, is unreachable by any core
+transformation: `configMapHandlers` has no handler that writes into `custom` or `links`. Under
+a native pivot those columns degrade to `field.labels`. Measured, with the full list, in
+[What a native pivot cannot carry](#what-a-native-pivot-cannot-carry); what it implies for how
+the conversion must be implemented is in
+[adhoc-transformations-split.md](../todo/adhoc-transformations-split.md#why-the-return-type-is-a-union-and-why-the-union-is-free).
 
 ## Sourcing
 
@@ -803,6 +826,138 @@ datasources that already emit the long form natively.** That population — Temp
 X-Ray, TestData — is exactly the one that
 [dropping long support](../todo/graph-wide-migration.md#dropping-long-support-entirely)
 would strand.
+
+### What a native pivot cannot carry
+
+Measured by running core's real `rowsToFields` over a legacy nodes + edges pair carrying
+every optional column — `arc__*`, `icon`, `noderadius`, `detail__*`, `color`,
+`strokedasharray` — which is the shape TestData's `node_graph` scenario emits and, minus
+`icon`/`noderadius`, what Tempo's service graph emits (`graphTransform.ts`,
+`createServiceMapDataFrames`, v13.1.0). Verbatim v13.1.0 transformer sources against
+`@grafana/data` 13.1.1.
+
+**The edges frame pivots cleanly with zero options.** Given
+`id, source, target, mainstat, color, strokedasharray`:
+
+```text
+field "service:1--service:2"  number  [97.98148256679684]
+  labels: { source: "service:1", target: "service:2" }
+  config: { color: { fixedColor: "blue", mode: "fixed" } }
+```
+
+Name is the edge id, endpoints are in labels — the conformant carrier — and the legacy
+`color` column auto-promotes to real overridable field config ([#1c](#verified-behaviours)).
+Two details worth keeping: `strokedasharray` vanishes entirely because its values array was
+empty and `getLabelsFromRow` skips `value == null`; and the edge id is `service:1--service:2`
+with a **double hyphen**, which the [separator](#the-separator) rule does not split — so
+labels are not merely preferred here, they are the only thing that resolves the endpoints.
+
+**The nodes frame pivots to something structurally valid and semantically hollow.** Given
+`id, title, subtitle, mainstat, secondarystat, arc__success, arc__errors, icon, noderadius, detail__test_value`:
+
+```text
+field "service:1"  number  [0.2637226215903159]
+  labels: { title: "Service 1", subtitle: "Foo", "Average duration": 0.7058…,
+            Success: 1, Errors: 0, icon: "", noderadius: 40 }
+  config: {}
+```
+
+`config` is **empty**. Everything except `id` and `mainstat` became a label.
+
+#### The ceiling is `configMapHandlers`, and it is closed
+
+`configMapHandlers`
+(`public/app/features/transformers/fieldToConfigMapping/fieldToConfigMapping.ts`) is a
+hard-coded list of thirteen. Its target properties, dumped at runtime:
+
+```text
+field.name, field.value, field.label, __ignore,
+max, min, unit, decimals, displayName, color, thresholds, mappings ×3
+```
+
+**No `custom`. No `links`.** So against the
+[complete mapping tables](#complete-mapping-from-graph--long):
+
+| Long column         | Wide target                 | Reachable by any transformation?                                             |
+| ------------------- | --------------------------- | ---------------------------------------------------------------------------- |
+| `color`             | `config.color`              | **Yes, automatic** — lowercased column name hits the `color` handler         |
+| `title`             | `config.displayName`        | Yes, one explicit mapping                                                    |
+| `arc__*`            | `config.thresholds`         | Mechanically, not meaningfully — see below                                   |
+| `subtitle`          | `custom.subtitle`           | **No**                                                                       |
+| `icon`              | `custom.icon`               | **No**                                                                       |
+| `noderadius`        | `custom.nodeRadius`         | **No**                                                                       |
+| `strokedasharray`   | `custom.lineType`           | **No**                                                                       |
+| `thickness`         | `custom.lineWidth`          | **No**                                                                       |
+| `fixedx` / `fixedy` | `custom.fixedX` / `.fixedY` | **No**                                                                       |
+| —                   | `config.links`              | **No** — the headline capability of the pivot, unreachable by transformation |
+
+Everything in the **No** rows lands in `field.labels` instead, or vanishes. This is why the
+contract's `custom.*` column cannot be sourced by a user-added transformation and why the
+conversion has to be a `CustomTransformOperator` rather than a `rowsToFields` config — see
+[graph-wide-migration.md](../todo/graph-wide-migration.md#the-adapter-decision) and
+[adhoc-transformations-split.md](../todo/adhoc-transformations-split.md#why-the-return-type-is-a-union-and-why-the-union-is-free).
+
+#### Three losses that are not handler gaps
+
+- **`secondarystat` is unrepresentable in the instant form.** This contract maps it to
+  `calcs[1]`, but the pivot output is `length: 1`, so `calcs[0]` and `calcs[1]` reduce the
+  same single value and must agree — as [the `reduceOptions` contract](#the-reduceoptions-contract)
+  itself concedes. A node with two genuinely different stats (Tempo: average response time
+  _and_ requests per second) keeps one as its value; the other survives only as a label,
+  losing its type, unit and decimals. The `calcs[0]`/`calcs[1]` mapping is sound only for the
+  **ranged** variant, where the two calcs are different reducers over one series.
+- **The value column's own config is discarded.** Measured `config: {}` even when the input
+  `mainstat` carries `displayName`, `unit: 'ms/r'` and `decimals: 2`. The output config is
+  built purely from row _values_ through handlers; `getFieldConfigFromFrame` never copies the
+  source field's config. Tempo ships units on both stat columns and they do not survive.
+- **Frame identity is destroyed.** The output is `{ fields, length, refId }` and nothing else.
+  `meta` is dropped, so `preferredVisualisationType: 'nodeGraph'` is lost and
+  `meta.type: 'graph-edges-wide'` can never be set by a transformation. `name` is dropped, so
+  the `nodes` / `edges` frame names are gone and role resolution falls back to field shape
+  (which does work: only the edges output carries `source`/`target` labels). And `refId`
+  becomes `rowsToFields-${data.refId}` — on frames that carry no `refId`, as TestData's do,
+  **both** outputs come out as the literal `rowsToFields-undefined`, so they are no longer
+  distinguishable by refId. That breaks [signal 3](#frame-role-resolution) and any downstream
+  `filterByRefId`, including the one the [matrix variant](#dense-graphs-the-adjacency-matrix-variant)
+  needs to work around `groupingToMatrix`'s single-frame guard.
+
+#### `arc__*` to thresholds, measured
+
+It works further than expected and is still not a rendering of the arcs. Two mappings both
+keyed `threshold1` each push a step, with per-mapping colours:
+
+```text
+service:2: { mode: "absolute", steps: [ {value: 0.2776, color: "green"}, {value: 0.7224, color: "red"} ] }
+```
+
+But there is no `-Infinity` base step, the steps are pushed in field order rather than sorted
+ascending, the values are proportions on a domain the node's own value (0.26) does not share,
+and the green/red came from the _mapping arguments_ — the arc columns' own
+`config.color.fixedColor` is never read. So it is a config-shaped artefact, which is what
+[the mapping table](#nodes) means by _approximation_.
+
+#### Two traps in `rowsToFields` itself
+
+1. **Mappings are keyed by the field's _display name_, not its name.**
+   `evaluateFieldMappings` computes `getFieldDisplayName(field, frame)` and uses it both for
+   the auto lookup (lowercased) and to match `mapping.fieldName`. Legacy producers set
+   `config.displayName` on exactly the stat and arc columns, so the mapping for `mainstat`
+   must be written against `'Transactions per second'` (TestData) or
+   `'Average response time'` (Tempo) — never `'mainstat'`. It follows that **a pivot recipe
+   is not portable between datasources**, because it is keyed on strings the datasource chose.
+2. **Getting that wrong silently no-ops the whole transformation.** Measured with
+   `{ fieldName: 'mainstat', handlerKey: 'field.value' }`: the returned object is the input
+   frame, identically (`out === input`, ten fields, `length: 2`). Because a `field.value`
+   mapping exists, the auto-pick-first-numeric branch is suppressed; nothing matches the raw
+   name; `valueField` stays undefined; and `if (!nameField || !valueField) return data`. The
+   panel then receives a legacy frame, which is where the relations family throws. There is no
+   warning.
+
+Two smaller observations for a reader: label **values** are whatever the cell held, so
+`noderadius: 40` and `Success: 1` are real numbers inside a `Labels` typed
+`Record<string, string>`; and auto-detection is positional — first `string` field, first
+`number` field, in field order — so a frame that put `arc__success` before `mainstat` would
+make an arc proportion the node's value.
 
 ### Per-node config from a second query
 
@@ -1387,9 +1542,15 @@ system. The honest claim is that the contract makes even that unnecessary for th
   https://grafana.com/docs/grafana/latest/panels-visualizations/configure-overrides/
 - Field overrides in a panel plugin:
   https://grafana.com/developers/plugin-tools/how-to-guides/panel-plugins/field-overrides.md
-- `rowsToFields` / `fieldToConfigMapping` source (the auto-detection and label
+- `rowsToFields` source (the auto-detection, the display-name keying and the label
   fall-through measured above):
   https://github.com/grafana/grafana/blob/v13.1.0/public/app/features/transformers/rowsToFields/rowsToFields.ts
+- `fieldToConfigMapping` source — the closed thirteen-handler list that is the ceiling on
+  what any pivot can write:
+  https://github.com/grafana/grafana/blob/v13.1.0/public/app/features/transformers/fieldToConfigMapping/fieldToConfigMapping.ts
+- `CustomTransformOperator` and the `transformDataFrame` union that accepts it:
+  `@grafana/data` 13.1.1, `types/transformations.d.ts` and
+  `transformations/transformDataFrame.d.ts`
 - `configFromQuery` source (the one-row config reduction):
   https://github.com/grafana/grafana/blob/v13.1.0/public/app/features/transformers/configFromQuery/configFromQuery.ts
 - Sourcing guide: [../docs/relations-data-sources.md](../docs/relations-data-sources.md)

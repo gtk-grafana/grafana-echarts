@@ -32,8 +32,11 @@ claim below was re-read from source at the tag named: grafana/grafana `v13.1.0`,
 **Initiative 1 — pipeline prefix registration.** A panel plugin declares a
 data-conditional hook. `SceneDataTransformer.transform()` resolves the `VizPanel` it
 feeds, calls the hook with the source frames, and prepends the returned
-`DataTransformerConfig[]` to `interpolatedTransformations` before the `transformDataFrame`
-call. Nothing persists, nothing is bypassed, no UI.
+`Array<DataTransformerConfig | CustomTransformOperator>` to `interpolatedTransformations`
+before the `transformDataFrame` call. Nothing persists, nothing is bypassed, no UI. The
+union matters and is not a convenience — a JSON-configured prefix
+[cannot express the graph conversion at all](#why-the-return-type-is-a-union-and-why-the-union-is-free),
+and both downstream types already accept it.
 
 **Initiative 2 — ad-hoc transformations.** What the five PRs already are: a user gesture
 in the panel ("Hide column") adds a transformation stamped
@@ -155,7 +158,7 @@ export interface PanelPipelinePrefixContext<TOptions = any> {
 /** @alpha */
 export type PanelPipelinePrefixSupplier<TOptions = any> = (
   ctx: PanelPipelinePrefixContext<TOptions>
-) => DataTransformerConfig[];
+) => Array<DataTransformerConfig | CustomTransformOperator>;
 
 export class PanelPlugin<TOptions = any, TFieldConfigOptions extends object = {}> {
   /** @internal — read by the host pipeline, never by the panel component. */
@@ -174,15 +177,77 @@ It is a plain field plus a chainable setter, which is exactly the shape of `setD
 matters for the mirror changes: `PanelModel` already reaches `this.plugin?.dataSupport` the
 same way (`PanelModel.ts:608-610`), so the non-scenes path needs no new plumbing to find it.
 
+### Why the return type is a union, and why the union is free
+
+**A `DataTransformerConfig[]`-only supplier cannot express the graph conversion.** This is
+measured, not anticipated: core's `configMapHandlers`
+(`public/app/features/transformers/fieldToConfigMapping/fieldToConfigMapping.ts`, v13.1.0)
+is a closed list of thirteen whose only config targets are `max`, `min`, `unit`,
+`decimals`, `displayName`, `color`, `thresholds` and `mappings`. **Nothing writes
+`config.custom.*` and nothing writes `config.links`**, and `rowsToFields` builds its output
+frame from scratch so `meta` never survives. So every `custom.*` row of the contract's
+[mapping tables](../data-plane/graph-wide.md#complete-mapping-from-graph--long),
+`config.links`, and `meta.type: 'graph-edges-wide'` are unreachable through any
+JSON-configured prefix. Full measurements in
+[graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+
+Widening the return type to `Array<DataTransformerConfig | CustomTransformOperator>` closes
+that, and it costs nothing downstream, because **both types the prefix flows into already
+accept the union**:
+
+| Boundary                                    | Existing type                                                                        | Verified in                                          |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| `transformDataFrame(options, data, ctx)`    | `Array<DataTransformerConfig \| CustomTransformOperator>`                            | `@grafana/data` 13.1.1, `transformDataFrame.d.ts:12` |
+| `SceneDataTransformerState.transformations` | `Array<DataTransformerConfig \| CustomTransformerDefinition>`                        | `SceneDataTransformer.ts:25`                         |
+| `CustomTransformerDefinition`               | `{ operator: CustomTransformOperator; topic: DataTopic } \| CustomTransformOperator` | `scenes/src/core/types.ts:228-230`                   |
+
+So the widening is **one type in `PanelPlugin.ts` and zero changes to `@grafana/scenes` or
+`transformDataFrame`**. It makes initiative 1 cheaper rather than larger: the plugin owns
+the conversion, so core does not need to grow a transformation to host it. `SceneDataTransformer`'s
+own class comment already advertises the capability — _"The transformations array supports
+custom (runtime defined) transformation as well as declarative core transformations."_
+
+Six properties of custom operators decide the contract clauses below. The first five were
+read from `@grafana/data` 13.1.1 `dist/esm/transformations/transformDataFrame.mjs`; the sixth
+from `@grafana/scenes`:
+
+| Observed                                                                                                            | Consequence                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `isCustomTransformation(t) => typeof t === 'function'`, tested **before** `standardTransformersRegistry` is read    | **No registry dependency**, so clause 5 does not apply to an operator entry — and the jest unmockability trap it records disappears |
+| Operators are applied in array order by `stream.pipe.apply(stream, operators)`                                      | Position 0 ⇒ runs first, structurally                                                                                               |
+| `if (config.disabled) continue` exists only in the non-custom branch                                                | An operator **cannot be disabled**, which is the non-user-editable requirement                                                      |
+| `config.filter` / `filterInput` / `postProcessTransform` exist only in `getOperator`                                | An operator sees **every** frame and must pass non-graph frames through itself. Required anyway — the trigger is per-frame meta     |
+| `ctx.interpolate` / `deepIterate` run only in `getOperator`; the operator still **receives** `context`              | **Clause 3 is moot for an operator** — a closure has no config literals to interpolate, and can call `ctx.interpolate` explicitly   |
+| A bare function falls through the `'options' in t \|\| 'topic' in t` predicate at `SceneDataTransformer.ts:270-272` | Defaults to the series topic. **Clause 4 is automatic**, not a lint rule                                                            |
+
+And the property that matters most for the stated goal: **a function cannot round-trip
+dashboard JSON**, so an operator prefix is non-persistable and non-editable _structurally_,
+enforced by the type rather than by the "nothing persists" convention.
+
+One side effect to record. A function in the array flips
+`_interpolateVariablesInTransformationConfigs` off its `onlyObjects` fast path
+(`SceneDataTransformer.ts:372`) onto the per-item path at `:379-385`. User configs are
+interpolated identically, one at a time; it also sidesteps the whole-array `JSON.stringify`
+mangling that [graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md)
+lists as a gap. But it is a code-path change for every panel that registers a prefix **and**
+uses variables, so it belongs in the acceptance tests.
+
 For the relations family the registration is:
 
 ```ts
 // This repo, PROPOSED usage — src/module.ts
 plugin.setPipelinePrefix(({ frames, options }) =>
   options.dataFormat === 'legacy' || (options.dataFormat === 'auto' && isNodeGraphFrames(frames))
-    ? legacyToWideTransformerConfigs(frames)
+    ? [legacyToWideOperator]
     : []
 );
+```
+
+`legacyToWideOperator` is a one-line wrapper over the pure adapter the migration plan
+already calls for, so the two are not alternatives:
+
+```ts
+export const legacyToWideOperator: CustomTransformOperator = () => (source) => source.pipe(map(legacyToWide));
 ```
 
 `options` is in the context specifically so the `dataFormat: 'auto' | 'legacy' | 'wide'`
@@ -201,15 +266,27 @@ for both.
    memo (`VizPanel.tsx:525-538`, keyed on `_prevData.series === rawData.series`) intact.
 3. **Configs must be variable-free.** No `$var`, `${var}` or `[[var]]`. See
    [interpolation](#interaction-with-_interpolatevariablesintransformationconfigs); a plugin
-   that needs an interpolated value should read it from `options`.
-4. **Configs must not set `topic`.** The host runs the prefix on the series topic only.
+   that needs an interpolated value should read it from `options`. **Applies to
+   `DataTransformerConfig` entries only** — an operator has no config literals, and receives
+   `ctx` if it wants interpolation.
+4. **Configs must not set `topic`.** The host runs the prefix on the series topic only. For
+   operator entries this is automatic: a bare function fails the
+   `'options' in t || 'topic' in t` test at `SceneDataTransformer.ts:270-272` and is kept for
+   series, excluded from annotations. Pass a bare `CustomTransformOperator`, not the
+   `{ operator, topic }` form.
 5. **`id` must resolve in the host's `standardTransformersRegistry`.** A prefix naming a
    transformer the host lacks surfaces through the existing `catchError`
    (`SceneDataTransformer.ts:319-345`) as `Error transforming data: …`, which is the right
    failure mode but should be documented as such. Note the trap this repo already
    measured: `rowsToFields` ships **only** as an id constant in `@grafana/data`; the
    implementation lives in Grafana core app code, so a prefix naming it works in a host and
-   is unmockable-by-registration under jest.
+   is unmockable-by-registration under jest. **This clause is the argument for preferring an
+   operator**: `transformDataFrame` dispatches functions before it ever consults the
+   registry, so an operator entry has no host-version coupling and is directly unit-testable.
+6. **An operator must pass through what it does not own.** Custom entries bypass
+   `config.filter`, `filterInput` and `postProcessTransform`, so the operator receives every
+   frame in the response and is responsible for returning non-matching frames unchanged —
+   including preserving their identity, so clause 2's memo still holds when nothing converts.
 
 ### Where exactly it is called in `SceneDataTransformer.transform()`
 
@@ -259,11 +336,15 @@ private transform(data: PanelData | undefined, force = false) {           // :20
 Three properties fall out of that placement and are worth stating because each removes a
 follow-up:
 
-- **The topic filters need no change.** `_filterAndPrepareTransformationsByTopic`
-  (`:386-393`) keeps a config for the series topic when `transformation.topic == null`
-  (`:271`) and for annotations only when it equals `DataTopic.Annotations` (`:280`). A
-  prefix config with no `topic` therefore runs on series and is excluded from annotations
-  automatically — which is why clause 4 above is a lint rule rather than a code path.
+- **The topic filters need no change, for configs or for operators.**
+  `_filterAndPrepareTransformationsByTopic` (`:386-393`) keeps a config for the series topic
+  when `transformation.topic == null` (`:271`) and for annotations only when it equals
+  `DataTopic.Annotations` (`:280`). Both predicates are guarded by
+  `'options' in transformation || 'topic' in transformation`, so a **bare function** fails the
+  guard, falls through to the series branch, and is excluded from annotations — and its
+  `'operator' in transformation` unwrap at `:393` is a no-op. A prefix config with no `topic`
+  behaves the same way, which is why clause 4 is a lint rule for configs and automatic for
+  operators.
 - **`ctx.interpolate` (`:290-294`) is untouched**, so a prefixed transformation that _reads_
   interpolated values through the context behaves like any other. Only the config's own
   literals are un-interpolated.
@@ -414,8 +495,8 @@ all-disabled (`:225-228`), then calls `transformDataFrame` at `:237`. `DataConfi
 already holds `plugin?: PanelPlugin` (`PanelModel.ts:203`) and already delegates
 capabilities through it (`getDataSupport()`, `:608-610`). So:
 
-- add `getPipelinePrefix?: (frames: DataFrame[]) => DataTransformerConfig[]` to
-  `DataConfigSource` (**proposal**);
+- add `getPipelinePrefix?: (frames: DataFrame[]) => Array<DataTransformerConfig | CustomTransformOperator>`
+  to `DataConfigSource` (**proposal**);
 - implement it on `PanelModel` as `this.plugin?.pipelinePrefixSupplier?.({ frames, options: this.options }) ?? []`;
 - split the `:226` guard the same way as scenes' `:227` and prepend before `:234`'s topic split.
 

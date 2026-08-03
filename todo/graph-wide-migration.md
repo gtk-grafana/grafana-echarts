@@ -199,9 +199,42 @@ emit **id-named fields with `source`/`target` labels** rather than name-split fi
 because that is the only form that survives
 [parallel edges](../data-plane/graph-wide.md#parallel-edges-require-labels).
 
+**Write it as a pure function and export a one-line operator wrapper beside it.** The
+pipeline prefix that eventually replaces the in-panel call site takes
+`Array<DataTransformerConfig | CustomTransformOperator>`
+([adhoc-transformations-split.md](./adhoc-transformations-split.md#why-the-return-type-is-a-union-and-why-the-union-is-free)),
+so the same code serves both call sites and phase 1 does not have to be rewritten when the
+hook lands:
+
+```ts
+export function legacyToWide(frames: DataFrame[]): DataFrame[] { … }
+export const legacyToWideOperator: CustomTransformOperator = () => (source) => source.pipe(map(legacyToWide));
+```
+
+Two obligations follow from the operator form, both verified in
+`@grafana/data` 13.1.1 `transformDataFrame.mjs`: custom entries bypass `config.filter`, so
+`legacyToWide` must pass non-graph frames through **unchanged and identity-preserving** (the
+prefix contract's no-op clause depends on it); and they bypass `config.disabled`, so there is
+no host-side off switch — the [`dataFormat` option](#the-dataformat-panel-option) below is the
+only one.
+
 ### Delegated — `transformDataFrame([{ id: 'rowsToFields', … }], frames)`
 
-Much less code, and it inherits core's semantics exactly. Three costs, all confirmed:
+Much less code, and it inherits core's semantics exactly. Four costs, all confirmed — the
+first is the one that settles it, and it was measured after this decision was first written:
+
+- **It cannot express the conversion.** `configMapHandlers`
+  (`public/app/features/transformers/fieldToConfigMapping/fieldToConfigMapping.ts`, v13.1.0) is
+  a closed list of thirteen whose only config targets are `max`, `min`, `unit`, `decimals`,
+  `displayName`, `color`, `thresholds` and `mappings`. **No handler writes `config.custom.*`
+  and none writes `config.links`**, and `rowsToFields` returns `{ fields, length, refId }` so
+  `meta` is dropped. So `thickness` → `custom.lineWidth`, `strokedasharray` →
+  `custom.lineType`, `noderadius` → `custom.nodeRadius`, `subtitle` → `custom.subtitle`,
+  `icon` → `custom.icon`, per-mark `links`, and `meta.type: 'graph-edges-wide'` are all
+  unreachable — they degrade to `field.labels` or vanish. Measurements:
+  [graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+  A `CustomTransformOperator` has none of these limits, which is why the delegated option is
+  dead but `transformDataFrame` as a _host_ is not.
 
 - **Async.** It returns `Observable<DataFrame[]>`. The converter path is synchronous and
   `buildOption` is called up to four times per render; threading an Observable through it
@@ -214,7 +247,10 @@ Much less code, and it inherits core's semantics exactly. Three costs, all confi
   package, and at runtime `standardTransformersRegistry.getIfExists('rowsToFields')`
   does return a live item with a real `transformation`. So it works in the host and is
   **unmockable-by-registration** under jest — the tests would need the whole transformer
-  stubbed in `jest-setup.js`.
+  stubbed in `jest-setup.js`. This cost is specific to _config_ entries:
+  `transformDataFrame` tests `typeof config === 'function'` and applies a custom operator
+  before `standardTransformersRegistry` is ever read, so an operator has no registry
+  coupling and needs no stub.
 - **Invisibility.** A panel-invoked transform does not appear in the Transform tab, so a
   user debugging a wrong-looking graph sees data reshaped by something they cannot
   inspect.
@@ -229,6 +265,16 @@ Much less code, and it inherits core's semantics exactly. Three costs, all confi
   honest about the capability difference, keeps the reshaping visible and editable, and
   needs no adapter at all for the override story.
 - **Document the recipe** in `docs/relations-data-sources.md`, which now carries it.
+
+**One caveat the notice cannot fit and the docs must carry.** `Rows to fields` unlocks
+per-mark _addressability_, which is what the notice promises and is true. It does **not**
+reproduce the legacy columns: `subtitle`, `icon`, `noderadius`, `thickness` and
+`strokedasharray` become labels rather than `custom.*`, `secondarystat` becomes a label
+rather than `calcs[1]`, and on the natively-long producers the mappings must be keyed on each
+column's **display name** or the transformation silently returns its input unchanged. So the
+recipe is the route to overridable fields, not a faithful conversion — that is what
+`legacyToWide` is for, and it is why the two coexist rather than one replacing the other.
+Measured in [graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
 
 The notice is cheap and it is the only thing that can teach a user the difference,
 because the difference is not visible in the render.
