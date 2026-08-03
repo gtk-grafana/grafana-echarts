@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "panel",
+  "name": "ECharts Cartesian (Standalone PoC)",
+  "id": "grafana-echartscartesian-standalone-panel",
+  "suggestions": true,
+  "info": {
+    "keywords": ["panel", "echarts", "cartesian", "time series", "bar", "line", "standalone-poc"],
+    "description": "PoC: cartesian ECharts panel published as a standalone plugin, rendering via grafana-echarts-app's exposed component instead of bundling echarts/zrender itself.",
+    "author": {
+      "name": "Grafana"
+    },
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=13.1.0",
+    "plugins": [
+      {
+        "id": "grafana-echarts-app",
+        "type": "app",
+        "name": "ECharts"
+      }
+    ],
+    "extensions": {
+      "exposedComponents": ["grafana-echarts-app/panel/v1"]
+    }
+  }
+}

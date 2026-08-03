@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "grafana-echarts-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "server"],
+      "port": 3001
+    }
+  ]
+}

@@ -21,5 +21,14 @@
   "dependencies": {
     "grafanaDependency": ">=13.1.0",
     "plugins": []
+  },
+  "extensions": {
+    "exposedComponents": [
+      {
+        "id": "grafana-echarts-app/panel/v1",
+        "title": "ECharts panel renderer",
+        "description": "Renders a chart family (cartesian, heatmap, pie, ...) via the shared ECharts core. PoC for cross-plugin asset sharing without nesting."
+      }
+    ]
   }
 }

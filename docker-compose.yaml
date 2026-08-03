@@ -8,3 +8,52 @@ services:
     container_name: ${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-${GRAFANA_PORT:-3001}}
     ports: !override
       - ${GRAFANA_PORT:-3001}:3000/tcp
+    # Mounts the standalone cartesian panel as its own top-level plugin
+    # directory (sibling to grafana-echarts-app, not nested under it), so
+    # Grafana's LocalSource discovery treats it as unrelated to the app:
+    # each top-level directory under /var/lib/grafana/plugins gets its own
+    # LocalSource scan, and parent/child detection never crosses sources
+    # (pkg/plugins/manager/sources/source_local_disk.go). Relative paths
+    # here resolve against this file's own directory (repo root), not
+    # .config/'s directory the way the base file's paths do, hence ./ not
+    # ../ for the same targets.
+    #
+    # dist-standalone/ is dist/modules/cartesian-standalone/ moved out after
+    # build (see package.json's postbuild script): webpack's getEntries()
+    # glob builds it into dist/modules alongside the other nested panels
+    # regardless, and mounting it there too, as well as at its own
+    # top-level target, would make Grafana discover the same plugin ID
+    # twice (once as an app child, once standalone).
+    volumes: !override
+      - ./dist:/var/lib/grafana/plugins/grafana-echarts-panel
+      - ./dist-standalone:/var/lib/grafana/plugins/grafana-echarts-cartesian-standalone-poc
+      - ./provisioning:/etc/grafana/provisioning
+      - .:/root/grafana-echarts-panel
+    environment: !override
+      NODE_ENV: development
+      GF_LOG_FILTERS: plugin.grafana-echarts-panel:debug
+      GF_LOG_LEVEL: debug
+      GF_DATAPROXY_LOGGING: 1
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-echarts-app,grafana-echartscartesian-standalone-panel
+      # Neither plugin needs to be enabled for the exposed component to
+      # resolve. bootdata's AppDTO and PanelDTO never carry an enabled field
+      # to the frontend (unlike the /api/plugins/:id/settings DTO), and
+      # useLoadAppPlugins/preloadPlugins fetches the provider app's module.js
+      # directly by id without checking enabled state. "Enabled" only gates
+      # nav visibility and eager preload at startup. provisioning/plugins/
+      # apps.yaml is kept anyway since it's good practice for a real
+      # deployment (nav visibility, admin UI), not because it's required here.
+      #
+      # GF_DEFAULT_APP_MODE=production is required though: usePluginComponent's
+      # dev-mode-only isExposedComponentDependencyMissing() check reads
+      # pluginContext.meta.dependencies.extensions.exposedComponents, but
+      # PanelDTO never sends a dependencies field to the frontend at all, so
+      # a panel-type consumer can never satisfy that check in dev mode
+      # regardless of its plugin.json content. This is a real gap for
+      # panel-type exposed-component consumers generally, not specific to
+      # this PoC.
+      GF_DEFAULT_APP_MODE: production
+      # Confirms the exposed component (provider: grafana-echarts-app,
+      # consumer: the standalone panel) still renders correctly across the
+      # near-membrane sandbox boundary.
+      GF_SECURITY_ENABLE_FRONTEND_SANDBOX_FOR_PLUGINS: grafana-echarts-app,grafana-echartscartesian-standalone-panel

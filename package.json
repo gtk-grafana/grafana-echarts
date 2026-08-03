@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "webpack -c ./webpack.config.ts --env production",
+    "postbuild": "rm -rf dist-standalone && mv dist/modules/cartesian-standalone dist-standalone",
     "build:analyze": "webpack -c ./webpack.config.ts --env production --env analyze",
     "checks": "pnpm run typecheck && pnpm run lint && pnpm run prettier:check && pnpm run test:ci",
     "dev": "webpack -w -c ./webpack.config.ts --env development",
