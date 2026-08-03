@@ -32,9 +32,78 @@ Only a transformation the **user** has placed in the Transform tab runs early en
 That is why interop is a transformation rather than a panel feature, and why the
 capability matrix below has a "closed for wide input only" column at all.
 
+**The invariant was re-verified against `v13.1.0` and `@grafana/scenes` v8.13.6, and one
+open proposal would change it.** Grafana's ad-hoc panel transformations stack
+([#129542](https://github.com/grafana/grafana/pull/129542) and its four siblings, all open
+drafts) lets a panel bypass the pipeline and re-run transformations _then_
+`applyFieldOverrides` itself, so per-mark overrides really would apply. It is still not the
+answer here — the conversion has to be written into persisted dashboard JSON by a render
+effect rather than declared, the override picker keeps listing pre-transform field names,
+and the bypass is keyed on plugin **id** so it would apply to every family in this plugin
+at once. Full analysis, including the smaller core change that would work:
+[graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md).
+
+## The release prerequisite
+
+**The relations family cannot ship on the wide contract until core can convert a legacy
+frame to wide _above_ the panel.** This is a hard gate, not a preference, and the reason is
+arithmetic: every datasource emits the long form today, so on day one every frame the family
+sees is legacy. Without a core conversion the only story is "add two transformations to every
+panel", and even then the override picker lists the pre-conversion field names — so the
+headline capability, targeting one node by name from the UI, is unreachable through the UI.
+
+The smallest core change that closes it is a **declarative, non-persisted pipeline prefix**:
+the panel plugin declares a hook, `SceneDataTransformer.transform()` asks the `VizPanel` it
+feeds for it and prepends the result before `transformDataFrame`. The panel declares; the
+transformer asks; nothing is persisted; the override picker is fixed for free because the
+pane reads the transformer's output. Mechanism, the three places the conversion could live,
+and why the ad-hoc-transformations stack is the wrong shape for this:
+[graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md#where-should-the-conversion-live).
+
+Two consequences for this plan:
+
+- **Phase 0 is a core proposal**, and it is on the critical path. Everything else can proceed
+  in parallel, because the plugin-side work is identical whether the conversion arrives from
+  core, from a user transformation, or from a datasource.
+- **The in-plugin `legacyToWide` is a development affordance, not a shipped feature.** It
+  exists so phases 2–5 can be built and tested before the core change lands, and so a legacy
+  frame renders rather than throwing. It is explicitly _not_ the answer to per-mark overrides,
+  because it runs after `applyFieldOverrides`. Do not document it to users as one.
+
+Datasource-native `graph-*-wide` (Tempo, X-Ray) remains the performance endgame and needs no
+dashboard change once the prefix exists: wide input makes the hook return `[]`.
+
 ## Phase order
 
-Each phase is independently shippable and independently reviewable.
+Phase 0 runs in parallel with the rest and gates release. Phases 1–6 are each independently
+shippable and independently reviewable.
+
+### Phase 0 — the core conversion (release gate, parallel track)
+
+Designed in [adhoc-transformations-split.md](./adhoc-transformations-split.md), which carries
+the proposed `PanelPlugin.setPipelinePrefix` API, the exact insertion point in
+`SceneDataTransformer.transform()`, and a PoC plan. Two findings from it that this plan
+depends on:
+
+- The transformer's early return is `if (this.state.transformations.length === 0 || !data)`
+  (verified in `@grafana/scenes` v8.13.6) — which is **every legacy relations dashboard**, so
+  that guard has to be split for a prefix to run at all. It is the one behavioural change and
+  it touches every panel in every dashboard.
+- The prefix must be spliced **after** `_interpolateVariablesInTransformationConfigs`, which
+  early-returns un-interpolated when the variable-dependency set is empty. Splicing before it
+  would interpolate the prefix only when some unrelated user transformation happened to
+  reference a variable.
+
+- Write the core proposal for the pipeline prefix, using this repo's contract and proof
+  dashboard as the worked example.
+- Make the case on more than graph frames: the logs table in
+  [#129563](https://github.com/grafana/grafana/pull/129563) has the identical problem — its
+  `extractFields` entries run inside the panel, so extracted fields are invisible to the
+  override picker too.
+- Mirror the change on `PanelQueryRunner.applyTransformations` so Explore and bare
+  `PanelRenderer` behave the same.
+- **Exit criterion:** a legacy node-graph query, on an unmodified dashboard, produces an
+  override picker listing node and edge names.
 
 ### Phase 1 — internal model, adapter, and stop throwing
 
@@ -91,7 +160,7 @@ fixes are still needed there. Deleting the relations resolver does not delete th
 11. Replace `addHiddenSeriesHideFrom` with the real
     `commonOptionsBuilder.addHideFrom` for wide input: a `byName` `custom.hideFrom`
     override now genuinely targets one mark. Verified on core panels — the bar for
-    `b->d` simply disappears.
+    `b-->d` simply disappears.
 12. Drop the `stripHiddenValueFields` exclusion (`options/panelOption.ts`) for wide
     input, and delete `withoutHiddenNodes`' by-name re-implementation
     (`charts/relations.ts`) with it. **Keep both for legacy input**, where the marks are
@@ -333,6 +402,96 @@ contract, so its **recommendation is superseded**:
   hazard becomes a real behaviour worth documenting instead: `byRegexp` tests the
   **display name**, so `/^e1$/` fails on a labelled field whose display name is
   `e1 {source="a", target="b"}`.
+
+## Dropping long support entirely
+
+The obvious simplification: if the wide contract is better, why keep a long reader at all?
+This section is the triple-check. **Verdict: do not drop it in this package yet** — not
+because the plugin code is hard to keep, but because of what it does to the datasources
+that only speak long, and to the side-by-side comparison with core's Node graph that the
+whole `parity.md` method rests on.
+
+### What it would actually delete
+
+Small, and that is the point — the adapter is one function at the frame boundary:
+
+| Deleted                                                                                                                                                     | Size                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `legacyToWide` plus the 14 lowercase field-name constants and `readNodes` / `readLinks` / `colorAt` / `numberAt` / `stringAt`                               | most of `converters/nodeGraph.ts` (381 lines)      |
+| `isEdgesFrame` / `isNodesFrame` / `isNodeGraphFrames`, replaced by the wide shape test                                                                      | ~30 lines                                          |
+| `resolveArcBorderColor`, `toLineType`                                                                                                                       | ~30 lines                                          |
+| The `dataFormat` panel option and its `auto` resolution                                                                                                     | the whole option                                   |
+| The legacy branch of every "keep both for legacy input" caveat in phases 3–5                                                                                | the caveats, which are the complexity that matters |
+| `converters/nodeGraph.test.ts` and the long fixtures inside `charts/relations.test.ts`, `options/{graph,sankey,chord}.test.ts`, `relations.canvas.test.tsx` | 7 test files carry long fixtures                   |
+
+So the code saving is real but modest, and it is concentrated in exactly the place the
+architectural rule already isolates. **Keeping legacy costs one function; dropping it saves
+one function.** That symmetry is why the decision turns on the consequences below rather
+than on the diff.
+
+### What functionality would be lost in this package
+
+| Lost                                                                       | Severity     | Detail                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tempo, AWS X-Ray and TestData `node_graph` stop working out of the box** | **Severe**   | All three emit long natively and will for years. Each panel would need two user-added transformations, and — measured on `response_small`, a saved X-Ray map — zero-config `rowsToFields` names the node fields `0`…`16` and picks the wrong edge stat, so it needs four explicit mappings to be useful. See the [reality check](../data-plane/graph-wide.md#reality-check-the-natively-long-producers-are-the-awkward-case) |
+| **Every provisioned relations fixture breaks**                             | **Accepted** | `chord.json` (7 CSV + 1 `node_graph`), `sankey.json` (8 + 2), `node-graph-testdata.json` (1 + 10) — 29 panels to rewrite. They are ours to rewrite, the wide fixtures are shorter, and this is scheduled into phase 6 rather than weighed as a cost                                                                                                                                                                          |
+| **A string `mainstat`**                                                    | Minor        | Legal in the long form and used by X-Ray (`"Success 100.00%"`). Under the wide contract a mark's field is numeric; `config.mappings` covers the display-text case but not an arbitrary computed string                                                                                                                                                                                                                       |
+| **Parallel edges from an unmodified query**                                | Minor        | Two long rows over one pair are fine; the wide equivalent needs distinct ids and labels, which only `rowsToFields` can produce                                                                                                                                                                                                                                                                                               |
+| **The cheapest shape at very large scale**                                 | Minor        | 5 000 marks is 0.1 ms in long and ~19 ms in edge-per-field wide. Only matters where nothing is configured per mark — see [Performance](../data-plane/graph-wide.md#performance-which-frame-shape-is-cheapest)                                                                                                                                                                                                                |
+| **Edges-only responses that derive their node set**                        | None         | Unaffected — a wide edges frame derives nodes from labels or name splits exactly as the long form derives them from `source`/`target`                                                                                                                                                                                                                                                                                        |
+| **Suggestions**                                                            | None today   | Never suggested in either form. But note that `hasPreferredVisualisationType('nodeGraph')` — which all three natively-long datasources set — is the **only** summary signal that identifies graph data without walking frames; dropping the long reader throws away the one suggestion hook that works. See [Frame meta](../data-plane/graph-wide.md#frame-meta)                                                             |
+
+### What parity would be lost or made complex
+
+This is the part that is easy to underweight. `src/modules/relations/parity.md` compares
+this module against core's Node graph, and the method is a **byte-identical query rendered
+by both panels side by side** — `sankey.json` panels 3 and 4 are exactly that, and it is
+how the cycle policy was demonstrated at all.
+
+| Consequence                                                                   | Why it hurts                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **No byte-identical side-by-side is possible**                                | Core's Node graph reads long; a wide-only relations panel reads wide. One query cannot feed both, so every comparison panel needs either two queries or a transformation on one side — and then it is not the same input             |
+| **The comparison is no longer of _panels_ but of _pipelines_**                | A reviewer looking at a difference cannot tell whether the panel or the reshaping caused it. That is a real loss of diagnostic value, not a cosmetic one                                                                             |
+| **`arc__*`, `icon`, `detail__*`, `isinstrumented` parity becomes untestable** | These are the four long-form fields this plugin already drops or approximates. Today the parity claim is checkable against core on one query; wide-only makes it a claim about a transformed frame                                   |
+| **Core interop becomes strictly one-directional**                             | A user cannot point core's Node graph at a wide frame at all, so a dashboard mixing the two panels needs both formats queried. The reverse transformation (wide → long) is the core change named in the contract's out-of-scope list |
+| **Documentation debt doubles rather than halves**                             | `data-plane/node-graph.md` must stay — it documents a published core format — but it would no longer describe anything this plugin reads, so the folder carries a spec with no consumer                                              |
+
+### The narrow case for dropping it anyway
+
+Stated fairly, because it is not weak:
+
+- The two contracts genuinely are more complexity than one, and every "keep this for legacy
+  input" caveat in phases 3–5 is a branch that will rot.
+- Legacy input can never gain per-mark overrides, so a legacy render is permanently
+  second-class. Supporting it invites users into the worse half of the panel.
+- `rowsToFields` is stock Grafana, discoverable in the Transform tab, and — unlike an
+  in-panel adapter — it is _visible_, which is the property the adapter decision above
+  already chose to prioritise.
+
+### Recommendation
+
+**Drop the long reader as soon as the phase 0 prefix lands, and treat provisioned-fixture
+churn as an accepted cost.** The core conversion changes the calculus on every objection
+above, because it moves the conversion to where both panels can be fed from one query:
+
+| Objection                                  | Under the phase 0 prefix                                                                                                                                                                                                      |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tempo / X-Ray / TestData stop working      | **Resolved.** They keep emitting long; the prefix converts it. No user action, no transformation in the panel, and the override picker lists node names                                                                       |
+| Provisioned fixtures break                 | **Accepted.** 29 panels get rewritten as part of phase 6. They are ours, and the wide fixtures are shorter                                                                                                                    |
+| Byte-identical side-by-side parity is lost | **Resolved, and this is the important one.** One legacy query can feed both panels: core Node graph reads the long frames, the relations panel's prefix converts them. The comparison is still of _panels_ on identical input |
+| A string `mainstat`                        | Still lost. `config.mappings` covers the display-text case; an arbitrary computed string does not survive the pivot                                                                                                           |
+| Parallel edges from an unmodified query    | Still needs the conversion to emit labels — which `legacyToWide` and the prefix both must, per the contract                                                                                                                   |
+| Cheapest shape at very large scale         | Still true, and still only matters where nothing is configured per mark                                                                                                                                                       |
+
+So the sequence that minimises total work is: **phase 0 in parallel from the start; phases
+1–5 against the dev-only adapter; delete the adapter and the long reader in phase 6, at the
+same time as the fixtures are rewritten.** That way the "keep both for legacy input" caveats
+in phases 3–5 are written once and deleted once, rather than maintained.
+
+If phase 0 stalls, the fallback is not to ship the wide contract with a user-transformation
+story — it is to keep the family on the long form and keep the plan on the shelf. Shipping a
+panel whose headline feature requires two manual transformations per dashboard would be the
+debt this whole exercise exists to avoid.
 
 ## Deliberately not carried over
 

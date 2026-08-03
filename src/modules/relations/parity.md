@@ -305,10 +305,17 @@ frames can legitimately show a different number of links.
   [relations.canvas.test.tsx](../../lib/components/relations.canvas.test.tsx). The
   sankey variant needs no such pinning — it self-layouts deterministically from the
   weights, so its snapshots include the default layout.
-- **Never auto-suggested.** `PanelDataSummary` exposes neither field names nor
-  `meta.preferredVisualisationType`, so no reachable signal identifies node-graph
-  data; the supplier deliberately returns nothing rather than matching ordinary
-  tables. See [suggestions.ts](./suggestions.ts) and `scoreRelations`.
+- **Never auto-suggested — and the stated reason is now out of date.**
+  [suggestions.ts](./suggestions.ts) and `scoreRelations` return nothing on the grounds
+  that "`PanelDataSummary` exposes neither field names nor
+  `meta.preferredVisualisationType`". In `@grafana/data` 13.1.1 it exposes **both**:
+  `hasPreferredVisualisationType(type)` and `hasDataFrameType(type)` are built from every
+  frame's meta, and `rawFrames` is documented as "a reference to the DataFrame array in
+  case it's needed by the plugin", so field names are reachable too
+  (`panel/suggestions/getPanelDataSummary`). Tempo, AWS X-Ray and TestData all set
+  `meta.preferredVisualisationType: 'nodeGraph'` (verified against TestData
+  `node_graph` `response_small`), so the gate is closeable today without any core change.
+  Tracked in [data-plane/graph-wide.md](../../../data-plane/graph-wide.md#frame-meta).
 - **Single frame per role.** The first edges frame and the first nodes frame win;
   additional frames are dropped. Consistent with the other non-cartesian families —
   see [todo/multiple-frames.md](../../../todo/multiple-frames.md).

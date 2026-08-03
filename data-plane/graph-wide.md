@@ -25,6 +25,85 @@ decimals, thresholds, mappings, data links, per-mark style — is ordinary
 > wide frame throws (see [Current status](#current-status)). The rewrite is planned in
 > [../todo/graph-wide-migration.md](../todo/graph-wide-migration.md).
 
+## Terms
+
+| Term                 | Meaning here                                                                                                                                                                                                                                                                              |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Mark**             | One drawn thing — a node or an edge. (Elsewhere in the plugin: a pie slice, a bar, a treemap tile.) The word matters because the whole contract is about what a mark _is_ in the frame: a row in the long form, a field in the wide one.                                                  |
+| **Per-mark styling** | Any configuration that applies to **one** mark and not its siblings. Concretely: `color`, `unit`, `decimals`, `mappings`, `thresholds`, `min`/`max`, `links`, `custom.hideFrom`, and the per-item ECharts style (`lineWidth`, `curveness`, `lineType`, `nodeRadius`, `icon`, `subtitle`). |
+| **Row dimension**    | What a mark's values are indexed by — nothing (instant), time (ranged), or a category (a leading `string` field).                                                                                                                                                                         |
+| **Long / wide**      | The data-plane convention already used for `timeseries-*` and `numeric-*`: **long** = one row per observation with dimension columns; **wide** = one field per series, dimensions folded into names and labels.                                                                           |
+
+"Per-mark styling" is the thing the long form cannot express at all, because Grafana's
+override matcher addresses fields and a long-form mark is a row. Every capability claim in
+this doc is ultimately that one sentence.
+
+## The three shapes, side by side
+
+Six edges over three nodes (`a`, `b`, `c` fully connected), as each shape would arrive.
+
+**`graph-edges-long`** — one row per edge, four fields. This is
+[node-graph.md](./node-graph.md).
+
+```csv
+id,source,target,mainstat
+a-->b,a,b,10
+a-->c,a,c,20
+b-->a,b,a,30
+b-->c,b,c,40
+c-->a,c,a,50
+c-->b,c,b,60
+```
+
+| id      | source | target | mainstat |
+| ------- | ------ | ------ | -------- |
+| `a-->b` | a      | b      | 10       |
+| `a-->c` | a      | c      | 20       |
+| `b-->a` | b      | a      | 30       |
+| `b-->c` | b      | c      | 40       |
+| `c-->a` | c      | a      | 50       |
+| `c-->b` | c      | b      | 60       |
+
+→ 4 fields, 6 rows. A mark is a **row**. Nothing is per-mark configurable.
+
+**`graph-edges-wide`, edge-per-field** — one field per edge, one row.
+
+```csv
+a-->b,a-->c,b-->a,b-->c,c-->a,c-->b
+10,20,30,40,50,60
+```
+
+| `a-->b` | `a-->c` | `b-->a` | `b-->c` | `c-->a` | `c-->b` |
+| ------- | ------- | ------- | ------- | ------- | ------- |
+| 10      | 20      | 30      | 40      | 50      | 60      |
+
+→ 6 fields, 1 row. A mark is a **field**. Every edge is independently configurable.
+Field count grows as |E|.
+
+**`graph-edges-wide`, adjacency matrix** — one field per _target_ node, one row per
+_source_ node.
+
+```csv
+source,a,b,c
+a,,10,20
+b,30,,40
+c,50,60,
+```
+
+| source | `a` | `b` | `c` |
+| ------ | --- | --- | --- |
+| a      |     | 10  | 20  |
+| b      | 30  |     | 40  |
+| c      | 50  | 60  |     |
+
+→ 4 fields, 3 rows. A **column is a node**; a **cell is an edge**. Nodes are configurable,
+edges are not. Field count grows as N, so this is the shape that survives density — see
+[Performance](#performance-which-frame-shape-is-cheapest), where 9 900 edges cost 101
+fields and 0.3 ms.
+
+The empty diagonal is meaningful: `''` (from CSV) and `null` (from `groupingToMatrix`) both
+mean **no edge**, not zero.
+
 ## Why fields rather than rows
 
 `todo/relations-item-overrides.md` documents the wall: Grafana's override matcher is
@@ -79,23 +158,35 @@ override editor.
 | 3   | `getFieldDisplayValues` does not truncate in Calculate mode | **Confirmed**                                           | 500 numeric fields → **500** entries with `values: false`; **25** with `values: true` (`DEFAULT_FIELD_DISPLAY_VALUES_LIMIT`). The `hitLimit` check exists only inside the All-values branch. Two calcs over four fields → 8 entries.                                                            |
 | 4   | `configFromQuery` reach                                     | **Confirmed — wider than documented, but not per-node** | Sets `min`, `max`, `unit`, `decimals`, `displayName`, `color` (fixed), `thresholds` (one step, colour from `handlerArguments`) and value mappings. **Not** data links, **not** `custom.*`. Its config frame is reduced to **one row**, so every field `applyTo` matches gets the _same_ config. |
 
-Two further behaviours were measured because they decide the design, not just its cost:
+Further behaviours were measured because they decide the design, not just its cost. The
+first two are here in full; the rest are summarised in
+[More measured behaviours](#more-measured-behaviours) and expanded in their own sections.
 
 | Behaviour                                 | Observed                                                                                                                                                                                                        |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `field.state.range` contamination         | A legacy nodes frame with `mainstat` (12, 8), `noderadius` (40, 60) and `arc__ok` (0.9, 0.5) gives **every** field `{min: 0.5, max: 60}`. The wide equivalent gives `{min: 8, max: 12}` — node values only.     |
 | Fixed colours are theme-resolved upstream | A `byName` override of `dark-red` reaches the field as `config.color.fixedColor: 'dark-red'` and `field.display(v).color` returns `#C4162A`. No `theme.visualization.getColorByName` call is needed downstream. |
 
+### More measured behaviours
+
+| Behaviour                                         | Observed                                                                                                                                                                                                                 | Detail                                                                           |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| All three separator forms work as field names     | `a-->b`, `a→b` and `my-svc-->other-svc` all survive `csv_content` as field names, and a `byName` override targets each exactly. But shortest-first separator matching mis-splits `a-->b` into `a-` / `b`.                | [The separator](#the-separator)                                                  |
+| Duplicate field names are individually targetable | Two fields may share a name; only the **display** name is disambiguated (`a-->b 1` / `a-->b 2`). `byName` on the raw name hits both; on an ordinal, exactly one. The ordinal is positional within the frame.             | [Parallel edges](#parallel-edges-require-labels)                                 |
+| `PanelDataSummary` exposes the meta signals       | 13.1.1 has `hasDataFrameType`, `hasPreferredVisualisationType` and `rawFrames`, so suggestions are reachable for both formats. The repo's own "exposes neither" comment is stale.                                        | [Frame meta](#frame-meta)                                                        |
+| A real service map pivots poorly by default       | TestData `node_graph` `response_small` (a saved X-Ray map) through zero-config `rowsToFields` yields node fields named `0` … `16` and takes the edge value from `secondarystat`, because X-Ray's `mainstat` is a string. | [Reality check](#reality-check-the-natively-long-producers-are-the-awkward-case) |
+| Frame shape changes pipeline cost by ~200×        | 5 000 marks: 0.1 ms in long, 18.6 ms in edge-per-field wide, 0.3 ms in the adjacency matrix. ECharts is unaffected either way.                                                                                           | [Performance](#performance-which-frame-shape-is-cheapest)                        |
+
 ## Frame role resolution
 
 In precedence order, mirroring how [hierarchy](./hierarchy.md) layers meta over field
 shape:
 
-| Signal                                                            | Survives                                                                     |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| 1. `frame.meta.type === 'graph-edges-wide' \| 'graph-nodes-wide'` | Only sources that can set frame meta                                         |
-| 2. **Field shape**                                                | Everything — `csv_content`, SQL Expressions, `rowsToFields`, transformations |
-| 3. **Panel option** (a refId picker)                              | Always; the manual override of last resort                                   |
+| Signal                                                                                      | Survives                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. `frame.meta.type === 'graph-edges-wide' \| 'graph-nodes-wide'` \| `'graph-edges-matrix'` | Only sources that can set frame meta. **Mandatory** for the [matrix form](#this-variant-cannot-be-shape-detected--it-must-be-opt-in), which has no shape signal |
+| 2. **Field shape**                                                                          | Everything — `csv_content`, SQL Expressions, `rowsToFields`, transformations                                                                                    |
+| 3. **Panel option** (a refId picker)                                                        | Always; the manual override of last resort                                                                                                                      |
 
 Field shape is the load-bearing signal, exactly as it already is for the long form
 (`isNodeGraphFrames`, `src/lib/echarts/converters/nodeGraph.ts`), and for the same
@@ -106,8 +197,7 @@ The shape test, in order:
 
 1. A frame whose numeric fields carry **both** endpoint label keys (default `source`
    and `target`) is the **edges** frame.
-2. Otherwise a frame whose numeric field names **split on the separator** (`->`, or
-   `→`) is the **edges** frame.
+2. Otherwise a frame whose numeric field names **split on `-->`** is the **edges** frame.
 3. Otherwise, in a response that already has an edges frame, the remaining frame with
    numeric fields is the **nodes** frame.
 4. A lone nodes frame is a table, not a graph — an edges frame is required, as in the
@@ -115,6 +205,67 @@ The shape test, in order:
 
 For precedent on signal 3, see XY chart's series editor and geomap's layer/query
 pairing, both of which put a per-query selector in panel options.
+
+## Frame meta
+
+Field shape is enough to _render_. Frame meta is what makes the kind **discoverable**,
+and it buys three things field shape cannot. A datasource emitting this kind should set
+all three where it can.
+
+| Meta key                          | Value                                                                | What it buys                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `meta.type`                       | `'graph-nodes-wide'` / `'graph-edges-wide'` / `'graph-edges-matrix'` | Unambiguous role resolution, and **suggestions** — see below. Required, not optional, for the matrix form |
+| `meta.typeVersion`                | `[0, 1]`                                                             | The contract spec's own versioning rule for a kind that has not stabilised                                |
+| `meta.preferredVisualisationType` | `'nodeGraph'`                                                        | Routing in Explore, and continuity with the long form's only routing signal                               |
+| `meta.custom.graph`               | `{ sourceKey?, targetKey? }`                                         | Lets a datasource declare `client`/`server` instead of forcing a panel option                             |
+
+### This is what unlocks suggestions, and it works today
+
+`src/modules/relations/suggestions.ts` currently never suggests, with the stated reason
+that _"`PanelDataSummary` exposes neither field names nor that meta signal"_. **That is
+out of date for 13.1.1.** `getPanelDataSummary`
+(`@grafana/data/panel/suggestions/getPanelDataSummary`) exposes:
+
+- `hasDataFrameType(type)` — a `Set` populated from every frame's `meta.type`;
+- `hasPreferredVisualisationType(type)` — same, from `meta.preferredVisualisationType`;
+- `rawFrames` — _"pass along a reference to the DataFrame array in case it's needed by the
+  plugin"_, so field names are reachable after all.
+
+So a wide graph frame that sets `meta.type` is directly suggestable
+(`summary.hasDataFrameType('graph-edges-wide')`), and the **legacy** form is already
+suggestable via `hasPreferredVisualisationType('nodeGraph')` — which Tempo, AWS X-Ray and
+TestData all set (verified: TestData `node_graph` frames carry
+`meta.preferredVisualisationType: 'nodeGraph'` and no `meta.type`). Neither needs a core
+change; the gate in `scoreRelations` is simply stale.
+
+Note the ceiling on the shape-only path: a wide edges frame with no meta is
+indistinguishable from any other `numeric-wide` frame _by summary alone_ — the label keys
+and the separator live in field names and labels, which only `rawFrames` exposes. So meta
+is the difference between a cheap suggestion and one that has to walk the frames.
+
+### And it is what makes migration detectable
+
+A panel deciding between the long and wide readers has to answer "which is this?" on every
+render. With `meta.type` the answer is one string comparison; without it, it is the field-shape
+walk in [Frame role resolution](#frame-role-resolution). More importantly, `meta.type`
+makes the _transition_ legible: a datasource can start emitting `graph-edges-wide` while
+old dashboards still receive the long form, and both panels can tell which they got
+without heuristics. `typeVersion` then gives the kind room to change shape before it is
+minted.
+
+**What meta cannot do:** it does not survive `csv_content`, SQL Expressions, or any
+transformation — `rowsToFields` builds its output frame from scratch and sets only
+`refId` (verified: `{ fields, length: 1, refId: 'rowsToFields-<refId>' }`, no `meta`). So
+field shape stays the load-bearing signal for every reshaped path, and meta is an
+optimisation for datasources that emit the kind natively.
+
+**One friction until the kind is minted.** Both `QueryResultMeta.type` and
+`hasDataFrameType(type)` are typed as the `DataFrameType` enum, not as `string`
+(`@grafana/data/types/data.d.ts`, `types/dataFrameTypes.d.ts`), so writing or testing an
+unminted value needs a cast — `meta: { type: 'graph-edges-wide' as DataFrameType }`.
+Runtime is unaffected: the setter is a plain assignment and the test is a `Set.has`, both
+of which accept any string. This is a nuisance, not a blocker, and it disappears the day
+`DataFrameType.GraphEdgesWide` is added upstream.
 
 ## Edges frame — `graph-edges-wide`
 
@@ -125,7 +276,7 @@ Required. One numeric field per edge.
 | One **`number`** field per edge                                        | The edge. Its values are the edge's weight over the row dimension                                                                |
 | `field.name`                                                           | **Edge id, and the stable override target.** Must be meaningful — see [Identity](#identity-display-names-and-override-targeting) |
 | `field.labels[sourceKey]` / `[targetKey]`                              | Endpoints. Keys are configurable (default `source` / `target`) so Tempo's `client` / `server` works unchanged                    |
-| Field-name split on the separator (default `->`; `→` also accepted)    | Endpoint **fallback**, for sources that cannot emit labels                                                                       |
+| Field-name split on `-->`                                              | Endpoint **fallback**, for sources that cannot emit labels — see [The separator](#the-separator)                                 |
 | Optional leading `time` **or** `string` field                          | The row dimension. Absent ⇒ single-row instant data, as the long form always is                                                  |
 | `config.displayName`                                                   | Edge label                                                                                                                       |
 | `config.color`                                                         | Edge colour — **all eight modes**, including by-value over the edge's own values                                                 |
@@ -136,17 +287,166 @@ Required. One numeric field per edge.
 | `config.custom.curveness`                                              | `lineStyle.curveness`, per edge on all three variants                                                                            |
 | `config.custom.hideFrom`                                               | Per-edge visibility (`viz` / `legend` / `tooltip`)                                                                               |
 
-**The separator is `->` by default**, not `→`. Every sourcing path that can produce a
-name-split edge id — a CSV header, `CONCAT(caller,'->',callee)`, a Prometheus
-`legendFormat` — types ASCII, and every example below is a verified `csv_content`
-fixture. `→` is accepted so a hand-authored frame reads nicely.
+### The separator
 
-### Endpoint precedence
+**Normative: the separator is exactly the three ASCII bytes `2D 2D 3E`.** No other form is
+accepted — not `->`, not `→`, not `=>`.
 
-Labels first, name-splitting second, and the ordering is not cosmetic: labels are the
-only form that can express [parallel edges](#parallel-edges-require-labels), and the
-only one immune to [separator collision](#separator-collision). A frame may carry both;
-labels win.
+**Why exactly one form, and why this one.** An earlier draft accepted `->`, `-->` and `→`.
+That is ambiguity paid for by every consumer, for three measured reasons:
+
+- **`->` is a substring of `-->`**, so a reader accepting both must match longest-first.
+  A shortest-first scan splits `a-->b` into `a-` / `b`, silently. Worse on real names:
+  `my-svc-->other-svc` becomes `my-svc-` / `other-svc`, and `my-svc-` matches no node.
+  One separator removes the class of bug rather than documenting a rule against it.
+- **`->` collides with hyphenated names in general.** Kubernetes services, Prometheus job
+  names and SQL identifiers are full of hyphens; `-->` is far less likely to occur inside
+  a node id than `->` is.
+- **`→` is untypeable** in a Prometheus legend field, a SQL string literal or a CSV header
+  without a compose key or a paste, so it can never be the primary form; accepting it only
+  as an alias buys nothing and costs a second code path.
+
+`a-->b-->c` is still ambiguous — a node genuinely named `a-->b` produces it. The rule is
+**first separator wins**, giving `a` and `b-->c`; see
+[Separator collision](#separator-collision). Labels have no such problem, which is why
+they are the primary carrier.
+
+Confirmed end to end as `csv_content` headers, with a `byName` override targeting exactly
+one column in each case:
+
+```csv
+a-->b,b-->c
+420,380
+```
+
+```csv
+my-svc-->other-svc,other-svc-->db
+12,20
+```
+
+### Endpoint precedence, and the cost of two carriers
+
+Labels first, name-splitting second. A frame may carry both; **labels win**. That is one
+precedence rule, and it is the entire cost of supporting two carriers in a reader:
+
+```ts
+const endpoints = (f: Field) =>
+  f.labels?.[sourceKey] && f.labels?.[targetKey]
+    ? [f.labels[sourceKey], f.labels[targetKey]]
+    : splitOnFirst(f.name, '-->');
+```
+
+The full trade, because [dropping name-splitting entirely](#could-labels-be-the-only-carrier)
+is a live option:
+
+| Dimension                        | Labels                                                                                             | Name-split                                                    |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Authorable in raw CSV            | Only via a JSON column + **Extract fields** — see [below](#labels-from-a-csv-datasource-after-all) | **Yes** — one header line, no transformations                 |
+| Parallel edges                   | **Yes** — ids stay distinct, endpoints repeat                                                      | **No** — see [Parallel edges](#parallel-edges-require-labels) |
+| Separator collision              | Immune                                                                                             | Possible (`a-->b-->c`)                                        |
+| Identity independent of topology | **Yes** — rename an edge without moving it                                                         | **No** — `field.name` does double duty                        |
+| Prometheus / Loki, zero reshape  | **Native** — `client` / `server` arrive as labels                                                  | Needs a `legendFormat` to build the name                      |
+| SQL / CSV via `rowsToFields`     | **Native** — unmapped columns become labels                                                        | Needs the id column to be pre-concatenated                    |
+| Reader cost                      | —                                                                                                  | ~15 lines and one precedence rule                             |
+| Doc / fixture cost               | Every example needs two transforms                                                                 | Every example is one CSV line                                 |
+
+#### Labels from a CSV datasource, after all
+
+"CSV cannot express labels" is true of a header cell and false of the pipeline. A JSON
+column plus core's **Extract fields** produces genuine labels, with no datasource change and
+no new API. Verified end to end in a live panel:
+
+```csv
+id,meta,mainstat
+e1,"{""source"":""a"",""target"":""b""}",10
+e2,"{""source"":""a"",""target"":""b""}",20
+e3,"{""source"":""b"",""target"":""c""}",30
+```
+
+| Step | Transformation                                  | Effect                                                                |
+| ---- | ----------------------------------------------- | --------------------------------------------------------------------- |
+| 1    | **Extract fields** — source `meta`, format JSON | adds `source` and `target` **columns** (not labels — columns)         |
+| 2    | **Organize fields** — exclude `meta`            | drops the raw JSON column, so it does not itself become a label       |
+| 3    | **Convert field type** — `mainstat` → number    | required, as always, before `rowsToFields`                            |
+| 4    | **Rows to fields** — no options                 | `id` → field name, `mainstat` → value, `source`/`target` → **labels** |
+
+Observed output: three fields named `e1`, `e2`, `e3`, displaying as
+`e1 {source="a", target="b"}` / `e2 {source="a", target="b"}` /
+`e3 {source="b", target="c"}` — i.e. **two parallel edges with distinct ids and identical
+endpoints**, which is the one shape the name-split form cannot express. A `byName: 'e2'`
+override applied a unit to exactly the second edge and nothing else.
+
+Two notes on typing. A CSV cell arrives as `string`, and `extractFields` parses it happily.
+A datasource that emits a real object gets `FieldType.other`, and `extractFields` handles
+that identically (verified with a `toDataFrame` fixture) — so a JSON API or Infinity
+datasource returning `{"source": "a", "target": "b"}` needs no stringification.
+
+**A very small core enhancement would remove the chain entirely.** Grafana's CSV reader
+recognises exactly two special header keys — `#name#` and `#unit#` (`utils/csv.mjs`, where
+the guard is `isName || headerKeys.hasOwnProperty(k)` over `{ unit: '#' }`). A `#labels#`
+line would let `csv_content` express labels directly — **this does not work today**, which
+is why it is not fenced as `csv` like every other example in this doc:
+
+```text
+#labels#source=a target=b,source=a target=b
+e1,e2
+10,20
+```
+
+That is a handful of lines in `@grafana/data`, benefits every fixture and test in Grafana
+rather than just graph frames, and needs no schema, toggle or dashboard change. Worth
+proposing on its own merits; the contract does not depend on it.
+
+#### Could labels be the only carrier?
+
+Yes, and it is close. Every property in the table above favours labels except the last two
+rows, so the question reduces to: **is raw-CSV authorability worth one branch?**
+
+What labels-only would cost, concretely:
+
+| Cost                                                                                   | Weight                                                                                                                                                                                                                                                                    |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No `csv_content` fixture expresses an edges frame in one line                          | Real but softer than it looks. A JSON column plus Extract fields does work ([recipe](#labels-from-a-csv-datasource-after-all)) — but every wide example in this doc and every panel in the proof dashboard would grow from one CSV line to a four-transformation pipeline |
+| Hand-written unit fixtures unaffected                                                  | None — `toDataFrame` sets `labels` directly, so the jest suites are indifferent                                                                                                                                                                                           |
+| Prometheus / Loki / SQL unaffected                                                     | None — all three produce labels natively                                                                                                                                                                                                                                  |
+| A user hand-typing a wide frame in Explore's TestData panel cannot make an edges frame | Real but narrow                                                                                                                                                                                                                                                           |
+
+What it would buy:
+
+| Benefit                               | Weight                                                                           |
+| ------------------------------------- | -------------------------------------------------------------------------------- |
+| No separator anywhere in the contract | Removes the collision rule, the ligature question and the hyphen hazard outright |
+| Parallel edges always expressible     | The one capability regression against the long form disappears                   |
+| `field.name` is purely identity       | An edge can be renamed without moving; an id need not look like `src-->dst`      |
+| One code path in every reader         | ~15 lines, but more importantly one fewer documented failure mode                |
+
+**Decision: keep both, with labels normative and name-splitting explicitly demoted.** The
+deciding argument is not the 15 lines — it is that a contract nobody can write down by hand
+is a contract nobody checks. Every worked example in this doc is a pasteable CSV, the proof
+dashboard renders from CSV, and that is what makes the claims falsifiable by a reader in
+under a minute. Labels-only would push every one of them behind a four-transformation
+pipeline whose own behaviour then has to be trusted.
+
+The [JSON-column recipe](#labels-from-a-csv-datasource-after-all) sharpens rather than
+settles this: it proves labels are _reachable_ from any datasource, so nothing is
+capability-blocked by keeping the shortcut. Name-splitting stays as the one-line form for
+fixtures and docs; labels stay the conformant form for anything real. Both are exercised, so
+neither rots.
+
+The demotion is what keeps this from being ambiguity:
+
+1. **Labels are the conformant carrier.** A datasource or transformation emitting this kind
+   MUST use labels. `legacyToWide` MUST emit labels.
+2. **Name-splitting is a `csv_content`-class authoring shortcut**, permitted so fixtures and
+   documentation stay writable. Readers MUST support it, MUST prefer labels when both are
+   present, and MUST use first-separator-wins.
+3. Its two limitations are **normative, not incidental**: it cannot express parallel edges,
+   and a node id containing `-->` is not representable.
+
+If that judgement is wrong, it reverses in one place — delete the `splitOnFirst` branch
+above, delete this section and the [separator](#the-separator) section,
+and convert the worked examples to `rowsToFields` panels. Nothing else in the contract
+depends on it.
 
 ## Nodes frame — `graph-nodes-wide`
 
@@ -216,8 +516,8 @@ frame in the response**, otherwise as the formatted set. Measured:
 | `a`, labels `{title:'Gateway'}` — nodes frame **alone**   | `a Gateway`                   |
 | `a`, labels `{title:'Gateway'}` — **with** an edges frame | `a {title="Gateway"}`         |
 | `Value`, labels `{source:'a', target:'b'}`                | `{source="a", target="b"}`    |
-| `a->b`, no labels                                         | `a->b`                        |
-| `a->b` twice in one frame                                 | `a->b 1` and `a->b 2`         |
+| `a-->b`, no labels                                        | `a-->b`                       |
+| `a-->b` twice in one frame                                | `a-->b 1` and `a-->b 2`       |
 
 So: **the contract requires a meaningful `field.name`**, and overrides should target it.
 `rowsToFields` with `id` as the name field satisfies this by construction. A field named
@@ -238,9 +538,12 @@ a save and reload.
    pivot does not fix, worsen or interact with this.
 2. **Parallel edges require labels.** Two edges over the same pair cannot be two
    identically named fields — see [below](#parallel-edges-require-labels).
-3. **A `byName` override on an adjacency-matrix column targets the node**, not the
-   column's inbound edges. A matrix column _is_ a node; an edge is a cell, and a cell is
-   not addressable. See [Adjacency matrix](#dense-graphs-the-adjacency-matrix-variant).
+3. **A `byName` override on an adjacency-matrix column targets the node's identity and its
+   inbound bundle's values, inseparably.** A matrix column _is_ a node, so `displayName`,
+   `links` and `color.fixedColor` land on the node — but every _value-driven_ property
+   (thresholds, mappings, unit, decimals, a by-value scheme) resolves **per cell**, i.e. per
+   inbound edge. What is unavailable is a fixed style for one _named_ edge, because no field
+   names one. See [Adjacency matrix](#dense-graphs-the-adjacency-matrix-variant).
 
 ## Row dimension variants
 
@@ -254,8 +557,8 @@ kind; they differ only in frame count and in whether a leading dimension field e
 | **Multi** (`graph-edges-multi`) | One frame **per edge**, frame `name` = the edge id, value field `Value` | time            | The natural Prometheus/Loki `time_series` shape                                         |
 
 The multi variant works because `getFieldDisplayName` skips a field literally named
-`Value` and substitutes the frame name when frame names differ: two frames named `a->b`
-and `a->c` yield display names `a->b` and `a->c`. Verified. Its hazard is the one named
+`Value` and substitutes the frame name when frame names differ: two frames named `a-->b`
+and `a-->c` yield display names `a-->b` and `a-->c`. Verified. Its hazard is the one named
 above — the raw name `Value` is shared, so `byName: 'Value'` hits every edge.
 
 ## Single-frame prefix variant
@@ -264,7 +567,7 @@ For sources that can emit neither `meta` nor labels and cannot run two queries, 
 frame may carry both roles using field-name prefixes:
 
 ```csv
-node__a,node__b,node__c,edge__a->b,edge__b->c
+node__a,node__b,node__c,edge__a-->b,edge__b-->c
 12,8,3,420,380
 ```
 
@@ -281,11 +584,30 @@ already.
 
 An edge-per-field frame grows as |E|: three nodes fully connected is six fields, and a
 dense 30-node chord is 870. The matrix form trades per-edge addressability for a field
-count that grows as N.
+count that grows as N. Shown side by side with the other two shapes under
+[The three shapes](#the-three-shapes-side-by-side).
 
-Core's **`groupingToMatrix`** produces it from a legacy frame with no new code. Measured
-output for the dense fixture (Column = `target`, Row = `source`, Cell = `mainstat`,
-Empty = `null`):
+**What is pre-existing and what is proposed.** The _shape_ and the _transform that produces
+it_ both already ship: `groupingToMatrix` is a stock Grafana transformation, and this plugin
+already **consumes** a category × category matrix frame today — see
+[heatmap-matrix.md](./heatmap-matrix.md), whose whole model is "one field per column, one
+row per row key". So nothing here invents a frame layout. What is proposed is only the
+**interpretation**: reading a matrix frame as a graph, where a column is a node and a cell
+is an edge. No consumer does that today, in this plugin or in core.
+
+**But `groupingToMatrix` cannot be used alongside a nodes frame.** Its operator opens with
+`if (data.length !== 1) { return data; }`, so on any multi-frame response it silently returns
+its input unchanged. Grafana has no per-query transformations, so a matrix and a
+`graph-nodes-wide` frame cannot coexist in one panel; `filterByRefId` restores the pivot only
+by discarding the node metadata. `rowsToFields` has no such limit — it maps over every frame,
+so one transform with zero options turns a nodes + edges response into
+`graph-nodes-wide` + `graph-edges-wide` together. That asymmetry strands exactly the
+datasources that emit graph data natively, since Tempo, AWS X-Ray and TestData all return
+both frames. Full treatment in
+[graph-edges-matrix.md](./graph-edges-matrix.md).
+
+Measured output for the dense fixture (Column = `target`, Row = `source`,
+Cell = `mainstat`, Empty = `null`):
 
 | Aspect         | Observed                                                                                        |
 | -------------- | ----------------------------------------------------------------------------------------------- |
@@ -297,12 +619,61 @@ Empty = `null`):
 
 So the contract for this variant:
 
+### What a column's config actually reaches
+
+Measured on a real matrix frame after `applyFieldOverrides`, because the intuition "a cell
+cannot be configured" is wrong. A column is a `Field`, so its display processor runs **once
+per cell**:
+
+| Property on column `a`                    | Reaches                                                                                                                                                  |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `color.mode: continuous-*` / `thresholds` | **each cell**, from its own value — 30 → `#d3c840`, 50 → `#f48349`, 60 → `#f2495c`                                                                       |
+| `mappings`                                | **one cell**, if the mapped value is unique — `40` → `the b-->c edge` in `#C4162A`, neighbours untouched                                                 |
+| `unit` / `decimals`                       | each cell                                                                                                                                                |
+| `links`                                   | **each cell, with its own href** — one override produced `http://h/b/to/a?w=30` and `http://h/c/to/a?w=50`, i.e. both endpoints and the weight, per edge |
+| `displayName` / `color.fixedColor`        | the **column**, i.e. the node — one value for the whole inbound bundle                                                                                   |
+
+So the honest boundary is **value-driven vs identity-driven**, not node vs edge:
+
+- **Works per edge:** anything derived from the cell's value. A by-value colour scheme, a
+  threshold, a mapping, formatting, and a data link whose URL interpolates
+  `${__data.fields["source\target"]}` and `${__value.numeric}`. One `links` override covers
+  870 edges where the edge-per-field form needs 870.
+- **Does not work per edge:** a fixed style for one _named_ edge — "make `a-->c` dark red
+  regardless of its value" — because no field names that edge. The matrix changes the unit of
+  edge configuration from the edge to the **inbound bundle**, which is a different
+  granularity rather than simply less of one.
+
+One wart: the empty diagonal is still a cell, so a `links` override generates a link for it
+too (observed: `http://h/a/to/a?w=null`). A reader must suppress links, and any other
+per-cell affordance, on absent cells.
+
+### This variant cannot be shape-detected — it must be opt-in
+
+[Frame role resolution](#frame-role-resolution) makes field shape the primary signal, and
+that is right for the edge-per-field form (endpoint labels or a `-->` in the name are
+distinctive). **It does not work here at all.** A key `string` field followed by numeric
+fields is byte-for-byte the layout this plugin already consumes as a category × category
+[matrix heatmap](./heatmap-matrix.md), and it is also indistinguishable from an ordinary
+`numeric-wide` table. So a matrix graph frame must be selected by `meta.type`
+(`graph-edges-matrix`) or by an explicit panel option — never inferred.
+
+That is the strongest argument for treating the matrix as opt-in rather than as a peer of
+the edge-per-field form, and it is why the two forms cannot share a detector even though
+they share a reader's output model. See
+[graph-edges-matrix.md](./graph-edges-matrix.md#detection-and-the-collision-with-the-heatmap).
+
+### The contract for this variant
+
 - The **key field** is the row dimension: a `string` field of source-node ids, named
   `source\target` when `groupingToMatrix` produced it and free-form otherwise. It is
   identified as the first `string` field, not by name.
 - Each **numeric field is a node** (a target). `byName` on it targets the node — rule 3.
-- A **cell is an edge**, and carries no config of its own. Per-edge colour, links,
-  hiding and curveness are **not available** in this variant.
+- A **cell is an edge**. It carries no config of its _own_, but every value-driven property
+  on its column resolves against it — see
+  [what a column's config actually reaches](#what-a-columns-config-actually-reaches). What is
+  unavailable is identity-driven per-edge config: a fixed colour, or a `hideFrom`, for one
+  named edge.
 - An empty cell means **no edge**, and must not read as zero. `''` from `csv_content`
   and `null` from `groupingToMatrix` are both "absent".
 
@@ -360,12 +731,12 @@ sum by (client, server) (rate(traces_service_graph_request_total[$__range]))
 Run it **instant**, `format: time_series`, with a legend format:
 
 ```
-{{client}}->{{server}}
+{{client}}-->{{server}}
 ```
 
 That is the whole recipe. Each series is one frame, one edge; the legend format lands in
 `config.displayNameFromDS`, which `getFieldDisplayName` returns verbatim, so the display
-name **is** the edge id and `byName: 'a->b'` targets exactly one edge (verified). The
+name **is** the edge id and `byName: 'a-->b'` targets exactly one edge (verified). The
 endpoints stay in `field.labels` as `client` / `server`, which the contract accepts as
 the endpoint keys directly.
 
@@ -408,6 +779,31 @@ source column's **display name**, not its raw name. TestData's `node_graph`
 length: four labels per node makes every picker entry long, which is the real scale limit
 (see [Limits](#limits-and-divergences)).
 
+#### Reality check: the natively-long producers are the awkward case
+
+Auto-detection is a clean fit for a hand-written table and a poor fit for a real
+service-map response. Measured against TestData `node_graph` `response_small`, which is a
+saved AWS X-Ray service map and therefore the best available proxy for what Tempo and
+X-Ray actually emit:
+
+| Frame | Fields as returned                                                                                      | Zero-config `rowsToFields` gives                                                                               |
+| ----- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| nodes | `id`, `title`, `subtitle`, `mainstat` (number), `secondarystat`, `arc__success/faults/errors/throttled` | 17 fields named **`0` … `16`** — the ids are numeric strings — with the service name demoted to a `Name` label |
+| edges | `id`, `source`, `sourceName`, `target`, `targetName`, `mainstat` (**string**), `secondarystat` (number) | 18 fields named `0__2`, `5__8`, … and the value taken from **`secondarystat`**, because `mainstat` is a string |
+
+Both outputs are structurally valid and semantically poor: the override targets are
+`0`, `1`, `2`, and the edge value is transactions-per-minute rather than the response
+percentage the panel would have shown. Fixing it takes explicit mappings —
+`title` → **Field name**, `sourceName`/`targetName` as the endpoint label keys — i.e. four
+mappings across two transforms, not zero config.
+
+So the sourcing claim needs stating precisely: **the wide form is dramatically cheaper to
+source from Prometheus, Loki and SQL, and modestly more fiddly to source from the
+datasources that already emit the long form natively.** That population — Tempo, AWS
+X-Ray, TestData — is exactly the one that
+[dropping long support](../todo/graph-wide-migration.md#dropping-long-support-entirely)
+would strand.
+
 ### Per-node config from a second query
 
 `configFromQuery` ("Config from query results") sets `min`, `max`, `unit`, `decimals`,
@@ -432,14 +828,14 @@ Legacy edges frame:
 
 ```csv
 id,source,target,mainstat
-a->b,a,b,420
-b->c,b,c,380
+a-->b,a,b,420
+b-->c,b,c,380
 ```
 
 Wide edges frame:
 
 ```csv
-a->b,b->c
+a-->b,b-->c
 420,380
 ```
 
@@ -452,15 +848,15 @@ Legacy:
 
 ```csv
 id,source,target,mainstat
-a->b,a,b,420
-b->a,b,a,380
-a->a,a,a,90
+a-->b,a,b,420
+b-->a,b,a,380
+a-->a,a,a,90
 ```
 
 Wide:
 
 ```csv
-a->b,b->a,a->a
+a-->b,b-->a,a-->a
 420,380,90
 ```
 
@@ -474,20 +870,20 @@ Legacy:
 
 ```csv
 id,source,target,mainstat
-a->b,a,b,60
-a->c,a,c,40
-b->d,b,d,60
-c->d,c,d,40
+a-->b,a,b,60
+a-->c,a,c,40
+b-->d,b,d,60
+c-->d,c,d,40
 ```
 
 Wide:
 
 ```csv
-a->b,a->c,b->d,c->d
+a-->b,a-->c,b-->d,c-->d
 60,40,60,40
 ```
 
-Four independently overridable ribbons. Colouring only `a->c`, or curving only it, is
+Four independently overridable ribbons. Colouring only `a-->c`, or curving only it, is
 impossible in the long form and is one `byName` override here.
 
 The same fixture with a **categorical row dimension** — a leading `string` field, which
@@ -495,7 +891,7 @@ is what lets a core Bar chart render it and is how the proof dashboard shows the
 per-edge overrides:
 
 ```csv
-row,a->b,a->c,b->d,c->d
+row,a-->b,a-->c,b-->d,c-->d
 total,60,40,60,40
 ```
 
@@ -543,18 +939,18 @@ Legacy:
 
 ```csv
 id,source,target,mainstat
-a->b,a,b,10
-a->c,a,c,20
-b->a,b,a,30
-b->c,b,c,40
-c->a,c,a,50
-c->b,c,b,60
+a-->b,a,b,10
+a-->c,a,c,20
+b-->a,b,a,30
+b-->c,b,c,40
+c-->a,c,a,50
+c-->b,c,b,60
 ```
 
 Wide, edge-per-field:
 
 ```csv
-a->b,a->c,b->a,b->c,c->a,c->b
+a-->b,a-->c,b-->a,b-->c,c-->a,c-->b
 10,20,30,40,50,60
 ```
 
@@ -563,7 +959,7 @@ concrete form. At 30 nodes it is 870 fields. With a categorical row dimension, a
 proof dashboard renders it:
 
 ```csv
-row,a->b,a->c,b->a,b->c,c->a,c->b
+row,a-->b,a-->c,b-->a,b-->c,c-->a,c-->b
 total,10,20,30,40,50,60
 ```
 
@@ -578,8 +974,9 @@ c,50,60,
 
 Four fields regardless of density. The same shape from the legacy CSV needs no
 authoring at all — `groupingToMatrix` produces it, naming the key column
-`source\target` and leaving absent cells `null`. Per-node overrides work; **per-edge
-overrides do not**, because an edge is a cell (normative rule 3).
+`source\target` and leaving absent cells `null`. Per-node overrides work, and per-edge
+config works **by value but not by identity** — see
+[what a column's config actually reaches](#what-a-columns-config-actually-reaches).
 
 ### 6. Two hazards the wide form introduces
 
@@ -593,34 +990,117 @@ e1,a,b,10
 e2,a,b,20
 ```
 
-A directly-authored wide CSV cannot: naming both fields `a->b` collides, and the
-measured consequence is worse than a rename. Both fields keep `field.name === 'a->b'`;
-only their **display** names are disambiguated, to `a->b 1` and `a->b 2`. So
-`byName: 'a->b'` matches **both** edges, `byName: 'a->b 2'` matches the second, and
-`byName: 'a->b 1'` matches the first — while name-based endpoint parsing sees `a->b 1`
-and fails.
+Three encodings are possible in the wide form. Only one is recommended, and the reasons
+are measured rather than aesthetic.
 
-Observed in a running panel over `csv_content` of `a->b,a->b` / `10,20`: the two columns
-render as `a->b 1` and `a->b 2`, and a single `byName: 'a->b'` unit override formats
-**both** cells as `10 ms` and `20 ms`.
+**(a) Duplicate field names — legal, individually targetable, but positional.** Two
+fields may share a name; a frame really does end up with two `Field` objects whose
+`name` is identical:
 
-The clean form keeps the ids as names and puts the endpoints in labels, which CSV cannot
-do — so this shape is `rowsToFields`-only:
+```csv
+a-->b,a-->b
+10,20
+```
+
+`getUniqueFieldName` disambiguates only the **display** name, appending an ordinal to
+_every_ duplicate — so two fields display as `a-->b 1` and `a-->b 2`, three display as
+`1` / `2` / `3`. Measured matcher behaviour:
+
+| Override            | Matches                              |
+| ------------------- | ------------------------------------ |
+| `byName: 'a-->b'`   | **both** fields (it is the raw name) |
+| `byName: 'a-->b 1'` | the first only                       |
+| `byName: 'a-->b 2'` | the second only                      |
+
+Confirmed by applying overrides: field 0 took `dark-red` from `a-->b 1`, field 1 took `ms`
+from `a-->b 2`. Confirmed again in a live panel over `csv_content` of `a-->b,a-->b` /
+`10,20`: the columns render as `a-->b 1` and `a-->b 2`, `byName: 'a-->b 2'` formats the
+**second cell only** (`10`, `20 ms`), and `byName: 'a-->b'` formats **both**.
+
+So this works — but the ordinal is **positional within the frame**. Insert a new parallel
+edge ahead of an existing one and every subsequent override silently retargets. And the
+name split still sees `a-->b`, so the endpoints parse correctly here only because both
+edges share them.
+
+**(b) Multiple values in one field — wrong shape.** A field named `a-->b` with values
+`[12, 20]` is **one** edge sampled twice, not two edges: measured, that frame has one
+numeric field, `length: 2`, and one display name. That is the
+[ranged row dimension](#row-dimension-variants), which is a different and legitimate
+thing. It cannot express two parallel edges, because there is only one mark to configure.
+
+**(c) Distinct ids with endpoints in labels — recommended.** Keep the ids as names and
+put the endpoints in labels, which CSV cannot do — so this shape is `rowsToFields`-only:
 
 ```csv
 e1,e2
 10,20
 ```
 
-This is the one shape where the wide form is strictly harder to author than the legacy
-one. The `legacyToWide` adapter must therefore emit **id-named fields with labels**, not
-name-split fields, whenever it detects a duplicate pair.
+Both fields carry `labels: {source: 'a', target: 'b'}`, display as
+`e1 {source="a", target="b"}` / `e2 {source="a", target="b"}`, and `byName: 'e2'` matches
+exactly one (measured). Nothing is positional.
+
+This is the one shape where the wide form is harder to author than the legacy one. The
+`legacyToWide` adapter must therefore emit **id-named fields with labels**, not name-split
+fields, whenever it detects a duplicate pair.
+
+#### Escaping a literal `-->` in a node name
+
+**Normative: a `-->` preceded by a backslash is literal, not a separator.** The escape
+sequence is `\-->`; a reader scans left to right for the first unescaped `-->`, splits there,
+then replaces `\-->` with `-->` in both endpoints.
+
+```ts
+const SEP = '-->';
+export function splitEdgeName(name: string): [string, string] | null {
+  let i = 0;
+  while (i <= name.length - SEP.length) {
+    const at = name.indexOf(SEP, i);
+    if (at < 0) return null;
+    if (at > 0 && name[at - 1] === '\\') {
+      i = at + SEP.length; // escaped — keep looking
+      continue;
+    }
+    const unescape = (s: string) => s.split('\\-->').join(SEP);
+    return [unescape(name.slice(0, at)), unescape(name.slice(at + SEP.length))];
+  }
+  return null;
+}
+```
+
+Measured against that implementation:
+
+| Field name           | Endpoints              | Note                                      |
+| -------------------- | ---------------------- | ----------------------------------------- |
+| `a-->b`              | `a` / `b`              | ordinary                                  |
+| `a\-->b-->c`         | `a-->b` / `c`          | a node literally named `a-->b`            |
+| `a-->b\-->c`         | `a` / `b-->c`          | escape in the target                      |
+| `a\-->b-->c\-->d`    | `a-->b` / `c-->d`      | both endpoints escaped                    |
+| `a-->b-->c`          | `a` / `b-->c`          | unescaped: first separator wins           |
+| `\-->-->x`           | `-->` / `x`            | a node whose entire name is the separator |
+| `my-svc-->other-svc` | `my-svc` / `other-svc` | hyphens are not special                   |
+
+A backslash survives a CSV header verbatim, so this is authorable in `csv_content` and not
+merely in `toDataFrame`. Confirmed live: the header `a\-->b-->c,plain-->edge` produces a
+field literally named `a\-->b-->c`, and `byName: 'a\-->b-->c'` targets exactly it.
+
+The escape is only needed by the name-split form. Labels never need it — which remains the
+argument for preferring them.
 
 #### Separator collision
 
-A node literally named `a->b` produces the edge id `a->b->c`, which splits two ways.
-The name-split form must either pick a rule (first separator wins) or reject the frame.
-Labels have no such problem, which is the second reason they are primary.
+A node literally named `a-->b` produces the edge id `a-->b-->c`, which splits two ways.
+The rule is **first separator wins**, giving `a` and `b-->c`.
+
+This is the residual cost of the name-split form, and it is why the contract accepts only
+`-->` rather than a set: a node id has to contain a literal `-->` to hit it, which is far
+less likely than containing a `->`. Under the earlier three-form draft, the perfectly
+ordinary `my-svc-->other-svc` mis-split into `my-svc-` / `other-svc` on any reader that
+scanned for `->` first. One separator removes that class of bug entirely, leaving only the
+contrived case above.
+
+A node id that must contain `-->` is representable — just not in the name-split form. Use
+labels.
 
 ### `toDataFrame` equivalents
 
@@ -667,13 +1147,13 @@ const edgesRanged = toDataFrame({
   refId: 'A',
   fields: [
     { name: 'time', type: FieldType.time, values: [1, 2, 3] },
-    { name: 'a->b', type: FieldType.number, values: [60, 55, 70] },
-    { name: 'a->c', type: FieldType.number, values: [40, 45, 30] },
+    { name: 'a-->b', type: FieldType.number, values: [60, 55, 70] },
+    { name: 'a-->c', type: FieldType.number, values: [40, 45, 30] },
   ],
 });
 
 /** graph-edges-multi — one frame per edge, the Prometheus `time_series` shape with a
- *  legend format of `{{client}}->{{server}}`. */
+ *  legend format of `{{client}}-->{{server}}`. */
 const edgesMulti = [
   toDataFrame({
     refId: 'A',
@@ -685,7 +1165,7 @@ const edgesMulti = [
         type: FieldType.number,
         values: [60],
         labels: { client: 'a', server: 'b' },
-        config: { displayNameFromDS: 'a->b' },
+        config: { displayNameFromDS: 'a-->b' },
       },
     ],
   }),
@@ -697,7 +1177,7 @@ const prefixed = toDataFrame({
   fields: [
     { name: 'node__a', type: FieldType.number, values: [12] },
     { name: 'node__b', type: FieldType.number, values: [8] },
-    { name: 'edge__a->b', type: FieldType.number, values: [420] },
+    { name: 'edge__a-->b', type: FieldType.number, values: [420] },
   ],
 });
 ```
@@ -768,27 +1248,87 @@ Eliminated by the contract, and listed so the diff is legible:
   `field.display(value).color`, as in every other family, so
   `makeRelationsColorResolver` and its hierarchy twin are deletable.
 
+## Performance: which frame shape is cheapest
+
+Measured in Grafana 13.1.0 in-browser, over synthetic frames of E edges across N nodes.
+Each row is one `applyFieldOverrides` pass with 20 `byName` rules, then
+`cacheFieldDisplayNames`, then a simulated converter pass resolving every mark's colour
+through `field.display`. `JSON kB` is `JSON.stringify` of names + labels + values — a
+proxy for payload and serialisation cost, not for heap.
+
+| Marks (edges) | Shape                      | Fields | Frame length | JSON kB | `applyFieldOverrides` | display names | per-mark resolve | picker options |
+| ------------: | -------------------------- | -----: | -----------: | ------: | --------------------: | ------------: | ---------------: | -------------: |
+|           100 | long                       |      4 |          100 |       2 |                0.1 ms |          0 ms |           0.1 ms |              4 |
+|           100 | wide, edge-per-field       |    100 |            1 |       5 |                1.4 ms |        0.3 ms |           0.2 ms |            200 |
+|         1 000 | long                       |      4 |        1 000 |      23 |                0.1 ms |          0 ms |           0.3 ms |              4 |
+|         1 000 | wide, edge-per-field       |  1 000 |            1 |      58 |                6.5 ms |        0.7 ms |           1.2 ms |          2 000 |
+|         5 000 | long                       |      4 |        5 000 |     128 |                0.1 ms |          0 ms |           0.9 ms |              4 |
+|         5 000 | wide, edge-per-field       |  5 000 |            1 |     303 |               18.6 ms |        4.1 ms |           8.1 ms |         10 000 |
+|    992 (N=32) | long                       |      4 |          992 |      22 |                0.1 ms |          0 ms |           0.2 ms |              4 |
+|    992 (N=32) | wide, edge-per-field       |    992 |            1 |      56 |                3.4 ms |        0.6 ms |           1.1 ms |          1 984 |
+|    992 (N=32) | **wide, adjacency matrix** |     33 |           32 |   **5** |            **0.3 ms** |          0 ms |           0.4 ms |         **33** |
+| 9 900 (N=100) | long                       |      4 |        9 900 |     238 |                0.1 ms |          0 ms |           1.1 ms |              4 |
+| 9 900 (N=100) | wide, edge-per-field       |  9 900 |            1 |     586 |               20.9 ms |        2.4 ms |          10.4 ms |         19 800 |
+| 9 900 (N=100) | **wide, adjacency matrix** |    101 |          100 |  **50** |            **0.3 ms** |        0.1 ms |           1.0 ms |        **101** |
+
+### What the numbers say
+
+**Long is the cheapest per mark, and it is not close.** A mark is a row — four array
+slots — so 5 000 edges is still four fields and a 0.1 ms override pass. This is not a
+surprise, and it is the honest cost of the pivot: **long is cheap precisely because
+nothing in it is per-mark configurable.** There is no display processor to build, no
+`config` object, no `labels` object and no picker entry per edge, because there is no
+per-edge anything.
+
+**Edge-per-field wide is the most expensive shape**, by roughly 200× on the override pass
+at 5 000 marks. The cost is structural, not a missing optimisation: `applyFieldOverrides`
+builds one display processor per field, and `cachingDisplayProcessor` keys its cache on
+the value — so in the long form one processor is reused across 5 000 rows with a warm
+cache, while in the wide form 5 000 processors are each called once and the cache never
+pays. Its JSON payload is also ~2.4× the long form's, because a labels object per field
+repeats the endpoint strings that a long row already carried once.
+
+**The adjacency matrix wins outright for dense graphs — including against long.** At
+9 900 edges it is 101 fields, 0.3 ms, 50 kB and 101 picker entries: cheaper on payload
+than the long form (which repeats `source`/`target` strings on every row) and within noise
+on time. The trade is narrower than "no per-edge config": value-driven cell config works,
+identity-driven edge config does not — see
+[what a column's config actually reaches](#what-a-columns-config-actually-reaches).
+
+**ECharts is neutral.** All four relationship series are hand-built — `getInitialData`
+reads `option.data`/`nodes`/`links` literally and never goes through `getSource()`, so a
+`dataset` is invisible to them (see [echarts-coverage.md](./echarts-coverage.md)). The
+converter emits arrays either way, so the _same graph_ costs ECharts the same to lay out
+and draw regardless of which frame shape produced it. Frame shape affects the columns in
+the table above — the Grafana-side pipeline and the converter — and nothing downstream of
+them. The one indirect effect: per-mark config means the converter calls E display
+processors instead of one, which is the `per-mark resolve` column.
+
+### Recommendation by scale
+
+| Regime                                      | Use                                                                                                                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Up to ~500 marks                            | **Edge-per-field wide.** ~3 ms of pipeline for full per-mark configurability is not a trade worth thinking about                            |
+| ~500 – 5 000 marks                          | Edge-per-field wide still works (~30 ms per render), but the **picker** is the bottleneck, not the pipeline. Prefer `byRegexp` at this size |
+| Dense, E ≫ N (a chord, an adjacency view)   | **Adjacency matrix wide.** Cheapest of all three shapes; give up per-edge config                                                            |
+| Above ~5 000 marks with no per-mark styling | **Long.** It stays free, and if nothing is configured per mark there is nothing to gain by pivoting                                         |
+
+The last row is the reason the contract does not claim the wide form is universally
+better. It is better wherever per-mark configuration has any value, and it is worse
+wherever it has none.
+
 ## Limits and divergences
 
-- **Field-count ceiling — measured, and it is the UI rather than the pipeline.**
-  `applyFieldOverrides` is not the problem: over labelled edge fields it costs
-
-  | Fields | Override rules | `applyFieldOverrides` | Picker options |
-  | -----: | -------------: | --------------------: | -------------: |
-  |     50 |              1 |                  3 ms |            100 |
-  |    200 |             20 |                  2 ms |            400 |
-  |    500 |             20 |                  3 ms |          1 000 |
-  |  1 000 |             20 |                  7 ms |          2 000 |
-
-  The reduce is uncapped at 500 fields and the pipeline stays in single-digit
-  milliseconds at 1 000. What degrades is the **override picker**: it lists the display
-  name _and_ the raw base name for every field, so a 1 000-edge frame is a 2 000-entry
-  combobox. It is virtualized — only ~13 rows mount at a time — but on TestData's
-  `node_graph` `response_medium` pivoted through `rowsToFields`, whose display names carry
-  four labels each, opening it took **~4 s**. **Practical ceiling: a few hundred marks per
-  frame**, and the binding constraint is display-name length as much as count. Beyond
-  that, prefer `byRegexp` — remembering it tests the _display_ name, so anchor patterns
-  tolerantly (`/^db-/`, not `/^db-.*$/` against an id that carries labels).
+- **Field-count ceiling — the UI degrades before the pipeline does.** Full numbers are in
+  [Performance](#performance-which-frame-shape-is-cheapest). The binding constraint is the
+  **override picker**, which lists the display name _and_ the raw base name for every
+  field, so a 1 000-edge frame is a 2 000-entry combobox. It is virtualized — only ~13
+  rows mount at a time — but on TestData's `node_graph` `response_medium` pivoted through
+  `rowsToFields`, whose display names carry four labels each, opening it took **~4 s**.
+  **Practical ceiling: a few hundred marks per frame**, and display-name _length_ matters
+  as much as count. Beyond that, prefer `byRegexp` — remembering it tests the _display_
+  name, so anchor patterns tolerantly (`/^db-/`, not `/^db-.*$/` against an id that
+  carries labels).
 
 - **Dense graphs are pathological in the edge-per-field form** (example 5). Use the
   matrix variant and accept that per-edge config is unavailable.
@@ -854,6 +1394,8 @@ system. The honest claim is that the contract makes even that unnecessary for th
   https://github.com/grafana/grafana/blob/v13.1.0/public/app/features/transformers/configFromQuery/configFromQuery.ts
 - Sourcing guide: [../docs/relations-data-sources.md](../docs/relations-data-sources.md)
 - Rewrite plan: [../todo/graph-wide-migration.md](../todo/graph-wide-migration.md)
+- Whether core's ad-hoc panel transformations would change the migration:
+  [../todo/graph-wide-adhoc-transformations.md](../todo/graph-wide-adhoc-transformations.md)
 - Per-item options, the problem this contract dissolves:
   [../todo/relations-item-overrides.md](../todo/relations-item-overrides.md)
 - Family coverage overview: [echarts-coverage.md](./echarts-coverage.md)

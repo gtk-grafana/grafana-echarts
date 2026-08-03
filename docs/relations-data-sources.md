@@ -269,11 +269,11 @@ sum by (client, server) (rate(traces_service_graph_request_total[$__range]))
 
 Then, in the query editor:
 
-| Setting    | Value                    | Why                                                                  |
-| ---------- | ------------------------ | -------------------------------------------------------------------- |
-| **Format** | `Time series`            | One frame per series, i.e. one frame per edge                        |
-| **Legend** | `{{client}}->{{server}}` | **Required.** This is the edge id and the override target            |
-| **Type**   | Instant _or_ Range       | Either. A range query is simply a row dimension the reduce collapses |
+| Setting    | Value                     | Why                                                                  |
+| ---------- | ------------------------- | -------------------------------------------------------------------- |
+| **Format** | `Time series`             | One frame per series, i.e. one frame per edge                        |
+| **Legend** | `{{client}}-->{{server}}` | **Required.** This is the edge id and the override target            |
+| **Type**   | Instant _or_ Range        | Either. A range query is simply a row dimension the reduce collapses |
 
 No SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction. The
 endpoints stay in `field.labels` as `client` / `server`, which the contract accepts as
@@ -286,7 +286,7 @@ an id anyone would write an override against. Worse, the raw field name is `Valu
 every frame, so `byName: Value` matches **every** edge at once.
 
 The same applies to the Loki queries in [Use case 2](#use-case-2--loki): set
-`{{service}}->{{upstream}}` as the legend and the reshaping disappears.
+`{{service}}-->{{upstream}}` as the legend and the reshaping disappears.
 
 ### SQL and CSV — Rows to fields
 
@@ -310,12 +310,51 @@ Two rules that are easy to get wrong:
   column. `source,target,id,mainstat` would name the output fields after `source` values.
   Reorder with `Organize fields`, or state the mapping explicitly.
 
+**The natively-long sources need explicit mappings, not zero config.** Tempo, AWS X-Ray
+and TestData emit `id` columns that are opaque row keys, not names. Measured against
+TestData `node_graph` `response_small` (a saved X-Ray service map), zero-config
+`Rows to fields` produces node fields called `0` … `16` with the service name demoted to a
+`Name` label, and edge fields whose value comes from `secondarystat` because X-Ray's
+`mainstat` is a **string** (`"Success 100.00%"`). The usable recipe there is four
+mappings:
+
+| Frame | Mapping                                                                                                        |
+| ----- | -------------------------------------------------------------------------------------------------------------- |
+| nodes | `title` → **Field name**, `secondarystat` → **Field value**                                                    |
+| edges | `sourceName` / `targetName` left unmapped (they become the endpoint labels), `secondarystat` → **Field value** |
+
+So the wide form is dramatically cheaper to source from Prometheus, Loki and SQL, and
+modestly more fiddly from the datasources that already emit the long form natively.
+
 The SQL from [Use case 3](#use-case-3--sql) needs no change at all — it already emits
 `id` first and `mainstat` last, so adding one `Rows to fields` transformation converts it.
 And because the pivot is a **user-added transformation**, it runs _before_
 `applyFieldOverrides`, which is what makes the resulting per-edge fields overridable. A
 panel doing the same reshaping internally could not: see
 [../todo/graph-wide-migration.md](../todo/graph-wide-migration.md).
+
+### JSON, Infinity and CSV — labels via Extract fields
+
+A datasource that returns a JSON object per row — Infinity, JSON API, a SQL `json` column,
+or a quoted CSV cell — reaches real labels without any datasource change:
+
+```csv
+id,meta,mainstat
+e1,"{""source"":""a"",""target"":""b""}",10
+e2,"{""source"":""a"",""target"":""b""}",20
+```
+
+| Step | Transformation                                  | Effect                                                                |
+| ---- | ----------------------------------------------- | --------------------------------------------------------------------- |
+| 1    | **Extract fields** — source `meta`, format JSON | adds `source` / `target` **columns**                                  |
+| 2    | **Organize fields** — exclude `meta`            | drops the raw JSON column so it does not become a label itself        |
+| 3    | **Convert field type** — `mainstat` → number    | as always, before `Rows to fields`                                    |
+| 4    | **Rows to fields**                              | `id` → field name, `mainstat` → value, `source`/`target` → **labels** |
+
+Verified end to end. This is the only route to **parallel edges** — two edges over the same
+pair — because it keeps the ids distinct while the endpoints repeat, which a plain CSV header
+cannot express. It works identically whether the column arrives as a `string` or as
+`FieldType.other` (a real object), so no stringification is needed.
 
 ### Dense graphs — Grouping to matrix
 
