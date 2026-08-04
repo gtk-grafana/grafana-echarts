@@ -121,6 +121,24 @@ describe('legacyToWide — edges', () => {
     expect(legacyToWide([frame])[0].fields[0].labels).toEqual({ source: 'a', target: 'b', env: 'prod' });
   });
 
+  /**
+   * The endpoints have to win: they are the edge's topology, and a `detail__source`
+   * column would otherwise silently move the edge to a node that does not exist.
+   */
+  it('does not let a detail__ column shadow an endpoint label', () => {
+    const frame = toDataFrame({
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['e1'] },
+        { name: 'source', type: FieldType.string, values: ['a'] },
+        { name: 'target', type: FieldType.string, values: ['b'] },
+        { name: 'mainstat', type: FieldType.number, values: [1] },
+        { name: 'detail__source', type: FieldType.string, values: ['upstream-service'] },
+      ],
+    });
+
+    expect(legacyToWide([frame])[0].fields[0].labels).toEqual({ source: 'a', target: 'b' });
+  });
+
   it('stamps the wide kind and its type version', () => {
     const [edges] = legacyToWide([edgesFrame()]);
 
@@ -170,6 +188,21 @@ describe('legacyToWide — nodes', () => {
         { name: 'id', type: FieldType.string, values: ['a'] },
         { name: 'mainstat', type: FieldType.number, values: [1] },
         { name: 'secondarystat', type: FieldType.string, values: ['12 req/s'] },
+      ],
+    });
+
+    const [, nodes] = legacyToWide([edgesFrame(), frame]);
+
+    expect(nodes.fields[0].labels).toEqual({ secondarystat: '12 req/s' });
+  });
+
+  it('keeps the secondary stat over a detail__ column of the same name', () => {
+    const frame = toDataFrame({
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['a'] },
+        { name: 'mainstat', type: FieldType.number, values: [1] },
+        { name: 'secondarystat', type: FieldType.string, values: ['12 req/s'] },
+        { name: 'detail__secondarystat', type: FieldType.string, values: ['shadowed'] },
       ],
     });
 

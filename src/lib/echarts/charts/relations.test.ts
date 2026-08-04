@@ -1,6 +1,7 @@
 import { createTheme, type DataFrame, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { relationsChartModule } from 'lib/echarts/charts/relations';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
+import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -36,13 +37,20 @@ const cyclicEdgesFrame = toDataFrame({
   ],
 });
 
+/**
+ * Fixtures are written in Grafana's row form, because that is what a datasource emits,
+ * and converted the way the host does — by the transformation the plugin registers on
+ * itself, above the panel (`modules/relations/dataTransformations.ts`). Running the same
+ * conversion here keeps the fixtures readable *and* exercises the real path, rather than
+ * hand-writing wide frames the pipeline would never produce.
+ */
 const ctx = (
-  frames: DataFrame[],
+  rawFrames: DataFrame[],
   fieldConfig: FieldConfigSource = emptyFieldConfig,
   seriesType: RelationsChartContext['seriesType'] = 'graph'
 ): RelationsChartContext =>
   ({
-    frames,
+    frames: legacyToWide(rawFrames),
     theme,
     timeZone: 'utc',
     timeRange: {},

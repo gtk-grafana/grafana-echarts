@@ -1,6 +1,6 @@
 import { createTheme, type FieldConfigSource } from '@grafana/data';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { getChordEmphasis, getChordLabel, getChordLinkStyle, getChordSeries } from 'lib/echarts/options/chord';
 import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
 import { type RelationsSeriesContext } from 'lib/echarts/options/graph';
@@ -83,23 +83,27 @@ describe('getChordLabel', () => {
 });
 
 describe('getChordLinkStyle', () => {
-  // Unlike sankey (neutral gray), ECharts' chord `lineStyle.color` default is already
-  // `source` — the family default — so nothing needs emitting.
-  it('omits the key entirely at the defaults', () => {
-    expect(getChordLinkStyle(baseOptions())).toBeUndefined();
+  // The family default is `gradient`, so a ribbon blends from one arc's colour into the
+  // other's; ECharts' own chord default is `source`, so the key has to be emitted for it
+  // to take effect. `ChordEdge` implements all three keywords, so nothing else is needed.
+  it('emits the family default, which ECharts does not share', () => {
+    expect(getChordLinkStyle(baseOptions())).toEqual({ color: 'gradient' });
+  });
+
+  it("omits the key only when the mode already matches ECharts' chord default", () => {
     expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'source' }))).toBeUndefined();
   });
 
-  it('emits a non-default color mode', () => {
-    expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'gradient' }))).toEqual({ color: 'gradient' });
+  it('emits an explicitly chosen mode', () => {
+    expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'target' }))).toEqual({ color: 'target' });
   });
 
   it('omits opacity at the ECharts default', () => {
-    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.2 }))).toBeUndefined();
+    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.2 }))).not.toHaveProperty('opacity');
   });
 
   it('emits an overridden opacity', () => {
-    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.75 }))).toEqual({ opacity: 0.75 });
+    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.75 }))).toMatchObject({ opacity: 0.75 });
   });
 });
 
@@ -142,7 +146,6 @@ describe('getChordSeries', () => {
     expect(series).not.toHaveProperty('clockwise');
     expect(series).not.toHaveProperty('padAngle');
     expect(series).not.toHaveProperty('minAngle');
-    expect(series).not.toHaveProperty('lineStyle');
   });
 
   it('emits ring keys when overridden', () => {
@@ -187,7 +190,7 @@ describe('getChordSeries', () => {
 
   it('drops per-edge thickness and strokedasharray but keeps color', () => {
     const styled = data({
-      links: [{ id: 'e1', source: 'a', target: 'b', value: 5, width: 4, dashArray: '5 5', color: 'red' }],
+      links: [{ id: 'e1', source: 'a', target: 'b', value: 5, width: 4, lineType: 'dashed' as const, color: 'red' }],
     });
 
     expect(linkItems(getChordSeries(styled, ctx()))[0].lineStyle).toEqual({ color: 'red' });

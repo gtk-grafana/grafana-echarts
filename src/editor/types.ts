@@ -50,8 +50,8 @@ export type HierarchySeriesType = Extract<SeriesType, 'treemap' | 'sunburst'>;
  * Relations (graph / flow) render types: a set of nodes plus the links between
  * them. `graph` ships today; `sankey` and `chord` are planned variants of the same
  * family, since all three ECharts series read the identical node/link input. Built
- * from Grafana's node-graph frame pair — see echarts/converters/nodeGraph.ts and
- * `data-plane/node-graph.md`. `lines` is deliberately excluded: it needs
+ * from the field-based graph contract — see echarts/converters/graphWide.ts and
+ * `data-plane/graph-wide.md`. `lines` is deliberately excluded: it needs
  * coordinate-pair polylines, not node references (see `todo/node-graph.md`).
  */
 export type RelationsSeriesType = Extract<SeriesType, 'graph' | 'sankey' | 'chord'>;

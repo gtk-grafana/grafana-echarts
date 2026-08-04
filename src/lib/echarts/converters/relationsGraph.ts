@@ -1,61 +1,66 @@
-import { type DataFrame, type Field, FieldType, type GrafanaTheme2 } from '@grafana/data';
-import { frameToGraphWide, isEdgesWideFrame, isGraphWideFrames } from 'lib/echarts/converters/graphWide';
-import {
-  frameToNodeGraph,
-  getNodeGraphValueField,
-  isEdgesFrame,
-  type NodeGraphData,
-} from 'lib/echarts/converters/nodeGraph';
+import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type ReduceDataOptions } from '@grafana/data';
+import { frameToGraphWide, isGraphWideFrames, resolveGraphWideRoles } from 'lib/echarts/converters/graphWide';
+import { isLegacyGraphFrames } from 'lib/echarts/converters/legacyToWide';
+import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 
 /**
- * Single entry point for the relations family's data, over both graph contracts.
+ * Single entry point for the relations family's data.
  *
- * Which reader runs is decided per response, not per panel, because the same panel can
- * receive either shape depending on the datasource and on whether the host ran the
- * plugin's registered long->wide transformation (`modules/relations/dataTransformations.ts`):
+ * The family reads **only** `graph-*-wide` (`converters/graphWide.ts`). Grafana's
+ * row-based node-graph frames are converted to it *above* the panel, by the
+ * transformation the plugin registers on itself
+ * (`modules/relations/dataTransformations.ts`). That placement is the whole point: a
+ * conversion inside the panel would run after `applyFieldOverrides`, so its fields
+ * could render but could never carry a per-mark override.
  *
- * - `graph-*-wide` frames -> `frameToGraphWide`, where each mark is a field and so an
- *   override target;
- * - legacy `graph-*-long` frames -> `frameToNodeGraph`, unchanged, so every existing
- *   dashboard renders exactly as before on a host without the transformations API.
- *
- * Both produce the same `NodeGraphData`, so nothing downstream of here knows which
- * contract it is drawing.
+ * Requires the panel-registered transformations API (grafana/grafana#129992, expected
+ * in Grafana 13.2 — the plugin's minimum supported version). On an older host nothing
+ * converts the frames, and this throws rather than rendering nothing: a row-format
+ * response reaching the panel means the pipeline is missing a step the user can supply
+ * by hand, and a silent empty panel would hide that. See
+ * ../../../../todo/graph-wide-migration.md.
  */
 export function frameToRelationsGraph(
   frames: DataFrame[],
   theme: GrafanaTheme2,
-  calcs?: string[]
+  reduceOptions?: ReduceDataOptions
 ): NodeGraphData | null {
-  return isGraphWideFrames(frames) ? frameToGraphWide(frames, theme, calcs) : frameToNodeGraph(frames, theme);
+  if (isGraphWideFrames(frames)) {
+    return frameToGraphWide(frames, theme, reduceOptions);
+  }
+  if (isLegacyGraphFrames(frames)) {
+    throw new Error(
+      'Row-based node-graph frames need converting to the field-based graph contract before the panel can read them. ' +
+        'This normally happens automatically (Grafana 13.2+); on an older host, add a "Rows to fields" transformation.'
+    );
+  }
+  // Not a graph in either shape: nothing to draw, which is the no-data view's job.
+  return null;
 }
 
+const isNumeric = (field: Field): boolean => field.type === FieldType.number;
+
 /**
- * The field whose config formats node values and drives the by-value colour scheme.
+ * The field whose config formats node values.
  *
- * On the wide contract every node carries its own field (`RelationNode.field`), so this
- * is only a fallback for the parts of the options layer that still take one field for
- * the whole series — per-mark formatting is phase 5 of the migration. The first numeric
- * field of the nodes frame is representative, since `legacyToWide` copies the stat
- * column's `unit`/`decimals` onto every mark.
+ * Every node already carries its own field (`RelationNode.field`), so this exists only
+ * for the parts of the options and tooltip layers that still take one field for the
+ * whole series — per-mark formatting is phase 5 of the migration. The nodes frame's
+ * first mark is representative, because the conversion copies the stat column's
+ * `unit`/`decimals` onto every mark.
+ *
+ * Roles come from `resolveGraphWideRoles`, so this cannot disagree with the reader
+ * about which frame is which.
  */
 export function getRelationsValueField(frames: DataFrame[]): Field | undefined {
-  if (!isGraphWideFrames(frames)) {
-    return getNodeGraphValueField(frames);
+  const roles = resolveGraphWideRoles(frames);
+  if (!roles) {
+    return undefined;
   }
-  const edgesFrame = frames.find((frame) => isEdgesWideFrame(frame));
-  const nodesFrame = frames.find((frame) => frame !== edgesFrame && frame.fields.some(isNumeric));
-  return (nodesFrame ?? edgesFrame)?.fields.find(isNumeric);
+  return (roles.nodesFrame ?? roles.edgesFrame).fields.find(isNumeric);
 }
 
 /** The field formatting a hovered *link*'s value. */
 export function getRelationsLinkValueField(frames: DataFrame[]): Field | undefined {
-  if (isGraphWideFrames(frames)) {
-    return frames.find((frame) => isEdgesWideFrame(frame))?.fields.find(isNumeric);
-  }
-  const edgesFrame = frames.find(isEdgesFrame);
-  const mainstat = edgesFrame?.fields.find((field) => field.name.toLowerCase() === 'mainstat');
-  return mainstat?.type === FieldType.number ? mainstat : undefined;
+  return resolveGraphWideRoles(frames)?.edgesFrame.fields.find(isNumeric);
 }
-
-const isNumeric = (field: Field): boolean => field.type === FieldType.number;

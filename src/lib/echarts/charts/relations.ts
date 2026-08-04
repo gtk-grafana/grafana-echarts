@@ -1,6 +1,6 @@
 import { type FieldConfigSource } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
-import { type NodeGraphData } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import {
   frameToRelationsGraph,
   getRelationsLinkValueField,
@@ -62,13 +62,13 @@ function withoutHiddenNodes(data: NodeGraphData, fieldConfig: FieldConfigSource)
 
 /** The node/link model as rendered: legend-hidden nodes and their links removed. */
 function getVisibleNodeGraph(ctx: RelationsChartContext): NodeGraphData | null {
-  const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions?.calcs);
+  const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
   return data == null ? null : withoutHiddenNodes(data, ctx.fieldConfig);
 }
 
 /**
  * Relations chart family: nodes plus the links between them, built from Grafana's
- * node-graph frame pair (see echarts/converters/nodeGraph.ts).
+ * the field-based graph contract (see echarts/converters/graphWide.ts).
  *
  * All three render variants ship, and `ctx.seriesType` selects between them the way
  * the hierarchy module picks treemap vs sunburst. Every ECharts series here reads the
@@ -165,7 +165,7 @@ export const relationsChartModule: ChartModule = {
   buildLegendItems(ctx): VizLegendItem[] {
     // The *unfiltered* graph: a hidden node stays listed (greyed) so it can be
     // toggled back on, which is how every other family's legend behaves.
-    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions?.calcs);
+    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
     if (!data) {
       return [];
     }

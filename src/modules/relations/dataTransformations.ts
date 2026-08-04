@@ -1,17 +1,16 @@
-import { legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
 import { isGraphWideFrames } from 'lib/echarts/converters/graphWide';
-import { isNodeGraphFrames } from 'lib/echarts/converters/nodeGraph';
+import { isLegacyGraphFrames, legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
 import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTransformations';
 
 /**
- * The transformations the relations family needs before it can be configured.
+ * The transformations the relations family needs before it can be drawn or configured.
  *
  * Conditional on the frames, which is what makes it safe to leave on permanently:
  *
  * - already wide (or natively emitted wide) -> `[]`, nothing runs, frame identity is
  *   preserved and `VizPanel.applyFieldConfig` still short-circuits;
- * - legacy node-graph frames -> the long->wide conversion, run above the panel so each
- *   node and edge is a field by the time field overrides are applied;
+ * - row-based node-graph frames -> the conversion, run above the panel so each node and
+ *   edge is a field by the time field overrides are applied;
  * - anything else -> `[]`. The panel may be pointed at a frame it cannot draw, and a
  *   transformation is not the place to complain about it.
  *
@@ -24,4 +23,4 @@ import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTran
  * upstream context widened first.
  */
 export const relationsDataTransformations: PanelDataTransformationsSupplier = ({ series }) =>
-  isNodeGraphFrames(series) && !isGraphWideFrames(series) ? [legacyToWideOperator] : [];
+  isLegacyGraphFrames(series) && !isGraphWideFrames(series) ? [legacyToWideOperator] : [];

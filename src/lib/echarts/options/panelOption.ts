@@ -23,17 +23,22 @@ import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
  * module, builds its option, and layers on the tooltip and (for non-category
  * axes) crosshair axisPointer. Keeping the assembly here isolates the ECharts
  * option shape from the component (per AGENTS.md) and lets tests snapshot the
- * exact option the panel renders. Returns `null` when no chart module matches
- * the series type or the module produces no option.
+ * exact option the panel renders.
+ *
+ * Returns `null` when no chart module matches the series type or the module
+ * derives no chart from the data, so the caller can leave the panel empty. A
+ * response the family cannot read *at all* is a different case: the module throws
+ * with an explanation, because a blank panel would hide a fixable problem (see
+ * `frameToRelationsGraph`).
  */
 export function buildPanelChartOption(
   rawCtx: ChartContext,
   { isGrafanaLegend, tooltipSink }: { isGrafanaLegend: boolean; tooltipSink?: TooltipSink }
-): ECBasicOption {
+): ECBasicOption | null {
   const chartModule = resolveChartModule(rawCtx.seriesType);
   if (!chartModule) {
     debug('Invalid chart module', LOG_LEVELS.error, rawCtx);
-    throw new Error(`Invalid chart module for ${rawCtx.seriesType}`);
+    return null;
   }
 
   // Normalize options by editor mode for every family (before both the series
@@ -72,10 +77,13 @@ export function buildPanelChartOption(
   const axisType = panelTypeToAxis(ctx, hasTimeField);
   const { option: tooltipOption, mode: tooltipMode } = buildPanelTooltip(ctx, chartModule, axisType);
 
+  // No option means "nothing to draw from this data" — an empty response, or one
+  // whose shape carries no chart. Every other family already falls back to the
+  // no-data view for that, so this does too rather than throwing.
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
   if (!echartOption) {
-    debug('Invalid chart option', LOG_LEVELS.error, ctx);
-    throw new Error(`Invalid chart option resolved for ${ctx.seriesType}`);
+    debug('No chart option resolved', LOG_LEVELS.debug, ctx);
+    return null;
   }
 
   // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.

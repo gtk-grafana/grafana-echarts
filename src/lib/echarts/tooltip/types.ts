@@ -1,6 +1,6 @@
 import { type Field, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type VizTooltipOptions } from '@grafana/schema';
-import { type TooltipOption } from 'echarts/types/dist/shared';
+import { type LinearGradientObject, type TooltipOption } from 'echarts/types/dist/shared';
 
 /**
  * ECharts tooltip trigger: cartesian time series share an x axis; pie/radar hover per item.
@@ -215,11 +215,11 @@ export interface RelationsNodeItem {
   itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
   x?: number;
   y?: number;
-  /** `subtitle`, surfaced as a tooltip row. */
+  /** `custom.subtitle`, surfaced as a tooltip row. */
   subtitle?: string;
-  /** `secondarystat`, tooltip only; may be a string per the frame spec. */
+  /** The secondary stat, tooltip only; already a display string when reduced. */
   secondary?: number | string;
-  /** Source row in the nodes frame, for footer data links. Unset on derived nodes. */
+  /** Source row in the owning frame, for footer data links. Unset on derived nodes. */
   sourceRowIndex?: number;
 }
 
@@ -231,7 +231,17 @@ export interface RelationsLinkItem {
   source: string;
   target: string;
   value?: number;
-  lineStyle?: { color?: string; width?: number; type?: 'solid' | 'dashed' | 'dotted'; curveness?: number };
+  lineStyle?: {
+    /**
+     * A colour, or a gradient between the two endpoints' colours. The gradient form
+     * exists because ECharts' `graph` series implements only the `'source'` and
+     * `'target'` keywords — see `makeEdgeGradientResolver`.
+     */
+    color?: string | LinearGradientObject;
+    width?: number;
+    type?: 'solid' | 'dashed' | 'dotted';
+    curveness?: number;
+  };
   /** Source row in the edges frame, for footer data links. */
   sourceRowIndex?: number;
 }

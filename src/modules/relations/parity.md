@@ -6,17 +6,25 @@ Compares the editor options of this ECharts **Relations** module
 options in
 [`panelcfg.cue`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/panelcfg.cue)).
 
-Both consume the same input: Grafana's node-graph frame pair. See
-[data-plane/node-graph.md](../../../data-plane/node-graph.md) for the field spec and
-[docs/relations-data-sources.md](../../../docs/relations-data-sources.md) for which
-data sources can produce it.
+Both are fed from the same query. Core's Node graph reads Grafana's node-graph frame pair
+directly ([data-plane/node-graph.md](../../../data-plane/node-graph.md) has the field spec,
+and [docs/relations-data-sources.md](../../../docs/relations-data-sources.md) which data
+sources produce it); this module reads the **field-based** contract those frames are
+converted to above the panel, so a byte-identical query still feeds both and the
+side-by-side comparison this doc rests on is intact.
 
-> **A field-based alternative is specified but not implemented.**
+> **This module now reads `graph-*-wide` only.**
 > [data-plane/graph-wide.md](../../../data-plane/graph-wide.md) defines
 > `graph-nodes-wide` / `graph-edges-wide`, where one node is one **field** and one edge is
-> one **field**. Nothing in this module reads it yet, so every row below describes the row
-> format. Some rows carry a **[wide: …]** marker inline; the full list is under
-> [What `graph-*-wide` would change](#what-graph--wide-would-change).
+> one **field**. `converters/legacyToWide.ts`, registered through
+> `PanelPlugin.setDataTransformations`, converts the row form to it before field overrides
+> are applied — which is what makes each node and edge an override target.
+>
+> **Rows below still describe the row form in places, and the phase 3–5 work that closes
+> the gap has not landed.** Colour, per-mark custom config, tooltips and data links all
+> still route through the pre-pivot resolvers. The **[wide: …]** markers are the target;
+> [todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md) tracks which phase
+> each belongs to and what already shipped.
 
 ## Design difference
 
@@ -191,9 +199,11 @@ routes stat units through its own panel options rather than the standard Unit.
 
 Not registered, deliberately:
 
-- **`reduceOptions`** (`addStandardDataReduceOptions`) — rows _are_ the entities, so
-  there is nothing to reduce. Unlike part-to-whole, this family never calls it.
-  **[wide: registered]** — `calcs[0]` becomes the main stat and `calcs[1]` the secondary.
+- ~~**`reduceOptions`**~~ — **now registered** (`addRelationsStatOptions`): `calcs[0]` is a
+  mark's main stat, `calcs[1]` its secondary. Deliberately _not_
+  `addStandardDataReduceOptions`, which would also add an inert "Show: Calculate / All
+  values" radio and a "Limit" input — a mark is a field, so neither can mean anything here.
+  `normalizeRelationsCalcs` truncates to the two stat slots.
 - **Legend calcs** — `includeLegendCalcs: false`, since legend entries are nodes, not
   fields, so there are no series values to reduce. **[wide: reconsider]** — a legend entry
   would be a field again.
@@ -337,11 +347,11 @@ implemented — the plan is
 | **Data links** — "nodes _derived_ from the edges frame carry no row, so no footer"       | Per mark via `config.links`. Derived nodes stay **partially open** — no field either                                               |
 | **Min / Max — Marginal** ("only bounds the by-value color domain")                       | Still the colour domain, but the domain stops being contaminated: measured `{min: 8, max: 12}` vs the legacy `{min: 0.5, max: 60}` |
 | **Thresholds — Marginal**                                                                | Per mark, and the approximate replacement for `arc__*`                                                                             |
-| **`reduceOptions` not registered**                                                       | **Registered.** `calcs[0]` = main stat, `calcs[1]` = secondary                                                                     |
+| **`reduceOptions` not registered**                                                       | **Registered — shipped.** `calcs[0]` = main stat, `calcs[1]` = secondary                                                           |
 | **Legend calcs `includeLegendCalcs: false`**                                             | Reconsider — a legend entry is a field again                                                                                       |
 | **`custom.hideFrom` registered with no reachable editor**                                | Register the real `commonOptionsBuilder.addHideFrom`; a `byName` override hides exactly one mark                                   |
-| **Legend hide re-implemented by name; relations excluded from `stripHiddenValueFields`** | Both become unnecessary for wide input, and both must stay for legacy input                                                        |
-| **`arc__*` approximated**                                                                | **Unchanged.** No ECharts relationship series draws a multi-section ring in either form                                            |
+| **Legend hide re-implemented by name; relations excluded from `stripHiddenValueFields`** | Both become unnecessary and go outright — there is no row input left to keep them for. Phase 4; both still in place today          |
+| **`arc__*` approximated**                                                                | **Dropped — shipped.** The conversion maps no `arc__*`, and no ECharts relationship series draws a multi-section ring anyway       |
 | **`icon` dropped**                                                                       | Becomes `custom.icon`, still unrendered — Grafana icon names need resolving to a symbol                                            |
 | **`detail__*` has no context menu**                                                      | Becomes `field.labels`, still no surface                                                                                           |
 | **Cycle policy**                                                                         | **Unchanged.** The sankey DAG restriction is an ECharts constraint, not a data-shape one                                           |
@@ -379,7 +389,7 @@ runtime surface.
 [sankey-opts]: ../../lib/echarts/options/sankey.test.ts
 [chord-opts]: ../../lib/echarts/options/chord.test.ts
 [rel-chart]: ../../lib/echarts/charts/relations.test.ts
-[ng-conv]: ../../lib/echarts/converters/nodeGraph.test.ts
+[ng-conv]: ../../lib/echarts/converters/relationsModel.test.ts
 [use-legend]: ../../lib/components/hooks/useLegend.test.tsx
 
 <!-- Provisioned dashboards: committed JSON, then the panel in a running Grafana -->

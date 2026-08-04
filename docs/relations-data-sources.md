@@ -11,13 +11,21 @@ data, which is the practical blocker: the family needs a nodes + edges frame pai
 and the three data sources most Grafana users have — Prometheus, Loki and SQL —
 emit none.
 
-> **Two target formats.** Everything from [The short version](#the-short-version) to
-> [Aggregation is the hidden requirement](#aggregation-is-the-hidden-requirement)
-> describes sourcing the **legacy row format** (`graph-*-long`) — the only one the panel
-> reads today. [Sourcing the wide form](#sourcing-the-wide-form) at the end describes the
-> field-based [`graph-*-wide` contract](../data-plane/graph-wide.md), which is materially
-> cheaper to source and which nothing reads yet. Both sections are kept: the legacy
-> recipes stay correct and stay needed.
+> **Two source formats, one target.** The panel reads the field-based
+> [`graph-*-wide` contract](../data-plane/graph-wide.md) and nothing else. It converts the
+> **row format** (`graph-*-long`) to it automatically, above the panel, so every recipe in
+> this doc still works unchanged — you can keep emitting rows and never think about the
+> contract. That conversion needs Grafana **13.2 or later**
+> ([grafana/grafana#129992](https://github.com/grafana/grafana/pull/129992)); on an older
+> host the panel reports that it cannot read row frames, and the workaround is to add a
+> **Rows to fields** transformation by hand, with the caveats in
+> [SQL and CSV — Rows to fields](#sql-and-csv--rows-to-fields).
+>
+> So: everything from [The short version](#the-short-version) to
+> [Aggregation is the hidden requirement](#aggregation-is-the-hidden-requirement) is about
+> sourcing rows, which remains the normal thing to do.
+> [Sourcing the wide form](#sourcing-the-wide-form) at the end is about emitting the
+> contract directly, which is materially cheaper and skips the conversion entirely.
 
 ## The short version
 
@@ -318,8 +326,9 @@ Three rules that are easy to get wrong:
   no-op of the entire transformation**, not of the one mapping: a `Field value` mapping that
   matches nothing suppresses the auto-pick-first-numeric branch, `valueField` stays
   undefined, and `rowsToFields` returns the input frame untouched (measured — the returned
-  object is identical to the input). The panel then receives a legacy frame and there is no
-  warning anywhere. It also means a pivot recipe **is not portable between datasources**,
+  object is identical to the input). The panel then receives a row-format frame — which it
+  now reports rather than mis-rendering, though the message names the transformation, not
+  the mapping that silently no-op'd. It also means a pivot recipe **is not portable between datasources**,
   because it is keyed on strings the datasource chose.
 
 **The natively-long sources need explicit mappings, not zero config.** Tempo, AWS X-Ray

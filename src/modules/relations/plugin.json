@@ -6,7 +6,7 @@
   "id": "grafana-echartsrelations-panel",
   "info": {
     "keywords": ["panel", "echarts", "graph", "node graph", "relations", "service map", "sankey", "chord"],
-    "description": "Relations ECharts panel (graph) built from Grafana node-graph nodes and edges frames.",
+    "description": "Relations ECharts panel (graph, sankey, chord) built from Grafana node-graph nodes and edges frames.",
     "author": {
       "name": "Grafana"
     },
@@ -20,7 +20,7 @@
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaDependency": ">=13.1.0",
+    "grafanaDependency": ">=13.2.0",
     "plugins": []
   }
 }

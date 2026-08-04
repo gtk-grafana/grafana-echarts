@@ -1,6 +1,7 @@
 import {
   createTheme,
   type DataFrame,
+  type Field,
   FieldColorModeId,
   FieldType,
   getDisplayProcessor,
@@ -13,7 +14,10 @@ import {
   GRAPH_NODES_WIDE,
   isEdgesWideFrame,
   isGraphWideFrames,
+  normalizeRelationsCalcs,
+  RELATIONS_CALC_DEFAULT,
 } from 'lib/echarts/converters/graphWide';
+import { getPaletteColorByIndex } from 'lib/echarts/style';
 
 const theme = createTheme();
 
@@ -151,8 +155,8 @@ describe('frameToGraphWide — edges', () => {
       fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1, 2, 9] }],
     });
 
-    expect(frameToGraphWide([frame], theme, ['max'])!.links[0].value).toBe(9);
-    expect(frameToGraphWide([frame], theme, ['sum'])!.links[0].value).toBe(12);
+    expect(frameToGraphWide([frame], theme, { calcs: ['max'] })!.links[0].value).toBe(9);
+    expect(frameToGraphWide([frame], theme, { calcs: ['sum'] })!.links[0].value).toBe(12);
     // Default is lastNotNull.
     expect(frameToGraphWide([frame], theme)!.links[0].value).toBe(9);
   });
@@ -272,7 +276,173 @@ describe('frameToGraphWide — colour', () => {
     expect(frameToGraphWide([frame], theme)!.links[0].color).toBe('#ff0000');
   });
 
-  it('leaves colour unset when the field carries none, so the palette still applies', () => {
+  it('leaves colour unset when the field carries none', () => {
     expect(frameToGraphWide([labelledEdges()], theme)!.links[0].color).toBeUndefined();
+  });
+
+  /**
+   * The important half of the rule, and the one a fixture without a display processor
+   * cannot show: in the host every field has `config.color` merged in from the panel's
+   * registered default, which is palette-classic. Reading it would paint every edge a
+   * different palette colour and defeat the series-level endpoint colouring, so a
+   * palette mode counts as "nothing chosen" for an edge — but not for a node, whose
+   * palette colour is exactly right.
+   */
+  it('ignores a palette mode on an edge and honours it on a node', () => {
+    const paletted = (name: string, index: number, labels?: Record<string, string>): Field => {
+      const field: Field = {
+        name,
+        type: FieldType.number,
+        ...(labels ? { labels } : {}),
+        config: { color: { mode: FieldColorModeId.PaletteClassic } },
+        values: [10],
+        state: { seriesIndex: index },
+      };
+      field.display = getDisplayProcessor({ field, theme });
+      return field;
+    };
+
+    const edges = toDataFrame({ meta: { type: GRAPH_EDGES_WIDE }, fields: [] });
+    edges.fields = [paletted('e1', 0, { source: 'a', target: 'b' })];
+    edges.length = 1;
+    const nodes = toDataFrame({ meta: { type: GRAPH_NODES_WIDE }, fields: [] });
+    nodes.fields = [paletted('a', 1), paletted('b', 2)];
+    nodes.length = 1;
+
+    const data = frameToGraphWide([edges, nodes], theme)!;
+
+    expect(data.links[0].color).toBeUndefined();
+    expect(data.nodes.map((node) => node.color)).toEqual([
+      getPaletteColorByIndex(1, theme),
+      getPaletteColorByIndex(2, theme),
+    ]);
+  });
+
+  it('honours a real colour choice on an edge', () => {
+    const frame = withDisplay(
+      toDataFrame({
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'a', target: 'b' },
+            config: { color: { mode: FieldColorModeId.Fixed, fixedColor: 'dark-red' } },
+            values: [1],
+          },
+        ],
+      })
+    );
+
+    expect(frameToGraphWide([frame], theme)!.links[0].color).toBe(theme.visualization.getColorByName('dark-red'));
+  });
+});
+
+describe('frame role resolution', () => {
+  /**
+   * `meta.type` first, in both directions. Without the negative half a node
+   * legitimately named `a-->b` would be read as an edge, and the nodes frame would
+   * become its own edges frame.
+   */
+  it('never claims a declared nodes frame as edges, however its fields are named', () => {
+    const nodes = toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [{ name: 'a-->b', type: FieldType.number, values: [5] }],
+    });
+
+    expect(isEdgesWideFrame(nodes)).toBe(false);
+    expect(isGraphWideFrames([nodes])).toBe(false);
+    expect(frameToGraphWide([nodes], theme)).toBeNull();
+  });
+
+  it('picks the declared edges frame over one that merely looks like edges', () => {
+    const declared = toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] }],
+    });
+    const lookalike = toDataFrame({
+      fields: [{ name: 'x-->y', type: FieldType.number, values: [2] }],
+    });
+
+    // Listed second, and still the edges frame.
+    expect(frameToGraphWide([lookalike, declared], theme)!.links.map((link) => link.id)).toEqual(['e1']);
+  });
+
+  /**
+   * The nodes frame is not "any other frame with a numeric field": a second query
+   * returning an ordinary series would otherwise add a disconnected node named after
+   * it. Requiring a field name that an edge refers to is the wide equivalent of the row
+   * form's "a nodes frame must have an `id` column".
+   */
+  it('does not read an unrelated frame in a mixed response as nodes', () => {
+    const unrelated = toDataFrame({
+      name: 'B-series',
+      fields: [
+        { name: 'time', type: FieldType.time, values: [1, 2] },
+        { name: 'cpu', type: FieldType.number, values: [3, 4] },
+      ],
+    });
+
+    const data = frameToGraphWide([namedEdges(), unrelated], theme)!;
+
+    expect(data.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('still finds an undeclared nodes frame that names the endpoints', () => {
+    const nodes = toDataFrame({
+      fields: [
+        { name: 'a', type: FieldType.number, values: [5] },
+        { name: 'b', type: FieldType.number, values: [6] },
+      ],
+    });
+
+    const data = frameToGraphWide([nodes, namedEdges()], theme)!;
+
+    expect(data.nodes.map((node) => [node.id, node.value])).toEqual([
+      ['a', 5],
+      ['b', 6],
+      ['c', 1],
+    ]);
+  });
+});
+
+describe('reduceOptions', () => {
+  const ranged = (): DataFrame =>
+    toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [{ name: 'a', type: FieldType.number, config: { unit: 'ms' }, values: [1, 5, 9] }],
+    });
+
+  it('truncates calcs to the two stat slots a mark has', () => {
+    expect(normalizeRelationsCalcs({ calcs: ['max', 'min', 'mean'] })).toEqual(['max', 'min']);
+    expect(normalizeRelationsCalcs({ calcs: [] })).toEqual([RELATIONS_CALC_DEFAULT, undefined]);
+    expect(normalizeRelationsCalcs(undefined)).toEqual([RELATIONS_CALC_DEFAULT, undefined]);
+  });
+
+  it('reduces the main stat with calcs[0] and the secondary with calcs[1]', () => {
+    const frames = [labelledEdges(), withDisplay(ranged())];
+    const data = frameToGraphWide(frames, theme, { calcs: ['max', 'min'], values: false, fields: '' })!;
+
+    expect(data.nodes[0].value).toBe(9);
+    // Formatted through the mark's *own* display processor, so it carries its own unit.
+    expect(data.nodes[0].secondary).toBe('1 ms');
+  });
+
+  it('falls back to the secondarystat label when no second calc is chosen', () => {
+    const frames = [labelledEdges(), ranged()];
+    frames[1].fields[0].labels = { secondarystat: '12 req/s' };
+
+    expect(frameToGraphWide(frames, theme, { calcs: ['max'], values: false, fields: '' })!.nodes[0].secondary).toBe(
+      '12 req/s'
+    );
+  });
+});
+
+describe('mark rows', () => {
+  it('points every mark with a field at row 0, and derived nodes at none', () => {
+    const data = frameToGraphWide([labelledEdges()], theme)!;
+
+    expect(data.links.map((link) => link.sourceRowIndex)).toEqual([0, 0]);
+    // A derived node has no field, so there is no row for its data links either.
+    expect(data.nodes.every((node) => node.sourceRowIndex === undefined && node.field === undefined)).toBe(true);
   });
 });

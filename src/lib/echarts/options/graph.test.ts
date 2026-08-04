@@ -1,9 +1,8 @@
 import { createTheme, FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import {
-  ARC_BORDER_WIDTH,
   getGraphEdgeSymbol,
   getGraphEmphasis,
   getGraphForce,
@@ -15,6 +14,7 @@ import {
   makeRelationsColorResolver,
   RELATIONS_NODE_SIZE_DEFAULT,
 } from 'lib/echarts/options/graph';
+import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -114,14 +114,18 @@ describe('getGraphEdgeSymbol / getGraphEmphasis', () => {
 });
 
 describe('getGraphLinkStyle', () => {
-  it('defaults to inheriting the source node color and omits curveness', () => {
+  // The family default is `gradient`, which ECharts' `graph` series cannot read —
+  // `edgeVisual.ts` swaps only `source`/`target` and would treat `gradient` as a literal
+  // colour. So the series keyword degrades to `source` and the blend, when the layout
+  // allows one, is emitted per link instead.
+  it('degrades the gradient default to source, which the graph series can read', () => {
     const style = getGraphLinkStyle(baseOptions());
     expect(style).toEqual({ color: 'source' });
     expect(style).not.toHaveProperty('curveness');
   });
 
-  it('honors the link color mode', () => {
-    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'gradient' })).color).toBe('gradient');
+  it('passes through a mode the graph series implements', () => {
+    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'target' })).color).toBe('target');
   });
 
   it('omits curveness at 0 but emits it above', () => {
@@ -281,17 +285,12 @@ describe('getGraphSeries', () => {
     expect(series.data![1]).not.toHaveProperty('x');
   });
 
-  it('maps a per-edge color, width and dash array onto the link item', () => {
+  it('maps a per-edge color, width and line type onto the link item', () => {
     const styled = data({
-      links: [{ id: 'e1', source: 'a', target: 'b', value: 1, color: 'cyan', width: 3, dashArray: '5 5' }],
+      links: [{ id: 'e1', source: 'a', target: 'b', value: 1, color: 'cyan', width: 3, lineType: 'dashed' }],
     });
     const series = getGraphSeries(styled, ctx());
     expect(series.links).toMatchObject([{ lineStyle: { color: 'cyan', width: 3, type: 'dashed' } }]);
-  });
-
-  it('reads a small leading dash as dotted', () => {
-    const dotted = data({ links: [{ id: 'e1', source: 'a', target: 'b', value: 1, dashArray: '1 4' }] });
-    expect(getGraphSeries(dotted, ctx()).links).toMatchObject([{ lineStyle: { type: 'dotted' } }]);
   });
 
   it('omits lineStyle entirely for an unstyled link', () => {
@@ -311,14 +310,7 @@ describe('getGraphSeries', () => {
     expect(series).not.toHaveProperty('emphasis');
   });
 
-  it('draws an arc approximation as a node border', () => {
-    const withArc = data({ nodes: [{ id: 'a', name: 'A', value: 1, borderColor: 'green' }] });
-    expect(getGraphSeries(withArc, ctx()).data).toMatchObject([
-      { itemStyle: { borderColor: 'green', borderWidth: ARC_BORDER_WIDTH } },
-    ]);
-  });
-
-  it('omits border styling for nodes with no arc fields', () => {
+  it('never borders a node: there is no arc ring to approximate under the contract', () => {
     const series = getGraphSeries(data(), ctx());
     expect(series.data![0]).toMatchObject({ itemStyle: expect.any(Object) });
     expect((series.data![0] as { itemStyle: Record<string, unknown> }).itemStyle).not.toHaveProperty('borderColor');
@@ -327,5 +319,76 @@ describe('getGraphSeries', () => {
   it('carries the series zlevel from the panel option', () => {
     const series = getGraphSeries(data(), ctx(baseOptions({ zLevel: { series: 3 } })));
     expect(series.zlevel).toBe(3);
+  });
+});
+
+/**
+ * ECharts' `graph` series implements `lineStyle.color: 'source' | 'target'` and nothing
+ * else — `'gradient'` is sankey/chord-only — so the blend is built per link here.
+ *
+ * It can only be built when the node positions are known, because zrender resolves a
+ * non-global gradient against the shape's bounding box: `x: 0 -> x2: 1` runs left to
+ * right across the edge, which is source-to-target only if the source sits on the left.
+ * Under a force or circular layout the positions do not exist until ECharts has laid the
+ * graph out, so orienting would be a coin flip and half the edges would report their
+ * direction backwards.
+ */
+describe('getGraphSeries — edge gradients', () => {
+  const pinned = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
+    data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, fixedX: 0, fixedY: 0 },
+        { id: 'b', name: 'B', value: 2, fixedX: 100, fixedY: 100 },
+      ],
+      ...extra,
+    });
+
+  const gradientOf = (series: ReturnType<typeof getGraphSeries>, index = 0) =>
+    (series.links as Array<{ lineStyle?: { color?: unknown } }>)[index]?.lineStyle?.color;
+
+  it('blends from the source node colour to the target node colour', () => {
+    const gradient = gradientOf(getGraphSeries(pinned(), ctx()));
+
+    expect(gradient).toMatchObject({
+      type: 'linear',
+      colorStops: [
+        { offset: 0, color: getPaletteColorByIndex(0, theme) },
+        { offset: 1, color: getPaletteColorByIndex(1, theme) },
+      ],
+    });
+  });
+
+  it('orients the gradient along the edge, so reversing it reverses the blend', () => {
+    // a is top-left, b is bottom-right: the gradient runs from the box's top-left.
+    expect(gradientOf(getGraphSeries(pinned(), ctx()))).toMatchObject({ x: 0, y: 0, x2: 1, y2: 1 });
+
+    // Same two nodes, edge the other way: same bounding box, opposite gradient axis.
+    const reversed = pinned({ links: [{ id: 'e1', source: 'b', target: 'a', value: 5 }] });
+    expect(gradientOf(getGraphSeries(reversed, ctx()))).toMatchObject({ x: 1, y: 1, x2: 0, y2: 0 });
+  });
+
+  it('leaves the keyword to do the work when the layout has not pinned positions', () => {
+    // The default force layout: no positions, so no honest orientation exists.
+    expect(getGraphSeries(data(), ctx()).links![0]).not.toHaveProperty('lineStyle');
+    expect(getGraphLinkStyle(baseOptions()).color).toBe('source');
+  });
+
+  it('does not blend a self-loop, which has no direction to express', () => {
+    const loop = pinned({ links: [{ id: 'e1', source: 'a', target: 'a', value: 5 }] });
+
+    expect(getGraphSeries(loop, ctx()).links![0]).not.toHaveProperty('lineStyle');
+  });
+
+  it('yields to an explicit per-edge colour', () => {
+    const overridden = pinned({ links: [{ id: 'e1', source: 'a', target: 'b', value: 5, color: 'cyan' }] });
+
+    expect(gradientOf(getGraphSeries(overridden, ctx()))).toBe('cyan');
+  });
+
+  it('emits no gradient when another colour mode is chosen', () => {
+    const series = getGraphSeries(pinned(), ctx(baseOptions({ relationsLinkColor: 'target' })));
+
+    expect(series.links![0]).not.toHaveProperty('lineStyle');
+    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'target' })).color).toBe('target');
   });
 });

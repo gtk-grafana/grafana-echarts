@@ -3063,12 +3063,6 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -3094,6 +3088,32 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 240.22725,
+      "x1": 262.013949,
+      "y0": 63.239277,
+      "y1": 177.217538,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -3223,6 +3243,32 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
   },
   {
     "props": {
+      "x0": 285.65567,
+      "x1": 130.144263,
+      "y0": 111.290483,
+      "y1": 182.982223,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 280.454501,
       "y": 87.478555,
     },
@@ -3344,14 +3390,34 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 191.150244,
+      "x1": 133.506635,
+      "y0": 209.886154,
+      "y1": 84.847501,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -3476,14 +3542,34 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 112.27929,
+      "x1": 176.357991,
+      "y0": 144.230101,
+      "y1": 44.335106,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -4254,12 +4340,6 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -4285,6 +4365,91 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 39,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.796986,
+      "radius": 91,
+      "startAngle": 4.712389,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 224.13635,
+      "cpx2": 227.139585,
+      "cpy1": 117.243566,
+      "cpy2": 132.955149,
+      "x": 290.465284,
+      "y": 139.850498,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 1.193057,
+      "radius": 91,
+      "startAngle": 0.10846,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 210.068784,
+      "cpx2": 200,
+      "cpy1": 155.375374,
+      "cpy2": 102.7,
+      "x": 200,
+      "y": 39,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 240.22725,
+      "x1": 262.013949,
+      "y0": 63.239277,
+      "y1": 177.217538,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -4404,6 +4569,61 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 200,
+            "y": 39,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.796986,
+            "radius": 91,
+            "startAngle": 4.712389,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 224.13635,
+            "cpx2": 227.139585,
+            "cpy1": 117.243566,
+            "cpy2": 132.955149,
+            "x": 290.465284,
+            "y": 139.850498,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 1.193057,
+            "radius": 91,
+            "startAngle": 0.10846,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 210.068784,
+            "cpx2": 200,
+            "cpy1": 155.375374,
+            "cpy2": 102.7,
+            "x": 200,
+            "y": 39,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
@@ -4411,6 +4631,91 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 280.454501,
+      "y": 87.478555,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.339285,
+      "radius": 91,
+      "startAngle": 5.796986,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.257052,
+      "cpx2": 183.461932,
+      "cpy1": 131.530723,
+      "cpy2": 151.72055,
+      "x": 144.873106,
+      "y": 202.401834,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.763854,
+      "radius": 91,
+      "startAngle": 2.221555,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 174.624626,
+      "cpx2": 224.13635,
+      "cpy1": 140.068784,
+      "cpy2": 117.243566,
+      "x": 280.454501,
+      "y": 87.478555,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 285.65567,
+      "x1": 130.144263,
+      "y0": 111.290483,
+      "y1": 182.982223,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -4530,19 +4835,153 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 280.454501,
+            "y": 87.478555,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.339285,
+            "radius": 91,
+            "startAngle": 5.796986,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.257052,
+            "cpx2": 183.461932,
+            "cpy1": 131.530723,
+            "cpy2": 151.72055,
+            "x": 144.873106,
+            "y": 202.401834,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.763854,
+            "radius": 91,
+            "startAngle": 2.221555,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 174.624626,
+            "cpx2": 224.13635,
+            "cpy1": 140.068784,
+            "cpy2": 117.243566,
+            "x": 280.454501,
+            "y": 87.478555,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 233.562613,
+      "y": 214.584579,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.169195,
+      "radius": 91,
+      "startAngle": 1.193057,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 184.621362,
+      "cpx2": 172.860415,
+      "cpy1": 152.556319,
+      "cpy2": 127.044851,
+      "x": 109.534716,
+      "y": 120.149502,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.22619,
+      "radius": 91,
+      "startAngle": 3.250052,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 187.243566,
+      "cpx2": 210.068784,
+      "cpy1": 105.86365,
+      "cpy2": 155.375374,
+      "x": 233.562613,
+      "y": 214.584579,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 191.150244,
+      "x1": 133.506635,
+      "y0": 209.886154,
+      "y1": 84.847501,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -4662,19 +5101,153 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 233.562613,
+            "y": 214.584579,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.169195,
+            "radius": 91,
+            "startAngle": 1.193057,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 184.621362,
+            "cpx2": 172.860415,
+            "cpy1": 152.556319,
+            "cpy2": 127.044851,
+            "x": 109.534716,
+            "y": 120.149502,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.22619,
+            "radius": 91,
+            "startAngle": 3.250052,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 187.243566,
+            "cpx2": 210.068784,
+            "cpy1": 105.86365,
+            "cpy2": 155.375374,
+            "x": 233.562613,
+            "y": 214.584579,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 115.415421,
+      "y": 163.562613,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.197693,
+      "radius": 91,
+      "startAngle": 2.763854,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 172.742948,
+      "cpx2": 187.243566,
+      "cpy1": 128.469277,
+      "cpy2": 105.86365,
+      "x": 157.478555,
+      "y": 49.545499,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.660029,
+      "radius": 91,
+      "startAngle": 4.22619,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 198.571228,
+      "cpx2": 174.624626,
+      "cpy1": 102.737414,
+      "cpy2": 140.068784,
+      "x": 115.415421,
+      "y": 163.562613,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 112.27929,
+      "x1": 176.357991,
+      "y0": 144.230101,
+      "y1": 44.335106,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -4738,6 +5311,61 @@ exports[`relations (graph) canvas renders chord variant hides node labels when s
         {
           "props": {},
           "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 115.415421,
+            "y": 163.562613,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.197693,
+            "radius": 91,
+            "startAngle": 2.763854,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 172.742948,
+            "cpx2": 187.243566,
+            "cpy1": 128.469277,
+            "cpy2": 105.86365,
+            "x": 157.478555,
+            "y": 49.545499,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.660029,
+            "radius": 91,
+            "startAngle": 4.22619,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 198.571228,
+            "cpx2": 174.624626,
+            "cpy1": 102.737414,
+            "cpy2": 140.068784,
+            "x": 115.415421,
+            "y": 163.562613,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
         },
         {
           "props": {
@@ -5450,12 +6078,6 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -5481,6 +6103,32 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 240.22725,
+      "x1": 262.013949,
+      "y0": 63.239277,
+      "y1": 177.217538,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -5610,6 +6258,32 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
   },
   {
     "props": {
+      "x0": 285.65567,
+      "x1": 130.144263,
+      "y0": 111.290483,
+      "y1": 182.982223,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 280.454501,
       "y": 87.478555,
     },
@@ -5731,14 +6405,34 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 191.150244,
+      "x1": 133.506635,
+      "y0": 209.886154,
+      "y1": 84.847501,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -5863,14 +6557,34 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 112.27929,
+      "x1": 176.357991,
+      "y0": 144.230101,
+      "y1": 44.335106,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -6853,12 +7567,6 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -6884,6 +7592,91 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 39,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.796986,
+      "radius": 91,
+      "startAngle": 4.712389,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 224.13635,
+      "cpx2": 227.139585,
+      "cpy1": 117.243566,
+      "cpy2": 132.955149,
+      "x": 290.465284,
+      "y": 139.850498,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 1.193057,
+      "radius": 91,
+      "startAngle": 0.10846,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 210.068784,
+      "cpx2": 200,
+      "cpy1": 155.375374,
+      "cpy2": 102.7,
+      "x": 200,
+      "y": 39,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 240.22725,
+      "x1": 262.013949,
+      "y0": 63.239277,
+      "y1": 177.217538,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -7003,6 +7796,61 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 200,
+            "y": 39,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.796986,
+            "radius": 91,
+            "startAngle": 4.712389,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 224.13635,
+            "cpx2": 227.139585,
+            "cpy1": 117.243566,
+            "cpy2": 132.955149,
+            "x": 290.465284,
+            "y": 139.850498,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 1.193057,
+            "radius": 91,
+            "startAngle": 0.10846,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 210.068784,
+            "cpx2": 200,
+            "cpy1": 155.375374,
+            "cpy2": 102.7,
+            "x": 200,
+            "y": 39,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
@@ -7010,6 +7858,91 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 280.454501,
+      "y": 87.478555,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.339285,
+      "radius": 91,
+      "startAngle": 5.796986,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.257052,
+      "cpx2": 183.461932,
+      "cpy1": 131.530723,
+      "cpy2": 151.72055,
+      "x": 144.873106,
+      "y": 202.401834,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.763854,
+      "radius": 91,
+      "startAngle": 2.221555,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 174.624626,
+      "cpx2": 224.13635,
+      "cpy1": 140.068784,
+      "cpy2": 117.243566,
+      "x": 280.454501,
+      "y": 87.478555,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 285.65567,
+      "x1": 130.144263,
+      "y0": 111.290483,
+      "y1": 182.982223,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -7129,19 +8062,153 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 280.454501,
+            "y": 87.478555,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.339285,
+            "radius": 91,
+            "startAngle": 5.796986,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.257052,
+            "cpx2": 183.461932,
+            "cpy1": 131.530723,
+            "cpy2": 151.72055,
+            "x": 144.873106,
+            "y": 202.401834,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.763854,
+            "radius": 91,
+            "startAngle": 2.221555,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 174.624626,
+            "cpx2": 224.13635,
+            "cpy1": 140.068784,
+            "cpy2": 117.243566,
+            "x": 280.454501,
+            "y": 87.478555,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 233.562613,
+      "y": 214.584579,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.169195,
+      "radius": 91,
+      "startAngle": 1.193057,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 184.621362,
+      "cpx2": 172.860415,
+      "cpy1": 152.556319,
+      "cpy2": 127.044851,
+      "x": 109.534716,
+      "y": 120.149502,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.22619,
+      "radius": 91,
+      "startAngle": 3.250052,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 187.243566,
+      "cpx2": 210.068784,
+      "cpy1": 105.86365,
+      "cpy2": 155.375374,
+      "x": 233.562613,
+      "y": 214.584579,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 191.150244,
+      "x1": 133.506635,
+      "y0": 209.886154,
+      "y1": 84.847501,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -7261,19 +8328,153 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 233.562613,
+            "y": 214.584579,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.169195,
+            "radius": 91,
+            "startAngle": 1.193057,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 184.621362,
+            "cpx2": 172.860415,
+            "cpy1": 152.556319,
+            "cpy2": 127.044851,
+            "x": 109.534716,
+            "y": 120.149502,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.22619,
+            "radius": 91,
+            "startAngle": 3.250052,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 187.243566,
+            "cpx2": 210.068784,
+            "cpy1": 105.86365,
+            "cpy2": 155.375374,
+            "x": 233.562613,
+            "y": 214.584579,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 115.415421,
+      "y": 163.562613,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.197693,
+      "radius": 91,
+      "startAngle": 2.763854,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 172.742948,
+      "cpx2": 187.243566,
+      "cpy1": 128.469277,
+      "cpy2": 105.86365,
+      "x": 157.478555,
+      "y": 49.545499,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.660029,
+      "radius": 91,
+      "startAngle": 4.22619,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 198.571228,
+      "cpx2": 174.624626,
+      "cpy1": 102.737414,
+      "cpy2": 140.068784,
+      "x": 115.415421,
+      "y": 163.562613,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 112.27929,
+      "x1": 176.357991,
+      "y0": 144.230101,
+      "y1": 44.335106,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -7337,6 +8538,61 @@ exports[`relations (graph) canvas renders chord variant lays the same nodes and 
         {
           "props": {},
           "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 115.415421,
+            "y": 163.562613,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.197693,
+            "radius": 91,
+            "startAngle": 2.763854,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 172.742948,
+            "cpx2": 187.243566,
+            "cpy1": 128.469277,
+            "cpy2": 105.86365,
+            "x": 157.478555,
+            "y": 49.545499,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.660029,
+            "radius": 91,
+            "startAngle": 4.22619,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 198.571228,
+            "cpx2": 174.624626,
+            "cpy1": 102.737414,
+            "cpy2": 140.068784,
+            "x": 115.415421,
+            "y": 163.562613,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
         },
         {
           "props": {
@@ -8261,12 +9517,6 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -8292,6 +9542,32 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 239.169677,
+      "x1": 260.265847,
+      "y0": 61.348619,
+      "y1": 181.140037,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -8421,6 +9697,32 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
   },
   {
     "props": {
+      "x0": 284.487992,
+      "x1": 131.08993,
+      "y0": 102.786566,
+      "y1": 185.948137,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 278.339353,
       "y": 83.697239,
     },
@@ -8542,14 +9844,34 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 189.319209,
+      "x1": 127.179564,
+      "y0": 209.944961,
+      "y1": 95.323493,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -8674,14 +9996,34 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 113.906152,
+      "x1": 160.311805,
+      "y0": 154.251306,
+      "y1": 49.84313,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -8806,14 +10148,34 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#ff9830",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 185.282155,
+      "x1": 290.417597,
+      "y0": 40.766702,
+      "y1": 131.963292,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#FF9830",
+          ],
+          [
+            1,
+            "#73BF69",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -9796,12 +11158,6 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -9827,6 +11183,91 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 39,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.74937,
+      "radius": 91,
+      "startAngle": 4.712389,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 223.501806,
+      "cpx2": 226.83328,
+      "cpy1": 116.109172,
+      "cpy2": 135.026441,
+      "x": 289.444265,
+      "y": 146.754803,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 1.222156,
+      "radius": 91,
+      "startAngle": 0.185175,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 209.326229,
+      "cpx2": 200,
+      "cpy1": 155.657581,
+      "cpy2": 102.7,
+      "x": 200,
+      "y": 39,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 239.169677,
+      "x1": 260.265847,
+      "y0": 61.348619,
+      "y1": 181.140037,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -9946,6 +11387,61 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 200,
+            "y": 39,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.74937,
+            "radius": 91,
+            "startAngle": 4.712389,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 223.501806,
+            "cpx2": 226.83328,
+            "cpy1": 116.109172,
+            "cpy2": 135.026441,
+            "x": 289.444265,
+            "y": 146.754803,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 1.222156,
+            "radius": 91,
+            "startAngle": 0.185175,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 209.326229,
+            "cpx2": 200,
+            "cpy1": 155.657581,
+            "cpy2": 102.7,
+            "x": 200,
+            "y": 39,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
@@ -9953,6 +11449,91 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 278.339353,
+      "y": 83.697239,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.19379,
+      "radius": 91,
+      "startAngle": 5.74937,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.190989,
+      "cpx2": 183.119277,
+      "cpy1": 127.562768,
+      "cpy2": 151.45533,
+      "x": 143.730925,
+      "y": 201.517768,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.681847,
+      "radius": 91,
+      "startAngle": 2.237427,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 175.53468,
+      "cpx2": 223.501806,
+      "cpy1": 142.113552,
+      "cpy2": 116.109172,
+      "x": 278.339353,
+      "y": 83.697239,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 284.487992,
+      "x1": 131.08993,
+      "y0": 102.786566,
+      "y1": 185.948137,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -10072,19 +11653,153 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 278.339353,
+            "y": 83.697239,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.19379,
+            "radius": 91,
+            "startAngle": 5.74937,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.190989,
+            "cpx2": 183.119277,
+            "cpy1": 127.562768,
+            "cpy2": 151.45533,
+            "x": 143.730925,
+            "y": 201.517768,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.681847,
+            "radius": 91,
+            "startAngle": 2.237427,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 175.53468,
+            "cpx2": 223.501806,
+            "cpy1": 142.113552,
+            "cpy2": 116.109172,
+            "x": 278.339353,
+            "y": 83.697239,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 231.087429,
+      "y": 215.52527,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.185067,
+      "radius": 91,
+      "startAngle": 1.222156,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 184.265297,
+      "cpx2": 172.71872,
+      "cpy1": 152.309395,
+      "cpy2": 131.010825,
+      "x": 109.0624,
+      "y": 133.369418,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.067469,
+      "radius": 91,
+      "startAngle": 3.104558,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 183.589018,
+      "cpx2": 209.326229,
+      "cpy1": 108.183271,
+      "cpy2": 155.657581,
+      "x": 231.087429,
+      "y": 215.52527,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 189.319209,
+      "x1": 127.179564,
+      "y0": 209.944961,
+      "y1": 95.323493,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -10204,19 +11919,153 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 231.087429,
+            "y": 215.52527,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.185067,
+            "radius": 91,
+            "startAngle": 1.222156,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 184.265297,
+            "cpx2": 172.71872,
+            "cpy1": 152.309395,
+            "cpy2": 131.010825,
+            "x": 109.0624,
+            "y": 133.369418,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.067469,
+            "radius": 91,
+            "startAngle": 3.104558,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 183.589018,
+            "cpx2": 209.326229,
+            "cpy1": 108.183271,
+            "cpy2": 155.657581,
+            "x": 231.087429,
+            "y": 215.52527,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 118.448934,
+      "y": 170.378505,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.052198,
+      "radius": 91,
+      "startAngle": 2.681847,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 172.809011,
+      "cpx2": 183.589018,
+      "cpy1": 132.437232,
+      "cpy2": 108.183271,
+      "x": 145.296727,
+      "y": 57.277569,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.437819,
+      "radius": 91,
+      "startAngle": 4.067469,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 192.598065,
+      "cpx2": 175.53468,
+      "cpy1": 103.722608,
+      "cpy2": 142.113552,
+      "x": 118.448934,
+      "y": 170.378505,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 113.906152,
+      "x1": 160.311805,
+      "y0": 154.251306,
+      "y1": 49.84313,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -10336,19 +12185,153 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 118.448934,
+            "y": 170.378505,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.052198,
+            "radius": 91,
+            "startAngle": 2.681847,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 172.809011,
+            "cpx2": 183.589018,
+            "cpy1": 132.437232,
+            "cpy2": 108.183271,
+            "x": 145.296727,
+            "y": 57.277569,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.437819,
+            "radius": 91,
+            "startAngle": 4.067469,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 192.598065,
+            "cpx2": 175.53468,
+            "cpy1": 103.722608,
+            "cpy2": 142.113552,
+            "x": 118.448934,
+            "y": 170.378505,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#ff9830",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 175.326883,
+      "y": 42.408692,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.660029,
+      "radius": 91,
+      "startAngle": 4.437819,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 198.571228,
+      "cpx2": 227.190989,
+      "cpy1": 102.737414,
+      "cpy2": 127.562768,
+      "x": 290.636631,
+      "y": 121.875894,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.416001,
+      "radius": 91,
+      "startAngle": 6.19379,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.059569,
+      "cpx2": 192.598065,
+      "cpy1": 133.615207,
+      "cpy2": 103.722608,
+      "x": 175.326883,
+      "y": 42.408692,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 185.282155,
+      "x1": 290.417597,
+      "y0": 40.766702,
+      "y1": 131.963292,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#FF9830",
+          ],
+          [
+            1,
+            "#73BF69",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -10412,6 +12395,61 @@ exports[`relations (graph) canvas renders chord variant renders a cyclic edge se
         {
           "props": {},
           "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 175.326883,
+            "y": 42.408692,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.660029,
+            "radius": 91,
+            "startAngle": 4.437819,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 198.571228,
+            "cpx2": 227.190989,
+            "cpy1": 102.737414,
+            "cpy2": 127.562768,
+            "x": 290.636631,
+            "y": 121.875894,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.416001,
+            "radius": 91,
+            "startAngle": 6.19379,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.059569,
+            "cpx2": 192.598065,
+            "cpy1": 133.615207,
+            "cpy2": 103.722608,
+            "x": 175.326883,
+            "y": 42.408692,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
         },
         {
           "props": {
@@ -11336,12 +13374,6 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -11367,6 +13399,32 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 240.22725,
+      "x1": 262.013949,
+      "y0": 63.239277,
+      "y1": 177.217538,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -11496,6 +13554,32 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
   },
   {
     "props": {
+      "x0": 285.65567,
+      "x1": 130.144263,
+      "y0": 111.290483,
+      "y1": 182.982223,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 280.454501,
       "y": 87.478555,
     },
@@ -11617,14 +13701,34 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 191.150244,
+      "x1": 133.506635,
+      "y0": 209.886154,
+      "y1": 84.847501,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -11749,14 +13853,34 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 112.27929,
+      "x1": 176.357991,
+      "y0": 144.230101,
+      "y1": 44.335106,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -12739,12 +14863,6 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -12770,6 +14888,91 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 39,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.796986,
+      "radius": 91,
+      "startAngle": 4.712389,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 224.13635,
+      "cpx2": 227.139585,
+      "cpy1": 117.243566,
+      "cpy2": 132.955149,
+      "x": 290.465284,
+      "y": 139.850498,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 1.193057,
+      "radius": 91,
+      "startAngle": 0.10846,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 210.068784,
+      "cpx2": 200,
+      "cpy1": 155.375374,
+      "cpy2": 102.7,
+      "x": 200,
+      "y": 39,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 240.22725,
+      "x1": 262.013949,
+      "y0": 63.239277,
+      "y1": 177.217538,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -12889,6 +15092,61 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 200,
+            "y": 39,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.796986,
+            "radius": 91,
+            "startAngle": 4.712389,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 224.13635,
+            "cpx2": 227.139585,
+            "cpy1": 117.243566,
+            "cpy2": 132.955149,
+            "x": 290.465284,
+            "y": 139.850498,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 1.193057,
+            "radius": 91,
+            "startAngle": 0.10846,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 210.068784,
+            "cpx2": 200,
+            "cpy1": 155.375374,
+            "cpy2": 102.7,
+            "x": 200,
+            "y": 39,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
@@ -12896,6 +15154,91 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 280.454501,
+      "y": 87.478555,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.339285,
+      "radius": 91,
+      "startAngle": 5.796986,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.257052,
+      "cpx2": 183.461932,
+      "cpy1": 131.530723,
+      "cpy2": 151.72055,
+      "x": 144.873106,
+      "y": 202.401834,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.763854,
+      "radius": 91,
+      "startAngle": 2.221555,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 174.624626,
+      "cpx2": 224.13635,
+      "cpy1": 140.068784,
+      "cpy2": 117.243566,
+      "x": 280.454501,
+      "y": 87.478555,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 285.65567,
+      "x1": 130.144263,
+      "y0": 111.290483,
+      "y1": 182.982223,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -13015,19 +15358,153 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 280.454501,
+            "y": 87.478555,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.339285,
+            "radius": 91,
+            "startAngle": 5.796986,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.257052,
+            "cpx2": 183.461932,
+            "cpy1": 131.530723,
+            "cpy2": 151.72055,
+            "x": 144.873106,
+            "y": 202.401834,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.763854,
+            "radius": 91,
+            "startAngle": 2.221555,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 174.624626,
+            "cpx2": 224.13635,
+            "cpy1": 140.068784,
+            "cpy2": 117.243566,
+            "x": 280.454501,
+            "y": 87.478555,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 233.562613,
+      "y": 214.584579,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.169195,
+      "radius": 91,
+      "startAngle": 1.193057,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 184.621362,
+      "cpx2": 172.860415,
+      "cpy1": 152.556319,
+      "cpy2": 127.044851,
+      "x": 109.534716,
+      "y": 120.149502,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.22619,
+      "radius": 91,
+      "startAngle": 3.250052,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 187.243566,
+      "cpx2": 210.068784,
+      "cpy1": 105.86365,
+      "cpy2": 155.375374,
+      "x": 233.562613,
+      "y": 214.584579,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 191.150244,
+      "x1": 133.506635,
+      "y0": 209.886154,
+      "y1": 84.847501,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -13147,19 +15624,153 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 233.562613,
+            "y": 214.584579,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.169195,
+            "radius": 91,
+            "startAngle": 1.193057,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 184.621362,
+            "cpx2": 172.860415,
+            "cpy1": 152.556319,
+            "cpy2": 127.044851,
+            "x": 109.534716,
+            "y": 120.149502,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.22619,
+            "radius": 91,
+            "startAngle": 3.250052,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 187.243566,
+            "cpx2": 210.068784,
+            "cpy1": 105.86365,
+            "cpy2": 155.375374,
+            "x": 233.562613,
+            "y": 214.584579,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 115.415421,
+      "y": 163.562613,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.197693,
+      "radius": 91,
+      "startAngle": 2.763854,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 172.742948,
+      "cpx2": 187.243566,
+      "cpy1": 128.469277,
+      "cpy2": 105.86365,
+      "x": 157.478555,
+      "y": 49.545499,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.660029,
+      "radius": 91,
+      "startAngle": 4.22619,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 198.571228,
+      "cpx2": 174.624626,
+      "cpy1": 102.737414,
+      "cpy2": 140.068784,
+      "x": 115.415421,
+      "y": 163.562613,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 112.27929,
+      "x1": 176.357991,
+      "y0": 144.230101,
+      "y1": 44.335106,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -13223,6 +15834,61 @@ exports[`relations (graph) canvas renders chord variant renders an edges-only re
         {
           "props": {},
           "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 115.415421,
+            "y": 163.562613,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.197693,
+            "radius": 91,
+            "startAngle": 2.763854,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 172.742948,
+            "cpx2": 187.243566,
+            "cpy1": 128.469277,
+            "cpy2": 105.86365,
+            "x": 157.478555,
+            "y": 49.545499,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.660029,
+            "radius": 91,
+            "startAngle": 4.22619,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 198.571228,
+            "cpx2": 174.624626,
+            "cpy1": 102.737414,
+            "cpy2": 140.068784,
+            "x": 115.415421,
+            "y": 163.562613,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
         },
         {
           "props": {
@@ -14147,12 +16813,6 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -14178,6 +16838,32 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 266.760723,
+      "x1": 152.782462,
+      "y0": 89.77275,
+      "y1": 67.986051,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -14307,6 +16993,32 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
   },
   {
     "props": {
+      "x0": 218.709517,
+      "x1": 147.017777,
+      "y0": 44.34433,
+      "y1": 199.855737,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 242.521445,
       "y": 49.545499,
     },
@@ -14428,14 +17140,34 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 120.113846,
+      "x1": 245.152499,
+      "y0": 138.849756,
+      "y1": 196.493365,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -14560,14 +17292,34 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 185.769899,
+      "x1": 285.664894,
+      "y0": 217.72071,
+      "y1": 153.642009,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -15550,12 +18302,6 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -15581,6 +18327,91 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 291,
+      "y": 130,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": -1.084597,
+      "radius": 91,
+      "startAngle": 0,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 212.756434,
+      "cpx2": 197.044851,
+      "cpy1": 105.86365,
+      "cpy2": 102.860415,
+      "x": 190.149502,
+      "y": 39.534716,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 3.519332,
+      "radius": 91,
+      "startAngle": 4.603929,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 174.624626,
+      "cpx2": 227.3,
+      "cpy1": 119.931216,
+      "cpy2": 130,
+      "x": 291,
+      "y": 130,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 266.760723,
+      "x1": 152.782462,
+      "y0": 89.77275,
+      "y1": 67.986051,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -15700,6 +18531,61 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 291,
+            "y": 130,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": -1.084597,
+            "radius": 91,
+            "startAngle": 0,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 212.756434,
+            "cpx2": 197.044851,
+            "cpy1": 105.86365,
+            "cpy2": 102.860415,
+            "x": 190.149502,
+            "y": 39.534716,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 3.519332,
+            "radius": 91,
+            "startAngle": 4.603929,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 174.624626,
+            "cpx2": 227.3,
+            "cpy1": 119.931216,
+            "cpy2": 130,
+            "x": 291,
+            "y": 130,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
@@ -15707,6 +18593,91 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 242.521445,
+      "y": 49.545499,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 4.656289,
+      "radius": 91,
+      "startAngle": 5.198588,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 198.469277,
+      "cpx2": 178.27945,
+      "cpy1": 102.742948,
+      "cpy2": 146.538068,
+      "x": 127.598166,
+      "y": 185.126894,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 1.948535,
+      "radius": 91,
+      "startAngle": 2.490834,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 189.931216,
+      "cpx2": 212.756434,
+      "cpy1": 155.375374,
+      "cpy2": 105.86365,
+      "x": 242.521445,
+      "y": 49.545499,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 218.709517,
+      "x1": 147.017777,
+      "y0": 44.34433,
+      "y1": 199.855737,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -15826,19 +18797,153 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 242.521445,
+            "y": 49.545499,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 4.656289,
+            "radius": 91,
+            "startAngle": 5.198588,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 198.469277,
+            "cpx2": 178.27945,
+            "cpy1": 102.742948,
+            "cpy2": 146.538068,
+            "x": 127.598166,
+            "y": 185.126894,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 1.948535,
+            "radius": 91,
+            "startAngle": 2.490834,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 189.931216,
+            "cpx2": 212.756434,
+            "cpy1": 155.375374,
+            "cpy2": 105.86365,
+            "x": 242.521445,
+            "y": 49.545499,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 115.415421,
+      "y": 96.437387,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 2.543194,
+      "radius": 91,
+      "startAngle": 3.519332,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 177.443681,
+      "cpx2": 202.955149,
+      "cpy1": 145.378638,
+      "cpy2": 157.139585,
+      "x": 209.850498,
+      "y": 220.465284,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 0.486199,
+      "radius": 91,
+      "startAngle": 1.462337,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 224.13635,
+      "cpx2": 174.624626,
+      "cpy1": 142.756434,
+      "cpy2": 119.931216,
+      "x": 115.415421,
+      "y": 96.437387,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 120.113846,
+      "x1": 245.152499,
+      "y0": 138.849756,
+      "y1": 196.493365,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -15958,19 +19063,153 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 115.415421,
+            "y": 96.437387,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 2.543194,
+            "radius": 91,
+            "startAngle": 3.519332,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 177.443681,
+            "cpx2": 202.955149,
+            "cpy1": 145.378638,
+            "cpy2": 157.139585,
+            "x": 209.850498,
+            "y": 220.465284,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 0.486199,
+            "radius": 91,
+            "startAngle": 1.462337,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 224.13635,
+            "cpx2": 174.624626,
+            "cpy1": 142.756434,
+            "cpy2": 119.931216,
+            "x": 115.415421,
+            "y": 96.437387,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 166.437387,
+      "y": 214.584579,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 1.514696,
+      "radius": 91,
+      "startAngle": 1.948535,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 201.530723,
+      "cpx2": 224.13635,
+      "cpy1": 157.257052,
+      "cpy2": 142.756434,
+      "x": 280.454501,
+      "y": 172.521445,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 0.05236,
+      "radius": 91,
+      "startAngle": 0.486199,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.262586,
+      "cpx2": 189.931216,
+      "cpy1": 131.428772,
+      "cpy2": 155.375374,
+      "x": 166.437387,
+      "y": 214.584579,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 185.769899,
+      "x1": 285.664894,
+      "y0": 217.72071,
+      "y1": 153.642009,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -16034,6 +19273,61 @@ exports[`relations (graph) canvas renders chord variant rotates and reverses the
         {
           "props": {},
           "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 166.437387,
+            "y": 214.584579,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 1.514696,
+            "radius": 91,
+            "startAngle": 1.948535,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 201.530723,
+            "cpx2": 224.13635,
+            "cpy1": 157.257052,
+            "cpy2": 142.756434,
+            "x": 280.454501,
+            "y": 172.521445,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 0.05236,
+            "radius": 91,
+            "startAngle": 0.486199,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.262586,
+            "cpx2": 189.931216,
+            "cpy1": 131.428772,
+            "cpy2": 155.375374,
+            "x": 166.437387,
+            "y": 214.584579,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
         },
         {
           "props": {
@@ -16958,12 +20252,6 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -16989,6 +20277,32 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 237.593864,
+      "x1": 267.145175,
+      "y0": 58.868937,
+      "y1": 174.322142,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -17118,6 +20432,32 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
   },
   {
     "props": {
+      "x0": 282.80777,
+      "x1": 135.029486,
+      "y0": 99.274554,
+      "y1": 189.833202,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 275.187728,
       "y": 78.737875,
     },
@@ -17239,14 +20579,34 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 205.237103,
+      "x1": 129.083882,
+      "y0": 212.259457,
+      "y1": 87.988695,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -17371,14 +20731,34 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 114.881393,
+      "x1": 164.908955,
+      "y0": 156.954503,
+      "y1": 47.90042,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -18361,12 +21741,6 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -18392,6 +21766,91 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 39,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.684787,
+      "radius": 91,
+      "startAngle": 4.712389,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 222.556319,
+      "cpx2": 227.171033,
+      "cpy1": 114.621362,
+      "cpy2": 132.650464,
+      "x": 290.57011,
+      "y": 138.834881,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 1.069637,
+      "radius": 91,
+      "startAngle": 0.09724,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 213.116072,
+      "cpx2": 200,
+      "cpy1": 153.942821,
+      "cpy2": 102.7,
+      "x": 200,
+      "y": 39,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 237.593864,
+      "x1": 267.145175,
+      "y0": 58.868937,
+      "y1": 174.322142,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -18511,6 +21970,61 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 200,
+            "y": 39,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.684787,
+            "radius": 91,
+            "startAngle": 4.712389,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 222.556319,
+            "cpx2": 227.171033,
+            "cpy1": 114.621362,
+            "cpy2": 132.650464,
+            "x": 290.57011,
+            "y": 138.834881,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 1.069637,
+            "radius": 91,
+            "startAngle": 0.09724,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 213.116072,
+            "cpx2": 200,
+            "cpy1": 153.942821,
+            "cpy2": 102.7,
+            "x": 200,
+            "y": 39,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
@@ -18518,6 +22032,91 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 275.187728,
+      "y": 78.737875,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.170986,
+      "radius": 91,
+      "startAngle": 5.684787,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.128343,
+      "cpx2": 184.960512,
+      "cpy1": 126.94337,
+      "cpy2": 152.78385,
+      "x": 149.868375,
+      "y": 205.946166,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.640434,
+      "radius": 91,
+      "startAngle": 2.154235,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 176.057179,
+      "cpx2": 222.556319,
+      "cpy1": 143.116072,
+      "cpy2": 114.621362,
+      "x": 275.187728,
+      "y": 78.737875,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 282.80777,
+      "x1": 135.029486,
+      "y0": 99.274554,
+      "y1": 189.833202,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -18637,19 +22236,153 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 275.187728,
+            "y": 78.737875,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.170986,
+            "radius": 91,
+            "startAngle": 5.684787,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.128343,
+            "cpx2": 184.960512,
+            "cpy1": 126.94337,
+            "cpy2": 152.78385,
+            "x": 149.868375,
+            "y": 205.946166,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.640434,
+            "radius": 91,
+            "startAngle": 2.154235,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 176.057179,
+            "cpx2": 222.556319,
+            "cpy1": 143.116072,
+            "cpy2": 114.621362,
+            "x": 275.187728,
+            "y": 78.737875,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 243.720239,
+      "y": 209.809402,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 1.944795,
+      "radius": 91,
+      "startAngle": 1.069637,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 190.02619,
+      "cpx2": 172.828967,
+      "cpy1": 155.412853,
+      "cpy2": 127.349536,
+      "x": 109.42989,
+      "y": 121.165119,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.11399,
+      "radius": 91,
+      "startAngle": 3.238832,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 184.621362,
+      "cpx2": 213.116072,
+      "cpy1": 107.443681,
+      "cpy2": 153.942821,
+      "x": 243.720239,
+      "y": 209.809402,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 205.237103,
+      "x1": 129.083882,
+      "y0": 212.259457,
+      "y1": 87.988695,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -18769,19 +22502,153 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
           "props": {},
           "type": "closePath",
         },
+        {
+          "props": {
+            "x": 243.720239,
+            "y": 209.809402,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 1.944795,
+            "radius": 91,
+            "startAngle": 1.069637,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 190.02619,
+            "cpx2": 172.828967,
+            "cpy1": 155.412853,
+            "cpy2": 127.349536,
+            "x": 109.42989,
+            "y": 121.165119,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.11399,
+            "radius": 91,
+            "startAngle": 3.238832,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 184.621362,
+            "cpx2": 213.116072,
+            "cpy1": 107.443681,
+            "cpy2": 153.942821,
+            "x": 243.720239,
+            "y": 209.809402,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
       ],
     },
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 120.190598,
+      "y": 173.720239,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.029393,
+      "radius": 91,
+      "startAngle": 2.640434,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 172.871657,
+      "cpx2": 184.621362,
+      "cpy1": 133.05663,
+      "cpy2": 107.443681,
+      "x": 148.737875,
+      "y": 54.812272,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.502949,
+      "radius": 91,
+      "startAngle": 4.11399,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 194.324011,
+      "cpx2": 176.057179,
+      "cpy1": 103.29657,
+      "cpy2": 143.116072,
+      "x": 120.190598,
+      "y": 173.720239,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "x0": 114.881393,
+      "x1": 164.908955,
+      "y0": 156.954503,
+      "y1": 47.90042,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -18845,6 +22712,61 @@ exports[`relations (graph) canvas renders chord variant widens the gap between n
         {
           "props": {},
           "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 120.190598,
+            "y": 173.720239,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.029393,
+            "radius": 91,
+            "startAngle": 2.640434,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 172.871657,
+            "cpx2": 184.621362,
+            "cpy1": 133.05663,
+            "cpy2": 107.443681,
+            "x": 148.737875,
+            "y": 54.812272,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.502949,
+            "radius": 91,
+            "startAngle": 4.11399,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 194.324011,
+            "cpx2": 176.057179,
+            "cpy1": 103.29657,
+            "cpy2": 143.116072,
+            "x": 120.190598,
+            "y": 173.720239,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
         },
         {
           "props": {
@@ -21276,12 +25198,6 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   },
   {
     "props": {
-      "value": "#5070dd",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {
       "value": 0.5,
     },
     "type": "globalAlpha",
@@ -21313,6 +25229,32 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 48.317308,
+      "x1": 151.682692,
+      "y0": 151.682692,
+      "y1": 78.317308,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "strokeStyle",
   },
   {
     "props": {
@@ -21356,6 +25298,32 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 48.317308,
+      "x1": 151.682692,
+      "y0": 148.317308,
+      "y1": 221.682692,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "strokeStyle",
   },
   {
     "props": {
@@ -21402,6 +25370,32 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   },
   {
     "props": {
+      "x0": 148.317308,
+      "x1": 251.682692,
+      "y0": 78.317308,
+      "y1": 151.682692,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
       "x": 150,
       "y": 80,
     },
@@ -21442,6 +25436,32 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 148.317308,
+      "x1": 251.682692,
+      "y0": 221.682692,
+      "y1": 148.317308,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "strokeStyle",
   },
   {
     "props": {
@@ -22033,12 +26053,6 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   },
   {
     "props": {
-      "value": "#5070dd",
-    },
-    "type": "strokeStyle",
-  },
-  {
-    "props": {
       "value": 0.5,
     },
     "type": "globalAlpha",
@@ -22070,6 +26084,50 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 50,
+      "y": 150,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 150,
+      "y": 80,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x0": 48.317308,
+      "x1": 151.682692,
+      "y0": 151.682692,
+      "y1": 78.317308,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "strokeStyle",
   },
   {
     "props": {
@@ -22106,6 +26164,20 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
           },
           "type": "lineTo",
         },
+        {
+          "props": {
+            "x": 50,
+            "y": 150,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 150,
+            "y": 80,
+          },
+          "type": "lineTo",
+        },
       ],
     },
     "type": "stroke",
@@ -22113,6 +26185,50 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 50,
+      "y": 150,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 150,
+      "y": 220,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x0": 48.317308,
+      "x1": 151.682692,
+      "y0": 148.317308,
+      "y1": 221.682692,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "strokeStyle",
   },
   {
     "props": {
@@ -22149,6 +26265,20 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
           },
           "type": "lineTo",
         },
+        {
+          "props": {
+            "x": 50,
+            "y": 150,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 150,
+            "y": 220,
+          },
+          "type": "lineTo",
+        },
       ],
     },
     "type": "stroke",
@@ -22156,6 +26286,50 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 150,
+      "y": 80,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 250,
+      "y": 150,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x0": 148.317308,
+      "x1": 251.682692,
+      "y0": 78.317308,
+      "y1": 151.682692,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "strokeStyle",
   },
   {
     "props": {
@@ -22192,9 +26366,27 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
           },
           "type": "lineTo",
         },
+        {
+          "props": {
+            "x": 150,
+            "y": 80,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 250,
+            "y": 150,
+          },
+          "type": "lineTo",
+        },
       ],
     },
     "type": "stroke",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
   },
   {
     "props": {},
@@ -22216,10 +26408,64 @@ exports[`relations (graph) canvas renders layout honors fixed coordinates from t
   },
   {
     "props": {
+      "x0": 148.317308,
+      "x1": 251.682692,
+      "y0": 221.682692,
+      "y1": 148.317308,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "x": 150,
+      "y": 220,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 250,
+      "y": 150,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
       "path": [
         {
           "props": {},
           "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 150,
+            "y": 220,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 250,
+            "y": 150,
+          },
+          "type": "lineTo",
         },
         {
           "props": {
@@ -22795,6 +27041,12 @@ exports[`relations (graph) canvas renders links blends link color between endpoi
   },
   {
     "props": {
+      "value": "#5070dd",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
       "value": 0.5,
     },
     "type": "globalAlpha",
@@ -23537,6 +27789,12 @@ exports[`relations (graph) canvas renders links blends link color between endpoi
       "value": "#000000",
     },
     "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#5070dd",
+    },
+    "type": "strokeStyle",
   },
   {
     "props": {
@@ -33978,12 +38236,6 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -34009,6 +38261,32 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -34108,6 +38386,32 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 152.039251,
     },
@@ -34199,14 +38503,34 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -34301,14 +38625,34 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -34625,12 +38969,6 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -34656,6 +38994,32 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -34755,6 +39119,32 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 152.039251,
     },
@@ -34846,14 +39236,34 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -34948,14 +39358,34 @@ exports[`relations (graph) canvas renders sankey variant hides node labels when 
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -35277,12 +39707,6 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -35308,6 +39732,32 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 0,
+      "x1": 0,
+      "y0": 20,
+      "y1": 107,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -35407,6 +39857,32 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
   },
   {
     "props": {
+      "x0": 195.687289,
+      "x1": 195.687289,
+      "y0": 20,
+      "y1": 107,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 195.687289,
       "y": 20,
     },
@@ -35498,14 +39974,34 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 0,
+      "x1": 0,
+      "y0": 127,
+      "y1": 214,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -35600,14 +40096,34 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 195.057776,
+      "x1": 195.057776,
+      "y0": 127,
+      "y1": 214,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -36136,12 +40652,6 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -36167,6 +40677,32 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 0,
+      "x1": 0,
+      "y0": 20,
+      "y1": 107,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -36266,6 +40802,32 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
   },
   {
     "props": {
+      "x0": 195.687289,
+      "x1": 195.687289,
+      "y0": 20,
+      "y1": 107,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 195.687289,
       "y": 20,
     },
@@ -36357,14 +40919,34 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 0,
+      "x1": 0,
+      "y0": 127,
+      "y1": 214,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -36459,14 +41041,34 @@ exports[`relations (graph) canvas renders sankey variant lays out vertically whe
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 195.057776,
+      "x1": 195.057776,
+      "y0": 127,
+      "y1": 214,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -37000,12 +41602,6 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -37031,6 +41627,32 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -37130,6 +41752,32 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 152.039251,
     },
@@ -37221,14 +41869,34 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -37323,14 +41991,34 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -37859,12 +42547,6 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -37890,6 +42572,32 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -37989,6 +42697,32 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 152.039251,
     },
@@ -38080,14 +42814,34 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -38182,14 +42936,34 @@ exports[`relations (graph) canvas renders sankey variant lays the same nodes and
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -38723,12 +43497,6 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.7,
     },
     "type": "globalAlpha",
@@ -38754,6 +43522,32 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -38853,6 +43647,32 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 152.039251,
     },
@@ -38944,14 +43764,34 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -39046,14 +43886,34 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -39582,12 +44442,6 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.7,
     },
     "type": "globalAlpha",
@@ -39613,6 +44467,32 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -39712,6 +44592,32 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 152.039251,
     },
@@ -39803,14 +44709,34 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -39905,14 +44831,34 @@ exports[`relations (graph) canvas renders sankey variant raises ribbon opacity (
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -40446,12 +45392,6 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -40477,6 +45417,32 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -40576,6 +45542,32 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 159.478344,
+      "y1": 159.478344,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 159.478344,
     },
@@ -40667,14 +45659,34 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -40769,14 +45781,34 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 159.049793,
+      "y1": 159.049793,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -41305,12 +46337,6 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -41336,6 +46362,32 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -41435,6 +46487,32 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 159.478344,
+      "y1": 159.478344,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 159.478344,
     },
@@ -41526,14 +46604,34 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -41628,14 +46726,34 @@ exports[`relations (graph) canvas renders sankey variant renders a cyclic edge s
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 159.049793,
+      "y1": 159.049793,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -42169,12 +47287,6 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -42200,6 +47312,32 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -42299,6 +47437,32 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 152.039251,
     },
@@ -42390,14 +47554,34 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -42492,14 +47676,34 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -43028,12 +48232,6 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -43059,6 +48257,32 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -43158,6 +48382,32 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
   },
   {
     "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 20,
       "y": 152.039251,
     },
@@ -43249,14 +48499,34 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -43351,14 +48621,34 @@ exports[`relations (graph) canvas renders sankey variant renders an edges-only r
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -43892,12 +49182,6 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -43923,6 +49207,32 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 32,
+      "x1": 134,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -44022,6 +49332,32 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
   },
   {
     "props": {
+      "x0": 32,
+      "x1": 134,
+      "y0": 147.969956,
+      "y1": 147.969956,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 32,
       "y": 147.969956,
     },
@@ -44113,14 +49449,34 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 166,
+      "x1": 268,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -44215,14 +49571,34 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 166,
+      "x1": 268,
+      "y0": 147.451703,
+      "y1": 147.451703,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -44751,12 +50127,6 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
   },
   {
     "props": {
-      "value": "#73bf69",
-    },
-    "type": "fillStyle",
-  },
-  {
-    "props": {
       "value": 0.2,
     },
     "type": "globalAlpha",
@@ -44782,6 +50152,32 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
   {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 32,
+      "x1": 134,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -44881,6 +50277,32 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
   },
   {
     "props": {
+      "x0": 32,
+      "x1": 134,
+      "y0": 147.969956,
+      "y1": 147.969956,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
       "x": 32,
       "y": 147.969956,
     },
@@ -44972,14 +50394,34 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#f2cc0c",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 166,
+      "x1": 268,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {
@@ -45074,14 +50516,34 @@ exports[`relations (graph) canvas renders sankey variant sizes node bars from no
     "type": "fill",
   },
   {
-    "props": {
-      "value": "#5794f2",
-    },
-    "type": "fillStyle",
-  },
-  {
     "props": {},
     "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 166,
+      "x1": 268,
+      "y0": 147.451703,
+      "y1": 147.451703,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
   },
   {
     "props": {

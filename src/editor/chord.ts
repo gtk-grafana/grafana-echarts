@@ -2,7 +2,7 @@ import { type SeriesType, type SeriesTypeOption } from 'editor/types';
 
 /**
  * Chord render type of the relations family. A chord reuses the node/link model
- * verbatim (`frameToNodeGraph`) and, unlike sankey, has **no DAG restriction** — it
+ * verbatim (`frameToGraphWide`) and, unlike sankey, has **no DAG restriction** — it
  * takes a cyclic service graph directly, so it needs no cycle-breaking pass. Only
  * its layout options are chord-specific. See `getChordSeries`.
  *

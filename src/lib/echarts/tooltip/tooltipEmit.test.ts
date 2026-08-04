@@ -114,7 +114,8 @@ function emitViaShowTip(
   showTip: { seriesIndex: number; dataIndex: number }
 ): { emitted: TooltipModel[]; chart: EChartsType } {
   const emitted: TooltipModel[] = [];
-  const option = buildPanelChartOption(ctx, { isGrafanaLegend: true, tooltipSink: (model) => emitted.push(model) });
+  // Non-null: every fixture mounted here is one the family can draw.
+  const option = buildPanelChartOption(ctx, { isGrafanaLegend: true, tooltipSink: (model) => emitted.push(model) })!;
   const dom = document.createElement('div');
   dom.style.width = '400px';
   dom.style.height = '300px';
@@ -134,7 +135,8 @@ function emitViaShowTip(
  */
 function emitViaHover(ctx: ChartContext, dataIndex: number): { emitted: TooltipModel[]; chart: EChartsType } {
   const emitted: TooltipModel[] = [];
-  const option = buildPanelChartOption(ctx, { isGrafanaLegend: true, tooltipSink: (model) => emitted.push(model) });
+  // Non-null: every fixture mounted here is one the family can draw.
+  const option = buildPanelChartOption(ctx, { isGrafanaLegend: true, tooltipSink: (model) => emitted.push(model) })!;
   const dom = document.createElement('div');
   dom.style.width = '400px';
   dom.style.height = '300px';

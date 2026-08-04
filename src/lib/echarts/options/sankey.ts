@@ -10,9 +10,8 @@ import {
 } from 'editor/sankey';
 import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient } from 'editor/types';
 import { toSankeyLinks } from 'lib/echarts/converters/dag';
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
-  ARC_BORDER_WIDTH,
   getRelationsNodeLabelFormatter,
   makeRelationsColorResolver,
   RELATIONS_LINK_COLOR_DEFAULT,
@@ -107,8 +106,9 @@ export function getSankeyLabel(ctx: RelationsSeriesContext): SankeySeriesOption[
 /**
  * Ribbon styling. `color` takes the same ECharts keywords as the graph variant
  * (`source` / `target` / `gradient`), resolved in `SankeyView`; the family default of
- * `source` deliberately overrides ECharts' own neutral-gray default so ribbons
- * inherit node colors, matching how the graph variant draws its edges.
+ * `gradient` deliberately overrides ECharts' own neutral-gray default so a ribbon reads
+ * as flowing from one node's colour into the other's. Unlike the graph variant, this one
+ * needs no help — `SankeyView` implements all three keywords itself.
  * `curveness` and `opacity` are omitted at ECharts' defaults.
  * https://echarts.apache.org/en/option.html#series-sankey.lineStyle
  */
@@ -167,9 +167,6 @@ function toSankeyNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): 
     if (color != null) {
       item.itemStyle = { color };
     }
-    if (node.borderColor != null) {
-      item.itemStyle = { ...item.itemStyle, borderColor: node.borderColor, borderWidth: ARC_BORDER_WIDTH };
-    }
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
     }
@@ -188,9 +185,9 @@ function toSankeyNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): 
  *
  * `value` is load-bearing here in a way it is not for `graph`: it *is* the ribbon
  * thickness. Two per-edge fields the graph variant honors are deliberately dropped
- * because a sankey cannot express them — `thickness` (`lineStyle.width`), since
- * ribbon size comes from the weight instead, and `strokedasharray`
- * (`lineStyle.type`), since a ribbon is a filled area rather than a stroked line.
+ * because a sankey cannot express them — `custom.lineWidth` (`lineStyle.width`), since
+ * ribbon size comes from the weight instead, and `custom.lineType` (`lineStyle.type`),
+ * since a ribbon is a filled area rather than a stroked line.
  * Both divergences are recorded in `src/modules/relations/parity.md`.
  */
 function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {

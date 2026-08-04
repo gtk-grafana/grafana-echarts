@@ -6,9 +6,9 @@ import {
   type GrafanaTheme2,
 } from '@grafana/data';
 import { type GraphSeriesOption } from 'echarts';
-import { type CallbackDataParams, type ECBasicOption } from 'echarts/types/dist/shared';
+import { type CallbackDataParams, type ECBasicOption, type LinearGradientObject } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import { createBaseOptions } from 'lib/echarts/options/base';
 import { formatEChartsValue, getPaletteColorByIndex } from 'lib/echarts/style';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
@@ -27,21 +27,29 @@ export const relationsDefaultOptions: ECBasicOption = {
   ...createBaseOptions(),
 };
 
-/** Default node diameter in px, used when a node has no `noderadius`. */
+/** Default node diameter in px, used when a node has no `custom.nodeRadius`. */
 export const RELATIONS_NODE_SIZE_DEFAULT = 20;
-/** Default link color mode: inherit the source node's color. */
-export const RELATIONS_LINK_COLOR_DEFAULT = 'source';
+/**
+ * Default link colour mode: a gradient from the source node's colour to the target's.
+ *
+ * An edge joins two marks, so its natural colour is theirs, and a gradient is the one
+ * mode that reads the direction off the edge itself without an arrowhead. An edge whose
+ * own field carries a real colour choice overrides this per edge — see `edgeColorOf`.
+ */
+export const RELATIONS_LINK_COLOR_DEFAULT = 'gradient';
+/**
+ * What ECharts' `graph` series can express on its own: `edgeVisual.ts` swaps `'source'`
+ * and `'target'` for the endpoint's fill and leaves anything else as a literal colour.
+ * `'gradient'` is implemented by `sankey` and `chord` only, so the graph variant builds
+ * it here (`makeEdgeGradientResolver`) and degrades to this when it cannot.
+ */
+const GRAPH_LINK_COLOR_FALLBACK = 'source';
 /** Default graph layout when the data does not pin positions. */
 export const RELATIONS_LAYOUT_DEFAULT = 'force';
 /** Node labels on by default — an unlabelled topology is hard to read. */
 export const RELATIONS_SHOW_NODE_LABELS_DEFAULT = true;
 /** Node values off by default: a second label line on every node is a lot of ink. */
 export const RELATIONS_SHOW_NODE_VALUES_DEFAULT = false;
-/**
- * Border width in px used to approximate an `arc__*` ring. Wide enough to read as a
- * ring rather than an outline, since it is standing in for a multi-section circle.
- */
-export const ARC_BORDER_WIDTH = 3;
 
 /**
  * Every Advanced-gated relations option at its default. Spread over the stored
@@ -243,14 +251,20 @@ export function getGraphEmphasis(options: PanelOptions): GraphSeriesOption['emph
 }
 
 /**
- * Series-level link style. The color mode is an ECharts keyword (`source` /
- * `target` / `gradient`); a per-edge `color` overrides it on the item itself.
- * `curveness` is omitted at 0 so straight links stay ECharts-default.
+ * Series-level link style: the ECharts keyword every edge starts from, before a
+ * per-edge colour or gradient overrides it on the item itself. `curveness` is omitted
+ * at 0 so straight links stay ECharts-default.
+ *
+ * `'gradient'` collapses to `'source'` here, always, because the graph series cannot
+ * read it. When the gradient *can* be built every item carries its own and this value is
+ * never seen; when it cannot, `'source'` is the honest degradation — still
+ * endpoint-derived, still changing if the edge is reversed, just not a blend.
  * https://echarts.apache.org/en/option.html#series-graph.lineStyle
  */
 export function getGraphLinkStyle(options: PanelOptions): NonNullable<GraphSeriesOption['lineStyle']> {
+  const mode = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
   const lineStyle: NonNullable<GraphSeriesOption['lineStyle']> = {
-    color: options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT,
+    color: mode === 'gradient' ? GRAPH_LINK_COLOR_FALLBACK : mode,
   };
   if (options.relationsCurveness != null && options.relationsCurveness !== 0) {
     lineStyle.curveness = options.relationsCurveness;
@@ -258,47 +272,108 @@ export function getGraphLinkStyle(options: PanelOptions): NonNullable<GraphSerie
   return lineStyle;
 }
 
-/** Map an SVG `stroke-dasharray` to the nearest ECharts `lineStyle.type`. */
-function toLineType(dashArray: string | undefined): 'solid' | 'dashed' | 'dotted' | undefined {
-  if (dashArray == null || dashArray.trim() === '') {
+/** Each node's rendered colour, by node id — the same values `toNodeItems` paints. */
+function resolveNodeColors(data: NodeGraphData, ctx: RelationsSeriesContext): Map<string, string> {
+  const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField);
+  const colors = new Map<string, string>();
+  data.nodes.forEach((node, index) => {
+    const color = resolveColor(node, index);
+    if (color != null) {
+      colors.set(node.id, color);
+    }
+  });
+  return colors;
+}
+
+/** Builds one edge's source->target gradient, or `undefined` to leave it to the keyword. */
+type EdgeGradientResolver = (link: RelationLink) => LinearGradientObject | undefined;
+
+/**
+ * Per-edge `source -> target` gradients for the `graph` variant, which ECharts cannot
+ * express itself.
+ *
+ * **Only when the node positions are known**, and that restriction is the whole
+ * subtlety. zrender resolves a non-global gradient against the shape's *bounding box*,
+ * so `x: 0 -> x2: 1` runs left-to-right across the edge — which is source-to-target only
+ * if the source happens to sit on the left. Under a force or circular layout the
+ * positions do not exist until after ECharts has laid the graph out, so the orientation
+ * would be a coin flip and half the edges would report their direction backwards. That
+ * is worse than not blending, so this returns `undefined` and the series keyword
+ * (`'source'`) takes over.
+ *
+ * With every node pinned (`layout: 'none'`, which is also what `getGraphLayout` infers
+ * from pinned positions) the sign of `dx`/`dy` picks the correct box corner and the
+ * gradient runs exactly along the edge. A degenerate axis is harmless: a horizontal edge
+ * has zero box height, so the vertical component of the gradient spans nothing.
+ */
+function makeEdgeGradientResolver(
+  data: NodeGraphData,
+  nodeColors: ReadonlyMap<string, string>,
+  options: PanelOptions
+): EdgeGradientResolver | undefined {
+  if ((options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT) !== 'gradient') {
     return undefined;
   }
-  // ECharts' `lineStyle.type` takes solid/dashed/dotted (or a dash array, which its
-  // types do not expose here), so approximate: a small first dash reads as dotted.
-  const first = Number.parseFloat(dashArray);
-  if (!Number.isFinite(first)) {
-    return 'dashed';
+
+  const positions = new Map<string, { x: number; y: number }>();
+  for (const node of data.nodes) {
+    if (node.fixedX == null || node.fixedY == null) {
+      return undefined;
+    }
+    positions.set(node.id, { x: node.fixedX, y: node.fixedY });
   }
-  return first <= 2 ? 'dotted' : 'dashed';
+
+  return (link) => {
+    const from = positions.get(link.source);
+    const to = positions.get(link.target);
+    const sourceColor = nodeColors.get(link.source);
+    const targetColor = nodeColors.get(link.target);
+    // A self-loop has no direction to express, and two identical colours are not a
+    // gradient — leave both to the keyword.
+    if (!from || !to || sourceColor == null || targetColor == null || sourceColor === targetColor) {
+      return undefined;
+    }
+    const x = to.x >= from.x ? 0 : 1;
+    const y = to.y >= from.y ? 0 : 1;
+    return {
+      type: 'linear',
+      x,
+      y,
+      x2: 1 - x,
+      y2: 1 - y,
+      colorStops: [
+        { offset: 0, color: sourceColor },
+        { offset: 1, color: targetColor },
+      ],
+    };
+  };
 }
 
 /** Map the model's nodes to ECharts graph data items. */
-function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): RelationsNodeItem[] {
-  const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField);
+function toNodeItems(
+  data: NodeGraphData,
+  ctx: RelationsSeriesContext,
+  nodeColors: ReadonlyMap<string, string>
+): RelationsNodeItem[] {
   const defaultSize = ctx.options.relationsNodeSize ?? RELATIONS_NODE_SIZE_DEFAULT;
 
-  return data.nodes.map((node, index) => {
+  return data.nodes.map((node) => {
     const item: RelationsNodeItem = {
       // ECharts keys nodes by `retrieve(id, name, dataIndex)` and resolves each
       // link's source/target against that key (`createGraphFromNodeEdge`). Setting
-      // `id` therefore pins link resolution to the frame's `id`, which frees `name`
-      // to carry the human-readable `title` for the label.
+      // `id` therefore pins link resolution to the mark's field name, which frees
+      // `name` to carry the human-readable `displayName` for the label.
       id: node.id,
       name: node.name,
-      // `noderadius` always wins over the panel-level size.
+      // `custom.nodeRadius` always wins over the panel-level size.
       symbolSize: node.radius ?? defaultSize,
     };
     if (node.value != null) {
       item.value = node.value;
     }
-    const color = resolveColor(node, index);
+    const color = nodeColors.get(node.id);
     if (color != null) {
       item.itemStyle = { color };
-    }
-    // `arc__*` ring approximated as a single border in the dominant section's color
-    // (proportions are lost — see `resolveArcBorderColor`).
-    if (node.borderColor != null) {
-      item.itemStyle = { ...item.itemStyle, borderColor: node.borderColor, borderWidth: ARC_BORDER_WIDTH };
     }
     // Honor pinned coordinates; only meaningful under `layout: 'none'`.
     if (node.fixedX != null && node.fixedY != null) {
@@ -319,24 +394,27 @@ function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): Relation
 }
 
 /** Map the model's links to ECharts graph link items. */
-function toLinkItems(links: RelationLink[]): RelationsLinkItem[] {
+function toLinkItems(links: RelationLink[], resolveGradient?: EdgeGradientResolver): RelationsLinkItem[] {
   return links.map((link) => {
     const item: RelationsLinkItem = { source: link.source, target: link.target };
     if (link.value != null) {
       item.value = link.value;
     }
     const lineStyle: NonNullable<RelationsLinkItem['lineStyle']> = {};
+    // An explicit per-edge colour wins; otherwise the endpoint gradient, and failing
+    // that the series keyword. `link.color` is only set when the edge's field carries
+    // a real colour choice — see `edgeColorOf` in `converters/graphWide.ts`.
+    const gradient = link.color == null ? resolveGradient?.(link) : undefined;
     if (link.color != null) {
       lineStyle.color = link.color;
+    } else if (gradient != null) {
+      lineStyle.color = gradient;
     }
     if (link.width != null) {
       lineStyle.width = link.width;
     }
-    // The wide form resolved this already (`custom.lineType`); only the long form
-    // still has a raw dash array to approximate from.
-    const type = link.lineType ?? toLineType(link.dashArray);
-    if (type != null) {
-      lineStyle.type = type;
+    if (link.lineType != null) {
+      lineStyle.type = link.lineType;
     }
     if (Object.keys(lineStyle).length > 0) {
       item.lineStyle = lineStyle;
@@ -359,6 +437,10 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
   const force = getGraphForce(ctx.options);
   const edgeSymbol = getGraphEdgeSymbol(ctx.options);
   const emphasis = getGraphEmphasis(ctx.options);
+  // Resolved once and shared: the edge gradients must use the very colours the nodes
+  // were painted with, overrides included, or the blend would not meet its endpoints.
+  const nodeColors = resolveNodeColors(data, ctx);
+  const resolveGradient = makeEdgeGradientResolver(data, nodeColors, ctx.options);
 
   return {
     type: 'graph',
@@ -372,8 +454,8 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     label: getGraphLabel(ctx),
     lineStyle: getGraphLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,
-    data: toNodeItems(data, ctx),
-    links: toLinkItems(data.links),
+    data: toNodeItems(data, ctx, nodeColors),
+    links: toLinkItems(data.links, resolveGradient),
     tooltip: seriesTooltip(
       buildRelationsTooltipModel({
         formatValue: ctx.formatValue,

@@ -1,21 +1,44 @@
 # Migrating the relations family onto `graph-*-wide`
 
-> **Status: not started.** The contract is specified and validated in
-> [../data-plane/graph-wide.md](../data-plane/graph-wide.md), with a proof dashboard at
-> `provisioning/dashboards/relations/graph-wide.json`. Nothing under `src/` has changed.
-> This doc is the rewrite plan: what to build, in what order, and — importantly — what
-> the rewrite deliberately does **not** carry over.
+> **Status: phases 1–2 shipped, and the long reader is already gone.** The contract is
+> specified and validated in [../data-plane/graph-wide.md](../data-plane/graph-wide.md),
+> with a proof dashboard at `provisioning/dashboards/relations/graph-wide.json`.
+> `converters/graphWide.ts` is now the family's only reader;
+> `converters/legacyToWide.ts` converts Grafana's row format **above** the panel through
+> `PanelPlugin.setDataTransformations`. Phases 3–6 remain.
+>
+> Two decisions changed during implementation and are recorded inline below, at
+> [Deviations from the original plan](#deviations-from-the-original-plan): the long
+> reader was dropped in phase 2 rather than phase 6, and legacy input reaching the panel
+> is now an error rather than a silent adapter.
+
+## What shipped
+
+| Item                                                   | State                                                                                                 |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| P1.1 `NodeGraphData` as the single internal model      | Done — `converters/relationsModel.ts`, now model-only                                                 |
+| P1.2 `isGraphWideFrames`                               | Done, `meta.type` authoritative in both directions                                                    |
+| P1.3 conversion at the frame boundary                  | **Superseded** — the conversion runs above the panel instead; see the deviations section              |
+| P1.4 `buildOption` returns `null` rather than throwing | Done — `options/panelOption.ts`, plus `useChartOption` clearing instead of throwing                   |
+| P2.5 `frameToGraphWide`                                | Done, including `calcs[1]`                                                                            |
+| P2.6 `reduceOptions` registered and normalized         | Done — `editor/relations/stats.ts`, `normalizeRelationsCalcs`; only the calculation picker, see below |
+| P2.7 the owning `Field` on every mark                  | Done, plus `sourceRowIndex: 0`                                                                        |
+| Long reader deleted                                    | Done — `converters/nodeGraph.ts` and its test are gone (761 lines)                                    |
+| Edge colour                                            | `relationsLinkColor` now defaults to `gradient`; see [Edge colour](#edge-colour)                      |
+| Phases 3–6                                             | Not started                                                                                           |
 
 The contract makes one node one field and one edge one field, so Grafana's own override
 engine addresses each mark. That closes, as ordinary field behaviour, most of what the
 three relations to-do docs are still arguing about. This plan is the bridge from
-"specified" to "shipped", and it starts from an uncomfortable measured fact:
+"specified" to "shipped", and it started from an uncomfortable measured fact:
 
-**Feeding the relations panel a wide frame today throws.** `frameToNodeGraph` needs
-fields literally named `source` and `target`, finds none, returns `null`, and
-`buildOption` raises `Invalid chart option resolved for graph`. The panel renders
-"An unexpected error happened". That is the regression target kept as panel 12 of the
-proof dashboard, and phase 1 exists to fix it.
+**Feeding the relations panel a wide frame used to throw.** The old `frameToNodeGraph`
+needed fields literally named `source` and `target`, found none, returned `null`, and
+`buildOption` raised `Invalid chart option resolved for graph`. The panel rendered
+"An unexpected error happened". That was the regression target kept as panel 12 of the
+proof dashboard. It is fixed: wide frames are now the only thing the panel reads, and a
+response it cannot read returns `null` (no-data view) unless it is _recognisably_ the row
+format, which is reported instead — see [Deviations](#deviations-from-the-original-plan).
 
 ## The one asymmetry that shapes everything
 
@@ -65,10 +88,13 @@ Two consequences for this plan:
 - **Phase 0 is a core proposal**, and it is on the critical path. Everything else can proceed
   in parallel, because the plugin-side work is identical whether the conversion arrives from
   core, from a user transformation, or from a datasource.
-- **The in-plugin `legacyToWide` is a development affordance, not a shipped feature.** It
-  exists so phases 2–5 can be built and tested before the core change lands, and so a legacy
-  frame renders rather than throwing. It is explicitly _not_ the answer to per-mark overrides,
-  because it runs after `applyFieldOverrides`. Do not document it to users as one.
+- ~~**The in-plugin `legacyToWide` is a development affordance, not a shipped feature.**~~
+  **Superseded.** The core change arrived as `PanelPlugin.setDataTransformations`
+  (grafana/grafana#129992), which the plugin registers itself against, so `legacyToWide` runs
+  **before** `applyFieldOverrides` and _is_ the answer to per-mark overrides. It is the
+  shipped mechanism, not scaffolding, and it is the only path from a row-format response to
+  something the panel reads. The release gate therefore became a **minimum supported Grafana
+  version** (expected 13.2) rather than a parallel track.
 
 Datasource-native `graph-*-wide` (Tempo, X-Ray) remains the performance endgame and needs no
 dashboard change once the prefix exists: wide input makes the hook return `[]`.
@@ -105,7 +131,7 @@ depends on:
 - **Exit criterion:** a legacy node-graph query, on an unmodified dashboard, produces an
   override picker listing node and edge names.
 
-### Phase 1 — internal model, adapter, and stop throwing
+### Phase 1 — internal model, adapter, and stop throwing — **done**
 
 1. Keep `NodeGraphData` (`{ nodes, links }`) as the single internal model. It is already
    chart-agnostic and already what all three variants consume.
@@ -113,16 +139,17 @@ depends on:
    [role resolution](../data-plane/graph-wide.md#frame-role-resolution): `meta.type`
    first, field shape second, panel option third.
 3. Add `legacyToWide(frames): DataFrame[]` — see
-   [the adapter decision](#the-adapter-decision) — and place it **at the frame
-   boundary**, so the converter only ever sees the wide form. One internal model, one
-   adapter; deleting legacy later is deleting one function.
+   [the adapter decision](#the-adapter-decision). ~~Place it **at the frame boundary**~~ —
+   superseded: it is registered as a panel transformation and runs above the panel, which
+   is what lets the long reader be deleted outright. See
+   [Deviations](#deviations-from-the-original-plan).
 4. Make `buildOption` return `null` rather than throw when no graph can be derived, so
    an unreadable response falls back to the no-data view like every other family.
 
 **Exit criterion:** every existing relations dashboard renders unchanged, and the wide
 fixture renders instead of erroring.
 
-### Phase 2 — the wide reader
+### Phase 2 — the wide reader — **done**
 
 5. `frameToGraphWide(frames, theme): NodeGraphData` — one node per field of the nodes
    frame, one link per field of the edges frame; identity from `field.name`; endpoints
@@ -161,10 +188,10 @@ fixes are still needed there. Deleting the relations resolver does not delete th
     `commonOptionsBuilder.addHideFrom` for wide input: a `byName` `custom.hideFrom`
     override now genuinely targets one mark. Verified on core panels — the bar for
     `b-->d` simply disappears.
-12. Drop the `stripHiddenValueFields` exclusion (`options/panelOption.ts`) for wide
-    input, and delete `withoutHiddenNodes`' by-name re-implementation
-    (`charts/relations.ts`) with it. **Keep both for legacy input**, where the marks are
-    still rows and the exclusion is still load-bearing.
+12. Drop the `stripHiddenValueFields` exclusion (`options/panelOption.ts`) and delete
+    `withoutHiddenNodes`' by-name re-implementation (`charts/relations.ts`) with it.
+    ~~Keep both for legacy input~~ — there is no legacy input any more, so both go
+    outright. Both are still in place today, unchanged, because this is phase 4.
 
 ### Phase 5 — tooltip, links and legend
 
@@ -185,7 +212,119 @@ fixes are still needed there. Deleting the relations resolver does not delete th
 17. Update `src/modules/relations/parity.md`, and resolve the three to-do docs against
     the matrix below.
 
+## Deviations from the original plan
+
+Three things were decided differently once the code existed. Each is a deliberate change
+of plan, not an oversight.
+
+### The conversion is a registered transformation, not a frame-boundary adapter
+
+P1.3 said to place `legacyToWide` at the panel's frame boundary, "so the converter only
+ever sees the wide form. One internal model, one adapter; deleting legacy later is
+deleting one function." What shipped instead registers it through
+`PanelPlugin.setDataTransformations` (grafana/grafana#129992), so it runs **above** the
+panel, before `applyFieldOverrides`.
+
+The reason is the asymmetry this doc opens with: an in-panel adapter can render legacy
+input but can never give it per-mark overrides, which is the entire point of the pivot.
+Registering the conversion is what makes phase 0 and phases 1–5 the same work rather than
+two tracks. **Consequence:** the plugin's minimum supported Grafana is the release
+carrying that PR (expected 13.2). Registration is feature-detected so the plugin still
+loads on an older host; the panel there reports that it cannot read row frames.
+
+### The long reader was deleted in phase 2, not phase 6
+
+The [Recommendation](#recommendation) below said to drop the long reader "as soon as the
+phase 0 prefix lands". It landed as the transformations API, so the reader went with it —
+which means the "keep both for legacy input" caveats in phases 3–5 never had to be
+written. `converters/nodeGraph.ts` (381 lines) and its test (365) are gone; the model it
+carried is now `converters/relationsModel.ts`, types only.
+
+What this deleted that the table below priced as a cost:
+
+- **`arc__*` support.** `resolveArcBorderColor` and `RelationNode.borderColor` are gone,
+  and the conversion does not map `arc__*` to anything. The plan already listed the
+  resolver under [Deliberately not carried over](#deliberately-not-carried-over) and the
+  field as **Open**, so nothing regressed relative to the target — but a legacy dashboard
+  using `arc__*` loses its border approximation today rather than in phase 6.
+- **A string `mainstat`**, **the long reader's dash-array approximation** (`toLineType`
+  now lives in the conversion, mapping to `custom.lineType` once), and the
+  `mainstat → thickness → 1` weight chain in the _reader_ — though see the note below.
+
+### Legacy input is reported, not silently adapted
+
+The [adapter decision](#the-adapter-decision) chose "detect, notify, and render" with a
+`ChartNotices` corner notice. With the conversion above the panel there is nothing left to
+render _from_: a row frame reaching the panel means the pipeline is missing a step, so
+`frameToRelationsGraph` throws with the fix in the message rather than drawing nothing.
+A notice cannot carry that, because there is no render to put a notice on.
+
+This is the one place where P1.4 and this decision have to coexist, and they do so by
+splitting the cases:
+
+| Input                                                  | Behaviour                                       |
+| ------------------------------------------------------ | ----------------------------------------------- |
+| Wide frames with a graph in them                       | Renders                                         |
+| Wide frames with no usable graph, or a non-graph frame | `null` → no-data view (P1.4)                    |
+| Recognisably row-format node-graph frames              | Throws, naming the transformation that fixes it |
+
+### `reduceOptions` registers only the calculation picker
+
+P2.6 said to call `addStandardDataReduceOptions` and normalize the result. That helper also
+registers "Show: Calculate / All values" and "Limit", and neither can mean anything for
+this family — a mark _is_ a field, so "one mark per row" is not expressible and there are no
+rows to limit. Registering them would put two controls in the pane that read as working and
+never do, which is the exact thing `addHiddenSeriesHideFrom` exists to avoid. So
+`editor/relations/stats.ts` registers the stats picker alone, and
+`normalizeRelationsCalcs` truncates to the two stat slots.
+
+### Edge colour
+
+`relationsLinkColor` now defaults to `gradient` rather than `source`: an edge joins two
+marks, so its natural colour is theirs, and a blend is the one mode that reads direction
+off the edge itself without an arrowhead. Two things had to change for that to be true
+rather than merely configured:
+
+- **A per-edge colour is only emitted when the edge's field carries a real colour
+  choice.** `applyFieldOverrides` merges the panel's registered default
+  (palette-classic) into _every_ field's config, so reading `field.display(value).color`
+  unconditionally would paint every edge a different palette colour and defeat the
+  series-level mode entirely. A palette mode therefore counts as "nothing chosen" for an
+  edge — but not for a node, whose palette colour is exactly the one the family has always
+  drawn. Measured: node colours are byte-identical to the pre-pivot render.
+- **The `graph` variant builds the gradient itself.** ECharts implements
+  `lineStyle.color: 'gradient'` in `sankey` (`SankeyView.ts`) and `chord`
+  (`ChordEdge.ts`) but **not** in `graph`, whose `edgeVisual.ts` swaps only `'source'` and
+  `'target'` and would treat `'gradient'` as a literal colour — which is why picking
+  Gradient on a graph previously left the edges unstroked. It now emits a two-stop
+  `LinearGradientObject` per link.
+
+  That is only possible when the node positions are known. zrender resolves a non-global
+  gradient against the shape's bounding box, so `x: 0 -> x2: 1` runs left-to-right across
+  the edge, which is source-to-target only if the source happens to sit on the left. Under
+  a force or circular layout the positions do not exist until after ECharts has laid the
+  graph out, so orienting would be a coin flip and half the edges would report their
+  direction backwards. With every node pinned (`layout: 'none'`) the sign of `dx`/`dy`
+  picks the right corner; otherwise the variant degrades to `'source'`, which is still
+  endpoint-derived and still direction-sensitive, just not a blend.
+
+  **Open:** a real gradient under force layout needs a post-layout pass over the rendered
+  graph, which is a render-effect change rather than an option change.
+
+### The weight chain survives in the conversion
+
+[Deliberately not carried over](#deliberately-not-carried-over) lists "the
+`mainstat → thickness → 1` weight chain". It is gone from the _reader_ — a mark's field is
+numeric by contract — but `legacyToWide` keeps it, so a legacy sankey whose ribbons were
+sized by `thickness` alone keeps its widths through the conversion. `thickness` is _also_
+mapped to `custom.lineWidth`, which is its styling role.
+
 ## The adapter decision
+
+> **Superseded in part.** The "notify" leg of this decision was not built; see
+> [Legacy input is reported, not silently adapted](#legacy-input-is-reported-not-silently-adapted).
+> The analysis below is kept because the _hand-rolled vs delegated_ comparison is still
+> what justifies `legacyToWide` being a `CustomTransformOperator`.
 
 **Decision: option 3 — do not adapt silently. Detect, notify, and render.**
 
@@ -280,6 +419,15 @@ The notice is cheap and it is the only thing that can teach a user the differenc
 because the difference is not visible in the render.
 
 ## The `dataFormat` panel option
+
+> **Not built, and mostly no longer needed.** There is one reader, so there is no reader to
+> force. The two ambiguous cases it existed for are handled instead by taking `meta.type` as
+> authoritative in _both_ directions — a frame declaring `graph-nodes-wide` is never claimed
+> as edges however its fields are named — and by requiring a candidate nodes frame to name at
+> least one endpoint the edges refer to, which stops an unrelated frame in a mixed response
+> becoming phantom nodes. A shape-only response whose ids contain the separator and which
+> declares no `meta.type` is still ambiguous; that is the residual case, and the supplier's
+> `{ series }`-only context means an option could not reach the conversion anyway.
 
 ```ts
 dataFormat: 'auto' | 'legacy' | 'wide'; // default 'auto'
@@ -516,8 +664,12 @@ Stated fairly, because it is not weak:
 
 ### Recommendation
 
-**Drop the long reader as soon as the phase 0 prefix lands, and treat provisioned-fixture
-churn as an accepted cost.** The core conversion changes the calculus on every objection
+**Done.** The recommendation was to drop the long reader as soon as the phase 0 prefix
+landed, treating provisioned-fixture churn as an accepted cost. The prefix landed as
+`PanelPlugin.setDataTransformations`, so the reader was dropped in the same change as
+phases 1–2 rather than waiting for phase 6. The fixtures did **not** churn: the registered
+conversion feeds them to the panel unchanged, which is the objection the table below
+predicted would be resolved. The core conversion changes the calculus on every objection
 above, because it moves the conversion to where both panels can be fed from one query:
 
 | Objection                                  | Under the phase 0 prefix                                                                                                                                                                                                      |

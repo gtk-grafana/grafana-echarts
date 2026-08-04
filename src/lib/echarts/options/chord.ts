@@ -6,9 +6,8 @@ import {
   CHORD_PAD_ANGLE_DEFAULT,
   CHORD_START_ANGLE_DEFAULT,
 } from 'editor/chord';
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
-  ARC_BORDER_WIDTH,
   getRelationsNodeLabelFormatter,
   makeRelationsColorResolver,
   RELATIONS_LINK_COLOR_DEFAULT,
@@ -78,16 +77,19 @@ export function getChordLabel(ctx: RelationsSeriesContext): ChordSeriesOption['l
 }
 
 /**
- * Ribbon styling. Unlike the sankey variant, **nothing needs pinning here**: ECharts'
- * chord `lineStyle.color` default is already `'source'`, which is exactly the family
- * default, so the key is omitted unless the user picks another mode. `opacity` is
+ * Ribbon styling. `ChordEdge` implements all three colour keywords itself, so the mode
+ * passes straight through; the key is omitted only when it already matches ECharts'
+ * own chord default (`'source'`), which keeps the emitted option minimal. `opacity` is
  * omitted at ECharts' 0.2.
  * https://echarts.apache.org/en/option.html#series-chord.lineStyle
  */
+/** ECharts' own `series-chord.lineStyle.color` default (`ChordSeries.ts`). */
+const CHORD_LINK_COLOR_ECHARTS_DEFAULT = 'source';
+
 export function getChordLinkStyle(options: PanelOptions): ChordSeriesOption['lineStyle'] | undefined {
   const lineStyle: NonNullable<ChordSeriesOption['lineStyle']> = {};
   const color = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
-  if (color !== RELATIONS_LINK_COLOR_DEFAULT) {
+  if (color !== CHORD_LINK_COLOR_ECHARTS_DEFAULT) {
     lineStyle.color = color;
   }
   if (options.relationsChordLinkOpacity != null && options.relationsChordLinkOpacity !== CHORD_LINK_OPACITY_DEFAULT) {
@@ -133,9 +135,6 @@ function toChordNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): R
     if (color != null) {
       item.itemStyle = { color };
     }
-    if (node.borderColor != null) {
-      item.itemStyle = { ...item.itemStyle, borderColor: node.borderColor, borderWidth: ARC_BORDER_WIDTH };
-    }
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
     }
@@ -153,7 +152,7 @@ function toChordNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): R
  * Map the model's links to ECharts chord link items.
  *
  * `value` drives ribbon width, as it does for sankey. Per-edge `thickness` and
- * `strokedasharray` are dropped for the same reasons: ribbon size comes from the
+ * `custom.lineType` are dropped for the same reasons: ribbon size comes from the
  * weight, and a filled ribbon has no stroke to dash. A per-edge `color` is kept.
  *
  * Self-loops are **not** dropped and cycles are **not** broken — a chord renders both

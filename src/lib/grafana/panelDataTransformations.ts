@@ -18,10 +18,11 @@ import { type CustomTransformOperator, type DataFrame, type DataTransformerConfi
  *
  * The API is unreleased, so it is absent from `@grafana/data` 13.1.1's types and from
  * any host that has not built the PR. Both are handled by feature-detection rather than
- * a version check: on a host without it the call is skipped and the panel falls back to
- * converting at its own frame boundary (rendering works, per-mark overrides do not).
- * The host additionally gates execution behind `grafana.panelPluginTransformations`,
- * off by default, so registering unconditionally here is safe.
+ * a version check, so the plugin still *loads* on an older host — but a family that
+ * depends on a registered transformation to reshape its input cannot draw there, and
+ * says so rather than rendering nothing (see `frameToRelationsGraph`). The host
+ * additionally gates execution behind `grafana.panelPluginTransformations`, off by
+ * default, so registering unconditionally here is safe.
  */
 
 /** The supplier signature from the PR: evaluated on every data update. */
