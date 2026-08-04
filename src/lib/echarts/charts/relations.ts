@@ -1,11 +1,11 @@
-import { type DataFrame, type Field, type FieldConfigSource, FieldType } from '@grafana/data';
+import { type FieldConfigSource } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
+import { type NodeGraphData } from 'lib/echarts/converters/nodeGraph';
 import {
-  frameToNodeGraph,
-  getNodeGraphValueField,
-  isEdgesFrame,
-  type NodeGraphData,
-} from 'lib/echarts/converters/nodeGraph';
+  frameToRelationsGraph,
+  getRelationsLinkValueField,
+  getRelationsValueField,
+} from 'lib/echarts/converters/relationsGraph';
 import {
   getGraphSeries,
   makeRelationsColorResolver,
@@ -26,17 +26,6 @@ import {
   type LegendHighlightTarget,
   type RelationsChartContext,
 } from './types';
-
-/**
- * The edges frame's `mainstat`, used to format a hovered link's value and resolve
- * its data links. Distinct from the node `mainstat` that
- * `getNodeGraphValueField` prefers.
- */
-function getLinkValueField(frames: DataFrame[]): Field | undefined {
-  const edgesFrame = frames.find(isEdgesFrame);
-  const mainstat = edgesFrame?.fields.find((field) => field.name.toLowerCase() === 'mainstat');
-  return mainstat?.type === FieldType.number ? mainstat : undefined;
-}
 
 /**
  * Drop the nodes the legend has hidden, and every link that touched one.
@@ -73,7 +62,7 @@ function withoutHiddenNodes(data: NodeGraphData, fieldConfig: FieldConfigSource)
 
 /** The node/link model as rendered: legend-hidden nodes and their links removed. */
 function getVisibleNodeGraph(ctx: RelationsChartContext): NodeGraphData | null {
-  const data = frameToNodeGraph(ctx.frames, ctx.theme);
+  const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions?.calcs);
   return data == null ? null : withoutHiddenNodes(data, ctx.fieldConfig);
 }
 
@@ -101,8 +90,8 @@ export const relationsChartModule: ChartModule = {
 
     const seriesCtx: RelationsSeriesContext = {
       ...ctx,
-      valueField: getNodeGraphValueField(ctx.frames),
-      linkValueField: getLinkValueField(ctx.frames),
+      valueField: getRelationsValueField(ctx.frames),
+      linkValueField: getRelationsLinkValueField(ctx.frames),
     };
 
     if (ctx.seriesType === 'sankey') {
@@ -176,7 +165,7 @@ export const relationsChartModule: ChartModule = {
   buildLegendItems(ctx): VizLegendItem[] {
     // The *unfiltered* graph: a hidden node stays listed (greyed) so it can be
     // toggled back on, which is how every other family's legend behaves.
-    const data = frameToNodeGraph(ctx.frames, ctx.theme);
+    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions?.calcs);
     if (!data) {
       return [];
     }
@@ -188,7 +177,7 @@ export const relationsChartModule: ChartModule = {
     // One entry per node, colored by the same resolver the chart uses so the
     // swatches match: a fixed-color override wins, then the node's own `color`
     // field, then the value field's by-value scheme, then the classic palette.
-    const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, getNodeGraphValueField(ctx.frames));
+    const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, getRelationsValueField(ctx.frames));
     return data.nodes.map((node, index) => ({
       label: node.name,
       fieldName: node.name,

@@ -332,7 +332,9 @@ function toLinkItems(links: RelationLink[]): RelationsLinkItem[] {
     if (link.width != null) {
       lineStyle.width = link.width;
     }
-    const type = toLineType(link.dashArray);
+    // The wide form resolved this already (`custom.lineType`); only the long form
+    // still has a raw dash array to approximate from.
+    const type = link.lineType ?? toLineType(link.dashArray);
     if (type != null) {
       lineStyle.type = type;
     }

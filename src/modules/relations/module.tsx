@@ -13,7 +13,9 @@ import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
+import { setDataTransformations } from 'lib/grafana/panelDataTransformations';
 import { type PanelOptions } from 'types';
+import { relationsDataTransformations } from './dataTransformations';
 import { relationsSuggestionsSupplier } from './suggestions';
 
 // Relations family panel: nodes plus the links between them, built from Grafana's
@@ -21,7 +23,7 @@ import { relationsSuggestionsSupplier } from './suggestions';
 // variants — `graph`, `sankey` and `chord` — over one converter, since all three
 // ECharts series consume the identical node/link input. See
 // data-plane/node-graph.md and lib/echarts/converters/nodeGraph.ts.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('relations'))
+const relationsPlugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({
     standardOptions: STANDARD_COLOR_OPTIONS,
     // Register `custom.hideFrom` so the legend visibility toggle's override is
@@ -90,3 +92,15 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
   })
   // Registered for consistency; it never returns a suggestion — see suggestions.ts.
   .setSuggestionsSupplier(relationsSuggestionsSupplier);
+
+/**
+ * Declare the long->wide conversion as a panel-registered transformation so it runs
+ * *above* the panel, before field overrides — which is what makes each node and edge a
+ * `byName` override target and lists them in the override editor's field picker.
+ *
+ * No-ops on a host without the API (`@grafana/data` 13.1.1 and any Grafana without
+ * grafana/grafana#129992). There the panel still renders legacy frames by converting at
+ * its own frame boundary, but per-mark overrides are unavailable, because that call site
+ * is downstream of `applyFieldOverrides`. See `lib/grafana/panelDataTransformations.ts`.
+ */
+export const plugin = setDataTransformations(relationsPlugin, relationsDataTransformations);

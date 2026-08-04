@@ -43,6 +43,13 @@ export interface RelationNode {
    * node instead of shifting up as nodes above them are toggled off.
    */
   paletteIndex?: number;
+  /**
+   * The field this node *is*, on the wide contract — where one node is one field.
+   * Carries the node's own `config` (unit, links, thresholds) and its `display`
+   * processor, so per-mark formatting and colour resolve without a second lookup.
+   * Unset on the long form, where a node is a row. See `converters/graphWide.ts`.
+   */
+  field?: Field;
 }
 
 /** A single directed edge. `value` is the numeric weight sankey/chord need. */
@@ -56,8 +63,16 @@ export interface RelationLink {
   width?: number;
   /** `strokedasharray` — mapped to an ECharts `lineStyle.type`. */
   dashArray?: string;
+  /**
+   * `custom.lineType`, already resolved to an ECharts line type. The wide form
+   * carries the three-way approximation directly, so there is no dash array left
+   * to parse; takes precedence over `dashArray`.
+   */
+  lineType?: 'solid' | 'dashed' | 'dotted';
   /** Row index within the edges frame, for footer data links. */
   sourceRowIndex?: number;
+  /** The field this edge *is*, on the wide contract. See {@link RelationNode.field}. */
+  field?: Field;
 }
 
 /** Chart-agnostic graph, ready for a graph / sankey / chord series. */
