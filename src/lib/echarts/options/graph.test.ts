@@ -243,6 +243,16 @@ describe('getGraphSeries', () => {
     expect(series.links).toMatchObject([{ lineStyle: { color: 'cyan', width: 3, type: 'dashed' } }]);
   });
 
+  // ECharts reads `curveness` off the item's own `lineStyle` first, so a per-edge
+  // override beats the panel-level "Link curveness" for that edge alone.
+  it('lets a per-edge curveness override the panel-level one', () => {
+    const curved = data({ links: [{ id: 'e1', source: 'a', target: 'b', value: 1, curveness: 0.4 }] });
+    const series = getGraphSeries(curved, ctx(baseOptions({ relationsCurveness: 0.1 })));
+
+    expect(series.links).toMatchObject([{ lineStyle: { curveness: 0.4 } }]);
+    expect(series.lineStyle).toMatchObject({ curveness: 0.1 });
+  });
+
   it('omits lineStyle entirely for an unstyled link', () => {
     expect(getGraphSeries(data(), ctx()).links![0]).not.toHaveProperty('lineStyle');
   });

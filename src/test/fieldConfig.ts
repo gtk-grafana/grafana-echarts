@@ -4,6 +4,7 @@ import {
   type DataFrame,
   FieldColorModeId,
   FieldConfigOptionsRegistry,
+  type FieldConfigPropertyItem,
   type FieldConfigSource,
   identityOverrideProcessor,
 } from '@grafana/data';
@@ -18,31 +19,63 @@ import {
  * override is silently dropped** — a test asserting "a byName override recolours this"
  * would pass against a render that ignored it. Passing a registry explicitly is the
  * supported way in.
+ *
+ * The properties below are therefore restated rather than taken from the modules'
+ * own `useCustomConfig`, which would be the drift-proof version. The same empty-registry
+ * problem blocks it one level down: `FieldConfigEditorBuilder.addNumberInput` and
+ * friends look their editor component up in `standardEditorsRegistry` at registration
+ * time, so replaying a real registration under jest throws `"number" not found`.
+ * Only `addCustomEditor`, which brings its own component, survives.
  */
 
 /** No option editor renders here; the registry is consulted for `process` only. */
 const noEditor = (): null => null;
 
+/** Everything `applyFieldOverrides` needs of a property; the editor half is inert. */
+const item = (id: string, name: string, path = id): FieldConfigPropertyItem => ({
+  id,
+  path,
+  name,
+  editor: noEditor,
+  override: noEditor,
+  process: identityOverrideProcessor,
+  shouldApply: () => true,
+});
+
 /**
- * The field-config properties `applyFieldOverrides` is allowed to apply in tests,
- * mirroring core's own entries.
+ * A plugin-registered `custom.*` property. Keyed by the prefixed id — that is what an
+ * override's `DynamicConfigValue.id` carries — but written to `config.custom` at the
+ * unprefixed path, which is the split `createFieldConfigRegistry` makes in the host.
+ */
+const customItem = (path: string, name: string): FieldConfigPropertyItem => ({
+  ...item(`custom.${path}`, name, path),
+  isCustom: true,
+});
+
+/**
+ * The properties tests are allowed to override.
  *
- * Only `color` — the one property whose resolution the panel genuinely delegates
- * upstream, now that the relations family reads `field.display(value).color` rather
- * than re-deriving colour from `fieldConfig`. Deliberately not the whole standard set:
- * each entry added here also starts applying `fieldConfig.defaults`, which changes what
- * every family's snapshots render from.
+ * `color` is the one standard property the panel delegates upstream rather than
+ * re-deriving — the relations family reads it back as `field.display(value).color`.
+ * Deliberately not the rest of the standard set: each entry also starts applying
+ * `fieldConfig.defaults`, which would change what every family's snapshots render from.
+ *
+ * The `custom.*` entries are the relations family's per-mark config
+ * (`editor/relations/fieldConfig.ts`), which it reads straight off each mark. They are
+ * registered for every family because a registry is per-`applyFieldOverrides` call, not
+ * per-panel; that is harmless, since a family only ever reads the properties it
+ * registered itself.
  */
 export const testFieldConfigRegistry = new FieldConfigOptionsRegistry(() => [
-  {
-    id: 'color',
-    path: 'color',
-    name: 'Color scheme',
-    editor: noEditor,
-    override: noEditor,
-    process: identityOverrideProcessor,
-    shouldApply: () => true,
-  },
+  item('color', 'Color scheme'),
+  customItem('hideFrom', 'Hide in area'),
+  customItem('nodeRadius', 'Node radius'),
+  customItem('subtitle', 'Subtitle'),
+  customItem('fixedX', 'Fixed x'),
+  customItem('fixedY', 'Fixed y'),
+  customItem('lineWidth', 'Line width'),
+  customItem('lineType', 'Line type'),
+  customItem('curveness', 'Curveness'),
 ]);
 
 const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };

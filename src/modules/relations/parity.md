@@ -2,7 +2,8 @@
 
 Compares the editor options of this ECharts **Relations** module
 ([module.tsx](./module.tsx)) against core Grafana's **Node graph** panel
-([`public/app/plugins/panel/nodeGraph/module.tsx`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/module.tsx),
+([
+`public/app/plugins/panel/nodeGraph/module.tsx`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/module.tsx),
 options in
 [`panelcfg.cue`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/panelcfg.cue)).
 
@@ -20,9 +21,12 @@ side-by-side comparison this doc rests on is intact.
 > `PanelPlugin.setDataTransformations`, converts the row form to it before field overrides
 > are applied — which is what makes each node and edge an override target.
 >
-> **Rows below still describe the row form in places, and the phase 3–5 work that closes
-> the gap has not landed.** Colour, per-mark custom config, tooltips and data links all
-> still route through the pre-pivot resolvers. The **[wide: …]** markers are the target;
+> **Color and per-mark config have landed (phases 3–4); tooltips and data links have
+> not (phase 5).** A mark's colour is `field.display(value).color`, its style is
+> `custom.*` set by an ordinary override, and hiding reads `custom.hideFrom.viz` off the
+> mark — but tooltip formatting and `config.links` still route through one field for the
+> whole series. Rows below describing the row form are the ones phase 5 has yet to reach.
+> The **[wide: …]** markers are the target;
 > [todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md) tracks which phase
 > each belongs to and what already shipped.
 
@@ -207,8 +211,16 @@ Not registered, deliberately:
 - **Legend calcs** — `includeLegendCalcs: false`, since legend entries are nodes, not
   fields, so there are no series values to reduce. **[wide: reconsider]** — a legend entry
   would be a field again.
-- **`custom.hideFrom`** (`commonOptionsBuilder.addHideFrom`) — see the gap below.
-  **[wide: register the real one]**
+- **`custom.hideFrom`** (`commonOptionsBuilder.addHideFrom`) — the real one, with both
+  editors reachable: a mark is a field, so a `byName` override hides exactly one node or
+  one edge. See the gap below for what the legend does with it.
+- **Per-mark style** (`editor/relations/fieldConfig.ts`) — `custom.nodeRadius`,
+  `.subtitle`, `.fixedX`, `.fixedY` on nodes; `custom.lineWidth`, `.lineType`,
+  `.curveness` on edges. Override-only (`hideFromDefaults`), because the Fields tab
+  would apply one value to every node _and_ every edge at once, which either duplicates
+  a panel option or means nothing. These are the columns the row form carried as data —
+  the same keys `converters/legacyToWide.ts` writes — now editable without touching the
+  query.
 
 Two structural limits apply here as they do everywhere else in this plugin (see
 [heatmap/parity.md](../heatmap/parity.md)): standard options **cannot be
@@ -286,23 +298,30 @@ frames can legitimately show a different number of links.
 - **`detail__*` has no context menu.** Core surfaces these in a node/edge context menu
   header; this panel has no such surface, so they can only fold into tooltip content
   (not yet done).
-- **Legend hide and hover emphasis** work the way pie's do, since a node is a frame
-  _row_ rather than a field. `addHideFrom` **is** registered — not so Grafana's
-  override engine can apply it (a byName `custom.hideFrom` override never matches a
-  node), but because Grafana discards override properties no plugin registered, so
-  without it a legend click would write a config that is thrown away. The family then
-  reads the hidden set by name itself in `withoutHiddenNodes`
-  (`charts/relations.ts`), dropping the node **and every link touching it**, and
-  relations is excluded from `stripHiddenValueFields` — which, given a `byNames`
-  matcher in exclude mode listing node names, would strip the stat column instead of
-  a node (see `options/panelOption.ts`). Clicking uses `Hide` semantics, not the
-  per-field `Isolate` default: isolating one node leaves a graph of one node and no
-  links.
+- **Legend hide** goes through Grafana's override engine now that a mark is a field:
+  `custom.hideFrom.viz` is applied to the mark upstream and the reader reads it off the
+  mark (`RelationNode.hidden`). `withoutHiddenMarks` (`charts/relations.ts`) then drops
+  the mark **and every link touching a hidden node**, which is the part no field config
+  can express. Three wrinkles remain:
+  - **The kept-name universe includes edges.** The toggle persists as a `byNames`
+    matcher in _exclude_ mode, so any field missing from the kept list is hidden — and
+    edges are fields the legend never lists. Without `getOverrideTargetNames` naming
+    them, hiding one node would erase every link in the panel.
+  - **A derived node still hides by name.** It has no field for an override to land on,
+    so `hiddenNodeIds` falls back to matching its name — the same hole as
+    `relations-data-links.md` gap 4.
+  - **Relations stays out of `stripHiddenValueFields`.** Deleting a hidden node's column
+    would make the reader re-derive that node from the edges still naming it, so it
+    would come straight back (see `options/panelOption.ts`).
+
+  Clicking uses `Hide` semantics, not the per-field `Isolate` default: isolating one
+  node leaves a graph of one node and no links.
   Hover emphasis arrives over the panel event bus rather than through props —
   `VizLegend` declares `onLabelMouseOver`/`onLabelMouseOut` but its implementation
   ignores them and publishes `DataHoverEvent`/`DataHoverClearEvent` instead. See
   `useLegendHighlight` and `relationsChartModule.getLegendHighlightTargets`, which
   emphasises the node plus its incident links via ECharts' `dataType` discriminator.
+
 - **No proximity hover.** Hovering _near_ a node or link does nothing; you must be on
   it. The proximity gate (`tooltip/proximity.ts`) admits only
   `line`/`scatter`/`effectScatter`, and `graph` fails its structural preconditions —
@@ -339,23 +358,24 @@ is a frame _row_ rather than a field, and what
 [todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md), and the evidence is
 `provisioning/dashboards/relations/graph-wide.json`.
 
-| Row / gap in this doc                                                                    | Under `graph-*-wide`                                                                                                                                                   |
-| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Display name — Inert**                                                                 | **Flips to Yes.** A mark's name _is_ its field's display name; `config.displayName` replaces the `title` column                                                        |
-| **Color scheme** — "three tiers ... See `makeRelationsColorResolver`"                    | **Deleted — shipped.** Colour is `field.display(value).color`, so all eight modes work and a `byName` override arrives theme-resolved rather than as a raw colour name |
-| **Unit / Decimals / Value mappings** — one column, one format for every mark             | Per mark. Two nodes can carry different units, which core's Node graph cannot express at all                                                                           |
-| **Data links** — "nodes _derived_ from the edges frame carry no row, so no footer"       | Per mark via `config.links`. Derived nodes stay **partially open** — no field either                                                                                   |
-| **Min / Max — Marginal** ("only bounds the by-value color domain")                       | Still the colour domain, but the domain stops being contaminated: measured `{min: 8, max: 12}` vs the legacy `{min: 0.5, max: 60}`                                     |
-| **Thresholds — Marginal**                                                                | Per mark, and the approximate replacement for `arc__*`                                                                                                                 |
-| **`reduceOptions` not registered**                                                       | **Registered — shipped.** `calcs[0]` = main stat, `calcs[1]` = secondary                                                                                               |
-| **Legend calcs `includeLegendCalcs: false`**                                             | Reconsider — a legend entry is a field again                                                                                                                           |
-| **`custom.hideFrom` registered with no reachable editor**                                | Register the real `commonOptionsBuilder.addHideFrom`; a `byName` override hides exactly one mark                                                                       |
-| **Legend hide re-implemented by name; relations excluded from `stripHiddenValueFields`** | Both become unnecessary and go outright — there is no row input left to keep them for. Phase 4; both still in place today                                              |
-| **`arc__*` approximated**                                                                | **Dropped — shipped.** The conversion maps no `arc__*`, and no ECharts relationship series draws a multi-section ring anyway                                           |
-| **`icon` dropped**                                                                       | Becomes `custom.icon`, still unrendered — Grafana icon names need resolving to a symbol                                                                                |
-| **`detail__*` has no context menu**                                                      | Becomes `field.labels`, still no surface                                                                                                                               |
-| **Cycle policy**                                                                         | **Unchanged.** The sankey DAG restriction is an ECharts constraint, not a data-shape one                                                                               |
-| **Never auto-suggested** (`PanelDataSummary` exposes no field names)                     | **Unchanged**, and possibly harder: a wide graph frame looks like any other numeric-wide frame to the summary                                                          |
+| Row / gap in this doc                                                                    | Under `graph-*-wide`                                                                                                                                                                           |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Display name — Inert**                                                                 | **Flips to Yes.** A mark's name _is_ its field's display name; `config.displayName` replaces the `title` column                                                                                |
+| **Color scheme** — "three tiers ... See `makeRelationsColorResolver`"                    | **Deleted — shipped.** Colour is `field.display(value).color`, so all eight modes work and a `byName` override arrives theme-resolved rather than as a raw colour name                         |
+| **Unit / Decimals / Value mappings** — one column, one format for every mark             | Per mark. Two nodes can carry different units, which core's Node graph cannot express at all                                                                                                   |
+| **Data links** — "nodes _derived_ from the edges frame carry no row, so no footer"       | Per mark via `config.links`. Derived nodes stay **partially open** — no field either                                                                                                           |
+| **Min / Max — Marginal** ("only bounds the by-value color domain")                       | Still the colour domain, but the domain stops being contaminated: measured `{min: 8, max: 12}` vs the legacy `{min: 0.5, max: 60}`                                                             |
+| **Thresholds — Marginal**                                                                | Per mark, and the approximate replacement for `arc__*`                                                                                                                                         |
+| **`reduceOptions` not registered**                                                       | **Registered — shipped.** `calcs[0]` = main stat, `calcs[1]` = secondary                                                                                                                       |
+| **Legend calcs `includeLegendCalcs: false`**                                             | Reconsider — a legend entry is a field again                                                                                                                                                   |
+| **`custom.hideFrom` registered with no reachable editor**                                | **Shipped.** The real `commonOptionsBuilder.addHideFrom`; a `byName` override hides exactly one mark, node or edge                                                                             |
+| **Legend hide re-implemented by name; relations excluded from `stripHiddenValueFields`** | **Half shipped.** The by-name read is gone for any mark that has a field; it survives only for a _derived_ node, which has none. The strip exclusion **stays** — see the legend-hide gap above |
+| **`arc__*` approximated**                                                                | **Dropped — shipped.** The conversion maps no `arc__*`, and no ECharts relationship series draws a multi-section ring anyway                                                                   |
+| **`icon` dropped**                                                                       | Becomes `custom.icon` and is **typed but given no editor**, since it is still unrendered — Grafana icon names need resolving to an ECharts symbol first                                        |
+| **`noderadius` / `subtitle` / `thickness` / `strokedasharray` are data, not config**     | **Shipped.** All four are per-mark `custom.*`, editable by an override; `curveness` joins them with no row-form equivalent at all                                                              |
+| **`detail__*` has no context menu**                                                      | Becomes `field.labels`, still no surface                                                                                                                                                       |
+| **Cycle policy**                                                                         | **Unchanged.** The sankey DAG restriction is an ECharts constraint, not a data-shape one                                                                                                       |
+| **Never auto-suggested** (`PanelDataSummary` exposes no field names)                     | **Unchanged**, and possibly harder: a wide graph frame looks like any other numeric-wide frame to the summary                                                                                  |
 
 ## ECharts API support
 
