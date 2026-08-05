@@ -1,16 +1,13 @@
 import { type FieldConfigSource } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
 import { toSankeyLinks } from 'lib/echarts/converters/dag';
-import {
-  frameToRelationsGraph,
-  getRelationsLinkValueField,
-  getRelationsValueField,
-} from 'lib/echarts/converters/relationsGraph';
+import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { getChordSeries } from 'lib/echarts/options/chord';
 import { getGraphSeries, relationsDefaultOptions, type RelationsSeriesContext } from 'lib/echarts/options/graph';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/options/sankey';
+import { getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
 import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import {
   type ChartModule,
@@ -120,10 +117,13 @@ export const relationsChartModule: ChartModule = {
       return null;
     }
 
+    // Every mark's own display processor and link source, resolved once for all
+    // three variants: the tooltip formats a hovered node or edge with its own unit
+    // and surfaces its own `config.links`. Built from the *visible* graph, which is
+    // the only set that can be hovered.
     const seriesCtx: RelationsSeriesContext = {
       ...ctx,
-      valueField: getRelationsValueField(ctx.frames),
-      linkValueField: getRelationsLinkValueField(ctx.frames),
+      marks: getRelationsTooltipMarks(data, ctx.theme, ctx.timeZone),
     };
 
     if (ctx.seriesType === 'sankey') {

@@ -1,11 +1,12 @@
 # Migrating the relations family onto `graph-*-wide`
 
-> **Status: phases 1–4 shipped, and the long reader is already gone.** The contract is
+> **Status: phases 1–5 shipped, and the long reader is already gone.** The contract is
 > specified and validated in [../data-plane/graph-wide.md](../data-plane/graph-wide.md),
-> with a proof dashboard at `provisioning/dashboards/relations/graph-wide.json`.
+> with a proof dashboard at `provisioning/dashboards/relations/graph-wide.json` and a
+> phase 5 demo at `provisioning/dashboards/relations/per-mark-tooltip-links.json`.
 > `converters/graphWide.ts` is now the family's only reader **and its only colour path**;
 > `converters/legacyToWide.ts` converts Grafana's row format **above** the panel through
-> `PanelPlugin.setDataTransformations`. Phases 5–6 remain.
+> `PanelPlugin.setDataTransformations`. Phase 6 remains.
 >
 > Two decisions changed during implementation and are recorded inline below, at
 > [Deviations from the original plan](#deviations-from-the-original-plan): the long
@@ -14,23 +15,26 @@
 
 ## What shipped
 
-| Item                                                   | State                                                                                                            |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| P1.1 `NodeGraphData` as the single internal model      | Done — `converters/relationsModel.ts`, now model-only                                                            |
-| P1.2 `isGraphWideFrames`                               | Done, `meta.type` authoritative in both directions                                                               |
-| P1.3 conversion at the frame boundary                  | **Superseded** — the conversion runs above the panel instead; see the deviations section                         |
-| P1.4 `buildOption` returns `null` rather than throwing | Done — `options/panelOption.ts`, plus `useChartOption` clearing instead of throwing                              |
-| P2.5 `frameToGraphWide`                                | Done, including `calcs[1]`                                                                                       |
-| P2.6 `reduceOptions` registered and normalized         | Done — `editor/relations/stats.ts`, `normalizeRelationsCalcs`; only the calculation picker, see below            |
-| P2.7 the owning `Field` on every mark                  | Done, plus `sourceRowIndex: 0`                                                                                   |
-| Long reader deleted                                    | Done — `converters/nodeGraph.ts` and its test are gone (761 lines)                                               |
-| Edge colour                                            | `relationsLinkColor` now defaults to `gradient`; see [Edge colour](#edge-colour)                                 |
-| P3.8 `makeRelationsColorResolver` deleted              | Done — colour is `field.display(value).color`; `paletteIndex` went with it                                       |
-| P3.9 edge colour schemes                               | Done, by construction — an edge is a field. See [phase 3](#phase-3--delete-the-colour-path--done)                |
-| P4.10 per-mark `custom.*`                              | Done — `editor/relations/fieldConfig.ts`; `curveness` added, `icon` typed but not editable                       |
-| P4.11 the real `addHideFrom`                           | Done — `addHiddenSeriesHideFrom` deleted with it                                                                 |
-| P4.12 hiding reads the mark's own field                | Done, with two corrections; the strip exclusion **stays**. See [phase 4](#phase-4--per-mark-custom-config--done) |
-| Phases 5–6                                             | Not started                                                                                                      |
+| Item                                                   | State                                                                                                                                  |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| P1.1 `NodeGraphData` as the single internal model      | Done — `converters/relationsModel.ts`, now model-only                                                                                  |
+| P1.2 `isGraphWideFrames`                               | Done, `meta.type` authoritative in both directions                                                                                     |
+| P1.3 conversion at the frame boundary                  | **Superseded** — the conversion runs above the panel instead; see the deviations section                                               |
+| P1.4 `buildOption` returns `null` rather than throwing | Done — `options/panelOption.ts`, plus `useChartOption` clearing instead of throwing                                                    |
+| P2.5 `frameToGraphWide`                                | Done, including `calcs[1]`                                                                                                             |
+| P2.6 `reduceOptions` registered and normalized         | Done — `editor/relations/stats.ts`, `normalizeRelationsCalcs`; only the calculation picker, see below                                  |
+| P2.7 the owning `Field` on every mark                  | Done, plus `sourceRowIndex: 0`                                                                                                         |
+| Long reader deleted                                    | Done — `converters/nodeGraph.ts` and its test are gone (761 lines)                                                                     |
+| Edge colour                                            | `relationsLinkColor` now defaults to `gradient`; see [Edge colour](#edge-colour)                                                       |
+| P3.8 `makeRelationsColorResolver` deleted              | Done — colour is `field.display(value).color`; `paletteIndex` went with it                                                             |
+| P3.9 edge colour schemes                               | Done, by construction — an edge is a field. See [phase 3](#phase-3--delete-the-colour-path--done)                                      |
+| P4.10 per-mark `custom.*`                              | Done — `editor/relations/fieldConfig.ts`; `curveness` added, `icon` typed but not editable                                             |
+| P4.11 the real `addHideFrom`                           | Done — `addHiddenSeriesHideFrom` deleted with it                                                                                       |
+| P4.12 hiding reads the mark's own field                | Done, with two corrections; the strip exclusion **stays**. See [phase 4](#phase-4--per-mark-custom-config--done)                       |
+| P5.13 per-mark tooltip formatting                      | Done — `getRelationsTooltipMarks`; the node **label** too, which the plan did not list                                                 |
+| P5.14 `config.links` per mark                          | Done — the footer resolves the hovered mark's own field; gap 4 stays open                                                              |
+| P5.15 legend items from fields                         | Done by already being true; `getHiddenSeriesNames` survives for derived nodes. See [phase 5](#phase-5--tooltip-links-and-legend--done) |
+| Phase 6                                                | Not started                                                                                                                            |
 
 The contract makes one node one field and one edge one field, so Grafana's own override
 engine addresses each mark. That closes, as ordinary field behaviour, most of what the
@@ -334,7 +338,7 @@ replaying a real registration under jest throws `"number" not found`. Only
 `addCustomEditor`, which brings its own component, survives. The properties are
 therefore restated by hand.
 
-### Phase 5 — tooltip, links and legend
+### Phase 5 — tooltip, links and legend — **done**
 
 13. Each mark resolves its own `field.display` for tooltip formatting, killing
     "tooltip unit decided by frame order".
@@ -344,6 +348,79 @@ therefore restated by hand.
 15. Legend items come from fields, so `getHiddenSeriesNames` / `changeSeriesColorConfig`
     are no longer needed for this family — the legend colour picker writes an ordinary
     `byName` colour override that the override engine applies.
+
+Items 13 and 14 turned out to be **one change**, because they had one cause. Both the
+formatter and the footer resolved a single field for the whole series —
+`getRelationsValueField` / `getRelationsLinkValueField`, "the frame's first numeric
+column" — so the hovered item's unit depended on frame order and a `links` override
+painted on every mark of that frame. `getRelationsTooltipMarks`
+(`tooltip/relations.ts`) replaces both with one lookup from mark key to
+`{ formatValue, source }`, built once per render from the visible graph, and the two
+frame-level lookups are **deleted**. Demo:
+`provisioning/dashboards/relations/per-mark-tooltip-links.json`.
+
+Four things were decided while doing it.
+
+#### An edge needs a key on the item, and it cannot be `id`
+
+A node already carried `id` — the field name, which ECharts uses as the graph key —
+so a node's own field is one map lookup away. An edge had nothing: `source`/`target`
+do not identify it, because [parallel edges](../data-plane/graph-wide.md#parallel-edges-require-labels)
+share both. The obvious fix, setting `id` on the link item, is wrong:
+`createGraphFromNodeEdge` reads `retrieve(link.id, source + ' > ' + target)` as the
+edge's **name**, so it would rename every edge as a side effect of carrying a lookup
+key. The item carries `markId` instead, which ECharts preserves and ignores.
+
+**Keyed, not indexed**, for a reason worth recording: `dataIndex` looks like the
+obvious address and is not one. `createGraphFromNodeEdge` keeps only `validEdges`, so
+ECharts renumbers edges when it drops one whose endpoint is missing, and the sankey
+variant removes links to break cycles before the series is built. A `dataIndex` into
+the model would point at the wrong mark in both cases — silently, since the tooltip
+would still render.
+
+#### `sourceRowIndex` left the ECharts items
+
+All three variants copied the mark's row onto every data item, and the tooltip read it
+back to build `{ field, rowIndex }`. The lookup already carries the row, so the item
+key was redundant — and it was always `0`, because a wide frame is a single row.
+`RelationNode.sourceRowIndex` / `RelationLink.sourceRowIndex` stay on the _model_,
+which is what the lookup reads.
+
+#### The node label is a per-mark value too, and the plan did not list it
+
+"Show node values" prints the same number the tooltip does, through
+`getRelationsNodeLabelFormatter`, which was still formatting with the panel formatter.
+Leaving it would have put two renderings of one value on screen at once — `42%` in the
+tooltip and `0.42` on the canvas. It now takes the same lookup, so the label and the
+tooltip cannot disagree.
+
+#### Item 15 was already true, and the half of it that is not is deliberate
+
+Nothing needed changing for the colour picker: `buildLegendItems` has mapped fields
+since phase 2, and `changeSeriesColorConfig` is not a family-specific path — it is the
+ordinary `byName` fixed-colour override every panel writes, which the override engine
+applies to the node's own field. The family-specific colour path
+(`getSeriesColorOverride`) was deleted in phase 3. What phase 5 added is the **proof**,
+because nothing else would notice if it came back: a re-implementation looks identical
+from the outside until an override uses `byRegexp`, or a colour name needs theme
+resolution. `charts/relations.test.ts` now drives the real writer and asserts that
+`dark-red` on one node arrives as `#C4162A` on that node alone, on the swatch as well
+as the chart.
+
+**`getHiddenSeriesNames` does not go**, and the plan was wrong to say it would. Phase 4
+established why: a node **derived** from an edge's endpoints has no field, so no
+override can have been applied to it, and its name is the only thing left to match on.
+That by-name read survives in `hiddenNodeIds` and will until gap 4 is answered.
+
+#### One gap this phase surfaced without closing
+
+`commonOptionsBuilder.addHideFrom` registers three switches — Viz, Legend, Tooltip —
+and **only Viz does anything**, in this family and in every other family in the plugin
+(nothing anywhere reads `hideFrom.legend` or `hideFrom.tooltip`). Phase 5 is where that
+becomes visible, since the legend and the tooltip are now per mark and could honour
+them cheaply. It is deliberately not fixed here: fixing it for relations alone would
+make one family behave differently from the other six, and the switches are registered
+by a shared `@grafana/ui` helper, so the fix belongs at the level that reads them back.
 
 ### Phase 6 — docs and provisioning
 
@@ -604,11 +681,11 @@ Three verdicts:
 | Edges have no colour-scheme path at all                                | `toLinkItems` took no `ctx` (`graph.ts`)        | **Closed**         | Shipped in phase 3. An edge is a field, so it has a display processor and a `byName` override targets it                   |
 | A `byName` fixed colour is not theme-resolved                          | `fields/seriesConfig.ts:116-127`                | **Closed**         | `applyFieldOverrides` resolves it upstream (measured: `dark-red` → `#C4162A`). Pie and hierarchy still route round it      |
 | `field.state.range` contaminated by `noderadius` / `arc__*` / `fixedx` | `relations-color-schemes.md`                    | **Wide only**      | Measured: legacy `{min: 0.5, max: 60}` vs wide `{min: 8, max: 12}`                                                         |
-| A link on `mainstat` paints on **every** node                          | `relations-data-links.md` gap 1                 | **Wide only**      | Demonstrated on the proof dashboard: one link, one node                                                                    |
-| Only `mainstat` consulted for links; edges usually unreachable         | gap 2                                           | **Wide only**      | Each mark carries its own field                                                                                            |
-| A node can be handed the **edges** frame's field                       | gap 3                                           | **Wide only**      | Structurally impossible                                                                                                    |
+| A link on `mainstat` paints on **every** node                          | `relations-data-links.md` gap 1                 | **Wide only**      | Shipped in phase 5: the footer resolves the hovered mark's own field. One link, one node — with a hover test to prove it   |
+| Only `mainstat` consulted for links; edges usually unreachable         | gap 2                                           | **Wide only**      | Shipped in phase 5. Each mark carries its own field, and an edge is addressed by `markId` so parallel edges stay distinct  |
+| A node can be handed the **edges** frame's field                       | gap 3                                           | **Wide only**      | Shipped in phase 5, and structurally impossible: nodes and edges are separate lookups keyed by the mark's own name         |
 | Derived nodes carry no row, so no links                                | gap 4                                           | **Partially open** | See [below](#gap-4-is-only-partially-closed)                                                                               |
-| Tooltip unit decided by frame order, not the hovered item              | `formatter.ts`, `Panel.tsx`                     | **Wide only**      | Each mark has its own `field.display`                                                                                      |
+| Tooltip unit decided by frame order, not the hovered item              | `formatter.ts`, `Panel.tsx`                     | **Wide only**      | Shipped in phase 5: each mark formats with its own `field.display`, in the tooltip **and** the node label                  |
 | `custom.hideFrom` registered with no reachable editor                  | `editor/relations/fieldConfig.ts`               | **Closed**         | Shipped in phase 4: the real `addHideFrom`, hiding one node or one edge                                                    |
 | Legend hiding re-implemented by name; `stripHiddenValueFields` skipped | `charts/relations.ts`, `options/panelOption.ts` | **Partially open** | The by-name read is gone for any mark with a field; a _derived_ node has none, and the strip exclusion earned a new reason |
 | Per-item colour, links, size, curveness                                | `relations-item-overrides.md` (unbuilt)         | **Closed**         | Shipped: a `byName` override over `custom.*`. No new editor, no new schema, no `relationsItemRules`                        |

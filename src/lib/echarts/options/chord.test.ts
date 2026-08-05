@@ -126,7 +126,7 @@ describe('getChordSeries', () => {
 
     expect(series.type).toBe('chord');
     expect(nodeItems(series).map((node) => node.id)).toEqual(['a', 'b']);
-    expect(linkItems(series)).toEqual([{ source: 'a', target: 'b', value: 5 }]);
+    expect(linkItems(series)).toEqual([{ markId: 'e1', source: 'a', target: 'b', value: 5 }]);
   });
 
   it('omits every ring key at its ECharts default', () => {
@@ -226,15 +226,17 @@ describe('getChordSeries', () => {
       const series = getChordSeries(cyclic, ctx());
 
       expect(linkItems(series)).toEqual([
-        { source: 'a', target: 'b', value: 1 },
-        { source: 'b', target: 'a', value: 2 },
+        { markId: 'e1', source: 'a', target: 'b', value: 1 },
+        { markId: 'e2', source: 'b', target: 'a', value: 2 },
       ]);
     });
 
     it('keeps a self-loop, which a sankey would have to drop', () => {
       const selfLoop = data({ links: [{ id: 'e1', source: 'a', target: 'a', value: 3 }] });
 
-      expect(linkItems(getChordSeries(selfLoop, ctx()))).toEqual([{ source: 'a', target: 'a', value: 3 }]);
+      expect(linkItems(getChordSeries(selfLoop, ctx()))).toEqual([
+        { markId: 'e1', source: 'a', target: 'a', value: 3 },
+      ]);
     });
   });
 });

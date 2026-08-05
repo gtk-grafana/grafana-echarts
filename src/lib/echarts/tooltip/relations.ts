@@ -1,12 +1,15 @@
+import { type Field, type GrafanaTheme2 } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { formatEChartsValue } from 'lib/echarts/style';
+import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
+import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import {
   type RelationsLinkItem,
+  type RelationsMark,
+  type RelationsMarks,
   type RelationsNodeItem,
   type RelationsTooltipContext,
   type TooltipModel,
   type TooltipRow,
-  type TooltipSource,
 } from 'lib/echarts/tooltip/types';
 
 /**
@@ -23,17 +26,57 @@ function isNodeItem(value: unknown): value is RelationsNodeItem {
   return typeof value === 'object' && value !== null && 'id' in value && !isLinkItem(value);
 }
 
+/** A mark that has a field of its own; a derived node has neither and is skipped. */
+type FieldedMark = { id: string; field?: Field; sourceRowIndex?: number };
+
+function toMarkMap(marks: FieldedMark[], theme: GrafanaTheme2, timeZone?: string): Map<string, RelationsMark> {
+  const byKey = new Map<string, RelationsMark>();
+  for (const { id, field, sourceRowIndex } of marks) {
+    if (field != null) {
+      byKey.set(id, {
+        formatValue: getValueFormatter(field, theme, timeZone),
+        // A wide frame reduces to a single row, so the row is the mark's own `0`;
+        // the fallback only matters for a fixture that omitted it.
+        source: { field, rowIndex: sourceRowIndex ?? 0 },
+      });
+    }
+  }
+  return byKey;
+}
+
 /**
- * Tooltip content model for the relations (`graph`) series, rendered by the React
- * overlay (`EChartsTooltip`).
+ * Each mark's own display processor and link source, built once per render.
+ *
+ * This is what closes "tooltip unit decided by frame order" and gaps 1-3 of
+ * `todo/relations-data-links.md` at the same time, because both had the same cause:
+ * the tooltip resolved *one* field for the whole series (the frame's first numeric
+ * column), so every node formatted with that field's unit and surfaced that field's
+ * links. A mark is a field now, so each one answers for itself — two nodes can carry
+ * different units, and a `byName` `links` override paints a link on exactly one node.
+ */
+export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaTheme2, timeZone?: string): RelationsMarks {
+  return {
+    nodes: toMarkMap(data.nodes, theme, timeZone),
+    links: toMarkMap(data.links, theme, timeZone),
+  };
+}
+
+/**
+ * Tooltip content model for the relations series, rendered by the React overlay
+ * (`EChartsTooltip`).
  *
  * A relations hover is always a single node or a single link — there is no shared
  * axis pointer — so this is built in the series formatter rather than via an
  * axis-triggered tooltip, matching the hierarchy and pie families.
  *
- * - **Node**: name as header; `mainstat` as the `Value` row, plus `Subtitle` and
+ * - **Node**: name as header; the main stat as the `Value` row, plus `Subtitle` and
  *   `secondarystat` rows when present.
  * - **Link**: `source → target` as header; the resolved weight as `Value`.
+ *
+ * Values format with the **hovered mark's own** field, and the footer resolves that
+ * field's data links; see {@link getRelationsTooltipMarks}. A node derived from an
+ * edge's endpoints has no field, so it formats with the panel's formatter and shows
+ * no footer — `todo/relations-data-links.md` gap 4, which the contract does not close.
  */
 export function buildRelationsTooltipModel(
   ctx: RelationsTooltipContext
@@ -44,56 +87,51 @@ export function buildRelationsTooltipModel(
     const color = typeof param?.color === 'string' ? param.color : undefined;
 
     if (isLinkItem(data)) {
-      // A link's stats come from the edges frame, so its footer resolves against
-      // that frame's `mainstat` rather than the node one.
-      const source: TooltipSource | undefined =
-        ctx.linkValueField != null && data.sourceRowIndex != null
-          ? { field: ctx.linkValueField, rowIndex: data.sourceRowIndex }
-          : undefined;
+      // The edge's own field: its unit formats the weight and its `config.links`
+      // fill the footer. Keyed by `markId` because two parallel edges share their
+      // endpoints — see `RelationsLinkItem.markId`.
+      const mark = data.markId != null ? ctx.marks?.links.get(data.markId) : undefined;
       const rows: TooltipRow[] = [
         {
           color,
           label: 'Value',
-          value: formatEChartsValue(data.value ?? null, ctx.formatValue),
-          source,
+          value: formatEChartsValue(data.value ?? null, mark?.formatValue ?? ctx.formatValue),
+          source: mark?.source,
         },
       ];
-      return { header: { label: `${data.source} → ${data.target}`, value: '' }, rows, source };
+      return { header: { label: `${data.source} → ${data.target}`, value: '' }, rows, source: mark?.source };
     }
 
     const node = isNodeItem(data) ? data : undefined;
-    // A node built from a nodes-frame row resolves that row's data links. Nodes
-    // *derived* from the edges frame carry no row, so they render no footer.
-    const source: TooltipSource | undefined =
-      ctx.valueField != null && node?.sourceRowIndex != null
-        ? { field: ctx.valueField, rowIndex: node.sourceRowIndex }
-        : undefined;
+    const mark = node != null ? ctx.marks?.nodes.get(node.id) : undefined;
 
     const rows: TooltipRow[] = [
       {
         color,
         label: 'Value',
-        // `stat` first: the sankey variant carries `mainstat` there rather than in
-        // `value`, which it leaves to ECharts' flow computation. See `RelationsNodeItem`.
-        value: formatEChartsValue(node?.stat ?? node?.value ?? null, ctx.formatValue),
-        source,
+        // `stat` first: the sankey and chord variants carry the main stat there
+        // rather than in `value`, which they leave to ECharts' flow computation.
+        // See `RelationsNodeItem`.
+        value: formatEChartsValue(node?.stat ?? node?.value ?? null, mark?.formatValue ?? ctx.formatValue),
+        source: mark?.source,
       },
     ];
     if (node?.subtitle != null) {
       rows.push({ label: 'Subtitle', value: node.subtitle });
     }
     if (node?.secondary != null) {
-      // `secondarystat` may be a string, in which case it is shown as-is (the
-      // node-graph spec: "A string is shown as-is; a number also shows its unit").
+      // The reducer path already formatted the secondary stat through the mark's own
+      // display processor (`secondaryOf`), so a number only reaches here from a
+      // `secondarystat` label the conversion carried, which has no unit of its own.
       rows.push({
         label: 'Secondary',
         value:
           typeof node.secondary === 'number'
-            ? formatEChartsValue(node.secondary, ctx.formatValue)
+            ? formatEChartsValue(node.secondary, mark?.formatValue ?? ctx.formatValue)
             : String(node.secondary),
       });
     }
 
-    return { header: { label: node?.name ?? String(param?.name ?? ''), value: '' }, rows, source };
+    return { header: { label: node?.name ?? String(param?.name ?? ''), value: '' }, rows, source: mark?.source };
   };
 }
