@@ -253,6 +253,26 @@ export interface ChartModule {
    */
   getLegendHighlightTargets?(ctx: ChartContext, label: string): LegendHighlightTarget[];
   /**
+   * Every name the legend's visibility override has to account for, when that is
+   * **wider than the legend itself**.
+   *
+   * The toggle persists as core's `hideSeriesFrom` system override: a `byNames`
+   * matcher in *exclude* mode listing the names to keep, i.e. "hide everything
+   * else". "Everything else" is whatever Grafana's override engine can match, so if
+   * a family has fields the legend does not list, isolating one legend row hides
+   * those too — silently, because nothing in the legend refers to them.
+   *
+   * Relations is the case: the legend lists nodes, but under the field-based graph
+   * contract each **edge** is also a field, so hiding one node would otherwise erase
+   * every edge in the panel. It returns node names plus edge names, which keeps the
+   * edges in the kept list and leaves the graph semantics (drop the links touching a
+   * hidden node) to the chart, where they belong.
+   *
+   * Optional: families whose legend rows are their whole field universe omit it, and
+   * `useSeriesVisibility` falls back to the legend item names.
+   */
+  getOverrideTargetNames?(ctx: ChartContext): string[];
+  /**
    * Resolve the value formatter for a hovered tooltip item so each series
    * formats with its own field's unit/decimals overrides. Chart families map the
    * item to a field differently (by `seriesIndex` or `dataIndex`). Optional:

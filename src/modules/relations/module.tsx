@@ -1,12 +1,14 @@
 import { PanelPlugin } from '@grafana/data';
+import { initPluginTranslations } from '@grafana/i18n';
 import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } from 'editor/constants';
-import { type EChartsFieldConfig } from 'editor/types';
+import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { addHiddenSeriesHideFrom, STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
+import { addRelationsCustomConfig } from 'lib/grafana/editor/relations/fieldConfig';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
@@ -19,26 +21,28 @@ import { type PanelOptions } from 'types';
 import { relationsDataTransformations } from './dataTransformations';
 import { relationsSuggestionsSupplier } from './suggestions';
 
+// Needs to be called at each top-level module to prevent panels from breaking when
+// calling grafana/i18n methods (like t()). `addRelationsStatOptions` calls `t()` while
+// the options supplier runs, and the plugin bundles its own `@grafana/i18n` (it is not
+// in the shared externals list), so without this the supplier throws
+// "t() was called before i18n was initialized" — which surfaces as a panel stuck
+// forever on "Loading plugin panel...", with no error anywhere in the UI.
+
+initPluginTranslations('grafana-echarts-app');
+
 // Relations family panel: nodes plus the links between them, read from the field-based
 // graph contract — one node is one field, one edge is one field. Three render variants —
 // `graph`, `sankey` and `chord` — over one converter, since all three ECharts series
 // consume the identical node/link input. See data-plane/graph-wide.md and
 // lib/echarts/converters/graphWide.ts. Grafana's row-based node-graph frames are
 // converted to the contract above the panel, by the transformation registered below.
-const relationsPlugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('relations'))
+const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({
     standardOptions: STANDARD_COLOR_OPTIONS,
-    // Register `custom.hideFrom` so the legend visibility toggle's override is
-    // kept — Grafana skips override properties no plugin registered, so without
-    // this a legend click writes a config that is discarded and nothing hides.
-    //
-    // Still registered with no editor, and the family still reads the hidden set
-    // by name (`withoutHiddenNodes` in `charts/relations.ts`), even though a mark
-    // is now a field and a `byName` `custom.hideFrom` override *would* target it.
-    // Swapping in the real `commonOptionsBuilder.addHideFrom` and dropping the
-    // relations exclusion from `stripHiddenValueFields` is phase 4 of the
-    // migration — see todo/graph-wide-migration.md.
-    useCustomConfig: addHiddenSeriesHideFrom,
+    // Per-mark style, addressable by an ordinary field override because a mark is a
+    // field: node radius, subtitle and pinned position; edge width, line type and
+    // curveness; and the real "Hide in area" switches. See `addRelationsCustomConfig`.
+    useCustomConfig: addRelationsCustomConfig,
   })
   .setPanelOptions((builder) => {
     // Editor mode (Default / Advanced) — registered first so it renders at the top.
