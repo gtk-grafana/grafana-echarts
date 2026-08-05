@@ -13,7 +13,6 @@ import { toSankeyLinks } from 'lib/echarts/converters/dag';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
   getRelationsNodeLabelFormatter,
-  makeRelationsColorResolver,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
@@ -150,10 +149,8 @@ export function getSankeyEmphasis(options: PanelOptions): SankeySeriesOption['em
  * - **no `x`/`y`** — `SankeyNodeItemOption` positions with `localX`/`localY`/`depth`,
  *   not the graph variant's pixel coordinates, so `fixedx`/`fixedy` are dropped.
  */
-function toSankeyNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): RelationsNodeItem[] {
-  const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField);
-
-  return nodes.map((node, index) => {
+function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
+  return nodes.map((node) => {
     const item: RelationsNodeItem = {
       // As with graph: `id` pins link resolution to the frame's `id`, freeing `name`
       // to carry the human-readable `title` for the label.
@@ -163,9 +160,8 @@ function toSankeyNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): 
     if (node.value != null) {
       item.stat = node.value;
     }
-    const color = resolveColor(node, index);
-    if (color != null) {
-      item.itemStyle = { color };
+    if (node.color != null) {
+      item.itemStyle = { color: node.color };
     }
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
@@ -270,7 +266,7 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
     label: getSankeyLabel(ctx),
     lineStyle: getSankeyLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,
-    data: toSankeyNodeItems(data.nodes, ctx),
+    data: toSankeyNodeItems(data.nodes),
     links: toSankeyLinkItems(links),
     tooltip: seriesTooltip(
       buildRelationsTooltipModel({

@@ -9,7 +9,6 @@ import {
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
   getRelationsNodeLabelFormatter,
-  makeRelationsColorResolver,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
@@ -123,17 +122,14 @@ export function getChordEmphasis(options: PanelOptions): NonNullable<ChordSeries
  * widen the arc out of step with its own ribbons. The stat rides as `stat` for the
  * tooltip. See `RelationsNodeItem`.
  */
-function toChordNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): RelationsNodeItem[] {
-  const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField);
-
-  return nodes.map((node, index) => {
+function toChordNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
+  return nodes.map((node) => {
     const item: RelationsNodeItem = { id: node.id, name: node.name };
     if (node.value != null) {
       item.stat = node.value;
     }
-    const color = resolveColor(node, index);
-    if (color != null) {
-      item.itemStyle = { color };
+    if (node.color != null) {
+      item.itemStyle = { color: node.color };
     }
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
@@ -210,7 +206,7 @@ export function getChordSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     roam: ctx.options.relationsRoam === true,
     label: getChordLabel(ctx),
     zlevel: ctx.options.zLevel?.series,
-    data: toChordNodeItems(data.nodes, ctx),
+    data: toChordNodeItems(data.nodes),
     links: toChordLinkItems(data.links),
     tooltip: seriesTooltip(
       buildRelationsTooltipModel({

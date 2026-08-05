@@ -1,20 +1,13 @@
-import {
-  type Field,
-  type FieldConfigSource,
-  getDisplayProcessor,
-  getFieldColorModeForField,
-  type GrafanaTheme2,
-} from '@grafana/data';
+import { type Field } from '@grafana/data';
 import { type GraphSeriesOption } from 'echarts';
 import { type CallbackDataParams, type ECBasicOption, type LinearGradientObject } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
+import { type NodeGraphData, type RelationLink } from 'lib/echarts/converters/relationsModel';
 import { createBaseOptions } from 'lib/echarts/options/base';
-import { formatEChartsValue, getPaletteColorByIndex } from 'lib/echarts/style';
+import { formatEChartsValue } from 'lib/echarts/style';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
-import { getSeriesColorOverride } from 'lib/grafana/fields/seriesConfig';
 import { type PanelOptions } from 'types';
 
 /**
@@ -78,57 +71,6 @@ export interface RelationsSeriesContext extends RelationsChartContext {
   valueField?: Field;
   /** The edges frame's `mainstat`, for a hovered link's footer data links. */
   linkValueField?: Field;
-}
-
-/** Resolves the color for a single node; `undefined` leaves it to ECharts. */
-export type RelationsColorResolver = (node: RelationNode, index: number) => string | undefined;
-
-/**
- * Build a node color resolver, mirroring `makeHierarchyColorResolver`'s three
- * tiers so the families behave alike:
- *
- * - a fixed-color override (legend color picker) wins, matched by node name;
- * - the node's own `color` field wins next — the node-graph spec's explicit
- *   per-node HTML color;
- * - an explicitly-configured by-value scheme colors every node from its
- *   `mainstat` via the field's display processor;
- * - otherwise the classic palette colors nodes by position.
- *
- * See https://grafana.com/docs/grafana/latest/panels-visualizations/configure-standard-options/#color-scheme
- */
-export function makeRelationsColorResolver(
-  theme: GrafanaTheme2,
-  fieldConfig: FieldConfigSource,
-  valueField?: Field
-): RelationsColorResolver {
-  // As in hierarchy: treat "no color config" as the classic palette, because the
-  // panel's registered default is PaletteClassic even though Grafana's own default
-  // mode is by-value (thresholds).
-  const byValue =
-    valueField != null &&
-    valueField.config.color?.mode != null &&
-    getFieldColorModeForField(valueField).isByValue === true;
-  const display =
-    byValue && valueField ? (valueField.display ?? getDisplayProcessor({ field: valueField, theme })) : undefined;
-
-  return (node, index) => {
-    const override = getSeriesColorOverride(fieldConfig, node.name);
-    if (override) {
-      return override;
-    }
-    if (node.color != null) {
-      return node.color;
-    }
-    // `paletteIndex` is the node's position before the legend filtered anything, so
-    // hiding a node does not re-colour the ones after it. See `RelationNode`.
-    const paletteIndex = node.paletteIndex ?? index;
-    if (display) {
-      return (
-        (node.value != null ? display(node.value).color : undefined) ?? getPaletteColorByIndex(paletteIndex, theme)
-      );
-    }
-    return getPaletteColorByIndex(paletteIndex, theme);
-  };
 }
 
 /**
@@ -272,16 +214,19 @@ export function getGraphLinkStyle(options: PanelOptions): NonNullable<GraphSerie
   return lineStyle;
 }
 
-/** Each node's rendered colour, by node id — the same values `toNodeItems` paints. */
-function resolveNodeColors(data: NodeGraphData, ctx: RelationsSeriesContext): Map<string, string> {
-  const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField);
+/**
+ * Each node's rendered colour, by node id, so the edge gradients can look one up by
+ * endpoint. There is no resolution left to do: the mark's own display processor
+ * decided the colour in `converters/graphWide.ts`, which is what makes a `byName`
+ * override, a fixed colour and a by-value scheme all work with no code here.
+ */
+function nodeColorsById(data: NodeGraphData): Map<string, string> {
   const colors = new Map<string, string>();
-  data.nodes.forEach((node, index) => {
-    const color = resolveColor(node, index);
-    if (color != null) {
-      colors.set(node.id, color);
+  for (const node of data.nodes) {
+    if (node.color != null) {
+      colors.set(node.id, node.color);
     }
-  });
+  }
   return colors;
 }
 
@@ -350,11 +295,7 @@ function makeEdgeGradientResolver(
 }
 
 /** Map the model's nodes to ECharts graph data items. */
-function toNodeItems(
-  data: NodeGraphData,
-  ctx: RelationsSeriesContext,
-  nodeColors: ReadonlyMap<string, string>
-): RelationsNodeItem[] {
+function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): RelationsNodeItem[] {
   const defaultSize = ctx.options.relationsNodeSize ?? RELATIONS_NODE_SIZE_DEFAULT;
 
   return data.nodes.map((node) => {
@@ -371,9 +312,8 @@ function toNodeItems(
     if (node.value != null) {
       item.value = node.value;
     }
-    const color = nodeColors.get(node.id);
-    if (color != null) {
-      item.itemStyle = { color };
+    if (node.color != null) {
+      item.itemStyle = { color: node.color };
     }
     // Honor pinned coordinates; only meaningful under `layout: 'none'`.
     if (node.fixedX != null && node.fixedY != null) {
@@ -437,10 +377,9 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
   const force = getGraphForce(ctx.options);
   const edgeSymbol = getGraphEdgeSymbol(ctx.options);
   const emphasis = getGraphEmphasis(ctx.options);
-  // Resolved once and shared: the edge gradients must use the very colours the nodes
-  // were painted with, overrides included, or the blend would not meet its endpoints.
-  const nodeColors = resolveNodeColors(data, ctx);
-  const resolveGradient = makeEdgeGradientResolver(data, nodeColors, ctx.options);
+  // Indexed by endpoint: the edge gradients must use the very colours the nodes were
+  // painted with, overrides included, or the blend would not meet its endpoints.
+  const resolveGradient = makeEdgeGradientResolver(data, nodeColorsById(data), ctx.options);
 
   return {
     type: 'graph',
@@ -454,7 +393,7 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     label: getGraphLabel(ctx),
     lineStyle: getGraphLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,
-    data: toNodeItems(data, ctx, nodeColors),
+    data: toNodeItems(data, ctx),
     links: toLinkItems(data.links, resolveGradient),
     tooltip: seriesTooltip(
       buildRelationsTooltipModel({

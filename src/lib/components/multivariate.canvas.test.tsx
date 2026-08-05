@@ -114,15 +114,14 @@ describe('multivariate (parallel) canvas renders', () => {
 
   describe('color', () => {
     // A byName fixed-color override pins line 'Team B' — applied to the frames via
-    // the harness `fieldConfig` (as real Grafana does), so it reaches the converter
-    // and rides on that line's data-item `lineStyle.color`.
+    // the harness `fieldConfig` (as real Grafana does)
     it('byName fixed-color override', async () => {
       const fieldConfig: FieldConfigSource = {
         defaults: {},
         overrides: [
           {
             matcher: { id: 'byName', options: 'Team B' },
-            properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'purple' } }],
+            properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'red' } }],
           },
         ],
       };

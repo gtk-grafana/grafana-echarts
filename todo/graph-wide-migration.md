@@ -1,11 +1,11 @@
 # Migrating the relations family onto `graph-*-wide`
 
-> **Status: phases 1–2 shipped, and the long reader is already gone.** The contract is
+> **Status: phases 1–3 shipped, and the long reader is already gone.** The contract is
 > specified and validated in [../data-plane/graph-wide.md](../data-plane/graph-wide.md),
 > with a proof dashboard at `provisioning/dashboards/relations/graph-wide.json`.
-> `converters/graphWide.ts` is now the family's only reader;
+> `converters/graphWide.ts` is now the family's only reader **and its only colour path**;
 > `converters/legacyToWide.ts` converts Grafana's row format **above** the panel through
-> `PanelPlugin.setDataTransformations`. Phases 3–6 remain.
+> `PanelPlugin.setDataTransformations`. Phases 4–6 remain.
 >
 > Two decisions changed during implementation and are recorded inline below, at
 > [Deviations from the original plan](#deviations-from-the-original-plan): the long
@@ -25,7 +25,9 @@
 | P2.7 the owning `Field` on every mark                  | Done, plus `sourceRowIndex: 0`                                                                        |
 | Long reader deleted                                    | Done — `converters/nodeGraph.ts` and its test are gone (761 lines)                                    |
 | Edge colour                                            | `relationsLinkColor` now defaults to `gradient`; see [Edge colour](#edge-colour)                      |
-| Phases 3–6                                             | Not started                                                                                           |
+| P3.8 `makeRelationsColorResolver` deleted              | Done — colour is `field.display(value).color`; `paletteIndex` went with it                            |
+| P3.9 edge colour schemes                               | Done, by construction — an edge is a field. See [phase 3](#phase-3--delete-the-colour-path--done)     |
+| Phases 4–6                                             | Not started                                                                                           |
 
 The contract makes one node one field and one edge one field, so Grafana's own override
 engine addresses each mark. That closes, as ordinary field behaviour, most of what the
@@ -163,7 +165,7 @@ fixture renders instead of erroring.
 **Exit criterion:** the proof dashboard's wide fixtures render in the relations panel,
 and the adjacency-matrix fixture renders as a graph.
 
-### Phase 3 — delete the colour path
+### Phase 3 — delete the colour path — **done**
 
 8. Colour becomes `field.display(value).color`. `makeRelationsColorResolver`
    (`options/graph.ts`) is **deleted**, along with the `getSeriesColorOverride` call for
@@ -173,6 +175,37 @@ and the adjacency-matrix fixture renders as a graph.
 9. Do the same for edges. `toLinkItems` gains the edge's own field, so the
    "edges have no colour-scheme path at all" gap closes by construction rather than by a
    new resolver.
+
+**What shipped, and the two things that were decided while doing it:**
+
+- **Colour is resolved in the reader, not the options layer.** `frameToGraphWide`
+  already read `field.display(value).color` per mark; it now also fills the one gap the
+  resolver was covering — a node **derived** from an edge's endpoints has no field, so
+  `fillPaletteColors` gives it the classic palette by position. That makes
+  `RelationNode.color` always set, so `graph`, `sankey`, `chord` and the DOM legend all
+  just paint it. `RelationNode.paletteIndex` is **deleted** with the resolver: colour is
+  now decided before `withoutHiddenNodes` filters, so hiding a node cannot shift the
+  colours below it and there is no index to preserve.
+- **Item 9 needed no code.** An edge was already a field carrying its own colour
+  (`edgeColorOf`), so the gap closed when the mark became addressable. What was missing
+  was the proof, which is now an end-to-end test: a `byName` override on `e2` recolours
+  that edge and leaves `e1` on the series-level endpoint mode.
+
+**One test-harness change was a prerequisite, and it exposed a false negative.**
+`applyFieldOverrides` resolves each override property through
+`standardFieldConfigEditorRegistry`, which Grafana core fills from app code a plugin
+cannot import — so under jest that registry is empty, `setDynamicConfigValue` returns on
+its first line, and **every override is silently dropped**. Nothing depended on that
+while the family read overrides straight out of `fieldConfig`; now that the override
+engine _is_ the colour path, a test could not have observed it at all. `test/fieldConfig.ts`
+supplies a one-entry registry (`color` only, so no other family's defaults start
+applying) and `test/panel.tsx` routes through it. Two canvas snapshots moved, both
+corrections:
+
+| Snapshot                                              | Before    | After     | Why                                                                                            |
+| ----------------------------------------------------- | --------- | --------- | ---------------------------------------------------------------------------------------------- |
+| relations `honors a byName color override`            | `#800080` | `#B877D9` | The old resolver handed ECharts the raw name `purple`; the display processor theme-resolves it |
+| multivariate (parallel) `byName fixed-color override` | `#5794F2` | `#B877D9` | The override had never applied at all — the line was rendering its plain palette colour        |
 
 **Note for hierarchy.** `hierarchy.ts:64-69` has the byte-identical broken guard, and
 hierarchy is **not** pivoting in this plan. So
@@ -457,22 +490,22 @@ Three verdicts:
 
 ### Every row of the "what this buys" argument
 
-| Documented problem                                                     | Where                                                   | Verdict            | Note                                                                                                                     |
-| ---------------------------------------------------------------------- | ------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Only 2 of 8 colour modes reach the chart                               | `relations-color-schemes.md`; `options/graph.ts:91-124` | **Wide only**      | Colour becomes `field.display(value).color`; the resolver is deleted for this family. **Hierarchy still needs the fix.** |
-| Edges have no colour-scheme path at all                                | `toLinkItems` takes no `ctx` (`graph.ts`)               | **Wide only**      | An edge is a field, so it has a display processor                                                                        |
-| A `byName` fixed colour is not theme-resolved                          | `fields/seriesConfig.ts:116-127`                        | **Closed**         | `applyFieldOverrides` resolves it upstream (measured: `dark-red` → `#C4162A`). Pie and hierarchy still route round it    |
-| `field.state.range` contaminated by `noderadius` / `arc__*` / `fixedx` | `relations-color-schemes.md`                            | **Wide only**      | Measured: legacy `{min: 0.5, max: 60}` vs wide `{min: 8, max: 12}`                                                       |
-| A link on `mainstat` paints on **every** node                          | `relations-data-links.md` gap 1                         | **Wide only**      | Demonstrated on the proof dashboard: one link, one node                                                                  |
-| Only `mainstat` consulted for links; edges usually unreachable         | gap 2                                                   | **Wide only**      | Each mark carries its own field                                                                                          |
-| A node can be handed the **edges** frame's field                       | gap 3                                                   | **Wide only**      | Structurally impossible                                                                                                  |
-| Derived nodes carry no row, so no links                                | gap 4                                                   | **Partially open** | See [below](#gap-4-is-only-partially-closed)                                                                             |
-| Tooltip unit decided by frame order, not the hovered item              | `formatter.ts`, `Panel.tsx`                             | **Wide only**      | Each mark has its own `field.display`                                                                                    |
-| `custom.hideFrom` registered with no reachable editor                  | `lib/grafana/editor/common/fieldConfig.ts`              | **Wide only**      | Becomes a real per-mark override; `addHiddenSeriesHideFrom` stays for legacy                                             |
-| Legend hiding re-implemented by name; `stripHiddenValueFields` skipped | `charts/relations.ts`, `options/panelOption.ts`         | **Wide only**      | Both stay in place for legacy input                                                                                      |
-| Per-item colour, links, size, curveness                                | `relations-item-overrides.md` (unbuilt)                 | **Closed**         | A `byName` override. No new editor, no new schema, no `relationsItemRules`                                               |
-| Two SQL Expressions to reshape Prometheus                              | `relations-data-sources.md`                             | **Closed**         | One `legendFormat`. Verified — but the legend format is **required**, not optional (see the contract's Sourcing section) |
-| Instant queries mandatory                                              | `relations-data-sources.md`                             | **Closed**         | A range query is a row dimension, reduced by `calcs[0]`                                                                  |
+| Documented problem                                                     | Where                                           | Verdict            | Note                                                                                                                     |
+| ---------------------------------------------------------------------- | ----------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Only 2 of 8 colour modes reach the chart                               | `relations-color-schemes.md`                    | **Closed**         | Shipped in phase 3: colour is `field.display(value).color` and the resolver is gone. **Hierarchy still needs the fix.**  |
+| Edges have no colour-scheme path at all                                | `toLinkItems` took no `ctx` (`graph.ts`)        | **Closed**         | Shipped in phase 3. An edge is a field, so it has a display processor and a `byName` override targets it                 |
+| A `byName` fixed colour is not theme-resolved                          | `fields/seriesConfig.ts:116-127`                | **Closed**         | `applyFieldOverrides` resolves it upstream (measured: `dark-red` → `#C4162A`). Pie and hierarchy still route round it    |
+| `field.state.range` contaminated by `noderadius` / `arc__*` / `fixedx` | `relations-color-schemes.md`                    | **Wide only**      | Measured: legacy `{min: 0.5, max: 60}` vs wide `{min: 8, max: 12}`                                                       |
+| A link on `mainstat` paints on **every** node                          | `relations-data-links.md` gap 1                 | **Wide only**      | Demonstrated on the proof dashboard: one link, one node                                                                  |
+| Only `mainstat` consulted for links; edges usually unreachable         | gap 2                                           | **Wide only**      | Each mark carries its own field                                                                                          |
+| A node can be handed the **edges** frame's field                       | gap 3                                           | **Wide only**      | Structurally impossible                                                                                                  |
+| Derived nodes carry no row, so no links                                | gap 4                                           | **Partially open** | See [below](#gap-4-is-only-partially-closed)                                                                             |
+| Tooltip unit decided by frame order, not the hovered item              | `formatter.ts`, `Panel.tsx`                     | **Wide only**      | Each mark has its own `field.display`                                                                                    |
+| `custom.hideFrom` registered with no reachable editor                  | `lib/grafana/editor/common/fieldConfig.ts`      | **Wide only**      | Becomes a real per-mark override; `addHiddenSeriesHideFrom` stays for legacy                                             |
+| Legend hiding re-implemented by name; `stripHiddenValueFields` skipped | `charts/relations.ts`, `options/panelOption.ts` | **Wide only**      | Both stay in place for legacy input                                                                                      |
+| Per-item colour, links, size, curveness                                | `relations-item-overrides.md` (unbuilt)         | **Closed**         | A `byName` override. No new editor, no new schema, no `relationsItemRules`                                               |
+| Two SQL Expressions to reshape Prometheus                              | `relations-data-sources.md`                     | **Closed**         | One `legendFormat`. Verified — but the legend format is **required**, not optional (see the contract's Sourcing section) |
+| Instant queries mandatory                                              | `relations-data-sources.md`                     | **Closed**         | A range query is a row dimension, reduced by `calcs[0]`                                                                  |
 
 ### Every field of `node-graph.md`
 
@@ -577,19 +610,23 @@ contract, so its **recommendation is superseded**:
 
 ### `relations-color-schemes.md`
 
-- Problem **1** (the two-branch dispatch) — closed for relations by deletion, **still
-  open for hierarchy**, which shares the identical guard. **Do not delete this doc.**
-- Problem **2** (no way to target one node or one edge) — closed.
+- Problem **1** (the two-branch dispatch) — **closed for relations by deletion**
+  (phase 3), **still open for hierarchy**, which shares the identical guard. **Do not
+  delete this doc.**
+- Problem **2** (no way to target one node or one edge) — closed, and covered by tests
+  on both halves: a `byName` override recolours one node, and one edge.
 - **A1** — still needed, for hierarchy.
 - **A2** — dissolves. There is no "which field's scheme applies to which number"
   question when the mark _is_ the field.
 - **A3** (bounded domain) — dissolves for wide input; the measured range is mark values
   only.
-- **A4** (theme-resolve the override) — **already true** and always was:
-  `applyFieldOverrides` resolves `fixedColor` through the theme before the panel sees it
-  (measured). The bug is that pie and relations re-resolve it from `fieldConfig`
-  themselves instead of reading `field.display`. Worth fixing at the source anyway,
-  because pie and hierarchy still do.
+- **A4** (theme-resolve the override) — **fixed for relations in phase 3**, and it was
+  always true upstream: `applyFieldOverrides` resolves `fixedColor` through the theme
+  before the panel sees it. The bug was that the family re-resolved it from
+  `fieldConfig` itself instead of reading `field.display`, so `purple` reached ECharts
+  as the CSS keyword `#800080` rather than Grafana's `#B877D9` — visible in the
+  relations canvas snapshot diff. **Pie and hierarchy still do this**, so the fix is
+  still owed at the source.
 - **B1/B2** (legend as the targeting surface) — unnecessary for wide input; the legend
   colour picker writes an ordinary `byName` override that the engine applies.
 - **B5** (honour `byRegexp` in `getSeriesColorOverride`) — dissolves, and its named

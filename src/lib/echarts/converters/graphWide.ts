@@ -11,6 +11,7 @@ import {
   ReducerID,
 } from '@grafana/data';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
+import { getPaletteColorByIndex } from 'lib/echarts/style';
 
 /**
  * Reader for the field-based graph contract: **one node is one field, one edge is one
@@ -347,6 +348,31 @@ function readNodes(frame: DataFrame, calc: string, secondaryCalc: string | undef
 }
 
 /**
+ * Give every node a color, so none falls through to ECharts' own palette — which is
+ * not the theme's.
+ *
+ * A node that *has* a field is already colored by `colorOf`, and that is the whole
+ * color path: whatever `applyFieldOverrides` resolved onto the field arrives here
+ * done. This fills the two cases where there is nothing to read. A node **derived**
+ * from an edge's endpoints has no field at all, and a field seen upstream of the
+ * override pass (unit tests, a bare `PanelRenderer`) may carry no color choice. Both
+ * take the classic palette by position, which is the family's long-standing default
+ * for "nothing configured".
+ *
+ * Runs once the node list is final, so the index is the one the legend and every
+ * render variant see. It is also the index *before* the legend hides anything
+ * (`withoutHiddenNodes` filters afterwards), so toggling a node off does not shift
+ * the colours of the ones below it.
+ */
+function fillPaletteColors(nodes: RelationNode[], theme: GrafanaTheme2): void {
+  nodes.forEach((node, index) => {
+    if (node.color == null) {
+      node.color = getPaletteColorByIndex(index, theme);
+    }
+  });
+}
+
+/**
  * Node set from the links alone, for edge-only responses.
  *
  * Order follows first appearance in the link list, which keeps palette colours stable
@@ -374,7 +400,7 @@ function deriveNodesFromLinks(links: RelationLink[]): RelationNode[] {
  */
 export function frameToGraphWide(
   frames: DataFrame[],
-  _theme: GrafanaTheme2,
+  theme: GrafanaTheme2,
   reduceOptions?: ReduceDataOptions
 ): NodeGraphData | null {
   const roles = resolveGraphWideRoles(frames);
@@ -401,5 +427,10 @@ export function frameToGraphWide(
     }
   }
 
-  return nodes.length > 0 ? { nodes, links } : null;
+  if (nodes.length === 0) {
+    return null;
+  }
+
+  fillPaletteColors(nodes, theme);
+  return { nodes, links };
 }

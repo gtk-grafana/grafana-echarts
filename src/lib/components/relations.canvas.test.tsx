@@ -1,6 +1,6 @@
 import { type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
-import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
 import { render } from '@testing-library/react';
+import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
 import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
@@ -253,7 +253,7 @@ describe('relations (graph) canvas renders', () => {
         overrides: [
           {
             matcher: { id: 'byName', options: 'DB' },
-            properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'purple' } }],
+            properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'red' } }],
           },
         ],
       };

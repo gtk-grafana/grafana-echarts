@@ -24123,7 +24123,7 @@ exports[`relations (graph) canvas renders field config honors a byName color ove
   },
   {
     "props": {
-      "value": "#800080",
+      "value": "#f2495c",
     },
     "type": "fillStyle",
   },
@@ -24874,7 +24874,7 @@ exports[`relations (graph) canvas renders field config honors a byName color ove
   },
   {
     "props": {
-      "value": "#800080",
+      "value": "#f2495c",
     },
     "type": "fillStyle",
   },

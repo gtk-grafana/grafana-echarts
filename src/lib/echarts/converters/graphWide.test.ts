@@ -3,6 +3,7 @@ import {
   type DataFrame,
   type Field,
   FieldColorModeId,
+  type FieldConfigSource,
   FieldType,
   getDisplayProcessor,
   toDataFrame,
@@ -18,6 +19,7 @@ import {
   RELATIONS_CALC_DEFAULT,
 } from 'lib/echarts/converters/graphWide';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { applyTestFieldConfig } from 'test/fieldConfig';
 
 const theme = createTheme();
 
@@ -48,6 +50,14 @@ const withDisplay = (frame: DataFrame): DataFrame => {
   }
   return frame;
 };
+
+/**
+ * The real pre-panel field-config pass, so an override is matched and resolved by
+ * Grafana rather than by the test. Under jest the standard property registry is empty
+ * and overrides are silently dropped unless one is supplied — see `test/fieldConfig.ts`.
+ */
+const asPipelineWould = (frames: DataFrame[], overrides: FieldConfigSource['overrides'] = []): DataFrame[] =>
+  applyTestFieldConfig(frames, { defaults: {}, overrides }, theme);
 
 describe('isGraphWideFrames', () => {
   it('detects an edges frame from endpoint labels', () => {
@@ -238,7 +248,7 @@ describe('frameToGraphWide — nodes', () => {
   });
 });
 
-describe('frameToGraphWide — colour', () => {
+describe('frameToGraphWide — edge colour', () => {
   it('takes the colour the display processor resolved, per mark', () => {
     const frame = withDisplay(
       toDataFrame({
@@ -334,6 +344,152 @@ describe('frameToGraphWide — colour', () => {
     );
 
     expect(frameToGraphWide([frame], theme)!.links[0].color).toBe(theme.visualization.getColorByName('dark-red'));
+  });
+
+  /**
+   * "Edges have no color-scheme path at all" — `relations-color-schemes.md` — closes
+   * by construction rather than by a new resolver: an edge **is** a field, so an
+   * ordinary `byName` override targets exactly one of them, and only that one. There
+   * was never an edge equivalent of the node resolver to delete; this is the gap
+   * closing because the mark became addressable.
+   */
+  it('lets a byName override recolour one edge, theme-resolved', () => {
+    const [frame] = asPipelineWould(
+      [
+        toDataFrame({
+          meta: { type: GRAPH_EDGES_WIDE },
+          fields: [
+            { name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] },
+            { name: 'e2', type: FieldType.number, labels: { source: 'b', target: 'c' }, values: [2] },
+          ],
+        }),
+      ],
+      [
+        {
+          matcher: { id: 'byName', options: 'e2' },
+          properties: [{ id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: 'dark-red' } }],
+        },
+      ]
+    );
+
+    const [e1, e2] = frameToGraphWide([frame], theme)!.links;
+    expect(e2.color).toBe(theme.visualization.getColorByName('dark-red'));
+    // Its neighbour keeps the palette default, which for an *edge* means no per-edge
+    // colour at all so the series-level endpoint mode still governs it.
+    expect(e1.color).toBeUndefined();
+  });
+});
+
+/**
+ * The colour path, end to end. There is no resolver any more: `applyFieldOverrides`
+ * runs above the panel, so whatever it decided is already on `field.display` by the
+ * time the reader looks. These are the cases `makeRelationsColorResolver` used to
+ * enumerate, restated against the pipeline that actually produces them.
+ */
+describe('frameToGraphWide — node colour', () => {
+  /** Two marks, `a` and `b`, joined by the single edge below. */
+  const nodesFrame = (): DataFrame =>
+    toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [
+        { name: 'a', type: FieldType.number, values: [1] },
+        { name: 'b', type: FieldType.number, values: [100] },
+      ],
+    });
+
+  const oneEdge = (): DataFrame =>
+    toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] }],
+    });
+
+  /**
+   * Nodes are listed **first** because `applyFieldOverrides` numbers `state.seriesIndex`
+   * across the whole response, and that index is the palette slot. Role resolution reads
+   * `meta.type`, not order, so the graph is the same either way.
+   */
+  const graph = (overrides: FieldConfigSource['overrides'] = []): DataFrame[] =>
+    asPipelineWould([nodesFrame(), oneEdge()], overrides);
+
+  const colorsOf = (frames: DataFrame[]): Array<string | undefined> =>
+    frameToGraphWide(frames, theme)!.nodes.map((node) => node.color);
+
+  /**
+   * The headline capability, and the measurement the migration plan rests on: a
+   * `byName` override targets **one mark**, and it arrives theme-resolved. The old
+   * resolver read `fixedColor` straight out of `fieldConfig` and handed ECharts the
+   * raw name, so `dark-red` painted as CSS `darkred` rather than Grafana's `#C4162A`.
+   */
+  it('lets a byName override recolour one node, theme-resolved', () => {
+    const [a, b] = colorsOf(
+      graph([
+        {
+          matcher: { id: 'byName', options: 'b' },
+          properties: [{ id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: 'dark-red' } }],
+        },
+      ])
+    );
+
+    expect(b).toBe(theme.visualization.getColorByName('dark-red'));
+    expect(b).not.toBe('dark-red');
+    // And only that one: its neighbour keeps its palette colour.
+    expect(a).toBe(getPaletteColorByIndex(0, theme));
+  });
+
+  it('colours every node from its own value under a by-value scheme', () => {
+    const [a, b] = colorsOf(
+      graph([
+        {
+          matcher: { id: 'byType', options: 'number' },
+          properties: [{ id: 'color', value: { mode: FieldColorModeId.ContinuousGrYlRd } }],
+        },
+      ])
+    );
+
+    // Different values, different points on the gradient — per mark, not per frame.
+    expect(a).not.toBe(b);
+  });
+
+  /**
+   * Grafana's own default colour mode is by-value (thresholds), but the panel
+   * registers palette-classic, so "nothing configured" must stay categorical.
+   */
+  it('keeps an unconfigured node on the classic palette, by position', () => {
+    expect(colorsOf(graph())).toEqual([getPaletteColorByIndex(0, theme), getPaletteColorByIndex(1, theme)]);
+  });
+
+  /**
+   * A node **derived** from an edge's endpoints has no field, so nothing resolved a
+   * colour for it. Left unset it would fall through to ECharts' own palette, which is
+   * not the theme's — see `fillPaletteColors`.
+   */
+  it('palettes a derived node, which has no field to ask', () => {
+    // `labelledEdges` is a->b, b->c: three nodes, none of them declared.
+    const data = frameToGraphWide([labelledEdges()], theme)!;
+
+    expect(data.nodes.every((node) => node.field == null)).toBe(true);
+    expect(data.nodes.map((node) => node.color)).toEqual([
+      getPaletteColorByIndex(0, theme),
+      getPaletteColorByIndex(1, theme),
+      getPaletteColorByIndex(2, theme),
+    ]);
+  });
+
+  /**
+   * Positions run over the *final* node list, so an endpoint the nodes frame did not
+   * declare continues the palette rather than restarting it and colliding with the
+   * first declared node.
+   */
+  it('continues the palette across appended endpoints', () => {
+    const partial = toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [{ name: 'a', type: FieldType.number, values: [5] }],
+    });
+    const data = frameToGraphWide([labelledEdges(), partial], theme)!;
+
+    expect(data.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
+    expect(new Set(data.nodes.map((node) => node.color)).size).toBe(3);
+    expect(data.nodes[2].color).toBe(getPaletteColorByIndex(2, theme));
   });
 });
 

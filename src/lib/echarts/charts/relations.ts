@@ -1,19 +1,14 @@
 import { type FieldConfigSource } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
-import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
+import { toSankeyLinks } from 'lib/echarts/converters/dag';
 import {
   frameToRelationsGraph,
   getRelationsLinkValueField,
   getRelationsValueField,
 } from 'lib/echarts/converters/relationsGraph';
-import {
-  getGraphSeries,
-  makeRelationsColorResolver,
-  relationsDefaultOptions,
-  type RelationsSeriesContext,
-} from 'lib/echarts/options/graph';
+import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { getChordSeries } from 'lib/echarts/options/chord';
-import { toSankeyLinks } from 'lib/echarts/converters/dag';
+import { getGraphSeries, relationsDefaultOptions, type RelationsSeriesContext } from 'lib/echarts/options/graph';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/options/sankey';
 import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
@@ -39,8 +34,9 @@ import {
  * ECharts resolves links by node id, so leaving it would either drop it silently
  * (graph) or leave a ribbon hanging off a node that is not drawn.
  *
- * Each surviving node keeps its position in the unfiltered list as `paletteIndex`,
- * so hiding a node does not shuffle the palette colors of the ones after it.
+ * Colours survive the filtering untouched: the reader resolved each node's colour
+ * before this ran (`fillPaletteColors`), so hiding a node cannot shuffle the palette
+ * colours of the ones after it.
  */
 function withoutHiddenNodes(data: NodeGraphData, fieldConfig: FieldConfigSource): NodeGraphData {
   const hiddenNames = getHiddenSeriesNames(
@@ -53,9 +49,7 @@ function withoutHiddenNodes(data: NodeGraphData, fieldConfig: FieldConfigSource)
 
   const hiddenIds = new Set(data.nodes.filter((node) => hiddenNames.has(node.name)).map((node) => node.id));
   return {
-    nodes: data.nodes
-      .map((node, index) => ({ ...node, paletteIndex: index }))
-      .filter((node) => !hiddenIds.has(node.id)),
+    nodes: data.nodes.filter((node) => !hiddenIds.has(node.id)),
     links: data.links.filter((link) => !hiddenIds.has(link.source) && !hiddenIds.has(link.target)),
   };
 }
@@ -174,14 +168,11 @@ export const relationsChartModule: ChartModule = {
       ctx.fieldConfig,
       data.nodes.map((node) => node.name)
     );
-    // One entry per node, colored by the same resolver the chart uses so the
-    // swatches match: a fixed-color override wins, then the node's own `color`
-    // field, then the value field's by-value scheme, then the classic palette.
-    const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, getRelationsValueField(ctx.frames));
-    return data.nodes.map((node, index) => ({
+    // One entry per node
+    return data.nodes.map((node) => ({
       label: node.name,
       fieldName: node.name,
-      color: resolveColor(node, index),
+      color: node.color,
       yAxis: 1,
       disabled: hidden.has(node.name),
       getItemKey: () => `relations-${node.id}`,

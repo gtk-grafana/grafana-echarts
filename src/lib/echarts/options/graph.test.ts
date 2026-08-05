@@ -1,4 +1,4 @@
-import { createTheme, FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type FieldConfigSource } from '@grafana/data';
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
@@ -11,7 +11,6 @@ import {
   getGraphLinkStyle,
   getGraphSeries,
   getRelationsNodeLabelFormatter,
-  makeRelationsColorResolver,
   RELATIONS_NODE_SIZE_DEFAULT,
 } from 'lib/echarts/options/graph';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
@@ -40,10 +39,17 @@ const ctx = (options: PanelOptions = baseOptions()): RelationsChartContext =>
     replaceVariables: (value: string) => value,
   }) as unknown as RelationsChartContext;
 
+/**
+ * Nodes reach this layer already coloured — the reader resolves every mark's colour
+ * through its own display processor and palettes whatever is left
+ * (`converters/graphWide.ts`), so a fixture that omitted `color` would not be one the
+ * panel can produce. Colour *resolution* is tested there; this file only checks that
+ * the resolved colour is painted.
+ */
 const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData => ({
   nodes: [
-    { id: 'a', name: 'A', value: 1 },
-    { id: 'b', name: 'B', value: 2 },
+    { id: 'a', name: 'A', value: 1, color: getPaletteColorByIndex(0, theme) },
+    { id: 'b', name: 'B', value: 2, color: getPaletteColorByIndex(1, theme) },
   ],
   links: [{ id: 'e1', source: 'a', target: 'b', value: 5 }],
   ...extra,
@@ -194,62 +200,6 @@ describe('getRelationsNodeLabelFormatter', () => {
   });
 });
 
-describe('makeRelationsColorResolver', () => {
-  it('uses the classic palette by position when nothing else applies', () => {
-    const resolve = makeRelationsColorResolver(theme, emptyFieldConfig);
-    expect(resolve({ id: 'a', name: 'A', value: 1 }, 0)).toEqual(expect.any(String));
-    // Distinct per index — the categorical default.
-    expect(resolve({ id: 'a', name: 'A', value: 1 }, 0)).not.toBe(resolve({ id: 'b', name: 'B', value: 2 }, 1));
-  });
-
-  it("prefers the node's own color field over the palette", () => {
-    const resolve = makeRelationsColorResolver(theme, emptyFieldConfig);
-    expect(resolve({ id: 'a', name: 'A', value: 1, color: 'cyan' }, 0)).toBe('cyan');
-  });
-
-  it('lets a byName fixed-color override win over the node color', () => {
-    const fieldConfig: FieldConfigSource = {
-      defaults: {},
-      overrides: [
-        {
-          matcher: { id: 'byName', options: 'A' },
-          properties: [{ id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: 'purple' } }],
-        },
-      ],
-    };
-    const resolve = makeRelationsColorResolver(theme, fieldConfig);
-    expect(resolve({ id: 'a', name: 'A', value: 1, color: 'cyan' }, 0)).toBe('purple');
-  });
-
-  it('colors from the value field when a by-value scheme is configured', () => {
-    const frame = toDataFrame({
-      fields: [
-        {
-          name: 'mainstat',
-          type: FieldType.number,
-          values: [1, 100],
-          config: { color: { mode: FieldColorModeId.ContinuousGrYlRd } },
-        },
-      ],
-    });
-    const valueField = frame.fields[0];
-    const resolve = makeRelationsColorResolver(theme, emptyFieldConfig, valueField);
-    // Different values map to different points on the gradient.
-    expect(resolve({ id: 'a', name: 'A', value: 1 }, 0)).not.toBe(resolve({ id: 'b', name: 'B', value: 100 }, 1));
-  });
-
-  it('treats an unset color mode as the classic palette, not by-value', () => {
-    // Grafana's own default mode is by-value (thresholds), but the panel registers
-    // PaletteClassic, so "unset" must stay categorical.
-    const frame = toDataFrame({
-      fields: [{ name: 'mainstat', type: FieldType.number, values: [1, 2] }],
-    });
-    const resolve = makeRelationsColorResolver(theme, emptyFieldConfig, frame.fields[0]);
-    const paletteResolve = makeRelationsColorResolver(theme, emptyFieldConfig);
-    expect(resolve({ id: 'a', name: 'A', value: 1 }, 0)).toBe(paletteResolve({ id: 'a', name: 'A', value: 1 }, 0));
-  });
-});
-
 describe('getGraphSeries', () => {
   it('maps nodes to data and links to links, keyed by id', () => {
     const series = getGraphSeries(data(), ctx());
@@ -310,6 +260,22 @@ describe('getGraphSeries', () => {
     expect(series).not.toHaveProperty('emphasis');
   });
 
+  // The whole of the family's colour path: the mark's own field already decided it,
+  // so this layer paints and does not resolve.
+  it('paints each node with the colour its own field resolved', () => {
+    const coloured = data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, color: '#C4162A' },
+        { id: 'b', name: 'B', value: 2, color: '#37872D' },
+      ],
+    });
+
+    expect(getGraphSeries(coloured, ctx()).data).toMatchObject([
+      { itemStyle: { color: '#C4162A' } },
+      { itemStyle: { color: '#37872D' } },
+    ]);
+  });
+
   it('never borders a node: there is no arc ring to approximate under the contract', () => {
     const series = getGraphSeries(data(), ctx());
     expect(series.data![0]).toMatchObject({ itemStyle: expect.any(Object) });
@@ -337,8 +303,8 @@ describe('getGraphSeries — edge gradients', () => {
   const pinned = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
     data({
       nodes: [
-        { id: 'a', name: 'A', value: 1, fixedX: 0, fixedY: 0 },
-        { id: 'b', name: 'B', value: 2, fixedX: 100, fixedY: 100 },
+        { id: 'a', name: 'A', value: 1, fixedX: 0, fixedY: 0, color: getPaletteColorByIndex(0, theme) },
+        { id: 'b', name: 'B', value: 2, fixedX: 100, fixedY: 100, color: getPaletteColorByIndex(1, theme) },
       ],
       ...extra,
     });

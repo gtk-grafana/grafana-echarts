@@ -35,7 +35,12 @@ export interface RelationNode {
   secondary?: number | string;
   /** `config.custom.nodeRadius` — ECharts `symbolSize`. */
   radius?: number;
-  /** Resolved through the mark's own display processor. See `colorOf`. */
+  /**
+   * Always set. Resolved through the mark's own display processor (`colorOf`), which
+   * is where `applyFieldOverrides` left the answer, so all eight colour modes arrive
+   * done. A node with no field of its own takes the classic palette by position —
+   * see `fillPaletteColors`. Optional only so a fixture can omit it.
+   */
   color?: string;
   fixedX?: number;
   fixedY?: number;
@@ -45,12 +50,6 @@ export interface RelationNode {
    * unset for a node *derived* from an edge's endpoints, which has no field at all.
    */
   sourceRowIndex?: number;
-  /**
-   * Position in the *unfiltered* node list. Set only once the legend has hidden
-   * something (see `withoutHiddenNodes`), so palette colours stay attached to their
-   * node instead of shifting up as nodes above them are toggled off.
-   */
-  paletteIndex?: number;
   /**
    * The field this node *is*. Carries the node's own `config` (unit, links,
    * thresholds) and its `display` processor, so per-mark formatting and colour
