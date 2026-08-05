@@ -226,7 +226,7 @@ describe('getSankeySeries', () => {
 
     expect(series.type).toBe('sankey');
     expect(nodeItems(series).map((node) => node.id)).toEqual(['a', 'b']);
-    expect(linkItems(series)).toEqual([{ source: 'a', target: 'b', value: 5 }]);
+    expect(linkItems(series)).toEqual([{ markId: 'e1', source: 'a', target: 'b', value: 5 }]);
   });
 
   it('omits every geometry key at its ECharts default', () => {
@@ -339,7 +339,7 @@ describe('getSankeySeries', () => {
 
       const { series, droppedCount } = getSankeySeries(cyclic, ctx());
 
-      expect(linkItems(series)).toEqual([{ source: 'a', target: 'b', value: 1 }]);
+      expect(linkItems(series)).toEqual([{ markId: 'e1', source: 'a', target: 'b', value: 1 }]);
       expect(droppedCount).toBe(1);
     });
 

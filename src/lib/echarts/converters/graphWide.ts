@@ -173,9 +173,10 @@ function endpointNames(edgesFrame: DataFrame): Set<string> {
 }
 
 /**
- * The one place frame roles are decided. Every consumer — the reader and the value-field
- * lookups the options layer needs — goes through this, so they cannot disagree about
- * which frame is which.
+ * The one place frame roles are decided, so nothing downstream can disagree about which
+ * frame is which. Exported for its own tests: the reader is now the only caller, since
+ * the frame-level value-field lookups the options layer used to need are gone — every
+ * mark carries its own field (see `getRelationsTooltipMarks`).
  */
 export function resolveGraphWideRoles(frames: DataFrame[]): { edgesFrame: DataFrame; nodesFrame?: DataFrame } | null {
   const edgesFrame = findEdgesFrame(frames);

@@ -1,12 +1,17 @@
 # Data links for relations (graph / sankey / chord)
 
-> ## Resolution — gaps 1–3 close structurally; gap 4 stays partially open
+> ## Resolution — gaps 1–3 are closed and shipped; gap 4 stays partially open
 >
+> **Shipped in phase 5 of [graph-wide-migration.md](./graph-wide-migration.md).**
 > [../data-plane/graph-wide.md](../data-plane/graph-wide.md) makes one node one **field**
 > and one edge one **field**, so `config.links` on a mark's own field is a link on that
-> mark and nothing else. Demonstrated in
-> `provisioning/dashboards/relations/graph-wide.json`: a `byName` override puts a link on
-> node `a` only, and `b` / `c` render no link at all.
+> mark and nothing else — and the panel now resolves the footer from the hovered mark's
+> own field rather than from one field per series (`getRelationsTooltipMarks`,
+> `lib/echarts/tooltip/relations.ts`). Demonstrated on core panels in
+> `provisioning/dashboards/relations/graph-wide.json` and on the relations panel itself in
+> `provisioning/dashboards/relations/per-mark-tooltip-links.json`: a `byName` override
+> puts a runbook link on node `db` and a trace link on edge `api-db`, and every other mark
+> pins a tooltip with no footer at all.
 >
 > | Gap                                              | Under `graph-*-wide`                                                                                                                                                                                                                                           |
 > | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -25,8 +30,10 @@
 > Of the options considered here: **B** and **C** remain the answer for legacy input and
 > become unnecessary for wide input; **D** (`link__*` column convention) is now clearly
 > the wrong shape, since `config.links` is the real thing; **E** stays rejected. The
-> observation that relations still has **no case in `dataLinks.test.tsx`** stands, and
-> matters more now.
+> observation that relations had **no case in `dataLinks.test.tsx`** is **resolved**: the
+> suite now drives real hovers through zrender for a node, an edge, and the marks that
+> carry no link, addressing each mark by the position ECharts laid it out at rather than
+> by scanning for one — a scan cannot say _which_ mark was hit, and that is the claim.
 >
 > Everything below remains an accurate description of the row-format behaviour.
 

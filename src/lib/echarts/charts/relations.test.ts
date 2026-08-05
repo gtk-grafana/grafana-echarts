@@ -3,7 +3,7 @@ import { relationsChartModule } from 'lib/echarts/charts/relations';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
-import { toggleSeriesVisibilityConfig } from 'lib/grafana/fields/seriesConfig';
+import { changeSeriesColorConfig, toggleSeriesVisibilityConfig } from 'lib/grafana/fields/seriesConfig';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 import { type PanelOptions } from 'types';
 
@@ -199,6 +199,60 @@ describe('relationsChartModule', () => {
 
     it('is empty when there is no usable graph', () => {
       expect(relationsChartModule.buildLegendItems(ctx([]), [])).toEqual([]);
+    });
+  });
+
+  /**
+   * Item 15 of `todo/graph-wide-migration.md`: the legend's colour picker needs no
+   * family-specific path any more. It writes the ordinary `byName` fixed-colour
+   * override every panel writes (`changeSeriesColorConfig`, driven here rather than
+   * hand-written), Grafana's override engine applies it to the node's own field, and
+   * the family reads the answer back as `field.display(value).color`.
+   *
+   * The old route — `getSeriesColorOverride`, matching the legend label against
+   * `fieldConfig` inside the converter — was deleted in phase 3, and the reason this
+   * test exists is that nothing else would notice if it came back: a re-implementation
+   * would look identical from the outside until an override used `byRegexp`, or the
+   * theme had to resolve the colour name.
+   */
+  describe('legend colour', () => {
+    const nodeColors = (fieldConfig: FieldConfigSource) => {
+      const series = relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame], fieldConfig), base)!
+        .series as Array<Record<string, unknown>>;
+      return (series[0].data as Array<{ name: string; itemStyle?: { color?: string } }>).map((node) => [
+        node.name,
+        node.itemStyle?.color,
+      ]);
+    };
+
+    it('recolours exactly the picked node, theme-resolved', () => {
+      const picked = changeSeriesColorConfig(emptyFieldConfig, 'Gateway', 'dark-red');
+
+      const [gateway, api] = nodeColors(picked);
+      // `dark-red` arrives as the theme's hex because the display processor resolved
+      // it upstream — the family never sees the colour name.
+      expect(gateway).toEqual(['Gateway', '#C4162A']);
+      expect(api).toEqual(['API', nodeColors(emptyFieldConfig)[1][1]]);
+    });
+
+    it('shows the picked colour on the legend swatch too', () => {
+      const picked = changeSeriesColorConfig(emptyFieldConfig, 'Gateway', 'dark-red');
+
+      const items = relationsChartModule.buildLegendItems(ctx([nodesFrame, edgesFrame], picked), []);
+
+      expect(items.map((item) => item.color)).toEqual(nodeColors(picked).map(([, color]) => color));
+    });
+
+    /**
+     * The picker addresses a node by the label the legend shows, which is the field's
+     * `displayName` (`title` in the row form) rather than its name. Grafana's `byName`
+     * matcher accepts either, so this works — but only because the legend label and
+     * `getOverrideTargetNames` agree on which of the two they use.
+     */
+    it('matches on the display name the legend shows, not the field name', () => {
+      const byFieldName = changeSeriesColorConfig(emptyFieldConfig, 'a', 'dark-red');
+
+      expect(nodeColors(byFieldName)[0]).toEqual(['Gateway', '#C4162A']);
     });
   });
 

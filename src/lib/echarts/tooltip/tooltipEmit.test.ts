@@ -18,6 +18,7 @@ import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions } from '@g
 import { seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
@@ -90,6 +91,35 @@ const pieFrame = (): DataFrame =>
       { name: 'b', type: FieldType.number, values: [70] },
     ],
   });
+
+/**
+ * Wide graph frames (`data-plane/graph-wide.md`): one node per field, one edge per
+ * field. The two nodes carry **different units**, which is the case the row form
+ * cannot express — one `mainstat` column means one unit for every node.
+ */
+const relationsFrames = (): DataFrame[] => [
+  toDataFrame({
+    name: 'nodes',
+    meta: { type: GRAPH_NODES_WIDE },
+    fields: [
+      { name: 'gateway', type: FieldType.number, values: [12], config: { unit: 'ms', decimals: 1 } },
+      { name: 'db', type: FieldType.number, values: [0.42], config: { unit: 'percentunit', decimals: 0 } },
+    ],
+  }),
+  toDataFrame({
+    name: 'edges',
+    meta: { type: GRAPH_EDGES_WIDE },
+    fields: [
+      {
+        name: 'e1',
+        type: FieldType.number,
+        labels: { source: 'gateway', target: 'db' },
+        values: [3.5],
+        config: { unit: 's', decimals: 2 },
+      },
+    ],
+  }),
+];
 
 const makeContext = (frames: DataFrame[], seriesType: SeriesType, mode: TooltipDisplayMode): ChartContext => ({
   frames,
@@ -337,6 +367,29 @@ describe('tooltip emission through a real ECharts instance', () => {
     // clicked row's data links.
     expect(model.rows.every((row) => row.source != null)).toBe(true);
     expect(model.rows.map((row) => row.emphasis)).toEqual([false, true]);
+    chart.dispose();
+  });
+
+  /**
+   * Relations, where the params ECharts produces are the whole question: one
+   * formatter serves both the node and the edge table, and each hovered mark has to
+   * find *its own* field. The `formatValue` this context supplies stringifies the
+   * raw number, so a formatted unit in the row proves the mark's own display
+   * processor ran rather than the panel's.
+   */
+  it('relations: formats a hovered node with its own unit and resolves its own field', () => {
+    const { emitted, chart } = emitViaShowTip(
+      makeContext(relationsFrames(), 'graph', TooltipDisplayMode.Single),
+      // The node table; `dataType` defaults to it.
+      { seriesIndex: 0, dataIndex: 1 }
+    );
+
+    expect(emitted).toHaveLength(1);
+    const [model] = emitted;
+    expect(model.header?.label).toBe('db');
+    // `db` is a percentunit field; `gateway` next to it is milliseconds.
+    expect(model.rows[0].value).toBe('42%');
+    expect(model.source?.field.name).toBe('db');
     chart.dispose();
   });
 });

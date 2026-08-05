@@ -137,9 +137,6 @@ function toChordNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
     if (node.secondary != null) {
       item.secondary = node.secondary;
     }
-    if (node.sourceRowIndex != null) {
-      item.sourceRowIndex = node.sourceRowIndex;
-    }
     return item;
   });
 }
@@ -157,15 +154,13 @@ function toChordNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
  */
 function toChordLinkItems(links: RelationLink[]): RelationsLinkItem[] {
   return links.map((link) => {
-    const item: RelationsLinkItem = { source: link.source, target: link.target };
+    // `markId` carries the edge's field name for the tooltip; see `toLinkItems`.
+    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.id };
     if (link.value != null) {
       item.value = link.value;
     }
     if (link.color != null) {
       item.lineStyle = { color: link.color };
-    }
-    if (link.sourceRowIndex != null) {
-      item.sourceRowIndex = link.sourceRowIndex;
     }
     return item;
   });
@@ -209,11 +204,7 @@ export function getChordSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     data: toChordNodeItems(data.nodes),
     links: toChordLinkItems(data.links),
     tooltip: seriesTooltip(
-      buildRelationsTooltipModel({
-        formatValue: ctx.formatValue,
-        valueField: ctx.valueField,
-        linkValueField: ctx.linkValueField,
-      }),
+      buildRelationsTooltipModel({ formatValue: ctx.formatValue, marks: ctx.marks }),
       ctx.tooltipSink
     ),
   };

@@ -169,9 +169,6 @@ function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
     if (node.secondary != null) {
       item.secondary = node.secondary;
     }
-    if (node.sourceRowIndex != null) {
-      item.sourceRowIndex = node.sourceRowIndex;
-    }
     return item;
   });
 }
@@ -188,15 +185,13 @@ function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
  */
 function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {
   return links.map((link) => {
-    const item: RelationsLinkItem = { source: link.source, target: link.target };
+    // `markId` carries the edge's field name for the tooltip; see `toLinkItems`.
+    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.id };
     if (link.value != null) {
       item.value = link.value;
     }
     if (link.color != null) {
       item.lineStyle = { color: link.color };
-    }
-    if (link.sourceRowIndex != null) {
-      item.sourceRowIndex = link.sourceRowIndex;
     }
     return item;
   });
@@ -269,11 +264,7 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
     data: toSankeyNodeItems(data.nodes),
     links: toSankeyLinkItems(links),
     tooltip: seriesTooltip(
-      buildRelationsTooltipModel({
-        formatValue: ctx.formatValue,
-        valueField: ctx.valueField,
-        linkValueField: ctx.linkValueField,
-      }),
+      buildRelationsTooltipModel({ formatValue: ctx.formatValue, marks: ctx.marks }),
       ctx.tooltipSink
     ),
   };
