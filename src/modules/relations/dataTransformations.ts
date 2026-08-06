@@ -22,5 +22,7 @@ import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTran
  * ../../../todo/graph-wide-migration.md#the-dataformat-panel-option would need the
  * upstream context widened first.
  */
-export const relationsDataTransformations: PanelDataTransformationsSupplier = ({ series }) =>
-  isLegacyGraphFrames(series) && !isGraphWideFrames(series) ? [legacyToWideOperator] : [];
+export const relationsDataTransformations: PanelDataTransformationsSupplier = ({ series }) => {
+  console.log('raw frame', series);
+  return isLegacyGraphFrames(series) && !isGraphWideFrames(series) ? [legacyToWideOperator] : [];
+};

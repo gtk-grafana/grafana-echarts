@@ -124,12 +124,19 @@ data plane already reads long-vs-wide everywhere else.
 
 ## Current status
 
-| Consumer                                                   | `graph-*-long` | `graph-*-wide`                                   |
-| ---------------------------------------------------------- | -------------- | ------------------------------------------------ |
-| Core **Node graph** panel                                  | Yes            | No                                               |
-| ECharts **relations** panel (`graph` / `sankey` / `chord`) | Yes            | **No — throws** (`Invalid chart option`)         |
-| Core **Bar chart** / **Bar gauge** / **Stat** / **Table**  | No             | Yes — one mark per field, today, with no changes |
-| Core **Time series**                                       | No             | Yes, when a `time` row dimension is present      |
+| Consumer                                                   | `graph-*-long`                  | `graph-*-wide`                                   |
+| ---------------------------------------------------------- | ------------------------------- | ------------------------------------------------ |
+| Core **Node graph** panel                                  | Yes                             | No                                               |
+| ECharts **relations** panel (`graph` / `sankey` / `chord`) | Yes — converted above the panel | **Yes — this is now its only reader**            |
+| Core **Bar chart** / **Bar gauge** / **Stat** / **Table**  | No                              | Yes — one mark per field, today, with no changes |
+| Core **Time series**                                       | No                              | Yes, when a `time` row dimension is present      |
+
+The relations row changed while this contract was being implemented. The panel reads
+**only** the wide form (`lib/echarts/converters/graphWide.ts`); the row form reaches it
+through `legacyToWide`, registered on the plugin with `PanelPlugin.setDataTransformations`
+so it runs _above_ the panel, before `applyFieldOverrides`. That placement is what makes
+every mark an override target, and it is why the family's minimum supported Grafana is the
+release carrying that API. Migration record: `todo/graph-wide-migration.md`.
 
 The third and fourth rows are the point: a wide graph frame is already a first-class
 Grafana citizen. The proof dashboard
@@ -465,13 +472,13 @@ is absent. One numeric field per node.
 | `config.displayName`                                    | `title`                                                                                          |
 | `config.color.fixedColor`                               | `color`, string form                                                                             |
 | `config.color.mode` + `thresholds` / `mappings`         | `color`, **numeric** form — specced in the long form but read by nobody (`nodeGraph.ts:165-168`) |
-| `config.links`                                          | _no equivalent today_ — the gap `todo/relations-data-links.md` cannot close                      |
+| `config.links`                                          | _no equivalent_ — the gap `todo/relations-data-links.md` names, closed here per mark             |
 | `config.unit` / `decimals`                              | per-node stat formatting; the long form has one unit for the whole column                        |
 | `config.custom.nodeRadius`                              | `noderadius`                                                                                     |
 | `config.custom.subtitle`                                | `subtitle`                                                                                       |
 | `config.custom.icon`                                    | `icon`                                                                                           |
 | `config.custom.fixedX` / `.fixedY`                      | `fixedx` / `fixedy`                                                                              |
-| `config.custom.hideFrom`                                | _no equivalent_ — registered but unreachable today (`lib/grafana/editor/common/fieldConfig.ts`)  |
+| `config.custom.hideFrom`                                | _no equivalent_ — and reachable now: the real `addHideFrom` hides one node or one edge           |
 | `field.labels`                                          | `detail__*`                                                                                      |
 | `config.thresholds` steps                               | `arc__*` — an approximation, see [Pitfalls](#pitfalls)                                           |
 

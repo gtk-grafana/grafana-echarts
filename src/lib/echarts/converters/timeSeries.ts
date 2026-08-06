@@ -1,7 +1,7 @@
 import { getFieldDisplayName } from '@grafana/data';
 import { STACK_GROUP_ID } from 'editor/cartesian';
 import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type HeatmapSeriesType } from 'editor/types';
-import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
+import { CartesianContextWithOverlay, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { resolveFieldSeriesType, resolveFieldStack } from 'lib/echarts/converters/fieldOverrides';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
@@ -19,9 +19,7 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
  * once from the whole frame set so a dense chart switches every series onto the
  * fast path consistently.
  */
-export function timeSeriesToEChartsOption(
-  ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
-): EChartSingleValueCartesianSeries[] | null {
+export function timeSeriesToEChartsOption(ctx: CartesianContextWithOverlay): EChartSingleValueCartesianSeries[] | null {
   const { frames: rawFrames, theme, options, seriesType } = ctx;
 
   const frames: Array<FieldTypedDataFrame<string | number, EChartsFieldConfig>> = rawFrames;

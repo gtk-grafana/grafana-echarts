@@ -21,6 +21,14 @@ emit none.
 > **Rows to fields** transformation by hand, with the caveats in
 > [SQL and CSV — Rows to fields](#sql-and-csv--rows-to-fields).
 >
+> **On 13.2+ the conversion cannot be got in front of.** It is registered as a pipeline
+> _prefix_, so it runs before anything in the Transform tab. A transformation that consumes
+> the row columns — `groupingToMatrix`, or a hand-added `rowsToFields` — therefore sees
+> frames that are already wide and silently returns them unchanged. Measured on panel 17 of
+> `provisioning/dashboards/relations/graph-wide.json`. Transformations that operate on the
+> _wide_ frames still work normally, `joinByField` among them (see
+> [Prometheus / Loki](#prometheus--loki--one-setting-and-one-transformation)).
+>
 > So: everything from [The short version](#the-short-version) to
 > [Aggregation is the hidden requirement](#aggregation-is-the-hidden-requirement) is about
 > sourcing rows, which remains the normal thing to do.
@@ -267,7 +275,7 @@ the contract's [Verified behaviours](../data-plane/graph-wide.md#verified-behavi
 table, and the live panels are in
 `provisioning/dashboards/relations/graph-wide.json`.
 
-### Prometheus / Loki — zero reshaping, one setting
+### Prometheus / Loki — one setting and one transformation
 
 Same query as [Use case 1](#use-case-1--prometheus):
 
@@ -283,18 +291,66 @@ Then, in the query editor:
 | **Legend** | `{{client}}-->{{server}}` | **Required.** This is the edge id and the override target            |
 | **Type**   | Instant _or_ Range        | Either. A range query is simply a row dimension the reduce collapses |
 
-No SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction. The
-endpoints stay in `field.labels` as `client` / `server`, which the contract accepts as
-the endpoint label keys directly.
+**And one transformation.** A `Time series` response is _many_ frames — one per series,
+so one per edge — and the reader takes the **first** frame that looks like edges
+(`findEdgesFrame`). Left alone, a nine-edge query draws one edge. `joinByField` on
+`Time` collapses them into the single wide frame the contract wants:
 
-**The legend format is not optional in practice.** Without it, `getFieldDisplayName`
-pushes both the frame name and the label set and the display name comes out doubled —
-`{client="a", server="b"} {client="a", server="b"}` (observed). It renders, but it is not
-an id anyone would write an override against. Worse, the raw field name is `Value` on
-every frame, so `byName: Value` matches **every** edge at once.
+```json
+{ "id": "joinByField", "options": { "byField": "Time", "mode": "outer" } }
+```
+
+It widens them into the _right_ shape because `joinDataFrames` renames a field called
+`Value` — which is what every Prometheus and Loki value field is called — to its **frame
+name**, keeping its labels. The frame name is the rendered legend format, so the joined
+frame's numeric field names are the edge ids. That is the whole conversion.
+
+**Edges and nodes in one panel** need one join each, filtered by refId, or the second
+query's frames are swallowed into the first join:
+
+```json
+[
+  {
+    "id": "joinByField",
+    "filter": { "id": "byRefId", "options": "A" },
+    "options": { "byField": "Time", "mode": "outer" }
+  },
+  {
+    "id": "joinByField",
+    "filter": { "id": "byRefId", "options": "B" },
+    "options": { "byField": "Time", "mode": "outer" }
+  }
+]
+```
+
+`refIdMatcher` is exact string equality for a plain pattern, unmatched frames are put
+back by `postProcessTransform`, and `joinByField` stamps its output `refId` as
+`joinByField-A-A-…` — so the second filter cannot re-capture the first join's result.
+Both frames survive: A becomes the edges frame, B the nodes frame.
+
+So: no SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction — but
+not zero reshaping either.
+
+**The legend format is not optional, and it is what carries the endpoints.** The
+contract reads exactly two label keys, `source` and `target` (`endpointsOf`). A
+`sum by (client, server)` emits `client` / `server`, which it does **not** recognise, so
+the endpoints come from splitting the field name on `-->` — i.e. from the legend format.
+Without one, `getFieldDisplayName` pushes both the frame name and the label set and the
+display name comes out doubled — `{client="a", server="b"} {client="a", server="b"}`
+(observed); the raw field name stays `Value` on every frame, so `byName: Value` matches
+**every** edge at once; and there is no separator to split on.
+
+Relabel to `source` / `target` (`label_replace` in PromQL, `label_format` in LogQL) when
+you want the labels to carry the endpoints instead. That is the only way to express an
+id that is not `left-->right` — including two **parallel edges** over one pair, which
+need distinct field names but identical endpoints.
 
 The same applies to the Loki queries in [Use case 2](#use-case-2--loki): set
-`{{service}}-->{{upstream}}` as the legend and the reshaping disappears.
+`{{service}}-->{{upstream}}` as the legend and add the same join.
+
+Worked examples of every variation above, against TestData fixtures that reproduce the
+Prometheus and Loki frame shapes exactly:
+`provisioning/dashboards/relations/observability-sources.json`.
 
 ### SQL and CSV — Rows to fields
 

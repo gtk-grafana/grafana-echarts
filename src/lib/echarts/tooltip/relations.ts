@@ -1,4 +1,4 @@
-import { type Field, type GrafanaTheme2 } from '@grafana/data';
+import { type Field, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
@@ -7,10 +7,22 @@ import {
   type RelationsMark,
   type RelationsMarks,
   type RelationsNodeItem,
-  type RelationsTooltipContext,
   type TooltipModel,
   type TooltipRow,
 } from 'lib/echarts/tooltip/types';
+
+/**
+ * How a mark with **no field of its own** formats: plainly, with no unit.
+ *
+ * Only a node derived from an edge's endpoints reaches this, and its value is not a
+ * measurement — it is the node's degree, the count of links naming it. The obvious
+ * fallback, the panel-level formatter, is wrong twice over: it is
+ * `getRepresentativeFormatter`, i.e. the first numeric field of the first frame, which
+ * is the "unit decided by frame order" rule the field contract exists to remove; and a
+ * count has no unit to borrow. Measured on the proof dashboard before this existed —
+ * with a `ms` override on the first edge, every derived node's tooltip read `2 ms`.
+ */
+export const formatDerivedMarkValue: ValueFormatter = (value) => ({ text: String(value) });
 
 /**
  * A `graph` series emits both node and link hovers through one formatter, so the
@@ -75,12 +87,11 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
  *
  * Values format with the **hovered mark's own** field, and the footer resolves that
  * field's data links; see {@link getRelationsTooltipMarks}. A node derived from an
- * edge's endpoints has no field, so it formats with the panel's formatter and shows
- * no footer — `todo/relations-data-links.md` gap 4, which the contract does not close.
+ * edge's endpoints has no field, so it formats through {@link formatDerivedMarkValue}
+ * and shows no footer — `todo/relations-data-links.md` gap 4, which the contract does
+ * not close.
  */
-export function buildRelationsTooltipModel(
-  ctx: RelationsTooltipContext
-): (params: TopLevelFormatterParams) => TooltipModel {
+export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: TopLevelFormatterParams) => TooltipModel {
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;
     const data: unknown = param?.data;
@@ -90,12 +101,12 @@ export function buildRelationsTooltipModel(
       // The edge's own field: its unit formats the weight and its `config.links`
       // fill the footer. Keyed by `markId` because two parallel edges share their
       // endpoints — see `RelationsLinkItem.markId`.
-      const mark = data.markId != null ? ctx.marks?.links.get(data.markId) : undefined;
+      const mark = data.markId != null ? marks?.links.get(data.markId) : undefined;
       const rows: TooltipRow[] = [
         {
           color,
           label: 'Value',
-          value: formatEChartsValue(data.value ?? null, mark?.formatValue ?? ctx.formatValue),
+          value: formatEChartsValue(data.value ?? null, mark?.formatValue ?? formatDerivedMarkValue),
           source: mark?.source,
         },
       ];
@@ -103,7 +114,7 @@ export function buildRelationsTooltipModel(
     }
 
     const node = isNodeItem(data) ? data : undefined;
-    const mark = node != null ? ctx.marks?.nodes.get(node.id) : undefined;
+    const mark = node != null ? marks?.nodes.get(node.id) : undefined;
 
     const rows: TooltipRow[] = [
       {
@@ -112,7 +123,7 @@ export function buildRelationsTooltipModel(
         // `stat` first: the sankey and chord variants carry the main stat there
         // rather than in `value`, which they leave to ECharts' flow computation.
         // See `RelationsNodeItem`.
-        value: formatEChartsValue(node?.stat ?? node?.value ?? null, mark?.formatValue ?? ctx.formatValue),
+        value: formatEChartsValue(node?.stat ?? node?.value ?? null, mark?.formatValue ?? formatDerivedMarkValue),
         source: mark?.source,
       },
     ];
@@ -127,7 +138,7 @@ export function buildRelationsTooltipModel(
         label: 'Secondary',
         value:
           typeof node.secondary === 'number'
-            ? formatEChartsValue(node.secondary, mark?.formatValue ?? ctx.formatValue)
+            ? formatEChartsValue(node.secondary, mark?.formatValue ?? formatDerivedMarkValue)
             : String(node.secondary),
       });
     }

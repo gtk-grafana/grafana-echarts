@@ -2,7 +2,8 @@
 
 > ## Resolution — gaps 1–3 are closed and shipped; gap 4 stays partially open
 >
-> **Shipped in phase 5 of [graph-wide-migration.md](./graph-wide-migration.md).**
+> **Shipped in phase 5 of [graph-wide-migration.md](./graph-wide-migration.md), and
+> demonstrated on the relations panel in phase 6.**
 > [../data-plane/graph-wide.md](../data-plane/graph-wide.md) makes one node one **field**
 > and one edge one **field**, so `config.links` on a mark's own field is a link on that
 > mark and nothing else — and the panel now resolves the footer from the hovered mark's

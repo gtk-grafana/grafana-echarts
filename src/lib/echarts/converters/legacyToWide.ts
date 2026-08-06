@@ -1,8 +1,4 @@
 // Root specifier deliberately: `rxjs` is an exact-string webpack external
-// (`.config/bundler/externals.ts`), so `rxjs/operators` would be bundled instead of
-// taken from the host.
-import { map } from 'rxjs';
-
 import {
   type CustomTransformOperator,
   type DataFrame,
@@ -12,6 +8,7 @@ import {
   FieldType,
   type Labels,
 } from '@grafana/data';
+import type { EChartsRelationsFieldConfig } from 'editor/types';
 import {
   EDGE_SEPARATOR,
   GRAPH_EDGES_WIDE,
@@ -19,6 +16,14 @@ import {
   GRAPH_TYPE_VERSION,
   isGraphWideFrames,
 } from 'lib/echarts/converters/graphWide';
+import {
+  type RelationsFamilyField,
+  type RelationsFamilyFrame,
+  type RelationsFamilyValue,
+} from 'lib/grafana/fields/fieldTypes';
+import { type ConfigTypedField } from 'lib/grafana/types'; // (`.config/bundler/externals.ts`), so `rxjs/operators` would be bundled instead of
+// taken from the host.
+import { map } from 'rxjs';
 
 /**
  * Convert Grafana's legacy row-based node-graph frames (`graph-*-long`) into the
@@ -55,8 +60,13 @@ const FIXEDX_FIELD = 'fixedx';
 const FIXEDY_FIELD = 'fixedy';
 const DETAIL_PREFIX = 'detail__';
 
-/** Case-insensitive field lookup — Grafana matches these names lowercased. */
-function findField(frame: DataFrame, name: string): Field | undefined {
+/**
+ * Case-insensitive field lookup — Grafana matches these names lowercased.
+ * Doesn't need template types since this is still internal to the relations family
+ * @todo potential performance enhancement to audit usages and prevent unnecessary iterations
+ */
+
+function findField<V, C>(frame: DataFrame, name: string): ConfigTypedField<V, C> | undefined {
   return frame.fields.find((field) => field.name.toLowerCase() === name);
 }
 
@@ -69,9 +79,15 @@ const hasField = (frame: DataFrame, name: string): boolean => findField(frame, n
  * but that only runs after the user has already picked the node graph panel. We
  * additionally require `target`, because this predicate doubles as *detection*:
  * `source` alone would claim any table with a column of that name.
+ *
+ * @todo add meta.type graph-long and graph-wide in core instead of using preferredVisualisationType
  */
 export function isLegacyEdgesFrame(frame: DataFrame): boolean {
-  return hasField(frame, SOURCE_FIELD) && hasField(frame, TARGET_FIELD);
+  return (
+    frame.meta?.preferredVisualisationType === 'nodeGraph' &&
+    hasField(frame, SOURCE_FIELD) &&
+    hasField(frame, TARGET_FIELD)
+  );
 }
 
 /**
@@ -168,7 +184,7 @@ function detailLabels(frame: DataFrame, row: number): Labels {
  * per-mark, so the faithful conversion is to copy the column's config to each field
  * rather than drop it. A later per-mark override simply replaces it.
  */
-function statConfig(statField: Field | undefined): FieldConfig {
+function statConfig(statField: Field | undefined): FieldConfig<EChartsRelationsFieldConfig> {
   if (!statField) {
     return {};
   }
@@ -184,14 +200,14 @@ function statConfig(statField: Field | undefined): FieldConfig {
 }
 
 /** One numeric field per edge row. */
-function edgesToWide(frame: DataFrame): DataFrame {
-  const idField = findField(frame, ID_FIELD);
-  const sourceField = findField(frame, SOURCE_FIELD);
-  const targetField = findField(frame, TARGET_FIELD);
-  const mainstatField = findField(frame, MAINSTAT_FIELD);
-  const thicknessField = findField(frame, THICKNESS_FIELD);
-  const colorField = findField(frame, COLOR_FIELD);
-  const dashField = findField(frame, STROKEDASHARRAY_FIELD);
+function edgesToWide(frame: DataFrame): RelationsFamilyFrame {
+  const idField = findField<number | string, EChartsRelationsFieldConfig>(frame, ID_FIELD);
+  const sourceField = findField<number | string, EChartsRelationsFieldConfig>(frame, SOURCE_FIELD);
+  const targetField = findField<number | string, EChartsRelationsFieldConfig>(frame, TARGET_FIELD);
+  const mainstatField = findField<number | string, EChartsRelationsFieldConfig>(frame, MAINSTAT_FIELD);
+  const thicknessField = findField<number | string, EChartsRelationsFieldConfig>(frame, THICKNESS_FIELD);
+  const colorField = findField<number | string, EChartsRelationsFieldConfig>(frame, COLOR_FIELD);
+  const dashField = findField<number | string, EChartsRelationsFieldConfig>(frame, STROKEDASHARRAY_FIELD);
 
   const base = statConfig(mainstatField);
   const fields: Field[] = [];
@@ -249,20 +265,21 @@ function edgesToWide(frame: DataFrame): DataFrame {
 }
 
 /** One numeric field per node row. */
-function nodesToWide(frame: DataFrame): DataFrame {
-  const idField = findField(frame, ID_FIELD);
-  const titleField = findField(frame, TITLE_FIELD);
-  const subtitleField = findField(frame, SUBTITLE_FIELD);
-  const mainstatField = findField(frame, MAINSTAT_FIELD);
-  const secondaryField = findField(frame, SECONDARYSTAT_FIELD);
-  const radiusField = findField(frame, NODERADIUS_FIELD);
-  const colorField = findField(frame, COLOR_FIELD);
-  const iconField = findField(frame, ICON_FIELD);
-  const fixedXField = findField(frame, FIXEDX_FIELD);
-  const fixedYField = findField(frame, FIXEDY_FIELD);
+function nodesToWide(frame: DataFrame): RelationsFamilyFrame {
+  // @todo instead of iterating through the fields this many times, let's create a map of field names to field refs and make a single pass
+  const idField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, ID_FIELD);
+  const titleField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, TITLE_FIELD);
+  const subtitleField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, SUBTITLE_FIELD);
+  const mainstatField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, MAINSTAT_FIELD);
+  const secondaryField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, SECONDARYSTAT_FIELD);
+  const radiusField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, NODERADIUS_FIELD);
+  const colorField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, COLOR_FIELD);
+  const iconField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, ICON_FIELD);
+  const fixedXField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, FIXEDX_FIELD);
+  const fixedYField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, FIXEDY_FIELD);
 
   const base = statConfig(mainstatField);
-  const fields: Field[] = [];
+  const fields: RelationsFamilyField[] = [];
 
   for (let row = 0; row < frame.length; row++) {
     const id = stringAt(idField, row);
@@ -340,7 +357,7 @@ function nodesToWide(frame: DataFrame): DataFrame {
  * response and must leave the others identity-intact, which is what lets the host
  * skip re-running field overrides.
  */
-export function legacyToWide(frames: DataFrame[]): DataFrame[] {
+export function legacyToWide(frames: DataFrame[]): RelationsFamilyFrame[] {
   // Already wide (or natively emitted as wide) — nothing to do.
   if (frames.length === 0 || isGraphWideFrames(frames)) {
     return frames;
