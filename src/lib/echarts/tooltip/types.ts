@@ -196,6 +196,12 @@ export interface HierarchyTooltipContext {
  * https://echarts.apache.org/en/option.html#series-graph.data
  */
 export interface RelationsNodeItem {
+  /**
+   * The node's field name, which is both ECharts' graph key (links resolve against
+   * it) and the mark key the tooltip looks the node's own field up by — see
+   * {@link RelationsMarks}. A node *derived* from an edge's endpoints has no field,
+   * so its id matches nothing and the tooltip falls back to the panel formatter.
+   */
   id: string;
   name: string;
   value?: number;
@@ -219,8 +225,6 @@ export interface RelationsNodeItem {
   subtitle?: string;
   /** The secondary stat, tooltip only; already a display string when reduced. */
   secondary?: number | string;
-  /** Source row in the owning frame, for footer data links. Unset on derived nodes. */
-  sourceRowIndex?: number;
 }
 
 /**
@@ -230,6 +234,17 @@ export interface RelationsNodeItem {
 export interface RelationsLinkItem {
   source: string;
   target: string;
+  /**
+   * The edge's field name, so the tooltip can find the edge's own field — the
+   * endpoints cannot, since two parallel edges share them.
+   *
+   * Deliberately **not** `id`, which ECharts already reads on a link:
+   * `createGraphFromNodeEdge` uses `retrieve(link.id, source + ' > ' + target)` as
+   * the edge's *name*, so setting it would rename every edge as a side effect of
+   * carrying a lookup key. ECharts preserves unknown data props, so this rides
+   * along untouched instead.
+   */
+  markId?: string;
   value?: number;
   lineStyle?: {
     /**
@@ -242,8 +257,41 @@ export interface RelationsLinkItem {
     type?: 'solid' | 'dashed' | 'dotted';
     curveness?: number;
   };
-  /** Source row in the edges frame, for footer data links. */
-  sourceRowIndex?: number;
+}
+
+/**
+ * One mark's own field, resolved once per render so a hover is a map lookup.
+ *
+ * A mark **is** a field under the graph contract, which is what makes this
+ * possible: the hovered node or edge formats with its own unit and decimals and
+ * surfaces its own `config.links`, rather than borrowing whichever field happened
+ * to be first in the frame.
+ */
+export interface RelationsMark {
+  /** This mark's own display processor (unit, decimals, "No value"). */
+  formatValue: ValueFormatter;
+  /** This mark's field + row, for the footer's data links and ad-hoc filters. */
+  source: TooltipSource;
+}
+
+/**
+ * Every mark that has a field, keyed by the mark key the ECharts item carries —
+ * `id` for a node ({@link RelationsNodeItem}), `markId` for an edge
+ * ({@link RelationsLinkItem}).
+ *
+ * Keyed rather than indexed on purpose. ECharts renumbers a graph's edges when it
+ * drops one whose endpoint is missing (`createGraphFromNodeEdge` keeps only
+ * `validEdges`), and the sankey variant removes links to break cycles, so a
+ * `dataIndex` into the model would silently point at the wrong mark. A missing key
+ * simply means "no field" — a node derived from an edge's endpoints — and the
+ * tooltip falls back to the panel formatter with no footer.
+ *
+ * Nodes and edges are separate maps because their names live in different frames
+ * and can collide (a node `e1` and an edge `e1` are both legal).
+ */
+export interface RelationsMarks {
+  nodes: ReadonlyMap<string, RelationsMark>;
+  links: ReadonlyMap<string, RelationsMark>;
 }
 
 /**
@@ -252,11 +300,14 @@ export interface RelationsLinkItem {
  * it, so the tooltip layer never imports the option layer back.
  */
 export interface RelationsTooltipContext {
+  /**
+   * The panel-level formatter, used only by a mark with no field of its own — a
+   * node derived from an edge's endpoints. Everything else formats through
+   * {@link RelationsMarks}.
+   */
   formatValue: ValueFormatter;
-  /** The numeric `mainstat` field; the footer resolves its data links. */
-  valueField?: Field;
-  /** The edges frame's `mainstat`, for a hovered link's footer. */
-  linkValueField?: Field;
+  /** Each mark's own formatting and data links; see {@link RelationsMarks}. */
+  marks?: RelationsMarks;
 }
 
 /**

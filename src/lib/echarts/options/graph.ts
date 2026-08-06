@@ -1,4 +1,3 @@
-import { type Field } from '@grafana/data';
 import { type GraphSeriesOption } from 'echarts';
 import { type CallbackDataParams, type ECBasicOption, type LinearGradientObject } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
@@ -7,7 +6,7 @@ import { createBaseOptions } from 'lib/echarts/options/base';
 import { formatEChartsValue } from 'lib/echarts/style';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
-import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
+import { type RelationsLinkItem, type RelationsMarks, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
 /**
@@ -65,12 +64,15 @@ export const ADVANCED_RELATIONS_DEFAULTS: Partial<PanelOptions> = {
   animation: undefined,
 };
 
-/** Context needed to build a relations series (colors + tooltip formatting). */
+/** The chart context plus the per-mark lookup the tooltip and node labels read. */
 export interface RelationsSeriesContext extends RelationsChartContext {
-  /** The numeric `mainstat` field; drives by-value node colors and tooltip units. */
-  valueField?: Field;
-  /** The edges frame's `mainstat`, for a hovered link's footer data links. */
-  linkValueField?: Field;
+  /**
+   * Each mark's own display processor and data-link source, so a hovered node or
+   * edge formats with its own unit and surfaces its own `config.links`. Built once
+   * per render by `getRelationsTooltipMarks`; optional so a unit test can build a
+   * series without one and fall back to the panel formatter.
+   */
+  marks?: RelationsMarks;
 }
 
 /**
@@ -114,12 +116,14 @@ export function getGraphForce(options: PanelOptions): GraphSeriesOption['force']
  * the formatter it needs for the *name* alone (`'{b}'` for sankey and chord,
  * nothing for graph — see `getSankeyLabel` / `getChordLabel`).
  *
- * When on, the stat goes on a second line. It is read off the item rather than
- * from `params.value` because the three variants carry it differently: `graph`
- * sets `value`, while `sankey` and `chord` leave `value` to ECharts' own flow
- * computation and ride the stat as `stat`. That is the same `stat ?? value`
- * precedence the tooltip uses, so the label and the tooltip cannot disagree.
- * A node with no stat keeps a one-line label rather than gaining a blank one.
+ * When on, the stat goes on a second line, formatted through the **node's own**
+ * field — the same lookup the tooltip uses, so a label and the tooltip it belongs
+ * to cannot print the same number in two different units. It is read off the item
+ * rather than from `params.value` because the three variants carry it differently:
+ * `graph` sets `value`, while `sankey` and `chord` leave `value` to ECharts' own
+ * flow computation and ride the stat as `stat`. That is the same `stat ?? value`
+ * precedence the tooltip uses. A node with no stat keeps a one-line label rather
+ * than gaining a blank one.
  * https://echarts.apache.org/en/option.html#series-graph.label.formatter
  */
 export function getRelationsNodeLabelFormatter(
@@ -134,7 +138,9 @@ export function getRelationsNodeLabelFormatter(
     if (stat == null) {
       return name;
     }
-    return `${name}\n${formatEChartsValue(stat, ctx.formatValue)}`;
+    const id = readNodeId(params.data);
+    const formatValue = (id != null ? ctx.marks?.nodes.get(id)?.formatValue : undefined) ?? ctx.formatValue;
+    return `${name}\n${formatEChartsValue(stat, formatValue)}`;
   };
 }
 
@@ -151,6 +157,15 @@ function readNodeStat(data: CallbackDataParams['data']): number | string | undef
   const value: unknown = 'value' in data ? data.value : undefined;
   const raw = stat ?? value;
   return typeof raw === 'number' || typeof raw === 'string' ? raw : undefined;
+}
+
+/** The node's mark key (its field name); narrowed structurally, as above. */
+function readNodeId(data: CallbackDataParams['data']): string | undefined {
+  if (typeof data !== 'object' || data === null || !('id' in data)) {
+    return undefined;
+  }
+  const id: unknown = data.id;
+  return typeof id === 'string' ? id : undefined;
 }
 
 /**
@@ -326,9 +341,6 @@ function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): Relation
     if (node.secondary != null) {
       item.secondary = node.secondary;
     }
-    if (node.sourceRowIndex != null) {
-      item.sourceRowIndex = node.sourceRowIndex;
-    }
     return item;
   });
 }
@@ -336,7 +348,9 @@ function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): Relation
 /** Map the model's links to ECharts graph link items. */
 function toLinkItems(links: RelationLink[], resolveGradient?: EdgeGradientResolver): RelationsLinkItem[] {
   return links.map((link) => {
-    const item: RelationsLinkItem = { source: link.source, target: link.target };
+    // `markId` is how a hovered edge finds its own field for formatting and data
+    // links; the endpoints cannot identify it, since parallel edges share them.
+    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.id };
     if (link.value != null) {
       item.value = link.value;
     }
@@ -363,9 +377,6 @@ function toLinkItems(links: RelationLink[], resolveGradient?: EdgeGradientResolv
     }
     if (Object.keys(lineStyle).length > 0) {
       item.lineStyle = lineStyle;
-    }
-    if (link.sourceRowIndex != null) {
-      item.sourceRowIndex = link.sourceRowIndex;
     }
     return item;
   });
@@ -401,11 +412,7 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     data: toNodeItems(data, ctx),
     links: toLinkItems(data.links, resolveGradient),
     tooltip: seriesTooltip(
-      buildRelationsTooltipModel({
-        formatValue: ctx.formatValue,
-        valueField: ctx.valueField,
-        linkValueField: ctx.linkValueField,
-      }),
+      buildRelationsTooltipModel({ formatValue: ctx.formatValue, marks: ctx.marks }),
       ctx.tooltipSink
     ),
   };

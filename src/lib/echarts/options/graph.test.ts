@@ -1,4 +1,4 @@
-import { createTheme, type FieldConfigSource } from '@grafana/data';
+import { createTheme, type Field, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
@@ -12,8 +12,10 @@ import {
   getGraphSeries,
   getRelationsNodeLabelFormatter,
   RELATIONS_NODE_SIZE_DEFAULT,
+  type RelationsSeriesContext,
 } from 'lib/echarts/options/graph';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { type TooltipSource } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -167,6 +169,12 @@ describe('getRelationsNodeLabelFormatter', () => {
   const params = (name: string, item: Record<string, unknown>) =>
     ({ name, data: item }) as unknown as CallbackDataParams;
 
+  /** A mark's field + row, as `getRelationsTooltipMarks` builds it. */
+  const markSource = (name: string): TooltipSource => ({
+    field: toDataFrame({ fields: [{ name, type: FieldType.number, values: [42] }] }).fields[0] as Field,
+    rowIndex: 0,
+  });
+
   it('returns nothing while the option is off, so each variant keeps its own formatter', () => {
     expect(getRelationsNodeLabelFormatter(ctx())).toBeUndefined();
   });
@@ -197,6 +205,29 @@ describe('getRelationsNodeLabelFormatter', () => {
     const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
 
     expect(formatter(params('D', { id: 'd', name: 'D' }))).toBe('D');
+  });
+
+  /**
+   * The label prints the same number the tooltip does, so it formats through the same
+   * per-mark lookup. Formatting it with the panel formatter instead would put two
+   * different renderings of one value on screen at once.
+   */
+  it('formats the stat with the node’s own field, like the tooltip', () => {
+    const withMarks: RelationsSeriesContext = {
+      ...ctx(baseOptions({ relationsShowNodeValues: true })),
+      marks: {
+        nodes: new Map([
+          ['a', { formatValue: (value: number) => ({ text: `${value}`, suffix: ' ms' }), source: markSource('a') }],
+        ]),
+        links: new Map(),
+      },
+    };
+
+    const formatter = getRelationsNodeLabelFormatter(withMarks)!;
+
+    expect(formatter(params('A', { id: 'a', name: 'A', value: 42 }))).toBe('A\n42 ms');
+    // A node with no field of its own (a derived node) keeps the panel formatter.
+    expect(formatter(params('Z', { id: 'z', name: 'Z', value: 42 }))).toBe('Z\n42');
   });
 });
 

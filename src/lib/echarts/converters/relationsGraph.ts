@@ -1,5 +1,5 @@
-import { type DataFrame, type Field, FieldType, type GrafanaTheme2, type ReduceDataOptions } from '@grafana/data';
-import { frameToGraphWide, isGraphWideFrames, resolveGraphWideRoles } from 'lib/echarts/converters/graphWide';
+import { type DataFrame, type GrafanaTheme2, type ReduceDataOptions } from '@grafana/data';
+import { frameToGraphWide, isGraphWideFrames } from 'lib/echarts/converters/graphWide';
 import { isLegacyGraphFrames } from 'lib/echarts/converters/legacyToWide';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 
@@ -36,31 +36,4 @@ export function frameToRelationsGraph(
   }
   // Not a graph in either shape: nothing to draw, which is the no-data view's job.
   return null;
-}
-
-const isNumeric = (field: Field): boolean => field.type === FieldType.number;
-
-/**
- * The field whose config formats node values.
- *
- * Every node already carries its own field (`RelationNode.field`), so this exists only
- * for the parts of the options and tooltip layers that still take one field for the
- * whole series — per-mark formatting is phase 5 of the migration. The nodes frame's
- * first mark is representative, because the conversion copies the stat column's
- * `unit`/`decimals` onto every mark.
- *
- * Roles come from `resolveGraphWideRoles`, so this cannot disagree with the reader
- * about which frame is which.
- */
-export function getRelationsValueField(frames: DataFrame[]): Field | undefined {
-  const roles = resolveGraphWideRoles(frames);
-  if (!roles) {
-    return undefined;
-  }
-  return (roles.nodesFrame ?? roles.edgesFrame).fields.find(isNumeric);
-}
-
-/** The field formatting a hovered *link*'s value. */
-export function getRelationsLinkValueField(frames: DataFrame[]): Field | undefined {
-  return resolveGraphWideRoles(frames)?.edgesFrame.fields.find(isNumeric);
 }

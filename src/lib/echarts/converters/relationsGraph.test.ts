@@ -2,11 +2,7 @@ import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/da
 
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
 import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
-import {
-  frameToRelationsGraph,
-  getRelationsLinkValueField,
-  getRelationsValueField,
-} from 'lib/echarts/converters/relationsGraph';
+import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
 
 const theme = createTheme();
 
@@ -69,38 +65,14 @@ describe('frameToRelationsGraph', () => {
   });
 });
 
-describe('value field resolution', () => {
-  it('finds a representative mark field either side of the frame pair', () => {
-    const frames = legacyToWide([rowEdges(), rowNodes()]);
-
-    // The nodes frame's first mark, carrying the stat column's copied formatting.
-    expect(getRelationsValueField(frames)?.name).toBe('a');
-    expect(getRelationsLinkValueField(frames)?.name).toBe('e1');
-    expect(getRelationsLinkValueField(frames)?.config.unit).toBe('ms');
-  });
-
-  it('resolves against an edges-only response', () => {
-    const frames = [
-      toDataFrame({
-        meta: { type: GRAPH_EDGES_WIDE },
-        fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] }],
-      }),
-    ];
-
-    expect(getRelationsValueField(frames)?.name).toBe('e1');
-  });
-
-  it('returns nothing when there is no graph to resolve against', () => {
-    expect(getRelationsValueField([])).toBeUndefined();
-    expect(getRelationsLinkValueField([])).toBeUndefined();
-  });
-
+describe('frame roles', () => {
   /**
-   * Roles come from the same resolver the reader uses, so the two cannot disagree about
-   * which frame is which — including in the case shape alone gets wrong, a node named
-   * with the edge separator.
+   * `meta.type` is authoritative in both directions, so a node legitimately named with
+   * the edge separator is still read as a node — the case field shape alone gets wrong.
+   * Every mark carries its own field either way, which is what the tooltip formats and
+   * resolves data links from (see `getRelationsTooltipMarks`).
    */
-  it('agrees with the reader about frame roles', () => {
+  it('takes a declared nodes frame as nodes, however its fields are named', () => {
     const nodes = toDataFrame({
       meta: { type: GRAPH_NODES_WIDE },
       fields: [{ name: 'a-->b', type: FieldType.number, config: { unit: 'percent' }, values: [5] }],
@@ -109,10 +81,26 @@ describe('value field resolution', () => {
       meta: { type: GRAPH_EDGES_WIDE },
       fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a-->b', target: 'c' }, values: [1] }],
     });
-    const frames = [nodes, edges];
 
-    expect(getRelationsValueField(frames)?.name).toBe('a-->b');
-    expect(getRelationsLinkValueField(frames)?.name).toBe('e1');
-    expect(frameToRelationsGraph(frames, theme)?.links.map((link) => link.id)).toEqual(['e1']);
+    const data = frameToRelationsGraph([nodes, edges], theme);
+
+    expect(data?.links.map((link) => link.id)).toEqual(['e1']);
+    expect(data?.nodes.find((node) => node.id === 'a-->b')?.field?.config.unit).toBe('percent');
+  });
+
+  it('reads an edges-only response, deriving its nodes', () => {
+    const frames = [
+      toDataFrame({
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] }],
+      }),
+    ];
+
+    const data = frameToRelationsGraph(frames, theme);
+
+    expect(data?.links[0].field?.name).toBe('e1');
+    // Derived nodes have no field, which is why they format with the panel formatter
+    // and carry no data links — gap 4 of `todo/relations-data-links.md`.
+    expect(data?.nodes.every((node) => node.field === undefined)).toBe(true);
   });
 });
