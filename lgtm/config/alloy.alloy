@@ -1,0 +1,102 @@
+// Alloy for the local LGTM stack (`pnpm run server:lgtm`).
+//
+// This is the piece that replaces logs-drilldown's `generator` service. Rather
+// than synthesising log traffic, Alloy tails the stdout/stderr of the stack's
+// own containers over the Docker socket and pushes it to Loki. The stack is
+// its own log source, so what you query is real output from Grafana, Loki,
+// Tempo, Prometheus and Alloy itself.
+//
+// Traces do not come through here: each service exports OTLP straight to
+// Tempo, and Tempo does not trace itself. Relaying traces via Alloy instead —
+// to let Tempo trace itself without exporting to itself — was tried and makes
+// shutdown worse, because Compose does not reliably keep Alloy alive past its
+// dependents. See the note on the tempo service in docker-compose-lgtm.yaml.
+
+// ── Sinks ────────────────────────────────────────────────────────────────
+
+loki.write "lgtm" {
+	endpoint {
+		url = "http://loki:3100/loki/api/v1/push"
+	}
+}
+
+otelcol.exporter.otlp "tempo" {
+	client {
+		endpoint = "tempo:4317"
+
+		tls {
+			insecure = true
+		}
+	}
+}
+
+// ── Alloy's own telemetry ────────────────────────────────────────────────
+// Alloy is part of the stack it observes: its logs go to Loki alongside
+// everyone else's, and its traces to Tempo. Its metrics are scraped by
+// Prometheus (see prometheus.yaml, job `alloy`).
+
+logging {
+	level    = "info"
+	format   = "logfmt"
+	write_to = [loki.write.lgtm.receiver]
+}
+
+tracing {
+	sampling_fraction = 1
+	write_to          = [otelcol.exporter.otlp.tempo.input]
+}
+
+// ── Container logs → Loki ────────────────────────────────────────────────
+
+discovery.docker "stack" {
+	host             = "unix:///var/run/docker.sock"
+	refresh_interval = "10s"
+
+	// Only this stack's containers. The label is set on every service in
+	// docker-compose-lgtm.yaml, so an unrelated container on the same Docker
+	// daemon — including the `pnpm run server` Grafana — is never tailed.
+	filter {
+		name   = "label"
+		values = ["dev.grafana.echarts.lgtm=true"]
+	}
+}
+
+discovery.relabel "stack" {
+	targets = discovery.docker.stack.targets
+
+	// The Compose service name is the service identity: grafana, loki, tempo,
+	// prometheus, alloy. Matches the `service_name` label Prometheus attaches
+	// to the same container's metrics.
+	rule {
+		source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+		target_label  = "service_name"
+	}
+
+	// Docker reports container names with a leading slash.
+	rule {
+		source_labels = ["__meta_docker_container_name"]
+		regex         = "/?(.*)"
+		target_label  = "container"
+	}
+
+	// Distinguishes two stacks running side by side on different ports.
+	rule {
+		source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+		target_label  = "stack"
+	}
+}
+
+loki.source.docker "stack" {
+	host             = "unix:///var/run/docker.sock"
+	targets          = discovery.relabel.stack.output
+	forward_to       = [loki.write.lgtm.receiver]
+	refresh_interval = "10s"
+	labels           = {job = "lgtm/docker"}
+}
+
+// No parsing pipeline on purpose. The five services log in three different
+// dialects (go-kit logfmt, Grafana's logfmt, Go slog with an upper-case
+// `level=INFO`), and normalising them here would mean a per-service pipeline.
+// Loki's own level detection already writes a lower-cased `detected_level`
+// into structured metadata, which is what the Logs panel and Logs Drilldown
+// read — so the raw line is forwarded untouched.
