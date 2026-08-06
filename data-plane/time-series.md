@@ -161,12 +161,36 @@ y-axis unit set, and the tooltip, while the legend keeps a greyed item.
 
 ## Detection
 
-`scoreCartesian` (`src/lib/echarts/charts/fitness.ts`) is the shared gate behind
-both the Visualization Suggestions supplier
-(`src/modules/cartesian/suggestions.ts`) and the panel-level `Auto` resolver. It
-requires a `time` field, a `number` field, at least two rows, and non-instant
-data; a declared `TimeSeriesWide` / `TimeSeriesMulti` / `TimeSeriesLong` frame
-scores `Good`, anything else that passes the gate scores `OK`.
+`scoreCartesian` (`src/lib/echarts/charts/fitness.ts`) is the Visualization
+Suggestions gate (`src/modules/cartesian/suggestions.ts`). It requires a `time`
+field, a `number` field, at least two rows, and non-instant data; a declared
+`TimeSeriesWide` / `TimeSeriesMulti` / `TimeSeriesLong` frame scores `Good`,
+anything else that passes the gate scores `OK`. Both the Line and Bar cards carry
+that one score.
+
+It is **not** shared with the panel-level `Auto` resolver, despite what this said
+before. `resolveAutoSeriesType` keys off the panel's fixed `ChartFamily` and
+consults only `resolveMultiValueSeriesType` for the ambiguous case; it never calls
+`fitness.ts`. The two paths agree where it matters, because the suggestion supplier
+uses that same multi-value detector.
+
+The family has three other suggestion branches, each mutually exclusive with this
+one so the family always emits a single score (Grafana groups _contiguous_ runs of
+one plugin id after sorting by score):
+
+- `resolveMultiValueSuggestion` — OHLC or five-number-summary field names, scored
+  `Best`, emitting **only** the Candlestick or Box plot card. That matches what
+  `resolveAutoSeriesType` would pick for the same frame, so offering Line alongside
+  it would contradict the panel's own `Auto` behaviour.
+- `scoreCategoryCartesian` — a string label column plus numeric values and no
+  `time` field, up to `CATEGORY_MAX_ROWS` (50, core barchart's own gate): Bar, Bar
+  stacked and Scatter on a category axis.
+- `scoreScatter` — two or more numeric fields and no `time` field, so the first
+  numeric field becomes the x axis (`resolveTimeField`'s fallback). Not row-bounded,
+  unlike the category branch: a value axis is what a scatter is for.
+
+`effectScatter` is deliberately never suggested — it animates continuously, which is
+wrong for a preview card, and it is a decoration of `scatter`, which _is_ offered.
 
 ## ECharts data specification
 
