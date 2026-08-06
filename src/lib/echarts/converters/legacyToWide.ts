@@ -8,14 +8,10 @@ import {
   FieldType,
   type Labels,
 } from '@grafana/data';
+import { debug, LOG_LEVELS } from 'development';
 import type { EChartsRelationsFieldConfig } from 'editor/types';
-import {
-  EDGE_SEPARATOR,
-  GRAPH_EDGES_WIDE,
-  GRAPH_NODES_WIDE,
-  GRAPH_TYPE_VERSION,
-  isGraphWideFrames,
-} from 'lib/echarts/converters/graphWide';
+import { isGraphWideFrames } from 'lib/echarts/converters/graphWide';
+import { edgeId, edgeLabels, edgesWideFrame, nodesWideFrame, numberAt } from 'lib/echarts/converters/toGraphWide';
 import {
   type RelationsFamilyField,
   type RelationsFamilyFrame,
@@ -177,11 +173,6 @@ function stringAt(field: Field | undefined, row: number): string | undefined {
   return typeof raw === 'string' ? raw : String(raw);
 }
 
-function numberAt(field: Field | undefined, row: number): number | null {
-  const raw: unknown = field?.values[row];
-  return typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
-}
-
 /** A `color` column is only a colour when it holds an HTML colour string. */
 function fixedColorAt(field: Field | undefined, row: number): string | undefined {
   const raw: unknown = field?.values[row];
@@ -276,13 +267,11 @@ function edgesToWide(frame: DataFrame): RelationsFamilyFrame {
 
     fields.push({
       // `id` becomes the override target, which the long form's `id` never was.
-      name: stringAt(idField, row) ?? `${source}${EDGE_SEPARATOR}${target}`,
+      name: stringAt(idField, row) ?? edgeId(source, target),
       type: FieldType.number,
       // Labels are the primary endpoint carrier: they survive node ids that
-      // themselves contain the separator, which a name split cannot. Detail labels
-      // are spread **first** so a `detail__source` column cannot silently move the
-      // edge to a different node.
-      labels: { ...detailLabels(frame, row), source, target },
+      // themselves contain the separator, which a name split cannot.
+      labels: edgeLabels(detailLabels(frame, row), { source, target }),
       config: {
         ...base,
         ...(fixedColor != null ? { color: { mode: FieldColorModeId.Fixed, fixedColor } } : {}),
@@ -295,16 +284,7 @@ function edgesToWide(frame: DataFrame): RelationsFamilyFrame {
     });
   }
 
-  return {
-    ...frame,
-    fields,
-    length: fields.length > 0 ? 1 : 0,
-    meta: {
-      ...frame.meta,
-      type: GRAPH_EDGES_WIDE,
-      typeVersion: GRAPH_TYPE_VERSION,
-    },
-  };
+  return edgesWideFrame(frame, fields);
 }
 
 /** One numeric field per node row. */
@@ -379,16 +359,7 @@ function nodesToWide(frame: DataFrame): RelationsFamilyFrame {
     });
   }
 
-  return {
-    ...frame,
-    fields,
-    length: fields.length > 0 ? 1 : 0,
-    meta: {
-      ...frame.meta,
-      type: GRAPH_NODES_WIDE,
-      typeVersion: GRAPH_TYPE_VERSION,
-    },
-  };
+  return nodesWideFrame(frame, fields);
 }
 
 /**
@@ -406,20 +377,31 @@ export function legacyToWide(frames: DataFrame[]): RelationsFamilyFrame[] {
     return frames;
   }
 
-  let converted = false;
+  const converted: string[] = [];
   const out = frames.map((frame) => {
     if (isLegacyEdgesFrame(frame)) {
-      converted = true;
-      return edgesToWide(frame);
+      const wide = edgesToWide(frame);
+      converted.push(`${frame.refId ?? frame.name ?? '?'}: ${wide.fields.length} edges`);
+      return wide;
     }
     if (isLegacyNodesFrame(frame)) {
-      converted = true;
-      return nodesToWide(frame);
+      const wide = nodesToWide(frame);
+      converted.push(`${frame.refId ?? frame.name ?? '?'}: ${wide.fields.length} nodes`);
+      return wide;
     }
     return frame;
   });
 
-  return converted ? out : frames;
+  if (converted.length === 0) {
+    return frames;
+  }
+  debug(
+    `Note: relations converted ${converted.length} legacy graph-*-long frame(s) to the wide contract, ` +
+      'one field per node and per edge, so each becomes an override target.',
+    LOG_LEVELS.info,
+    { converted, frames: frames.length }
+  );
+  return out;
 }
 
 /**

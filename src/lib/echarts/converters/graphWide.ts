@@ -49,8 +49,13 @@ export const GRAPH_NODES_WIDE = 'graph-nodes-wide' as DataFrameType;
 /** The contract spec's versioning rule for a kind that has not stabilised. */
 export const GRAPH_TYPE_VERSION: [number, number] = [0, 1];
 
-const SOURCE_LABEL = 'source';
-const TARGET_LABEL = 'target';
+/**
+ * The contract's canonical endpoint keys. Exported because the converters that *write*
+ * this contract read the same two keys (`toGraphWide.ts`), and a second definition of
+ * "which label is the source" is exactly the drift the contract cannot afford.
+ */
+export const SOURCE_LABEL = 'source';
+export const TARGET_LABEL = 'target';
 const SECONDARYSTAT_LABEL = 'secondarystat';
 
 /** Reducer used when the panel has no `reduceOptions.calcs`. */
@@ -71,28 +76,46 @@ export function normalizeRelationsCalcs(reduceOptions: ReduceDataOptions | undef
   return [calcs[0] ?? RELATIONS_CALC_DEFAULT, calcs[1]];
 }
 
+/** The two node ids a mark joins. */
+export interface GraphEndpoints {
+  source: string;
+  target: string;
+}
+
 /**
- * Endpoints from a field, labels first.
+ * Endpoints from a field's **labels** — the primary carrier, and the only one that
+ * survives a node id which itself contains the separator.
  *
- * Labels win over the name split because they are the only carrier that survives a
- * node id which itself contains the separator. When splitting, **first separator
- * wins**: `a-->b-->c` is `a` and `b-->c`.
+ * Exported for the converters: reading the endpoints a datasource put in labels is the
+ * first half of writing them back under the canonical keys, and both halves have to agree
+ * on which keys those are.
  */
-function endpointsOf(field: Field): { source: string; target: string } | undefined {
+export function endpointLabelsOf(field: Field): GraphEndpoints | undefined {
   const labels = field.labels ?? {};
   const source = labels[SOURCE_LABEL];
   const target = labels[TARGET_LABEL];
-  if (source && target) {
-    return { source, target };
-  }
+  return source && target ? { source, target } : undefined;
+}
 
-  const at = field.name.indexOf(EDGE_SEPARATOR);
+/**
+ * Endpoints from an id — the fallback carrier, for sources that cannot emit labels.
+ *
+ * **First separator wins**: `a-->b-->c` is `a` and `b-->c`. Exported so a converter can
+ * ask "is this name already an edge id?" with the same test the reader applies.
+ */
+export function endpointsFromName(name: string): GraphEndpoints | undefined {
+  const at = name.indexOf(EDGE_SEPARATOR);
   if (at <= 0) {
     return undefined;
   }
-  const left = field.name.slice(0, at);
-  const right = field.name.slice(at + EDGE_SEPARATOR.length);
+  const left = name.slice(0, at);
+  const right = name.slice(at + EDGE_SEPARATOR.length);
   return left && right ? { source: left, target: right } : undefined;
+}
+
+/** Endpoints from a field, labels first. */
+function endpointsOf(field: Field): GraphEndpoints | undefined {
+  return endpointLabelsOf(field) ?? endpointsFromName(field.name);
 }
 
 /**

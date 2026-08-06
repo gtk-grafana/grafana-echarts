@@ -62,3 +62,4 @@ provisioning/dashboards/gdev/*
 
 # Scripts cache
 scripts/__pycache__
+scripts/*
