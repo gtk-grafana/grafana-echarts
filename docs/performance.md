@@ -134,6 +134,58 @@ Animation uses the shared `animation.enabled` boolean rather than a
 mean the same thing. Because off _is_ the default, a plain switch is unambiguous:
 what it shows is what the chart does.
 
+## Suggestion previews
+
+The one part of this document that is not cartesian-specific. Grafana renders every
+Visualization Suggestion card as a **real panel** at 350×219
+(`VisualizationSuggestionCard`), so each card is a full converter run plus an
+ECharts canvas paint. Roughly twenty cards are possible across the seven nested
+panels, and a given response typically matches two or three families — but before
+this was bounded, opening the Suggestions pane over a 500-series query meant ten
+full panel renders back to back on the main thread, with the DOM legend on, point
+symbols on, and no downsampling.
+
+Previews are capped with Grafana's own `cardOptions` mechanism rather than anything
+bespoke, because it applies to a `cloneDeep` of the suggestion — so **preview-only
+degradation never leaks into the panel the user creates from the card.**
+
+| Mechanism         | What Grafana does with it                        | This plugin's value                                                                                 |
+| ----------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `maxSeries`       | `data.series.slice(0, n)`                        | `PREVIEW_MAX_SERIES` (20), every card                                                               |
+| `maxRows`         | truncates each field's `values` to the first `n` | `PREVIEW_MAX_ROWS` (500) cartesian/stream; `MULTIVARIATE_PREVIEW_MAX_ROWS` (25) radar/parallel      |
+| `previewModifier` | runs against a `cloneDeep` of the suggestion     | hides the legend, forces `showPoints: 'never'` + `downsampling: true`, suppresses per-family labels |
+
+Why those degradations specifically:
+
+- **Legend off.** The Grafana `VizLegend` is React DOM, one row per series, and is
+  illegible at card scale regardless. Core Grafana makes the same trade via its
+  `SUGGESTIONS_LEGEND_OPTIONS`.
+- **`performance` forced.** Exactly the two levers above, pinned rather than left to
+  the density heuristic — a card is 350px wide, so there is no point at which point
+  markers help.
+- **Labels off per family.** `displayLabels: []` (pie/funnel) and
+  `relationsShowNodeLabels: false`. Text layout dominates in those families and none
+  of it is readable at 350×219. The stream family needs no override: its layer labels
+  already default to off.
+
+Two constraints on anything added to the modifier later:
+
+1. **It must not be in an `ADVANCED_*_DEFAULTS` set.** In Default editor mode
+   `applyEditorModeDefaults` spreads those over the stored options before the chart
+   is built, which would silently undo the modifier. `legend` and `performance` were
+   checked; `animation` is in `ADVANCED_CARTESIAN_DEFAULTS`, which is one of two
+   reasons it is not set here (the other being that it already defaults off).
+2. **It must tolerate `options === undefined`.** Cards are built by hand here, so
+   several carry no options object at all — core's own modifiers assign into
+   `s.options!.legend` and only get away with it because they always run after a
+   `defaultsDeep`.
+
+The gates in `charts/fitness.ts` are the other half of this. They bound what is
+_offered_, so a shape that cannot be drawn legibly never becomes a card in the first
+place: 50 radar axes, 30 pie slices, 20 stream layers, 500 relations edges. Both the
+caps and the gates live in `charts/suggestionLimits.ts`, kept free of imports so a
+test can mock it and cross a limit with a handful of rows.
+
 ## What the levers are worth
 
 Measured in headless Chromium against ECharts 6.1.0, rendering into a

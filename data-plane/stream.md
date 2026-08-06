@@ -235,10 +235,16 @@ the coordinate system it declares as a dependency.
   color; only fixed / by-series modes are meaningful.
 - **No sorting or validation**, as above: unsorted or duplicate-timestamped input
   is handed to ECharts as it arrives.
-- **Cardinality is not capped.** A high-cardinality query (Prometheus by pod)
-  produces an unreadable river; nothing truncates it silently. The suggestion
-  scorer withholds below two layers, and
-  [stream-sources.md](./stream-sources.md) documents a top-N recipe.
+- **Cardinality is not capped at render time.** A high-cardinality query (Prometheus
+  by pod) produces an unreadable river; nothing truncates it silently. The
+  suggestion scorer withholds outside `[STREAM_MIN_LAYERS, STREAM_MAX_LAYERS]`
+  (2–20) — below two a river is just a filled area chart, and past twenty the
+  individual ribbons can no longer be followed — but that only withholds the _card_;
+  a panel the user selects by hand still renders every layer.
+  [stream-sources.md](./stream-sources.md) documents a top-N recipe. The ceiling can
+  only be applied to the countable layer form (numeric fields, or one frame per
+  series): a long frame's label cardinality is invisible to `PanelDataSummary`, so a
+  pivotable string field passes on the assumption that it is sane.
 - **Two layers with the same name merge in the render, not in the model.** ECharts
   derives its ribbons from the `name` dimension (`getLayerSeries`), so same-named
   layers become one ribbon, while `StreamData` still holds two — which shows up as a
