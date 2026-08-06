@@ -65,6 +65,27 @@ the TestData `flame_graph` scenario, which carries the meta signal (the unit
 fixture in `src/lib/echarts/converters/hierarchy.test.ts` mirrors that frame,
 meta signal and enum `label` included).
 
+### Suggestions
+
+`isFlameGraphFrame` has a second caller: `scoreHierarchy`
+(`src/lib/echarts/charts/fitness.ts`) applies it to `summary.rawFrames`, so the family
+is suggested at `Best` for flame-graph data rather than only when the panel is picked
+by hand. Render and suggestion therefore agree by construction.
+
+Anything else falls back to the flat categorical path, whose gate shares
+part-to-whole's slice bounds **plus a snapshot-shape requirement part-to-whole does
+not have.** The asymmetry is real and worth knowing: this family has no
+`reduceOptions`. The flat path emits one node per _row_ (see the table below), so
+where a pie reduces a five-series time series to five slices, a treemap over the same
+frames would draw one node per timestamp named `"0"`, `"1"`, …. A time dimension is
+therefore disqualifying here and is not for part-to-whole — see
+[part-to-whole.md](./part-to-whole.md#detection).
+
+One consequence of counting nodes by row: a wide snapshot frame with many rows (a
+large SQL table with two or more numeric columns) is still suggested, and still draws
+one node per row. Treemaps tolerate that far better than a pie would, so it is left
+alone, but it is a looser bound than the family's slice count implies.
+
 ## How a frame is read
 
 ### Nested-set path (`flameGraphToRoots`)

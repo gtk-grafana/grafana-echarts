@@ -6,6 +6,14 @@ The matrix heatmap renders a category x category grid: a discrete cell for every
 [binned heatmap](./heatmap-binned.md), which draws continuous cell rectangles.
 
 - Converter: `frameToMatrixHeatmap` — `src/lib/echarts/converters/matrixHeatmap.ts`
+- Suggested (as "Heatmap (matrix)", carrying `heatmapLayout: 'matrix'`) for a
+  categorical numeric grid: a string column for the Y rows, two or more numeric
+  fields for the X columns, no `time` field, bounded by
+  `HEATMAP_MATRIX_MAX_COLUMNS` / `HEATMAP_MATRIX_MAX_ROWS` (50 / 100). See
+  `scoreMatrixHeatmap` in `src/lib/echarts/charts/fitness.ts`. A single numeric
+  column is a bar chart, not a heatmap, and the cartesian family suggests that
+  instead. The two heatmap layouts are mutually exclusive suggestion branches — they
+  need opposite data, since `binned` wants the time dimension this one rejects.
 
 ## Grafana data plane equivalent
 
