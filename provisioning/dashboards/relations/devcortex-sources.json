@@ -1041,7 +1041,7 @@
   },
   "timepicker": {},
   "timezone": "utc",
-  "title": "ECharts Relations \u2014 live Prometheus (dev-cortex)",
+  "title": "ECharts Relations \u2014 live Prometheus",
   "uid": "echarts-relations-devcortex",
   "version": 1,
   "weekStart": ""

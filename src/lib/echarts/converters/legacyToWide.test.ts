@@ -1,6 +1,7 @@
 import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { lastValueFrom, of } from 'rxjs';
 
+import { debug, LOG_LEVELS } from 'development';
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
 import {
   isLegacyEdgesFrame,
@@ -9,6 +10,13 @@ import {
   legacyToWide,
   legacyToWideOperator,
 } from 'lib/echarts/converters/legacyToWide';
+
+// Gated on `NODE_ENV`/`CI`/localStorage, so the console itself is not assertable across
+// environments; the mock tests the decision to log. See `development.ts`.
+jest.mock('development', () => ({
+  debug: jest.fn(),
+  LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
+}));
 
 const edgesFrame = (): DataFrame =>
   toDataFrame({
@@ -344,6 +352,39 @@ describe('legacyToWide — detection', () => {
     });
 
     expect(isLegacyNodesFrame(table)).toBe(false);
+  });
+});
+
+/**
+ * The conversion is a hidden prefix with no off switch, so it says what it did. Info
+ * level: `development.ts` suppresses it unless someone asks for it, which is the right
+ * default for a conversion that is working as intended.
+ */
+describe('legacyToWide — diagnostics', () => {
+  beforeEach(() => {
+    jest.mocked(debug).mockClear();
+  });
+
+  it('notes what it converted, per frame and role', () => {
+    legacyToWide([edgesFrame(), nodesFrame()]);
+
+    const [message, level, data] = jest.mocked(debug).mock.calls[0];
+    expect(level).toBe(LOG_LEVELS.info);
+    expect(message).toContain('2 legacy graph-*-long frame(s)');
+    expect(data).toEqual({ converted: ['edges: 2 edges', 'nodes: 2 nodes'], frames: 2 });
+  });
+
+  it('says nothing when it converts nothing', () => {
+    legacyToWide([
+      toDataFrame({
+        fields: [
+          { name: 'time', type: FieldType.time, values: [1] },
+          { name: 'value', type: FieldType.number, values: [2] },
+        ],
+      }),
+    ]);
+
+    expect(jest.mocked(debug)).not.toHaveBeenCalled();
   });
 });
 
