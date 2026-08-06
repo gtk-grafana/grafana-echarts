@@ -23,41 +23,79 @@ import {
 } from './types';
 
 /**
- * Drop the nodes the legend has hidden, and every link that touched one.
+ * Ids of every node hidden from the visualization.
  *
- * Legend rows here are nodes — frame *rows*, not fields — so Grafana's override
- * engine has nothing to apply `custom.hideFrom` to and the family reads the
- * override itself, exactly as pie does for slices (`converters/pie.ts`). Matching
- * is by display name, which is what `buildLegendItems` puts in `fieldName`.
+ * A node with a field of its own has already answered: `custom.hideFrom.viz` was
+ * matched and applied to it by Grafana's override engine, and the reader read it
+ * straight off the mark (`RelationNode.hidden`). That covers both writers — the
+ * legend's visibility toggle and a hand-written "Hide in area" override — and it
+ * covers matchers a by-name lookup never could, `byRegexp` and `byType` among them.
  *
- * Links go too: an edge whose endpoint is gone has nothing to attach to, and
- * ECharts resolves links by node id, so leaving it would either drop it silently
- * (graph) or leave a ribbon hanging off a node that is not drawn.
- *
- * Colours survive the filtering untouched: the reader resolved each node's colour
- * before this ran (`fillPaletteColors`), so hiding a node cannot shuffle the palette
- * colours of the ones after it.
+ * A node **derived** from an edge's endpoints has no field, so nothing could have
+ * been applied to it and its name is the only thing left to match on. This is the
+ * same hole as `relations-data-links.md` gap 4, which is why the by-name read
+ * survives here in miniature rather than disappearing outright: without it, a legend
+ * click on an edges-only response would do nothing at all.
  */
-function withoutHiddenNodes(data: NodeGraphData, fieldConfig: FieldConfigSource): NodeGraphData {
-  const hiddenNames = getHiddenSeriesNames(
-    fieldConfig,
-    data.nodes.map((node) => node.name)
+function hiddenNodeIds(data: NodeGraphData, fieldConfig: FieldConfigSource): Set<string> {
+  const derived = data.nodes.filter((node) => node.field == null);
+  // Resolved over the derived names alone — the universe the override can still be
+  // interpreted against, since `hideSeriesFrom` is an *exclude* matcher and needs a
+  // candidate list. The fielded nodes are excluded because they have answered already.
+  const hiddenDerived =
+    derived.length > 0
+      ? getHiddenSeriesNames(
+          fieldConfig,
+          derived.map((node) => node.name)
+        )
+      : new Set<string>();
+
+  const hidden = new Set<string>();
+  for (const node of data.nodes) {
+    if (node.field != null ? node.hidden === true : hiddenDerived.has(node.name)) {
+      hidden.add(node.id);
+    }
+  }
+  return hidden;
+}
+
+/**
+ * The graph as rendered: hidden marks removed.
+ *
+ * Three things go, and only the first is a field-config question:
+ *
+ * - a mark whose own field is hidden — node **or edge**, which is new: an edge is a
+ *   field now, so "Hide in area" on `a-->b` removes exactly that edge;
+ * - every link touching a hidden node, because an edge with a missing endpoint has
+ *   nothing to attach to and ECharts resolves links by node id, so leaving it would
+ *   either drop it silently (graph) or hang a ribbon off nothing;
+ * - a **derived** node left with no visible link, because such a node exists only as
+ *   a consequence of its edges — hiding the last edge that named it should not leave
+ *   an unexplained dot behind. A node the nodes frame declared stays, links or not.
+ *
+ * Colours survive untouched: the reader resolved each node's colour before this ran
+ * (`fillPaletteColors`), so hiding a node cannot shuffle the palette colours below it.
+ */
+function withoutHiddenMarks(data: NodeGraphData, fieldConfig: FieldConfigSource): NodeGraphData {
+  const hidden = hiddenNodeIds(data, fieldConfig);
+  const links = data.links.filter(
+    (link) => link.hidden !== true && !hidden.has(link.source) && !hidden.has(link.target)
   );
-  if (hiddenNames.size === 0) {
+  if (hidden.size === 0 && links.length === data.links.length) {
     return data;
   }
 
-  const hiddenIds = new Set(data.nodes.filter((node) => hiddenNames.has(node.name)).map((node) => node.id));
+  const connected = new Set(links.flatMap((link) => [link.source, link.target]));
   return {
-    nodes: data.nodes.filter((node) => !hiddenIds.has(node.id)),
-    links: data.links.filter((link) => !hiddenIds.has(link.source) && !hiddenIds.has(link.target)),
+    nodes: data.nodes.filter((node) => !hidden.has(node.id) && (node.field != null || connected.has(node.id))),
+    links,
   };
 }
 
-/** The node/link model as rendered: legend-hidden nodes and their links removed. */
+/** The node/link model as rendered: hidden marks and their orphaned links removed. */
 function getVisibleNodeGraph(ctx: RelationsChartContext): NodeGraphData | null {
   const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
-  return data == null ? null : withoutHiddenNodes(data, ctx.fieldConfig);
+  return data == null ? null : withoutHiddenMarks(data, ctx.fieldConfig);
 }
 
 /**
@@ -156,6 +194,25 @@ export const relationsChartModule: ChartModule = {
     return targets;
   },
 
+  /**
+   * Nodes **and** edges, because both are fields and the legend lists only nodes.
+   *
+   * The legend toggle writes an exclude-mode `byNames` override, so any mark left out
+   * of the kept list is hidden by Grafana. Without the edge names here, hiding one
+   * node would mark every edge field `hideFrom.viz` and the panel would lose all its
+   * links — see {@link ChartModule.getOverrideTargetNames}. The *unfiltered* graph,
+   * so an already-hidden mark stays in the universe and can be restored.
+   */
+  getOverrideTargetNames(ctx: RelationsChartContext): string[] {
+    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
+    if (!data) {
+      return [];
+    }
+    // Nodes by display name (what the legend shows and the matcher tests), edges by
+    // field name — an edge has no display name of its own.
+    return [...data.nodes.map((node) => node.name), ...data.links.map((link) => link.id)];
+  },
+
   buildLegendItems(ctx): VizLegendItem[] {
     // The *unfiltered* graph: a hidden node stays listed (greyed) so it can be
     // toggled back on, which is how every other family's legend behaves.
@@ -164,17 +221,16 @@ export const relationsChartModule: ChartModule = {
       return [];
     }
 
-    const hidden = getHiddenSeriesNames(
-      ctx.fieldConfig,
-      data.nodes.map((node) => node.name)
-    );
+    // Greyed by the same resolution the chart filters on, so a row cannot say
+    // "visible" about a node that is not drawn.
+    const hidden = hiddenNodeIds(data, ctx.fieldConfig);
     // One entry per node
     return data.nodes.map((node) => ({
       label: node.name,
       fieldName: node.name,
       color: node.color,
       yAxis: 1,
-      disabled: hidden.has(node.name),
+      disabled: hidden.has(node.id),
       getItemKey: () => `relations-${node.id}`,
       getDisplayValues: () => [],
     }));

@@ -56,19 +56,27 @@ export function buildPanelChartOption(
 
   // Drop value fields hidden via the legend visibility toggle before building.
   //
-  // Two families are excluded, both because their legend rows are frame *rows*
-  // rather than fields, so the override names categories and never matches a
-  // field: part-to-whole (pie/funnel slices — see `resolvePieSlices`) and
-  // relations (graph/sankey/chord nodes — see `withoutHiddenNodes`). Both read
-  // the hidden set themselves. Running the strip on them would be actively
-  // wrong, not merely useless: the `byNames` matcher is in *exclude* mode, so a
-  // list of category names marks every real numeric field hidden and the stat
-  // column that sizes and colours the chart would be deleted.
+  // Two families opt out and hide their own marks instead, for different reasons:
+  //
+  // - **part-to-whole** (pie/funnel slices — see `resolvePieSlices`) because its
+  //   legend rows are frame *rows*, so the override names categories and never
+  //   matches a field. Stripping would be actively wrong, not merely useless: the
+  //   `byNames` matcher is in *exclude* mode, so a list of category names marks
+  //   every real numeric field hidden and the stat column that sizes and colours
+  //   the chart would be deleted.
+  // - **relations** (graph/sankey/chord) because deleting a mark's column destroys
+  //   the information its reader needs. A node's field carries the fact that it was
+  //   hidden; remove the field and `frameToGraphWide` simply *re-derives* the node
+  //   from the edges that still name it, so the node comes back. Hiding a node also
+  //   has to take its incident edges with it, which is a graph question a
+  //   column-level strip cannot express. Both happen in `withoutHiddenMarks`, off
+  //   each mark's own `custom.hideFrom.viz`.
   //
   // Editor-mode normalization already ran generically above
   // (`applyEditorModeDefaults`), so both branches use the normalized `options`.
-  const hidesByRowName = partToWholeSeriesTypes.includes(rawCtx.seriesType) || isRelationsSeriesType(rawCtx.seriesType);
-  const ctx: ChartContext = hidesByRowName
+  const hidesItsOwnMarks =
+    partToWholeSeriesTypes.includes(rawCtx.seriesType) || isRelationsSeriesType(rawCtx.seriesType);
+  const ctx: ChartContext = hidesItsOwnMarks
     ? { ...rawCtx, tooltipSink: sink, options }
     : { ...rawCtx, tooltipSink: sink, options, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 

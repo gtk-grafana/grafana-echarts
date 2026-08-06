@@ -10,8 +10,11 @@ import {
   reduceField,
   ReducerID,
 } from '@grafana/data';
+import { type GraphFieldConfig } from '@grafana/schema';
+import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { type ConfigTypedField } from 'lib/grafana/types';
 
 /**
  * Reader for the field-based graph contract: **one node is one field, one edge is one
@@ -229,13 +232,28 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null;
 }
 
-function customOf(field: Field): Readonly<Record<string, unknown>> {
-  const custom: unknown = field.config.custom;
+function customOf(
+  field: ConfigTypedField<number | string, EChartsRelationsFieldConfig>
+): Readonly<EChartsRelationsFieldConfig> {
+  const custom = field.config.custom;
   return isRecord(custom) ? custom : {};
 }
 
 function numberFrom(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+/**
+ * Whether the mark's own field is hidden from the visualization.
+ *
+ * The standard `custom.hideFrom.viz` config, read straight off the field — which is
+ * only meaningful because a mark *is* a field: Grafana's override engine matched and
+ * applied it upstream, so both the legend's visibility toggle and a hand-written
+ * `byName` "Hide in area" override arrive here already resolved onto the right mark.
+ */
+function isHiddenFrom(field: ConfigTypedField<number | string, GraphFieldConfig>): boolean {
+  const hideFrom = customOf(field).hideFrom;
+  return isRecord(hideFrom) && hideFrom.viz;
 }
 
 function stringFrom(value: unknown): string | undefined {
@@ -295,6 +313,13 @@ function readLinks(frame: DataFrame, calc: string): RelationLink[] {
     if (lineType === 'solid' || lineType === 'dashed' || lineType === 'dotted') {
       link.lineType = lineType;
     }
+    const curveness = numberFrom(custom.curveness);
+    if (curveness != null) {
+      link.curveness = curveness;
+    }
+    if (isHiddenFrom(field)) {
+      link.hidden = true;
+    }
     links.push(link);
   }
 
@@ -340,6 +365,9 @@ function readNodes(frame: DataFrame, calc: string, secondaryCalc: string | undef
     const secondary = secondaryOf(field, secondaryCalc);
     if (secondary != null) {
       node.secondary = secondary;
+    }
+    if (isHiddenFrom(field)) {
+      node.hidden = true;
     }
     nodes.push(node);
   }

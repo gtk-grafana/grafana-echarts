@@ -149,7 +149,7 @@ describe('frameToGraphWide — edges', () => {
           name: 'e1',
           type: FieldType.number,
           labels: { source: 'a', target: 'b' },
-          config: { custom: { lineWidth: 6, lineType: 'dashed' } },
+          config: { custom: { lineWidth: 6, lineType: 'dashed', curveness: 0.4 } },
           values: [1],
         },
       ],
@@ -158,6 +158,7 @@ describe('frameToGraphWide — edges', () => {
     const [link] = frameToGraphWide([frame], theme)!.links;
     expect(link.width).toBe(6);
     expect(link.lineType).toBe('dashed');
+    expect(link.curveness).toBe(0.4);
   });
 
   it('reduces the mark values with the requested calc', () => {
@@ -377,6 +378,72 @@ describe('frameToGraphWide — edge colour', () => {
     // Its neighbour keeps the palette default, which for an *edge* means no per-edge
     // colour at all so the series-level endpoint mode still governs it.
     expect(e1.color).toBeUndefined();
+  });
+});
+
+/**
+ * `custom.hideFrom.viz`, read off the mark's own field.
+ *
+ * The reader only *flags* a hidden mark; dropping it (and the links touching a hidden
+ * node) is `withoutHiddenMarks` in `charts/relations.ts`, because the legend has to
+ * keep listing a hidden mark for it to be restorable.
+ */
+describe('frameToGraphWide — hidden marks', () => {
+  const hiddenCustom = { hideFrom: { viz: true, legend: false, tooltip: false } };
+
+  it('flags an edge whose field is hidden', () => {
+    const frame = toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [
+        { name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] },
+        {
+          name: 'e2',
+          type: FieldType.number,
+          labels: { source: 'b', target: 'c' },
+          config: { custom: hiddenCustom },
+          values: [2],
+        },
+      ],
+    });
+
+    expect(frameToGraphWide([frame], theme)!.links.map((link) => link.hidden)).toEqual([undefined, true]);
+  });
+
+  it('flags a node whose field is hidden', () => {
+    const nodes = toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [
+        { name: 'a', type: FieldType.number, values: [1] },
+        { name: 'b', type: FieldType.number, config: { custom: hiddenCustom }, values: [2] },
+      ],
+    });
+
+    expect(frameToGraphWide([labelledEdges(), nodes], theme)!.nodes.map((node) => node.hidden)).toEqual([
+      undefined,
+      true,
+      // `c` is derived from the edges and has no field to carry the flag.
+      undefined,
+    ]);
+  });
+
+  // `viz: false` is the default `addHideFrom` writes onto every field, so reading it
+  // as anything but "visible" would hide the whole graph the moment the property is
+  // registered.
+  it('treats an unset or false viz flag as visible', () => {
+    const frame = toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [
+        {
+          name: 'e1',
+          type: FieldType.number,
+          labels: { source: 'a', target: 'b' },
+          config: { custom: { hideFrom: { viz: false, legend: true, tooltip: true } } },
+          values: [1],
+        },
+      ],
+    });
+
+    expect(frameToGraphWide([frame], theme)!.links[0].hidden).toBeUndefined();
   });
 });
 

@@ -14,17 +14,24 @@ type FieldConfigChangeHandler = (config: FieldConfigSource, replace?: boolean) =
 
 /**
  * Persist a legend visibility toggle as `byName` `hideFrom` overrides. The
- * isolate/append semantics need the full set of legend series names, which is why
- * this takes the built items rather than deriving names itself.
+ * isolate/append semantics need the full set of series names, which is why this
+ * takes the built items rather than deriving names itself.
+ *
+ * `overrideTargetNames` widens that set for a family whose fields outnumber its
+ * legend rows. The override is an *exclude* matcher — "hide everything except these"
+ * — so a name missing from it is a field Grafana will hide, whether or not the
+ * legend ever mentioned it. Relations supplies its edges this way; see
+ * `ChartModule.getOverrideTargetNames`.
  */
 export function useSeriesVisibility(
   fieldConfig: FieldConfigSource,
   onFieldConfigChange: (config: FieldConfigSource) => void,
-  legendItems: VizLegendItem[]
+  legendItems: VizLegendItem[],
+  overrideTargetNames?: string[]
 ): (label: string | string[] | null, mode: SeriesVisibilityChangeMode) => void {
   return useCallback(
     (label: string | string[] | null, mode: SeriesVisibilityChangeMode) => {
-      const seriesNames = legendItems.map((item) => item.fieldName ?? item.label);
+      const seriesNames = overrideTargetNames ?? legendItems.map((item) => item.fieldName ?? item.label);
 
       // Must replace (not merge) the field config so override removals take
       // effect; see `FieldConfigChangeHandler`.
@@ -35,6 +42,6 @@ export function useSeriesVisibility(
         true
       );
     },
-    [fieldConfig, onFieldConfigChange, legendItems]
+    [fieldConfig, onFieldConfigChange, legendItems, overrideTargetNames]
   );
 }

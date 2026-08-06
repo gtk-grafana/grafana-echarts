@@ -356,6 +356,11 @@ function toLinkItems(links: RelationLink[], resolveGradient?: EdgeGradientResolv
     if (link.lineType != null) {
       lineStyle.type = link.lineType;
     }
+    // Overrides the series-level `relationsCurveness` for this edge alone —
+    // `GraphSeries` reads `curveness` off the item's own `lineStyle` first.
+    if (link.curveness != null) {
+      lineStyle.curveness = link.curveness;
+    }
     if (Object.keys(lineStyle).length > 0) {
       item.lineStyle = lineStyle;
     }

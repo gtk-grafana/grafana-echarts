@@ -60,7 +60,14 @@ export function useLegend({
   const panelContext = usePanelContext();
   const items = useLegendItems(chartModule, chartContext, resolvedLegend, isVizLegend);
   const onSeriesColorChange = useSeriesColorChange(fieldConfig, onFieldConfigChange);
-  const onToggleSeriesVisibility = useSeriesVisibility(fieldConfig, onFieldConfigChange, items);
+  // A family whose field universe is wider than its legend says so, or the
+  // exclude-mode visibility override would hide the fields the legend never listed.
+  // See `ChartModule.getOverrideTargetNames`.
+  const overrideTargetNames = useMemo(
+    () => chartModule.getOverrideTargetNames?.(chartContext),
+    [chartModule, chartContext]
+  );
+  const onToggleSeriesVisibility = useSeriesVisibility(fieldConfig, onFieldConfigChange, items, overrideTargetNames);
 
   const legendContextValue = useMemo(
     () => ({

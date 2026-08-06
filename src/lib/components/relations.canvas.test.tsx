@@ -261,6 +261,45 @@ describe('relations (graph) canvas renders', () => {
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
+
+    // An edge is a field under the wide contract, so "Hide in area" can name one —
+    // something the row form could not express at all. `e1` is gateway->api, so the
+    // node symbols are untouched and exactly one line goes missing.
+    it('hides a single edge named by a byName override', async () => {
+      const fieldConfig: FieldConfigSource = {
+        defaults: {},
+        overrides: [
+          {
+            matcher: { id: 'byName', options: 'e1' },
+            properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
+          },
+        ],
+      };
+      const { defaultEvents, seriesEvents } = await renderGraph([nodesFrame, edgesFrame], {}, fieldConfig);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // Per-edge `custom.curveness` beats the panel-level "Link curveness": `e1` bows
+    // hard while the other three stay on the panel value.
+    it('curves a single edge named by a byName override', async () => {
+      const fieldConfig: FieldConfigSource = {
+        defaults: {},
+        overrides: [
+          {
+            matcher: { id: 'byName', options: 'e1' },
+            properties: [{ id: 'custom.curveness', value: 0.6 }],
+          },
+        ],
+      };
+      const { defaultEvents, seriesEvents } = await renderGraph(
+        [nodesFrame, edgesFrame],
+        { relationsCurveness: 0.1 },
+        fieldConfig
+      );
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
   });
 
   // The sankey render variant over the same frames — one converter, two layouts.

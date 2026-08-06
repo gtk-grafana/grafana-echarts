@@ -45,6 +45,15 @@ export interface RelationNode {
   fixedX?: number;
   fixedY?: number;
   /**
+   * `config.custom.hideFrom.viz` — the mark's own field says it is hidden.
+   *
+   * Carried rather than filtered out by the reader, because the legend has to keep
+   * listing a hidden mark (greyed) for it to be restorable. `withoutHiddenMarks`
+   * (`charts/relations.ts`) is what drops it from the render, along with every link
+   * touching a hidden node.
+   */
+  hidden?: boolean;
+  /**
    * Row index within the owning frame, for the tooltip footer's data links. Always
    * `0` for a mark that has a field — a wide frame reduces to a single row — and
    * unset for a node *derived* from an edge's endpoints, which has no field at all.
@@ -75,6 +84,14 @@ export interface RelationLink {
   width?: number;
   /** `config.custom.lineType`, already an ECharts line type. */
   lineType?: 'solid' | 'dashed' | 'dotted';
+  /**
+   * `config.custom.curveness` (0–1), overriding the panel-level `relationsCurveness`
+   * for this edge alone. Graph variant only: a sankey or chord ribbon is a filled
+   * area whose shape comes from the layout, not a curved stroke.
+   */
+  curveness?: number;
+  /** `config.custom.hideFrom.viz`. See {@link RelationNode.hidden}. */
+  hidden?: boolean;
   /** Always `0`: a wide frame reduces to a single row. See {@link RelationNode.sourceRowIndex}. */
   sourceRowIndex?: number;
   /** The field this edge *is*. See {@link RelationNode.field}. */
