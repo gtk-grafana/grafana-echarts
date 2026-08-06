@@ -10,7 +10,7 @@ import { type PanelOptions } from 'types';
 // This supplier used to be permanently silent, on the documented grounds that
 // node-graph data is identified by an `id`/`source`/`target` field shape or by
 // `meta.preferredVisualisationType` and `PanelDataSummary` exposed neither. It does
-// expose both: `rawFrames` gives the field shape (read by `isNodeGraphFrames`,
+// expose both: `rawFrames` gives the field shape (read by `isLegacyGraphFrames`,
 // which requires *both* `source` and `target` so an ordinary table with a `source`
 // column is not claimed) and `hasPreferredVisualisationType` gives Grafana's own
 // hint. So the family is scored from the real signal now — see `scoreRelations`.

@@ -342,7 +342,7 @@ frames can legitimately show a different number of links.
   sankey variant needs no such pinning — it self-layouts deterministically from the
   weights, so its snapshots include the default layout.
 - **Auto-suggested from the edge field shape.** `PanelDataSummary` does expose the
-  two signals this bullet once said it did not: `rawFrames` (so `isNodeGraphFrames`
+  two signals this bullet once said it did not: `rawFrames` (so `isLegacyGraphFrames`
   can look for a `source`+`target` field pair) and `hasPreferredVisualisationType`
   (Grafana's `nodeGraph` hint, scored `Best`; the shape alone scores `Good`).
   Requiring **both** `source` and `target` is what keeps an ordinary table with a

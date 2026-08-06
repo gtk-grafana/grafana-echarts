@@ -3,8 +3,8 @@ import {
   DataFrameType,
   type Field,
   FieldType,
-  VisualizationSuggestionScore,
   type PanelDataSummary,
+  VisualizationSuggestionScore,
 } from '@grafana/data';
 import { heatmapFrameTypes } from 'editor/constants';
 import { type MultiValueSeriesType } from 'editor/types';
@@ -24,8 +24,8 @@ import {
   STREAM_MIN_LAYERS,
 } from 'lib/echarts/charts/suggestionLimits';
 import { isFlameGraphFrame } from 'lib/echarts/converters/hierarchy';
+import { isLegacyEdgesFrame, isLegacyGraphFrames, isLegacyNodesFrame } from 'lib/echarts/converters/legacyToWide';
 import { resolveMultiValueSeriesType } from 'lib/echarts/converters/multiValueCartesian';
-import { isEdgesFrame, isNodeGraphFrames, isNodesFrame } from 'lib/echarts/converters/nodeGraph';
 import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
 
 /**
@@ -472,18 +472,25 @@ export const scoreMultivariate = (summary: PanelDataSummary): VisualizationSugge
  * permanently silent.
  *
  * `Best` for Grafana's own `nodeGraph` hint; `Good` for the `source`+`target` edge
- * shape (`isNodeGraphFrames`), which is what provisioned TestData CSV and SQL
+ * shape (`isLegacyGraphFrames`), which is what provisioned TestData CSV and SQL
  * Expression outputs look like, since neither can set frame metadata. Withheld
  * above `RELATIONS_MAX_EDGES`, where a force layout stops converging in a frame
  * budget.
+ *
+ * The shape read here is the **legacy row** form, deliberately: a suggestion is scored
+ * from `rawFrames`, which is the response *before* the panel's registered
+ * transformations run, so `legacyToWide` has not converted anything yet. The row form
+ * is also what makes the row counts below meaningful — one row per edge. A response
+ * that already arrives in the wide or long form is not scored; see the note on
+ * `exceedsChordNodeBudget`.
  */
 export const scoreRelations = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined => {
   const frames = framesOf(summary);
   const isPreferred = summary.hasPreferredVisualisationType('nodeGraph');
-  if (!isPreferred && !isNodeGraphFrames(frames)) {
+  if (!isPreferred && !isLegacyGraphFrames(frames)) {
     return undefined;
   }
-  const edgesFrame = frames.find(isEdgesFrame);
+  const edgesFrame = frames.find(isLegacyEdgesFrame);
   if (edgesFrame != null && edgesFrame.length > RELATIONS_MAX_EDGES) {
     return undefined;
   }
@@ -501,11 +508,16 @@ export const scoreRelations = (summary: PanelDataSummary): VisualizationSuggesti
  * past the point where a ring separates. Counting distinct node ids would mean
  * iterating the `source`/`target` *values*, and every `rawFrames` read in this file
  * is deliberately O(fields).
+ *
+ * Row lengths only mean node and edge counts in the legacy row form, which is why the
+ * predicates here are the `isLegacy*` ones. In the wide contract a frame's rows are
+ * timestamps and the marks are its numeric *fields*, so counting `length` there would
+ * compare a time range against a node budget.
  */
 export const exceedsChordNodeBudget = (summary: PanelDataSummary): boolean => {
   const frames = framesOf(summary);
-  const nodesFrame = frames.find(isNodesFrame);
-  const countingFrame = nodesFrame ?? frames.find(isEdgesFrame);
+  const nodesFrame = frames.find(isLegacyNodesFrame);
+  const countingFrame = nodesFrame ?? frames.find(isLegacyEdgesFrame);
   return countingFrame != null && countingFrame.length > RELATIONS_CHORD_MAX_NODES;
 };
 
