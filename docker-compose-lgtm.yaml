@@ -1,0 +1,164 @@
+# Loki / Grafana / Tempo / Prometheus development stack — `pnpm run server:lgtm`.
+#
+# Separate from docker-compose.yaml on purpose: that file backs `pnpm run
+# server` and the Playwright e2e suite, and has to stay a single container with
+# nothing but TestData behind it.
+#
+# The stack is self-instrumenting. Nothing synthesises telemetry — every metric,
+# log line and span comes from Grafana, Loki, Tempo, Prometheus or Alloy doing
+# its normal work:
+#
+#   metrics  Prometheus scrapes all five containers' /metrics
+#   logs     Alloy tails all five containers' stdout over the Docker socket
+#   traces   Grafana, Prometheus and Alloy export OTLP to Tempo. Loki cannot
+#            (upstream bug, see below) and Tempo deliberately does not (it
+#            could only export to itself, which breaks its shutdown).
+#   derived  Tempo's metrics-generator turns those traces into span metrics and
+#            service-graph edges, remote-written back into Prometheus
+#
+# See lgtm/README.md.
+
+# Applied to every service so Alloy can find this stack's containers, and only
+# this stack's, on a Docker daemon that may also be running `pnpm run server`.
+x-lgtm-labels: &lgtm-labels
+  dev.grafana.echarts.lgtm: 'true'
+
+# Point every service's OTel SDK at Tempo. Loki and Tempo both read the
+# standard OTEL_* variables (dskit `NewOTelOrJaegerFromEnv`); tracing stays off
+# unless an endpoint is set, so these are what turn it on.
+x-otel-env: &otel-env
+  OTEL_TRACES_EXPORTER: otlp
+  OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
+  OTEL_TRACES_SAMPLER: always_on
+
+services:
+  grafana:
+    extends:
+      file: .config/docker-compose-base.yaml
+      service: grafana
+    container_name: ${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-lgtm-${GRAFANA_PORT:-3010}}
+    labels: *lgtm-labels
+    # Default to 3010 so this never fights the e2e stack on 3001.
+    ports: !override
+      - ${GRAFANA_PORT:-3010}:3000/tcp
+    # The base mounts ../provisioning; this stack needs its own datasources, so
+    # it gets its own provisioning root and the repo's committed dashboards are
+    # mounted alongside it (lgtm/provisioning/dashboards/default.yaml serves
+    # both directories).
+    volumes: !override
+      - ./dist:/var/lib/grafana/plugins/grafana-echarts-panel
+      - ./lgtm/provisioning:/etc/grafana/provisioning
+      - ./provisioning/dashboards:/etc/grafana/dashboards-shared
+      - .:/root/grafana-echarts-panel
+    environment:
+      # The base sets debug. Here Grafana's own logs are ingested into Loki and
+      # shown back in Grafana, and debug-level dataproxy logging drowns the
+      # other four services out. The plugin's debug filter (GF_LOG_FILTERS in
+      # the base) still applies, so plugin logging is unaffected.
+      GF_LOG_LEVEL: info
+      GF_TRACING_OPENTELEMETRY_OTLP_ADDRESS: tempo:4317
+      GF_TRACING_OPENTELEMETRY_OTLP_PROPAGATION: w3c
+      GF_TRACING_OPENTELEMETRY_SAMPLER_TYPE: const
+      GF_TRACING_OPENTELEMETRY_SAMPLER_PARAM: '1'
+    depends_on:
+      - loki
+      - tempo
+      - prometheus
+
+  loki:
+    image: grafana/loki:${LOKI_VERSION:-3.7.6}
+    labels: *lgtm-labels
+    command: -config.file=/etc/loki/config.yaml
+    ports:
+      - ${LOKI_PORT:-3100}:3100
+    volumes:
+      - ./lgtm/config/loki.yaml:/etc/loki/config.yaml:ro
+      - lgtm-loki-data:/loki
+    environment:
+      # Loki is the one service in the stack that does NOT trace itself: 3.6.5
+      # through at least 3.7.6 fail tracer init with "conflicting Schema URL",
+      # an OTel semconv skew in dskit — grafana/loki#21588, fix not yet
+      # released. Loki still contributes metrics and logs, and still appears in
+      # the service graph as the target of Grafana's client spans.
+      # `LOKI_VERSION=3.6.4 pnpm run server:lgtm` is the last version whose
+      # tracer initialises, if you need Loki's own spans before the fix lands.
+      <<: *otel-env
+      OTEL_SERVICE_NAME: loki
+    # Flushing chunks on shutdown overruns Compose's 10s default, and the
+    # SIGKILL that follows leaves the WAL to be replayed on next boot.
+    stop_grace_period: 30s
+    restart: on-failure
+
+  tempo:
+    image: grafana/tempo:${TEMPO_VERSION:-2.10.7}
+    labels: *lgtm-labels
+    command: -config.file=/etc/tempo/config.yaml
+    ports:
+      - ${TEMPO_PORT:-3200}:3200 # tempo HTTP / TraceQL
+      - ${TEMPO_OTLP_GRPC_PORT:-4317}:4317 # OTLP gRPC ingest
+      - ${TEMPO_OTLP_HTTP_PORT:-4318}:4318 # OTLP HTTP ingest
+    volumes:
+      - ./lgtm/config/tempo.yaml:/etc/tempo/config.yaml:ro
+      - lgtm-tempo-data:/var/tempo
+    # Note the absence of *otel-env: Tempo is the one service deliberately not
+    # traced, because it can only export to itself. Its OTLP receiver stops
+    # before its tracer does, so the final flush retries against a dead socket
+    # and either times out into os.Exit(1) or hangs until SIGKILL — measured
+    # both, on the same config. Relaying via Alloy to break the loop is worse
+    # still: Compose does not reliably keep Alloy alive past its dependents,
+    # so two containers get killed instead of one.
+    #
+    # Little is lost. Tempo still receives everyone else's traces, still runs
+    # the metrics-generator, and dropping the loop makes span metrics honest —
+    # self-tracing had Tempo emitting spans about ingesting its own spans,
+    # which dominated the totals.
+    # Cutting the head block and draining the metrics-generator's remote-write
+    # queue still takes ~11s, past Compose's 10s default.
+    stop_grace_period: 30s
+    restart: on-failure
+
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_VERSION:-v3.13.2}
+    labels: *lgtm-labels
+    command:
+      # Tempo's metrics-generator remote-writes span metrics and service-graph
+      # edges here; exemplars carry the trace IDs that link them back.
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=24h
+    ports:
+      - ${PROMETHEUS_PORT:-9090}:9090
+    volumes:
+      - ./lgtm/config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - lgtm-prometheus-data:/prometheus
+    restart: on-failure
+
+  alloy:
+    image: grafana/alloy:${ALLOY_VERSION:-v1.18.1}
+    labels: *lgtm-labels
+    # Needs to read the Docker socket to tail the other containers' output.
+    user: root
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    ports:
+      - ${ALLOY_PORT:-12345}:12345
+    volumes:
+      - ./lgtm/config/alloy.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - lgtm-alloy-data:/var/lib/alloy/data
+    depends_on:
+      - loki
+      - tempo
+    restart: on-failure
+
+volumes:
+  lgtm-loki-data:
+  lgtm-tempo-data:
+  lgtm-prometheus-data:
+  lgtm-alloy-data:
