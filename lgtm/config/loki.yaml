@@ -1,0 +1,74 @@
+# Single-binary Loki for the local LGTM stack (`pnpm run server:lgtm`).
+#
+# Deliberately simpler than the upstream logs-drilldown config: multi-tenancy is
+# off, so nothing in the stack has to send an X-Scope-OrgID header — not Alloy,
+# not the provisioned datasource.
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  log_level: info
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+
+schema_config:
+  configs:
+    - from: '2024-01-01'
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  # Structured metadata carries `detected_level`, which is how the stack's log
+  # levels reach Grafana — Alloy pushes raw container output and lets Loki
+  # classify it, rather than parsing logfmt per service (see alloy.alloy).
+  allow_structured_metadata: true
+  volume_enabled: true
+  retention_period: 72h
+  # A dev stack gets restarted and re-queried freely; don't cap query range.
+  max_query_length: 0s
+  ingestion_rate_mb: 64
+  ingestion_burst_size_mb: 128
+
+pattern_ingester:
+  enabled: true
+  metric_aggregation:
+    loki_address: localhost:3100
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100
+
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
+  delete_request_store: filesystem
+
+ruler:
+  alertmanager_url: http://localhost:9093
+
+# Loki is one of the traced services, not just the log sink. The exporter
+# endpoint comes from the OTEL_* env vars set on the container.
+tracing:
+  enabled: true
+
+analytics:
+  reporting_enabled: false

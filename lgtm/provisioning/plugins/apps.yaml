@@ -1,0 +1,9 @@
+apiVersion: 1
+
+# Same as provisioning/plugins/apps.yaml — the LGTM stack mounts its own
+# provisioning root, so it needs its own copy. App plugins are disabled by
+# default and must be explicitly enabled.
+apps:
+  - type: grafana-echarts-app
+    org_id: 1
+    disabled: false
