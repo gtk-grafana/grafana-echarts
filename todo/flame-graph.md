@@ -92,10 +92,12 @@ Follows the existing heatmap / node-graph pattern (converter -> chart -> options
 
 ## Open questions
 
-- **Detection / suggestions.** Flame graph has no `frame.meta.type`, so
-  `PanelDataSummary.hasDataFrameType` cannot see it. The supplier must inspect
-  `preferredVisualisationType === 'flamegraph'` — a signal the current suggestion
-  path does not expose (may require raw frame access beyond `PanelDataSummary`).
+- ~~**Detection / suggestions.**~~ **Resolved.** Flame graph has no
+  `frame.meta.type`, so `hasDataFrameType` indeed cannot see it — but
+  `PanelDataSummary` exposes `hasPreferredVisualisationType('flamegraph')` directly,
+  and `rawFrames` for the nested-set field-shape fallback (`isFlameGraphFrame`,
+  which provisioned TestData CSV needs since it cannot set frame metadata). Both are
+  checked by `scoreHierarchy` in `src/lib/echarts/charts/fitness.ts`, scoring `Best`.
 - **Custom vs. native for the first pass** — ship the faithful `custom` flame
   graph, or start with a native `treemap`/`sunburst` for lower effort?
 - **Surfacing `self` and diff** — tooltip content, block shading, and diff color
