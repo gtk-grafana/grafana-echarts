@@ -69,8 +69,30 @@ export interface RelationNode {
 
 /** A single directed edge. `value` is the numeric weight sankey/chord need. */
 export interface RelationLink {
-  /** `field.name`. */
+  /**
+   * `field.name` — always, even when two collected marks share it.
+   *
+   * That is the contract's invariant and the reason the reader never synthesises one: an
+   * id is the **override target**, and `byName`/`byNames` compare against `field.name` or
+   * the display name, so a minted `a-->b` would be an id that looks addressable and is
+   * not. Duplicates happen when the edges arrive as N raw frames whose value field is
+   * called `Value`; the fix is at the source — a legend format, or letting the
+   * `graph-edges-wide` pivot run above the panel — not in the reader. See {@link markKey}
+   * for the one consumer that cannot live with the duplication.
+   */
   id: string;
+  /**
+   * An **item key**, not an id: unique among the links of one render, set by the reader
+   * only when {@link id} is not.
+   *
+   * Its only job is the item-to-field lookup the tooltip does (`getRelationsTooltipMarks`
+   * keys its link map by `markKey ?? id`, and the three render variants emit the same
+   * expression as the item's `markId`). It is never rendered — an edge's tooltip header is
+   * `source → target` — and never matched against, so its stability bar is far lower than
+   * an id's. Minted from the endpoints, then the label set that tells parallel edges
+   * apart, then `#n` — `toGraphWide.uniqueId`, the ladder the pivot names fields with.
+   */
+  markKey?: string;
   source: string;
   target: string;
   value: number | null;
@@ -92,7 +114,10 @@ export interface RelationLink {
   curveness?: number;
   /** `config.custom.hideFrom.viz`. See {@link RelationNode.hidden}. */
   hidden?: boolean;
-  /** Always `0`: a wide frame reduces to a single row. See {@link RelationNode.sourceRowIndex}. */
+  /**
+   * Always `0` — the mark's first sample, which is the reduced row only for a
+   * single-row frame. See {@link RelationNode.sourceRowIndex} and `readLinks`.
+   */
   sourceRowIndex?: number;
   /** The field this edge *is*. See {@link RelationNode.field}. */
   field?: Field;

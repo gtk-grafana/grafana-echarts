@@ -39,13 +39,25 @@ function isNodeItem(value: unknown): value is RelationsNodeItem {
 }
 
 /** A mark that has a field of its own; a derived node has neither and is skipped. */
-type FieldedMark = { id: string; field?: Field; sourceRowIndex?: number };
+type FieldedMark = { id: string; markKey?: string; field?: Field; sourceRowIndex?: number };
 
+/**
+ * Keyed by `markKey ?? id`, which is the same expression the three render variants put on
+ * each item's `markId`.
+ *
+ * The fallback is the normal case and keeps the readable name in the item. `markKey` only
+ * exists when the reader collected several marks sharing one `field.name` — N raw frames
+ * whose value field is called `Value` — and without it this map would be last-write-wins,
+ * so every one of those edges would format with the last one's unit and surface its
+ * `config.links`. That is precisely the "the tooltip formats with somebody else's field"
+ * bug the per-mark lookup exists to kill. Nodes never carry one: node ids are the ECharts
+ * graph keys and are unique by construction.
+ */
 function toMarkMap(marks: FieldedMark[], theme: GrafanaTheme2, timeZone?: string): Map<string, RelationsMark> {
   const byKey = new Map<string, RelationsMark>();
-  for (const { id, field, sourceRowIndex } of marks) {
+  for (const { id, markKey, field, sourceRowIndex } of marks) {
     if (field != null) {
-      byKey.set(id, {
+      byKey.set(markKey ?? id, {
         formatValue: getValueFormatter(field, theme, timeZone),
         // A wide frame reduces to a single row, so the row is the mark's own `0`;
         // the fallback only matters for a fixture that omitted it.

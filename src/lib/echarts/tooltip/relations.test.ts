@@ -5,6 +5,13 @@ import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
 import { buildRelationsTooltipModel, getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
 import { type RelationsLinkItem, type RelationsNodeItem, type TooltipModel } from 'lib/echarts/tooltip/types';
 
+// The reader warns when collected marks share a `field.name`, which the fixtures below do
+// deliberately. Mocked so the decision is testable in `graphWide.test.ts` and silent here.
+jest.mock('development', () => ({
+  debug: jest.fn(),
+  LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
+}));
+
 const theme = createTheme();
 
 // ECharts formatter params carry more fields at runtime than the base type; only the
@@ -148,6 +155,63 @@ describe('buildRelationsTooltipModel', () => {
       // Formatting it with the panel formatter (the first numeric field of the first
       // frame) printed `2 s` here, borrowing the first edge's unit for a link count.
       expect(node.rows[0].value).toBe('2');
+    });
+  });
+
+  /**
+   * The only thing duplicate ids actually break, and the class of bug the per-mark lookup
+   * exists to kill. A raw labelled response is N frames whose value field is called
+   * `Value`, so keying the link map by `id` alone would be last-write-wins: every edge
+   * would format with the last one's unit and surface its `config.links`.
+   *
+   * The ids stay `Value` — that is the contract's invariant, and a minted id would be one
+   * no override can match. What tells the marks apart is `markKey`, which is the item key
+   * and nothing else.
+   */
+  describe('marks that share an id', () => {
+    /** One frame per series, endpoints in labels: the shape with no pivot in front of it. */
+    const rawSeries = (source: string, target: string, config: Record<string, unknown>): DataFrame =>
+      toDataFrame({
+        fields: [
+          { name: 'Time', type: FieldType.time, values: [1700000000000] },
+          { name: 'Value', type: FieldType.number, labels: { source, target }, values: [1], config },
+        ],
+      });
+
+    const rawEdges = (): DataFrame[] => [
+      rawSeries('gateway', 'db', { unit: 's', decimals: 2, links: [{ title: 'Trace', url: 'http://example.com' }] }),
+      rawSeries('db', 'cache', { unit: 'percent', decimals: 1 }),
+    ];
+
+    it('formats each mark with its own field, not the last one to be read', () => {
+      const data = frameToRelationsGraph(rawEdges(), theme)!;
+      const model = buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'));
+      const [first, second] = data.links;
+
+      // Same id, different keys — the premise this regression test rests on.
+      expect([first.id, second.id]).toEqual(['Value', 'Value']);
+      expect([first.markKey, second.markKey]).toEqual(['gateway-->db', 'db-->cache']);
+
+      // One value, two formatters. Keyed by id alone both would read `3.5%`, the last
+      // field's unit and decimals.
+      const links = [first, second].map((link) =>
+        model(linkParams({ source: link.source, target: link.target, markId: link.markKey, value: 3.5 }))
+      );
+
+      expect(links.map((link) => link.rows[0].value)).toEqual(['3.50 s', '3.5%']);
+      expect(links.map((link) => link.header.label)).toEqual(['gateway → db', 'db → cache']);
+    });
+
+    it('surfaces only the mark that carries data links', () => {
+      const data = frameToRelationsGraph(rawEdges(), theme)!;
+      const model = buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'));
+
+      const sources = data.links.map(
+        (link) => model(linkParams({ source: link.source, target: link.target, markId: link.markKey })).source
+      );
+
+      expect(sources[0]?.field.config.links).toEqual([{ title: 'Trace', url: 'http://example.com' }]);
+      expect(sources[1]?.field.config.links).toBeUndefined();
     });
   });
 

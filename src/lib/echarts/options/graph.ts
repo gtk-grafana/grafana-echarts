@@ -352,7 +352,9 @@ function toLinkItems(links: RelationLink[], resolveGradient?: EdgeGradientResolv
   return links.map((link) => {
     // `markId` is how a hovered edge finds its own field for formatting and data
     // links; the endpoints cannot identify it, since parallel edges share them.
-    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.id };
+    // `markKey` first, for the one case where the ids are not unique either — N raw
+    // frames whose value field is called `Value`. See `RelationLink.markKey`.
+    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.markKey ?? link.id };
     if (link.value != null) {
       item.value = link.value;
     }

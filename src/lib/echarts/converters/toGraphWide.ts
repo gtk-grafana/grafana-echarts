@@ -1,4 +1,4 @@
-import { type DataFrame, type DataFrameType, type Field, type Labels } from '@grafana/data';
+import { type DataFrame, type DataFrameType, type Field, formatLabels, type Labels } from '@grafana/data';
 import {
   EDGE_SEPARATOR,
   GRAPH_EDGES_WIDE,
@@ -18,6 +18,12 @@ import { type RelationsFamilyField, type RelationsFamilyFrame } from 'lib/grafan
  * and it reads exactly three carriers: `field.name` for identity, `field.labels` for
  * topology and `meta.type` for role. Those three are built here, once, so the two
  * converters cannot drift apart on the shape they emit.
+ *
+ * The **naming ladder** at the end has a third caller: the reader itself, which mints a
+ * `markKey` when two collected marks share a `field.name`. It does not mint an *id* — that
+ * is `field.name` by contract — but the question "what tells two marks over one node pair
+ * apart?" has to be answered the same way in both places, or the same response would be
+ * keyed differently depending on whether the pivot ran. Hence one ladder, here.
  *
  * Spec: ../../../../data-plane/graph-wide.md.
  */
@@ -44,6 +50,73 @@ export function edgeId(source: string, target: string): string {
  */
 export function edgeLabels(extra: Labels, { source, target }: { source: string; target: string }): Labels {
   return { ...extra, [SOURCE_LABEL]: source, [TARGET_LABEL]: target };
+}
+
+/**
+ * Every label except the endpoints — the inverse half of {@link edgeLabels}.
+ *
+ * What is left is what actually distinguishes two marks joining the same node pair
+ * (`protocol`, `connection_type`, …), which is why both the pivot and the reader reach for
+ * it as the discriminator in {@link uniqueId}.
+ */
+export function withoutEndpoints(labels: Labels | undefined): Labels {
+  const rest: Labels = {};
+  for (const [key, value] of Object.entries(labels ?? {})) {
+    if (key !== SOURCE_LABEL && key !== TARGET_LABEL) {
+      rest[key] = value;
+    }
+  }
+  return rest;
+}
+
+/** The names more than one mark wants, so every member of a clash can be discriminated. */
+export function contestedIds(bases: readonly string[]): ReadonlySet<string> {
+  const seen = new Set<string>();
+  const contested = new Set<string>();
+  for (const base of bases) {
+    if (seen.has(base)) {
+      contested.add(base);
+    }
+    seen.add(base);
+  }
+  return contested;
+}
+
+/**
+ * Make a name unique among its siblings, because two marks sharing one is silent mark
+ * loss: nothing keyed by the name — a `byName` override, a legend row, a tooltip's
+ * field lookup — can tell them apart afterwards.
+ *
+ * Parallel edges are the real case — two marks over one node pair, separated only by a
+ * third label (`connection_type`, `protocol`) — so the discriminator is the label set that
+ * distinguishes them, which is what a user writing the name by hand would reach for. It is
+ * applied to **every** member of a contested name (see {@link contestedIds}), not just the
+ * later ones: an asymmetric `a-->b` beside `a-->b {protocol="grpc"}` reads as a bug and
+ * hides which is which.
+ *
+ * The counter behind it only runs for marks that are genuinely indistinguishable.
+ *
+ * Two callers with different stakes. `longToWide.ts` mints a **field name**, i.e. a real
+ * override target, so the ladder's output is user-visible and has to stay stable across
+ * responses. `graphWide.ts` mints a `markKey`, an internal item key that is never rendered
+ * and never matched against. Sharing the ladder is what stops one response being keyed two
+ * different ways depending on whether the pivot ran above the panel.
+ */
+export function uniqueId(taken: ReadonlySet<string>, base: string, rest: Labels, contested: boolean): string {
+  if (contested && Object.keys(rest).length > 0) {
+    const labelled = `${base} ${formatLabels(rest)}`;
+    if (!taken.has(labelled)) {
+      return labelled;
+    }
+  }
+  if (!taken.has(base)) {
+    return base;
+  }
+  let suffix = 2;
+  while (taken.has(`${base} #${suffix}`)) {
+    suffix++;
+  }
+  return `${base} #${suffix}`;
 }
 
 /**

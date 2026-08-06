@@ -288,25 +288,40 @@ Then, in the query editor:
 | Setting    | Value                     | Why                                                                  |
 | ---------- | ------------------------- | -------------------------------------------------------------------- |
 | **Format** | `Time series`             | One frame per series, i.e. one frame per edge                        |
-| **Legend** | `{{client}}-->{{server}}` | **Required.** This is the edge id and the override target            |
+| **Legend** | `{{client}}-->{{server}}` | The edge id and the override target — see below                      |
 | **Type**   | Instant _or_ Range        | Either. A range query is simply a row dimension the reduce collapses |
 
-**And one transformation.** A `Time series` response is _many_ frames — one per series,
-so one per edge — and the reader takes the **first** frame that looks like edges
-(`findEdgesFrame`). Left alone, a nine-edge query draws one edge. `joinByField` on
-`Time` collapses them into the single wide frame the contract wants:
+**The whole topology draws with no transformation at all.** A `Time series` response is
+_many_ frames — one per series, so one per edge — and the reader collects **every** frame
+that looks like edges, so a nine-edge query draws nine edges. That is the contract's
+[Multi variant](../data-plane/graph-wide.md#row-dimension-variants), and it holds on a
+stock host with no feature flags.
+
+What you still need the legend format for is **identity**. Without one, every frame's value
+field is called `Value`, so all nine marks share one name: `byName: 'Value'` matches all of
+them at once, the override picker lists `Value` once per frame, and a per-edge unit, colour
+or data link is unreachable. The plugin's own conversion
+(`converters/longToWide.ts`) pivots the response above the panel and gives each edge the
+legend format as its `field.name` — but it runs only where the host allows panel-registered
+transformations (`grafana.panelPluginTransformations`), so a legend format is the portable
+answer.
+
+**A join is no longer required, and is usually the wrong tool.** For the record, what it
+does: `joinByField` on `Time`
 
 ```json
 { "id": "joinByField", "options": { "byField": "Time", "mode": "outer" } }
 ```
 
-It widens them into the _right_ shape because `joinDataFrames` renames a field called
-`Value` — which is what every Prometheus and Loki value field is called — to its **frame
-name**, keeping its labels. The frame name is the rendered legend format, so the joined
-frame's numeric field names are the edge ids. That is the whole conversion.
+collapses the frames into one, and `joinDataFrames` renames a field called `Value` to its
+**frame name**, keeping its labels — so with a legend format the joined frame's field names
+are the edge ids. Two caveats measured against live Mimir: a Prometheus range query sets no
+frame name, so **without** a legend format the join produces a frame whose fields are all
+still called `Value`; and a join cannot union two frames that are already wide, which the
+reader can.
 
-**Edges and nodes in one panel** need one join each, filtered by refId, or the second
-query's frames are swallowed into the first join:
+**Edges and nodes in one panel**, if you do join, need one join each filtered by refId, or
+the second query's frames are swallowed into the first join:
 
 ```json
 [
@@ -328,17 +343,16 @@ back by `postProcessTransform`, and `joinByField` stamps its output `refId` as
 `joinByField-A-A-…` — so the second filter cannot re-capture the first join's result.
 Both frames survive: A becomes the edges frame, B the nodes frame.
 
-So: no SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction — but
-not zero reshaping either.
+So: no SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction — and,
+with the canonical label keys, zero reshaping.
 
-**The legend format is not optional, and it is what carries the endpoints.** The
+**With non-canonical label keys the legend format is what carries the endpoints.** The
 contract reads exactly two label keys, `source` and `target` (`endpointsOf`). A
 `sum by (client, server)` emits `client` / `server`, which it does **not** recognise, so
-the endpoints come from splitting the field name on `-->` — i.e. from the legend format.
-Without one, `getFieldDisplayName` pushes both the frame name and the label set and the
-display name comes out doubled — `{client="a", server="b"} {client="a", server="b"}`
-(observed); the raw field name stays `Value` on every frame, so `byName: Value` matches
-**every** edge at once; and there is no separator to split on.
+the endpoints have to come from splitting the field name on `-->` — i.e. from the legend
+format. Without one there is no separator to split on and the response is not a graph at
+all. (With `source` / `target` the labels carry the endpoints and the legend format is
+about identity only, as above.)
 
 Relabel to `source` / `target` (`label_replace` in PromQL, `label_format` in LogQL) when
 you want the labels to carry the endpoints instead. That is the only way to express an
@@ -346,7 +360,7 @@ id that is not `left-->right` — including two **parallel edges** over one pair
 need distinct field names but identical endpoints.
 
 The same applies to the Loki queries in [Use case 2](#use-case-2--loki): set
-`{{service}}-->{{upstream}}` as the legend and add the same join.
+`{{service}}-->{{upstream}}` as the legend.
 
 Worked examples of every variation above, against TestData fixtures that reproduce the
 Prometheus and Loki frame shapes exactly:

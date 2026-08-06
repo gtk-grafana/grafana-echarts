@@ -236,7 +236,9 @@ export interface RelationsLinkItem {
   target: string;
   /**
    * The edge's field name, so the tooltip can find the edge's own field — the
-   * endpoints cannot, since two parallel edges share them.
+   * endpoints cannot, since two parallel edges share them. `RelationLink.markKey`
+   * stands in for it when several collected marks share that name, which is the one
+   * case where the field name is not a key (see `RelationLink.markKey`).
    *
    * Deliberately **not** `id`, which ECharts already reads on a link:
    * `createGraphFromNodeEdge` uses `retrieve(link.id, source + ' > ' + target)` as

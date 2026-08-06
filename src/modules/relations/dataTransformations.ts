@@ -10,7 +10,7 @@ import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTran
  * Conditional on the frames, which is what makes it safe to leave on permanently:
  *
  * - a long response (one series per frame, endpoints in labels — what every labelled
- *   datasource returns) -> the pivot, so all N edges reach the panel instead of one;
+ *   datasource returns) -> the pivot, so all N edges reach the panel as **named** marks;
  * - already wide (or natively emitted wide) -> `[]`, nothing runs, frame identity is
  *   preserved and `VizPanel.applyFieldConfig` still short-circuits;
  * - row-based node-graph frames -> the conversion, run above the panel so each node and
@@ -22,10 +22,16 @@ import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTran
  * shapes are disjoint — a long series carries no `source`/`target` *columns*, a row frame
  * carries no endpoint *labels* — but the already-wide test cannot come first: a long
  * response passes it, because `isEdgesWideFrame` shape-matches any numeric field with
- * endpoint labels and a `Value` field has them. Testing "already wide" ahead of the pivot
- * would leave the panel reading the first frame only, i.e. a one-edge graph, which is the
- * bug the pivot exists to fix. `longEdgeSeries` in turn declines any response where
- * something else is already the edges frame, so the branches cannot both be right.
+ * endpoint labels and a `Value` field has them.
+ *
+ * What testing "already wide" first would cost is **identity**, not topology. The reader
+ * collects every frame that looks like edges (`graphWide.ts`), so all N edges draw either
+ * way; but N raw frames whose value field is called `Value` are N marks sharing one id,
+ * and only a transformation running before `applyFieldOverrides` can give each edge a
+ * `field.name` of its own — an override target, a picker entry, a `byName`/`byRegexp`
+ * match. Flipping the order would trade N override targets for zero. `longEdgeSeries` in
+ * turn declines any response where something else is already the edges frame, so the
+ * branches cannot both be right.
  *
  * A datasource that later emits `graph-*-wide` natively silently stops triggering any
  * conversion — no dashboard changes, the second branch just starts winning.

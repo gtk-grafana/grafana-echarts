@@ -4,6 +4,13 @@ import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graph
 import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
 import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
 
+// The reader warns when collected marks share a `field.name`, which the raw multi-frame
+// fixture does deliberately. The decision to warn is tested in `graphWide.test.ts`.
+jest.mock('development', () => ({
+  debug: jest.fn(),
+  LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
+}));
+
 const theme = createTheme();
 
 const rowEdges = (): DataFrame =>
@@ -86,6 +93,34 @@ describe('frame roles', () => {
 
     expect(data?.links.map((link) => link.id)).toEqual(['e1']);
     expect(data?.nodes.find((node) => node.id === 'a-->b')?.field?.config.unit).toBe('percent');
+  });
+
+  /**
+   * The entry-point-level statement of the reader's one-to-many rule: a raw labelled
+   * response — one `[Time, Value]` frame per series, which is what every labelled
+   * datasource returns and what arrives untouched when the pivot is not running — renders
+   * its whole topology, and every mark still carries its own field. The shared `Value` name
+   * is the price, and is why the pivot is still worth registering.
+   */
+  it('reads a raw multi-frame response whole, each mark with its own field', () => {
+    const series = (source: string, target: string, unit: string): DataFrame =>
+      toDataFrame({
+        fields: [
+          { name: 'Time', type: FieldType.time, values: [1700000000000] },
+          { name: 'Value', type: FieldType.number, labels: { source, target }, config: { unit }, values: [1] },
+        ],
+      });
+
+    const data = frameToRelationsGraph([series('a', 'b', 'ms'), series('b', 'c', 'percent')], theme);
+
+    expect(data?.links.map((link) => [link.source, link.target])).toEqual([
+      ['a', 'b'],
+      ['b', 'c'],
+    ]);
+    expect(data?.links.map((link) => link.field?.config.unit)).toEqual(['ms', 'percent']);
+    // One id between them, distinct lookup keys — see `RelationLink.markKey`.
+    expect(data?.links.map((link) => link.id)).toEqual(['Value', 'Value']);
+    expect(data?.links.map((link) => link.markKey)).toEqual(['a-->b', 'b-->c']);
   });
 
   it('reads an edges-only response, deriving its nodes', () => {

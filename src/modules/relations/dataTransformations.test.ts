@@ -38,8 +38,10 @@ describe('relationsDataTransformations', () => {
 
   /**
    * The ordering that matters: a long response *passes* the already-wide shape test, so
-   * checking that first returned `[]` and left the panel reading one frame — a one-edge
-   * graph — out of however many the query returned.
+   * checking that first would return `[]`. The reader draws every edge either way now —
+   * what the pivot adds is **identity**: one real `field.name` per edge, i.e. an override
+   * target, a picker entry and a `byName` match. Flipping the order would trade N override
+   * targets for zero.
    */
   it('registers the pivot for a long response, not nothing', () => {
     const series = [longEdge('a', 'b'), longEdge('b', 'c')];

@@ -185,8 +185,9 @@ function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
  */
 function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {
   return links.map((link) => {
-    // `markId` carries the edge's field name for the tooltip; see `toLinkItems`.
-    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.id };
+    // `markId` carries the edge's field name for the tooltip, or its `markKey` when
+    // several marks share that name; see `toLinkItems`.
+    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.markKey ?? link.id };
     if (link.value != null) {
       item.value = link.value;
     }

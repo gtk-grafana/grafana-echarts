@@ -80,9 +80,9 @@ describe('longToWide — the pivot', () => {
    * title of its own.
    *
    * Deliberately says nothing about how the reader treats a *raw* multi-frame response —
-   * whether it takes the first frame or all of them is the reader's own contract, asserted
-   * in `graphWide.test.ts`. The pivot's job is identity either way: N frames whose value
-   * field is called `Value` are N marks sharing one name, and no override can address them.
+   * that it collects all of them is the reader's own contract, asserted in
+   * `graphWide.test.ts`. The pivot's job is identity either way: N frames whose value field
+   * is called `Value` are N marks sharing one name, and no override can address them.
    */
   it('gives every edge its own id in the model the panel reads', () => {
     const data = frameToRelationsGraph(longToWide(edges()), createTheme());
@@ -357,8 +357,10 @@ describe('longToWide — detection', () => {
 
   /**
    * A declared edges frame *is* the edges frame; a labelled series beside it is a second
-   * query. Pivoting it would mint a rival edges frame for `findEdgesFrame` to choose
-   * between, which is how two converters end up disagreeing about one response.
+   * query. Pivoting it would mint a rival edges frame — a second set of ids over the same
+   * topology — which is how two converters end up disagreeing about one response. The
+   * reader agrees from the other side: declared frames win as a *filter*, so this response
+   * renders exactly the declared frame's edges.
    */
   it('declines the whole response when something else is already the edges frame', () => {
     const declared = toDataFrame({

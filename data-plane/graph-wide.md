@@ -207,15 +207,43 @@ reason: provisioned `csv_content` fixtures and SQL Expression outputs can set ne
 The shape test, in order:
 
 1. A frame whose numeric fields carry **both** endpoint label keys (default `source`
-   and `target`) is the **edges** frame.
-2. Otherwise a frame whose numeric field names **split on `-->`** is the **edges** frame.
-3. Otherwise, in a response that already has an edges frame, the remaining frame with
-   numeric fields is the **nodes** frame.
+   and `target`) is an **edges** frame.
+2. Otherwise a frame whose numeric field names **split on `-->`** is an **edges** frame.
+3. Otherwise, in a response that already has an edges frame, a remaining frame with
+   numeric fields **naming a known endpoint** is a **nodes** frame. The endpoint test is
+   load-bearing: without it a second query returning `cpu` would add a disconnected `cpu`
+   node.
 4. A lone nodes frame is a table, not a graph — an edges frame is required, as in the
    long form.
 
 For precedent on signal 3, see XY chart's series editor and geomap's layer/query
 pairing, both of which put a per-query selector in panel options.
+
+### A role is one-to-many
+
+Nothing above says _one frame per role_, and the reader does not read it that way: **every**
+frame a role claims contributes its marks. That is what makes the
+[Multi variant](#row-dimension-variants) readable at all, and it is the only place a
+response carrying two edges frames can be unioned — `joinByField` cannot merge two
+already-wide frames without colliding their names, and `groupingToMatrix` returns its input
+unchanged on any multi-frame response.
+
+Two rules make the plural reading well-defined:
+
+- **Declared wins as a _filter_.** If any frame declares `graph-edges-wide`, only declared
+  frames are collected and the shape test is never consulted; likewise for
+  `graph-nodes-wide`. This is `meta.type` being authoritative in the negative direction —
+  a frame that says what it is is never mixed with frames that were merely guessed at.
+- **The nodes search excludes every edges candidate**, collected or not, and where two nodes
+  frames declare the same node the **first field wins**. A node id is the ECharts graph key,
+  so a repeated declaration is a real collision rather than a display problem; response
+  order is the only stable tie-break.
+
+The endpoint set the nodes search runs against is the **union** over every collected edges
+frame.
+
+Edge ids, by contrast, may repeat — see
+[Identity](#identity-display-names-and-override-targeting). The reader never mints one.
 
 ## Frame meta
 
@@ -551,6 +579,29 @@ both `e1 {source="a", target="b"}` and `e1 (base field name)`, and choosing the 
 persists `{ matcher: { id: 'byName', options: 'e1', scope: 'series' } }`, which survives
 a save and reload.
 
+### The reader never mints an id
+
+`RelationLink.id` is `field.name`, always — including when several collected marks share
+it, which is exactly what N raw `Value` frames produce
+([Multi](#row-dimension-variants)). A synthesised `a-->b` would look addressable and not
+be: `byName`/`byNames` compare against `field.name` or the display name, and neither is a
+minted string. Worse, the panel's override universe (`getOverrideTargetNames`) feeds an
+**exclude** matcher, so an id no field answers to there stops the kept list covering the
+edge fields and hiding one node erases every link in the panel.
+
+What duplication actually breaks is one thing: the tooltip's item-to-field lookup, which
+would be last-write-wins keyed by id. The reader mints a **`markKey`** for that — an
+internal item key, unique per render, minted from the endpoints, then the label set that
+tells parallel edges apart, then `#n` (the same ladder the pivot names fields with). It is
+never rendered and never matched against, so its stability bar is far lower than an id's.
+
+What stays lost, and is documented rather than fixed:
+
+- `byName` on the raw name cannot target one edge of a `Value`-named response;
+- the override picker lists `Value` once per frame — honest, and ugly;
+- `palette-classic-by-name` would hash N `Value` fields to one colour. It does not bite
+  today, because edges discard palette modes and derived nodes have no field.
+
 ### Three normative rules
 
 1. **Cycle and self-loop handling is unchanged.** The sankey DAG restriction is an
@@ -571,16 +622,40 @@ a save and reload.
 The row dimension is what the mark's values are indexed by. All three forms are the same
 kind; they differ only in frame count and in whether a leading dimension field exists.
 
-| Variant                         | Shape                                                                   | Row dimension   | Notes                                                                                   |
-| ------------------------------- | ----------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- |
-| **Instant** (canonical)         | One frame, no leading field, `length: 1`                                | none            | What `rowsToFields` always produces. The reduce is a no-op                              |
-| **Ranged**                      | One frame, leading `time` or `string` field                             | time / category | A range query needs no aggregation — `calcs[0]` reduces it. Renders in core Time series |
-| **Multi** (`graph-edges-multi`) | One frame **per edge**, frame `name` = the edge id, value field `Value` | time            | The natural Prometheus/Loki `time_series` shape                                         |
+| Variant                         | Shape                                               | Row dimension   | Notes                                                                                   |
+| ------------------------------- | --------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- |
+| **Instant** (canonical)         | One frame, no leading field, `length: 1`            | none            | What `rowsToFields` always produces. The reduce is a no-op                              |
+| **Ranged**                      | One frame, leading `time` or `string` field         | time / category | A range query needs no aggregation — `calcs[0]` reduces it. Renders in core Time series |
+| **Multi** (`graph-edges-multi`) | One frame **per edge**, value field usually `Value` | time            | The natural Prometheus/Loki `time_series` shape                                         |
 
-The multi variant works because `getFieldDisplayName` skips a field literally named
-`Value` and substitutes the frame name when frame names differ: two frames named `a-->b`
-and `a-->c` yield display names `a-->b` and `a-->c`. Verified. Its hazard is the one named
-above — the raw name `Value` is shared, so `byName: 'Value'` hits every edge.
+The multi variant **renders in full, with no transformation and no host feature flag**: the
+reader collects every frame the shape test claims (see
+[A role is one-to-many](#a-role-is-one-to-many)), so ten series are ten edges. This is the
+shape a native producer is most likely to emit, and the shape `sum by (source, target) (…)`
+in `Format: Time series` returns today.
+
+Its hazard is **identity**, and it is the one named above. Each frame's value field is
+called `Value`, so the marks share one `field.name`:
+
+- `byName: 'Value'` hits **every** edge at once, and the override picker lists one `Value`
+  entry per frame;
+- the display-name route does address one edge — a field named exactly `Value` contributes
+  nothing to its own display name, so what is left is its label set,
+  `{source="a", target="b"}` — but only until a legend format is added, at which point
+  `displayNameFromDS` wins.
+
+An earlier revision of this document claimed the variant "works because `getFieldDisplayName`
+substitutes the frame name when frame names differ". **Measured false** for the shape that
+matters: a Prometheus range query sets no frame name at all, and the frame-name prefix only
+applies when `allFrames.length > 1` _and_ consecutive frames carry different `.name`. With
+no names there is no prefix and no ordinal — `getUniqueFieldName`'s `1`/`2` suffixes are
+frame-local, so N one-field frames get none.
+
+The fix for identity is at the source — a legend format, or the `graph-edges-wide` pivot
+above the panel (`converters/longToWide.ts`) — not in the reader, which cannot create a
+field for an override to land on. Internally the reader mints a `markKey` per colliding
+mark so the tooltip still resolves each edge's own unit, decimals and `config.links`; that
+key is never rendered and never matched against.
 
 ## Single-frame prefix variant
 

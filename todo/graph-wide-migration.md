@@ -36,6 +36,7 @@
 | P5.15 legend items from fields                         | Done by already being true; `getHiddenSeriesNames` survives for derived nodes. See [phase 5](#phase-5--tooltip-links-and-legend--done) |
 | P6.16 fold the proof dashboard onto the panel          | Done — `graph-wide.json`, 12 panels to 18; two stale claims corrected, three findings recorded                                         |
 | P6.17 parity and the three to-do docs                  | Done — every `[wide: …]` marker resolved; all three docs now say what shipped                                                          |
+| Role resolution is one-to-many                         | Done — `findEdgesFrames` / `findNodesFrames`; see [The reader collects every edges frame](#the-reader-collects-every-edges-frame)      |
 
 The contract makes one node one field and one edge one field, so Grafana's own override
 engine addresses each mark. That closes, as ordinary field behaviour, most of what the
@@ -484,6 +485,55 @@ Prometheus recipe in `docs/relations-data-sources.md`; panel 18 is now the worke
 in one row, and `provisioning/dashboards/relations/observability-sources.json` carries the
 full chain from the frame shapes Prometheus and Loki actually return. The capability
 matrix's "one `legendFormat`" row is more precisely "one `legendFormat` **and one join**".
+
+_Superseded twice since._ `converters/longToWide.ts` pivots the response above the panel
+where the host allows it, and the reader now collects every edges frame regardless — so a
+join is no longer required for topology. It is still exactly right about the label keys:
+`sum by (client, server)` needs the legend format, because `client`/`server` are not the
+contract's endpoint keys and the separator in the field name is all that is left to split
+on. See below.
+
+### The reader collects every edges frame
+
+Role resolution was one frame per role: `findEdgesFrame` was `find(declared) ?? find(shape)`.
+Since a `Format: Time series` response is N frames of `[Time, Value]` and **every one of
+them** passes the shape test, a ten-series query drew a one-edge graph — no error, no
+notice, no log, because `links.length > 0` and the option was valid.
+
+The fix is in the reader rather than above it, for three reasons in decreasing order of
+force:
+
+1. **The host gate is off by default.** `setDataTransformations` is feature-detected _and_
+   gated behind `grafana.panelPluginTransformations`, so on a stock host the prefix does not
+   run and the reader is the entire data path.
+2. **A response can carry two edges frames no transformation can union.** Two legacy
+   `node_graph` queries in one panel become two `graph-edges-wide` frames (`legacyToWide`
+   maps per frame); `joinByField` cannot merge two already-wide frames without colliding
+   their names, and `groupingToMatrix` returns its input unchanged on any multi-frame
+   response.
+3. **The reader is where the shape is unambiguous.** `longToWide` has to _decide_ whether a
+   labelled series is long or is a single-edge wide frame with a row dimension — an inherent
+   ambiguity it warns about. The reader never faces the question.
+
+Two rules keep the plural reading well-defined, and both are stated in the contract's
+[role resolution](../data-plane/graph-wide.md#a-role-is-one-to-many) section: declared wins
+as a **filter**, not a find; and the nodes search excludes every edges candidate, collected
+or not, with the first field per id winning across nodes frames.
+
+**What the prefix still buys is identity, not topology.** N raw frames whose value field is
+called `Value` are N marks with one `field.name`, and only a transformation running before
+`applyFieldOverrides` can turn a model id into a real field — an override target, a picker
+entry, a `byName` match. So `relationsDataTransformations` still tests `isLongGraphFrames`
+ahead of `isGraphWideFrames`; flipping the order would trade N override targets for zero.
+
+**The reader does not mint ids.** It keeps `RelationLink.id === field.name` even under
+duplication — a synthetic id is not an override target, and `getOverrideTargetNames` feeds
+an _exclude_ matcher, so an id no field answers to there would resurrect the phase-4
+catastrophe (hiding one node erasing every link). Exactly one consumer could not live with
+duplicate ids — `getRelationsTooltipMarks`, whose link map would be last-write-wins, the
+same class of bug phase 5 existed to kill — so the reader mints a `markKey` for that lookup
+alone. It is never rendered and never matched against. Plan and measurements:
+[graph-wide-multi-frame-reader.md](./graph-wide-multi-frame-reader.md).
 
 ## Deviations from the original plan
 

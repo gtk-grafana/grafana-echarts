@@ -6,9 +6,12 @@ import {
   type FieldConfigSource,
   FieldType,
   getDisplayProcessor,
+  type Labels,
+  type ReduceDataOptions,
   toDataFrame,
 } from '@grafana/data';
 
+import { debug, LOG_LEVELS } from 'development';
 import {
   frameToGraphWide,
   GRAPH_EDGES_WIDE,
@@ -20,6 +23,24 @@ import {
 } from 'lib/echarts/converters/graphWide';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { applyTestFieldConfig } from 'test/fieldConfig';
+
+// `debug` is gated on `NODE_ENV`/`CI`/localStorage, so asserting on the console directly
+// would pass locally and go quiet in CI. Mocking the module tests the *decision* to warn —
+// and keeps the collision warning out of every other suite's output.
+jest.mock('development', () => ({
+  debug: jest.fn(),
+  LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
+}));
+
+const logged = (level: number): string[] =>
+  jest
+    .mocked(debug)
+    .mock.calls.filter((call) => call[1] === level)
+    .map(([message]) => message);
+
+beforeEach(() => {
+  jest.mocked(debug).mockClear();
+});
 
 const theme = createTheme();
 
@@ -42,6 +63,35 @@ const namedEdges = (): DataFrame =>
       { name: 'b-->c', type: FieldType.number, values: [20] },
     ],
   });
+
+const T0 = 1700000000000;
+const STEP = 300000;
+
+/**
+ * One frame of a **raw labelled response**: `[Time, Value]`, endpoints on `Value`.
+ *
+ * Byte-for-byte what `sum by (source, target) (…)` in `Format: Time series` returns from
+ * Prometheus, Loki or TestData, one frame per series — the contract's *Multi* row variant.
+ * This is what reaches the reader untouched whenever the pivot does not run, which is the
+ * default: the host gates panel-registered transformations behind
+ * `grafana.panelPluginTransformations`.
+ */
+const rawSeries = (labels: Labels, values: Array<number | null>, times?: number[]): DataFrame =>
+  toDataFrame({
+    fields: [
+      { name: 'Time', type: FieldType.time, values: times ?? values.map((_, row) => T0 + row * STEP) },
+      { name: 'Value', type: FieldType.number, labels, values },
+    ],
+  });
+
+/** The measured live-Mimir shape: N series, every value field called `Value`. */
+const valueEdges = (): DataFrame[] => [
+  rawSeries({ source: 'a', target: 'b' }, [10, 12]),
+  rawSeries({ source: 'b', target: 'c' }, [20, 22]),
+  rawSeries({ source: 'a', target: 'c' }, [30, 32]),
+];
+
+const withCalc = (calc: string): ReduceDataOptions => ({ calcs: [calc], values: false, fields: '' });
 
 /** Attach the display processor `applyFieldOverrides` would have left behind. */
 const withDisplay = (frame: DataFrame): DataFrame => {
@@ -667,5 +717,259 @@ describe('mark rows', () => {
     expect(data.links.map((link) => link.sourceRowIndex)).toEqual([0, 0]);
     // A derived node has no field, so there is no row for its data links either.
     expect(data.nodes.every((node) => node.sourceRowIndex === undefined && node.field === undefined)).toBe(true);
+  });
+});
+
+describe('collecting every edges frame', () => {
+  /**
+   * The contract's *Multi* row variant, and the shape any labelled datasource returns with
+   * no transformation at all. Each of these frames passes `isEdgesWideFrame` on its own, so
+   * the old singular `.find()` drew a **one-edge graph** from a ten-series response with no
+   * error, no notice and no log. The pivot that fixes the identity side cannot be relied on
+   * to fix this one: `setDataTransformations` is feature-detected *and* gated behind
+   * `grafana.panelPluginTransformations`, off by default, so on a stock host the reader is
+   * the entire data path.
+   */
+  it('collects every frame that looks like edges', () => {
+    const data = frameToGraphWide(valueEdges(), theme)!;
+
+    expect(data.links.map((link) => [link.source, link.target, link.value])).toEqual([
+      ['a', 'b', 12],
+      ['b', 'c', 22],
+      ['a', 'c', 32],
+    ]);
+    // The whole topology, rather than the first frame's single pair.
+    expect(data.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  /**
+   * Declared-wins is a **filter**, not a find — the generalisation of "picks the declared
+   * edges frame over one that merely looks like edges".
+   *
+   * It keeps `meta.type` authoritative in the negative direction: a frame that says what it
+   * is never gets mixed with frames that were only guessed at. It also keeps the reader and
+   * the pivot agreeing about one response, since `longEdgeSeries` declines a whole response
+   * for the same reason — so a declared frame beside raw series renders what it does today.
+   */
+  it('collects only the declared frames when any frame declares itself', () => {
+    const declared = toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] }],
+    });
+    const lookalike = toDataFrame({
+      fields: [{ name: 'x-->y', type: FieldType.number, values: [2] }],
+    });
+    const raw = rawSeries({ source: 'c', target: 'd' }, [3]);
+
+    expect(frameToGraphWide([lookalike, declared, raw], theme)!.links.map((link) => link.id)).toEqual(['e1']);
+  });
+
+  /**
+   * The nodes search runs over the union of every collected frame's endpoints. Here `c` is
+   * named by the **second** edges frame alone, so a search over the first frame's endpoints
+   * would miss this nodes frame entirely and `c` would fall back to a derived node whose
+   * value is its degree.
+   */
+  it('unions the endpoint set across every edges frame when looking for nodes', () => {
+    const nodes = toDataFrame({
+      fields: [{ name: 'c', type: FieldType.number, values: [6] }],
+    });
+
+    const data = frameToGraphWide(
+      [rawSeries({ source: 'a', target: 'b' }, [1]), rawSeries({ source: 'b', target: 'c' }, [2]), nodes],
+      theme
+    )!;
+
+    expect(data.nodes.map((node) => [node.id, node.value])).toEqual([
+      ['c', 6],
+      ['a', 1],
+      ['b', 2],
+    ]);
+  });
+
+  /**
+   * The nodes search excludes **every** edges candidate, collected or not. The second frame
+   * here is edges by its labels *and* named after an endpoint, so under the old
+   * "any frame that is not the edges frame" exclusion it would have become the nodes frame —
+   * turning one of the two edges into a node's stat.
+   */
+  it('does not read a second edges frame as the nodes frame', () => {
+    const first = toDataFrame({
+      fields: [{ name: 'a-->b', type: FieldType.number, values: [1] }],
+    });
+    const second = toDataFrame({
+      fields: [{ name: 'b', type: FieldType.number, labels: { source: 'b', target: 'c' }, values: [2] }],
+    });
+
+    const data = frameToGraphWide([first, second], theme)!;
+
+    expect(data.links.map((link) => [link.source, link.target])).toEqual([
+      ['a', 'b'],
+      ['b', 'c'],
+    ]);
+    expect(data.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
+    expect(data.nodes.every((node) => node.field == null)).toBe(true);
+  });
+
+  /**
+   * A mark reduces over its **own** rows, and every reducer skips nulls — so a raw series
+   * gives the same number as the same series null-padded onto a pivot's shared row grid.
+   * "Key on the timestamp, never the row index" binds whatever *builds* a frame; the reader
+   * joins nothing.
+   */
+  it('reduces each mark over its own rows, however ragged', () => {
+    const frames = [
+      rawSeries({ source: 'a', target: 'b' }, [5]),
+      rawSeries({ source: 'b', target: 'c' }, [1, null, 3, 4]),
+    ];
+
+    expect(frameToGraphWide(frames, theme, withCalc('sum'))!.links.map((link) => link.value)).toEqual([5, 8]);
+    // The gap is skipped rather than averaged in as a zero: 8 / 3, not 8 / 4.
+    expect(frameToGraphWide(frames, theme, withCalc('mean'))!.links.map((link) => link.value)).toEqual([5, 8 / 3]);
+  });
+
+  /**
+   * A series with no samples still claimed to describe this edge, so it draws — weightless.
+   * Pre-existing behaviour of the `value ?? 1` fallback, asserted because a raw multi-frame
+   * response is where an empty series actually turns up.
+   */
+  it('draws a weightless edge for a series with no samples', () => {
+    const data = frameToGraphWide([rawSeries({ source: 'a', target: 'b' }, [])], theme)!;
+
+    expect(data.links).toHaveLength(1);
+    expect(data.links[0].value).toBe(1);
+  });
+});
+
+describe('identity across collected frames', () => {
+  /**
+   * The contract's first sentence, held even where it is inconvenient: identity is
+   * `field.name`. A minted id would be one no override can match — `byName`/`byNames`
+   * compare against `field.name` or the display name — and `getOverrideTargetNames` feeds an
+   * **exclude** matcher, so an id no field answers to there would make hiding one node erase
+   * every link in the panel. The fix for `Value` × N is upstream: a legend format, or the
+   * `graph-edges-wide` pivot.
+   */
+  it('keeps field.name as the id, even when several marks share it', () => {
+    const data = frameToGraphWide(valueEdges(), theme)!;
+
+    expect(data.links.map((link) => link.id)).toEqual(['Value', 'Value', 'Value']);
+    // Each mark still carries its own field, so nothing but the *name* is shared.
+    expect(data.links.map((link) => link.field?.labels?.target)).toEqual(['b', 'c', 'c']);
+  });
+
+  /**
+   * `markKey` is what `getRelationsTooltipMarks` keys its link map by, and the only thing
+   * duplicate ids actually break: without it the map is last-write-wins and all N edges
+   * format with the last one's unit and surface its `config.links`.
+   */
+  it('gives each colliding mark its own lookup key', () => {
+    const keys = frameToGraphWide(valueEdges(), theme)!.links.map((link) => link.markKey);
+
+    expect(keys).toEqual(['a-->b', 'b-->c', 'a-->c']);
+    expect(new Set(keys).size).toBe(3);
+  });
+
+  /** The ladder's second rung, shared with the pivot: parallel edges by their own label. */
+  it('discriminates colliding marks over one node pair by the label that tells them apart', () => {
+    const data = frameToGraphWide(
+      [
+        rawSeries({ source: 'a', target: 'b', protocol: 'http' }, [1]),
+        rawSeries({ source: 'a', target: 'b', protocol: 'grpc' }, [2]),
+      ],
+      theme
+    )!;
+
+    expect(data.links.map((link) => link.markKey)).toEqual(['a-->b {protocol="http"}', 'a-->b {protocol="grpc"}']);
+  });
+
+  it('leaves markKey unset when the ids are already unique', () => {
+    const data = frameToGraphWide([labelledEdges()], theme)!;
+
+    expect(data.links.every((link) => link.markKey === undefined)).toBe(true);
+  });
+
+  /**
+   * The one per-edge override the raw path does support, and why the duplication is
+   * "degraded, not lost": `byName` tests the **display name** as well as the field name, and
+   * a field named exactly `Value` contributes nothing to its own display name, so what is
+   * left is the label set. It stops working the moment a legend format is added, because
+   * `displayNameFromDS` then wins.
+   */
+  it('lets a byName override on the display name reach exactly one of N Value marks', () => {
+    const frames = asPipelineWould(valueEdges(), [
+      {
+        matcher: { id: 'byName', options: '{source="b", target="c"}' },
+        properties: [{ id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: 'dark-red' } }],
+      },
+    ]);
+
+    expect(frameToGraphWide(frames, theme)!.links.map((link) => link.color)).toEqual([
+      undefined,
+      theme.visualization.getColorByName('dark-red'),
+      undefined,
+    ]);
+  });
+});
+
+describe('collecting every nodes frame', () => {
+  /**
+   * The same silent drop on the nodes side: `legacyToWide` converts *every* legacy nodes
+   * frame it finds, so a two-query legacy response produces two `graph-nodes-wide` frames of
+   * which the reader used to read one. A node id is the ECharts graph key, so a repeated
+   * declaration is a real collision rather than a display problem — response order decides.
+   */
+  it('reads every nodes frame, first field per id winning', () => {
+    const first = toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [
+        { name: 'a', type: FieldType.number, values: [5] },
+        { name: 'b', type: FieldType.number, values: [6] },
+      ],
+    });
+    const second = toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [
+        { name: 'b', type: FieldType.number, values: [99] },
+        { name: 'c', type: FieldType.number, values: [7] },
+      ],
+    });
+
+    const data = frameToGraphWide([labelledEdges(), first, second], theme)!;
+
+    expect(data.nodes.map((node) => [node.id, node.value])).toEqual([
+      ['a', 5],
+      ['b', 6],
+      ['c', 7],
+    ]);
+  });
+});
+
+/**
+ * The collection is invisible — no notice, no Transform tab entry — so the two cases where
+ * it changes what a response renders have to be legible somewhere. `development.ts`
+ * suppresses info by default and shows warn in a dev build, which is the split these want.
+ * @todo clean up (by hand) - these tests are useless but they keep the bot from removing the console logs while we're in dev/PoC mode
+ */
+describe('reader diagnostics', () => {
+  it('notes the collection at info level, with what the first frame alone would have drawn', () => {
+    frameToGraphWide(valueEdges(), theme);
+
+    expect(logged(LOG_LEVELS.info)).toEqual([expect.stringContaining('read 3 edge(s) from 3 edges frames')]);
+  });
+
+  it('warns when collected marks share an id, and names the fix', () => {
+    frameToGraphWide(valueEdges(), theme);
+
+    expect(logged(LOG_LEVELS.warn)).toEqual([
+      expect.stringContaining('Colliding edges: 3 edges with colliding names: Value'),
+    ]);
+  });
+
+  it('says nothing about a single edges frame whose ids are unique', () => {
+    frameToGraphWide([labelledEdges()], theme);
+
+    expect(logged(LOG_LEVELS.info)).toEqual([]);
+    expect(logged(LOG_LEVELS.warn)).toEqual([]);
   });
 });

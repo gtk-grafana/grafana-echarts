@@ -18,10 +18,16 @@ import {
   GRAPH_NODES_WIDE,
   type GraphEndpoints,
   isEdgesWideFrame,
-  SOURCE_LABEL,
-  TARGET_LABEL,
 } from 'lib/echarts/converters/graphWide';
-import { edgeId, edgeLabels, edgesWideFrame, numberAt } from 'lib/echarts/converters/toGraphWide';
+import {
+  contestedIds,
+  edgeId,
+  edgeLabels,
+  edgesWideFrame,
+  numberAt,
+  uniqueId,
+  withoutEndpoints,
+} from 'lib/echarts/converters/toGraphWide';
 import { type RelationsFamilyField } from 'lib/grafana/fields/fieldTypes';
 import { map } from 'rxjs';
 
@@ -36,14 +42,19 @@ import { map } from 'rxjs';
  * (`modules/relations/dataTransformations.ts`) and sharing its construction
  * (`toGraphWide.ts`) so both emit the same shape.
  *
- * **Why it has to exist.** The response *passes* the reader's shape test — a `Value` field
- * with `source`/`target` labels is an edge by the contract — but `findEdgesFrame`
- * (`graphWide.ts`) is a `.find()`, singular. Twelve series therefore render a **one-edge
- * graph**, with no error anywhere. Nothing in core composes to fix it either:
- * `joinByField` renames a `Value` field to its **frame name**, which TestData sets and a
- * real Prometheus range query does not, so the join silently produces a wide frame whose
- * fields are all still called `Value` and every edge is dropped (measured against live
- * Mimir; ../../../../data-plane/graph-wide.md).
+ * **Why it has to exist: identity.** The response draws without it — the reader collects
+ * every frame that looks like edges (`findEdgesFrames`, `graphWide.ts`), so twelve series
+ * render twelve edges on a stock host with no transformation at all. What they do *not*
+ * have is names. Each frame's value field is called `Value`, so the twelve marks share one
+ * id: `byName: 'Value'` matches all of them at once, the override picker lists `Value` once
+ * per frame, and a per-edge unit, colour or data link is unreachable. Only a transformation
+ * running **before** `applyFieldOverrides` can create a field for an override to land on,
+ * which is the whole thesis of the pivot.
+ *
+ * Nothing in core composes to do it either: `joinByField` renames a `Value` field to its
+ * **frame name**, which TestData sets and a real Prometheus range query does not, so the
+ * join silently produces a wide frame whose fields are all still called `Value` (measured
+ * against live Mimir; ../../../../data-plane/graph-wide.md).
  *
  * **The row dimension is kept.** A range query pivots to one frame with many rows and
  * `calcs[0]` reduces it, so `mean` / `max` over the window are available and the default
@@ -116,7 +127,13 @@ export function isLongEdgesFrame(frame: DataFrame): boolean {
  * That second half is what keeps exactly one converter in play. A declared
  * `graph-edges-wide` frame, or a shape-wide one with several edge fields, *is* the edges
  * frame; a labelled series alongside it is a second query, and pivoting it would mint a
- * rival edges frame for `findEdgesFrame` to choose between.
+ * **rival** edges frame — a second set of ids over the same topology, minted by this
+ * converter rather than carried by the response.
+ *
+ * The reader makes the same call from the other side: `findEdgesFrames` collects declared
+ * frames as a *filter*, so a declared frame beside raw series renders exactly what it
+ * renders today. Where nothing declares itself the reader now collects the shape-matched
+ * frames *and* the series that this declined, which is more data, not less.
  */
 function longEdgeSeries(frames: DataFrame[]): DataFrame[] {
   const claimed = new Set(frames.filter(isLongEdgesFrame));
@@ -153,47 +170,6 @@ function wireId(frame: DataFrame, value: Field): string | undefined {
   }
   const name = frame.name;
   return name != null && name !== '' && name !== formatLabels(value.labels ?? {}) ? name : undefined;
-}
-
-/**
- * Make an id unique within the frame, because two fields sharing a name is silent mark
- * loss: `byName` would match both, and neither the legend nor a tooltip could tell them
- * apart.
- *
- * Parallel edges are the real case — two marks over one node pair, separated only by a
- * third label (`connection_type`, `protocol`) — so the discriminator is the label set that
- * distinguishes them, which is what a user writing the id by hand would reach for. It is
- * applied to **every** member of a contested id, not just the later ones: an asymmetric
- * `a-->b` beside `a-->b {protocol="grpc"}` reads as a bug and hides which is which.
- *
- * The counter behind it only runs for series that are genuinely indistinguishable.
- */
-function uniqueId(taken: ReadonlySet<string>, base: string, rest: Labels, contested: boolean): string {
-  if (contested && Object.keys(rest).length > 0) {
-    const labelled = `${base} ${formatLabels(rest)}`;
-    if (!taken.has(labelled)) {
-      return labelled;
-    }
-  }
-  if (!taken.has(base)) {
-    return base;
-  }
-  let suffix = 2;
-  while (taken.has(`${base} #${suffix}`)) {
-    suffix++;
-  }
-  return `${base} #${suffix}`;
-}
-
-/** Every label except the endpoints, which are re-emitted under the canonical keys. */
-function withoutEndpoints(labels: Labels | undefined): Labels {
-  const rest: Labels = {};
-  for (const [key, value] of Object.entries(labels ?? {})) {
-    if (key !== SOURCE_LABEL && key !== TARGET_LABEL) {
-      rest[key] = value;
-    }
-  }
-  return rest;
 }
 
 /**
@@ -315,19 +291,6 @@ function warnIfWideLookalike(marks: Mark[], ids: string[]): void {
   );
 }
 
-/** The ids more than one mark wants, so every member of the clash can be discriminated. */
-function contestedIds(marks: Mark[]): ReadonlySet<string> {
-  const seen = new Set<string>();
-  const contested = new Set<string>();
-  for (const { base } of marks) {
-    if (seen.has(base)) {
-      contested.add(base);
-    }
-    seen.add(base);
-  }
-  return contested;
-}
-
 /** One numeric field per series, on a shared row dimension. */
 function pivot(series: DataFrame[]): DataFrame {
   const rows = joinedRows(series);
@@ -345,7 +308,7 @@ function pivot(series: DataFrame[]): DataFrame {
   ];
 
   const marks = marksOf(series);
-  const contested = contestedIds(marks);
+  const contested = contestedIds(marks.map((mark) => mark.base));
   const taken = new Set<string>();
   const ids: string[] = [];
   for (const mark of marks) {
@@ -367,7 +330,8 @@ function pivot(series: DataFrame[]): DataFrame {
   warnIfWideLookalike(marks, ids);
   debug(
     `Note: relations pivoted ${marks.length} long graph series into one graph-edges-wide frame ` +
-      `over ${rows.length} row(s). Without it the reader would take the first frame only — a one-edge graph.`,
+      `over ${rows.length} row(s). Without it the reader would still draw every edge, but they would ` +
+      'share one field name and no per-edge override could address them.',
     LOG_LEVELS.info,
     { edges: ids, rows: rows.length, refId: first.refId }
   );

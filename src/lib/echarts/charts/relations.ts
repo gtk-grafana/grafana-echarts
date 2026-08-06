@@ -210,7 +210,14 @@ export const relationsChartModule: ChartModule = {
     }
     // Nodes by display name (what the legend shows and the matcher tests), edges by
     // field name — an edge has no display name of its own.
-    return [...data.nodes.map((node) => node.name), ...data.links.map((link) => link.id)];
+    //
+    // `link.field?.name` first, spelling out that the universe is **field names**: this
+    // list feeds an exclude matcher, so anything in it that no field answers to would
+    // stop covering the edge fields and hiding one node would erase every link in the
+    // panel. `link.id` is that name by contract; the read says so rather than relying on
+    // it. Never `markKey`, which is an item key and matches nothing. Duplicates are fine
+    // — `byNames` holds a `Set`, and a repeated `Value` matches every edge field anyway.
+    return [...data.nodes.map((node) => node.name), ...data.links.map((link) => link.field?.name ?? link.id)];
   },
 
   buildLegendItems(ctx): VizLegendItem[] {
