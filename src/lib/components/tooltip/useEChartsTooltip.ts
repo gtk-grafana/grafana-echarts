@@ -1,11 +1,24 @@
 import { debug, LOG_LEVELS } from 'development';
 import { type ECElementEvent } from 'echarts/core';
 import { type EChartsType } from 'lib/echarts/echarts';
-import { findHoveredPoint, type ProximityHit } from 'lib/echarts/tooltip/proximity';
-import { type EChartsTooltipTrigger, type TooltipSink } from 'lib/echarts/tooltip/types';
+import { findHoveredPoint } from 'lib/echarts/tooltip/proximity';
+import { type EChartsTooltipTrigger, type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/types';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { TOOLTIP_MARKER_ATTR } from './constants';
 import { type EChartsTooltipController, type EChartsTooltipOptions, type EChartsTooltipState } from './types';
+
+/**
+ * A chart item addressed for highlight/pin: the series, the row within it, and —
+ * for graph-like series (graph / sankey / chord) — which of the series' two data
+ * tables that row belongs to. See {@link EChartsTooltipState.pinnedItem}.
+ */
+type TooltipTarget = NonNullable<EChartsTooltipState['pinnedItem']>;
+
+/**
+ * Whether a target addresses a graph-like series' *edge* table rather than its
+ * nodes. Edges are the case `showTip` cannot reach; see {@link replayTip}.
+ */
+const isEdgeTarget = (target: TooltipTarget | null): boolean => target?.dataType === 'edge';
 
 /**
  * How long (ms) an item-triggered tooltip lingers after the cursor leaves its
@@ -55,8 +68,17 @@ const HIDDEN: EChartsTooltipState = {
  * `updateAxisPointer` and an axis-tooltip lookup that a parallel coordinate
  * system has nothing to answer with, so it emits nothing even when
  * `findHover` lands squarely on the polyline (verified against a live chart).
+ *
+ * **It also cannot address an edge.** A graph-like series (graph / sankey /
+ * chord) exposes two data tables, and `dataType` picks between them — but
+ * `showTip` never forwards it: `findPointFromSeries` calls `seriesModel.getData()`
+ * with no argument, so it always resolves the *node* at `dataIndex` and hands
+ * that element to `_showSeriesItemTooltip`. Replaying a clicked edge therefore
+ * silently produces an unrelated node's tooltip. `pinWith` skips the replay for
+ * edges and reuses the model the hover already produced instead.
+ * (`highlight`/`downplay` do honour `payload.dataType`, so those are passed it.)
  */
-function replayTip(chart: EChartsType, target: { seriesIndex?: number; dataIndex?: number }) {
+function replayTip(chart: EChartsType, target: TooltipTarget) {
   try {
     chart.dispatchAction({ type: 'showTip', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
   } catch (e) {
@@ -212,7 +234,12 @@ export function useEChartsTooltip(
   // The point last replayed into ECharts, so an unchanged hover doesn't
   // re-dispatch. `showTip` re-runs the formatter every time it is called, which
   // would otherwise push an identical model on every mouse move.
-  const lastHitRef = useRef<Pick<ProximityHit, 'seriesIndex' | 'dataIndex'> | null>(null);
+  const lastHitRef = useRef<TooltipTarget | null>(null);
+
+  // The most recent model the (invisible) ECharts formatter produced, kept even
+  // while pinned. Re-pinning onto an item that `showTip` cannot address — an edge
+  // of a graph-like series — restores content from here instead. See `pinWith`.
+  const liveModelRef = useRef<TooltipModel | null>(null);
 
   // New data invalidates the cached indices — the same `dataIndex` now points at
   // a different point, so the dedupe above must not suppress the next dispatch.
@@ -225,7 +252,7 @@ export function useEChartsTooltip(
   // point has to re-pin onto that point — which needs where the cursor actually
   // is now, not where the frozen pin sits.
   const livePositionRef = useRef<EChartsTooltipState['position']>(null);
-  const liveHitRef = useRef<Pick<ProximityHit, 'seriesIndex' | 'dataIndex'> | null>(null);
+  const liveHitRef = useRef<TooltipTarget | null>(null);
 
   const cancelHide = useCallback(() => {
     if (hideTimerRef.current != null) {
@@ -243,12 +270,21 @@ export function useEChartsTooltip(
    * line whose symbols aren't rendered, creates one on the fly. That is the
    * marker core draws on the focused point. `downplay` reverts the previous one;
    * without it the emphasis would accumulate across every point hovered.
+   *
+   * `dataType` rides along because both actions honour it — ECharts' state
+   * handler resolves `seriesModel.getData(payload.dataType)` — so a hovered edge
+   * emphasises that edge rather than the node sharing its index.
    */
   const focusPoint = useCallback(
-    (hit: Pick<ProximityHit, 'seriesIndex' | 'dataIndex'> | null): boolean => {
+    (hit: TooltipTarget | null): boolean => {
       const previous = lastHitRef.current;
-      const next = hit == null ? null : { seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex };
-      if (previous?.seriesIndex === next?.seriesIndex && previous?.dataIndex === next?.dataIndex) {
+      const next =
+        hit == null ? null : { seriesIndex: hit.seriesIndex, dataIndex: hit.dataIndex, dataType: hit.dataType };
+      if (
+        previous?.seriesIndex === next?.seriesIndex &&
+        previous?.dataIndex === next?.dataIndex &&
+        previous?.dataType === next?.dataType
+      ) {
         return false;
       }
       lastHitRef.current = next;
@@ -274,6 +310,11 @@ export function useEChartsTooltip(
    */
   const sink = useCallback<TooltipSink>(
     (model) => {
+      // Recorded before the pinned check: ECharts keeps hit-testing and running
+      // its formatter while the React tooltip is frozen, so this stays the
+      // last-hovered item's content — which is what `pinWith` re-pins from when
+      // the click lands on an item `showTip` cannot replay.
+      liveModelRef.current = model;
       if (latestRef.current.pinned) {
         return;
       }
@@ -488,11 +529,26 @@ export function useEChartsTooltip(
         // Re-asserting the highlight makes the marker owned by the (persistent)
         // action rather than ZRender's element hover, which clears as soon as
         // the cursor leaves the symbol.
-        focusPoint({ seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
-        chart.dispatchAction({ type: 'highlight', seriesIndex: target.seriesIndex, dataIndex: target.dataIndex });
-        // Runs `tooltip.formatter` synchronously, so `sink` has refreshed the
-        // model by the time this returns.
-        replayTip(chart, target);
+        focusPoint(target);
+        chart.dispatchAction({
+          type: 'highlight',
+          seriesIndex: target.seriesIndex,
+          dataIndex: target.dataIndex,
+          dataType: target.dataType,
+        });
+        if (isEdgeTarget(target)) {
+          // `showTip` cannot address an edge — it would resolve the node at the
+          // same `dataIndex` and pin a tooltip for an unrelated node (see
+          // `replayTip`). The hover that preceded this click already pushed the
+          // edge's own model through `sink`, so re-pin from that instead.
+          if (liveModelRef.current != null) {
+            update({ model: liveModelRef.current, visible: true });
+          }
+        } else {
+          // Runs `tooltip.formatter` synchronously, so `sink` has refreshed the
+          // model by the time this returns.
+          replayTip(chart, target);
+        }
       }
 
       // Nothing resolved to show (e.g. a click on empty grid after the previous
@@ -516,14 +572,28 @@ export function useEChartsTooltip(
       // element ECharts happened to hit. Only record the element it found.
       if (cur.pinned) {
         if (cur.pinnedItem == null) {
-          update({ pinnedItem: { seriesIndex: params.seriesIndex, dataIndex: params.dataIndex } });
+          update({
+            pinnedItem: { seriesIndex: params.seriesIndex, dataIndex: params.dataIndex, dataType: params.dataType },
+          });
         }
         return;
       }
-      pinWith({ seriesIndex: params.seriesIndex, dataIndex: params.dataIndex });
+      // `dataType` is what makes a clicked edge distinguishable from the node at
+      // the same `dataIndex`; without it the pin resolves the wrong item.
+      pinWith({ seriesIndex: params.seriesIndex, dataIndex: params.dataIndex, dataType: params.dataType });
     };
 
-    const onZrClick = () => pinWith(null);
+    const onZrClick = () => {
+      // Both clicks fire for a click on an element and the order is not
+      // guaranteed. If the element handler already pinned this same user click,
+      // leave it alone: it knows the `seriesIndex`/`dataIndex`/`dataType` ZRender
+      // cannot report, and re-pinning here would discard them. Mirrors the
+      // `cur.pinned` guard in `onChartClick`.
+      if (latestRef.current.pinned) {
+        return;
+      }
+      pinWith(null);
+    };
 
     zr.on('mousemove', onMove);
     zr.on('globalout', onGlobalOut);

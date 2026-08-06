@@ -1,5 +1,6 @@
 import { type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
+import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
 import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
@@ -29,13 +30,31 @@ const canvasOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions>
   ...extra,
 });
 
+/**
+ * Fixtures are written in Grafana's row form, because that is what a datasource emits,
+ * and converted the way the host does: by the transformation the plugin registers on
+ * itself, which runs above the panel (`modules/relations/dataTransformations.ts`). The
+ * panel itself reads only the field-based contract, so every render here goes through
+ * the same conversion the real pipeline performs.
+ */
+const asPipelineWould = (frames: Parameters<typeof getComponent>[0]): Parameters<typeof getComponent>[0] =>
+  legacyToWide(frames);
+
 const renderGraph = async (
   frames: Parameters<typeof getComponent>[0],
   options: Partial<PanelOptions> = {},
   fieldConfig?: FieldConfigSource
 ) => {
   const { container } = render(
-    getComponent(frames, 'graph', canvasOptions(options), undefined, undefined, 'relations', fieldConfig)
+    getComponent(
+      asPipelineWould(frames),
+      'graph',
+      canvasOptions(options),
+      undefined,
+      undefined,
+      'relations',
+      fieldConfig
+    )
   );
   return getSeriesCanvasEvents(container);
 };
@@ -50,7 +69,7 @@ const renderSankey = async (
 ) => {
   const { container } = render(
     getComponent(
-      frames,
+      asPipelineWould(frames),
       'sankey',
       { ...canvasOptions(options), relationsLayout: undefined },
       undefined,
@@ -71,7 +90,7 @@ const renderChord = async (
 ) => {
   const { container } = render(
     getComponent(
-      frames,
+      asPipelineWould(frames),
       'chord',
       { ...canvasOptions(options), relationsLayout: undefined },
       undefined,
@@ -234,7 +253,7 @@ describe('relations (graph) canvas renders', () => {
         overrides: [
           {
             matcher: { id: 'byName', options: 'DB' },
-            properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'purple' } }],
+            properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'red' } }],
           },
         ],
       };

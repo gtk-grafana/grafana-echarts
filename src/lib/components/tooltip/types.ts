@@ -18,8 +18,12 @@ export interface EChartsTooltipState {
    *
    * Only the indices are kept, not the whole `ECElementEvent` — that would retain
    * the ZRender event and its DOM node for as long as the tooltip stays pinned.
+   *
+   * `dataType` discriminates the two data tables a graph-like series (graph /
+   * sankey / chord) exposes: `'node'` vs `'edge'`. Without it a `dataIndex` is
+   * ambiguous, and edge 3 is indistinguishable from node 3.
    */
-  pinnedItem: Pick<ECElementEvent, 'seriesIndex' | 'dataIndex'> | null;
+  pinnedItem: Pick<ECElementEvent, 'seriesIndex' | 'dataIndex' | 'dataType'> | null;
   /**
    * The proximity-focused series, or `null` when none is within the focus band.
    *

@@ -38,9 +38,14 @@ export function useChartOption(
 
     const option = buildPanelChartOption(chartContext, { isGrafanaLegend, tooltipSink });
 
+    // Nothing to draw from this data: clear the canvas and leave the panel empty
+    // rather than throwing, which would replace the panel with an error boundary.
+    // A response the family cannot *read* throws from inside the build instead, so
+    // the user sees a message rather than a blank panel — see `buildPanelChartOption`.
     if (!option) {
-      debug('No echart option', LOG_LEVELS.error, chartContext);
-      throw new Error('No echart option!');
+      debug('No echart option', LOG_LEVELS.debug, chartContext);
+      chart.clear();
+      return;
     }
 
     // Tell the tooltip controller the resolved trigger so it hides item tooltips

@@ -358,7 +358,7 @@ describe('buildPanelChartOption for the pie (row/series family)', () => {
 // before the render that needed them. See `resolveAnimation`.
 describe('buildPanelChartOption animation resolution', () => {
   const visible: FieldConfigSource = { defaults: {}, overrides: [] };
-  const animationOf = (option: PanelOption): boolean | undefined => option.animation;
+  const animationOf = (option: PanelOption | null): boolean | undefined => option?.animation;
 
   // A single-series time frame with `points` rows, to prove density is ignored.
   const denseTimeFrame = (points: number): DataFrame =>
@@ -417,5 +417,60 @@ describe('buildPanelChartOption animation resolution', () => {
       isGrafanaLegend: true,
     });
     expect(animationOf(option)).toBe(false);
+  });
+});
+
+/**
+ * The relations family reads only the field-based graph contract, which the plugin's
+ * registered transformation produces above the panel. These are the two ends of that:
+ * the shape the panel is handed builds a series, and a shape it cannot draw leaves the
+ * panel empty instead of erroring.
+ *
+ * See todo/graph-wide-migration.md phases 1-2 and data-plane/graph-wide.md.
+ */
+describe('buildPanelChartOption for the relations family', () => {
+  const visible: FieldConfigSource = { defaults: {}, overrides: [] };
+
+  // What `legacyToWide` (or a native producer) hands the panel: one field per edge, with
+  // the endpoints in labels, and one field per node.
+  const wideFrames = (): DataFrame[] => [
+    toDataFrame({
+      name: 'edges',
+      meta: { type: 'graph-edges-wide' as DataFrameType },
+      fields: [
+        { name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [10] },
+        { name: 'e2', type: FieldType.number, labels: { source: 'b', target: 'c' }, values: [20] },
+      ],
+    }),
+    toDataFrame({
+      name: 'nodes',
+      meta: { type: 'graph-nodes-wide' as DataFrameType },
+      fields: [
+        { name: 'a', type: FieldType.number, config: { displayName: 'Gateway' }, values: [1] },
+        { name: 'b', type: FieldType.number, values: [2] },
+        { name: 'c', type: FieldType.number, values: [3] },
+      ],
+    }),
+  ];
+
+  it.each(['graph', 'sankey', 'chord'] as const)('builds a %s series from wide frames', (seriesType) => {
+    const option = buildPanelChartOption(makeContext(wideFrames(), seriesType, visible), { isGrafanaLegend: true });
+
+    const series = seriesArray(option) as Array<{ type?: string; data?: unknown[]; links?: unknown[] }>;
+    expect(series).toHaveLength(1);
+    expect(series[0].type).toBe(seriesType);
+    expect(series[0].data).toHaveLength(3);
+    expect(series[0].links).toHaveLength(2);
+  });
+
+  /**
+   * Previously this threw `Invalid chart option resolved for graph`, replacing the panel
+   * with an error boundary. A response with no graph in it is ordinary no-data.
+   */
+  it('returns null rather than throwing when the frames carry no graph', () => {
+    const context = makeContext([timeFrame()], 'graph', visible);
+
+    expect(() => buildPanelChartOption(context, { isGrafanaLegend: true })).not.toThrow();
+    expect(buildPanelChartOption(context, { isGrafanaLegend: true })).toBeNull();
   });
 });

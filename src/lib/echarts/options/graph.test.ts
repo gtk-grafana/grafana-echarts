@@ -1,8 +1,8 @@
-import { createTheme, FieldColorModeId, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type FieldConfigSource } from '@grafana/data';
+import { type CallbackDataParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import {
-  ARC_BORDER_WIDTH,
   getGraphEdgeSymbol,
   getGraphEmphasis,
   getGraphForce,
@@ -10,9 +10,10 @@ import {
   getGraphLayout,
   getGraphLinkStyle,
   getGraphSeries,
-  makeRelationsColorResolver,
+  getRelationsNodeLabelFormatter,
   RELATIONS_NODE_SIZE_DEFAULT,
 } from 'lib/echarts/options/graph';
+import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { type PanelOptions } from 'types';
 
 const theme = createTheme();
@@ -38,10 +39,17 @@ const ctx = (options: PanelOptions = baseOptions()): RelationsChartContext =>
     replaceVariables: (value: string) => value,
   }) as unknown as RelationsChartContext;
 
+/**
+ * Nodes reach this layer already coloured — the reader resolves every mark's colour
+ * through its own display processor and palettes whatever is left
+ * (`converters/graphWide.ts`), so a fixture that omitted `color` would not be one the
+ * panel can produce. Colour *resolution* is tested there; this file only checks that
+ * the resolved colour is painted.
+ */
 const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData => ({
   nodes: [
-    { id: 'a', name: 'A', value: 1 },
-    { id: 'b', name: 'B', value: 2 },
+    { id: 'a', name: 'A', value: 1, color: getPaletteColorByIndex(0, theme) },
+    { id: 'b', name: 'B', value: 2, color: getPaletteColorByIndex(1, theme) },
   ],
   links: [{ id: 'e1', source: 'a', target: 'b', value: 5 }],
   ...extra,
@@ -112,14 +120,18 @@ describe('getGraphEdgeSymbol / getGraphEmphasis', () => {
 });
 
 describe('getGraphLinkStyle', () => {
-  it('defaults to inheriting the source node color and omits curveness', () => {
+  // The family default is `gradient`, which ECharts' `graph` series cannot read —
+  // `edgeVisual.ts` swaps only `source`/`target` and would treat `gradient` as a literal
+  // colour. So the series keyword degrades to `source` and the blend, when the layout
+  // allows one, is emitted per link instead.
+  it('degrades the gradient default to source, which the graph series can read', () => {
     const style = getGraphLinkStyle(baseOptions());
     expect(style).toEqual({ color: 'source' });
     expect(style).not.toHaveProperty('curveness');
   });
 
-  it('honors the link color mode', () => {
-    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'gradient' })).color).toBe('gradient');
+  it('passes through a mode the graph series implements', () => {
+    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'target' })).color).toBe('target');
   });
 
   it('omits curveness at 0 but emits it above', () => {
@@ -136,61 +148,55 @@ describe('getGraphLabel', () => {
   it('hides labels when switched off', () => {
     expect(getGraphLabel(ctx(baseOptions({ relationsShowNodeLabels: false })))).toEqual({ show: false });
   });
+
+  // A graph node is labelled from `data.getName(idx)` already, so the formatter is
+  // dead weight until there is a value to append.
+  it('omits the formatter while node values are off', () => {
+    expect(getGraphLabel(ctx())).not.toHaveProperty('formatter');
+  });
+
+  it('adds a formatter when node values are switched on', () => {
+    const label = getGraphLabel(ctx(baseOptions({ relationsShowNodeValues: true })));
+
+    expect(typeof label).toBe('object');
+    expect(typeof (label as { formatter?: unknown }).formatter).toBe('function');
+  });
 });
 
-describe('makeRelationsColorResolver', () => {
-  it('uses the classic palette by position when nothing else applies', () => {
-    const resolve = makeRelationsColorResolver(theme, emptyFieldConfig);
-    expect(resolve({ id: 'a', name: 'A', value: 1 }, 0)).toEqual(expect.any(String));
-    // Distinct per index — the categorical default.
-    expect(resolve({ id: 'a', name: 'A', value: 1 }, 0)).not.toBe(resolve({ id: 'b', name: 'B', value: 2 }, 1));
+describe('getRelationsNodeLabelFormatter', () => {
+  const params = (name: string, item: Record<string, unknown>) =>
+    ({ name, data: item }) as unknown as CallbackDataParams;
+
+  it('returns nothing while the option is off, so each variant keeps its own formatter', () => {
+    expect(getRelationsNodeLabelFormatter(ctx())).toBeUndefined();
   });
 
-  it("prefers the node's own color field over the palette", () => {
-    const resolve = makeRelationsColorResolver(theme, emptyFieldConfig);
-    expect(resolve({ id: 'a', name: 'A', value: 1, color: 'cyan' }, 0)).toBe('cyan');
+  // `graph` carries the stat as `value`; `sankey` and `chord` leave `value` to
+  // ECharts' flow computation and carry it as `stat`.
+  it('reads the stat from `value` (graph items)', () => {
+    const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
+
+    expect(formatter(params('A', { id: 'a', name: 'A', value: 42 }))).toBe('A\n42');
   });
 
-  it('lets a byName fixed-color override win over the node color', () => {
-    const fieldConfig: FieldConfigSource = {
-      defaults: {},
-      overrides: [
-        {
-          matcher: { id: 'byName', options: 'A' },
-          properties: [{ id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: 'purple' } }],
-        },
-      ],
-    };
-    const resolve = makeRelationsColorResolver(theme, fieldConfig);
-    expect(resolve({ id: 'a', name: 'A', value: 1, color: 'cyan' }, 0)).toBe('purple');
+  it('reads the stat from `stat` (sankey/chord items)', () => {
+    const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
+
+    expect(formatter(params('B', { id: 'b', name: 'B', stat: 7 }))).toBe('B\n7');
   });
 
-  it('colors from the value field when a by-value scheme is configured', () => {
-    const frame = toDataFrame({
-      fields: [
-        {
-          name: 'mainstat',
-          type: FieldType.number,
-          values: [1, 100],
-          config: { color: { mode: FieldColorModeId.ContinuousGrYlRd } },
-        },
-      ],
-    });
-    const valueField = frame.fields[0];
-    const resolve = makeRelationsColorResolver(theme, emptyFieldConfig, valueField);
-    // Different values map to different points on the gradient.
-    expect(resolve({ id: 'a', name: 'A', value: 1 }, 0)).not.toBe(resolve({ id: 'b', name: 'B', value: 100 }, 1));
+  // `stat` wins so a sankey's ECharts-computed `value` cannot shadow the mainstat,
+  // matching the tooltip's precedence.
+  it('prefers `stat` over `value`', () => {
+    const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
+
+    expect(formatter(params('C', { id: 'c', name: 'C', stat: 5, value: 900 }))).toBe('C\n5');
   });
 
-  it('treats an unset color mode as the classic palette, not by-value', () => {
-    // Grafana's own default mode is by-value (thresholds), but the panel registers
-    // PaletteClassic, so "unset" must stay categorical.
-    const frame = toDataFrame({
-      fields: [{ name: 'mainstat', type: FieldType.number, values: [1, 2] }],
-    });
-    const resolve = makeRelationsColorResolver(theme, emptyFieldConfig, frame.fields[0]);
-    const paletteResolve = makeRelationsColorResolver(theme, emptyFieldConfig);
-    expect(resolve({ id: 'a', name: 'A', value: 1 }, 0)).toBe(paletteResolve({ id: 'a', name: 'A', value: 1 }, 0));
+  it('leaves a statless node on one line rather than adding a blank one', () => {
+    const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
+
+    expect(formatter(params('D', { id: 'd', name: 'D' }))).toBe('D');
   });
 });
 
@@ -229,17 +235,12 @@ describe('getGraphSeries', () => {
     expect(series.data![1]).not.toHaveProperty('x');
   });
 
-  it('maps a per-edge color, width and dash array onto the link item', () => {
+  it('maps a per-edge color, width and line type onto the link item', () => {
     const styled = data({
-      links: [{ id: 'e1', source: 'a', target: 'b', value: 1, color: 'cyan', width: 3, dashArray: '5 5' }],
+      links: [{ id: 'e1', source: 'a', target: 'b', value: 1, color: 'cyan', width: 3, lineType: 'dashed' }],
     });
     const series = getGraphSeries(styled, ctx());
     expect(series.links).toMatchObject([{ lineStyle: { color: 'cyan', width: 3, type: 'dashed' } }]);
-  });
-
-  it('reads a small leading dash as dotted', () => {
-    const dotted = data({ links: [{ id: 'e1', source: 'a', target: 'b', value: 1, dashArray: '1 4' }] });
-    expect(getGraphSeries(dotted, ctx()).links).toMatchObject([{ lineStyle: { type: 'dotted' } }]);
   });
 
   it('omits lineStyle entirely for an unstyled link', () => {
@@ -259,14 +260,23 @@ describe('getGraphSeries', () => {
     expect(series).not.toHaveProperty('emphasis');
   });
 
-  it('draws an arc approximation as a node border', () => {
-    const withArc = data({ nodes: [{ id: 'a', name: 'A', value: 1, borderColor: 'green' }] });
-    expect(getGraphSeries(withArc, ctx()).data).toMatchObject([
-      { itemStyle: { borderColor: 'green', borderWidth: ARC_BORDER_WIDTH } },
+  // The whole of the family's colour path: the mark's own field already decided it,
+  // so this layer paints and does not resolve.
+  it('paints each node with the colour its own field resolved', () => {
+    const coloured = data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, color: '#C4162A' },
+        { id: 'b', name: 'B', value: 2, color: '#37872D' },
+      ],
+    });
+
+    expect(getGraphSeries(coloured, ctx()).data).toMatchObject([
+      { itemStyle: { color: '#C4162A' } },
+      { itemStyle: { color: '#37872D' } },
     ]);
   });
 
-  it('omits border styling for nodes with no arc fields', () => {
+  it('never borders a node: there is no arc ring to approximate under the contract', () => {
     const series = getGraphSeries(data(), ctx());
     expect(series.data![0]).toMatchObject({ itemStyle: expect.any(Object) });
     expect((series.data![0] as { itemStyle: Record<string, unknown> }).itemStyle).not.toHaveProperty('borderColor');
@@ -275,5 +285,76 @@ describe('getGraphSeries', () => {
   it('carries the series zlevel from the panel option', () => {
     const series = getGraphSeries(data(), ctx(baseOptions({ zLevel: { series: 3 } })));
     expect(series.zlevel).toBe(3);
+  });
+});
+
+/**
+ * ECharts' `graph` series implements `lineStyle.color: 'source' | 'target'` and nothing
+ * else — `'gradient'` is sankey/chord-only — so the blend is built per link here.
+ *
+ * It can only be built when the node positions are known, because zrender resolves a
+ * non-global gradient against the shape's bounding box: `x: 0 -> x2: 1` runs left to
+ * right across the edge, which is source-to-target only if the source sits on the left.
+ * Under a force or circular layout the positions do not exist until ECharts has laid the
+ * graph out, so orienting would be a coin flip and half the edges would report their
+ * direction backwards.
+ */
+describe('getGraphSeries — edge gradients', () => {
+  const pinned = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
+    data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, fixedX: 0, fixedY: 0, color: getPaletteColorByIndex(0, theme) },
+        { id: 'b', name: 'B', value: 2, fixedX: 100, fixedY: 100, color: getPaletteColorByIndex(1, theme) },
+      ],
+      ...extra,
+    });
+
+  const gradientOf = (series: ReturnType<typeof getGraphSeries>, index = 0) =>
+    (series.links as Array<{ lineStyle?: { color?: unknown } }>)[index]?.lineStyle?.color;
+
+  it('blends from the source node colour to the target node colour', () => {
+    const gradient = gradientOf(getGraphSeries(pinned(), ctx()));
+
+    expect(gradient).toMatchObject({
+      type: 'linear',
+      colorStops: [
+        { offset: 0, color: getPaletteColorByIndex(0, theme) },
+        { offset: 1, color: getPaletteColorByIndex(1, theme) },
+      ],
+    });
+  });
+
+  it('orients the gradient along the edge, so reversing it reverses the blend', () => {
+    // a is top-left, b is bottom-right: the gradient runs from the box's top-left.
+    expect(gradientOf(getGraphSeries(pinned(), ctx()))).toMatchObject({ x: 0, y: 0, x2: 1, y2: 1 });
+
+    // Same two nodes, edge the other way: same bounding box, opposite gradient axis.
+    const reversed = pinned({ links: [{ id: 'e1', source: 'b', target: 'a', value: 5 }] });
+    expect(gradientOf(getGraphSeries(reversed, ctx()))).toMatchObject({ x: 1, y: 1, x2: 0, y2: 0 });
+  });
+
+  it('leaves the keyword to do the work when the layout has not pinned positions', () => {
+    // The default force layout: no positions, so no honest orientation exists.
+    expect(getGraphSeries(data(), ctx()).links![0]).not.toHaveProperty('lineStyle');
+    expect(getGraphLinkStyle(baseOptions()).color).toBe('source');
+  });
+
+  it('does not blend a self-loop, which has no direction to express', () => {
+    const loop = pinned({ links: [{ id: 'e1', source: 'a', target: 'a', value: 5 }] });
+
+    expect(getGraphSeries(loop, ctx()).links![0]).not.toHaveProperty('lineStyle');
+  });
+
+  it('yields to an explicit per-edge colour', () => {
+    const overridden = pinned({ links: [{ id: 'e1', source: 'a', target: 'b', value: 5, color: 'cyan' }] });
+
+    expect(gradientOf(getGraphSeries(overridden, ctx()))).toBe('cyan');
+  });
+
+  it('emits no gradient when another colour mode is chosen', () => {
+    const series = getGraphSeries(pinned(), ctx(baseOptions({ relationsLinkColor: 'target' })));
+
+    expect(series.links![0]).not.toHaveProperty('lineStyle');
+    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'target' })).color).toBe('target');
   });
 });

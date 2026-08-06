@@ -18,29 +18,39 @@ signal, falling back to the nested-set field shape (`level` + `value` + `label`)
 for datasources that cannot set meta. Every other chart infers its shape from
 the fields present.
 
-Node graph is the other out-of-contract kind, and it is detected from **field shape
-alone** (`isNodeGraphFrames`, `src/lib/echarts/converters/nodeGraph.ts`): `source`
-and `target` are required on an edges frame, so the shape check is already
+Node graph is the other kind with no `DataFrameType` of its own, and it is detected from
+**field shape alone** (`isNodeGraphFrames`, `src/lib/echarts/converters/nodeGraph.ts`):
+`source` and `target` are required on an edges frame, so the shape check is already
 sufficient, and the metadata signals do not survive the paths that matter
 (provisioned CSV fixtures and SQL Expression outputs can set neither).
 
+Both of those are _un-minted_, not un-contractable. `DataFrameType` in `@grafana/data`
+13.1.1 has exactly twelve members and neither flame graph nor node graph is among them —
+but the published contract invites new kinds, so [graph-wide.md](./graph-wide.md)
+**proposes** one: `graph-nodes-wide` / `graph-edges-wide`, in which one node is one field
+and one edge is one field. It is specified and validated but not yet read by any
+converter; the legacy row form remains the only shape the relations family consumes. See
+[../todo/graph-wide-migration.md](../todo/graph-wide-migration.md).
+
 ## Models
 
-| Doc                                          | ECharts charts                                            | Grafana kind consumed                                   |
-| -------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------- |
-| [categorical.md](./categorical.md)           | category-axis line / bar / scatter (shared base model)    | Numeric (`NumericWide`/`Multi`/`Long`)                  |
-| [time-series.md](./time-series.md)           | time-axis line / bar / scatter                            | Time series (`TimeSeriesWide` / `TimeSeriesMulti`)      |
-| [stream.md](./stream.md)                     | themeRiver (stacked ribbons on a single time axis)        | Time series, wide/multi **or** long (pivoted)           |
-| [stream-sources.md](./stream-sources.md)     | which data sources feed the stream family                 | —                                                       |
-| [part-to-whole.md](./part-to-whole.md)       | pie, funnel                                               | Any numeric field, reduced via standard `reduceOptions` |
-| [multivariate.md](./multivariate.md)         | radar                                                     | Numeric, through the categorical model                  |
-| [multi-value.md](./multi-value.md)           | candlestick, boxplot                                      | TimeSeriesWide / Numeric (by name convention)           |
-| [hierarchy.md](./hierarchy.md)               | treemap, sunburst                                         | Flame-graph nested set, or Numeric (flat fallback)      |
-| [flame-graph.md](./flame-graph.md)           | input frame format for treemap / sunburst                 | Flame graph (out of contract — nested set)              |
-| [heatmap-binned.md](./heatmap-binned.md)     | continuous-axis heatmap (custom cell series)              | Heatmap (`heatmap-rows` / `heatmap-cells`)              |
-| [heatmap-matrix.md](./heatmap-matrix.md)     | category x category heatmap (native series)               | Numeric (wide / pivot) — _not_ the Heatmap kind         |
-| [node-graph.md](./node-graph.md)             | graph, sankey, chord                                      | Node graph (out of contract — nodes + edges)            |
-| [echarts-coverage.md](./echarts-coverage.md) | every ECharts series type — implementation support matrix | —                                                       |
+| Doc                                              | ECharts charts                                            | Grafana kind consumed                                          |
+| ------------------------------------------------ | --------------------------------------------------------- | -------------------------------------------------------------- |
+| [categorical.md](./categorical.md)               | category-axis line / bar / scatter (shared base model)    | Numeric (`NumericWide`/`Multi`/`Long`)                         |
+| [time-series.md](./time-series.md)               | time-axis line / bar / scatter                            | Time series (`TimeSeriesWide` / `TimeSeriesMulti`)             |
+| [stream.md](./stream.md)                         | themeRiver (stacked ribbons on a single time axis)        | Time series, wide/multi **or** long (pivoted)                  |
+| [stream-sources.md](./stream-sources.md)         | which data sources feed the stream family                 | —                                                              |
+| [part-to-whole.md](./part-to-whole.md)           | pie, funnel                                               | Any numeric field, reduced via standard `reduceOptions`        |
+| [multivariate.md](./multivariate.md)             | radar                                                     | Numeric, through the categorical model                         |
+| [multi-value.md](./multi-value.md)               | candlestick, boxplot                                      | TimeSeriesWide / Numeric (by name convention)                  |
+| [hierarchy.md](./hierarchy.md)                   | treemap, sunburst                                         | Flame-graph nested set, or Numeric (flat fallback)             |
+| [flame-graph.md](./flame-graph.md)               | input frame format for treemap / sunburst                 | Flame graph (out of contract — nested set)                     |
+| [heatmap-binned.md](./heatmap-binned.md)         | continuous-axis heatmap (custom cell series)              | Heatmap (`heatmap-rows` / `heatmap-cells`)                     |
+| [heatmap-matrix.md](./heatmap-matrix.md)         | category x category heatmap (native series)               | Numeric (wide / pivot) — _not_ the Heatmap kind                |
+| [node-graph.md](./node-graph.md)                 | graph, sankey, chord                                      | Node graph, row form (`graph-*-long`) — nodes + edges          |
+| [graph-wide.md](./graph-wide.md)                 | graph, sankey, chord — **proposed, nothing reads it yet** | `graph-nodes-wide` / `graph-edges-wide` (one mark = one field) |
+| [graph-edges-matrix.md](./graph-edges-matrix.md) | graph, sankey, chord — **proposed alternative form**      | `graph-edges-matrix` — one field per node, one cell per edge   |
+| [echarts-coverage.md](./echarts-coverage.md)     | every ECharts series type — implementation support matrix | —                                                              |
 
 These docs describe the frame formats. For **which data sources emit a given shape**,
 and how to reshape a response that does not, see the sourcing guides in `docs/` —

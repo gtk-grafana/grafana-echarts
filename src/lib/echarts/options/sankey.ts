@@ -1,5 +1,4 @@
-import { type GrafanaTheme2 } from '@grafana/data';
-import { type SankeySeriesOption, type TitleComponentOption } from 'echarts';
+import { type SankeySeriesOption } from 'echarts';
 import {
   SANKEY_CURVENESS_DEFAULT,
   SANKEY_LAYOUT_ITERATIONS_DEFAULT,
@@ -11,10 +10,9 @@ import {
 } from 'editor/sankey';
 import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient } from 'editor/types';
 import { toSankeyLinks } from 'lib/echarts/converters/dag';
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
-  ARC_BORDER_WIDTH,
-  makeRelationsColorResolver,
+  getRelationsNodeLabelFormatter,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
@@ -95,7 +93,10 @@ export function getSankeyLabel(ctx: RelationsSeriesContext): SankeySeriesOption[
   }
   return {
     show: true,
-    formatter: '{b}',
+    // With "Show node values" on, the shared formatter emits the name *and* the
+    // stat, so it replaces the `'{b}'` correction (it reads `params.name`, which
+    // is the same value `'{b}'` resolves to).
+    formatter: getRelationsNodeLabelFormatter(ctx) ?? '{b}',
     color: ctx.theme.colors.text.primary,
     fontFamily: ctx.theme.typography.fontFamily,
   };
@@ -104,8 +105,9 @@ export function getSankeyLabel(ctx: RelationsSeriesContext): SankeySeriesOption[
 /**
  * Ribbon styling. `color` takes the same ECharts keywords as the graph variant
  * (`source` / `target` / `gradient`), resolved in `SankeyView`; the family default of
- * `source` deliberately overrides ECharts' own neutral-gray default so ribbons
- * inherit node colors, matching how the graph variant draws its edges.
+ * `gradient` deliberately overrides ECharts' own neutral-gray default so a ribbon reads
+ * as flowing from one node's colour into the other's. Unlike the graph variant, this one
+ * needs no help — `SankeyView` implements all three keywords itself.
  * `curveness` and `opacity` are omitted at ECharts' defaults.
  * https://echarts.apache.org/en/option.html#series-sankey.lineStyle
  */
@@ -147,10 +149,8 @@ export function getSankeyEmphasis(options: PanelOptions): SankeySeriesOption['em
  * - **no `x`/`y`** — `SankeyNodeItemOption` positions with `localX`/`localY`/`depth`,
  *   not the graph variant's pixel coordinates, so `fixedx`/`fixedy` are dropped.
  */
-function toSankeyNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): RelationsNodeItem[] {
-  const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField);
-
-  return nodes.map((node, index) => {
+function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
+  return nodes.map((node) => {
     const item: RelationsNodeItem = {
       // As with graph: `id` pins link resolution to the frame's `id`, freeing `name`
       // to carry the human-readable `title` for the label.
@@ -160,12 +160,8 @@ function toSankeyNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): 
     if (node.value != null) {
       item.stat = node.value;
     }
-    const color = resolveColor(node, index);
-    if (color != null) {
-      item.itemStyle = { color };
-    }
-    if (node.borderColor != null) {
-      item.itemStyle = { ...item.itemStyle, borderColor: node.borderColor, borderWidth: ARC_BORDER_WIDTH };
+    if (node.color != null) {
+      item.itemStyle = { color: node.color };
     }
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
@@ -185,9 +181,9 @@ function toSankeyNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): 
  *
  * `value` is load-bearing here in a way it is not for `graph`: it *is* the ribbon
  * thickness. Two per-edge fields the graph variant honors are deliberately dropped
- * because a sankey cannot express them — `thickness` (`lineStyle.width`), since
- * ribbon size comes from the weight instead, and `strokedasharray`
- * (`lineStyle.type`), since a ribbon is a filled area rather than a stroked line.
+ * because a sankey cannot express them — `custom.lineWidth` (`lineStyle.width`), since
+ * ribbon size comes from the weight instead, and `custom.lineType` (`lineStyle.type`),
+ * since a ribbon is a filled area rather than a stroked line.
  * Both divergences are recorded in `src/modules/relations/parity.md`.
  */
 function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {
@@ -207,31 +203,21 @@ function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {
 }
 
 /**
- * An in-panel note reporting links removed by the cycle policy, so the edit is not
- * a silent correctness surprise. Returns `undefined` when nothing was dropped, so a
- * well-formed DAG renders no note at all.
+ * Text reporting links removed by the cycle policy, so the edit is not a silent
+ * correctness surprise. Returns `undefined` when nothing was dropped, so a
+ * well-formed DAG reports nothing at all.
  *
- * Rendered as an ECharts `title` carrying only `subtext`, bottom-left — the same
- * mechanism the pie's donut-center readout uses (`getPieCenterTitle`), and the only
- * panel-level advisory surface this plugin has. `TitleComponent` is already
- * registered for that reason. `setOption` runs with `notMerge`, so the note cannot
- * outlive the render that produced it.
+ * Surfaced as a panel corner notice (`ChartModule.getNotices` ->
+ * `ChartNotices`), not as canvas text: it is an advisory about the *data*, so it
+ * does not belong inside the plot, where it also collided with the bottom-left
+ * ribbon of a horizontal sankey.
  */
-export function getSankeyDroppedNote(droppedCount: number, theme: GrafanaTheme2): TitleComponentOption | undefined {
+export function getSankeyDroppedNoticeText(droppedCount: number): string | undefined {
   if (droppedCount <= 0) {
     return undefined;
   }
   const links = droppedCount === 1 ? 'link' : 'links';
-  return {
-    left: 0,
-    bottom: 0,
-    subtext: `${droppedCount} ${links} hidden to remove cycles`,
-    subtextStyle: {
-      color: theme.colors.text.secondary,
-      fontFamily: theme.typography.fontFamily,
-      fontSize: 11,
-    },
-  };
+  return `${droppedCount} ${links} hidden to remove cycles`;
 }
 
 /** A built sankey series, plus how many links the cycle policy removed. */
@@ -280,7 +266,7 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
     label: getSankeyLabel(ctx),
     lineStyle: getSankeyLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,
-    data: toSankeyNodeItems(data.nodes, ctx),
+    data: toSankeyNodeItems(data.nodes),
     links: toSankeyLinkItems(links),
     tooltip: seriesTooltip(
       buildRelationsTooltipModel({

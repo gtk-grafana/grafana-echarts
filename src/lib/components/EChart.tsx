@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { collectProximitySeries } from 'lib/echarts/tooltip/proximity';
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { type MutableRefObject, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useBrushTimeZoom } from './hooks/useBrushTimeZoom';
 import { useChartOption } from './hooks/useChartOption';
 import { useChartResize } from './hooks/useChartResize';
@@ -19,6 +19,12 @@ interface Props {
   /** Chart-area size allocated by VizLayout. */
   width: number;
   height: number;
+  /**
+   * Filled with the ECharts instance for the panel's siblings — the Grafana DOM
+   * legend is rendered by `VizLayout`, outside this component, and its hover
+   * emphasis has to dispatch onto this chart (see `useLegendHighlight`).
+   */
+  instanceRef?: MutableRefObject<EChartsType | null>;
 }
 
 /**
@@ -33,6 +39,7 @@ export const EChart: React.FC<Props> = ({
   onChangeTimeRange,
   width,
   height,
+  instanceRef,
 }) => {
   const panelDOMRef = useRef<HTMLDivElement>(null);
   // The chart instance is created on mount (see the layout effect below) and
@@ -76,12 +83,18 @@ export const EChart: React.FC<Props> = ({
     // https://echarts.apache.org/en/api.html#echarts.init
     const instance = init(dom);
     setChart(instance);
+    if (instanceRef) {
+      instanceRef.current = instance;
+    }
 
     return () => {
       instance.dispose();
       setChart(null);
+      if (instanceRef) {
+        instanceRef.current = null;
+      }
     };
-  }, []);
+  }, [instanceRef]);
 
   useChartOption(chart, chartContext, { isGrafanaLegend, tooltipSink, reportTooltipTrigger });
   useChartResize(chart, width, height);

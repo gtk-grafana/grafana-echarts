@@ -11,6 +11,22 @@ data, which is the practical blocker: the family needs a nodes + edges frame pai
 and the three data sources most Grafana users have — Prometheus, Loki and SQL —
 emit none.
 
+> **Two source formats, one target.** The panel reads the field-based
+> [`graph-*-wide` contract](../data-plane/graph-wide.md) and nothing else. It converts the
+> **row format** (`graph-*-long`) to it automatically, above the panel, so every recipe in
+> this doc still works unchanged — you can keep emitting rows and never think about the
+> contract. That conversion needs Grafana **13.2 or later**
+> ([grafana/grafana#129992](https://github.com/grafana/grafana/pull/129992)); on an older
+> host the panel reports that it cannot read row frames, and the workaround is to add a
+> **Rows to fields** transformation by hand, with the caveats in
+> [SQL and CSV — Rows to fields](#sql-and-csv--rows-to-fields).
+>
+> So: everything from [The short version](#the-short-version) to
+> [Aggregation is the hidden requirement](#aggregation-is-the-hidden-requirement) is about
+> sourcing rows, which remains the normal thing to do.
+> [Sourcing the wide form](#sourcing-the-wide-form) at the end is about emitting the
+> contract directly, which is materially cheaper and skips the conversion entirely.
+
 ## The short version
 
 A relations chart needs **one row per edge**: a source, a target, and ideally a
@@ -226,8 +242,9 @@ frames with no other identifying marks. The same applies to the provisioned
 
 ## Aggregation is the hidden requirement
 
-One caveat that catches people out: these charts want **one row per unique edge**,
-not one row per event or per timestamp.
+One caveat that catches people out: the **legacy row format** wants **one row per unique
+edge**, not one row per event or per timestamp. (The wide form does not — a range query
+is a row dimension there; see [below](#sourcing-the-wide-form).)
 
 - Use **instant** queries in Prometheus and Loki, not range queries. A range query
   returns a time series per label pair, i.e. many rows per edge.
@@ -238,10 +255,186 @@ not one row per event or per timestamp.
 A sankey given per-timestamp rows will either draw duplicate parallel ribbons or
 collapse, depending on how duplicates are merged.
 
+## Sourcing the wide form
+
+The [`graph-*-wide` contract](../data-plane/graph-wide.md) makes one node one **field**
+and one edge one **field**. That changes the sourcing story more than it changes the
+rendering story, because the shape it wants is the shape Prometheus, Loki and
+`rowsToFields` already produce.
+
+Every recipe below was run against Grafana 13.1.0; the observed outputs are recorded in
+the contract's [Verified behaviours](../data-plane/graph-wide.md#verified-behaviours)
+table, and the live panels are in
+`provisioning/dashboards/relations/graph-wide.json`.
+
+### Prometheus / Loki — zero reshaping, one setting
+
+Same query as [Use case 1](#use-case-1--prometheus):
+
+```promql
+sum by (client, server) (rate(traces_service_graph_request_total[$__range]))
+```
+
+Then, in the query editor:
+
+| Setting    | Value                     | Why                                                                  |
+| ---------- | ------------------------- | -------------------------------------------------------------------- |
+| **Format** | `Time series`             | One frame per series, i.e. one frame per edge                        |
+| **Legend** | `{{client}}-->{{server}}` | **Required.** This is the edge id and the override target            |
+| **Type**   | Instant _or_ Range        | Either. A range query is simply a row dimension the reduce collapses |
+
+No SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction. The
+endpoints stay in `field.labels` as `client` / `server`, which the contract accepts as
+the endpoint label keys directly.
+
+**The legend format is not optional in practice.** Without it, `getFieldDisplayName`
+pushes both the frame name and the label set and the display name comes out doubled —
+`{client="a", server="b"} {client="a", server="b"}` (observed). It renders, but it is not
+an id anyone would write an override against. Worse, the raw field name is `Value` on
+every frame, so `byName: Value` matches **every** edge at once.
+
+The same applies to the Loki queries in [Use case 2](#use-case-2--loki): set
+`{{service}}-->{{upstream}}` as the legend and the reshaping disappears.
+
+### SQL and CSV — Rows to fields
+
+For anything shaped like a table, core's **Rows to fields** transformation performs the
+pivot. On the canonical `id,source,target,mainstat` shape it needs **no options at all**:
+
+| Column                                          | Becomes               | How                                                         |
+| ----------------------------------------------- | --------------------- | ----------------------------------------------------------- |
+| first `string` column                           | the field **name**    | automatic — so `id` must be the **first** string column     |
+| first `number` column                           | the field's **value** | automatic — so `mainstat` must be the **first** numeric one |
+| `color`, `unit`, `min`, `max`, `decimals`       | real **field config** | automatic — the lowercased column name is a config handler  |
+| anything else (`source`, `target`, `detail__*`) | `field.labels`        | automatic — the documented fall-through                     |
+| `title`                                         | `config.displayName`  | needs one explicit mapping                                  |
+
+Three rules that are easy to get wrong:
+
+- **Add `Convert field type` first for `csv_content`.** CSV columns arrive as strings, and
+  with no numeric column `rowsToFields` silently returns its input unchanged. This is the
+  same `convertFieldType` step the part-to-whole long-format dashboards use. A frame that
+  already has a numeric `mainstat` — as Tempo's and TestData's do — needs no such step.
+- **Column order matters.** Auto-detection takes the _first_ string and _first_ numeric
+  column. `source,target,id,mainstat` would name the output fields after `source` values.
+  Reorder with `Organize fields`, or state the mapping explicitly.
+- **Write mappings against the column's _display name_, not its name.**
+  `evaluateFieldMappings` keys everything on `getFieldDisplayName(field, frame)`, and the
+  natively-long producers set `config.displayName` on exactly the stat and arc columns. So
+  the mapping for `mainstat` must say `Average response time` (Tempo) or
+  `Transactions per second` (TestData) — never `mainstat`. **Getting this wrong is a silent
+  no-op of the entire transformation**, not of the one mapping: a `Field value` mapping that
+  matches nothing suppresses the auto-pick-first-numeric branch, `valueField` stays
+  undefined, and `rowsToFields` returns the input frame untouched (measured — the returned
+  object is identical to the input). The panel then receives a row-format frame — which it
+  now reports rather than mis-rendering, though the message names the transformation, not
+  the mapping that silently no-op'd. It also means a pivot recipe **is not portable between datasources**,
+  because it is keyed on strings the datasource chose.
+
+**The natively-long sources need explicit mappings, not zero config.** Tempo, AWS X-Ray
+and TestData emit `id` columns that are opaque row keys, not names. Measured against
+TestData `node_graph` `response_small` (a saved X-Ray service map), zero-config
+`Rows to fields` produces node fields called `0` … `16` with the service name demoted to a
+`Name` label, and edge fields whose value comes from `secondarystat` because X-Ray's
+`mainstat` is a **string** (`"Success 100.00%"`). The usable recipe there is four
+mappings:
+
+| Frame | Mapping                                                                                                        |
+| ----- | -------------------------------------------------------------------------------------------------------------- |
+| nodes | `title` → **Field name**, `secondarystat` → **Field value**                                                    |
+| edges | `sourceName` / `targetName` left unmapped (they become the endpoint labels), `secondarystat` → **Field value** |
+
+### What the pivot cannot carry, however it is configured
+
+`Rows to fields` writes field config through `configMapHandlers`, a closed list of thirteen
+handlers whose only targets are `max`, `min`, `unit`, `decimals`, `displayName`, `color`,
+`thresholds` and `mappings`. **No handler writes `config.custom.*` and none writes
+`config.links`.** So on a legacy node-graph frame:
+
+| Column                                                           | Outcome                                                                     |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `color`                                                          | Real field config, automatically — a genuine bonus                          |
+| `title`                                                          | `displayName`, with one mapping                                             |
+| `source` / `target` / `detail__*`                                | `field.labels` — the conformant endpoint carrier                            |
+| `subtitle`, `icon`, `noderadius`, `thickness`, `strokedasharray` | `field.labels`, **not** the `custom.*` the contract wants                   |
+| `secondarystat`                                                  | `field.labels`, losing its type, unit and decimals                          |
+| `arc__*`                                                         | `field.labels`, or a structurally invalid `thresholds` set if mapped        |
+| the value column's own `unit` / `decimals` / `displayName`       | **discarded** — output config is built from row values, not from the column |
+| `meta.preferredVisualisationType`, frame `name`                  | **discarded** — output is `{ fields, length, refId }` only                  |
+
+The last two rows matter for more than fidelity: because `meta` does not survive, no
+transformation can set `meta.type: 'graph-edges-wide'`, and a frame that carried no `refId`
+comes out as the literal `rowsToFields-undefined` — so both pivoted frames share a refId and
+can no longer be told apart by one. Full measurements:
+[../data-plane/graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+
+**This is the reason the recipe below is a debugging aid rather than the shipping plan.** A
+faithful conversion has to write `custom.*`, `links` and `meta`, which no core transformation
+can, so it belongs in a `CustomTransformOperator` registered as a pipeline prefix — see
+[../todo/adhoc-transformations-split.md](../todo/adhoc-transformations-split.md).
+
+So the wide form is dramatically cheaper to source from Prometheus, Loki and SQL, and
+modestly more fiddly from the datasources that already emit the long form natively.
+
+The SQL from [Use case 3](#use-case-3--sql) needs no change at all — it already emits
+`id` first and `mainstat` last, so adding one `Rows to fields` transformation converts it.
+And because the pivot is a **user-added transformation**, it runs _before_
+`applyFieldOverrides`, which is what makes the resulting per-edge fields overridable. A
+panel doing the same reshaping internally could not: see
+[../todo/graph-wide-migration.md](../todo/graph-wide-migration.md).
+
+### JSON, Infinity and CSV — labels via Extract fields
+
+A datasource that returns a JSON object per row — Infinity, JSON API, a SQL `json` column,
+or a quoted CSV cell — reaches real labels without any datasource change:
+
+```csv
+id,meta,mainstat
+e1,"{""source"":""a"",""target"":""b""}",10
+e2,"{""source"":""a"",""target"":""b""}",20
+```
+
+| Step | Transformation                                  | Effect                                                                |
+| ---- | ----------------------------------------------- | --------------------------------------------------------------------- |
+| 1    | **Extract fields** — source `meta`, format JSON | adds `source` / `target` **columns**                                  |
+| 2    | **Organize fields** — exclude `meta`            | drops the raw JSON column so it does not become a label itself        |
+| 3    | **Convert field type** — `mainstat` → number    | as always, before `Rows to fields`                                    |
+| 4    | **Rows to fields**                              | `id` → field name, `mainstat` → value, `source`/`target` → **labels** |
+
+Verified end to end. This is the only route to **parallel edges** — two edges over the same
+pair — because it keeps the ids distinct while the endpoints repeat, which a plain CSV header
+cannot express. It works identically whether the column arrives as a `string` or as
+`FieldType.other` (a real object), so no stringification is needed.
+
+### Dense graphs — Grouping to matrix
+
+For a dense topology, `Grouping to matrix` (Column = `target`, Row = `source`, Cell value
+= `mainstat`) turns the legacy edges frame into an adjacency matrix: one field per target
+node instead of one per edge, so the field count grows as N rather than N². Observed
+specifics — the key column is named `source\target`, columns appear in first-appearance
+order, and the frame is not square — are in the contract's
+[adjacency matrix section](../data-plane/graph-wide.md#dense-graphs-the-adjacency-matrix-variant),
+along with the trade-off: node overrides work, per-edge overrides do not, because an edge
+is a cell.
+
+### Per-node metadata from a second query
+
+`Config from query results` sets `min`, `max`, `unit`, `decimals`, `displayName`, `color`
+and one `thresholds` step — but its config frame is reduced to a **single row**, so every
+field its `applyTo` matcher selects receives the _same_ config (observed: two node fields
+both got `displayName: Gateway`). It is the wrong tool for per-node metadata. `Rows to
+fields` is the per-row path.
+
 ## References
 
-- Node graph frame format: [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- Node graph frame format (legacy rows): [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- Field-based contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
+- Rewrite plan: [../todo/graph-wide-migration.md](../todo/graph-wide-migration.md)
 - Proposed panel: [../todo/node-graph.md](../todo/node-graph.md)
+- Rows to fields:
+  https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#rows-to-fields
+- Grouping to matrix:
+  https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#grouping-to-matrix
 - ECharts series coverage and verdicts:
   [../data-plane/echarts-coverage.md](../data-plane/echarts-coverage.md)
 - Grafana SQL Expressions docs:

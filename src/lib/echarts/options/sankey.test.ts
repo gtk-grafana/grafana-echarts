@@ -1,10 +1,10 @@
 import { createTheme, type FieldConfigSource } from '@grafana/data';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
 import { type RelationsSeriesContext } from 'lib/echarts/options/graph';
 import {
-  getSankeyDroppedNote,
+  getSankeyDroppedNoticeText,
   getSankeyEmphasis,
   getSankeyLabel,
   getSankeyLinkStyle,
@@ -147,6 +147,20 @@ describe('getSankeyLabel', () => {
     expect(getSankeyLabel(ctx())?.formatter).toBe('{b}');
   });
 
+  // The shared formatter reads `params.name` — the same value `'{b}'` resolves to —
+  // so swapping it in keeps titles working while adding the stat.
+  it('swaps in the shared formatter when node values are switched on', () => {
+    const formatter = getSankeyLabel(ctx(baseOptions({ relationsShowNodeValues: true })))?.formatter;
+
+    expect(typeof formatter).toBe('function');
+    // A sankey carries its stat as `stat`; `value` is ECharts' flow computation.
+    expect(
+      typeof formatter === 'function'
+        ? formatter({ name: 'Gateway', data: { id: 'gw', name: 'Gateway', stat: 1200 } } as never)
+        : undefined
+    ).toBe('Gateway\n1200');
+  });
+
   it('hides labels when switched off', () => {
     expect(getSankeyLabel(ctx(baseOptions({ relationsShowNodeLabels: false })))).toEqual({ show: false });
   });
@@ -155,12 +169,14 @@ describe('getSankeyLabel', () => {
 describe('getSankeyLinkStyle', () => {
   // The family default deliberately overrides ECharts' neutral gray so ribbons
   // inherit node colors, as the graph variant's edges do.
-  it('defaults the color mode to source', () => {
-    expect(getSankeyLinkStyle(baseOptions())).toEqual({ color: 'source' });
+  // `SankeyView` implements `source`/`target`/`gradient` itself, so the family default
+  // passes straight through — no per-link work, unlike the graph variant.
+  it('defaults the color mode to gradient', () => {
+    expect(getSankeyLinkStyle(baseOptions())).toEqual({ color: 'gradient' });
   });
 
   it('honors an explicit color mode', () => {
-    expect(getSankeyLinkStyle(baseOptions({ relationsLinkColor: 'gradient' })).color).toBe('gradient');
+    expect(getSankeyLinkStyle(baseOptions({ relationsLinkColor: 'source' })).color).toBe('source');
   });
 
   it('omits curveness and opacity at the ECharts defaults', () => {
@@ -190,17 +206,17 @@ describe('getSankeyEmphasis', () => {
   });
 });
 
-describe('getSankeyDroppedNote', () => {
+describe('getSankeyDroppedNoticeText', () => {
   it('returns nothing when no links were dropped', () => {
-    expect(getSankeyDroppedNote(0, theme)).toBeUndefined();
+    expect(getSankeyDroppedNoticeText(0)).toBeUndefined();
   });
 
   it('reports a single dropped link in the singular', () => {
-    expect(getSankeyDroppedNote(1, theme)?.subtext).toBe('1 link hidden to remove cycles');
+    expect(getSankeyDroppedNoticeText(1)).toBe('1 link hidden to remove cycles');
   });
 
   it('reports several dropped links in the plural', () => {
-    expect(getSankeyDroppedNote(3, theme)?.subtext).toBe('3 links hidden to remove cycles');
+    expect(getSankeyDroppedNoticeText(3)).toBe('3 links hidden to remove cycles');
   });
 });
 
@@ -280,7 +296,7 @@ describe('getSankeySeries', () => {
   // no stroke to dash.
   it('drops per-edge thickness and strokedasharray', () => {
     const styled = data({
-      links: [{ id: 'e1', source: 'a', target: 'b', value: 5, width: 4, dashArray: '5 5' }],
+      links: [{ id: 'e1', source: 'a', target: 'b', value: 5, width: 4, lineType: 'dashed' as const }],
     });
 
     const { series } = getSankeySeries(styled, ctx());
