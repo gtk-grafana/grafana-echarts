@@ -233,14 +233,14 @@ and with Grafana's legacy "Graph" panel name.
 
 ## Open questions
 
-- **Suggestions cannot score this data.** `PanelDataSummary` exposes neither
-  `frame.meta.preferredVisualisationType` nor any structural view of an
-  `id`/`source`/`target` field shape, so a supplier has nothing reliable to key on —
-  the same wall `src/modules/hierarchy/suggestions.ts` hits for flame graphs. The
-  workable first pass is **no auto-suggestion**, with the panel manually selectable;
-  scoring on a proxy such as "≥2 string fields + instant" would suggest the panel for
-  ordinary tables, which is worse than silence. Closing this properly means extending
-  `PanelDataSummary` upstream.
+- ~~**Suggestions cannot score this data.**~~ **Resolved.** `PanelDataSummary` turned
+  out to expose both signals: `hasPreferredVisualisationType('nodeGraph')` and
+  `rawFrames`, which `isNodeGraphFrames` reads for the `source`+`target` field shape.
+  No `PanelDataSummary` change was needed upstream. The proxy worry (that "≥2 string
+  fields + instant" would claim ordinary tables) is avoided by requiring both edge
+  fields, which is a genuine structural signal rather than a proxy — see
+  `scoreRelations` in `src/lib/echarts/charts/fitness.ts`. The same applies to the
+  flame-graph path in `src/modules/hierarchy/suggestions.ts`.
 - **Which fields drive geometry vs. tooltip.** `mainstat` is the obvious driver for
   node size/color and link weight, with `secondarystat` and `detail__*` as tooltip
   content — but `mainstat` may be a **string**, so every geometric use needs a numeric
