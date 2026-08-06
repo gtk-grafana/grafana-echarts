@@ -1,6 +1,10 @@
 import { type Field } from '@grafana/data';
 import { type XAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
-import { type CartesianSingleValueSeriesType, type MultiValueSeriesType } from 'editor/types';
+import {
+  type CartesianSingleValueSeriesType,
+  type EChartsGraphFieldConfig,
+  type MultiValueSeriesType,
+} from 'editor/types';
 import { buildCartesianYAxes, getAxisGridSpacing } from 'lib/echarts/axes/yAxes';
 import { isCartesianSingleValueSeriesType, isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
@@ -40,7 +44,7 @@ import {
 import { isNumberField } from 'lib/grafana/narrowing';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
 import {
-  CartesianContext,
+  type CartesianContext,
   type ChartContext,
   type ChartModule,
   type EChartCartesianSeriesOption,
@@ -53,7 +57,10 @@ import {
 // model. See the plan's "axis type should follow data" note.
 
 /** Time-axis cartesian: `[time, value]` series on a time grid. */
-function buildTimeOption(ctx: CartesianContext, isGrafanaLegend: boolean): EChartCartesianSeriesOption | null {
+function buildTimeOption(
+  ctx: ChartContext<CartesianSingleValueSeriesType, EChartsGraphFieldConfig>,
+  isGrafanaLegend: boolean
+): EChartCartesianSeriesOption | null {
   const { theme, options, formatValue, timeZone } = ctx;
 
   // Support rendering time without series
@@ -263,12 +270,12 @@ function attachThresholdMarks<T>(series: T[], marks: ThresholdMarks | undefined)
 export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  getTooltipValueFormatter(ctx) {
+  getTooltipValueFormatter(ctx: CartesianContext) {
     const formatters = getFieldValueFormatters(cartesianSeriesFields(ctx), ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'seriesIndex');
   },
 
-  getTooltipFieldResolver(ctx) {
+  getTooltipFieldResolver(ctx: CartesianContext) {
     const seriesType = ctx.seriesType;
     if (isMultiValueSeriesType(seriesType)) {
       // Candlestick/boxplot draw one item from several fields at once, so the

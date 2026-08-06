@@ -79,14 +79,14 @@ const hasField = (frame: DataFrame, name: string): boolean => findField(frame, n
  * but that only runs after the user has already picked the node graph panel. We
  * additionally require `target`, because this predicate doubles as *detection*:
  * `source` alone would claim any table with a column of that name.
- *
- * @todo add meta.type graph-long and graph-wide in core instead of using preferredVisualisationType
  */
 export function isLegacyEdgesFrame(frame: DataFrame): boolean {
   return (
-    frame.meta?.preferredVisualisationType === 'nodeGraph' &&
-    hasField(frame, SOURCE_FIELD) &&
-    hasField(frame, TARGET_FIELD)
+    frame.meta?.preferredVisualisationType === 'nodeGraph' ||
+    //@ts-expect-error @todo add graph-wide and graph-long to core as alpha
+    frame.meta?.type === 'graph-long' ||
+    // @todo This is not ideal, and will break on frames that naturally have source and target fields. Do we need to support legacy frames without the meta/preferredVisualisationType?
+    (hasField(frame, SOURCE_FIELD) && hasField(frame, TARGET_FIELD))
   );
 }
 

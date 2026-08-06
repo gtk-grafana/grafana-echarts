@@ -1,4 +1,4 @@
-import { type DataFrame, getDisplayProcessor, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
+import { getDisplayProcessor, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
 import { debug, LOG_LEVELS } from 'development';
 import type { TimeAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
@@ -8,7 +8,7 @@ import {
   type YAXisOption,
 } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { frameHasCartesianOverride } from 'editor/series';
-import { CartesianSingleValueSeriesType, type HeatmapSeriesType } from 'editor/types';
+import { type HeatmapSeriesType } from 'editor/types';
 import { buildCartesianYAxes, type CartesianYAxes, getAxisGridSpacing } from 'lib/echarts/axes/yAxes';
 import { type BinnedHeatmapData, frameToBinnedHeatmap } from 'lib/echarts/converters/binnedHeatmap';
 import { collectTimeSeriesFields } from 'lib/echarts/converters/frames';
@@ -28,6 +28,7 @@ import {
 import { buildTimeSeriesLegendItems } from 'lib/echarts/options/legendItems';
 import { getDefaultShortValueFieldConfig } from 'lib/grafana/fields/fieldConfig';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
+import { type EChartsFrame } from 'lib/grafana/types';
 import { type HeatmapColorScalePlacement, type PanelOptions } from 'types';
 import {
   type BaseOptionParts,
@@ -42,7 +43,7 @@ type BinnedHeatmapSeries = Exclude<NonNullable<EChartBinnedHeatmapOption['series
 /**
  * Frames drawn as cartesian overlays (line/bar/scatter) on top of the heatmap cells, selected by the per-field override.
  */
-export function getOverlayFrames(ctx: ChartContext): DataFrame[] {
+export function getOverlayFrames(ctx: ChartContext): EChartsFrame[] {
   return ctx.frames.filter(frameHasCartesianOverride);
 }
 
@@ -60,7 +61,7 @@ export function buildBinnedHeatmapLegendItems(ctx: ChartContext, calcs: string[]
  * Returns null when no heatmap frames are present (empty panel).
  */
 export function buildBinnedHeatmapOption(
-  ctx: ChartContext<HeatmapSeriesType | CartesianSingleValueSeriesType>,
+  ctx: ChartContext<HeatmapSeriesType>,
   { isGrafanaLegend }: BaseOptionParts
 ): EChartBinnedHeatmapOption | null {
   const { theme, options, seriesType, formatValue, timeZone } = ctx;

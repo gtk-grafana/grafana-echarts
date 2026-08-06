@@ -41,8 +41,9 @@ import { type SingleAxisOption } from 'echarts/types/dist/shared';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
 import {
   type CartesianSingleValueSeriesType,
-  EChartsFieldConfig,
-  EChartsGraphFieldConfig,
+  type EChartsFieldConfig,
+  type EChartsGraphFieldConfig,
+  type HeatmapSeriesType,
   type MultiValueSeriesType,
   type SeriesType,
 } from 'editor/types';
@@ -51,11 +52,8 @@ import {
   type TooltipSink,
   type TooltipValueFormatterResolver,
 } from 'lib/echarts/tooltip/types';
-import { FieldTypedDataFrame } from 'lib/grafana/types';
+import { type EChartsValueType, type FieldTypedDataFrame } from 'lib/grafana/types';
 import { type PanelOptions } from 'types';
-
-type Nullable<T> = T | null;
-export type EChartsValueType = Nullable<string> | Nullable<number> | Nullable<string[]> | Nullable<number[]>;
 
 /** Shared chart render context passed to chart modules. */
 export interface ChartContext<T = SeriesType, C = EChartsFieldConfig, V = EChartsValueType> {
@@ -87,20 +85,30 @@ export type RelationsChartContext = ChartContext<'graph' | 'sankey' | 'chord'>;
 
 export type StreamChartContext = ChartContext<'themeRiver'>;
 
+/** The cartesian family's own context: every render type its module dispatches on. */
 export type CartesianContext = ChartContext<
   CartesianSingleValueSeriesType | MultiValueSeriesType,
   EChartsGraphFieldConfig
 >;
 
+/**
+ * Context for the `[time, value]` converter, which two families share: the
+ * cartesian panel proper, and the binned heatmap's cartesian overlay layer.
+ *
+ * `seriesType` is the *fallback* the converter hands `resolveFieldSeriesType`
+ * when a field carries no per-field override, so it spans the single-value
+ * cartesian types plus `heatmap` — the value the heatmap family passes, meaning
+ * "this overlay field opted out of a cartesian type, draw it color-only".
+ * Multi-value types are excluded deliberately: candlestick/boxplot build one
+ * series from several fields and never route through this converter.
+ *
+ * Typed against the *base* field config rather than `EChartsGraphFieldConfig` so
+ * the heatmap family (registered with the base config) can call it too; the
+ * converter reads only base-config keys.
+ */
 export type CartesianContextWithOverlay = ChartContext<
-  CartesianSingleValueSeriesType | MultiValueSeriesType | HeatmapSeriesOption,
-  EChartsGraphFieldConfig
->;
-
-export type HeatmapContextWithOverlay = ChartContext<
-  CartesianSingleValueSeriesType | MultiValueSeriesType | HeatmapSeriesOption,
-  EChartsFieldConfig,
-  number
+  CartesianSingleValueSeriesType | HeatmapSeriesType,
+  EChartsFieldConfig
 >;
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
