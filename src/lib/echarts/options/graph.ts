@@ -5,7 +5,7 @@ import { type NodeGraphData, type RelationLink } from 'lib/echarts/converters/re
 import { createBaseOptions } from 'lib/echarts/options/base';
 import { formatEChartsValue } from 'lib/echarts/style';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
-import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
+import { buildRelationsTooltipModel, formatDerivedMarkValue } from 'lib/echarts/tooltip/relations';
 import { type RelationsLinkItem, type RelationsMarks, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
@@ -139,7 +139,9 @@ export function getRelationsNodeLabelFormatter(
       return name;
     }
     const id = readNodeId(params.data);
-    const formatValue = (id != null ? ctx.marks?.nodes.get(id)?.formatValue : undefined) ?? ctx.formatValue;
+    // A derived node has no field, so it formats as a plain count — the same fallback
+    // the tooltip uses, for the same reason. See `formatDerivedMarkValue`.
+    const formatValue = (id != null ? ctx.marks?.nodes.get(id)?.formatValue : undefined) ?? formatDerivedMarkValue;
     return `${name}\n${formatEChartsValue(stat, formatValue)}`;
   };
 }
@@ -411,9 +413,6 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     zlevel: ctx.options.zLevel?.series,
     data: toNodeItems(data, ctx),
     links: toLinkItems(data.links, resolveGradient),
-    tooltip: seriesTooltip(
-      buildRelationsTooltipModel({ formatValue: ctx.formatValue, marks: ctx.marks }),
-      ctx.tooltipSink
-    ),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks), ctx.tooltipSink),
   };
 }

@@ -1,0 +1,1048 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "The eight relations charts driven by real PromQL against a live Prometheus/Mimir, scoped by cluster / namespace / client / server variables. Uses the instant table + label_join + organize + rowsToFields route, because the legendFormat + joinByField route only works for TestData: joinByField renames a Value field to its frame name, and a real Prometheus range query leaves frame.name unset, so every edge is dropped in silence.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "# Relations charts from a live Prometheus\n\nThe sibling of **ECharts Relations \u2014 Prometheus & Loki sources**, which feeds the same\neight charts from TestData. Everything here is real PromQL against `$prom`, scoped by the\nvariables in the top bar and bounded by `$topk`.\n\nThe two dashboards do **not** share a transformation chain, and that is the point.\n\n### The TestData route does not survive the swap\n\n`joinByField` widens N per-series frames by renaming each `Value` field to its **frame\nname**. TestData's `predictable_csv_wave` sets one (`\"name\": \"frontend-->gateway\"`).\nA real Prometheus range query with `Legend: {{client}}-->{{server}}` does not \u2014 the\nrendered legend goes to `field.config.displayNameFromDS` and the frame name stays\nunset. So the join yields a wide frame whose value fields are all still named `Value`.\n\n`graphWide.endpointsOf()` reads `field.name` and `field.labels`, deliberately not\n`getFieldDisplayName`. `\"Value\"` holds no `-->` and carries `client`/`server` rather\nthan `source`/`target`, so **every edge is dropped without an error**. Point live\nqueries at the TestData chain and you get the fixture's topology back, looking fine.\n\n### This dashboard puts the identity in a column instead\n\n`Format: Table` + `Type: Instant` gives one row per series; `label_join` builds the\n`id`; `rowsToFields` turns each row into a field named by its `id`. No display-name\nresolution anywhere in the path. The whole chain is two transformations:\n\n| step | why |\n| --- | --- |\n| `organize` | `excludeByName` drops `Time` and the raw label columns, which would otherwise become stray labels; `indexByName` puts `id` first, because `rowsToFields` takes the first *string* column as the mark name and Prometheus sorts columns by label name; `renameByName` fixes `Value #A`/`Value #B` and the carrier labels |\n| `rowsToFields` | no options needed \u2014 `id` \u2192 `field.name`, `Value` \u2192 the value, leftover strings \u2192 labels |\n\n`organize` **is** `filterFieldsByName` + order + rename composed, so a separate\n`filterFieldsByName` adds nothing. `renameByRegex` is worse than nothing here: it only\nsets `config.displayName` and leaves `field.name` untouched.\n\nNode-stat queries are bounded with `and on (server) \u2026topk(\u2026)`: a node field for a\nservice no edge reaches renders as a disconnected dot.\n\n### One trap worth knowing\n\n**A query must not name its columns `source` and `target`.** The plugin registers\n`legacyToWide` as a panel transformation, and those run *upstream* of the dashboard's:\n\n    SceneQueryRunner \u2192 PanelPluginDataTransformer \u2192 SceneDataTransformer (user)\n\nIts trigger is exactly \"has a `source` field and a `target` field\", so an instant table\nwith those two column names gets claimed as the legacy row format and widened before the\nchain above runs \u2014 the panel then shows **No data**, with nothing logged. Panels 4 and 8\nbelow emit `src`/`dst` and let `organize` rename them."
+      },
+      "transparent": true
+    },
+    {
+      "id": 12,
+      "type": "text",
+      "title": "The variables",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### The variables\n\nAll of them are multi-select with `All` = `.*`, so every matcher in every query is `=~`,\nnever `=`. Prometheus interpolates a multi variable as a regex group \u2014 `(a|b)` \u2014 even\nwhen one option is selected, which is exactly why `=` would silently match nothing.\n\n| variable | source | notes |\n| --- | --- | --- |\n| `$prom` | datasource picker, `prometheus` | committed pointing at `ops-cortex-dev` |\n| `$cluster` | `label_values(traces_service_graph_request_total, client_k8s_cluster_name)` | |\n| `$namespace` | `label_values(\u2026{client_k8s_cluster_name=~\"$cluster\"}, client_k8s_namespace_name)` | chained on `$cluster` |\n| `$client` | `label_values(\u2026{cluster, namespace}, client)` | chained on both |\n| `$server` | `label_values(\u2026{cluster, namespace}, server)` | chained on both |\n| `$connection` | `label_values(\u2026, connection_type)` | `database`, `messaging_system`, `virtual_node` |\n| `$topk` | custom | edge budget per panel |\n\nThe service graph carries cluster and namespace **twice**, once per end\n(`client_k8s_*` and `server_k8s_*`), so which end a panel filters on is a real choice:\n\n- the dependency maps (1, 4, 8) scope the **client** side \u2014 \"traffic originating in this\n  selection, wherever it goes\";\n- the chords (3, 7) scope **both** ends, which is what keeps the matrix square;\n- the cluster \u2192 namespace \u2192 service sankey (6) scopes the **server** side, since that is\n  the hierarchy it draws.\n\n`$client`/`$server` do not apply to the Kafka graph, where both ends are already pinned.\n\nOne consequence worth knowing: the service-graph processor emits **virtual nodes** for\nexternal dependencies \u2014 `kafka`, `mysql` and friends come back with\n`connection_type=\"virtual_node\"` and **no** `server_k8s_*` labels at all. So any panel\nscoped on the server side (6) excludes them by construction, and selecting one as\n`$server` empties that panel while the client-scoped panels still draw it. That is the\ndata being honest, not a broken panel."
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "Prometheus \u2014 the queries",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### 1 \u00b7 Service dependency map \u2014 graph (below left)\n\n**A** is the edges, **B** the per-service error ratio that colours the nodes.\n\n```promql\nlabel_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client\", \"server\"\n)\n```\n`Format: Table` \u00b7 `Type: Instant`\n\n```promql\nlabel_join(\n  (\n      sum by (server) (rate(traces_service_graph_request_failed_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range]))\n    / sum by (server) (rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range]))\n  )\n  and on (server)\n  sum by (server) (\n    topk($topk,\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range])\n      )\n    )\n  ),\n  \"id\", \"\", \"server\"\n)\n```\n`Format: Table` \u00b7 `Type: Instant` \u2014 note `and on (server)`, which keeps the node set to\nthe services the top-$topk edges actually reach.\n\nTwo queries, so the value columns arrive as `Value #A`/`Value #B` and `organize` renames\nboth to `Value`:\n\n```json\n[\n  {\n    \"id\": \"organize\",\n    \"options\": {\n      \"excludeByName\": {\n        \"Time\": true,\n        \"client\": true,\n        \"server\": true\n      },\n      \"indexByName\": {\n        \"id\": 0,\n        \"Value #A\": 1,\n        \"Value #B\": 1\n      },\n      \"renameByName\": {\n        \"Value #A\": \"Value\",\n        \"Value #B\": \"Value\"\n      }\n    }\n  },\n  {\n    \"id\": \"rowsToFields\",\n    \"options\": {}\n  }\n]\n```\n\n### 2 \u00b7 CPU requests: cluster \u2192 namespace \u2192 workload \u2014 sankey (below right)\n\nOne query: two levels joined by PromQL `or`. Two queries plus `merge` looks equivalent\nand is not \u2014 `merge` unifies by field name, so `Value #A`/`Value #B` stay separate and\nhalf the marks come out null.\n\n```promql\nlabel_join(\n  topk($topk,\n    sum by (cluster, namespace) (\n      kube_pod_container_resource_requests{resource=\"cpu\", cluster=~\"$cluster\", namespace=~\"$namespace\", cluster!=\"\", namespace!=\"\"}\n    )\n  ),\n  \"id\", \"-->\", \"cluster\", \"namespace\"\n)\n  or\nlabel_join(\n  topk($topk,\n    sum by (namespace, workload) (\n      namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$namespace\"}\n        * on (namespace, pod) group_left()\n          sum by (namespace, pod) (\n            kube_pod_container_resource_requests{resource=\"cpu\", cluster=~\"$cluster\", namespace=~\"$namespace\"}\n          )\n    )\n  ),\n  \"id\", \"-->\", \"namespace\", \"workload\"\n)\n```\n\n```json\n[\n  {\n    \"id\": \"organize\",\n    \"options\": {\n      \"excludeByName\": {\n        \"Time\": true,\n        \"cluster\": true,\n        \"namespace\": true,\n        \"workload\": true\n      },\n      \"indexByName\": {\n        \"id\": 0,\n        \"Value\": 1\n      },\n      \"renameByName\": {}\n    }\n  },\n  {\n    \"id\": \"rowsToFields\",\n    \"options\": {}\n  }\n]\n```\n\n### 3 \u00b7 Service call matrix inside `$namespace` \u2014 chord\n\nBoth ends scoped to `$namespace`, which is what makes it square.\n\n```promql\nlabel_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", server_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", server_k8s_namespace_name=~\"$namespace\", client!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client\", \"server\"\n)\n```\n\n### 4 \u00b7 The label carrier \u2014 graph\n\n`id` is opaque here (`client:server`, no `-->`), and the endpoints ride in\n`source`/`target` labels. The query emits `src`/`dst` and `organize` renames them \u2014\nemitting `source`/`target` directly would trip the legacy row-format pre-pass.\n\n```promql\nlabel_join(\n  label_join(\n    label_join(\n      topk($topk,\n        sum by (client, server) (\n          rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range])\n        )\n      ),\n      \"id\", \":\", \"client\", \"server\"\n    ),\n    \"src\", \"\", \"client\"\n  ),\n  \"dst\", \"\", \"server\"\n)\n```\n\n```json\n[\n  {\n    \"id\": \"organize\",\n    \"options\": {\n      \"excludeByName\": {\n        \"Time\": true,\n        \"client\": true,\n        \"server\": true\n      },\n      \"indexByName\": {\n        \"id\": 0,\n        \"Value\": 1,\n        \"src\": 2,\n        \"dst\": 3\n      },\n      \"renameByName\": {\n        \"src\": \"source\",\n        \"dst\": \"target\"\n      }\n    }\n  },\n  {\n    \"id\": \"rowsToFields\",\n    \"options\": {}\n  }\n]\n```"
+      },
+      "transparent": true
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Service dependency map \u2014 graph",
+      "description": "Top-$topk service-to-service edges from Tempo's service graph, nodes coloured by error ratio. Scoped on the client side by $cluster / $namespace / $client / $server. Nodes are bounded by `and on (server)` to the endpoints the top-$topk edges reach.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prom}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percentunit",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.01
+              },
+              {
+                "color": "red",
+                "value": 0.05
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 18,
+        "relationsCurveness": 0.1,
+        "relationsLinkColor": "source",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client\", \"server\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  (\n      sum by (server) (rate(traces_service_graph_request_failed_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range]))\n    / sum by (server) (rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range]))\n  )\n  and on (server)\n  sum by (server) (\n    topk($topk,\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range])\n      )\n    )\n  ),\n  \"id\", \"\", \"server\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "client": true,
+              "server": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value #A": 1,
+              "Value #B": 1
+            },
+            "renameByName": {
+              "Value #A": "Value",
+              "Value #B": "Value"
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "CPU requests: cluster \u2192 namespace \u2192 workload \u2014 sankey",
+      "description": "kube_pod_container_resource_requests{resource=\"cpu\"} by (cluster, namespace), `or`-joined to namespace_workload_pod:kube_pod_owner:relabel for the namespace \u2192 workload level. Scoped by $cluster / $namespace, which kube-state-metrics names unprefixed.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prom}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "suffix:cores",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "justify",
+        "relationsSankeyNodeWidth": 18,
+        "relationsSankeyNodeGap": 10,
+        "relationsSankeyLinkOpacity": 0.45,
+        "relationsShowNodeValues": false,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  topk($topk,\n    sum by (cluster, namespace) (\n      kube_pod_container_resource_requests{resource=\"cpu\", cluster=~\"$cluster\", namespace=~\"$namespace\", cluster!=\"\", namespace!=\"\"}\n    )\n  ),\n  \"id\", \"-->\", \"cluster\", \"namespace\"\n)\n  or\nlabel_join(\n  topk($topk,\n    sum by (namespace, workload) (\n      namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$namespace\"}\n        * on (namespace, pod) group_left()\n          sum by (namespace, pod) (\n            kube_pod_container_resource_requests{resource=\"cpu\", cluster=~\"$cluster\", namespace=~\"$namespace\"}\n          )\n    )\n  ),\n  \"id\", \"-->\", \"namespace\", \"workload\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "cluster": true,
+              "namespace": true,
+              "workload": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value": 1
+            },
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Service call matrix inside $namespace \u2014 chord",
+      "description": "The service graph with $namespace constrained on both ends, which is what makes it a square matrix. rate(traces_service_graph_request_total) by (client, server).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prom}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 39
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "chord",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsChordPadAngle": 4,
+        "relationsChordLinkOpacity": 0.5,
+        "relationsLinkColor": "source",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", server_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", server_k8s_namespace_name=~\"$namespace\", client!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client\", \"server\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "client": true,
+              "server": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value": 1
+            },
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The label carrier \u2014 graph",
+      "description": "Same edges as panel 1, but `id` is `client:server` with no separator and the endpoints come from `source`/`target` labels. The query emits `src`/`dst` because a query that emits `source` and `target` is claimed by the plugin's legacy row-format pre-pass and renders No data.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prom}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 39
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 18,
+        "relationsCurveness": 0.1,
+        "relationsLinkColor": "target",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  label_join(\n    label_join(\n      topk($topk,\n        sum by (client, server) (\n          rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range])\n        )\n      ),\n      \"id\", \":\", \"client\", \"server\"\n    ),\n    \"src\", \"\", \"client\"\n  ),\n  \"dst\", \"\", \"server\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "client": true,
+              "server": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value": 1,
+              "src": 2,
+              "dst": 3
+            },
+            "renameByName": {
+              "src": "source",
+              "dst": "target"
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "title": "Prometheus \u2014 the queries, continued",
+      "gridPos": {
+        "h": 13,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### 5 \u00b7 Kafka fan-in / fan-out \u2014 graph (below left)\n\nOne query, `or`-joined: everything writing to `kafka`, and everything `kafka` writes to.\n`$client`/`$server` do not apply \u2014 both ends are already pinned.\n\n```promql\nlabel_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{server=\"kafka\", client_k8s_cluster_name=~\"$cluster\",\n        client_k8s_namespace_name=~\"$namespace\", client!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client\", \"server\"\n)\n  or\nlabel_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{client=\"kafka\", server_k8s_cluster_name=~\"$cluster\",\n        server_k8s_namespace_name=~\"$namespace\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client\", \"server\"\n)\n```\n\n### 6 \u00b7 Traffic by cluster \u2192 namespace \u2192 service \u2014 sankey (below right)\n\nThree levels off one metric's server-side label set, `or`-joined into one query. The\nlevels must not share a name, or the sankey has a cycle.\n\n```promql\nlabel_join(\n  topk($topk,\n    sum by (server_k8s_cluster_name, server_k8s_namespace_name) (\n      rate(traces_service_graph_request_total{server_k8s_cluster_name=~\"$cluster\", server_k8s_namespace_name=~\"$namespace\", server=~\"$server\", server_k8s_cluster_name!=\"\", server_k8s_namespace_name!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"server_k8s_cluster_name\", \"server_k8s_namespace_name\"\n)\n  or\nlabel_join(\n  topk($topk,\n    sum by (server_k8s_namespace_name, server) (\n      rate(traces_service_graph_request_total{server_k8s_cluster_name=~\"$cluster\", server_k8s_namespace_name=~\"$namespace\", server=~\"$server\", server_k8s_cluster_name!=\"\", server_k8s_namespace_name!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"server_k8s_namespace_name\", \"server\"\n)\n```\n\n### 7 \u00b7 Cross-cluster traffic matrix \u2014 chord\n\n```promql\nlabel_join(\n  topk($topk,\n    sum by (client_k8s_cluster_name, server_k8s_cluster_name) (\n      rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", server_k8s_cluster_name=~\"$cluster\", client_k8s_cluster_name!=\"\", server_k8s_cluster_name!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client_k8s_cluster_name\", \"server_k8s_cluster_name\"\n)\n```\n\n### 8 \u00b7 Parallel edges by `connection_type` \u2014 graph\n\nOne client/server pair, several connection types, filtered by `$connection`. The id takes\nall three labels to stay unique, so it can no longer be split \u2014 the endpoints come from\nthe `src`/`dst` carrier. The `byRegexp` override dashes every `virtual_node` edge.\n\n```promql\nlabel_join(\n  label_join(\n    label_join(\n      topk($topk,\n        sum by (client, server, connection_type) (\n          rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\", connection_type=~\"$connection\",\n            connection_type!=\"\"}[$__range])\n        )\n      ),\n      \"id\", \" / \", \"client\", \"server\", \"connection_type\"\n    ),\n    \"src\", \"\", \"client\"\n  ),\n  \"dst\", \"\", \"server\"\n)\n```"
+      },
+      "transparent": true
+    },
+    {
+      "id": 8,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Kafka fan-in / fan-out \u2014 graph",
+      "description": "One `or`-joined query: {server=\"kafka\"} is everything producing into Kafka, {client=\"kafka\"} everything consuming from it. $client / $server do not apply \u2014 both ends are pinned.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prom}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 64
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 20,
+        "relationsCurveness": 0.1,
+        "relationsLinkColor": "source",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{server=\"kafka\", client_k8s_cluster_name=~\"$cluster\",\n        client_k8s_namespace_name=~\"$namespace\", client!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client\", \"server\"\n)\n  or\nlabel_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{client=\"kafka\", server_k8s_cluster_name=~\"$cluster\",\n        server_k8s_namespace_name=~\"$namespace\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client\", \"server\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "client": true,
+              "server": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value": 1
+            },
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Traffic by cluster \u2192 namespace \u2192 service \u2014 sankey",
+      "description": "Three levels from one metric's server-side label set: server_k8s_cluster_name \u2192 server_k8s_namespace_name \u2192 server, `or`-joined. A sankey needs a DAG, so the three levels must not share a name. Because this one requires the server-side k8s labels, it excludes virtual nodes by construction \u2014 picking $server = an external dependency such as kafka empties it, which is the data being honest rather than a broken panel.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prom}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 64
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "justify",
+        "relationsSankeyNodeWidth": 18,
+        "relationsSankeyNodeGap": 10,
+        "relationsSankeyLinkOpacity": 0.45,
+        "relationsShowNodeValues": false,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  topk($topk,\n    sum by (server_k8s_cluster_name, server_k8s_namespace_name) (\n      rate(traces_service_graph_request_total{server_k8s_cluster_name=~\"$cluster\", server_k8s_namespace_name=~\"$namespace\", server=~\"$server\", server_k8s_cluster_name!=\"\", server_k8s_namespace_name!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"server_k8s_cluster_name\", \"server_k8s_namespace_name\"\n)\n  or\nlabel_join(\n  topk($topk,\n    sum by (server_k8s_namespace_name, server) (\n      rate(traces_service_graph_request_total{server_k8s_cluster_name=~\"$cluster\", server_k8s_namespace_name=~\"$namespace\", server=~\"$server\", server_k8s_cluster_name!=\"\", server_k8s_namespace_name!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"server_k8s_namespace_name\", \"server\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "server_k8s_cluster_name": true,
+              "server_k8s_namespace_name": true,
+              "server": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value": 1
+            },
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Cross-cluster traffic matrix \u2014 chord",
+      "description": "client_k8s_cluster_name \u2192 server_k8s_cluster_name, both scoped by $cluster. Both labels are required non-empty: a series missing one would produce an id with an empty endpoint, which endpointsOf rejects.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prom}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 76
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "chord",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsChordPadAngle": 4,
+        "relationsChordLinkOpacity": 0.5,
+        "relationsLinkColor": "source",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  topk($topk,\n    sum by (client_k8s_cluster_name, server_k8s_cluster_name) (\n      rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", server_k8s_cluster_name=~\"$cluster\", client_k8s_cluster_name!=\"\", server_k8s_cluster_name!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \"-->\", \"client_k8s_cluster_name\", \"server_k8s_cluster_name\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "client_k8s_cluster_name": true,
+              "server_k8s_cluster_name": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value": 1
+            },
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Parallel edges by connection_type \u2014 graph",
+      "description": "sum by (client, server, connection_type) gives several edges per pair, filtered by $connection. The id carries all three labels so it stays unique, which is exactly when the source/target label carrier is required.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prom}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 76
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/virtual_node/"
+            },
+            "properties": [
+              {
+                "id": "custom.lineType",
+                "value": "dashed"
+              },
+              {
+                "id": "custom.curveness",
+                "value": 0.35
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 22,
+        "relationsCurveness": 0.2,
+        "relationsLinkColor": "source",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prom}"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  label_join(\n    label_join(\n      topk($topk,\n        sum by (client, server, connection_type) (\n          rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\", connection_type=~\"$connection\",\n            connection_type!=\"\"}[$__range])\n        )\n      ),\n      \"id\", \" / \", \"client\", \"server\", \"connection_type\"\n    ),\n    \"src\", \"\", \"client\"\n  ),\n  \"dst\", \"\", \"server\"\n)",
+          "exemplar": false,
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "client": true,
+              "server": true,
+              "connection_type": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value": 1,
+              "src": 2,
+              "dst": 3
+            },
+            "renameByName": {
+              "src": "source",
+              "dst": "target"
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "prometheus", "transformations", "live-data"],
+  "templating": {
+    "list": [
+      {
+        "name": "prom",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {
+          "text": "ops-cortex-dev",
+          "value": "OPQv8Kc4z"
+        },
+        "refresh": 1,
+        "hide": 0,
+        "options": [],
+        "regex": "",
+        "skipUrlSync": false
+      },
+      {
+        "name": "cluster",
+        "label": "Cluster",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${prom}"
+        },
+        "query": {
+          "qryType": 1,
+          "query": "label_values(traces_service_graph_request_total, client_k8s_cluster_name)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(traces_service_graph_request_total, client_k8s_cluster_name)",
+        "current": {
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "allValue": ".*",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "hide": 0,
+        "options": [],
+        "regex": "",
+        "sort": 1,
+        "skipUrlSync": false
+      },
+      {
+        "name": "namespace",
+        "label": "Namespace",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${prom}"
+        },
+        "query": {
+          "qryType": 1,
+          "query": "label_values(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\"}, client_k8s_namespace_name)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\"}, client_k8s_namespace_name)",
+        "current": {
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "allValue": ".*",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "hide": 0,
+        "options": [],
+        "regex": "",
+        "sort": 1,
+        "skipUrlSync": false
+      },
+      {
+        "name": "client",
+        "label": "Client",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${prom}"
+        },
+        "query": {
+          "qryType": 1,
+          "query": "label_values(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\"}, client)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\"}, client)",
+        "current": {
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "allValue": ".*",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "hide": 0,
+        "options": [],
+        "regex": "",
+        "sort": 1,
+        "skipUrlSync": false
+      },
+      {
+        "name": "server",
+        "label": "Server",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${prom}"
+        },
+        "query": {
+          "qryType": 1,
+          "query": "label_values(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\"}, server)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\"}, server)",
+        "current": {
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "allValue": ".*",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "hide": 0,
+        "options": [],
+        "regex": "",
+        "sort": 1,
+        "skipUrlSync": false
+      },
+      {
+        "name": "connection",
+        "label": "Connection type",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${prom}"
+        },
+        "query": {
+          "qryType": 1,
+          "query": "label_values(traces_service_graph_request_total, connection_type)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "definition": "label_values(traces_service_graph_request_total, connection_type)",
+        "current": {
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "allValue": ".*",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "hide": 0,
+        "options": [],
+        "regex": "",
+        "sort": 1,
+        "skipUrlSync": false
+      },
+      {
+        "name": "topk",
+        "label": "Top-k edges",
+        "type": "custom",
+        "query": "8,12,16,24,40",
+        "current": {
+          "text": "12",
+          "value": "12"
+        },
+        "options": [
+          {
+            "text": "8",
+            "value": "8",
+            "selected": false
+          },
+          {
+            "text": "12",
+            "value": "12",
+            "selected": true
+          },
+          {
+            "text": "16",
+            "value": "16",
+            "selected": false
+          },
+          {
+            "text": "24",
+            "value": "24",
+            "selected": false
+          },
+          {
+            "text": "40",
+            "value": "40",
+            "selected": false
+          }
+        ],
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations \u2014 live Prometheus (dev-cortex)",
+  "uid": "echarts-relations-devcortex",
+  "version": 1,
+  "weekStart": ""
+}

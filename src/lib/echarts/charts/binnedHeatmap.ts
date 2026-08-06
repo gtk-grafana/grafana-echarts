@@ -8,7 +8,7 @@ import {
   type YAXisOption,
 } from 'echarts/types/src/coord/cartesian/AxisModel';
 import { frameHasCartesianOverride } from 'editor/series';
-import { type HeatmapSeriesType } from 'editor/types';
+import { CartesianSingleValueSeriesType, type HeatmapSeriesType } from 'editor/types';
 import { buildCartesianYAxes, type CartesianYAxes, getAxisGridSpacing } from 'lib/echarts/axes/yAxes';
 import { type BinnedHeatmapData, frameToBinnedHeatmap } from 'lib/echarts/converters/binnedHeatmap';
 import { collectTimeSeriesFields } from 'lib/echarts/converters/frames';
@@ -60,7 +60,7 @@ export function buildBinnedHeatmapLegendItems(ctx: ChartContext, calcs: string[]
  * Returns null when no heatmap frames are present (empty panel).
  */
 export function buildBinnedHeatmapOption(
-  ctx: ChartContext<HeatmapSeriesType>,
+  ctx: ChartContext<HeatmapSeriesType | CartesianSingleValueSeriesType>,
   { isGrafanaLegend }: BaseOptionParts
 ): EChartBinnedHeatmapOption | null {
   const { theme, options, seriesType, formatValue, timeZone } = ctx;

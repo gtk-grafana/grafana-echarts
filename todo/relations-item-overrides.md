@@ -9,7 +9,16 @@ defer to this doc.
 Everything below was verified against Grafana 13.1.0 and ECharts 6 in a running instance,
 not inferred from types alone.
 
-> ## Resolution — the question is dissolved, not answered
+> ## Resolution — the question is dissolved, not answered, and it has shipped
+>
+> **Nothing in this doc was built, and nothing in it needs to be.** All six phases of
+> [graph-wide-migration.md](./graph-wide-migration.md) shipped without a single
+> plugin-local per-item mechanism: colour, style, visibility, tooltip formatting and
+> `config.links` are each an ordinary `byName` override on the mark's own field. The
+> worked demonstration on the relations panel itself is
+> `provisioning/dashboards/relations/graph-wide.json` (each row pairs a core panel with
+> the relations panel reading the same fixture and the same overrides) and
+> `provisioning/dashboards/relations/per-mark-tooltip-links.json`.
 >
 > **The recommendation below (option 1, `options.relationsItemRules`) is superseded and
 > should not be built.** Every option in this doc assumes the mark stays a frame **row**.

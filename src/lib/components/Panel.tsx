@@ -35,6 +35,7 @@ export const Panel: React.FC<Props> = ({
   onFieldConfigChange,
   replaceVariables,
 }) => {
+  console.log('panelData series', data.series);
   const theme = useTheme2();
   // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel).
   // Resolve it to a concrete type once — from the data and scoped to this panel's
