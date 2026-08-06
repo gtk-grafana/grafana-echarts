@@ -1,0 +1,616 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "The relations family fed by live PromQL against lgtm-prometheus, where Tempo's metrics-generator remote-writes the service graph. Two routes: a plain ranged query with an empty Transform tab, which draws every edge but gives them all one id; and an instant table reshaped with organize + rowsToFields, which gives each edge a name an override can address. Both are portable to any Prometheus with Tempo's metrics-generator behind it.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "gridPos": {
+        "h": 25,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "# Prometheus → relations charts\n\nTempo's metrics-generator publishes `traces_service_graph_request_total{client, server}` and remote-writes it into **`lgtm-prometheus`** (`lgtm/config/tempo.yaml`). Those two labels are a real source/target pair, which is what makes this stack useful to this panel family — the same metric a Grafana Cloud or Mimir user already has.\n\nThe panel reads endpoints from two carriers, in this order: the `source` / `target` **labels** on a field, then a `-->` in the field **name**. `client` / `server` is neither, so every query below renames the pair with `label_replace`. Two routes follow from that:\n\n### Route A — a ranged query and an empty Transform tab\n\n```promql\nsum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])),\n      \"source\", \"$1\", \"client\", \"(.*)\"),\n    \"target\", \"$1\", \"server\", \"(.*)\"))\n```\n\n`Format: Time series` returns **one frame per series**, each `[Time, Value]` with the grouping labels on `Value`. Every one of those frames passes the reader's edge test on its own, and the reader collects *all* of them — so nine series draw nine edges with no transformation anywhere. The row dimension survives too, which is why **Calculation** is a real choice here: `Last` is the current rate, `Mean` is the average over the window.\n\nWhat it does **not** give you is identity: every value field is called `Value`, so all nine marks share one id. `byName: 'Value'` matches all of them at once, and a per-edge unit, colour or data link is unreachable. (On Grafana 13.2+ the plugin pivots this shape into named fields itself, above the panel — this host is 13.1.0, so it does not.)\n\n### Route B — an instant table, `label_join`, `organize`, `rowsToFields`\n\n```promql\nlabel_join(\n  label_replace(\n    label_replace(\n      sum by (client, server) (rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])),\n      \"src\", \"$1\", \"client\", \"(.*)\"),\n    \"dst\", \"$1\", \"server\", \"(.*)\"),\n  \"edge\", \"-->\", \"src\", \"dst\")\n```\n\n`Format: Table` + `Type: Instant` is one row per series; `rowsToFields` turns each row into a field named by its first **string** column. Two details are load-bearing, and both are visible in the bottom-right panel:\n\n- **`organize` must put `edge` first.** Prometheus sorts label columns alphabetically, so the first string column is `client` — a bare `rowsToFields` would name every mark after its *client* and produce duplicate fields with no endpoints at all.\n- **the query names the pair `src` / `dst`, and `organize` renames it** to `source` / `target`. Not the other way round: a query that emits `source` and `target` *columns* is claimed as the legacy row format by the conversion the plugin registers above the panel on 13.2+, which then widens it before this chain runs — and the panel shows **No data** with nothing logged. Renaming inside the Transform tab happens strictly after that pre-pass, so it is safe on every host.\n\nThe payoff is a field per edge, named `grafana-->prometheus`, which the `/-->/ ` overrides in the panels below actually address."
+      }
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Route A — service dependency map, no transformations",
+      "description": "Nine ranged series, an empty Transform tab, and the whole service graph. Every frame carries `source` / `target` labels on its `Value` field, so each one passes the edge test alone and the reader collects them all.\n\nThe legend format is set to `{{source}}-->{{target}}` even though nothing here reads it: on Grafana 13.2+ the plugin's pivot promotes exactly that rendered legend to `field.name`, so writing it now means this panel gains per-edge ids on upgrade with no dashboard change. Today it only labels the tooltip series.\n\n`prometheus → prometheus` is Prometheus scraping itself — a genuine self-loop, which a graph draws and a sankey cannot. `user` is Tempo's virtual node: requests with no client span.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 18,
+        "relationsShowNodeLabels": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Route B — the same graph, with per-edge ids",
+      "description": "The same edges through the instant + `organize` + `rowsToFields` chain, which produces one field per edge named `client-->server`. Three overrides prove the ids are real, and none of them is expressible on Route A:\n\n- `grafana-->prometheus` is pinned to purple and drawn dashed;\n- `prometheus-->prometheus` — the self-scrape — is given a wider line and its own curveness so it reads as a loop;\n- `user-->grafana` carries a data link into Explore, scoped to that pair's traces.\n\nAn instant query means one row per mark, so every reducer returns the same number and **Calculation** stops mattering — the cost of the route. Note also that the panel's edge weight is `rate(...[$__range])`, the average over the whole window, rather than the last scrape.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 3
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "grafana-->prometheus"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              },
+              {
+                "id": "custom.lineType",
+                "value": "dashed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prometheus-->prometheus"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 4
+              },
+              {
+                "id": "custom.curveness",
+                "value": 0.45
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "user-->grafana"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Traces into Grafana",
+                    "targetBlank": true,
+                    "url": "/explore?orgId=1&left=%7B%22datasource%22%3A%22lgtm-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lgtm-tempo%22%7D%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22%7B%20resource.service.name%20%3D%20%5C%22grafana%5C%22%20%7D%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 18,
+        "relationsShowNodeLabels": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n      ),\n      \"src\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"dst\", \"$1\", \"server\", \"(.*)\"\n  ),\n  \"edge\", \"-->\", \"src\", \"dst\"\n)",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "client": true,
+              "server": true
+            },
+            "indexByName": {
+              "edge": 0,
+              "src": 1,
+              "dst": 2,
+              "Value": 3
+            },
+            "renameByName": {
+              "src": "source",
+              "dst": "target"
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Edges and node stats — two queries, two filtered chains",
+      "description": "Route B for the edges (refId A) plus a second query (refId B) giving each service its **error ratio**, which becomes the node colour. Both chains are scoped with `filter: byRefId` so neither touches the other's frames, and `rowsToFields` stamps its output `rowsToFields-A` / `rowsToFields-B`, so a later `byRefId` cannot recapture an earlier chain's result.\n\nThe node query is bounded with `and on (server) …` to the servers the edges actually reach: a node field for a service no edge touches renders as a disconnected dot.\n\nNodes are percentages against green/orange/red thresholds. The single `byRegexp: /-->/ ` override puts every edge back on `reqps` **and** back on a palette colour — that colour property is required, not cosmetic: an edge left on `thresholds` resolves a threshold colour instead of deferring to the link-colour mode, so a healthy graph would draw all-green edges. The override is addressable at all only because Route B named the edges.\n\nThe layout is `force` with **Repulsion**, **Edge length** and **Gravity** set. All three are Advanced-tier options, and an Advanced option that is set while `editorMode` is left at `default` is discarded before it reaches the chart — so this panel's JSON also carries `\"editorMode\": \"advanced\"`, as every panel here that sets one does. Left unset, ECharts' own repulsion default of 50 collapses seven nodes into a single blob.\n\n**Why the error ratio is wrapped in `or … * 0`.** `traces_service_graph_request_failed_total` does not exist for a service that has never failed, and a division whose left side has no series returns **nothing** — so `prometheus` and `alloy` got no node field at all, and the reader fell back to deriving them from the edges. A derived node has no field, so it takes a classic-palette colour by position: the panel looked as if the threshold colours were broken, when in fact two thirds of the nodes had no stat. `or <total> * 0` supplies the zero those services deserve, and all six nodes then resolve green/orange/red. `user` stays palette-coloured on purpose — it is Tempo's virtual node, never a `server`, so no query can give it a ratio.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 37
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percentunit",
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.01
+              },
+              {
+                "color": "red",
+                "value": 0.05
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "force",
+        "relationsNodeSize": 20,
+        "relationsShowNodeLabels": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        },
+        "relationsRepulsion": 320,
+        "relationsEdgeLength": 140,
+        "relationsGravity": 0.08
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n      ),\n      \"src\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"dst\", \"$1\", \"server\", \"(.*)\"\n  ),\n  \"edge\", \"-->\", \"src\", \"dst\"\n)",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "label_replace(\n  (\n    (\n        sum by (server) (rate(traces_service_graph_request_failed_total[$__range]))\n      or\n        sum by (server) (rate(traces_service_graph_request_total[$__range])) * 0\n    )\n    / sum by (server) (rate(traces_service_graph_request_total[$__range]))\n  )\n  and on (server)\n  sum by (server) (\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"node\", \"$1\", \"server\", \"(.*)\"\n)",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          },
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "client": true,
+              "server": true
+            },
+            "indexByName": {
+              "edge": 0,
+              "src": 1,
+              "dst": 2,
+              "Value #A": 3
+            },
+            "renameByName": {
+              "src": "source",
+              "dst": "target",
+              "Value #A": "Value"
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          },
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          },
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "server": true
+            },
+            "indexByName": {
+              "node": 0,
+              "Value #B": 1
+            },
+            "renameByName": {
+              "Value #B": "Value"
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          },
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Span metrics: service → operation — sankey",
+      "description": "A different metric from the same generator: `traces_spanmetrics_calls_total{service, span_name}` — one series per operation per service. Restricted to `span_kind=\"SPAN_KIND_SERVER\"` so each call is counted once, at the server, and bounded with `topk(10, …)` because Grafana alone has hundreds of routes.\n\nBipartite and therefore a genuine DAG, so nothing is dropped here — compare the Tempo dashboard's sankey, which has to break a cycle. Still Route A in the sense that matters: the endpoints are `source` / `target` labels and the Transform tab is empty.\n\n**Two query settings, both load-bearing.** `Type: Instant`, because `topk(N, …)` in a *ranged* query is evaluated at every step and the result is the **union** of each bucket's top N — about thirty operations over an hour, not ten, with labels overlapping into illegibility. And `Format: Time series`, not Table: an instant *table* is one flat frame whose label columns are columns, so the value field carries no labels and the reader finds no edges at all — the panel goes blank. Instant + Time series is one frame per series with the labels still on `Value`, which is the shape the reader wants. The cost of instant is the row dimension: one row per mark, so every reducer agrees and **Calculation** stops mattering.\n\n**One trap specific to this stack:** `traces_spanmetrics_*` and `traces_service_graph_*` both carry an external label `source=\"tempo\"` (`metrics_generator.registry.external_labels` in `lgtm/config/tempo.yaml`). The inner `sum by (service, span_name)` drops it — but a query that skips that aggregation and only adds `target` would leave `source=\"tempo\"` in place, and every edge would then claim to start at a node called `tempo`.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "left",
+        "relationsSankeyNodeWidth": 14,
+        "relationsSankeyNodeGap": 6,
+        "relationsSankeyLinkOpacity": 0.4,
+        "relationsShowNodeValues": false,
+        "relationsLinkColor": "source",
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "topk(10,\n  sum by (source, target) (\n    label_replace(\n      label_replace(\n        sum by (service, span_name) (\n          rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[$__range])\n        ),\n        \"source\", \"$1\", \"service\", \"(.*)\"\n      ),\n      \"target\", \"$1\", \"span_name\", \"(.*)\"\n    )\n  )\n)",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Call matrix — chord",
+      "description": "Route A once more, as a chord. Every pair keeps both directions as separate ribbons, which is what makes the `grafana ↔ prometheus` relationship legible: Grafana queries Prometheus for dashboards, Prometheus scrapes Grafana's `/metrics`, and those are two different flows with two different rates.\n\n`Mean` over the window rather than `Last`, so a single quiet scrape interval does not empty an arc. The self-loop (`prometheus → prometheus`) draws as a ribbon that returns to its own arc.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 37
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsChordPadAngle": 4,
+        "relationsChordLinkOpacity": 0.5,
+        "relationsLinkColor": "source",
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["mean"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Route B before Rows to fields — why organize is not optional",
+      "description": "The raw instant response the two Route B panels start from, with an empty Transform tab so the columns are visible.\n\nRead them left to right: `client`, `dst`, `edge`, `server`, `src`, `Value` — **alphabetical**, because Prometheus sorts label columns by name and `Time` leads. `rowsToFields` takes the *first string column* as the mark name, so with no `organize` every mark would be named after its client: five fields called `grafana`, `prometheus` or `user`, several of them duplicates, none of them carrying `source` / `target` labels, and no graph at all.\n\n`organize` fixes three things in one step — it drops `Time` and the leftover `client` / `server` columns that would otherwise become stray labels, moves `edge` to position 0, and renames `src` / `dst` to the contract's `source` / `target`. `filterFieldsByName` cannot reorder and `renameByRegex` only sets `config.displayName`, leaving `field.name` untouched, so neither is a substitute.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 62
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": ["sum"],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "label_join(\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n      ),\n      \"src\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"dst\", \"$1\", \"server\", \"(.*)\"\n  ),\n  \"edge\", \"-->\", \"src\", \"dst\"\n)",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": []
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "lgtm", "prometheus", "live-data"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — Prometheus service graph (LGTM)",
+  "uid": "echarts-lgtm-relations-prometheus",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,0 +1,23 @@
+apiVersion: 1
+
+# Two providers, because this stack serves dashboards from two directories:
+# the LGTM-only ones next to this file, and the repo's committed TestData
+# dashboards, mounted read-only at a separate path by docker-compose-lgtm.yaml
+# so both sets are available without duplicating any JSON.
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
+
+providers:
+  - name: 'echarts-lgtm'
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true
+
+  # ../../../provisioning/dashboards — the same tree `pnpm run server` serves,
+  # including the git-ignored local/ and gdev/ directories. The provider only
+  # reads *.json, so that directory's own default.yaml is ignored here.
+  - name: 'echarts'
+    type: file
+    options:
+      path: /etc/grafana/dashboards-shared
+      foldersFromFilesStructure: true

@@ -1,0 +1,455 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "The relations family fed by live LogQL against lgtm-loki. A metric query returns the same frame shape Prometheus does — one frame per series, endpoints in labels — so the same two routes apply: a ranged query with an empty Transform tab, and an instant query reshaped with organize + rowsToFields for per-edge ids. The flows are where the stack's own log lines come from: which service, which logger, which level.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "gridPos": {
+        "h": 20,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "# Loki → relations charts\n\nAlloy tails all five containers' stdout over the Docker socket and pushes it to **`lgtm-loki`** with no parsing pipeline at all (`lgtm/config/alloy.alloy`), because the services log in three different dialects. What that leaves to work with:\n\n| carrier | where it comes from | values here |\n| --- | --- | --- |\n| `service_name` | stream label, from the Compose service name — the same value Prometheus puts on that container's metrics and OTel puts on its spans | `grafana`, `loki`, `tempo`, `prometheus`, `alloy` |\n| `detected_level` | **structured metadata**, written by Loki's own level detection — no parser needed | `info`, `warn`, `error`, `debug`, `unknown` |\n| `logger` | a logfmt field, so it needs `\\| logfmt` first; Grafana sets it, the dskit services mostly do not | `migrator`, `authn.service`, `tsdb.loki`, … |\n| `job` | set by Alloy on every stream: `lgtm/docker` | — |\n\nUse `{job=\"lgtm/docker\"}` as the selector rather than `{stack=…}`: Alloy sets `stack` from the **Compose project name**, which is `grafana-echarts-panel-lgtm-3010` and changes with the port, while Prometheus's own external label happens to be the bare `lgtm`. Two different values for the same idea, in the same stack.\n\n### A LogQL metric query is byte-identical to a Prometheus one\n\n```logql\nsum by (source, target) (\n  count_over_time({job=\"lgtm/docker\"} | label_format source=service_name, target=detected_level | target != \"\" [$__auto])\n)\n```\n\nThat returns `timeseries-multi` — one frame per series, `[Time, Value]`, the grouping labels on `Value` — exactly what a Prometheus range query returns. So everything on the Prometheus dashboard applies unchanged, including the choice of route:\n\n- **Route A**, above: `label_format` renames the pair to the contract's own `source` / `target` keys, every frame passes the reader's edge test on its own, and the Transform tab stays empty. All the marks share the field name `Value`, so none of them is individually addressable.\n- **Route B**: an instant query that also builds the id in LogQL — `label_format edge=` with a template — then `organize` + `rowsToFields`, giving one named field per edge.\n\n`label_format` is the LogQL equivalent of Prometheus's `label_replace`, and its rename form (`dst=src`) is what makes Route A a one-liner. Note that it **also** works on structured metadata, which is why `detected_level` needs no parser: `| logfmt` is only there when a *logfmt field* like `logger` is wanted.\n\n**A quiet stack is a flat dashboard.** These counts are real log lines from five containers doing their normal work — the boot-time spike from `migrator` will dominate any window that includes a restart."
+      }
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Route A — service → level, no transformations",
+      "description": "Where each service's log lines land, by severity. One ranged LogQL query, an empty Transform tab, `label_format` doing the whole conversion.\n\nA sankey is the right variant because the flow is **conserved**: every line a service emits has exactly one detected level, so a service's outgoing ribbons sum to its total volume and the `info` band is honestly comparable with the `error` one. `Sum` is the reducer, not `Last`: a `count_over_time` series is a count *per bucket*, and the interesting number over the window is the total.\n\nBipartite, so acyclic, so nothing is dropped — a level is never a service.\n\nNode values are deliberately off. This response is edges only — no query returns a per-service total — so a node has no field of its own and the reader falls back to its **degree**: `grafana 5` would mean five edges, not five log lines. The Tempo dashboard is the one place on this stack where node values are real, because Tempo ships a `Nodes` frame.",
+      "datasource": {
+        "type": "loki",
+        "uid": "lgtm-loki"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->error$/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->warn$/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "justify",
+        "relationsSankeyNodeWidth": 16,
+        "relationsSankeyNodeGap": 14,
+        "relationsSankeyLinkOpacity": 0.45,
+        "relationsShowNodeValues": false,
+        "relationsLinkColor": "target",
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["sum"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "lgtm-loki"
+          },
+          "editorMode": "code",
+          "queryType": "range",
+          "expr": "sum by (source, target) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | label_format source=service_name, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Route B — service → logger, with per-edge ids",
+      "description": "The instant route, with the id built in LogQL rather than by a transformation:\n\n```logql\n| label_format src=service_name, dst=logger\n| label_format edge=`{{.src}}-->{{.dst}}`\n```\n\nA second `label_format` stage can template over labels the first stage just created, so `edge` is a real label by the time `sum by (edge, src, dst)` runs — and `Format: instant` then makes it a column. `organize` moves `edge` to position 0 and renames `src` / `dst` to `source` / `target`; `rowsToFields` turns each row into a field named `grafana-->migrator`.\n\nThe query names the pair `src` / `dst` on purpose. A LogQL query that emits `source` and `target` *columns* is claimed as the legacy row format by the conversion the plugin registers above the panel on Grafana 13.2+, and the panel then shows **No data**. Renaming in the Transform tab runs after that pre-pass, so it is safe everywhere.\n\nThe `byName` override on `grafana-->migrator` is the payoff: on Route A that mark is called `Value`, like every other edge, and this override would paint all of them.",
+      "datasource": {
+        "type": "loki",
+        "uid": "lgtm-loki"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "grafana-->migrator"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 4
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 16,
+        "relationsShowNodeLabels": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.1,
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "lgtm-loki"
+          },
+          "editorMode": "code",
+          "queryType": "instant",
+          "expr": "topk(12,\n  sum by (edge, src, dst) (\n    count_over_time(\n      {job=\"lgtm/docker\"} | logfmt\n        | label_format src=service_name, dst=logger\n        | dst != \"\"\n        | label_format edge=`{{.src}}-->{{.dst}}`\n      [$__range]\n    )\n  )\n)",
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "edge": 0,
+              "src": 1,
+              "dst": 2,
+              "Value #A": 3
+            },
+            "renameByName": {
+              "src": "source",
+              "dst": "target",
+              "Value #A": "Value"
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Three tiers from two queries — grafana → logger → level",
+      "description": "Two ranged queries in one panel, neither transformed. The reader collects **every** frame that looks like edges, across queries — something no core transformation can do, since there is nothing to join on — so refId A's `service → logger` edges and refId B's `logger → level` edges land in one link list and the sankey lays them out as three columns.\n\nBoth queries are scoped to `service_name=\"grafana\"`, which is not cosmetic: **Grafana is the only service in this stack that sets a `logger` field.** Unscoped, `| logfmt` over five services in three dialects puts mis-parsed `caller` values in the middle column. The second tier keys on `detected_level` rather than the parsed `level` for the same reason — Alloy writes `level=INFO` and Grafana writes `level=info`, which are two nodes for one idea, while Loki's own detection lower-cases both.\n\n**Bounded by a `logger =~` allow-list rather than by `topk`.** Two facts force that. `topk(N, …)` in a ranged query is evaluated at every step, so what you get is the union of each bucket's top N — thirty-odd middle nodes over an hour, not six. And Loki has no instant form to escape into: an instant LogQL query returns a single flat frame whose label columns are *columns*, so the value field carries no labels and the reader finds no edges at all (that is exactly why Route B needs `organize` + `rowsToFields`). An explicit allow-list is stable across the window and honest about being a choice.\n\nThe tiers nearly conserve: the shortfall between a logger's inbound and outbound ribbons is lines whose level Loki could not detect.\n\nThis is also the panel to watch after a restart: `migrator` and `authn.service` dominate the boot window and then go quiet.",
+      "datasource": {
+        "type": "loki",
+        "uid": "lgtm-loki"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "justify",
+        "relationsSankeyNodeWidth": 14,
+        "relationsSankeyNodeGap": 8,
+        "relationsSankeyLinkOpacity": 0.4,
+        "relationsShowNodeValues": false,
+        "relationsLinkColor": "source",
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["sum"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "lgtm-loki"
+          },
+          "editorMode": "code",
+          "queryType": "range",
+          "expr": "sum by (source, target) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=service_name, target=logger\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "legendFormat": "{{source}}-->{{target}}"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "loki",
+            "uid": "lgtm-loki"
+          },
+          "editorMode": "code",
+          "queryType": "range",
+          "expr": "sum by (source, target) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=logger, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Service × level as a matrix — chord",
+      "description": "The same query as the top-left panel, drawn as a chord. Over a bipartite pair a chord is a **matrix view** rather than a reciprocity view: no arc has ribbons in both directions, so what it adds over the sankey is that each arc's *own* total is a visible length — a service's whole log volume and a level's whole share are on the same ring, at the same scale.\n\n`error` and `warn` keep the fixed colours from the sankey's overrides, addressed by regex on the target end of the edge id. On Route A that regex matches the field's **display name** (the rendered legend format), which is why the ids have to be written into `legendFormat` even though nothing else here reads them.",
+      "datasource": {
+        "type": "loki",
+        "uid": "lgtm-loki"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 46
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->error$/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->warn$/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsChordPadAngle": 4,
+        "relationsChordLinkOpacity": 0.5,
+        "relationsLinkColor": "target",
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["sum"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "lgtm-loki"
+          },
+          "editorMode": "code",
+          "queryType": "range",
+          "expr": "sum by (source, target) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | label_format source=service_name, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 6,
+      "type": "logs",
+      "title": "The lines behind the counts",
+      "description": "The same selector the charts aggregate, unaggregated. Worth having on the dashboard: every number above is a count of these lines, and the three dialects the header mentions are visible here — Grafana's `logger=…` logfmt, dskit's `caller=…`, and Alloy's own output.\n\nLoki's derived field turns any `traceID=` in a line into a link into `lgtm-tempo`, so a log line from a query path opens the trace that produced it.",
+      "datasource": {
+        "type": "loki",
+        "uid": "lgtm-loki"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "lgtm-loki"
+          },
+          "editorMode": "code",
+          "queryType": "range",
+          "expr": "{job=\"lgtm/docker\"}",
+          "maxLines": 200
+        }
+      ],
+      "transformations": []
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "lgtm", "loki", "live-data"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — Loki log flows (LGTM)",
+  "uid": "echarts-lgtm-relations-loki",
+  "version": 1,
+  "weekStart": ""
+}

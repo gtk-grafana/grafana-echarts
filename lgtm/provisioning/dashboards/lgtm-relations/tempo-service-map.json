@@ -1,0 +1,416 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Tempo's own service-map response drawn by the relations family. Tempo emits Grafana's row-based node-graph frames (id / source / target / mainstat), which the panel does not read; two ordinary transformations — Filter fields by name, then Rows to fields — turn them into the field-based contract the panel does read. Every panel queries the live lgtm-tempo datasource; the stack's traces are its own, so the topology is Grafana talking to Loki, Tempo and Prometheus.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "gridPos": {
+        "h": 18,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "# Tempo → relations charts\n\nOne query — `queryType: serviceMap` against **`lgtm-tempo`** — and one two-step transformation chain, repeated on every panel below.\n\nTempo's service map is built **in the browser** by the Tempo datasource, which runs the `traces_service_graph_*` PromQL against the Prometheus in `serviceMap.datasourceUid`. It comes back as three frames: an unnamed `Duration (p90)` / `Links` helper, a `Nodes` frame and an `Edges` frame. The last two are Grafana's **row-based node-graph** format — one row per node or edge, endpoints in `source` / `target` *columns*:\n\n| frame | fields |\n| --- | --- |\n| `Nodes` | `id`, `title`, `subtitle`, `mainstat` (Average response time, `ms/r`), `secondarystat` (Requests per second, `r/sec`), `arc__success`, `arc__failed`, `isinstrumented` |\n| `Edges` | `id` (`source_target`), `source`, `sourceName`, `sourceNamespace`, `target`, `targetName`, `targetNamespace`, `mainstat`, `secondarystat` |\n\nThe relations panel reads the **field-based** contract instead — one node is one field, one edge is one field, endpoints in `field.labels`. Normally the plugin converts the row format itself, in a transformation it registers above the panel (Grafana 13.2+). This Grafana is **13.1.0**, which has no such API, so the conversion is done by hand — exactly what the panel's own error message tells you to do:\n\n| # | transformation | why |\n| --- | --- | --- |\n| 1 | **Filter fields by name** — include `id`, `source`, `target`, and *one* of `mainstat` / `secondarystat` | `Rows to fields` takes the first **string** column as the mark name and the first **number** column as its value. Filtering leaves exactly one of each, so `id` names the mark and the stat you kept becomes its weight. It also drops the `Duration (p90)` helper frame entirely, and `isinstrumented`, which would otherwise become a stray label. |\n| 2 | **Rows to fields** — no options | `id` → `field.name`, the numeric → the value, leftover strings → `field.labels`. On the `Edges` frame those leftovers are `source` and `target`, which are the two label keys the contract reads endpoints from, so the frame lands on the contract with no renaming at all. On the `Nodes` frame nothing is left over, and its fields are named after services the edges refer to, which is how the reader recognises it as the nodes frame. |\n\nNo `organize`, no `label_replace`, no SQL. The chain is two clicks because Tempo already calls its endpoint columns `source` and `target`.\n\n**What it costs:** `Rows to fields` mints new fields, so per-column `config` does not survive — the `ms/r` and `r/sec` units Tempo set are gone and are set again in each panel's field options. The edge ids are Tempo's own (`grafana_prometheus`, `_`-joined, not `-->`), which is why the endpoints have to come from the labels."
+      }
+    },
+    {
+      "id": 2,
+      "type": "nodeGraph",
+      "title": "Grafana's Node graph — the reference",
+      "description": "The same response with no transformations, in the panel it was designed for. This is what Tempo's frames look like when nothing converts them: the row format is the Node graph panel's native input.\n\nUse it to check the topology on the right is the same one — and to compare the two node-stat treatments. The Node graph shows `mainstat` and `secondarystat` together in the node circle and the success/failure arcs around it; the relations panel takes one numeric per mark, so it shows one stat at a time.",
+      "datasource": {
+        "type": "tempo",
+        "uid": "lgtm-tempo"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "lgtm-tempo"
+          },
+          "queryType": "serviceMap"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Same query, two transformations — graph",
+      "description": "The chain from the header, keeping **`mainstat`** — Tempo's average response time per request. Each edge's weight is therefore latency, not volume, which is why `user → grafana` is the fattest line on the graph and the thinnest one on the panel below.\n\n`grafana → elasticsearch` and `grafana → zipkin` usually reduce to `null`: those edges exist in the service graph (Grafana probes every configured datasource type on startup) but have no requests in the window, so the metrics-generator publishes no latency for them. The reader draws a `null` mark as a weightless edge rather than dropping it — the frame still claimed the edge exists.\n\nUnit `ms` is set here by hand: `Rows to fields` mints fields, so Tempo's own `ms/r` did not survive it.",
+      "datasource": {
+        "type": "tempo",
+        "uid": "lgtm-tempo"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "ms",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 18,
+        "relationsShowNodeLabels": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "lgtm-tempo"
+          },
+          "queryType": "serviceMap"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": ["id", "source", "target", "mainstat"]
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Requests per second instead — one word changed",
+      "description": "Identical to the panel above except that the filter keeps **`secondarystat`** — requests per second — so the same topology is weighted by volume and the units change to `reqps`. That one word is the whole difference between a latency map and a traffic map, and it is a *transformation* option rather than a panel option: the panel takes whatever single numeric the chain hands it.\n\nNode values are switched on here, and on this dashboard they mean something — Tempo ships a `Nodes` frame, so each node's number is that service's own request rate. On the Loki and Prometheus Route A panels there is no nodes frame, and a node's value is its **degree** instead, which is why they leave the labels off.",
+      "datasource": {
+        "type": "tempo",
+        "uid": "lgtm-tempo"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 20,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "lgtm-tempo"
+          },
+          "queryType": "serviceMap"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": ["id", "source", "target", "secondarystat"]
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Where the requests go — sankey (cycles dropped)",
+      "description": "The same converted frames as a sankey, and the reason this dashboard is a good fixture for it: **a real service graph is not a DAG**. Prometheus scrapes itself (`prometheus → prometheus`, a self-loop) and Grafana and Prometheus call each other (`prometheus → grafana`, `grafana → prometheus`, a 2-cycle).\n\nECharts' sankey layout throws `Sankey is a DAG, the original data has cycle!` on either, and that throw is not behind a dev guard — it would be a blank panel in production. So the family breaks cycles before the links reach ECharts, unconditionally, and reports how many links it dropped in the panel notice. Read the notice: it is the honest version of a chart that cannot draw what it was given.\n\nThe `user` node is Tempo's **virtual node** — requests with no client span, i.e. traffic entering the stack from outside — which is what makes this a left-to-right flow at all.",
+      "datasource": {
+        "type": "tempo",
+        "uid": "lgtm-tempo"
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "justify",
+        "relationsSankeyNodeWidth": 16,
+        "relationsSankeyNodeGap": 14,
+        "relationsSankeyLinkOpacity": 0.45,
+        "relationsShowNodeValues": true,
+        "relationsLinkColor": "source",
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "lgtm-tempo"
+          },
+          "queryType": "serviceMap"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": ["id", "source", "target", "secondarystat"]
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Who calls whom — chord",
+      "description": "The third variant over the same two transformations. A chord keeps both directions of a pair as separate ribbons and needs no acyclicity, so the `grafana ↔ prometheus` pair that the sankey had to break is the thing this variant exists to show: two ribbons between the same arcs, each sized by its own direction's rate.\n\n`relationsLinkColor: source` resolves properly here — a chord ribbon inherits its arc's colour — where on the graph variant it flattens to one colour.",
+      "datasource": {
+        "type": "tempo",
+        "uid": "lgtm-tempo"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsChordPadAngle": 4,
+        "relationsChordLinkOpacity": 0.5,
+        "relationsLinkColor": "source",
+        "relationsFocusAdjacency": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "lgtm-tempo"
+          },
+          "queryType": "serviceMap"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": ["id", "source", "target", "secondarystat"]
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The same query with an empty Transform tab",
+      "description": "**This panel is meant to fail**, and it is the reason the other five carry two transformations.\n\nTempo's frames arrive in the row format and nothing converts them, so the reader finds no field that describes an edge and the converter throws. Grafana's panel error boundary shows the generic **An unexpected error happened**; the real message is behind its **Details** toggle (and in the browser console):\n\n> Row-based node-graph frames need converting to the field-based graph contract before the panel can read them. This normally happens automatically (Grafana 13.2+); on an older host, add a \"Rows to fields\" transformation.\n\nOn Grafana 13.2+ this panel draws by itself: the plugin registers that conversion as a panel transformation, which runs above the panel and *before* field overrides, so each node and edge also becomes a `byName` override target and appears in the override editor's field picker. That is the one thing the hand-written chain here cannot give back — it runs after the override pass. Delete the two transformations from any panel above to reproduce this state.",
+      "datasource": {
+        "type": "tempo",
+        "uid": "lgtm-tempo"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 55
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "tempo",
+            "uid": "lgtm-tempo"
+          },
+          "queryType": "serviceMap"
+        }
+      ],
+      "transformations": []
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "lgtm", "tempo", "live-data"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — Tempo service map (LGTM)",
+  "uid": "echarts-lgtm-relations-tempo",
+  "version": 1,
+  "weekStart": ""
+}
