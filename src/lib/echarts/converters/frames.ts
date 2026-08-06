@@ -1,4 +1,4 @@
-import { type DataFrame, type Field, FieldType, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
+import { type DataFrame, type Field, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
 import { type EChartsFieldConfig } from 'editor/types';
 import { getSeriesColor } from 'lib/echarts/style';
 import { isNumberField, isStringField, isTimeField } from 'lib/grafana/narrowing';
@@ -74,7 +74,11 @@ export function mapNumericFields(
 export interface TimeSeriesFieldRef<T> {
   frame: FieldTypedDataFrame<T, EChartsFieldConfig>;
   frameIndex: number;
-  field: Field<T>;
+  /**
+   * Always numeric: the walk below only yields fields that pass `isNumberField`,
+   * so callers get `Field<number>` regardless of how wide the frame's `T` is.
+   */
+  field: Field<number>;
   fieldIndex: number;
   timeField: Field<number>;
 }
@@ -107,7 +111,7 @@ export function forEachTimeSeriesField<T>(
 
     // @todo convert to for loop
     frame.fields.forEach((field, fieldIndex) => {
-      if (field.type !== FieldType.number || field.name === timeField.name) {
+      if (!isNumberField(field) || field.name === timeField.name) {
         return;
       }
       callback({ frame, frameIndex, field, fieldIndex, timeField });

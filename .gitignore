@@ -59,3 +59,7 @@ provisioning/dashboards/gdev/*
 .cursor/plans/local
 .air
 /.claude/worktrees
+
+# Scripts cache
+scripts/__pycache__
+scripts/*

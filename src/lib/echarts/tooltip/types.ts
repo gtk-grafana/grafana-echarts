@@ -283,8 +283,8 @@ export interface RelationsMark {
  * drops one whose endpoint is missing (`createGraphFromNodeEdge` keeps only
  * `validEdges`), and the sankey variant removes links to break cycles, so a
  * `dataIndex` into the model would silently point at the wrong mark. A missing key
- * simply means "no field" — a node derived from an edge's endpoints — and the
- * tooltip falls back to the panel formatter with no footer.
+ * simply means "no field" — a node derived from an edge's endpoints — which renders
+ * no footer and formats through `formatDerivedMarkValue`.
  *
  * Nodes and edges are separate maps because their names live in different frames
  * and can collide (a node `e1` and an edge `e1` are both legal).
@@ -295,20 +295,12 @@ export interface RelationsMarks {
 }
 
 /**
- * Formatting context the relations tooltip reads. Mirrors
- * {@link HierarchyTooltipContext}: narrower than the series context that supplies
- * it, so the tooltip layer never imports the option layer back.
+ * The relations tooltip needs no context beyond {@link RelationsMarks} — no panel
+ * formatter, unlike every other family. A mark either has a field, and formats
+ * through it, or is a derived node whose value is a link count (see
+ * `formatDerivedMarkValue`). That is why there is no `RelationsTooltipContext` here
+ * to mirror {@link HierarchyTooltipContext}.
  */
-export interface RelationsTooltipContext {
-  /**
-   * The panel-level formatter, used only by a mark with no field of its own — a
-   * node derived from an edge's endpoints. Everything else formats through
-   * {@link RelationsMarks}.
-   */
-  formatValue: ValueFormatter;
-  /** Each mark's own formatting and data links; see {@link RelationsMarks}. */
-  marks?: RelationsMarks;
-}
 
 /**
  * Formatting context the stream (single-axis) tooltip reads: the time zone for its

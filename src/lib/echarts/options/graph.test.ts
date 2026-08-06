@@ -226,7 +226,8 @@ describe('getRelationsNodeLabelFormatter', () => {
     const formatter = getRelationsNodeLabelFormatter(withMarks)!;
 
     expect(formatter(params('A', { id: 'a', name: 'A', value: 42 }))).toBe('A\n42 ms');
-    // A node with no field of its own (a derived node) keeps the panel formatter.
+    // A node with no field of its own (a derived node) prints a plain count — its
+    // value is a degree, so there is no unit to borrow. See `formatDerivedMarkValue`.
     expect(formatter(params('Z', { id: 'z', name: 'Z', value: 42 }))).toBe('Z\n42');
   });
 });

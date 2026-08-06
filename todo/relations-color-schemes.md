@@ -1,14 +1,18 @@
 # Color schemes and per-item color for the relations family
 
-> **Status: not started.** This is a bug report plus a design note for the
-> **relations** family (`src/modules/relations/`). Everything below applies
-> identically to all three render variants — `graph`, `sankey` and `chord` — because
-> they share one color resolver (`makeRelationsColorResolver`, called from
-> [options/graph.ts:219](../src/lib/echarts/options/graph.ts),
-> [options/sankey.ts:151](../src/lib/echarts/options/sankey.ts),
-> [options/chord.ts:121](../src/lib/echarts/options/chord.ts) and
-> [charts/relations.ts:87](../src/lib/echarts/charts/relations.ts)). A fix in one
-> variant that is not a fix in that shared function is not a fix.
+> **Status: fixed for relations, still open for hierarchy — and this doc is now
+> about hierarchy.** It was written as a bug report plus a design note for the
+> **relations** family, whose three render variants shared one colour resolver,
+> `makeRelationsColorResolver`. That resolver is **deleted** (phase 3 of
+> [graph-wide-migration.md](./graph-wide-migration.md)): a relations mark is a field, so
+> its colour is `field.display(value).color` — whatever `applyFieldOverrides` resolved —
+> and all eight modes work with no resolver at all.
+>
+> **`hierarchy.ts:64-69` still carries the byte-identical two-branch guard**, and
+> hierarchy is not pivoting to a field-per-mark contract, so every symptom below is live
+> there. Read "relations" as "hierarchy" in the problem statement; the API analysis, the
+> option comparison and fixes **A1** and **A4** all transfer unchanged. The parts that
+> dissolved under the field contract are marked in the resolution table below.
 >
 > API facts below were checked against the **installed `@grafana/data` 13.1.1**
 > (`node_modules/@grafana/data/dist/…`), not from memory. Line references into
@@ -16,6 +20,11 @@
 > re-checkable, not as a suggestion to depend on them.
 
 > ## Resolution — **do not close this doc.** Hierarchy still needs the fix
+>
+> **Shipped for relations in phase 3, and re-confirmed in phase 6.** A `byName`
+> `dark-red` override reaches exactly one node as `#C4162A`
+> (`charts/relations.test.ts`, "legend colour"), and the legend's own colour picker
+> writes that same ordinary override.
 >
 > [../data-plane/graph-wide.md](../data-plane/graph-wide.md) removes the _relations_ half
 > of this by deletion: when a mark is a field, colour is `field.display(value).color` and

@@ -1,5 +1,4 @@
 import {
-  type DataFrame,
   type FieldConfigSource,
   type GrafanaTheme2,
   type InterpolateFunction,
@@ -40,17 +39,25 @@ import {
 // `TooltipOption` are elsewhere in this codebase).
 import { type SingleAxisOption } from 'echarts/types/dist/shared';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
-import { type SeriesType } from 'editor/types';
+import {
+  type CartesianSingleValueSeriesType,
+  type EChartsFieldConfig,
+  type EChartsGraphFieldConfig,
+  type HeatmapSeriesType,
+  type MultiValueSeriesType,
+  type SeriesType,
+} from 'editor/types';
 import {
   type TooltipFieldResolver,
   type TooltipSink,
   type TooltipValueFormatterResolver,
 } from 'lib/echarts/tooltip/types';
+import { type EChartsValueType, type FieldTypedDataFrame } from 'lib/grafana/types';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
-export interface ChartContext<T = SeriesType> {
-  frames: DataFrame[];
+export interface ChartContext<T = SeriesType, C = EChartsFieldConfig, V = EChartsValueType> {
+  frames: Array<FieldTypedDataFrame<V, C>>;
   theme: GrafanaTheme2;
   timeZone: TimeZone;
   timeRange: TimeRange;
@@ -77,6 +84,32 @@ export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
 export type RelationsChartContext = ChartContext<'graph' | 'sankey' | 'chord'>;
 
 export type StreamChartContext = ChartContext<'themeRiver'>;
+
+/** The cartesian family's own context: every render type its module dispatches on. */
+export type CartesianContext = ChartContext<
+  CartesianSingleValueSeriesType | MultiValueSeriesType,
+  EChartsGraphFieldConfig
+>;
+
+/**
+ * Context for the `[time, value]` converter, which two families share: the
+ * cartesian panel proper, and the binned heatmap's cartesian overlay layer.
+ *
+ * `seriesType` is the *fallback* the converter hands `resolveFieldSeriesType`
+ * when a field carries no per-field override, so it spans the single-value
+ * cartesian types plus `heatmap` — the value the heatmap family passes, meaning
+ * "this overlay field opted out of a cartesian type, draw it color-only".
+ * Multi-value types are excluded deliberately: candlestick/boxplot build one
+ * series from several fields and never route through this converter.
+ *
+ * Typed against the *base* field config rather than `EChartsGraphFieldConfig` so
+ * the heatmap family (registered with the base config) can call it too; the
+ * converter reads only base-config keys.
+ */
+export type CartesianContextWithOverlay = ChartContext<
+  CartesianSingleValueSeriesType | HeatmapSeriesType,
+  EChartsFieldConfig
+>;
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
@@ -237,21 +270,26 @@ export interface LegendHighlightTarget {
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
+
   // @todo replace null with reason why chart cannot render?
   buildOption(ctx: ChartContext, base: BaseOptionParts): EChartBuildOption | null;
+
   buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];
+
   /**
    * Advisories to show in the panel's corner for this render — see
    * {@link ChartNotice}. Optional; families with nothing to report omit it and
    * the panel renders no badge.
    */
   getNotices?(ctx: ChartContext): ChartNotice[];
+
   /**
    * Chart items to emphasise while the legend row labelled `label` is hovered —
    * see {@link LegendHighlightTarget}. Optional; families that omit it get no
    * legend hover emphasis, which is the existing behaviour everywhere else.
    */
   getLegendHighlightTargets?(ctx: ChartContext, label: string): LegendHighlightTarget[];
+
   /**
    * Every name the legend's visibility override has to account for, when that is
    * **wider than the legend itself**.
@@ -272,6 +310,7 @@ export interface ChartModule {
    * `useSeriesVisibility` falls back to the legend item names.
    */
   getOverrideTargetNames?(ctx: ChartContext): string[];
+
   /**
    * Resolve the value formatter for a hovered tooltip item so each series
    * formats with its own field's unit/decimals overrides. Chart families map the
@@ -280,6 +319,7 @@ export interface ChartModule {
    * `buildPanelTooltip` falls back to `ctx.formatValue`.
    */
   getTooltipValueFormatter?(ctx: ChartContext): TooltipValueFormatterResolver;
+
   /**
    * Resolve the source `Field` + row index for a hovered tooltip item, so the
    * tooltip footer can surface that field's data links and label-based ad-hoc
@@ -288,6 +328,7 @@ export interface ChartModule {
    * footer.
    */
   getTooltipFieldResolver?(ctx: ChartContext): TooltipFieldResolver;
+
   /**
    * Labels for the dimensions a multi-value series packs into one item, so the
    * tooltip lists them all instead of just the last. Only families that draw
@@ -295,6 +336,7 @@ export interface ChartModule {
    * {@link TooltipModelOptions.multiValueDimensions}.
    */
   getTooltipDimensions?(ctx: ChartContext): string[] | undefined;
+
   /**
    * The family has no meaningful "All" tooltip, so a persisted
    * `tooltip.mode: multi` is clamped back to Single when building the option.

@@ -1,6 +1,7 @@
 import { type PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { useTheme2, VizLayout } from '@grafana/ui';
+import { debug, LOG_LEVELS } from 'development';
 import { seriesTypePath } from 'editor/constants';
 import { type ChartFamily, resolveSeriesType } from 'lib/echarts/charts/autoSeriesType';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
@@ -35,6 +36,7 @@ export const Panel: React.FC<Props> = ({
   onFieldConfigChange,
   replaceVariables,
 }) => {
+  debug('panelData series', LOG_LEVELS.debug, data.series);
   const theme = useTheme2();
   // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel).
   // Resolve it to a concrete type once — from the data and scoped to this panel's

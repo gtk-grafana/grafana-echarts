@@ -1,4 +1,4 @@
-import { createTheme, type DataFrame, FieldType, toDataFrame, type ValueFormatter } from '@grafana/data';
+import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
 import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
@@ -6,9 +6,6 @@ import { buildRelationsTooltipModel, getRelationsTooltipMarks } from 'lib/echart
 import { type RelationsLinkItem, type RelationsNodeItem, type TooltipModel } from 'lib/echarts/tooltip/types';
 
 const theme = createTheme();
-
-/** Marks the panel formatter, so a fallback is unmistakable in an assertion. */
-const panelFormatValue: ValueFormatter = (value) => ({ text: `panel:${value}` });
 
 // ECharts formatter params carry more fields at runtime than the base type; only the
 // ones the relations formatter reads are set here (`data`, `color`, `name`).
@@ -59,10 +56,7 @@ const modelFor = (frames: DataFrame[]): ((params: TopLevelFormatterParams) => To
   if (!data) {
     throw new Error('fixture produced no graph');
   }
-  return buildRelationsTooltipModel({
-    formatValue: panelFormatValue,
-    marks: getRelationsTooltipMarks(data, theme, 'utc'),
-  });
+  return buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'));
 };
 
 /** A hovered node, as the graph variant emits it. */
@@ -142,15 +136,18 @@ describe('buildRelationsTooltipModel', () => {
     /**
      * Gap 4, which the contract does **not** close: a node derived from an edge's
      * endpoints has no field, so there is nothing for an override to land on. It
-     * falls back to the panel formatter and renders no footer.
+     * renders no footer, and formats through `formatDerivedMarkValue`.
      */
-    it('gives a derived node no source, and the panel formatter', () => {
+    it('gives a derived node no source, and no unit', () => {
       const model = modelFor([wideEdges()]);
 
       const node = model(nodeParams({ id: 'gateway', name: 'gateway', value: 2 }));
 
       expect(node.source).toBeUndefined();
-      expect(node.rows[0].value).toBe('panel:2');
+      // A derived node's value is its degree — a count of links, not a measurement.
+      // Formatting it with the panel formatter (the first numeric field of the first
+      // frame) printed `2 s` here, borrowing the first edge's unit for a link count.
+      expect(node.rows[0].value).toBe('2');
     });
   });
 

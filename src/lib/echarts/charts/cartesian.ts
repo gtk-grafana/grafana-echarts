@@ -1,6 +1,10 @@
 import { type Field } from '@grafana/data';
 import { type XAXisOption } from 'echarts/types/src/coord/cartesian/AxisModel';
-import { type CartesianSingleValueSeriesType, type MultiValueSeriesType } from 'editor/types';
+import {
+  type CartesianSingleValueSeriesType,
+  type EChartsGraphFieldConfig,
+  type MultiValueSeriesType,
+} from 'editor/types';
 import { buildCartesianYAxes, getAxisGridSpacing } from 'lib/echarts/axes/yAxes';
 import { isCartesianSingleValueSeriesType, isMultiValueSeriesType } from 'lib/echarts/charts/narrowing';
 import { categoryCartesianToEChartsOption } from 'lib/echarts/converters/categoryCartesian';
@@ -27,19 +31,20 @@ import {
   buildTimeSeriesLegendItems,
 } from 'lib/echarts/options/legendItems';
 import { buildThresholdMarks, type ThresholdMarks } from 'lib/echarts/options/thresholds';
-import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import { getFieldValueFormatters } from 'lib/echarts/style';
 import { indexedFormatterResolver } from 'lib/echarts/tooltip/model';
 import { getFieldMinMax } from 'lib/grafana/fields/fieldConfig';
-import { isNumberField } from 'lib/grafana/narrowing';
+import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import {
   findThresholdField,
   getThresholdsStyleMode,
   resolveFieldThresholds,
   thresholdDisplayForMode,
 } from 'lib/grafana/fields/thresholds';
+import { isNumberField } from 'lib/grafana/narrowing';
 import { getTimeAxisLabelFormatter } from 'lib/grafana/timeAxisFormat';
 import {
+  type CartesianContext,
   type ChartContext,
   type ChartModule,
   type EChartCartesianSeriesOption,
@@ -53,7 +58,7 @@ import {
 
 /** Time-axis cartesian: `[time, value]` series on a time grid. */
 function buildTimeOption(
-  ctx: ChartContext<CartesianSingleValueSeriesType>,
+  ctx: ChartContext<CartesianSingleValueSeriesType, EChartsGraphFieldConfig>,
   isGrafanaLegend: boolean
 ): EChartCartesianSeriesOption | null {
   const { theme, options, formatValue, timeZone } = ctx;
@@ -218,7 +223,7 @@ function buildMultiValueOption(
  * (candlestick/boxplot) draws a single series from several fields, so there is
  * no per-series field to return; the resolver falls back to the panel formatter.
  */
-function cartesianSeriesFields(ctx: ChartContext): Field[] {
+function cartesianSeriesFields(ctx: CartesianContext): Field[] {
   if (isMultiValueSeriesType(ctx.seriesType)) {
     return [];
   }
@@ -236,7 +241,7 @@ function cartesianSeriesFields(ctx: ChartContext): Field[] {
  * axis, so callers attach the result to a single series. Returns `undefined`
  * when no field requests thresholds.
  */
-function cartesianThresholdMarks(ctx: ChartContext): ThresholdMarks | undefined {
+function cartesianThresholdMarks(ctx: CartesianContext): ThresholdMarks | undefined {
   const field = findThresholdField(ctx.frames.flatMap((frame) => frame.fields));
   if (!field) {
     return undefined;
@@ -265,12 +270,12 @@ function attachThresholdMarks<T>(series: T[], marks: ThresholdMarks | undefined)
 export const cartesianChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
 
-  getTooltipValueFormatter(ctx) {
+  getTooltipValueFormatter(ctx: CartesianContext) {
     const formatters = getFieldValueFormatters(cartesianSeriesFields(ctx), ctx.theme, ctx.timeZone);
     return indexedFormatterResolver(formatters, ctx.formatValue, 'seriesIndex');
   },
 
-  getTooltipFieldResolver(ctx) {
+  getTooltipFieldResolver(ctx: CartesianContext) {
     const seriesType = ctx.seriesType;
     if (isMultiValueSeriesType(seriesType)) {
       // Candlestick/boxplot draw one item from several fields at once, so the
@@ -314,7 +319,7 @@ export const cartesianChartModule: ChartModule = {
   },
 
   buildOption(
-    ctx: ChartContext<CartesianSingleValueSeriesType | MultiValueSeriesType>,
+    ctx: CartesianContext,
     { isGrafanaLegend }
   ): EChartCartesianSeriesOption | EChartMultiValueCartesianSeriesOption | null {
     // @todo gate invalid frames and always throw in internal methods
