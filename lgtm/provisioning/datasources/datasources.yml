@@ -1,0 +1,70 @@
+apiVersion: 1
+
+# Datasources for the LGTM stack (`pnpm run server:lgtm`). All three point at
+# containers in docker-compose-lgtm.yaml.
+#
+# TestData is still here and still the default, so every dashboard in
+# ../../../provisioning/dashboards keeps working unchanged in this stack — same
+# uid as provisioning/datasources/datasources.yml.
+
+datasources:
+  - name: TestData DB
+    type: testdata
+    uid: trlxrdZVk
+    isDefault: true
+
+  - name: Prometheus
+    type: prometheus
+    uid: lgtm-prometheus
+    url: http://prometheus:9090
+    jsonData:
+      httpMethod: POST
+      # Tempo's metrics-generator remote-writes exemplars; this turns the
+      # exemplar dots on a graph into links into the trace.
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: lgtm-tempo
+
+  - name: Loki
+    type: loki
+    uid: lgtm-loki
+    url: http://loki:3100
+    jsonData:
+      # dskit-based services (Loki, Tempo) log `traceID=<id>` on their own
+      # request paths, so log lines link straight into the trace that produced
+      # them. `$$` escapes the `$` from provisioning's variable expansion.
+      derivedFields:
+        - name: TraceID
+          matcherRegex: '(?:traceID|trace_id)[=:]"?(\w+)'
+          url: '$${__value.raw}'
+          datasourceUid: lgtm-tempo
+
+  - name: Tempo
+    type: tempo
+    uid: lgtm-tempo
+    url: http://tempo:3200
+    jsonData:
+      # `service.name` on a span is the same value as the `service_name` label
+      # Alloy puts on that container's logs and Prometheus puts on its metrics.
+      tracesToLogsV2:
+        datasourceUid: lgtm-loki
+        spanStartTimeShift: '-5m'
+        spanEndTimeShift: '5m'
+        filterByTraceID: false
+        filterBySpanID: false
+        tags:
+          - key: service.name
+            value: service_name
+      tracesToMetrics:
+        datasourceUid: lgtm-prometheus
+        spanStartTimeShift: '-5m'
+        spanEndTimeShift: '5m'
+        tags:
+          - key: service.name
+            value: service_name
+      serviceMap:
+        datasourceUid: lgtm-prometheus
+      nodeGraph:
+        enabled: true
+      streamingEnabled:
+        search: true
