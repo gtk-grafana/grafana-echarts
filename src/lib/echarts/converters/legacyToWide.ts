@@ -73,21 +73,60 @@ function findField<V, C>(frame: DataFrame, name: string): ConfigTypedField<V, C>
 const hasField = (frame: DataFrame, name: string): boolean => findField(frame, name) != null;
 
 /**
- * True when a frame is a legacy **edges** frame.
+ * True when a frame declares itself part of a node-graph response.
  *
- * Grafana's own role test is just "has a `source` field" (`applyOptionsToFrames`),
- * but that only runs after the user has already picked the node graph panel. We
- * additionally require `target`, because this predicate doubles as *detection*:
- * `source` alone would claim any table with a column of that name.
+ * Both signals are set by data sources that know what they are emitting — Tempo, X-Ray
+ * and TestData's `node_graph` scenario all set the first (`nodeGraphUtils.ts`). They currently
+ * say "this response is a node graph", **not** "this frame is the edges frame": a
+ * declared response carries a nodes frame *and* an edges frame, so telling the two
+ * apart is still a job for field shape.
  */
-export function isLegacyEdgesFrame(frame: DataFrame): boolean {
+function declaresLegacyNodeGraph(frame: DataFrame): boolean {
   return (
     frame.meta?.preferredVisualisationType === 'nodeGraph' ||
-    //@ts-expect-error @todo add graph-wide and graph-long to core as alpha
-    frame.meta?.type === 'graph-long' ||
-    // @todo This is not ideal, and will break on frames that naturally have source and target fields. Do we need to support legacy frames without the meta/preferredVisualisationType?
-    (hasField(frame, SOURCE_FIELD) && hasField(frame, TARGET_FIELD))
+    // Currently unused, proposed frame meta
+    //@ts-expect-error @todo add legacy graph-edges-long, graph-node-long and proposed graph-nodes-wide, graph-edges-wide to core as alpha. @todo one frame or two?
+    frame.meta?.type === 'graph-edges-long' ||
+    //@ts-expect-error
+    frame.meta?.type === 'graph-node-long'
   );
+}
+
+/**
+ * A time dimension means a datasource response, not a static table of edges.
+ *
+ * That is the whole difference between `id,source,target,mainstat` from a CSV or a SQL
+ * Expression — one row per edge, no time — and a Prometheus instant table that happens
+ * to have `source` and `target` columns, which always carries `Time`. Without this
+ * guard the conversion claims the Prometheus frame, widens it, and the user's own
+ * transformation chain then finds none of the columns it filters for: the panel renders
+ * "No data" and nothing is logged anywhere. Measured against a live Mimir.
+ *
+ * A frame that *declares* itself a node graph is trusted ahead of this heuristic, so a
+ * datasource emitting the row format with a time column is unaffected.
+ */
+function hasTimeField(frame: DataFrame): boolean {
+  return frame.fields.some((field) => field.type === FieldType.time);
+}
+
+/**
+ * True when a frame is a legacy **edges** frame.
+ *
+ * Grafana's own role test is just "has a `source` field" (`applyOptionsToFrames`), but
+ * that only runs after the user has already picked the node graph panel. Here the
+ * predicate doubles as *detection*, so it requires `target` as well — and, for a frame
+ * that declares nothing, the absence of a time field.
+ *
+ * `source` and `target` are required even when the frame declares itself a node graph.
+ * The declaration is about the response, not the frame, and reading it as "these are
+ * the edges" converted every declared *nodes* frame into an empty edges frame, silently
+ * dropping every node's title, stat and colour.
+ */
+export function isLegacyEdgesFrame(frame: DataFrame): boolean {
+  if (!hasField(frame, SOURCE_FIELD) || !hasField(frame, TARGET_FIELD)) {
+    return false;
+  }
+  return declaresLegacyNodeGraph(frame) || !hasTimeField(frame);
 }
 
 /**
@@ -95,21 +134,25 @@ export function isLegacyEdgesFrame(frame: DataFrame): boolean {
  *
  * Deliberately stricter than Grafana, which treats any non-edges candidate frame as
  * nodes. Here the `id` field is required so an unrelated frame in a mixed response is
- * not silently read as a node list.
+ * not silently read as a node list, and the same time-field rule applies — `id` is far
+ * too common a column name to claim a datasource's own table on.
  */
 export function isLegacyNodesFrame(frame: DataFrame): boolean {
-  return hasField(frame, ID_FIELD) && !isLegacyEdgesFrame(frame);
+  if (!hasField(frame, ID_FIELD) || isLegacyEdgesFrame(frame)) {
+    return false;
+  }
+  return declaresLegacyNodeGraph(frame) || !hasTimeField(frame);
 }
 
 /**
  * True when these frames carry legacy row-based node-graph data.
  *
- * Detection is purely **field shape**, and deliberately ignores Grafana's two
- * metadata signals (`meta.preferredVisualisationType === 'nodeGraph'`, a frame named
- * `nodes`/`edges`). They are redundant here — `source` and `target` are *required* on
- * an edges frame — and neither survives the paths that matter, since provisioned
- * TestData `csv_content` fixtures cannot set frame metadata and SQL Expression outputs
- * are named by `refId`.
+ * Role resolution is **field shape** — `source` and `target` are required on an edges
+ * frame either way — and metadata only decides how much benefit of the doubt a frame
+ * gets: a declared node graph skips the time-field guard, an undeclared one does not.
+ * Shape has to stay load-bearing because metadata does not survive the paths that
+ * matter: provisioned TestData `csv_content` fixtures cannot set frame metadata, and
+ * SQL Expression outputs are named by `refId`.
  *
  * An edges frame is required: a lone nodes frame is a table, not a graph.
  */

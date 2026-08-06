@@ -2,7 +2,13 @@ import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { lastValueFrom, of } from 'rxjs';
 
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
-import { legacyToWide, legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
+import {
+  isLegacyEdgesFrame,
+  isLegacyGraphFrames,
+  isLegacyNodesFrame,
+  legacyToWide,
+  legacyToWideOperator,
+} from 'lib/echarts/converters/legacyToWide';
 
 const edgesFrame = (): DataFrame =>
   toDataFrame({
@@ -246,6 +252,98 @@ describe('legacyToWide — pass-through', () => {
   it('handles an empty response', () => {
     const frames: DataFrame[] = [];
     expect(legacyToWide(frames)).toBe(frames);
+  });
+});
+
+describe('legacyToWide — detection', () => {
+  // A Prometheus instant table with `Format: Table`. `source`/`target` are ordinary
+  // labels the query grouped by, and the frame is on its way to the user's own
+  // `organize` + `rowsToFields` chain. Claiming it here would widen it first and leave
+  // that chain with none of the columns it filters for — a silent "No data".
+  const prometheusTable = (extra: Array<{ name: string; type: FieldType; values: unknown[] }> = []): DataFrame =>
+    toDataFrame({
+      refId: 'A',
+      fields: [
+        { name: 'Time', type: FieldType.time, values: [1700000000000] },
+        { name: 'source', type: FieldType.string, values: ['a'] },
+        { name: 'target', type: FieldType.string, values: ['b'] },
+        ...extra,
+        { name: 'Value', type: FieldType.number, values: [42] },
+      ],
+    });
+
+  it('does not claim a time-series response that merely has source and target columns', () => {
+    const frames = [prometheusTable()];
+
+    expect(isLegacyEdgesFrame(frames[0])).toBe(false);
+    expect(isLegacyGraphFrames(frames)).toBe(false);
+    expect(legacyToWide(frames)).toBe(frames);
+  });
+
+  it('does not claim one that also has an id column', () => {
+    // The case that actually broke a live dashboard: `label_join` builds `id`, so the
+    // frame carries id + source + target and still is not the row format.
+    const frames = [prometheusTable([{ name: 'id', type: FieldType.string, values: ['a:b'] }])];
+
+    expect(isLegacyEdgesFrame(frames[0])).toBe(false);
+    expect(isLegacyNodesFrame(frames[0])).toBe(false);
+    expect(legacyToWide(frames)).toBe(frames);
+  });
+
+  it('still claims a row-format frame that carries no time field', () => {
+    expect(isLegacyEdgesFrame(edgesFrame())).toBe(true);
+    expect(isLegacyGraphFrames([edgesFrame()])).toBe(true);
+  });
+
+  it('claims a declared node graph even when it carries a time field', () => {
+    // Tempo and X-Ray set this; the declaration is trusted ahead of the heuristic.
+    const declared = toDataFrame({
+      meta: { preferredVisualisationType: 'nodeGraph' },
+      fields: [
+        { name: 'time', type: FieldType.time, values: [1700000000000] },
+        { name: 'id', type: FieldType.string, values: ['e1'] },
+        { name: 'source', type: FieldType.string, values: ['a'] },
+        { name: 'target', type: FieldType.string, values: ['b'] },
+        { name: 'mainstat', type: FieldType.number, values: [1] },
+      ],
+    });
+
+    expect(isLegacyEdgesFrame(declared)).toBe(true);
+  });
+
+  it('reads a declared nodes frame as nodes, not as empty edges', () => {
+    // The declaration describes the response, not the frame. Reading it as "these are
+    // the edges" turned every declared nodes frame into an empty edges frame and lost
+    // every node's title, stat and colour.
+    const declaredNodes = toDataFrame({
+      name: 'nodes',
+      meta: { preferredVisualisationType: 'nodeGraph' },
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['a', 'b'] },
+        { name: 'title', type: FieldType.string, values: ['Gateway', 'API'] },
+        { name: 'mainstat', type: FieldType.number, values: [1, 2] },
+      ],
+    });
+
+    expect(isLegacyEdgesFrame(declaredNodes)).toBe(false);
+    expect(isLegacyNodesFrame(declaredNodes)).toBe(true);
+
+    const [, nodes] = legacyToWide([edgesFrame(), declaredNodes]);
+    expect(nodes.meta?.type).toBe(GRAPH_NODES_WIDE);
+    expect(nodes.fields.map((field) => field.name)).toEqual(['a', 'b']);
+    expect(nodes.fields.map((field) => field.config.displayName)).toEqual(['Gateway', 'API']);
+  });
+
+  it('does not read a datasource table with an id column as nodes', () => {
+    const table = toDataFrame({
+      fields: [
+        { name: 'Time', type: FieldType.time, values: [1700000000000] },
+        { name: 'id', type: FieldType.string, values: ['a'] },
+        { name: 'Value', type: FieldType.number, values: [1] },
+      ],
+    });
+
+    expect(isLegacyNodesFrame(table)).toBe(false);
   });
 });
 
