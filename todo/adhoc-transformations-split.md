@@ -186,10 +186,10 @@ is a closed list of thirteen whose only config targets are `max`, `min`, `unit`,
 `decimals`, `displayName`, `color`, `thresholds` and `mappings`. **Nothing writes
 `config.custom.*` and nothing writes `config.links`**, and `rowsToFields` builds its output
 frame from scratch so `meta` never survives. So every `custom.*` row of the contract's
-[mapping tables](../data-plane/graph-wide.md#complete-mapping-from-graph--long),
+[mapping tables](../src/modules/relations/node-wide-history.md#complete-mapping-from-graph--long),
 `config.links`, and `meta.type: 'graph-edges-wide'` are unreachable through any
 JSON-configured prefix. Full measurements in
-[graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+[node-wide-history.md](../src/modules/relations/node-wide-history.md#what-a-native-pivot-cannot-carry).
 
 Widening the return type to `Array<DataTransformerConfig | CustomTransformOperator>` closes
 that, and it costs nothing downstream, because **both types the prefix flows into already

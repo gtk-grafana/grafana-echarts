@@ -26,7 +26,7 @@ import { map } from 'rxjs';
  * field-based wide contract (`graph-*-wide`) — one node per field, one edge per
  * field.
  *
- * See ../../../../data-plane/graph-wide.md#complete-mapping-from-graph--long for the
+ * See ../../relations/node-wide-history.md#complete-mapping-from-graph--long for the
  * mapping this implements. This is the **only** reader of the row format left in the
  * plugin: the panel itself reads the wide contract exclusively (`graphWide.ts`), so
  * the conversion has to happen *above* the panel to be useful at all. Registered as a
@@ -412,7 +412,7 @@ export function legacyToWide(frames: DataFrame[]): RelationsFamilyFrame[] {
  * `config.custom.*` nor `config.links`, and `rowsToFields` drops `meta` — so
  * `custom.lineWidth`, per-mark links and `meta.type` are all unreachable through a
  * JSON-configured prefix. Measured in
- * ../../../../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry.
+ * ../../relations/node-wide-history.md#what-a-native-pivot-cannot-carry.
  *
  * Two properties of the operator form matter here and are relied on: it is dispatched
  * on `typeof config === 'function'` **before** `standardTransformersRegistry` is read,

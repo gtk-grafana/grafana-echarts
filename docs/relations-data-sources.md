@@ -271,7 +271,7 @@ rendering story, because the shape it wants is the shape Prometheus, Loki and
 `rowsToFields` already produce.
 
 Every recipe below was run against Grafana 13.1.0; the observed outputs are recorded in
-the contract's [Verified behaviours](../data-plane/graph-wide.md#verified-behaviours)
+the contract's [Verified behaviours](../src/modules/relations/node-wide-history.md#verified-behaviours)
 table, and the live panels are in
 `provisioning/dashboards/relations/graph-wide.json`.
 
@@ -294,7 +294,7 @@ Then, in the query editor:
 **The whole topology draws with no transformation at all.** A `Time series` response is
 _many_ frames — one per series, so one per edge — and the reader collects **every** frame
 that looks like edges, so a nine-edge query draws nine edges. That is the contract's
-[Multi variant](../data-plane/graph-wide.md#row-dimension-variants), and it holds on a
+[Multi variant](../data-plane/graph-wide.md#graph-edges-multi-format-graph-edges-multi), and it holds on a
 stock host with no feature flags.
 
 What you still need the legend format for is **identity**. Without one, every frame's value
@@ -436,7 +436,7 @@ The last two rows matter for more than fidelity: because `meta` does not survive
 transformation can set `meta.type: 'graph-edges-wide'`, and a frame that carried no `refId`
 comes out as the literal `rowsToFields-undefined` — so both pivoted frames share a refId and
 can no longer be told apart by one. Full measurements:
-[../data-plane/graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+[node-wide-history.md](../src/modules/relations/node-wide-history.md#what-a-native-pivot-cannot-carry).
 
 **This is the reason the recipe below is a debugging aid rather than the shipping plan.** A
 faithful conversion has to write `custom.*`, `links` and `meta`, which no core transformation
@@ -483,7 +483,7 @@ For a dense topology, `Grouping to matrix` (Column = `target`, Row = `source`, C
 node instead of one per edge, so the field count grows as N rather than N². Observed
 specifics — the key column is named `source\target`, columns appear in first-appearance
 order, and the frame is not square — are in the contract's
-[adjacency matrix section](../data-plane/graph-wide.md#dense-graphs-the-adjacency-matrix-variant),
+[adjacency matrix section](../data-plane/graph-matrix.md),
 along with the trade-off: node overrides work, per-edge overrides do not, because an edge
 is a cell.
 

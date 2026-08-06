@@ -5,11 +5,12 @@ A **node graph** visualizes elements (nodes) and the relationships between them
 frame and an optional **nodes** frame, with **one row per node and one row per
 edge**.
 
-> **This is the legacy form, and it stays supported.** Everything below is accurate
-> and current: it is the format Tempo, AWS X-Ray and TestData emit natively, it is
-> published on the core Node graph panel's
-> [Data API](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/node-graph/#data-api),
-> and it is what `frameToNodeGraph` reads today.
+> **The spec for this format is [graph-long.md](./graph-long.md).** This doc is the
+> plugin-facing companion: how the frames are detected, what the converter does with each
+> column, and which of them survive the trip to ECharts. It stays supported — it is the
+> format Tempo, AWS X-Ray and TestData emit natively, and it is published on the core Node
+> graph panel's
+> [Data API](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/node-graph/#data-api).
 >
 > Read alongside it: **[graph-wide.md](./graph-wide.md)**, a field-based contract
 > (`graph-nodes-wide` / `graph-edges-wide`) in which one node is one **field** and one
@@ -371,6 +372,7 @@ const nodesWithArcs = toDataFrame({
 
 ## References
 
+- The spec for this format: [graph-long.md](./graph-long.md)
 - The field-based alternative: [graph-wide.md](./graph-wide.md), and its rewrite plan
   [../todo/graph-wide-migration.md](../todo/graph-wide-migration.md)
 - Node graph panel Data API:

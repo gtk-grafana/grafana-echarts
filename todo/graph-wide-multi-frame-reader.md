@@ -5,7 +5,7 @@
 > about the `graph-*-wide` contract changes. The reader simply starts honouring a
 > row-dimension variant the contract already specifies and calls **Multi**
 > (`graph-edges-multi`) —
-> [Row dimension variants](../data-plane/graph-wide.md#row-dimension-variants) — and which
+> [Row dimension variants](../data-plane/graph-wide.md#graph-edges-multi-format-graph-edges-multi) — and which
 > nothing has ever read.
 >
 > Everything under [What was measured](#what-was-measured) was run in this checkout or read
@@ -17,7 +17,7 @@
 
 Make the collection plural and keep `RelationLink.id === field.name`. The contract's first
 sentence is _"identity is `field.name`"_ (`graphWide.ts:22`,
-[graph-wide.md](../data-plane/graph-wide.md#identity-display-names-and-override-targeting)),
+[graph-wide.md](../data-plane/graph-wide.md#identity)),
 and a reader that mints its own ids breaks that invariant to buy an id no override can
 match — worse than an honest duplicate. Duplicates are harmless everywhere except one
 place: `getRelationsTooltipMarks` keys its link map by `id` (`tooltip/relations.ts:44-57`),
@@ -59,7 +59,7 @@ Three reasons, in decreasing order of force.
    `legacyToWide` maps per frame (`converters/legacyToWide.ts:373-393`); today the second
    is silently dropped. `joinByField` cannot merge two already-wide frames without
    colliding their names, and `groupingToMatrix` returns its input unchanged on any
-   multi-frame response ([graph-wide.md](../data-plane/graph-wide.md#dense-graphs-the-adjacency-matrix-variant)).
+   multi-frame response ([graph-matrix.md](../data-plane/graph-matrix.md)).
 3. **The reader is where the shape is unambiguous.** `longToWide` has to _decide_ whether a
    labelled series is long or is a single-edge wide frame with a row dimension — an
    inherent ambiguity it now warns about (`isLongEdgesFrame`, `converters/longToWide.ts:97-109`,
@@ -181,7 +181,7 @@ support (a `byName` against the display name), and then it silently paints on ev
 **Do not synthesise `RelationLink.id`.** Four arguments, strongest first:
 
 1. **It is the contract's invariant.** `graphWide.ts:19-30` and
-   [graph-wide.md](../data-plane/graph-wide.md#edges-frame--graph-edges-wide) both define
+   [graph-wide.md](../data-plane/graph-wide.md#graph-edges-wide-format-graph-edges-wide) both define
    `field.name` as "edge id, **and the stable override target**". A minted id is not an
    override target: `byNames`/`byName` compare against `field.name` or the display name
    (`nameMatcher.mjs:12-49`), and a synthetic `a-->b` is neither. The user would be shown
@@ -233,7 +233,7 @@ list.
 
 - `byName` on the raw name cannot target one edge of a `Value`-named response, and the
   override picker lists `Value` once per frame. The contract already states this
-  ([Identity](../data-plane/graph-wide.md#identity-display-names-and-override-targeting)):
+  ([Identity](../data-plane/graph-wide.md#identity)):
   _"a field named `Value` … makes `byName: 'Value'` match **every** edge at once"_. The fix
   is at the source — a legend format, or the pivot — not in the reader.
 - The display-name route (`byName: '{source="a", target="b"}'`, `byRegexp`) does work, and
@@ -450,7 +450,7 @@ a new multi-frame canvas case would only assert what `graphWide.test.ts` already
   visible either way.
 - Performance: unchanged per field, and the collection is one extra `filter` pass. The
   contract's ceiling is per-frame field count, which this does not raise
-  ([Performance](../data-plane/graph-wide.md#performance-which-frame-shape-is-cheapest)).
+  ([Performance](../src/modules/relations/node-wide-history.md#performance-which-frame-shape-is-cheapest)).
 
 **What becomes possible that is not today:**
 
@@ -493,8 +493,8 @@ the configuration the change exists for.
 
 - The contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md) —
   [Frame role resolution](../data-plane/graph-wide.md#frame-role-resolution),
-  [Row dimension variants](../data-plane/graph-wide.md#row-dimension-variants),
-  [Identity](../data-plane/graph-wide.md#identity-display-names-and-override-targeting)
+  [Row dimension variants](../data-plane/graph-wide.md#graph-edges-multi-format-graph-edges-multi),
+  [Identity](../data-plane/graph-wide.md#identity)
 - The migration this extends: [graph-wide-migration.md](./graph-wide-migration.md), phases 4
   and 5 for the override-universe and per-mark-tooltip reasoning
 - Why the conversion has to run above the panel:
