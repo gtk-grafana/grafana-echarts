@@ -36,13 +36,29 @@ ignored (see [time-series.md](./time-series.md) for the chart that does read it)
 There is no data-driven detection for this family. Every nested panel fixes its
 own family, and the multivariate family resolves `'Auto'` **unconditionally** to
 `'radar'` (`resolveAutoSeriesType` in `src/lib/echarts/charts/autoSeriesType.ts`)
-— it never inspects the frames, because radar is the family's only implemented
-render type.
+— it never inspects the frames. Radar and parallel coordinates read the identical
+categorical model, so there is no frame shape that would pick one over the other;
+`'radar'` is simply the family's default.
 
 The only data-sensitive signal is the Visualization Suggestions supplier
 (`src/modules/multivariate/suggestions.ts`), which scores through
-`scoreMultivariate` (`src/lib/echarts/charts/fitness.ts`): it offers the panel
-only when the frame summary has **at least two numeric fields**.
+`scoreMultivariate` (`src/lib/echarts/charts/fitness.ts`). It offers Radar and
+Parallel cards when all three hold:
+
+- a **snapshot shape** — a Numeric dataplane frame, instant data, or no `time`
+  field at all. A multi-point time series can no longer reach this family.
+- **axes** (`rowCountMax`) in `[MULTIVARIATE_MIN_AXES, MULTIVARIATE_MAX_AXES]`
+  (3–50). Axes come from _rows_, because `frameToCategorical` turns each row into
+  one indicator — and it reads a single frame, so this is `rowCountMax` rather than
+  `rowCountTotal`. Fewer than three is a line, not a polygon.
+- **polygons** (numeric field count) in `[2, MULTIVARIATE_MAX_SERIES]` (2–12). One
+  polygon has nothing to be compared against.
+
+The axis ceiling is what stops the crash this family shipped with: the gate used to
+be "at least two numeric fields" and nothing else, so a 500-series Prometheus
+response scored fit and `radarToEChartsOption` was handed 500 axes. Suggestion
+previews additionally truncate to `MULTIVARIATE_PREVIEW_MAX_ROWS` (25) rows, so a
+card draws 25 indicators at most — see [performance.md](../docs/performance.md).
 
 ## How a frame is read
 
