@@ -816,7 +816,7 @@ not through `transformDataFrame` inside `transform()`.
   [graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md)
 - The release gate: [graph-wide-migration.md](./graph-wide-migration.md#the-release-prerequisite)
 - The contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
-- The legacy form: [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- The row form: [../data-plane/graph-long.md](../data-plane/graph-long.md)
 - Proof dashboard: `provisioning/dashboards/relations/graph-wide.json`
 - Where a wide frame currently throws: `src/lib/echarts/converters/nodeGraph.ts:355`
 

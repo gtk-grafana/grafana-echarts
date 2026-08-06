@@ -179,7 +179,7 @@ is a node-only option today, undocumented as such.
 
 `colorAt` deliberately ignores a numeric `color` value and says the options layer will
 shade it by the field's scheme (`nodeGraph.ts:154-162`), matching the frame spec
-([data-plane/node-graph.md:116](../data-plane/node-graph.md)). The options layer only
+([data-plane/graph-long.md](../data-plane/graph-long.md)). The options layer only
 ever looks at `mainstat`, so a numeric `color` column is dropped on the floor.
 
 ### Not a cause
@@ -430,7 +430,7 @@ Ordered, each independently reviewable. Nothing here is implemented.
    [parity.md:174](../src/modules/relations/parity.md) (it currently claims three tiers
    that do not all work), add the edge-scheme and B3-rejected notes to its gaps list, and
    cross-reference the numeric-`color` behaviour in
-   [data-plane/node-graph.md:116](../data-plane/node-graph.md).
+   [data-plane/graph-long.md](../data-plane/graph-long.md).
 
 ## References
 
@@ -443,4 +443,4 @@ Ordered, each independently reviewable. Nothing here is implemented.
   https://grafana.com/developers/plugin-tools/how-to-guides/panel-plugins/field-overrides.md
 - Custom option editors (needed only if B4 is ever revisited):
   https://grafana.com/developers/plugin-tools/how-to-guides/panel-plugins/custom-panel-option-editors.md
-- Frame spec for the fields involved: [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- Frame spec for the fields involved: [../data-plane/graph-long.md](../data-plane/graph-long.md)

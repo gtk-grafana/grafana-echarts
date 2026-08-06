@@ -1239,7 +1239,7 @@ const nodes = option.data || option.nodes || [];
 
 so one `{ nodes, links }` model still drives all three, and a variant switch is still a
 layout change rather than a data change. See
-[node-graph.md](../../../data-plane/node-graph.md#echarts-data-specification) for the shared series table
+[echarts-coverage.md](../../../data-plane/echarts-coverage.md) for the shared series table
 and [echarts-coverage.md](../../../data-plane/echarts-coverage.md) for why `series.lines` is not fed by
 this kind either (it wants explicit coordinate polylines, which no Grafana frame
 carries).

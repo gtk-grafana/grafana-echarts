@@ -220,7 +220,7 @@ that — the flame-graph nested set (`level` plus depth-first row order), which 
 why it is the only multi-level input this converter accepts. A parent-id/child-id
 edge table would also encode a tree, but Grafana has **no data plane convention**
 for one (the closest is the node graph, which is a general digraph — see
-[node-graph.md](./node-graph.md)), so nothing reads it. Any other flat frame
+[graph-wide.md](./graph-wide.md)), so nothing reads it. Any other flat frame
 degenerates to the single-level forest described above. See
 [echarts-coverage.md](./echarts-coverage.md) for the wider ECharts surface.
 

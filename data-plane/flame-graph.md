@@ -4,7 +4,7 @@ A **flame graph** visualizes hierarchical profiling data (a call tree weighted b
 CPU time, memory, samples, ...). Grafana models it as a **single** column-oriented
 data frame in a **nested set model**.
 
-> **Not a data plane contract kind.** Like [node-graph.md](./node-graph.md), flame
+> **Not a data plane contract kind.** Like the [graph kinds](./graph-wide.md), flame
 > graph is **out of the Grafana data plane contract**. It carries no
 > `frame.meta.type`. Grafana identifies it through a separate routing signal
 > (`frame.meta.preferredVisualisationType`).

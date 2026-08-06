@@ -797,10 +797,10 @@ Three verdicts:
 | Two SQL Expressions to reshape Prometheus                              | `relations-data-sources.md`                     | **Closed**         | One `legendFormat` **and one `joinByField`** — a `Time series` response is one frame per edge. Panel 18 of the proof dashboard |
 | Instant queries mandatory                                              | `relations-data-sources.md`                     | **Closed**         | A range query is a row dimension, reduced by `calcs[0]`                                                                        |
 
-### Every field of `node-graph.md`
+### Every field of `graph-long.md`
 
 Exhaustive: every field of both tables in
-[node-graph.md](../data-plane/node-graph.md). The wide-form target for each is in
+[graph-long.md](../data-plane/graph-long.md). The wide-form target for each is in
 [the contract's mapping](../src/modules/relations/node-wide-history.md#complete-mapping-from-graph--long);
 this table adds the verdict.
 
@@ -975,7 +975,7 @@ how the cycle policy was demonstrated at all.
 | **The comparison is no longer of _panels_ but of _pipelines_**                | A reviewer looking at a difference cannot tell whether the panel or the reshaping caused it. That is a real loss of diagnostic value, not a cosmetic one                                                                             |
 | **`arc__*`, `icon`, `detail__*`, `isinstrumented` parity becomes untestable** | These are the four long-form fields this plugin already drops or approximates. Today the parity claim is checkable against core on one query; wide-only makes it a claim about a transformed frame                                   |
 | **Core interop becomes strictly one-directional**                             | A user cannot point core's Node graph at a wide frame at all, so a dashboard mixing the two panels needs both formats queried. The reverse transformation (wide → long) is the core change named in the contract's out-of-scope list |
-| **Documentation debt doubles rather than halves**                             | `data-plane/node-graph.md` must stay — it documents a published core format — but it would no longer describe anything this plugin reads, so the folder carries a spec with no consumer                                              |
+| **Documentation debt doubles rather than halves**                             | `data-plane/graph-long.md` must stay — it documents a published core format — but it would no longer describe anything this plugin reads, so the folder carries a spec with no consumer                                              |
 
 ### The narrow case for dropping it anyway
 
@@ -1068,7 +1068,7 @@ transforms.
 ## References
 
 - The contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
-- The legacy format, still supported: [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- The row format, still supported: [../data-plane/graph-long.md](../data-plane/graph-long.md)
 - Proof dashboard: `provisioning/dashboards/relations/graph-wide.json`
 - Sourcing: [../docs/relations-data-sources.md](../docs/relations-data-sources.md)
 - The question this answers: [relations-item-overrides.md](./relations-item-overrides.md)

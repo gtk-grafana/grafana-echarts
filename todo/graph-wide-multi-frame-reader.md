@@ -5,7 +5,7 @@
 > about the `graph-*-wide` contract changes. The reader simply starts honouring a
 > row-dimension variant the contract already specifies and calls **Multi**
 > (`graph-edges-multi`) —
-> [Row dimension variants](../data-plane/graph-wide.md#graph-edges-multi-format-graph-edges-multi) — and which
+> [the multi format](../data-plane/graph-multi.md) — and which
 > nothing has ever read.
 >
 > Everything under [What was measured](#what-was-measured) was run in this checkout or read
@@ -493,7 +493,7 @@ the configuration the change exists for.
 
 - The contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md) —
   [Frame role resolution](../data-plane/graph-wide.md#frame-role-resolution),
-  [Row dimension variants](../data-plane/graph-wide.md#graph-edges-multi-format-graph-edges-multi),
+  [the multi format](../data-plane/graph-multi.md),
   [Identity](../data-plane/graph-wide.md#identity)
 - The migration this extends: [graph-wide-migration.md](./graph-wide-migration.md), phases 4
   and 5 for the override-universe and per-mark-tooltip reasoning

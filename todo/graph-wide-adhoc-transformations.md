@@ -530,7 +530,7 @@ anyone acts on them.
 **This repo**
 
 - The contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
-- The legacy form: [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- The row form: [../data-plane/graph-long.md](../data-plane/graph-long.md)
 - The rewrite plan and the asymmetry this doc tested:
   [graph-wide-migration.md](./graph-wide-migration.md)
 - The question that started it: [relations-item-overrides.md](./relations-item-overrides.md)

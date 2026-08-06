@@ -20,6 +20,8 @@ Related kinds:
 
 - [graph-long.md](./graph-long.md) — the row formats, `graph-nodes-long` /
   `graph-edges-long`, which every graph-native datasource emits today.
+- [graph-multi.md](./graph-multi.md) — the same contract as this one, spread one mark per
+  **frame**, for responses whose marks do not share a row grid.
 - [graph-matrix.md](./graph-matrix.md) — an adjacency-matrix edges format, proposed and
   rejected.
 
@@ -195,50 +197,6 @@ where there is a row dimension to reduce differently.
 Reducing "all values" is not part of this kind: it would make one mark per row, and a mark
 is a field.
 
-## Graph Edges Multi Format (`graph-edges-multi`)
-
-Version: 0.1
-
-One frame per edge — the shape a labelled datasource returns from
-`sum by (source, target) (…)` with no reshaping at all. It stands to
-`graph-edges-wide` as `timeseries-multi` stands to `timeseries-wide`: the same contract
-spread across _multiple_ frames, one value field each.
-
-**Example:** two edges, ranged.
-
-Frame 0:
-
-| **Type: Time**<br>**Name: Time**<br>**Labels: nil** | **Type: Number**<br>**Name: a-->b**<br>**Labels: {"source": "a", "target": "b"}** |
-| --------------------------------------------------- | --------------------------------------------------------------------------------- |
-| 2026-08-06 5:00                                     | 60                                                                                |
-| 2026-08-06 5:01                                     | 55                                                                                |
-
-Frame 1:
-
-| **Type: Time**<br>**Name: Time**<br>**Labels: nil** | **Type: Number**<br>**Name: a-->c**<br>**Labels: {"source": "a", "target": "c"}** |
-| --------------------------------------------------- | --------------------------------------------------------------------------------- |
-| 2026-08-06 5:00                                     | 40                                                                                |
-| 2026-08-06 5:01                                     | 45                                                                                |
-
-It should have the following properties:
-
-- One value field per frame, carrying the endpoint labels.
-- Timestamps need not align across frames, which is the reason to use this format over
-  `graph-edges-wide`.
-- Every property of [`graph-edges-wide`](#graph-edges-wide-format-graph-edges-wide) applies
-  per field.
-
-**Name the value fields.** A datasource that leaves every value field called `Value`
-produces N marks with one id: `byName: 'Value'` then matches every edge at once and the
-override picker lists `Value` once per frame. A `legendFormat` — or any producer-side
-naming — fixes this at the source; a consumer cannot, because it cannot create a field for
-an override to land on.
-
-Remainder data:
-
-- Value fields past the first in a frame.
-- Additional frames with a different or absent role.
-
 ## Frame role resolution
 
 In precedence order:
@@ -263,8 +221,8 @@ frames that declare nothing, in this order:
 ### A role is one-to-many
 
 A role maps to a **list** of frames, not to one. Every frame that claims a role contributes
-its marks — which is what makes [Multi](#graph-edges-multi-format-graph-edges-multi)
-readable, and is the only place two edges frames from two queries can be unioned.
+its marks — which is what makes [graph-multi.md](./graph-multi.md) readable, and is the
+only place two edges frames from two queries can be unioned.
 
 Two rules keep the plural reading well defined:
 
@@ -301,13 +259,13 @@ export enum DataFrameType {
   GraphNodesWide = 'graph-nodes-wide',
   /** One field per edge; endpoints in `field.labels`. */
   GraphEdgesWide = 'graph-edges-wide',
-  /** One row per node. */
-  GraphNodesLong = 'graph-nodes-long',
-  /** One row per edge. */
-  GraphEdgesLong = 'graph-edges-long',
+
+  // The sibling formats propose their own members:
+  // graph-nodes-long / graph-edges-long   — graph-long.md
+  // graph-nodes-multi / graph-edges-multi — graph-multi.md
 }
 
-/** The shape of `frame.meta.custom.graph` for either graph kind. Optional. */
+/** The shape of `frame.meta.custom.graph`, for any graph format. Optional. */
 export interface GraphFrameMeta {
   /** Label key holding an edge's source node id. Default `'source'`. */
   sourceKey?: string;
@@ -365,8 +323,9 @@ against — so it would look addressable while being unaddressable.
 | `graph-edges-wide`  | `graph-edges-multi` | **No**        | Split one frame into one frame per field                                                                                                |
 | `graph-*-wide`      | `graph-*-long`      | Yes           | Lossy. Per-mark `config` has no column to go to, so colour, unit, links, thresholds and style are dropped                               |
 
-\* Only where the timestamps can be aligned. Where they cannot, `graph-edges-multi` is the
-only format that fits, which is the reason it exists.
+\* Only where the row dimensions can be aligned. Where they cannot,
+[`graph-edges-multi`](./graph-multi.md) is the only format that fits, which is the reason
+it exists.
 
 Core's **Rows to fields** transformation performs the long→wide pivot for anything
 table-shaped, with no options: it takes the first `string` field as the field name, the
@@ -396,6 +355,7 @@ write `custom.*` or `links` — those need a producer or a purpose-built transfo
 - Numeric kind, which these formats specialise:
   https://grafana.com/developers/dataplane/numeric
 - The row formats: [graph-long.md](./graph-long.md)
+- The one-frame-per-mark formats: [graph-multi.md](./graph-multi.md)
 - The rejected matrix format: [graph-matrix.md](./graph-matrix.md)
 - `DataFrameType`:
   https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/types/dataFrameTypes.ts
@@ -403,6 +363,6 @@ write `custom.*` or `links` — those need a producer or a purpose-built transfo
   https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#rows-to-fields
 - Field overrides:
   https://grafana.com/docs/grafana/latest/panels-visualizations/configure-overrides/
-- How this plugin reads the kind: [node-graph.md](./node-graph.md)
+- How the relations family draws a graph: [echarts-coverage.md](./echarts-coverage.md)
 - Why the kind is shaped this way, with the measurements behind every rule:
   [../src/modules/relations/node-wide-history.md](../src/modules/relations/node-wide-history.md)

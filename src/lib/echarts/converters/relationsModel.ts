@@ -13,7 +13,7 @@ import { type Field } from '@grafana/data';
  * converted to the wide form *above* the panel by the transformation this plugin
  * registers (`legacyToWide.ts`, `modules/relations/dataTransformations.ts`), so that
  * every mark exists as a field before field overrides are applied. The row format
- * itself is still documented in ../../../../data-plane/node-graph.md, because it is
+ * itself is still documented in ../../../../data-plane/graph-long.md, because it is
  * what the conversion reads.
  */
 

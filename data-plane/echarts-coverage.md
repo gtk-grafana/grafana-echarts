@@ -62,13 +62,13 @@ Verdicts use exactly four buckets:
 | `map`           | `[{ name: <regionName>, value }, ...]` plus a GeoJSON registered via `registerMap`          | Any frame with a region-name string field and a numeric field       | needs a reshape or an out-of-contract frame | Throws — **out of scope this pass**                                                                                                                                                  |
 | `parallel`      | `[[d0, d1, ..., dn], ...]`; one row per polyline, one `parallelAxis` per dimension          | `NumericWide` — every numeric field becomes an axis                 | works today                                 | Enabled — [multivariate.md](./multivariate.md)                                                                                                                                       |
 | `lines`         | `[{ coords: [[x1, y1], [x2, y2], ...] }, ...]`; polylines in cartesian, geo or single axis  | none — no kind carries coordinate-pair polylines                    | no Grafana source                           | Throws — deferred, [../todo/lines.md](../todo/lines.md); [stream.md](./stream.md) covers why single-axis does not rescue it                                                          |
-| `graph`         | `data`/`nodes` plus `links`/`edges`; arbitrary topology, cycles allowed                     | Node graph nodes + edges frames                                     | works today                                 | Enabled — [node-graph.md](./node-graph.md)                                                                                                                                           |
-| `sankey`        | `data`/`nodes` plus `links`/`edges`, **DAG only** (see below)                               | Node graph nodes + edges frames                                     | works today (converter breaks cycles)       | Enabled — [node-graph.md](./node-graph.md)                                                                                                                                           |
+| `graph`         | `data`/`nodes` plus `links`/`edges`; arbitrary topology, cycles allowed                     | Node graph nodes + edges frames                                     | works today                                 | Enabled — [graph-wide.md](./graph-wide.md)                                                                                                                                           |
+| `sankey`        | `data`/`nodes` plus `links`/`edges`, **DAG only** (see below)                               | Node graph nodes + edges frames                                     | works today (converter breaks cycles)       | Enabled — [graph-wide.md](./graph-wide.md)                                                                                                                                           |
 | `funnel`        | `[{ name, value }, ...]`; same slice model as `pie`                                         | Same as `pie`                                                       | works today                                 | Enabled — [part-to-whole.md](./part-to-whole.md)                                                                                                                                     |
 | `gauge`         | `[{ name, value }, ...]`, normally one item                                                 | Any numeric frame reduced to a single value                         | good fit, needs a converter                 | Throws                                                                                                                                                                               |
 | `pictorialBar`  | Bar data (`number[]` or `[[x, y]]`) plus a `symbol` (path/image) per item                   | Same as `bar`                                                       | good fit, needs a converter                 | Throws                                                                                                                                                                               |
 | `themeRiver`    | Flat `[[time, value, name], ...]` triples (see below)                                       | `TimeSeriesLong`, or wide/multi (one layer per numeric field)       | works today                                 | Enabled — [stream.md](./stream.md)                                                                                                                                                   |
-| `chord`         | `data`/`nodes` plus `links`/`edges` with weights; new in 6.0.0 (see below)                  | Node graph nodes + edges frames                                     | works today                                 | Enabled — [node-graph.md](./node-graph.md)                                                                                                                                           |
+| `chord`         | `data`/`nodes` plus `links`/`edges` with weights; new in 6.0.0 (see below)                  | Node graph nodes + edges frames                                     | works today                                 | Enabled — [graph-wide.md](./graph-wide.md)                                                                                                                                           |
 | `custom`        | No fixed spec — whatever `renderItem` reads, addressed through `encode`                     | Anything, by construction                                           | works today                                 | Registered but not routable — [heatmap-binned.md](./heatmap-binned.md)                                                                                                               |
 
 ### Counts
@@ -98,6 +98,33 @@ group left out, and deliberately — it needs coordinate-pair polylines, which n
 Grafana frame carries. See [../todo/node-graph.md](../todo/node-graph.md) for the
 three that shipped and [../todo/lines.md](../todo/lines.md) for why the fourth did
 not.
+
+"Identical input" is literal. `getInitialData` in `GraphSeries.ts`, `SankeySeries.ts`
+and `ChordSeries.ts` reads the same two keys with the same precedence, then builds
+the graph with the shared `createGraphFromNodeEdge` helper:
+
+```javascript
+const edges = option.edges || option.links || [];
+const nodes = option.data || option.nodes || [];
+```
+
+So one `{ nodes, links }` model feeds all three, and switching between them is a
+layout change rather than a data change. What differs:
+
+| Series   | Coordinate system         | Topology accepted        | Link `value` |
+| -------- | ------------------------- | ------------------------ | ------------ |
+| `graph`  | own `View` (self-created) | any digraph, cycles fine | optional     |
+| `sankey` | self-layout (`box`)       | **DAG only**             | **required** |
+| `chord`  | pinned `'none'`           | any digraph, cycles fine | required     |
+
+`sankey` sizes each ribbon from `edge.getValue()` (`edgeDy = +edge.getValue() * minKy`
+in `sankeyLayout.ts`), so a link without a numeric value collapses to zero height.
+`graph` uses link values only for tooltips and `visualMap`; edge thickness comes from
+`lineStyle.width`.
+
+All three are **hand-built only** — `getInitialData` reads `option.data`/`nodes`/`links`
+literally and never goes through `getSource()`, so an ECharts `dataset` is invisible to
+them and a converter must emit arrays.
 
 `custom` is the odd one out: `CustomChart` **is** registered in
 `src/lib/echarts/echarts.ts` and the binned heatmap renders through it
@@ -290,7 +317,7 @@ service graphs routinely contain cycles (retries, bidirectional RPC, A→B→A c
 chains). Any sankey converter therefore needs an explicit cycle policy (detect
 and drop back-edges, or refuse and fall back) rather than passing edges through.
 `graph` and `chord` have no such restriction. See
-[node-graph.md](./node-graph.md) for the edges/nodes frame format.
+[graph-wide.md](./graph-wide.md) for the edges/nodes frame format.
 
 **Implemented** in `src/lib/echarts/converters/dag.ts`: the sankey path drops
 self-loops, merges duplicate `source → target` pairs, and removes back-edges found

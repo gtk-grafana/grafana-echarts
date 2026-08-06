@@ -8,7 +8,7 @@ options in
 [`panelcfg.cue`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/panelcfg.cue)).
 
 Both are fed from the same query. Core's Node graph reads Grafana's node-graph frame pair
-directly ([data-plane/node-graph.md](../../../data-plane/node-graph.md) has the field spec,
+directly ([data-plane/graph-long.md](../../../data-plane/graph-long.md) has the field spec,
 and [docs/relations-data-sources.md](../../../docs/relations-data-sources.md) which data
 sources produce it); this module reads the **field-based** contract those frames are
 converted to above the panel, so a byte-identical query still feeds both and the
@@ -299,7 +299,7 @@ frames can legitimately show a different number of links.
   a multi-section ring around a node. Core's Node graph draws proportional arc
   segments; this panel does not, and the proportions are lost. A faithful version
   needs a `custom` series or a composed pie symbol. Tracked in
-  [data-plane/node-graph.md](../../../data-plane/node-graph.md).
+  [data-plane/graph-long.md](../../../data-plane/graph-long.md).
 - **`icon` is dropped.** The values are Grafana built-in icon names and need resolving
   to an ECharts `symbol` before they could be used.
 - **`detail__*` has no context menu.** Core surfaces these in a node/edge context menu

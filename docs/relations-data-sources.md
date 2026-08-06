@@ -5,7 +5,7 @@ chart family (ECharts `graph`, `sankey`, `chord`), and how to reshape the ones t
 cannot.
 
 The frame format itself is specced in
-[../data-plane/node-graph.md](../data-plane/node-graph.md); the proposed panel is in
+[../data-plane/graph-long.md](../data-plane/graph-long.md); the proposed panel is in
 [../todo/node-graph.md](../todo/node-graph.md). This doc is about **sourcing** the
 data, which is the practical blocker: the family needs a nodes + edges frame pair,
 and the three data sources most Grafana users have — Prometheus, Loki and SQL —
@@ -79,7 +79,7 @@ Two things worth knowing before relying on it:
 - **`random` deliberately creates cycles** — `generateRandomNodes` has a loop
   commented _"Add some random edges to create possible cycle"_. That makes it a
   useful adversarial fixture for sankey (which
-  [throws in production on cyclic input](../data-plane/node-graph.md#pitfalls-for-a-converter)),
+  [throws in production on cyclic input](../data-plane/echarts-coverage.md#sankey-is-dag-only)),
   and a reason not to point a naive sankey at it.
 
 ## Use case 1 — Prometheus
@@ -294,7 +294,7 @@ Then, in the query editor:
 **The whole topology draws with no transformation at all.** A `Time series` response is
 _many_ frames — one per series, so one per edge — and the reader collects **every** frame
 that looks like edges, so a nine-edge query draws nine edges. That is the contract's
-[Multi variant](../data-plane/graph-wide.md#graph-edges-multi-format-graph-edges-multi), and it holds on a
+[multi format](../data-plane/graph-multi.md), and it holds on a
 stock host with no feature flags.
 
 What you still need the legend format for is **identity**. Without one, every frame's value
@@ -497,7 +497,7 @@ fields` is the per-row path.
 
 ## References
 
-- Node graph frame format (legacy rows): [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- Node graph frame format (rows): [../data-plane/graph-long.md](../data-plane/graph-long.md)
 - Field-based contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
 - Rewrite plan: [../todo/graph-wide-migration.md](../todo/graph-wide-migration.md)
 - Proposed panel: [../todo/node-graph.md](../todo/node-graph.md)

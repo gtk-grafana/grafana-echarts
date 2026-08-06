@@ -17,7 +17,7 @@ import { type RelationLink } from 'lib/echarts/converters/relationsModel';
  * This is not expressible as a user option: the only alternative to breaking a
  * cycle is crashing. `graph` and `chord` accept any digraph and never call this.
  *
- * See ../../../../data-plane/node-graph.md ("Pitfalls for a converter") and the
+ * See ../../../../data-plane/echarts-coverage.md ("Sankey is DAG-only") and the
  * `sankey` row in ../../../../data-plane/echarts-coverage.md.
  */
 

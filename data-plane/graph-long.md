@@ -242,4 +242,4 @@ it cannot write into `custom.*` or `links`; those columns degrade to labels. See
 - Grafana data plane contract: https://grafana.com/developers/dataplane/
 - Numeric kind, which this specialises: https://grafana.com/developers/dataplane/numeric
 - The field-based counterpart: [graph-wide.md](./graph-wide.md)
-- How this plugin reads the kind, and the ECharts mapping: [node-graph.md](./node-graph.md)
+- How the relations family draws a graph: [echarts-coverage.md](./echarts-coverage.md)

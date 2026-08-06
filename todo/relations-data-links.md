@@ -49,7 +49,7 @@ panel _"Dense adjacency — what a chord is for"_.
 Everywhere else in Grafana this is a **field override**: pick a field, attach
 `config.links`. Relations data does not have the shape that assumes. A node-graph
 response is a nodes frame plus an edges frame
-([data-plane/node-graph.md](../data-plane/node-graph.md)) where **each node and each
+([data-plane/graph-long.md](../data-plane/graph-long.md)) where **each node and each
 edge is a _row_**, and every node shares the same handful of columns (`id`, `title`,
 `mainstat`, ...). There is no field that means "eu-west", so there is no `byName`
 matcher that selects it. `FieldMatcherID` in `@grafana/data` offers `byName`,
@@ -231,7 +231,7 @@ an empty href silently meaningful. Needs an explicit decision, not a drive-by.
 **D. Invent a `link__*` frame convention.**
 A column whose values are URLs, rendered as one footer link per row. Fully per-row, but
 it adds a field to a spec this repo deliberately mirrors rather than extends
-([data-plane/node-graph.md](../data-plane/node-graph.md)), duplicates what C achieves
+([data-plane/graph-long.md](../data-plane/graph-long.md)), duplicates what C achieves
 with stock Grafana, and would have to be argued upstream to be worth anything.
 
 **E. A panel option mapping node id → link.**
