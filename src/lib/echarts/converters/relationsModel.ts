@@ -1,4 +1,5 @@
 import { type Field } from '@grafana/data';
+import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
 
 /**
  * Chart-agnostic node/link model shared by the relations family's render variants
@@ -138,4 +139,16 @@ export interface RelationLink {
 export interface NodeGraphData {
   nodes: RelationNode[];
   links: RelationLink[];
+  /**
+   * The label keys the **datasource** carried this response's endpoints under, when they are
+   * not the contract's own `source`/`target`.
+   *
+   * Topology never reads this — every link above already resolved its endpoints — and no mark
+   * renders differently because of it. Its one consumer is the tooltip footer's ad-hoc
+   * filters, which have to write a key the datasource will recognise: a response grouped by
+   * `client`/`server` filters on nothing at all under `source="web-api"`. Unset means the
+   * canonical pair, which is both the contract's answer and the right one for a response that
+   * really did group by it. See `resolveEndpointLabelKeys` and `relationsFilterLabels`.
+   */
+  endpointLabels?: GraphEndpointKeys;
 }

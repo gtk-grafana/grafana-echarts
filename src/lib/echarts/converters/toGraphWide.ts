@@ -1,9 +1,21 @@
-import { type DataFrame, type DataFrameType, type Field, formatLabels, type Labels } from '@grafana/data';
 import {
+  type DataFrame,
+  type DataFrameType,
+  type Field,
+  formatLabels,
+  type Labels,
+  type QueryResultMeta,
+} from '@grafana/data';
+import {
+  CANONICAL_ENDPOINT_KEYS,
   EDGE_SEPARATOR,
+  ENDPOINT_LABEL_PAIRS,
   GRAPH_EDGES_WIDE,
+  GRAPH_META_CUSTOM,
   GRAPH_NODES_WIDE,
   GRAPH_TYPE_VERSION,
+  type GraphEndpointKeys,
+  isCanonicalEndpointKeys,
   SOURCE_LABEL,
   TARGET_LABEL,
 } from 'lib/echarts/converters/graphWide';
@@ -58,11 +70,23 @@ export function edgeLabels(extra: Labels, { source, target }: { source: string; 
  * What is left is what actually distinguishes two marks joining the same node pair
  * (`protocol`, `connection_type`, …), which is why both the pivot and the reader reach for
  * it as the discriminator in {@link uniqueId}.
+ *
+ * `keys` is the pair the endpoints were actually *read* from, which is not always the pair
+ * this module writes: a response labelled `client`/`server` is an edge response
+ * ({@link ENDPOINT_LABEL_PAIRS}), and leaving those two in would put the whole topology into
+ * the discriminator — every parallel edge would then look distinguishable by its endpoints,
+ * which is the one thing they have in common. Defaults to the canonical pair, which is right
+ * for anything read back off this module's own output.
  */
-export function withoutEndpoints(labels: Labels | undefined): Labels {
+export function withoutEndpoints(
+  labels: Labels | undefined,
+  keys: GraphEndpointKeys = CANONICAL_ENDPOINT_KEYS
+): Labels {
   const rest: Labels = {};
   for (const [key, value] of Object.entries(labels ?? {})) {
-    if (key !== SOURCE_LABEL && key !== TARGET_LABEL) {
+    // Both pairs are dropped, not just `keys`: a converter's output carries the canonical
+    // pair, so a re-read of it must not resurrect them as a discriminator either.
+    if (key !== keys.source && key !== keys.target && key !== SOURCE_LABEL && key !== TARGET_LABEL) {
       rest[key] = value;
     }
   }
@@ -157,6 +181,31 @@ function graphWideFrame(
 /** One numeric field per edge, stamped `graph-edges-wide`. */
 export function edgesWideFrame(base: Partial<DataFrame>, fields: RelationsFamilyField[]): RelationsFamilyFrame {
   return graphWideFrame(base, fields, GRAPH_EDGES_WIDE);
+}
+
+/**
+ * `meta` with the contract's `custom.graph` block declaring the endpoint labels the converter
+ * *read*, so the panel can still write an ad-hoc filter under the key the datasource knows.
+ *
+ * The fields this module emits are labelled with the canonical pair — that is the contract —
+ * so this declaration is the one thing a pivot destroys and the only thing the panel cannot
+ * re-derive. Readers resolve the endpoints by falling through the declared key to the
+ * conventional pairs, so declaring the original key is safe as well as useful; see
+ * {@link GRAPH_META_CUSTOM}.
+ *
+ * A no-op for the canonical pair: the block exists to say "these were called something else",
+ * and stamping `{sourceKey: 'source'}` on every pivoted frame would be noise in every
+ * `Inspect → Data` panel.
+ */
+export function withEndpointLabelsMeta(
+  meta: QueryResultMeta | undefined,
+  keys: GraphEndpointKeys | undefined
+): QueryResultMeta | undefined {
+  if (!keys || isCanonicalEndpointKeys(keys)) {
+    return meta;
+  }
+  const graph = { sourceKey: keys.source, targetKey: keys.target };
+  return { ...meta, custom: { ...meta?.custom, [GRAPH_META_CUSTOM]: { ...graph } } };
 }
 
 /** One numeric field per node, stamped `graph-nodes-wide`. */

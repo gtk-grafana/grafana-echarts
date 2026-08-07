@@ -179,14 +179,14 @@
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true,
-              "client": true,
-              "server": true
+              "Time": true
             },
             "indexByName": {
               "id": 0,
               "Value #A": 1,
-              "Value #B": 1
+              "Value #B": 1,
+              "client": 2,
+              "server": 3
             },
             "renameByName": {
               "Value #A": "Value",
@@ -246,7 +246,9 @@
         "relationsShowNodeValues": false,
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        }
+        },
+        "relationsSourceFilterLabel": "cluster",
+        "relationsTargetFilterLabel": "namespace"
       },
       "targets": [
         {
@@ -353,13 +355,13 @@
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true,
-              "client": true,
-              "server": true
+              "Time": true
             },
             "indexByName": {
               "id": 0,
-              "Value": 1
+              "Value": 1,
+              "client": 2,
+              "server": 3
             },
             "renameByName": {}
           }
@@ -425,7 +427,7 @@
             "uid": "${prom}"
           },
           "editorMode": "code",
-          "expr": "label_join(\n  label_join(\n    label_join(\n      topk($topk,\n        sum by (client, server) (\n          rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range])\n        )\n      ),\n      \"id\", \":\", \"client\", \"server\"\n    ),\n    \"src\", \"\", \"client\"\n  ),\n  \"dst\", \"\", \"server\"\n)",
+          "expr": "label_join(\n  topk($topk,\n    sum by (client, server) (\n      rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \":\", \"client\", \"server\"\n)",
           "exemplar": false,
           "format": "table",
           "instant": true,
@@ -439,19 +441,16 @@
           "options": {
             "excludeByName": {
               "Time": true,
-              "client": true,
-              "server": true
+              "src": true,
+              "dst": true
             },
             "indexByName": {
               "id": 0,
               "Value": 1,
-              "src": 2,
-              "dst": 3
+              "client": 2,
+              "server": 3
             },
-            "renameByName": {
-              "src": "source",
-              "dst": "target"
-            }
+            "renameByName": {}
           }
         },
         {
@@ -544,13 +543,13 @@
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true,
-              "client": true,
-              "server": true
+              "Time": true
             },
             "indexByName": {
               "id": 0,
-              "Value": 1
+              "Value": 1,
+              "client": 2,
+              "server": 3
             },
             "renameByName": {}
           }
@@ -607,7 +606,9 @@
         "relationsShowNodeValues": false,
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        }
+        },
+        "relationsSourceFilterLabel": "server_k8s_namespace_name",
+        "relationsTargetFilterLabel": "server"
       },
       "targets": [
         {
@@ -691,7 +692,9 @@
         "relationsLinkColor": "source",
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        }
+        },
+        "relationsSourceFilterLabel": "client_k8s_cluster_name",
+        "relationsTargetFilterLabel": "server_k8s_cluster_name"
       },
       "targets": [
         {
@@ -803,7 +806,7 @@
             "uid": "${prom}"
           },
           "editorMode": "code",
-          "expr": "label_join(\n  label_join(\n    label_join(\n      topk($topk,\n        sum by (client, server, connection_type) (\n          rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\", connection_type=~\"$connection\",\n            connection_type!=\"\"}[$__range])\n        )\n      ),\n      \"id\", \" / \", \"client\", \"server\", \"connection_type\"\n    ),\n    \"src\", \"\", \"client\"\n  ),\n  \"dst\", \"\", \"server\"\n)",
+          "expr": "label_join(\n  topk($topk,\n    sum by (client, server, connection_type) (\n      rate(traces_service_graph_request_total{client_k8s_cluster_name=~\"$cluster\", client_k8s_namespace_name=~\"$namespace\", client=~\"$client\", server=~\"$server\", client!=\"\", server!=\"\", connection_type=~\"$connection\",\n        connection_type!=\"\"}[$__range])\n    )\n  ),\n  \"id\", \" / \", \"client\", \"server\", \"connection_type\"\n)",
           "exemplar": false,
           "format": "table",
           "instant": true,
@@ -817,20 +820,17 @@
           "options": {
             "excludeByName": {
               "Time": true,
-              "client": true,
-              "server": true,
-              "connection_type": true
+              "src": true,
+              "dst": true
             },
             "indexByName": {
               "id": 0,
               "Value": 1,
-              "src": 2,
-              "dst": 3
+              "client": 2,
+              "server": 3,
+              "connection_type": 4
             },
-            "renameByName": {
-              "src": "source",
-              "dst": "target"
-            }
+            "renameByName": {}
           }
         },
         {

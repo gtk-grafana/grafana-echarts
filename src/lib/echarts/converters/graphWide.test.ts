@@ -152,6 +152,89 @@ describe('isGraphWideFrames', () => {
 
     expect(isGraphWideFrames([nodes])).toBe(false);
   });
+
+  // No datasource emits `source`/`target`; the conventional pairs are what actually arrives.
+  it('detects an edges frame from a conventional endpoint pair', () => {
+    const clientServer = toDataFrame({
+      fields: [{ name: 'e1', type: FieldType.number, labels: { client: 'a', server: 'b' }, values: [10] }],
+    });
+
+    expect(isEdgesWideFrame(clientServer)).toBe(true);
+    expect(isGraphWideFrames([clientServer])).toBe(true);
+  });
+});
+
+/**
+ * Which label keys the *datasource* used, resolved for the tooltip footer's ad-hoc filters.
+ *
+ * Nothing renders differently because of this — topology is already resolved by the time it is
+ * read. Its whole job is that `source="web-api"` is a filter on a label a `client`/`server`
+ * metric has never carried, so the dashboard silently returns nothing.
+ */
+describe('frameToGraphWide — endpoint label keys', () => {
+  it('is unset for a response that carried the contract’s own keys', () => {
+    expect(frameToGraphWide([labelledEdges()], theme)?.endpointLabels).toBeUndefined();
+  });
+
+  // The unconverted route: a host that cannot run the prefix, or a datasource emitting the
+  // wide kind natively. The keys are still on the fields, so no declaration is needed.
+  it('reads the keys straight off the fields of an unconverted response', () => {
+    const clientServer = toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [{ name: 'e1', type: FieldType.number, labels: { client: 'a', server: 'b' }, values: [10] }],
+    });
+
+    expect(frameToGraphWide([clientServer], theme)?.endpointLabels).toEqual({ source: 'client', target: 'server' });
+  });
+
+  // The converted route: the pivot rewrote the labels, so only its declaration survives.
+  it('prefers the pair a converter declared over the fields it rewrote', () => {
+    const pivoted = toDataFrame({
+      meta: {
+        type: GRAPH_EDGES_WIDE,
+        custom: { graph: { sourceKey: 'client', targetKey: 'server' } },
+      },
+      fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [10] }],
+    });
+
+    expect(frameToGraphWide([pivoted], theme)?.endpointLabels).toEqual({ source: 'client', target: 'server' });
+  });
+
+  it('ignores a malformed declaration rather than filtering on half a pair', () => {
+    const pivoted = toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE, custom: { graph: { sourceKey: 'client' } } },
+      fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [10] }],
+    });
+
+    expect(frameToGraphWide([pivoted], theme)?.endpointLabels).toBeUndefined();
+  });
+
+  /**
+   * The producer half of the same key. `meta.custom.graph` is the contract's declaration of
+   * "where my endpoint labels are", so a frame that names keys outside the conventional list
+   * resolves its topology from them — which is what makes the list a fallback rather than a
+   * ceiling.
+   */
+  it('resolves endpoints from keys the frame declares, however unconventional', () => {
+    const declared = toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE, custom: { graph: { sourceKey: 'caller', targetKey: 'callee' } } },
+      fields: [{ name: 'e1', type: FieldType.number, labels: { caller: 'a', callee: 'b' }, values: [10] }],
+    });
+
+    const data = frameToGraphWide([declared], theme);
+
+    expect(data?.links).toEqual([expect.objectContaining({ id: 'e1', source: 'a', target: 'b' })]);
+    expect(data?.endpointLabels).toEqual({ source: 'caller', target: 'callee' });
+  });
+
+  it('claims a frame whose only endpoint carrier is its declaration', () => {
+    const declared = toDataFrame({
+      meta: { custom: { graph: { sourceKey: 'caller', targetKey: 'callee' } } },
+      fields: [{ name: 'e1', type: FieldType.number, labels: { caller: 'a', callee: 'b' }, values: [10] }],
+    });
+
+    expect(isEdgesWideFrame(declared)).toBe(true);
+  });
 });
 
 describe('frameToGraphWide — edges', () => {

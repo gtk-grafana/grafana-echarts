@@ -1,6 +1,7 @@
 import { type Field, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type VizTooltipOptions } from '@grafana/schema';
 import { type LinearGradientObject, type TooltipOption } from 'echarts/types/dist/shared';
+import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
 
 /**
  * ECharts tooltip trigger: cartesian time series share an x axis; pie/radar hover per item.
@@ -68,12 +69,13 @@ export interface TooltipModel {
    * nothing to offer on the very marks a topology is filtered by. And an **edge**'s
    * endpoint labels are the contract's canonical `source`/`target`, which are a
    * topology carrier rather than necessarily a dimension the datasource knows —
-   * `relationsSourceFilterLabel` maps them back. See `relationsFiltersFor`.
+   * `resolveEndpointLabelKeys` and `relationsSourceFilterLabel` map them back.
+   * See `relationsFilterLabels`.
    *
    * When set it replaces the label walk rather than adding to it; every other family
    * leaves it unset and the overlay keeps deriving from {@link TooltipSource}.
    */
-  filters?: TooltipAdHocFilter[];
+  filters?: TooltipFilters;
 }
 
 /**
@@ -84,6 +86,36 @@ export interface TooltipModel {
 export interface TooltipAdHocFilter {
   key: string;
   value: string;
+}
+
+/**
+ * The three button groups `VizTooltipFooter` can render, stated separately because they
+ * cannot be derived from one list — and because deriving them from one list is exactly the
+ * duplicate-button bug this shape replaces.
+ *
+ * The footer's constraints are fixed by `@grafana/ui` and both are load-bearing:
+ *
+ * - each `adHocFilters` entry renders as **"Filter for '&lt;value&gt;'"**, keyless. Two pairs
+ *   with the same value are therefore two buttons a user cannot tell apart, which is what a
+ *   node offered: `source=gateway` and `target=gateway` both read "Filter for 'gateway'";
+ * - `filterByGroupedLabels` renders **both** halves whenever it is present. There is no way
+ *   to offer a negative without also offering a positive, so a mark whose positive AND is
+ *   meaningless (a node again: `source=x AND target=x` is self-loops) has to supply a
+ *   *different*, meaningful set for the positive rather than reuse the negative's.
+ *
+ * Hence {@link each} names only what has a distinguishable label, and the grouped halves are
+ * independent. See `nodeFilters` / `edgeFilters` for what each mark puts where.
+ */
+export interface TooltipFilters {
+  /**
+   * Offered one button each ("Filter for '&lt;value&gt;'"). Values must be distinct, since
+   * that is all the button shows.
+   */
+  each: TooltipAdHocFilter[];
+  /** Applied together, with `=`, by "Filter on this value". */
+  filterFor: TooltipAdHocFilter[];
+  /** Applied together, with `!=`, by "Filter out this value". */
+  filterOut: TooltipAdHocFilter[];
 }
 
 /**
@@ -327,6 +359,12 @@ export interface RelationsMark {
 export interface RelationsMarks {
   nodes: ReadonlyMap<string, RelationsMark>;
   links: ReadonlyMap<string, RelationsMark>;
+  /**
+   * The datasource's own endpoint label keys, carried through from the model so the
+   * footer's ad-hoc filters are written under a key the datasource recognises. Unset means
+   * the contract's `source`/`target`. See `NodeGraphData.endpointLabels`.
+   */
+  endpointLabels?: GraphEndpointKeys;
 }
 
 /**

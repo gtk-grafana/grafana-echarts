@@ -101,6 +101,99 @@ export interface GraphEndpoints {
   target: string;
 }
 
+/** Which two **label keys** an edge's endpoints were read from. See {@link ENDPOINT_LABEL_PAIRS}. */
+export interface GraphEndpointKeys {
+  source: string;
+  target: string;
+}
+
+/** The contract's own pair, which is what every converter *writes*. */
+export const CANONICAL_ENDPOINT_KEYS: GraphEndpointKeys = { source: SOURCE_LABEL, target: TARGET_LABEL };
+
+/**
+ * The label pairs an edge's endpoints are accepted under, canonical first.
+ *
+ * The contract's `source`/`target` is what the panel reads and what the converters write,
+ * but it is **not** what a datasource emits. Grafana's own service-graph metrics are
+ * labelled `client`/`server`, and the query that reaches the panel today is
+ *
+ *     sum by (source, target) (label_replace(…, "source", "$1", "client", "(.*)"))
+ *
+ * whose only job is to rename them — and whose side effect is that the *real* key is gone
+ * by the time the panel sees the response, so an endpoint filter is written under a label
+ * the datasource has never heard of. Recognising the conventional pairs directly means the
+ * rename is unnecessary: `sum by (client, server)` draws, and the key survives (see
+ * {@link ENDPOINT_LABELS_META}).
+ *
+ * Deliberately a short, closed list of conventions rather than an option. The supplier
+ * context for a panel-registered transformation is `{ series }` only, so no panel option
+ * can reach the pivot at all — and a pair that has to be configured is a pair the panel
+ * could have been told about by the response instead.
+ *
+ * Order is precedence: a frame carrying both `source`/`target` and `client`/`server` is
+ * read as the contract says, since that is the pair a converter would have written.
+ */
+export const ENDPOINT_LABEL_PAIRS: readonly GraphEndpointKeys[] = [
+  CANONICAL_ENDPOINT_KEYS,
+  { source: 'client', target: 'server' },
+  { source: 'src', target: 'dst' },
+  { source: 'from', target: 'to' },
+];
+
+/**
+ * `frame.meta.custom.graph`, the contract's own block — see *Frame meta* in
+ * ../../../../data-plane/graph-wide.md, which reserves `{ sourceKey?, targetKey? }` for
+ * "non-default endpoint label keys, e.g. Tempo's `client` / `server`".
+ *
+ * It answers **the datasource's** key, which is subtly more than "where the labels are", and
+ * deliberately so. A producer emitting the kind natively sets it to where its labels really
+ * live, and the reader resolves the endpoints from there. A *converter* rewriting labels to
+ * the canonical pair leaves it pointing at the **original** key — the pair it read — because
+ * that is the only thing the pivot destroys and the only thing the panel cannot re-derive.
+ * Both work off one key because resolution falls through: the declared key, then the
+ * conventional pairs, then the name (see {@link endpointLabelsOf}). So a pivoted frame
+ * declaring `sourceKey: 'client'` while carrying `source`/`target` labels reads correctly
+ * *and* filters correctly.
+ *
+ * The distinction only matters to the tooltip footer, which has to write an ad-hoc filter
+ * under a key the datasource will recognise. Nothing renders differently.
+ */
+export const GRAPH_META_CUSTOM = 'graph';
+
+/** Whether a pair is the contract's own, i.e. there is nothing worth declaring. */
+export function isCanonicalEndpointKeys(keys: GraphEndpointKeys): boolean {
+  return keys.source === SOURCE_LABEL && keys.target === TARGET_LABEL;
+}
+
+/** The endpoint keys a frame declares in {@link GRAPH_META_CUSTOM}, validated. */
+export function declaredEndpointKeys(frame: DataFrame): GraphEndpointKeys | undefined {
+  const custom: unknown = isRecord(frame.meta?.custom) ? frame.meta.custom[GRAPH_META_CUSTOM] : undefined;
+  if (!isRecord(custom)) {
+    return undefined;
+  }
+  const source = stringFrom(custom.sourceKey);
+  const target = stringFrom(custom.targetKey);
+  // Half a pair is not a pair: filtering on one declared key and one guessed one would be
+  // wrong in a way nothing downstream could notice.
+  return source && target ? { source, target } : undefined;
+}
+
+/**
+ * Which two label keys a field's endpoints are under, or `undefined` for a field that is not
+ * an edge. `declared` is its frame's {@link GRAPH_META_CUSTOM} pair and is tried first.
+ *
+ * Split out from {@link endpointLabelsOf} because the converters need the *keys* as well as
+ * the ids: the keys are what they declare, and what they must exclude when working out the
+ * label set that tells two parallel edges apart.
+ */
+export function endpointLabelKeysOf(field: Field, declared?: GraphEndpointKeys): GraphEndpointKeys | undefined {
+  const labels = field.labels ?? {};
+  if (declared && labels[declared.source] && labels[declared.target]) {
+    return declared;
+  }
+  return ENDPOINT_LABEL_PAIRS.find((pair) => labels[pair.source] && labels[pair.target]);
+}
+
 /**
  * Endpoints from a field's **labels** — the primary carrier, and the only one that
  * survives a node id which itself contains the separator.
@@ -109,11 +202,13 @@ export interface GraphEndpoints {
  * first half of writing them back under the canonical keys, and both halves have to agree
  * on which keys those are.
  */
-export function endpointLabelsOf(field: Field): GraphEndpoints | undefined {
+export function endpointLabelsOf(field: Field, declared?: GraphEndpointKeys): GraphEndpoints | undefined {
+  const keys = endpointLabelKeysOf(field, declared);
+  if (!keys) {
+    return undefined;
+  }
   const labels = field.labels ?? {};
-  const source = labels[SOURCE_LABEL];
-  const target = labels[TARGET_LABEL];
-  return source && target ? { source, target } : undefined;
+  return { source: labels[keys.source], target: labels[keys.target] };
 }
 
 /**
@@ -133,8 +228,8 @@ export function endpointsFromName(name: string): GraphEndpoints | undefined {
 }
 
 /** Endpoints from a field, labels first. */
-function endpointsOf(field: Field): GraphEndpoints | undefined {
-  return endpointLabelsOf(field) ?? endpointsFromName(field.name);
+function endpointsOf(field: Field, declared?: GraphEndpointKeys): GraphEndpoints | undefined {
+  return endpointLabelsOf(field, declared) ?? endpointsFromName(field.name);
 }
 
 /**
@@ -154,7 +249,8 @@ export function isEdgesWideFrame(frame: DataFrame): boolean {
     return false;
   }
   const numeric = numericFields(frame);
-  return numeric.length > 0 && numeric.some((field) => endpointsOf(field) != null);
+  const declared = declaredEndpointKeys(frame);
+  return numeric.length > 0 && numeric.some((field) => endpointsOf(field, declared) != null);
 }
 
 /**
@@ -234,8 +330,9 @@ function findNodesFrames(frames: DataFrame[], endpoints: ReadonlySet<string>): D
 export function endpointNames(edgesFrames: DataFrame[]): Set<string> {
   const names = new Set<string>();
   for (const frame of edgesFrames) {
+    const declared = declaredEndpointKeys(frame);
     for (const field of numericFields(frame)) {
-      const endpoints = endpointsOf(field);
+      const endpoints = endpointsOf(field, declared);
       if (endpoints) {
         names.add(endpoints.source);
         names.add(endpoints.target);
@@ -243,6 +340,41 @@ export function endpointNames(edgesFrames: DataFrame[]): Set<string> {
     }
   }
   return names;
+}
+
+/**
+ * The **datasource's** endpoint label keys for this response, or `undefined` when they are
+ * the contract's own and there is nothing to translate.
+ *
+ * Two carriers, in order:
+ *
+ * - the frame's declared {@link GRAPH_META_CUSTOM} pair. The only carrier that survives a
+ *   pivot, whose output is canonical by definition;
+ * - the keys the edge fields still carry, for a response that reached the panel unconverted
+ *   — a datasource emitting `graph-edges-wide` natively, `rowsToFields` over a table that
+ *   kept its label columns, or a host that cannot run the prefix at all.
+ *
+ * Consumed by the tooltip footer, which writes ad-hoc filters under these keys rather than
+ * under the contract's: `source="web-api"` is a filter on a label the datasource dropped.
+ * Overridable per panel (`relationsSourceFilterLabel`) for the case no response can answer
+ * — a query that aggregated the original key away. See `relationsFilterLabels`.
+ */
+export function resolveEndpointLabelKeys(edgesFrames: DataFrame[]): GraphEndpointKeys | undefined {
+  for (const frame of edgesFrames) {
+    const declared = declaredEndpointKeys(frame);
+    if (declared && !isCanonicalEndpointKeys(declared)) {
+      return declared;
+    }
+  }
+  for (const frame of edgesFrames) {
+    for (const field of numericFields(frame)) {
+      const keys = endpointLabelKeysOf(field);
+      if (keys && !isCanonicalEndpointKeys(keys)) {
+        return keys;
+      }
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -390,9 +522,12 @@ function secondaryOf(field: Field, calc: string | undefined): string | undefined
 
 function readLinks(frame: DataFrame, calc: string, secondaryCalc: string | undefined): RelationLink[] {
   const links: RelationLink[] = [];
+  // The frame's own answer to "which labels are the endpoints", tried ahead of the
+  // conventional pairs. See `GRAPH_META_CUSTOM`.
+  const declared = declaredEndpointKeys(frame);
 
   for (const field of numericFields(frame)) {
-    const endpoints = endpointsOf(field);
+    const endpoints = endpointsOf(field, declared);
     if (!endpoints) {
       continue;
     }
@@ -489,7 +624,10 @@ function assignMarkKeys(links: RelationLink[]): void {
   const contested = contestedIds(bases);
   keyed.forEach((link, index) => {
     const base = bases[index];
-    const key = uniqueId(taken, base, withoutEndpoints(link.field?.labels), contested.has(base));
+    // The mark's *own* endpoint keys: an unconverted `client`/`server` response reaches the
+    // reader with those still in place, and they are the endpoints, not a discriminator.
+    const endpointKeys = link.field ? endpointLabelKeysOf(link.field) : undefined;
+    const key = uniqueId(taken, base, withoutEndpoints(link.field?.labels, endpointKeys), contested.has(base));
     taken.add(key);
     link.markKey = key;
   });
@@ -696,5 +834,8 @@ export function frameToGraphWide(
   }
 
   fillPaletteColors(nodes, theme);
-  return { nodes, links };
+  // Resolved here rather than in the tooltip because this is where the frames are: the
+  // model is what every render variant and the tooltip see, and neither gets the response.
+  const endpointLabels = resolveEndpointLabelKeys(roles.edgesFrames);
+  return { nodes, links, ...(endpointLabels ? { endpointLabels } : {}) };
 }

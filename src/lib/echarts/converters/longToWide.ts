@@ -12,11 +12,14 @@ import {
 } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
 import {
+  endpointLabelKeysOf,
   endpointLabelsOf,
   endpointsFromName,
   GRAPH_EDGES_WIDE,
   GRAPH_NODES_WIDE,
+  type GraphEndpointKeys,
   type GraphEndpoints,
+  isCanonicalEndpointKeys,
   isEdgesWideFrame,
 } from 'lib/echarts/converters/graphWide';
 import {
@@ -26,6 +29,7 @@ import {
   edgesWideFrame,
   numberAt,
   uniqueId,
+  withEndpointLabelsMeta,
   withoutEndpoints,
 } from 'lib/echarts/converters/toGraphWide';
 import { type RelationsFamilyField } from 'lib/grafana/fields/fieldTypes';
@@ -218,6 +222,8 @@ interface Mark {
   time: Field;
   value: Field;
   endpoints: GraphEndpoints;
+  /** Which label pair the endpoints were read from. See `ENDPOINT_LABEL_PAIRS`. */
+  keys: GraphEndpointKeys;
   /** Every label except the endpoints — the discriminator for parallel edges. */
   rest: Labels;
   /** The id it wants, before contested ones are told apart. */
@@ -229,20 +235,43 @@ function marksOf(series: DataFrame[]): Mark[] {
   for (const frame of series) {
     const time = rowField(frame);
     const value = seriesValueField(frame);
+    const keys = value && endpointLabelKeysOf(value);
     const endpoints: GraphEndpoints | undefined = value && endpointLabelsOf(value);
-    // All three are guaranteed by `isLongEdgesFrame`; this keeps the reads honest.
-    if (!time || !value || !endpoints) {
+    // All four are guaranteed by `isLongEdgesFrame`; this keeps the reads honest.
+    if (!time || !value || !keys || !endpoints) {
       continue;
     }
     marks.push({
       time,
       value,
       endpoints,
-      rest: withoutEndpoints(value.labels),
+      keys,
+      // The pair this series actually used, so a `client`/`server` response does not put
+      // its whole topology into the parallel-edge discriminator.
+      rest: withoutEndpoints(value.labels, keys),
       base: wireId(frame, value) ?? edgeId(endpoints.source, endpoints.target),
     });
   }
   return marks;
+}
+
+/**
+ * The endpoint labels to record on the pivoted frame: the non-canonical pair the series
+ * were labelled with, when they agree on one.
+ *
+ * A response mixing pairs (one query grouped by `client`/`server`, another by
+ * `source`/`target`) has no single answer, so it records none and the panel falls back to
+ * the contract's keys — the same place it was before. Recording one of two would be worse
+ * than recording neither: the tooltip would write a key that is right for half the edges.
+ */
+function commonEndpointKeys(marks: Mark[]): GraphEndpointKeys | undefined {
+  const [first] = marks;
+  if (!first || isCanonicalEndpointKeys(first.keys)) {
+    return undefined;
+  }
+  return marks.every((mark) => mark.keys.source === first.keys.source && mark.keys.target === first.keys.target)
+    ? first.keys
+    : undefined;
 }
 
 /**
@@ -340,7 +369,14 @@ function pivot(series: DataFrame[]): DataFrame {
   // The frame **name** does not: one series' legend is not the name of a frame holding all
   // of them, and `joinDataFrames` drops it for the same reason (verified — it returns
   // `{length, fields}`, with the carry-over commented out in core).
-  return edgesWideFrame({ refId: first.refId, meta: first.meta }, fields);
+  //
+  // The endpoint labels ride along on `meta.custom`, because this is the step that destroys
+  // them: every field above is written with the canonical pair, so nothing downstream could
+  // otherwise tell `sum by (client, server)` from `sum by (source, target)`.
+  return edgesWideFrame(
+    { refId: first.refId, meta: withEndpointLabelsMeta(first.meta, commonEndpointKeys(marks)) },
+    fields
+  );
 }
 
 /**

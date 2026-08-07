@@ -73,7 +73,8 @@ It should have the following properties:
 - `field.name` is the **edge id**.
 - `field.labels[source]` and `field.labels[target]` are the ids of the nodes the edge
   joins. The two keys default to `source` and `target`; a producer may declare others in
-  [`meta.custom.graph`](#frame-meta).
+  [`meta.custom.graph`](#frame-meta), and a short list of conventional pairs is accepted
+  without any declaration — see [Endpoint label keys](#endpoint-label-keys).
 - Where labels are absent, the endpoints may be split out of `field.name` — see
   [The separator](#the-separator).
 - The field's reduced value is the edge **weight**, which is the ribbon size for flow
@@ -102,6 +103,38 @@ Remainder data:
 - Any second `time` or `string` field past the row dimension.
 - Numeric fields whose endpoints do not resolve.
 - Frames with a different or absent role.
+
+### Endpoint label keys
+
+`source` and `target` are the contract's keys, and **no datasource emits them.** Grafana's
+own service-graph metrics are labelled `client` / `server`; other producers use `src` / `dst`
+or `from` / `to`. A query written to reach the contract therefore ends up as
+
+```promql
+sum by (source, target) (
+  label_replace(label_replace(…, "source", "$1", "client", "(.*)"), "target", "$1", "server", "(.*)")
+)
+```
+
+whose only purpose is the rename, and whose side effect is that `client` / `server` are gone
+by the time the panel sees the response.
+
+So a consumer resolves an edge's endpoint keys in three steps:
+
+1. the pair the frame **declares** in [`meta.custom.graph`](#frame-meta) — authoritative, and
+   the only route for keys nobody could guess;
+2. failing that, the first **conventional pair** both of whose keys the field carries, in
+   order: `source`/`target`, `client`/`server`, `src`/`dst`, `from`/`to`. The canonical pair
+   is first so a frame carrying both resolves the way the contract says;
+3. failing that, [the separator](#the-separator) in `field.name`.
+
+**A converter writes the canonical pair and keeps the declaration pointing at the original.**
+That is the one asymmetry worth stating plainly: a pivot rewriting `client` / `server` labels
+to `source` / `target` leaves `meta.custom.graph.sourceKey: 'client'` behind. Reading still
+works — step 1 misses, step 2 finds the canonical pair — and the declaration remains the only
+record of what the datasource calls the dimension. That matters to any consumer writing a
+query back out: an ad-hoc filter, a drilldown link, a generated PromQL selector. A filter on
+`source="web-api"` matches nothing on a metric that has never carried the label.
 
 ### The separator
 
@@ -244,12 +277,12 @@ frame.
 Field shape is enough to _render_. Frame meta is what makes the kind **discoverable**, and
 a producer emitting this kind should set all of it:
 
-| Meta key                          | Value                                   | What it buys                                                               |
-| --------------------------------- | --------------------------------------- | -------------------------------------------------------------------------- |
-| `meta.type`                       | `graph-nodes-wide` / `graph-edges-wide` | Unambiguous role resolution, and visualization suggestions                 |
-| `meta.typeVersion`                | `[0, 1]`                                | The contract's versioning rule for a kind that has not stabilised          |
-| `meta.preferredVisualisationType` | `nodeGraph`                             | Routing in Explore                                                         |
-| `meta.custom.graph`               | `{ sourceKey?, targetKey? }`            | Declares non-default endpoint label keys, e.g. Tempo's `client` / `server` |
+| Meta key                          | Value                                   | What it buys                                                                                                                      |
+| --------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `meta.type`                       | `graph-nodes-wide` / `graph-edges-wide` | Unambiguous role resolution, and visualization suggestions                                                                        |
+| `meta.typeVersion`                | `[0, 1]`                                | The contract's versioning rule for a kind that has not stabilised                                                                 |
+| `meta.preferredVisualisationType` | `nodeGraph`                             | Routing in Explore                                                                                                                |
+| `meta.custom.graph`               | `{ sourceKey?, targetKey? }`            | Declares the datasource's endpoint label keys, e.g. Tempo's `client` / `server` — see [Endpoint label keys](#endpoint-label-keys) |
 
 The proposed additions to `@grafana/data`, **not yet present in core Grafana**:
 
@@ -270,9 +303,14 @@ export enum DataFrameType {
 
 /** The shape of `frame.meta.custom.graph`, for any graph format. Optional. */
 export interface GraphFrameMeta {
-  /** Label key holding an edge's source node id. Default `'source'`. */
+  /**
+   * Label key holding an edge's source node id, as the **datasource** names the dimension.
+   * Default `'source'`. A converter that rewrites the labels to the contract's keys leaves
+   * this pointing at the original, so a consumer writing a query back out — an ad-hoc
+   * filter, a drilldown link — has a key the datasource will recognise.
+   */
   sourceKey?: string;
-  /** Label key holding an edge's target node id. Default `'target'`. */
+  /** Label key holding an edge's target node id. Default `'target'`. See `sourceKey`. */
   targetKey?: string;
 }
 ```

@@ -19,7 +19,12 @@ import {
   type VizTooltipItem,
   VizTooltipWrapper,
 } from '@grafana/ui';
-import { type TooltipAdHocFilter, type TooltipRow, type TooltipSource } from 'lib/echarts/tooltip/types';
+import {
+  type TooltipAdHocFilter,
+  type TooltipFilters,
+  type TooltipRow,
+  type TooltipSource,
+} from 'lib/echarts/tooltip/types';
 import React, { useLayoutEffect, useRef } from 'react';
 import { TOOLTIP_MARKER_ATTR, TOOLTIP_OFFSET } from './constants';
 import { type EChartsTooltipState } from './types';
@@ -65,16 +70,22 @@ function rowToItem(row: TooltipRow, activeSeriesIndex: number | null): VizToolti
   };
 }
 
-/** The label/value pairs a hovered item can be filtered on, before they are wired up. */
-function filterPairs(state: EChartsTooltipState, sources: TooltipSource[]): TooltipAdHocFilter[] {
+/** The filters a hovered item offers, grouped the way the footer renders them. */
+function resolveFilters(state: EChartsTooltipState, sources: TooltipSource[]): TooltipFilters {
   // A model that states its own filters replaces the label walk rather than adding to
   // it. Only relations does, and it has to: a node's identity is its `field.name`
-  // rather than a label, and an edge's endpoint labels are the wide contract's
-  // canonical keys, which may not be keys the datasource knows. See `TooltipModel`.
+  // rather than a label, an edge's endpoint labels are the wide contract's canonical
+  // keys, which may not be keys the datasource knows, and the two groups below are not
+  // the same set on either mark. See `TooltipFilters`.
   if (state.model?.filters != null) {
     return state.model.filters;
   }
-  return sources.flatMap((source) => Object.entries(source.field.labels ?? {}).map(([key, value]) => ({ key, value })));
+  // Every other family: one pair per label, offered individually and as a whole. The
+  // values of a real label set differ, so no two buttons read the same.
+  const pairs = sources.flatMap((source) =>
+    Object.entries(source.field.labels ?? {}).map(([key, value]) => ({ key, value }))
+  );
+  return { each: pairs, filterFor: pairs, filterOut: pairs };
 }
 
 /** Keep the first entry per key, preserving order. */
@@ -114,33 +125,36 @@ function collectAdHocFilters(
 }
 
 /**
- * The footer's "Filter on / Filter out this value" pair, which applies **every** pair
- * the hovered item offers at once.
+ * The footer's "Filter on / Filter out this value" pair, each half applying its own set of
+ * pairs at once.
  *
  * The negative half is why this exists: `VizTooltipFooter` renders each `adHocFilters`
  * entry as literally "Filter for '<value>'" whatever its operator, so a `!=` smuggled
  * through that list would be a button that says the opposite of what it does.
- * `filterByGroupedLabels` is core's own answer — two correctly-labelled buttons over
- * the whole label set — so a `!=` is offered there rather than invented here.
+ * `filterByGroupedLabels` is core's own answer — two correctly-labelled buttons over a
+ * whole set — so a `!=` is offered there rather than invented here.
  *
- * Shown alongside the per-pair buttons rather than instead of them: those name the
- * value ("Filter for 'web-api'"), which is what picks *one* endpoint of a hovered
- * edge, while these two act on the mark as a whole. On a mark with a single label the
- * positive button is a duplicate, which is the price of the negative one.
+ * The two halves take **separate** sets because the component renders both buttons whenever
+ * it is given the object at all, so a mark whose positive conjunction is meaningless cannot
+ * simply omit one. A relations node is that mark: negating both endpoints excludes it,
+ * asserting both matches only self-loops. See `nodeFilters`.
  */
 function groupedLabelFilters(
-  pairs: TooltipAdHocFilter[],
+  { filterFor, filterOut }: TooltipFilters,
   onAddAdHocFilter: PanelContext['onAddAdHocFilter']
 ): FilterByGroupedLabelsModel | undefined {
-  if (onAddAdHocFilter == null || pairs.length === 0) {
+  if (onAddAdHocFilter == null || (filterFor.length === 0 && filterOut.length === 0)) {
     return undefined;
   }
-  const applyAll = (operator: AdHocFilterModel['operator']) => () => {
+  const apply = (pairs: TooltipAdHocFilter[], operator: AdHocFilterModel['operator']) => () => {
     for (const { key, value } of pairs) {
       onAddAdHocFilter({ key, value, operator });
     }
   };
-  return { onFilterForGroupedLabels: applyAll(FILTER_FOR), onFilterOutGroupedLabels: applyAll(FILTER_OUT) };
+  return {
+    onFilterForGroupedLabels: apply(filterFor, FILTER_FOR),
+    onFilterOutGroupedLabels: apply(filterOut, FILTER_OUT),
+  };
 }
 
 /**
@@ -298,10 +312,10 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
   if (pinned) {
     const sources = resolveActiveSources(state);
     const dataLinks = collectDataLinks(sources);
-    const pairs = filterPairs(state, sources);
-    const adHocFilters = collectAdHocFilters(pairs, onAddAdHocFilter);
-    const filterByGroupedLabels = groupedLabelFilters(pairs, onAddAdHocFilter);
-    if (dataLinks.length > 0 || adHocFilters.length > 0) {
+    const filters = resolveFilters(state, sources);
+    const adHocFilters = collectAdHocFilters(filters.each, onAddAdHocFilter);
+    const filterByGroupedLabels = groupedLabelFilters(filters, onAddAdHocFilter);
+    if (dataLinks.length > 0 || adHocFilters.length > 0 || filterByGroupedLabels != null) {
       // @todo pass `annotate` once Grafana externalizes the annotation API for
       // plugins (VizTooltipFooter supports it; core wires it from PanelContext).
       footer = (

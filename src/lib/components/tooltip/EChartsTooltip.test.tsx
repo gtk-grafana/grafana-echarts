@@ -92,6 +92,15 @@ describe('EChartsTooltip', () => {
     expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'host', value: 'web1', operator: '=' });
   });
 
+  /** An edge's filters as `relations.ts` states them: the endpoints act as a whole. */
+  const edgeFilters = () => {
+    const whole = [
+      { key: 'source', value: 'gateway' },
+      { key: 'target', value: 'db' },
+    ];
+    return { each: [], filterFor: whole, filterOut: whole };
+  };
+
   /**
    * **The reported gap**: the footer only ever offered positive filters.
    *
@@ -102,12 +111,8 @@ describe('EChartsTooltip', () => {
    */
   it('offers a filter-out button that negates every pair at once', () => {
     const onAddAdHocFilter = jest.fn();
-    const filters = [
-      { key: 'source', value: 'gateway' },
-      { key: 'target', value: 'db' },
-    ];
 
-    renderTooltip(state({ model: model({ filters }), pinned: true }), { onAddAdHocFilter });
+    renderTooltip(state({ model: model({ filters: edgeFilters() }), pinned: true }), { onAddAdHocFilter });
 
     fireEvent.click(screen.getByRole('button', { name: /Filter out this value/i }));
     expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'source', value: 'gateway', operator: '!=' });
@@ -116,16 +121,55 @@ describe('EChartsTooltip', () => {
 
   it('offers a filter-for button covering the whole mark', () => {
     const onAddAdHocFilter = jest.fn();
-    const filters = [
-      { key: 'source', value: 'gateway' },
-      { key: 'target', value: 'db' },
-    ];
 
-    renderTooltip(state({ model: model({ filters }), pinned: true }), { onAddAdHocFilter });
+    renderTooltip(state({ model: model({ filters: edgeFilters() }), pinned: true }), { onAddAdHocFilter });
 
     fireEvent.click(screen.getByRole('button', { name: /Filter on this value/i }));
     expect(onAddAdHocFilter).toHaveBeenNthCalledWith(1, { key: 'source', value: 'gateway', operator: '=' });
     expect(onAddAdHocFilter).toHaveBeenNthCalledWith(2, { key: 'target', value: 'db', operator: '=' });
+  });
+
+  /**
+   * **The reported duplication.** A mark whose endpoints are offered individually *and* as a
+   * group is four buttons for two dimensions, and on a node two of them read identically —
+   * `VizTooltipFooter` labels an `adHocFilters` entry by its value alone, so `source=gateway`
+   * and `target=gateway` are indistinguishable. Only `each` gets per-pair buttons now.
+   */
+  it('renders no per-pair button for a pair the grouped set covers', () => {
+    renderTooltip(state({ model: model({ filters: edgeFilters() }), pinned: true }), {
+      onAddAdHocFilter: jest.fn(),
+    });
+
+    expect(screen.queryByRole('button', { name: /Filter for '/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Filter on this value/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Filter out this value/i })).toBeInTheDocument();
+  });
+
+  /**
+   * The two grouped halves are independent sets, which is what lets a node negate both of its
+   * endpoint directions ("everything not touching this node") while asserting only the one
+   * that means something (`source=x AND target=x` is self-loops). See `nodeFilters`.
+   */
+  it('applies a different set for filter-for than for filter-out', () => {
+    const onAddAdHocFilter = jest.fn();
+    const filters = {
+      each: [],
+      filterFor: [{ key: 'client', value: 'gateway' }],
+      filterOut: [
+        { key: 'client', value: 'gateway' },
+        { key: 'server', value: 'gateway' },
+      ],
+    };
+
+    renderTooltip(state({ model: model({ filters }), pinned: true }), { onAddAdHocFilter });
+
+    fireEvent.click(screen.getByRole('button', { name: /Filter on this value/i }));
+    expect(onAddAdHocFilter).toHaveBeenCalledTimes(1);
+    expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'client', value: 'gateway', operator: '=' });
+
+    onAddAdHocFilter.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: /Filter out this value/i }));
+    expect(onAddAdHocFilter).toHaveBeenCalledTimes(2);
   });
 
   // A model that states its own filters replaces the label walk: relations nodes carry
@@ -134,7 +178,8 @@ describe('EChartsTooltip', () => {
   it('prefers the model’s own filters over the source field’s labels', () => {
     const onAddAdHocFilter = jest.fn();
     const source = { field: fieldWithLabels(), rowIndex: 0 };
-    const filters = [{ key: 'client', value: 'gateway' }];
+    const pairs = [{ key: 'client', value: 'gateway' }];
+    const filters = { each: pairs, filterFor: pairs, filterOut: pairs };
 
     renderTooltip(state({ model: model({ source, filters }), pinned: true }), { onAddAdHocFilter });
 

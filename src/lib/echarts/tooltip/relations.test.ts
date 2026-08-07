@@ -364,36 +364,66 @@ describe('buildRelationsTooltipModel', () => {
         ],
       });
 
-    it('offers both endpoints of a hovered edge', () => {
+    /**
+     * An edge **is** the conjunction of its endpoints, so they go in the grouped set — one
+     * "Filter on this value" button that narrows to exactly this edge, rather than one
+     * button per endpoint plus the pair, which is the reported four-button footer.
+     */
+    it('offers both endpoints of a hovered edge as one grouped filter', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
-      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters).toEqual([
-        { key: 'source', value: 'gateway' },
-        { key: 'target', value: 'db' },
-      ]);
+      const filters = model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters;
+
+      expect(filters).toEqual({
+        each: [],
+        filterFor: [
+          { key: 'source', value: 'gateway' },
+          { key: 'target', value: 'db' },
+        ],
+        filterOut: [
+          { key: 'source', value: 'gateway' },
+          { key: 'target', value: 'db' },
+        ],
+      });
     });
 
     // The half that always worked: a label that is not an endpoint is a real datasource
-    // dimension and passes through under its own name.
+    // dimension, gets a button of its own (its value is distinguishable), and is part of
+    // "this exact edge" too.
     it('keeps an edge’s non-endpoint labels', () => {
       const model = modelFor([labelledEdges()]);
 
-      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters).toEqual([
+      const filters = model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters;
+
+      expect(filters?.each).toEqual([{ key: 'connection_type', value: 'database' }]);
+      expect(filters?.filterFor).toEqual([
         { key: 'source', value: 'gateway' },
         { key: 'target', value: 'db' },
         { key: 'connection_type', value: 'database' },
       ]);
     });
 
-    // A node's identity is its `field.name`, not a label, so walking `field.labels` —
-    // the generic derivation every other family uses — found nothing to offer.
-    it('offers a hovered node as either end of an edge', () => {
+    /**
+     * A node's identity is its `field.name`, not a label, so walking `field.labels` — the
+     * generic derivation every other family uses — found nothing to offer.
+     *
+     * The two halves differ on purpose: negating both directions is "everything that does
+     * not touch this node", while asserting both would be `source=x AND target=x`, i.e.
+     * self-loops. See `nodeFilters`.
+     */
+    it('negates both of a node’s endpoint directions but asserts only the source', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
-      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).filters).toEqual([
-        { key: 'source', value: 'gateway' },
-        { key: 'target', value: 'gateway' },
-      ]);
+      const filters = model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).filters;
+
+      expect(filters).toEqual({
+        each: [],
+        filterFor: [{ key: 'source', value: 'gateway' }],
+        filterOut: [
+          { key: 'source', value: 'gateway' },
+          { key: 'target', value: 'gateway' },
+        ],
+      });
     });
 
     // The case with no field at all — on a host that cannot run the pre-pass, every
@@ -404,7 +434,7 @@ describe('buildRelationsTooltipModel', () => {
       const node = model(nodeParams({ id: 'gateway', name: 'gateway' }));
 
       expect(node.source).toBeUndefined();
-      expect(node.filters).toEqual([
+      expect(node.filters?.filterOut).toEqual([
         { key: 'source', value: 'gateway' },
         { key: 'target', value: 'gateway' },
       ]);
@@ -413,17 +443,18 @@ describe('buildRelationsTooltipModel', () => {
     /**
      * The mapping. `sum by (source, target) (label_replace(…, "source", "$1", "client",
      * "(.*)"))` leaves the frame labelled `source` while the metric is still labelled
-     * `client`, so the frame's own key filters on nothing.
+     * `client`, so the frame's own key filters on nothing — and the aggregation dropped the
+     * original, so only the panel option can recover it.
      */
     it('writes the endpoints under the configured datasource labels', () => {
       const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
       const model = modelFor([labelledEdges()], mapped);
 
-      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters).toEqual([
+      expect(
+        model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters?.filterFor
+      ).toEqual([
         { key: 'client', value: 'gateway' },
         { key: 'server', value: 'db' },
-        // Renamed on the field's labels too, so the endpoint is not offered twice
-        // under two different keys.
         { key: 'connection_type', value: 'database' },
       ]);
     });
@@ -431,14 +462,37 @@ describe('buildRelationsTooltipModel', () => {
     it('maps a node’s endpoints as well', () => {
       const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
 
-      expect(modelFor([wideEdges()], mapped)(nodeParams({ id: 'gateway', name: 'gateway' })).filters).toEqual([
+      expect(
+        modelFor([wideEdges()], mapped)(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut
+      ).toEqual([
         { key: 'client', value: 'gateway' },
         { key: 'server', value: 'gateway' },
       ]);
     });
 
+    /**
+     * **The point of the whole exercise**: a response that never renamed its labels needs no
+     * option at all. `client`/`server` is an endpoint pair the reader recognises, so the keys
+     * reach the model and the filters are written under them.
+     */
+    it('reads the datasource’s own endpoint labels with nothing configured', () => {
+      const clientServer = toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [{ name: 'e1', type: FieldType.number, labels: { client: 'gateway', server: 'db' }, values: [3.5] }],
+      });
+      const model = modelFor([clientServer]);
+
+      expect(
+        model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters?.filterFor
+      ).toEqual([
+        { key: 'client', value: 'gateway' },
+        { key: 'server', value: 'db' },
+      ]);
+    });
+
     // With one key mapped onto the other, a self-loop's two endpoints collapse to one
-    // pair — one button rather than two identical ones.
+    // pair — one filter rather than two identical ones.
     it('dedupes two endpoints that resolve to the same filter', () => {
       const selfLoop = toDataFrame({
         name: 'edges',
@@ -448,9 +502,9 @@ describe('buildRelationsTooltipModel', () => {
       const mapped = options({ relationsSourceFilterLabel: 'svc', relationsTargetFilterLabel: 'svc' });
       const model = modelFor([selfLoop], mapped);
 
-      expect(model(linkParams({ source: 'gateway', target: 'gateway', markId: 'e1', value: 1 })).filters).toEqual([
-        { key: 'svc', value: 'gateway' },
-      ]);
+      expect(
+        model(linkParams({ source: 'gateway', target: 'gateway', markId: 'e1', value: 1 })).filters?.filterFor
+      ).toEqual([{ key: 'svc', value: 'gateway' }]);
     });
   });
 });
