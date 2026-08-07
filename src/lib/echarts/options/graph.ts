@@ -785,8 +785,8 @@ function toNodeItems(
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
     }
-    if (node.secondary != null) {
-      item.secondary = node.secondary;
+    if (node.secondaries != null) {
+      item.secondaries = node.secondaries;
     }
     return item;
   });
@@ -808,8 +808,8 @@ function toLinkItems(
     if (link.value != null) {
       item.value = link.value;
     }
-    if (link.secondary != null) {
-      item.secondary = link.secondary;
+    if (link.secondaries != null) {
+      item.secondaries = link.secondaries;
     }
     const lineStyle: NonNullable<RelationsLinkItem['lineStyle']> = {};
     // Every edge carries its own colour: the series-level ECharts keywords do not

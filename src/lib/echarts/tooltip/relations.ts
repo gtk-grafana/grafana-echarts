@@ -7,7 +7,7 @@ import {
   SOURCE_LABEL,
   TARGET_LABEL,
 } from 'lib/echarts/converters/graphWide';
-import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
+import { type MarkStat, type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import {
   type RelationsLinkItem,
@@ -39,9 +39,9 @@ export const formatDerivedMarkValue: ValueFormatter = (value) => ({ text: String
 /**
  * The label a stat row carries when no reducer named it.
  *
- * Only reachable for the *secondary* row, and only on the one path that does not come
- * from a reducer at all: the `secondarystat` label the row-form conversion carries, where
- * there is no second value to reduce and so no calculation to name. See `secondaryOf`.
+ * Only reachable on the one path that does not come from a reducer at all: the
+ * `secondarystat` label the row-form conversion carries, where an instant response has no
+ * second value to reduce and so no calculation to name. See `secondaryStatsOf`.
  */
 const SECONDARY_ROW_LABEL = 'Secondary';
 
@@ -49,29 +49,34 @@ const SECONDARY_ROW_LABEL = 'Secondary';
  * A stat row's label: the **reducer's** display name (`Mean`, `Min`, `Last *`), not the
  * word "Value".
  *
- * Both stat slots are a reducer the user picked — `calcs[0]` and `calcs[1]` of the
- * panel's Calculation setting — so labelling them `Value` and `Secondary` threw away the
- * one thing the row does not otherwise say. Two rows reading `Mean` and `Min` are
- * self-describing; two reading `Value` and `Secondary` need the options pane to decode.
- * Falls back to the raw id for a reducer the registry does not know, which is the same
- * reading the pie's centre readout and the table legend give it.
+ * Every stat slot is a reducer the user picked from the panel's Calculation setting, so
+ * labelling them `Value` and `Secondary` threw away the one thing the row does not otherwise
+ * say. Rows reading `Mean`, `Min` and `Max` are self-describing; rows reading `Value` and
+ * `Secondary` need the options pane to decode. Falls back to the raw id for a reducer the
+ * registry does not know, which is the same reading the pie's centre readout and the table
+ * legend give it.
  */
 function reducerLabel(calc: string): string {
   return fieldReducers.getIfExists(calc)?.name ?? calc;
 }
 
 /**
- * A mark's secondary stat as tooltip text, shared by the node and edge branches so one
+ * A mark's stats past the first, one row each, shared by the node and edge branches so one
  * "Calculation" setting reads the same on both.
  *
- * The reducer path already formatted it through the mark's own display processor
- * (`secondaryOf`), so a **number** only reaches here from a `secondarystat` label the
- * conversion carried, which has no unit of its own — hence the union and the split.
+ * **One row per reducer, with no cap.** `calcs[0]` is the main stat and is singular because
+ * it is the number that sizes a node and weighs an edge; everything after it is a tooltip row
+ * and nothing else, so a third or fourth calculation has somewhere to go. Picking one used to
+ * be silently discarded by the reader and clamped away by the editor.
+ *
+ * The reader already formatted each value through the mark's own display processor
+ * (`secondaryStatsOf`) and kept the reducer that produced it, so this is only the labelling.
  */
-function formatSecondary(secondary: number | string, formatValue?: ValueFormatter): string {
-  return typeof secondary === 'number'
-    ? formatEChartsValue(secondary, formatValue ?? formatDerivedMarkValue)
-    : String(secondary);
+function secondaryRows(secondaries: MarkStat[] | undefined): TooltipRow[] {
+  return (secondaries ?? []).map((stat) => ({
+    label: stat.calc != null ? reducerLabel(stat.calc) : SECONDARY_ROW_LABEL,
+    value: stat.value,
+  }));
 }
 
 /**
@@ -292,11 +297,12 @@ export function buildRelationsTooltipModel(
   marks?: RelationsMarks,
   options?: PanelOptions
 ): (params: TopLevelFormatterParams) => TooltipModel {
-  // Resolved once per render rather than per hover: the same two reducers name every
-  // row, and this is the same normalization the reader reduced the marks with.
-  const [calc, secondaryCalc] = normalizeRelationsCalcs(options?.reduceOptions);
+  // Resolved once per render rather than per hover: the same reducer names the main row on
+  // every mark, and this is the same normalization the reader reduced them with. The rows
+  // after it name themselves — each carries the reducer that produced it (`MarkStat`), so a
+  // calc that reduces to nothing on one mark cannot shift the labels below it on the next.
+  const [calc] = normalizeRelationsCalcs(options?.reduceOptions);
   const statLabel = reducerLabel(calc);
-  const secondaryLabel = secondaryCalc != null ? reducerLabel(secondaryCalc) : SECONDARY_ROW_LABEL;
   const filterKeys = relationsFilterLabels(options, marks?.endpointLabels);
 
   return (params) => {
@@ -317,11 +323,9 @@ export function buildRelationsTooltipModel(
           source: mark?.source,
         },
       ];
-      // An edge reduces to two stats just as a node does, so `calcs[1]` reports here
-      // too — the same row, formatted the same way. See `secondaryOf` and `readLinks`.
-      if (data.secondary != null) {
-        rows.push({ label: secondaryLabel, value: formatSecondary(data.secondary, mark?.formatValue) });
-      }
+      // An edge reduces over every picked calculation just as a node does, so `calcs[1..]`
+      // report here too — the same rows, formatted the same way. See `secondaryStatsOf`.
+      rows.push(...secondaryRows(data.secondaries));
       return {
         header: { label: `${data.source} → ${data.target}`, value: '' },
         rows,
@@ -353,9 +357,7 @@ export function buildRelationsTooltipModel(
     if (node?.subtitle != null) {
       rows.push({ label: 'Subtitle', value: node.subtitle });
     }
-    if (node?.secondary != null) {
-      rows.push({ label: secondaryLabel, value: formatSecondary(node.secondary, mark?.formatValue) });
-    }
+    rows.push(...secondaryRows(node?.secondaries));
 
     return {
       header: { label: node?.name ?? String(param?.name ?? ''), value: '' },

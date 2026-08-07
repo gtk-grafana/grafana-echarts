@@ -18,6 +18,29 @@ import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
  * what the conversion reads.
  */
 
+/**
+ * One **extra** stat a mark reports, beyond the main one — a tooltip row and nothing else.
+ *
+ * `reduceOptions.calcs[0]` is the main stat and is structurally singular: it is the number
+ * that sizes a node, colours it, and weighs an edge or a sankey ribbon, and a chart has one
+ * geometry. Every reducer *after* the first has nowhere to go but the tooltip, so there is no
+ * reason to cap how many there are — one row each. See `normalizeRelationsCalcs`.
+ *
+ * Carried as a `{calc, value}` pair rather than a bare list of strings so a row cannot be
+ * labelled with the wrong reducer: a calc that reduces to nothing on one mark and to a number
+ * on the next would otherwise shift every label after it by one.
+ */
+export interface MarkStat {
+  /**
+   * The reducer that produced it, so the tooltip can label the row with the reducer's own
+   * display name. Unset for the legacy `secondarystat` column, which is a value the response
+   * carried with no calculation behind it — see `secondaryStatsOf`.
+   */
+  calc?: string;
+  /** Already a display string: formatted through the mark's **own** display processor. */
+  value: string;
+}
+
 /** A single node. `value` is the main stat, which drives sizing/colour and the tooltip. */
 export interface RelationNode {
   /** `field.name` — the node's identity, and therefore its override target. */
@@ -33,11 +56,11 @@ export interface RelationNode {
    */
   value: number | null;
   /**
-   * The secondary stat, tooltip only: `calcs[1]` formatted through the mark's own
-   * display processor, else a `secondarystat` label carried by the conversion.
-   * Already a display string in the first case, hence the union.
+   * The stats past the first, tooltip only: one per `calcs[1..]`, each formatted through the
+   * mark's own display processor — else the single `secondarystat` label the row-form
+   * conversion carries. See {@link MarkStat}.
    */
-  secondary?: number | string;
+  secondaries?: MarkStat[];
   /** `config.custom.nodeRadius` — ECharts `symbolSize`. */
   radius?: number;
   /**
@@ -102,12 +125,11 @@ export interface RelationLink {
   target: string;
   value: number | null;
   /**
-   * The secondary stat, tooltip only: `calcs[1]` reduced over the edge's own field and
-   * formatted through its own display processor, else a `secondarystat` label carried
-   * by the conversion. The edge counterpart of {@link RelationNode.secondary} — one
-   * "Calculation" setting, the same meaning on both kinds of mark.
+   * The stats past the first, tooltip only — the edge counterpart of
+   * {@link RelationNode.secondaries}, so one "Calculation" setting means the same thing on
+   * both kinds of mark.
    */
-  secondary?: number | string;
+  secondaries?: MarkStat[];
   /**
    * Set **only** when the edge's field carries a real colour choice, so that an
    * unconfigured edge falls through to the series-level endpoint colouring

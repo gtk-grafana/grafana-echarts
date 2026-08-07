@@ -194,8 +194,8 @@ function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
     }
-    if (node.secondary != null) {
-      item.secondary = node.secondary;
+    if (node.secondaries != null) {
+      item.secondaries = node.secondaries;
     }
     // A dragged sankey node is remembered in the same `custom.fixedX`/`fixedY` pair
     // the graph variant uses, but a sankey reads its own **fraction** of the layout
@@ -240,8 +240,8 @@ function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {
     if (link.value != null) {
       item.value = link.value;
     }
-    if (link.secondary != null) {
-      item.secondary = link.secondary;
+    if (link.secondaries != null) {
+      item.secondaries = link.secondaries;
     }
     if (link.color != null) {
       item.lineStyle = { color: link.color };

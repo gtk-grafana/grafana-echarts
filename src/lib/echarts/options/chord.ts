@@ -150,8 +150,8 @@ function toChordNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
     }
-    if (node.secondary != null) {
-      item.secondary = node.secondary;
+    if (node.secondaries != null) {
+      item.secondaries = node.secondaries;
     }
     return item;
   });
@@ -176,8 +176,8 @@ function toChordLinkItems(links: RelationLink[]): RelationsLinkItem[] {
     if (link.value != null) {
       item.value = link.value;
     }
-    if (link.secondary != null) {
-      item.secondary = link.secondary;
+    if (link.secondaries != null) {
+      item.secondaries = link.secondaries;
     }
     if (link.color != null) {
       item.lineStyle = { color: link.color };

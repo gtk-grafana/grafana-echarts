@@ -1,13 +1,19 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { RELATIONS_CALC_DEFAULT } from 'lib/echarts/converters/graphWide';
-import { RELATIONS_MAX_CALCS, StatsPickerPair } from 'lib/grafana/editor/relations/StatsPickerPair';
+import { RelationsStatsPicker } from 'lib/grafana/editor/relations/RelationsStatsPicker';
 import { type PanelOptions } from 'types';
 
 /**
- * The mark reducers: `calcs[0]` is a mark's main stat, `calcs[1]` its secondary. Both
- * apply to **nodes and edges alike** — a mark is a mark — which is what the description
- * promises and what `readNodes` / `readLinks` deliver.
+ * The mark reducers, applying to **nodes and edges alike** — a mark is a mark — which is
+ * what the description promises and what `readNodes` / `readLinks` deliver.
+ *
+ * `calcs[0]` is the **main stat** and is the only one with a job outside the tooltip: it is
+ * the number that sizes a node, colours it, and weighs an edge or a sankey ribbon. A chart
+ * has one geometry, so that slot is singular by construction. Every calculation after it is a
+ * tooltip row and nothing else, so **as many as the user wants** — the picker had a maximum
+ * of two and the reader silently dropped `calcs[2..]`, which is the pair of things this
+ * replaces. See `normalizeRelationsCalcs` and `secondaryStatsOf`.
  *
  * Deliberately **not** `addStandardDataReduceOptions`, even though this family now has
  * a `reduceOptions` to fill. That helper also registers "Show: Calculate / All values"
@@ -18,11 +24,6 @@ import { type PanelOptions } from 'types';
  *
  * `reduceOptions.fields` is left out for the same reason: which fields are marks is
  * decided by frame role, not by a matcher.
- *
- * The picker is `StatsPickerPair` rather than the stock `stats-picker` for one reason:
- * the stock one has no maximum, so it accepted any number of reducers while a mark has
- * exactly two stat slots and `normalizeRelationsCalcs` quietly dropped the rest. The
- * description said two; now the control does too.
  */
 export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   builder.addCustomEditor({
@@ -31,11 +32,11 @@ export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<Panel
     name: t('relations.stats.name-calculation', 'Calculation'),
     description: t(
       'relations.stats.description-calculation',
-      'How each node and edge reduces its values. The first is the main stat, the second the secondary stat'
+      'How each node and edge reduces its values. The first sizes and colours the mark; the rest are extra tooltip rows'
     ),
     category: [t('stat.add-standard-data-reduce-options.category-value-options', 'Value options')],
-    editor: StatsPickerPair,
+    editor: RelationsStatsPicker,
     defaultValue: [RELATIONS_CALC_DEFAULT],
-    settings: { allowMultiple: true, maxCount: RELATIONS_MAX_CALCS },
+    settings: { allowMultiple: true },
   });
 }

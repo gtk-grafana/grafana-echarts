@@ -63,10 +63,11 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
       });
     }
 
-    // How each mark reduces its own values to a main and a secondary stat. On the
-    // field-based contract a mark is a field, so this is the standard `reduceOptions`
-    // question every value-reducing family answers — see `addRelationsStatOptions`
-    // for why only the calculation picker is registered.
+    // How each mark reduces its own values: `calcs[0]` is the stat that sizes and colours
+    // it, and every calc after that is an extra tooltip row. On the field-based contract a
+    // mark is a field, so this is the standard `reduceOptions` question every
+    // value-reducing family answers — see `addRelationsStatOptions` for why only the
+    // calculation picker is registered.
     addRelationsStatOptions(builder);
 
     // Default tier: layout and node presentation — the controls a user coming from

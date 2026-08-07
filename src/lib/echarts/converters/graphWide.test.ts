@@ -360,7 +360,7 @@ describe('frameToGraphWide — nodes', () => {
     const data = frameToGraphWide([labelledEdges(), nodesFrame()], theme);
 
     expect(data?.nodes[0]).toEqual(expect.objectContaining({ subtitle: 'edge', radius: 30, fixedX: 1, fixedY: 2 }));
-    expect(data?.nodes[1].secondary).toBe('12 req/s');
+    expect(data?.nodes[1].secondaries).toEqual([{ value: '12 req/s' }]);
   });
 
   it('appends endpoints the nodes frame did not declare', () => {
@@ -773,10 +773,15 @@ describe('reduceOptions', () => {
       fields: [{ name: 'a', type: FieldType.number, config: { unit: 'ms' }, values: [1, 5, 9] }],
     });
 
-  it('truncates calcs to the two stat slots a mark has', () => {
-    expect(normalizeRelationsCalcs({ calcs: ['max', 'min', 'mean'] })).toEqual(['max', 'min']);
-    expect(normalizeRelationsCalcs({ calcs: [] })).toEqual([RELATIONS_CALC_DEFAULT, undefined]);
-    expect(normalizeRelationsCalcs(undefined)).toEqual([RELATIONS_CALC_DEFAULT, undefined]);
+  /**
+   * Nothing is truncated. Only `calcs[0]` has a job outside the tooltip — it sizes a node and
+   * weighs an edge — and every calc after it is a row, so a third and fourth are as usable as
+   * the second. This used to drop `calcs[2..]` silently.
+   */
+  it('keeps every calc, defaulting only an empty list', () => {
+    expect(normalizeRelationsCalcs({ calcs: ['max', 'min', 'mean'] })).toEqual(['max', 'min', 'mean']);
+    expect(normalizeRelationsCalcs({ calcs: [] })).toEqual([RELATIONS_CALC_DEFAULT]);
+    expect(normalizeRelationsCalcs(undefined)).toEqual([RELATIONS_CALC_DEFAULT]);
   });
 
   it('reduces the main stat with calcs[0] and the secondary with calcs[1]', () => {
@@ -784,17 +789,54 @@ describe('reduceOptions', () => {
     const data = frameToGraphWide(frames, theme, { calcs: ['max', 'min'], values: false, fields: '' })!;
 
     expect(data.nodes[0].value).toBe(9);
-    // Formatted through the mark's *own* display processor, so it carries its own unit.
-    expect(data.nodes[0].secondary).toBe('1 ms');
+    // Formatted through the mark's *own* display processor, so it carries its own unit — and
+    // paired with the reducer that produced it, so the tooltip can label the row.
+    expect(data.nodes[0].secondaries).toEqual([{ calc: 'min', value: '1 ms' }]);
+  });
+
+  /**
+   * A third and fourth calculation are rows too. They used to be dropped by
+   * `normalizeRelationsCalcs` before the reader ever saw them, so picking one did nothing.
+   */
+  it('reduces one stat per calc past the first, in the order they were picked', () => {
+    const frames = [labelledEdges(), withDisplay(ranged())];
+    const data = frameToGraphWide(frames, theme, {
+      calcs: ['max', 'min', 'mean', 'first'],
+      values: false,
+      fields: '',
+    })!;
+
+    expect(data.nodes[0].value).toBe(9);
+    expect(data.nodes[0].secondaries).toEqual([
+      { calc: 'min', value: '1 ms' },
+      { calc: 'mean', value: '5 ms' },
+      { calc: 'first', value: '1 ms' },
+    ]);
+  });
+
+  /**
+   * Each row keeps its own reducer rather than relying on position, so a calc that reduces to
+   * nothing on this mark drops its row without relabelling the rows below it. A reducer the
+   * registry does not know is the reachable case — `reduceField` answers `undefined` for it,
+   * which `reduceValue` reads as no value.
+   */
+  it('skips a calc that reduces to nothing without shifting the rest', () => {
+    const data = frameToGraphWide([labelledEdges(), withDisplay(ranged())], theme, {
+      calcs: ['max', 'notAReducer', 'min'],
+      values: false,
+      fields: '',
+    })!;
+
+    expect(data.nodes[0].secondaries).toEqual([{ calc: 'min', value: '1 ms' }]);
   });
 
   it('falls back to the secondarystat label when no second calc is chosen', () => {
     const frames = [labelledEdges(), ranged()];
     frames[1].fields[0].labels = { secondarystat: '12 req/s' };
 
-    expect(frameToGraphWide(frames, theme, { calcs: ['max'], values: false, fields: '' })!.nodes[0].secondary).toBe(
-      '12 req/s'
-    );
+    expect(
+      frameToGraphWide(frames, theme, { calcs: ['max'], values: false, fields: '' })!.nodes[0].secondaries
+    ).toEqual([{ value: '12 req/s' }]);
   });
 
   /**
@@ -824,13 +866,13 @@ describe('reduceOptions', () => {
 
     expect(data.links[0].value).toBe(9);
     // Formatted through the edge's own display processor, as a node's is.
-    expect(data.links[0].secondary).toBe('1 ms');
+    expect(data.links[0].secondaries).toEqual([{ calc: 'min', value: '1 ms' }]);
   });
 
   it('leaves an edge secondary unset when only one calc is chosen', () => {
     const data = frameToGraphWide([labelledEdges()], theme, { calcs: ['max'], values: false, fields: '' })!;
 
-    expect(data.links[0].secondary).toBeUndefined();
+    expect(data.links[0].secondaries).toBeUndefined();
   });
 });
 

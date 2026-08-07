@@ -248,17 +248,51 @@ describe('buildRelationsTooltipModel', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
       const node = model(
-        nodeParams({ id: 'gateway', name: 'Gateway', value: 12, subtitle: 'eu-west', secondary: '3 errors' })
+        nodeParams({
+          id: 'gateway',
+          name: 'Gateway',
+          value: 12,
+          subtitle: 'eu-west',
+          secondaries: [{ value: '3 errors' }],
+        })
       );
 
       expect(node.header).toEqual({ label: 'Gateway', value: '' });
       // `Last *` is `RELATIONS_CALC_DEFAULT`'s display name — the row says which reducer
-      // produced it, and with no second calculation picked the secondary row is the
-      // `secondarystat` label rather than a reduction, so it keeps the generic name.
+      // produced it, and a stat with no reducer behind it is the `secondarystat` label the
+      // row-form conversion carried, which keeps the generic name.
       expect(node.rows.map((row) => [row.label, row.value])).toEqual([
         ['Last *', '12.0 ms'],
         ['Subtitle', 'eu-west'],
         ['Secondary', '3 errors'],
+      ]);
+    });
+
+    /**
+     * **One row per reducer, with no cap.** Only `calcs[0]` is structurally singular — it
+     * sizes the node and weighs the edge — so a third and fourth calculation are rows like the
+     * second. They used to be dropped by `normalizeRelationsCalcs` and clamped away by the
+     * picker, so choosing one did nothing at all.
+     */
+    it('adds a row for every stat the mark carries, however many', () => {
+      const model = modelFor([wideNodes(), wideEdges()], options({ reduceOptions: { calcs: ['max', 'min', 'mean'] } }));
+
+      const node = model(
+        nodeParams({
+          id: 'gateway',
+          name: 'Gateway',
+          value: 12,
+          secondaries: [
+            { calc: 'min', value: '1.0 ms' },
+            { calc: 'mean', value: '5.0 ms' },
+          ],
+        })
+      );
+
+      expect(node.rows.map((row) => [row.label, row.value])).toEqual([
+        ['Max', '12.0 ms'],
+        ['Min', '1.0 ms'],
+        ['Mean', '5.0 ms'],
       ]);
     });
 
@@ -276,7 +310,15 @@ describe('buildRelationsTooltipModel', () => {
     it('adds a secondary row to an edge that carries one', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
-      const link = model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5, secondary: '1.0 s' }));
+      const link = model(
+        linkParams({
+          source: 'gateway',
+          target: 'db',
+          markId: 'e1',
+          value: 3.5,
+          secondaries: [{ value: '1.0 s' }],
+        })
+      );
 
       expect(link.rows.map((row) => [row.label, row.value])).toEqual([
         ['Last *', '3.50 s'],
@@ -302,7 +344,9 @@ describe('buildRelationsTooltipModel', () => {
     it('names each node row after the reducer that produced it', () => {
       const model = modelFor([wideNodes(), wideEdges()], meanAndMin);
 
-      const node = model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondary: '5.0 ms' }));
+      const node = model(
+        nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondaries: [{ calc: 'min', value: '5.0 ms' }] })
+      );
 
       expect(node.rows.map((row) => row.label)).toEqual(['Mean', 'Min']);
     });
@@ -310,7 +354,15 @@ describe('buildRelationsTooltipModel', () => {
     it('names each edge row after the reducer that produced it', () => {
       const model = modelFor([wideNodes(), wideEdges()], meanAndMin);
 
-      const link = model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5, secondary: '1.0 s' }));
+      const link = model(
+        linkParams({
+          source: 'gateway',
+          target: 'db',
+          markId: 'e1',
+          value: 3.5,
+          secondaries: [{ calc: 'min', value: '1.0 s' }],
+        })
+      );
 
       expect(link.rows.map((row) => row.label)).toEqual(['Mean', 'Min']);
     });
@@ -323,13 +375,15 @@ describe('buildRelationsTooltipModel', () => {
       expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Last *');
     });
 
-    // No second calculation means the secondary row did not come from a reducer at all:
-    // it is the `secondarystat` label the row-form conversion carries, and there is no
-    // calculation to name. See `secondaryOf`.
+    // A stat with no reducer behind it did not come from a reduction at all: it is the
+    // `secondarystat` label the row-form conversion carries, where an instant response has no
+    // second value to reduce. See `secondaryStatsOf`.
     it('keeps the generic label for a secondarystat with no reducer behind it', () => {
       const model = modelFor([wideNodes(), wideEdges()], options({ reduceOptions: { calcs: ['mean'] } }));
 
-      const node = model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondary: '3 errors' }));
+      const node = model(
+        nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondaries: [{ value: '3 errors' }] })
+      );
 
       expect(node.rows.map((row) => row.label)).toEqual(['Mean', 'Secondary']);
     });

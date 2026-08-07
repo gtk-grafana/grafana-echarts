@@ -2,6 +2,7 @@ import { type Field, type GrafanaTheme2, type ValueFormatter } from '@grafana/da
 import { type VizTooltipOptions } from '@grafana/schema';
 import { type LinearGradientObject, type TooltipOption } from 'echarts/types/dist/shared';
 import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
+import { type MarkStat } from 'lib/echarts/converters/relationsModel';
 
 /**
  * ECharts tooltip trigger: cartesian time series share an x axis; pie/radar hover per item.
@@ -293,8 +294,8 @@ export interface RelationsNodeItem {
   localY?: number;
   /** `custom.subtitle`, surfaced as a tooltip row. */
   subtitle?: string;
-  /** The secondary stat, tooltip only; already a display string when reduced. */
-  secondary?: number | string;
+  /** The stats past the first, tooltip only — one row each. See {@link MarkStat}. */
+  secondaries?: MarkStat[];
 }
 
 /**
@@ -319,12 +320,11 @@ export interface RelationsLinkItem {
   markId?: string;
   value?: number;
   /**
-   * The edge's secondary stat (`reduceOptions.calcs[1]`), tooltip only — the same slot
-   * {@link RelationsNodeItem.secondary} fills for a node, so one "Calculation" setting
-   * means the same thing on both kinds of mark. Already a display string when it came
-   * from a reducer; see `secondaryOf`.
+   * The edge's stats past the first (`reduceOptions.calcs[1..]`), tooltip only — the same
+   * slot {@link RelationsNodeItem.secondaries} fills for a node, so one "Calculation"
+   * setting means the same thing on both kinds of mark. See `secondaryStatsOf`.
    */
-  secondary?: number | string;
+  secondaries?: MarkStat[];
   lineStyle?: {
     /**
      * A colour, or a gradient between the two endpoints' colours. The gradient form

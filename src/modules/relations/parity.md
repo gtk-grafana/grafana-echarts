@@ -251,10 +251,11 @@ routes stat units through its own panel options rather than the standard Unit.
 Not registered, deliberately:
 
 - ~~**`reduceOptions`**~~ — **now registered** (`addRelationsStatOptions`): `calcs[0]` is a
-  mark's main stat, `calcs[1]` its secondary. Deliberately _not_
+  mark's main stat and every calc after it is an extra tooltip row. Deliberately _not_
   `addStandardDataReduceOptions`, which would also add an inert "Show: Calculate / All
   values" radio and a "Limit" input — a mark is a field, so neither can mean anything here.
-  `normalizeRelationsCalcs` truncates to the two stat slots.
+  Nothing is truncated: only `calcs[0]` is singular, because it is the number that sizes a
+  node and weighs an edge.
 - **Legend calcs** — `includeLegendCalcs: false`. The original reason (legend entries are
   not fields, so there is nothing to reduce) is obsolete: a legend entry **is** a field
   now. Reconsidered in phase 6 and **still off**, for a narrower reason — a mark is
@@ -423,7 +424,7 @@ and the legend).
 | **Data links** — "nodes _derived_ from the edges frame carry no row, so no footer"       | **Shipped.** Per mark via `config.links`, so a link lands on one node or one edge. Derived nodes are given a field of their own by `deriveNodes.ts` and behave the same; open only where that pre-pass cannot run                                       |
 | **Min / Max — Marginal** ("only bounds the by-value color domain")                       | Still the colour domain, but the domain stops being contaminated: measured `{min: 8, max: 12}` vs the legacy `{min: 0.5, max: 60}`                                                                                                                      |
 | **Thresholds — Marginal**                                                                | Per mark, and the approximate replacement for `arc__*`                                                                                                                                                                                                  |
-| **`reduceOptions` not registered**                                                       | **Registered — shipped.** `calcs[0]` = main stat, `calcs[1]` = secondary                                                                                                                                                                                |
+| **`reduceOptions` not registered**                                                       | **Registered — shipped.** `calcs[0]` = main stat; `calcs[1..]` = one tooltip row each                                                                                                                                                                   |
 | **Legend calcs `includeLegendCalcs: false`**                                             | Reconsider — a legend entry is a field again                                                                                                                                                                                                            |
 | **`custom.hideFrom` registered with no reachable editor**                                | **Shipped.** The real `commonOptionsBuilder.addHideFrom`; a `byName` override hides exactly one mark, node or edge                                                                                                                                      |
 | **Legend hide re-implemented by name; relations excluded from `stripHiddenValueFields`** | **Shipped, with a floor.** The by-name read is gone for any mark that has a field, which `deriveNodes.ts` now includes derived nodes in; it survives only where that pre-pass cannot run. The strip exclusion **stays** — see the legend-hide gap above |

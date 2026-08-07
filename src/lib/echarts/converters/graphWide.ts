@@ -13,7 +13,12 @@ import {
 import { type GraphFieldConfig } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
 import { type EChartsRelationsFieldConfig } from 'editor/types';
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
+import {
+  type MarkStat,
+  type NodeGraphData,
+  type RelationLink,
+  type RelationNode,
+} from 'lib/echarts/converters/relationsModel';
 import { contestedIds, edgeId, uniqueId, withoutEndpoints } from 'lib/echarts/converters/toGraphWide';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { type ConfigTypedField } from 'lib/grafana/types';
@@ -83,16 +88,21 @@ export const RELATIONS_CALC_DEFAULT = ReducerID.lastNotNull;
 const numericFields = (frame: DataFrame): Field[] => frame.fields.filter((field) => field.type === FieldType.number);
 
 /**
- * The two reducers a mark can use: `calcs[0]` is the main stat, `calcs[1]` the
- * secondary. Truncated to two because a mark has exactly two stat slots — the same
- * shape as `normalizePieReduceOptions`, which truncates to one.
+ * The reducers a mark uses, first one guaranteed: `calcs[0]` is the **main stat** and the
+ * rest are extra tooltip rows.
  *
- * `reduceOptions.values` is not honoured: "all values" would mean one mark per row,
- * and a mark is a field by contract. No editor offers it for this family.
+ * Only the first is structurally singular, and it is singular for a reason a cap cannot be
+ * put on the others: `calcs[0]` is the number that sizes a node, colours it, and weighs an
+ * edge or a sankey ribbon — a chart has one geometry. Everything after it has nowhere to go
+ * but the tooltip, which has as many rows as it needs, so nothing is truncated. This used to
+ * return a pair and drop `calcs[2..]` on the floor.
+ *
+ * `reduceOptions.values` is not honoured: "all values" would mean one mark per row, and a
+ * mark is a field by contract. No editor offers it for this family.
  */
-export function normalizeRelationsCalcs(reduceOptions: ReduceDataOptions | undefined): [string, string | undefined] {
+export function normalizeRelationsCalcs(reduceOptions: ReduceDataOptions | undefined): string[] {
   const calcs = reduceOptions?.calcs ?? [];
-  return [calcs[0] ?? RELATIONS_CALC_DEFAULT, calcs[1]];
+  return calcs.length > 0 ? [...calcs] : [RELATIONS_CALC_DEFAULT];
 }
 
 /** The two node ids a mark joins. */
@@ -503,24 +513,33 @@ function stringFrom(value: unknown): string | undefined {
 }
 
 /**
- * The secondary stat as a display string.
+ * The mark's stats past the first, one per reducer, as display strings.
  *
- * Formatted through the mark's **own** display processor rather than the panel's
- * shared formatter, so two nodes can carry different units — which the row form
- * cannot express at all. Falls back to the `secondarystat` label the conversion
- * carries for row input, where there is no second value to reduce.
+ * Formatted through the mark's **own** display processor rather than the panel's shared
+ * formatter, so two nodes can carry different units — which the row form cannot express at
+ * all. Each keeps the reducer that produced it, so a calc that reduces to nothing on this
+ * mark drops its row without shifting the labels of the rows after it.
+ *
+ * Falls back to the `secondarystat` label the conversion carries for row input — one value,
+ * with no calculation behind it — and only when no reducer produced anything: an instant
+ * response has no second value to reduce, so that label *is* the secondary stat there.
  */
-function secondaryOf(field: Field, calc: string | undefined): string | undefined {
-  if (calc != null) {
+function secondaryStatsOf(field: Field, calcs: readonly string[]): MarkStat[] {
+  const stats: MarkStat[] = [];
+  for (const calc of calcs) {
     const value = reduceValue(field, calc);
     if (value != null) {
-      return field.display ? formattedValueToString(field.display(value)) : String(value);
+      stats.push({ calc, value: field.display ? formattedValueToString(field.display(value)) : String(value) });
     }
   }
-  return stringFrom(field.labels?.[SECONDARYSTAT_LABEL]);
+  if (stats.length > 0) {
+    return stats;
+  }
+  const legacy = stringFrom(field.labels?.[SECONDARYSTAT_LABEL]);
+  return legacy != null ? [{ value: legacy }] : [];
 }
 
-function readLinks(frame: DataFrame, calc: string, secondaryCalc: string | undefined): RelationLink[] {
+function readLinks(frame: DataFrame, calc: string, secondaryCalcs: readonly string[]): RelationLink[] {
   const links: RelationLink[] = [];
   // The frame's own answer to "which labels are the endpoints", tried ahead of the
   // conventional pairs. See `GRAPH_META_CUSTOM`.
@@ -571,13 +590,13 @@ function readLinks(frame: DataFrame, calc: string, secondaryCalc: string | undef
     if (curveness != null) {
       link.curveness = curveness;
     }
-    // The same second reducer the nodes get. `calcs[1]` used to be read for nodes only,
+    // The same extra reducers the nodes get. `calcs[1]` used to be read for nodes only,
     // so picking a second calculation on a panel whose marks are edges — an edges-only
     // response, which is the common shape — produced no second value anywhere and the
-    // option read as broken. See `secondaryOf`.
-    const secondary = secondaryOf(field, secondaryCalc);
-    if (secondary != null) {
-      link.secondary = secondary;
+    // option read as broken. See `secondaryStatsOf`.
+    const secondaries = secondaryStatsOf(field, secondaryCalcs);
+    if (secondaries.length > 0) {
+      link.secondaries = secondaries;
     }
     if (isHiddenFrom(field)) {
       link.hidden = true;
@@ -638,7 +657,7 @@ function assignMarkKeys(links: RelationLink[]): void {
   });
 }
 
-function readNodes(frame: DataFrame, calc: string, secondaryCalc: string | undefined): RelationNode[] {
+function readNodes(frame: DataFrame, calc: string, secondaryCalcs: readonly string[]): RelationNode[] {
   const nodes: RelationNode[] = [];
 
   for (const field of numericFields(frame)) {
@@ -674,9 +693,9 @@ function readNodes(frame: DataFrame, calc: string, secondaryCalc: string | undef
     if (fixedY != null) {
       node.fixedY = fixedY;
     }
-    const secondary = secondaryOf(field, secondaryCalc);
-    if (secondary != null) {
-      node.secondary = secondary;
+    const secondaries = secondaryStatsOf(field, secondaryCalcs);
+    if (secondaries.length > 0) {
+      node.secondaries = secondaries;
     }
     if (isHiddenFrom(field)) {
       node.hidden = true;
@@ -696,11 +715,11 @@ function readNodes(frame: DataFrame, calc: string, secondaryCalc: string | undef
  * stable answer available and matches the reader's "first appearance" rule for derived
  * nodes.
  */
-function readNodeFrames(frames: DataFrame[], calc: string, secondaryCalc: string | undefined): RelationNode[] {
+function readNodeFrames(frames: DataFrame[], calc: string, secondaryCalcs: readonly string[]): RelationNode[] {
   const nodes: RelationNode[] = [];
   const known = new Set<string>();
   for (const frame of frames) {
-    for (const node of readNodes(frame, calc, secondaryCalc)) {
+    for (const node of readNodes(frame, calc, secondaryCalcs)) {
       if (!known.has(node.id)) {
         known.add(node.id);
         nodes.push(node);
@@ -801,12 +820,12 @@ export function frameToGraphWide(
     return null;
   }
 
-  const [calc, secondaryCalc] = normalizeRelationsCalcs(reduceOptions);
+  const [calc, ...secondaryCalcs] = normalizeRelationsCalcs(reduceOptions);
   // Per frame first, so the diagnostic can say what the old reading would have drawn.
   // Each mark reduces over its **own** rows, however ragged: every reducer skips nulls,
   // so a raw series and the same series null-padded onto a pivot's shared row grid give
   // the same number. What the pivot does fix is `sourceRowIndex` — see `readLinks`.
-  const perFrame = roles.edgesFrames.map((frame) => readLinks(frame, calc, secondaryCalc));
+  const perFrame = roles.edgesFrames.map((frame) => readLinks(frame, calc, secondaryCalcs));
   const links = perFrame.flat();
   if (links.length === 0) {
     return null;
@@ -817,7 +836,7 @@ export function frameToGraphWide(
   const derived = deriveNodesFromLinks(links);
   // Empty when no frame took the nodes role, which leaves the append below to fill the
   // list from the endpoints alone — the edges-only response.
-  const nodes = readNodeFrames(roles.nodesFrames, calc, secondaryCalc);
+  const nodes = readNodeFrames(roles.nodesFrames, calc, secondaryCalcs);
 
   // Append any endpoint the nodes frames did not declare. Without this an edge to an
   // unlisted node would be dropped by ECharts, which resolves links by node id.
