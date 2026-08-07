@@ -303,13 +303,17 @@ describe('useEChartsTooltip', () => {
   });
 
   /**
-   * **The reported bug**: a pinned tooltip lost its adjacency highlight as soon as the
-   * cursor moved off the node.
+   * **Two reported bugs, one owner.** A pinned tooltip freezes its content and position, and
+   * its emphasis is part of what it froze — but the cursor kept taking it away, from both
+   * directions:
    *
-   * `bindMouseEvent` routes every element `mouseout` into
-   * `handleGlobalMouseOutForHighDown`, which opens with an unconditional
-   * `allLeaveBlur(api)` — it cannot tell an action-driven highlight from a hover one, so
-   * the fade the pin established went with it. See `reassertPinnedFocus`.
+   * - `mouseout` erased the adjacency fade. `bindMouseEvent` routes every element `mouseout`
+   *   into `handleGlobalMouseOutForHighDown`, which opens with an unconditional
+   *   `allLeaveBlur(api)` and cannot tell an action-driven highlight from a hover one;
+   * - `mouseover` moved it onto whatever the cursor entered, so the panel showed one node's
+   *   tooltip beside another node's neighbourhood.
+   *
+   * See `restorePinnedFocus`.
    */
   describe('emphasis while pinned', () => {
     /** Pin item `dataIndex: 2` of the graph's edge table, then clear the dispatch log. */
@@ -360,6 +364,69 @@ describe('useEChartsTooltip', () => {
       act(() => fake.emit('mouseout'));
 
       expect(highlightsOfPin(fake)).toEqual([]);
+    });
+
+    /**
+     * Hovering **another** mark must not move the fade onto it. Measured before the fix on a
+     * pinned four-node graph: arriving at a non-neighbour from empty space reproduced the
+     * *unpinned* hover state exactly, while the tooltip still named the pinned node.
+     *
+     * The hovered mark is downplayed as well as the pin re-lit: re-lighting alone happens to
+     * strip it (`blurSeries` resets every element's state before un-blurring the focus set) but
+     * only for a series that sets `emphasis.focus`, which not every family does.
+     */
+    it('takes the emphasis back when the cursor enters another mark', () => {
+      const { fake } = pinAnEdge();
+
+      act(() => fake.emit('mouseover', { seriesIndex: 0, dataIndex: 7, dataType: 'node' }));
+
+      expect(fake.dispatched).toEqual([
+        { type: 'downplay', seriesIndex: 0, dataIndex: 7, dataType: 'node' },
+        { type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' },
+      ]);
+    });
+
+    // Entering the pinned mark itself is not a theft: downplaying it first would drop the very
+    // emphasis being restored.
+    it('does not downplay the pinned mark when the cursor re-enters it', () => {
+      const { fake } = pinAnEdge();
+
+      act(() => fake.emit('mouseover', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' }));
+
+      expect(fake.dispatched).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
+    });
+
+    /**
+     * A pin with no item behind it — a proximity click that landed on empty grid — has nothing
+     * to re-light, so freezing means stripping what the hover applied rather than restoring
+     * anything.
+     */
+    it('strips the hover emphasis even when the pin carries no item', () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(model);
+        fake.emitZr('click');
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      expect(view.result.current.state.pinnedItem).toBeNull();
+      fake.dispatched.length = 0;
+
+      act(() => fake.emit('mouseover', { seriesIndex: 0, dataIndex: 4 }));
+
+      expect(fake.dispatched).toEqual([{ type: 'downplay', seriesIndex: 0, dataIndex: 4, dataType: undefined }]);
+    });
+
+    // Unpinned, the cursor owns the emphasis as it always did.
+    it('leaves hover emphasis alone when nothing is pinned', () => {
+      const fake = createFakeChart();
+      renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => fake.emit('mouseover', { seriesIndex: 0, dataIndex: 4 }));
+
+      expect(fake.dispatched).toEqual([]);
     });
   });
 
