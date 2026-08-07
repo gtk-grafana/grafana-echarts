@@ -181,6 +181,40 @@
           "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
         }
       ]
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "5 · Drag a node — the position is written back as an override",
+      "description": "**Drag one of these nodes.** The panel writes its new position into `custom.fixedX` / `custom.fixedY` under a `byName` override for that node, exactly as the legend's colour picker writes a fixed colour — so it survives a refresh, and the dashboard shows unsaved changes until you save it. Open the Overrides tab afterwards and it is there, editable and clearable like any other override.\n\nBoth frames are already **wide** (one field per node, one field per edge), so unlike panels 3 and 4 this needs no pre-pass and works on any host: the nodes are real fields, which is what a `byName` override needs to land on.\n\n**Remember view** is on here too. Pan the graph (drag the background) or use the corner zoom buttons and the view is written into the panel's options rather than forgotten on reload.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 31 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLayout": "none",
+        "relationsDraggable": true,
+        "relationsPan": true,
+        "relationsZoom": true,
+        "relationsRememberView": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,web,db\n120,80,60,200"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
+        }
+      ]
     }
   ]
 }

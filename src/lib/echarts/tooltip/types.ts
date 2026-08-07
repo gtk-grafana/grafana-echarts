@@ -277,8 +277,20 @@ export interface RelationsNodeItem {
   stat?: number | null;
   symbolSize?: number;
   itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
+  /** Graph only: the node's position in the series' view coordinate space. */
   x?: number;
   y?: number;
+  /**
+   * Sankey only: the node's position as a **fraction** of the layout rect (0-1).
+   *
+   * A sankey lays its nodes out in columns and has no coordinate space to pin one in,
+   * so `SankeyView` reads these instead of `x`/`y` — and its own drag writes them
+   * (`dragNode`). Stored in the same `custom.fixedX`/`fixedY` field pair as a graph
+   * position, since a mark has one place to remember where it was put.
+   * https://echarts.apache.org/en/option.html#series-sankey.data.localX
+   */
+  localX?: number;
+  localY?: number;
   /** `custom.subtitle`, surfaced as a tooltip row. */
   subtitle?: string;
   /** The secondary stat, tooltip only; already a display string when reduced. */

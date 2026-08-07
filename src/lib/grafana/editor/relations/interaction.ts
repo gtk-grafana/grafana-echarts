@@ -47,15 +47,39 @@ export function addRelationsInteractionOptions(builder: PanelOptionsEditorBuilde
     showIf: (options) => !isChordVariant(options),
   });
 
+  /**
+   * Dragging, and — under the two layouts that can remember one — where the node stays.
+   *
+   * Offered on **fixed** as well as force, which it was not. Under force a drag only
+   * nudges the simulation, and the node is wherever the physics leaves it on the next
+   * refresh; under `Fixed` the position *is* the layout, so a drag is an edit and the
+   * panel writes it back as a `custom.fixedX`/`fixedY` override on that node — the same
+   * store the legend's colour picker uses. A sankey re-lays out around a dragged node
+   * and remembers it the same way, in its own 0-1 `localX`/`localY` space.
+   * See `useRelationsPersistence`.
+   */
   addAdvancedBooleanSwitch(builder, {
     path: 'relationsDraggable',
     name: 'Draggable nodes',
-    description: 'Let nodes be dragged to reposition them',
-    // On a graph, dragging feeds the force simulation, so it is inert under
-    // circular/fixed. A sankey re-lays out around a dragged node, so it always
-    // applies there.
+    description: 'Let nodes be dragged. Under Fixed layout the new position is saved as a field override',
     showIf: (options) =>
-      isSankeyVariant(options) || (isGraphVariant(options) && (options.relationsLayout ?? 'force') === 'force'),
+      isSankeyVariant(options) || (isGraphVariant(options) && (options.relationsLayout ?? 'force') !== 'circular'),
+  });
+
+  /**
+   * Whether the panned/zoomed view is part of the panel's saved configuration.
+   *
+   * Opt-in, and off by default, because of what writing it costs rather than what it
+   * costs to draw: `onOptionsChange` marks the dashboard as having unsaved changes, so
+   * a reader who merely drags the graph aside to see behind it would be prompted to
+   * save on the way out. On, the view is a setting like any other. Chord is excluded
+   * for the same reason it has no zoom buttons: it has no view to save.
+   */
+  addAdvancedBooleanSwitch(builder, {
+    path: 'relationsRememberView',
+    name: 'Remember view',
+    description: 'Save the panned and zoomed view into the panel, so it survives a reload',
+    showIf: (options) => !isChordVariant(options),
   });
 
   // Default-tier and on: reading one node's neighbourhood out of a dense topology is

@@ -152,6 +152,10 @@ export const ADVANCED_RELATIONS_DEFAULTS: Partial<PanelOptions> = {
   relationsLinkColor: undefined,
   relationsSourceFilterLabel: undefined,
   relationsTargetFilterLabel: undefined,
+  // The switch resets, and the state it stored goes with it — `getRelationsViewState`
+  // reads nothing without the switch, so a Default-mode panel is never left holding a
+  // pan the user cannot see the control for.
+  relationsRememberView: undefined,
 };
 
 /** The chart context plus the per-mark lookup the tooltip and node labels read. */
@@ -315,6 +319,35 @@ export function resolveRelationsPan(options: PanelOptions): boolean {
 export function resolveRelationsZoom(options: PanelOptions): boolean {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- reading it is the migration
   return (options.relationsZoom ?? options.relationsRoam) === true;
+}
+
+/** The remembered view, as the keys ECharts keeps a `View`'s roam state in. */
+export interface RelationsViewState {
+  zoom?: number;
+  center?: [number, number];
+}
+
+/**
+ * The saved pan/zoom, for the two variants that have a view to save.
+ *
+ * `zoom` and `center` are where ECharts itself keeps the roam state — the roam action
+ * syncs them back onto the series model (`viewCoordSysSyncBack`), which is what makes
+ * them readable and writable rather than an internal transform. Emitting them is
+ * therefore the whole of "restore the view".
+ *
+ * Empty unless the user asked for it: `relationsRememberView` is off by default, and a
+ * stale `zoom` left in a dashboard's JSON must not survive switching the switch back
+ * off. See `useRelationsPersistence` for the writing half.
+ * https://echarts.apache.org/en/option.html#series-graph.zoom
+ */
+export function getRelationsViewState(options: PanelOptions): RelationsViewState {
+  if (options.relationsRememberView !== true) {
+    return {};
+  }
+  return {
+    ...(options.relationsViewZoom != null ? { zoom: options.relationsViewZoom } : {}),
+    ...(options.relationsViewCenter != null ? { center: options.relationsViewCenter } : {}),
+  };
 }
 
 /**
@@ -796,6 +829,8 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     // Pan only, and off by default; zoom is driven by the panel's buttons rather than
     // by the scroll wheel. See `resolveRelationsRoam`.
     roam: resolveRelationsRoam(ctx.options),
+    // The remembered pan/zoom, when the user asked for one to be remembered.
+    ...getRelationsViewState(ctx.options),
     draggable: ctx.options.relationsDraggable === true,
     // Always emitted: three of its keys deliberately disagree with ECharts'.
     force: getGraphForce(ctx.options),

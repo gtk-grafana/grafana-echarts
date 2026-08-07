@@ -35,6 +35,7 @@ export const Panel: React.FC<Props> = ({
   timeRange,
   onChangeTimeRange,
   onFieldConfigChange,
+  onOptionsChange,
   replaceVariables,
 }) => {
   debug('panelData series', LOG_LEVELS.debug, data.series);
@@ -115,6 +116,8 @@ export const Panel: React.FC<Props> = ({
             chartModule={chartModule}
             isGrafanaLegend={isVizLegend}
             onChangeTimeRange={onChangeTimeRange}
+            onFieldConfigChange={onFieldConfigChange}
+            onOptionsChange={onOptionsChange}
             width={vizWidth}
             height={vizHeight}
             instanceRef={chartInstanceRef}

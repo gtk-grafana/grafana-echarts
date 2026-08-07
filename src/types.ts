@@ -669,6 +669,30 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsTargetFilterLabel?: string;
 
   /**
+   * Remember the panned/zoomed view across reloads (Advanced), by writing
+   * {@link relationsViewZoom} / {@link relationsViewCenter} back into the panel's
+   * saved options as the user roams.
+   *
+   * Opt-in and off by default, because the cost is not the render: every pan marks the
+   * dashboard as having unsaved changes, which for a panel somebody is only *reading*
+   * is noise. On, the view is part of how the panel is configured. See
+   * `useRelationsPersistence`.
+   */
+  relationsRememberView?: boolean;
+
+  /**
+   * The remembered view scale (ECharts `series.*.zoom`). Written by the panel rather
+   * than by the editor, and only while {@link relationsRememberView} is on.
+   */
+  relationsViewZoom?: number;
+
+  /**
+   * The remembered view centre (ECharts `series.*.center`), in the series' own
+   * coordinate space. Written alongside {@link relationsViewZoom}.
+   */
+  relationsViewCenter?: [number, number];
+
+  /**
    * Sankey flow direction (ECharts `series.sankey.orient`): node columns run
    * left-to-right (`horizontal`) or top-to-bottom (`vertical`). Default-tier;
    * omitted at the horizontal default. See `getSankeyOrient`.

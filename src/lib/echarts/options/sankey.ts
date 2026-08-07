@@ -16,6 +16,7 @@ import {
   getRelationsLabelLayout,
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
+  getRelationsViewState,
   RELATIONS_FOCUS_ADJACENCY_DEFAULT,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
@@ -196,8 +197,29 @@ function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
     if (node.secondary != null) {
       item.secondary = node.secondary;
     }
+    // A dragged sankey node is remembered in the same `custom.fixedX`/`fixedY` pair
+    // the graph variant uses, but a sankey reads its own **fraction** of the layout
+    // rect (`localX`/`localY`, 0-1) rather than a coordinate — so the pair means
+    // something different here and is only honoured when both are present and in
+    // range. See `RelationNode.fixedX` and `useRelationsPersistence`.
+    if (isLocalFraction(node.fixedX) && isLocalFraction(node.fixedY)) {
+      item.localX = node.fixedX;
+      item.localY = node.fixedY;
+    }
     return item;
   });
+}
+
+/**
+ * Whether a stored coordinate is usable as a sankey `localX`/`localY`.
+ *
+ * The range check is what keeps the shared field pair honest: a dashboard that pinned
+ * a *graph* at `fixedX: 340` and switched the variant to sankey would otherwise place
+ * that node 340 layout-widths off screen. Out of range means "not a sankey position",
+ * and the node falls back to the computed column.
+ */
+function isLocalFraction(value: number | undefined): value is number {
+  return value != null && value >= 0 && value <= 1;
 }
 
 /**
@@ -293,6 +315,8 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
     // letting a sankey be dragged apart by default.
     draggable: ctx.options.relationsDraggable === true,
     roam: resolveRelationsRoam(ctx.options),
+    // The remembered pan/zoom, when the user asked for one to be remembered.
+    ...getRelationsViewState(ctx.options),
     label: getSankeyLabel(ctx),
     lineStyle: getSankeyLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,

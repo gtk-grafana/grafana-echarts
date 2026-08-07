@@ -4,6 +4,7 @@ import {
   changeSeriesColorConfig,
   getHiddenSeriesNames,
   getSeriesColorOverride,
+  setMarkPositionConfig,
   toggleSeriesVisibilityConfig,
 } from 'lib/grafana/fields/seriesConfig';
 
@@ -43,6 +44,38 @@ describe('changeSeriesColorConfig', () => {
     expect(result.overrides[0].properties).toEqual([
       { id: 'unit', value: 'bytes' },
       { id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: '#00ff00' } },
+    ]);
+  });
+});
+
+describe('setMarkPositionConfig', () => {
+  it('writes both axes onto one byName override', () => {
+    const result = setMarkPositionConfig(emptyConfig(), 'gateway', { x: 60, y: 150 });
+
+    expect(result.overrides).toEqual([
+      {
+        matcher: { id: FieldMatcherID.byName, options: 'gateway' },
+        properties: [
+          { id: 'custom.fixedX', value: 60 },
+          { id: 'custom.fixedY', value: 150 },
+        ],
+      },
+    ]);
+  });
+
+  // Dragging a node twice must move it, not accumulate two positions — and it must not
+  // wipe whatever else the user configured on that mark.
+  it('replaces an earlier position and preserves other properties', () => {
+    const first = changeSeriesColorConfig(emptyConfig(), 'gateway', '#ff0000');
+    const placed = setMarkPositionConfig(first, 'gateway', { x: 10, y: 20 });
+
+    const moved = setMarkPositionConfig(placed, 'gateway', { x: 30, y: 40 });
+
+    expect(moved.overrides).toHaveLength(1);
+    expect(moved.overrides[0].properties).toEqual([
+      { id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: '#ff0000' } },
+      { id: 'custom.fixedX', value: 30 },
+      { id: 'custom.fixedY', value: 40 },
     ]);
   });
 });

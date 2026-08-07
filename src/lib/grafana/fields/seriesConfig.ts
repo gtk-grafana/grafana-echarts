@@ -35,6 +35,9 @@ import { debug, LOG_LEVELS } from 'development';
 const COLOR_PROP_ID = 'color';
 /** Custom `hideFrom` field-config property id (registered via `addHideFrom`). */
 const HIDE_FROM_PROP_ID = 'custom.hideFrom';
+/** Per-mark pinned coordinates (registered via `addRelationsCustomConfig`). */
+const FIXED_X_PROP_ID = 'custom.fixedX';
+const FIXED_Y_PROP_ID = 'custom.fixedY';
 
 /** System-override ref core uses for the legend visibility toggle. */
 const HIDE_SERIES_REF = 'hideSeriesFrom';
@@ -93,6 +96,27 @@ function upsertProperty(
   properties.push(property);
   next[index] = { ...existing, properties };
   return next;
+}
+
+/**
+ * Persist a mark's position by name — where a dragged relations node is remembered.
+ *
+ * The same shape as the legend's colour pick, and deliberately so: dragging a node is
+ * an interaction that has to survive a reload, and a field override is the only store
+ * the panel has that does. `custom.fixedX`/`custom.fixedY` are ordinary per-mark config
+ * the user can see and clear in the override editor afterwards, which a hidden
+ * position cache would not be.
+ *
+ * The two axes are written as one config so a drag is one undo step rather than two.
+ * See `useRelationsPersistence` for where the coordinates come from.
+ */
+export function setMarkPositionConfig(
+  fieldConfig: FieldConfigSource,
+  name: string,
+  position: { x: number; y: number }
+): FieldConfigSource {
+  const withX = upsertProperty(fieldConfig.overrides, name, { id: FIXED_X_PROP_ID, value: position.x });
+  return { ...fieldConfig, overrides: upsertProperty(withX, name, { id: FIXED_Y_PROP_ID, value: position.y }) };
 }
 
 /**

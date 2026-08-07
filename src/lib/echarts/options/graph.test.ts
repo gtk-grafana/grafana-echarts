@@ -14,6 +14,7 @@ import {
   getRelationsLabelLayout,
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
+  getRelationsViewState,
   RELATIONS_NODE_SIZE_DEFAULT,
   resolveFixedPositions,
   resolveRelationsRoam,
@@ -224,6 +225,32 @@ describe('getGraphEdgeSymbol / getGraphEmphasis', () => {
   it('omit their keys when switched off', () => {
     expect(getGraphEdgeSymbol(baseOptions({ relationsEdgeArrows: false }))).toBeUndefined();
     expect(getGraphEmphasis(baseOptions({ relationsFocusAdjacency: false }))).toBeUndefined();
+  });
+});
+
+describe('getRelationsViewState', () => {
+  // `zoom`/`center` are where ECharts keeps a `View`'s roam state, and the roam action
+  // syncs them back onto the series model — so emitting them *is* restoring the view.
+  it('restores the saved view when Remember view is on', () => {
+    const saved = baseOptions({ relationsRememberView: true, relationsViewZoom: 2, relationsViewCenter: [10, 20] });
+
+    expect(getRelationsViewState(saved)).toEqual({ zoom: 2, center: [10, 20] });
+    expect(getGraphSeries(data(), ctx(saved))).toMatchObject({ zoom: 2, center: [10, 20] });
+  });
+
+  // The switch gates the *read* as well as the write, so turning it off restores the
+  // default view rather than leaving the panel stuck at a pan nobody can see a control
+  // for. `ADVANCED_RELATIONS_DEFAULTS` clears the switch in Default editor mode, which
+  // is what makes that reachable.
+  it('emits nothing when the switch is off, whatever was stored', () => {
+    const stored = baseOptions({ relationsViewZoom: 2, relationsViewCenter: [10, 20] });
+
+    expect(getRelationsViewState(stored)).toEqual({});
+    expect(getGraphSeries(data(), ctx(stored))).not.toHaveProperty('zoom');
+  });
+
+  it('emits only what has been stored so far', () => {
+    expect(getRelationsViewState(baseOptions({ relationsRememberView: true }))).toEqual({});
   });
 });
 

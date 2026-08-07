@@ -305,6 +305,44 @@ describe('getSankeySeries', () => {
     expect(typeof getSankeySeries(data(), ctx()).series.labelLayout).toBe('function');
   });
 
+  /**
+   * A dragged sankey node is remembered in the same `custom.fixedX`/`fixedY` pair as a
+   * dragged graph node — a mark has one place to record where it was put — but a
+   * sankey has no coordinate space to pin one in and reads a **fraction** of the
+   * layout rect instead. See `useRelationsPersistence`.
+   */
+  describe('remembered node positions', () => {
+    const placed = () =>
+      data({
+        nodes: [
+          { id: 'a', name: 'A', value: 1, fixedX: 0.25, fixedY: 0.5 },
+          { id: 'b', name: 'B', value: 2 },
+        ],
+      });
+
+    it('carries a stored fraction through as localX/localY', () => {
+      const { series } = getSankeySeries(placed(), ctx());
+
+      expect(nodeItems(series)[0]).toMatchObject({ localX: 0.25, localY: 0.5 });
+      expect(nodeItems(series)[1]).not.toHaveProperty('localX');
+    });
+
+    // The range check is what keeps the shared field pair honest: a graph position
+    // (pixels) reinterpreted as a fraction would put the node whole layout-widths off
+    // screen, so a value outside 0-1 means "not a sankey position".
+    it('ignores a coordinate that cannot be a fraction', () => {
+      const pixels = data({ nodes: [{ id: 'a', name: 'A', value: 1, fixedX: 340, fixedY: 150 }] });
+
+      expect(nodeItems(getSankeySeries(pixels, ctx()).series)[0]).not.toHaveProperty('localX');
+    });
+
+    it('needs both axes before it places anything', () => {
+      const half = data({ nodes: [{ id: 'a', name: 'A', value: 1, fixedX: 0.25 }] });
+
+      expect(nodeItems(getSankeySeries(half, ctx()).series)[0]).not.toHaveProperty('localX');
+    });
+  });
+
   // A declared node `value` acts as a floor in ECharts' `computeNodeValues`
   // (`Math.max(inSum, outSum, nodeRawValue)`), so a `mainstat` unrelated to the flow
   // would inflate the node past its own ribbons. It rides as `stat` instead.
