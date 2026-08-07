@@ -48,8 +48,8 @@ describe('frameToRelationsGraph', () => {
   /**
    * The conversion has to happen above the panel to be worth anything, so a row-format
    * response reaching the panel means the pipeline is missing a step. Rendering nothing
-   * would hide that; this says so instead, and names the fix. See item 12 of
-   * ../../../../todo/graph-wide-migration.md.
+   * would hide that; this says so instead, and names the fix (adding a **Rows to
+   * fields** transformation).
    */
   it('reports row-format frames rather than rendering nothing', () => {
     expect(() => frameToRelationsGraph([rowEdges(), rowNodes()], theme)).toThrow(/Rows to fields/);

@@ -179,7 +179,10 @@ and with Grafana's legacy "Graph" panel name.
   → chart-agnostic `{ nodes, links }` model, plus `isNodeGraphFrames(frames)` and a
   `getNodeGraphValueField(frames)` for color/format resolution (mirroring
   `getHierarchyValueField`). Keep it Grafana-isolated (no ECharts imports), like
-  `binnedHeatmap.ts`.
+  `binnedHeatmap.ts`. **Since replaced** by `converters/graphWide.ts` (the reader) and
+  `converters/legacyToWide.ts` (the row-to-wide adapter) in the later `graph-*-wide`
+  migration — see [graph-wide-migration.md](./graph-wide-migration.md); `nodeGraph.ts`
+  itself no longer exists.
 - Cycle policy `src/lib/echarts/converters/dag.ts`, used only by the sankey path —
   kept separate because it is graph theory, not frame reading.
 - Options `src/lib/echarts/options/{graph,sankey,chord}.ts`: map the shared model →

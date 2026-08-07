@@ -485,8 +485,9 @@ describe('frameToGraphWide — edge colour', () => {
   });
 
   /**
-   * "Edges have no color-scheme path at all" — `relations-color-schemes.md` — closes
-   * by construction rather than by a new resolver: an edge **is** a field, so an
+   * "Edges have no color-scheme path at all" (the pre-pivot bug report, phase 3 of
+   * `graph-wide-migration.md`) closes by construction rather than by a new resolver: an
+   * edge **is** a field, so an
    * ordinary `byName` override targets exactly one of them, and only that one. There
    * was never an edge equivalent of the node resolver to delete; this is the gap
    * closing because the mark became addressable.

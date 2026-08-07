@@ -14,25 +14,16 @@ sources produce it); this module reads the **field-based** contract those frames
 converted to above the panel, so a byte-identical query still feeds both and the
 side-by-side comparison this doc rests on is intact.
 
-> **This module now reads `graph-*-wide` only.**
+> **This module reads `graph-*-wide` only.**
 > [data-plane/graph-wide.md](../../../data-plane/graph-wide.md) defines
-> `graph-nodes-wide` / `graph-edges-wide`, where one node is one **field** and one edge is
-> one **field**. `converters/legacyToWide.ts`, registered through
-> `PanelPlugin.setDataTransformations`, converts the row form to it before field overrides
-> are applied — which is what makes each node and edge an override target.
->
-> **Colour, per-mark config, tooltips and data links have all landed (phases 3–5).** A
-> mark's colour is `field.display(value).color`, its style is `custom.*` set by an
-> ordinary override, hiding reads `custom.hideFrom.viz` off the mark, and a hovered node
-> or edge formats with **its own** field and surfaces **its own** `config.links` — so two
-> nodes of one graph can carry different units, and a link can be put on exactly one mark.
-> **All six phases have shipped.** A node _derived_ from an edge's endpoints — which had no
-> field for any of this to hang on — is now declared as one above the panel as well
-> (`converters/deriveNodes.ts`, [docs/relations-derived-nodes.md][derived]), so it is an
-> override target like any other mark wherever that pre-pass can run. What remains is the
-> genuinely open items below.
-> [todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md) records what each
-> phase changed and the three decisions that went differently in the writing.
+> `graph-nodes-wide` / `graph-edges-wide` — one node is one **field**, one edge is one
+> **field** — so colour, unit, links, `custom.hideFrom` and a `byName` override all
+> address one mark. `converters/legacyToWide.ts` (registered through
+> `PanelPlugin.setDataTransformations`) converts the row form to it before field overrides
+> apply, and `converters/deriveNodes.ts` does the same for a node only implied by an
+> edge's endpoints, wherever that pre-pass can run. See
+> [todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md) for what changed
+> and why. What remains is the genuinely open items below.
 
 ## Design difference
 
@@ -250,7 +241,7 @@ routes stat units through its own panel options rather than the standard Unit.
 
 Not registered, deliberately:
 
-- ~~**`reduceOptions`**~~ — **now registered** (`addRelationsStatOptions`): `calcs[0]` is a
+- **`reduceOptions`** is registered (`addRelationsStatOptions`): `calcs[0]` is a
   mark's main stat and every calc after it is an extra tooltip row. Deliberately _not_
   `addStandardDataReduceOptions`, which would also add an inert "Show: Calculate / All
   values" radio and a "Limit" input — a mark is a field, so neither can mean anything here.
@@ -258,7 +249,7 @@ Not registered, deliberately:
   node and weighs an edge.
 - **Legend calcs** — `includeLegendCalcs: false`. The original reason (legend entries are
   not fields, so there is nothing to reduce) is obsolete: a legend entry **is** a field
-  now. Reconsidered in phase 6 and **still off**, for a narrower reason — a mark is
+  now. **Still off**, for a narrower reason — a mark is
   already reduced to one value by `reduceOptions`, so on the instant data this family
   normally sees, every legend calc would print that same number again. It becomes a real
   option only for a _ranged_ wide frame, where a mark has many rows and Max/Mean over the
@@ -401,39 +392,22 @@ frames can legitimately show a different number of links.
   where a ring runs out of circumference, and the family withholds entirely past
   `RELATIONS_MAX_EDGES`. See [suggestions.ts](./suggestions.ts), `scoreRelations` and
   `exceedsChordNodeBudget`.
-- **Single frame per role.** The first edges frame and the first nodes frame win;
-  additional frames are dropped. Consistent with the other non-cartesian families —
-  see [todo/multiple-frames.md](../../../todo/multiple-frames.md).
-
-## What `graph-*-wide` would change
-
-Every row of this doc that reads **Inert**, **Not supported\*** or **No** because a mark
-is a frame _row_ rather than a field, and what
-[data-plane/graph-wide.md](../../../data-plane/graph-wide.md) does to it. Rows marked
-**shipped** are done; the rest are still ahead in
-[todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md), and the evidence is
-`provisioning/dashboards/relations/graph-wide.json` (the contract) plus
-`provisioning/dashboards/relations/per-mark-tooltip-links.json` (per-mark tooltips, links
-and the legend).
-
-| Row / gap in this doc                                                                    | Under `graph-*-wide`                                                                                                                                                                                                                                    |
-| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Display name — Inert**                                                                 | **Flips to Yes.** A mark's name _is_ its field's display name; `config.displayName` replaces the `title` column                                                                                                                                         |
-| **Color scheme** — "three tiers ... See `makeRelationsColorResolver`"                    | **Deleted — shipped.** Colour is `field.display(value).color`, so all eight modes work and a `byName` override arrives theme-resolved rather than as a raw colour name                                                                                  |
-| **Unit / Decimals / Value mappings** — one column, one format for every mark             | **Shipped.** Per mark, in the tooltip and in the node label: two nodes of one graph can carry different units, which core's Node graph cannot express at all                                                                                            |
-| **Data links** — "nodes _derived_ from the edges frame carry no row, so no footer"       | **Shipped.** Per mark via `config.links`, so a link lands on one node or one edge. Derived nodes are given a field of their own by `deriveNodes.ts` and behave the same; open only where that pre-pass cannot run                                       |
-| **Min / Max — Marginal** ("only bounds the by-value color domain")                       | Still the colour domain, but the domain stops being contaminated: measured `{min: 8, max: 12}` vs the legacy `{min: 0.5, max: 60}`                                                                                                                      |
-| **Thresholds — Marginal**                                                                | Per mark, and the approximate replacement for `arc__*`                                                                                                                                                                                                  |
-| **`reduceOptions` not registered**                                                       | **Registered — shipped.** `calcs[0]` = main stat; `calcs[1..]` = one tooltip row each                                                                                                                                                                   |
-| **Legend calcs `includeLegendCalcs: false`**                                             | Reconsider — a legend entry is a field again                                                                                                                                                                                                            |
-| **`custom.hideFrom` registered with no reachable editor**                                | **Shipped.** The real `commonOptionsBuilder.addHideFrom`; a `byName` override hides exactly one mark, node or edge                                                                                                                                      |
-| **Legend hide re-implemented by name; relations excluded from `stripHiddenValueFields`** | **Shipped, with a floor.** The by-name read is gone for any mark that has a field, which `deriveNodes.ts` now includes derived nodes in; it survives only where that pre-pass cannot run. The strip exclusion **stays** — see the legend-hide gap above |
-| **`arc__*` approximated**                                                                | **Dropped — shipped.** The conversion maps no `arc__*`, and no ECharts relationship series draws a multi-section ring anyway                                                                                                                            |
-| **`icon` dropped**                                                                       | Becomes `custom.icon` and is **typed but given no editor**, since it is still unrendered — Grafana icon names need resolving to an ECharts symbol first                                                                                                 |
-| **`noderadius` / `subtitle` / `thickness` / `strokedasharray` are data, not config**     | **Shipped.** All four are per-mark `custom.*`, editable by an override; `curveness` joins them with no row-form equivalent at all                                                                                                                       |
-| **`detail__*` has no context menu**                                                      | Becomes `field.labels`, still no surface                                                                                                                                                                                                                |
-| **Cycle policy**                                                                         | **Unchanged.** The sankey DAG restriction is an ECharts constraint, not a data-shape one                                                                                                                                                                |
-| **Never auto-suggested** (`PanelDataSummary` exposes no field names)                     | **Unchanged**, and possibly harder: a wide graph frame looks like any other numeric-wide frame to the summary                                                                                                                                           |
+- **Every frame in a role contributes, not just the first.** `findEdgesFrames` /
+  `findNodesFrames` collect every frame that declares or shape-matches a role — the
+  shape a labelled datasource returns with no transformation is N single-series frames,
+  and reading only the first used to silently draw a one-edge graph from a ten-series
+  response. Declared beats shape as a **filter**, not a find: once any frame declares
+  `graph-edges-wide`, only declared frames are collected. See
+  [data-plane/graph-wide.md](../../../data-plane/graph-wide.md#a-role-is-one-to-many).
+- **Why the pivot walks around the matcher wall rather than through it.** `FieldMatcher`
+  is still `(field, frame, allFrames) => boolean` — Grafana has no row-level matcher, and
+  the override matcher list is still five entries (`byName`, `byRegexp`, `byType`,
+  `byFrameRefID`, `byValue`). Making a mark a field sidesteps this rather than fixing it.
+  If a core change is ever wanted anyway, the cheaper door is `MatcherScope`
+  (`'series' | 'nested' | 'annotation' | 'exemplar'`, already shipping with a `scope`
+  parameter on `applyFieldOverrides` and a `MatcherScopeSelector` in `@grafana/ui`) — a
+  `'node'` / `'edge'` scope is a far smaller ask than a parallel override system, though
+  graph frames don't need either.
 
 ## ECharts API support
 
@@ -459,6 +433,16 @@ runtime surface.
 | `grid` / `xAxis` / `yAxis`       | N/A       | `graph` creates its own `View` coordinate system; `sankey` uses a box layout                                                                        |
 | `visualMap`                      | Not used  | By-value node color goes through the field's Color scheme instead                                                                                   |
 | `dataZoom` / `brush` / `toolbox` | Not used  | —                                                                                                                                                   |
+
+**Per-item capability, checked against the installed ECharts source rather than
+assumed:** curveness is a per-**edge** `lineStyle` property on all three variants
+(`GraphEdgeLineStyleOption`, `SankeyEdgeStyleOption` and `ChordEdgeLineStyleOption` each
+extend `LineStyleOption` with `curveness`), so per-edge curving needs no series-level
+control. Sankey's node width and node gap can never be per-node, though — they are
+series-level only (`series.sankey.nodeWidth` / `nodeGap`), with no item-level
+counterpart; the nearest per-node equivalents are `localX`/`localY`/`depth`, which
+place a node but do not size it. Node _size_ is per-item only on `graph`, via
+`symbolSize`, which the converter already drives from `custom.nodeRadius`.
 
 <!-- Regression test targets -->
 

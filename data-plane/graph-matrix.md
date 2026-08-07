@@ -47,4 +47,4 @@ Four fields and three rows, where [`graph-edges-wide`](./graph-wide.md) needs si
   return nodes and edges together.
 
 Full reasoning, including the measurements behind the density argument, is in
-[../src/modules/relations/node-wide-history.md](../src/modules/relations/node-wide-history.md).
+[../todo/graph-wide-history.md](../todo/graph-wide-history.md).

@@ -203,17 +203,16 @@ describe('relationsChartModule', () => {
   });
 
   /**
-   * Item 15 of `todo/graph-wide-migration.md`: the legend's colour picker needs no
-   * family-specific path any more. It writes the ordinary `byName` fixed-colour
-   * override every panel writes (`changeSeriesColorConfig`, driven here rather than
-   * hand-written), Grafana's override engine applies it to the node's own field, and
-   * the family reads the answer back as `field.display(value).color`.
+   * The legend's colour picker needs no family-specific path any more. It writes the
+   * ordinary `byName` fixed-colour override every panel writes (`changeSeriesColorConfig`,
+   * driven here rather than hand-written), Grafana's override engine applies it to the
+   * node's own field, and the family reads the answer back as `field.display(value).color`.
    *
    * The old route — `getSeriesColorOverride`, matching the legend label against
-   * `fieldConfig` inside the converter — was deleted in phase 3, and the reason this
-   * test exists is that nothing else would notice if it came back: a re-implementation
-   * would look identical from the outside until an override used `byRegexp`, or the
-   * theme had to resolve the colour name.
+   * `fieldConfig` inside the converter — was deleted when the family pivoted to the
+   * field-based wide contract, and the reason this test exists is that nothing else would
+   * notice if it came back: a re-implementation would look identical from the outside
+   * until an override used `byRegexp`, or the theme had to resolve the colour name.
    */
   describe('legend colour', () => {
     const nodeColors = (fieldConfig: FieldConfigSource) => {
@@ -358,7 +357,8 @@ describe('relationsChartModule', () => {
     const edgesOf = (series: Record<string, unknown>) =>
       (series.links as Array<{ source: string; target: string }>).map((link) => `${link.source}->${link.target}`);
 
-    // The headline of phase 4 item 11: one edge, named, gone — and nothing else moves.
+    // A `custom.hideFrom` override on one edge's field removes exactly that edge —
+    // named, gone — and nothing else moves.
     it('hides one edge without touching its endpoints', () => {
       const series = seriesOf([wideNodes, wideEdges], hiding('e1'));
 

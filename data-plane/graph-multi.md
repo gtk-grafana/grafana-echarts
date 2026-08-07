@@ -227,4 +227,4 @@ Nodes convert the same way, with `graph-nodes-*` throughout.
 - Where a multi response comes from, per datasource:
   [../docs/relations-data-sources.md](../docs/relations-data-sources.md)
 - Why the identity hazard is unfixable in a consumer:
-  [../src/modules/relations/node-wide-history.md](../src/modules/relations/node-wide-history.md)
+  [../todo/graph-wide-history.md](../todo/graph-wide-history.md)

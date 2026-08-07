@@ -85,9 +85,9 @@ const linkParams = (item: RelationsLinkItem) => asParams({ data: item, color: '#
 
 describe('buildRelationsTooltipModel', () => {
   /**
-   * Item 13 of `todo/graph-wide-migration.md`: "tooltip unit decided by frame order"
-   * was the frame's *first* numeric field formatting every mark. A mark is a field
-   * now, so each one formats with its own unit and decimals.
+   * "Tooltip unit decided by frame order" was the frame's *first* numeric field
+   * formatting every mark. A mark is a field now, so each one formats with its own
+   * unit and decimals.
    */
   describe('per-mark formatting', () => {
     it('formats each node with its own unit and decimals', () => {
@@ -126,9 +126,9 @@ describe('buildRelationsTooltipModel', () => {
   });
 
   /**
-   * Item 14, and gaps 1-3 of `todo/relations-data-links.md`: the footer used to
-   * resolve one field for the whole series, so a link configured anywhere painted
-   * everywhere. The source is now the hovered mark's own field.
+   * The footer used to resolve one field for the whole series, so a link configured
+   * anywhere painted everywhere (gaps 1-3 of `todo/relations-data-links.md`). The
+   * source is now the hovered mark's own field.
    */
   describe('per-mark data links', () => {
     it('resolves a node back to its own field and row', () => {

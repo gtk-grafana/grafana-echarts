@@ -406,4 +406,4 @@ write `custom.*` or `links` — those need a producer or a purpose-built transfo
   https://grafana.com/docs/grafana/latest/panels-visualizations/configure-overrides/
 - How the relations family draws a graph: [echarts-coverage.md](./echarts-coverage.md)
 - Why the kind is shaped this way, with the measurements behind every rule:
-  [../src/modules/relations/node-wide-history.md](../src/modules/relations/node-wide-history.md)
+  [../todo/graph-wide-history.md](../todo/graph-wide-history.md)

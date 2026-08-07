@@ -49,11 +49,12 @@ import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTran
  * A datasource that later emits `graph-*-wide` natively silently stops triggering any
  * conversion — no dashboard changes, the second branch just starts winning.
  *
- * Note the supplier's context is `{ series }` only, so this cannot consult panel options;
- * the `dataFormat` escape hatch discussed in
- * ../../../todo/graph-wide-migration.md#the-dataformat-panel-option would need the
- * upstream context widened first. That ceiling is also why the pivot reads the contract's
- * canonical label keys rather than configurable ones.
+ * Note the supplier's context is `{ series }` only, so this cannot consult panel options at
+ * all — one of the two reasons the `dataFormat` panel option discussed in
+ * ../../../todo/graph-wide-migration.md#the-dataformat-panel-option was never built: it is
+ * mostly unneeded now that `meta.type` is authoritative in both directions, and the residual
+ * ambiguous case it would help with is unreachable from here regardless. That ceiling is
+ * also why the pivot reads the contract's canonical label keys rather than configurable ones.
  */
 export const relationsDataTransformations: PanelDataTransformationsSupplier = ({ series }) => {
   debug('relationsDataTransformations', LOG_LEVELS.debug, { series });

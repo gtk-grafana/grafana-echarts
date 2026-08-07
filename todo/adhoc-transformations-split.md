@@ -79,9 +79,10 @@ It therefore ships ahead of initiative 2 and does not wait on grafana/scenes#158
 
 ### Gap by gap
 
-The rows are `graph-wide-adhoc-transformations.md`'s
-["What is missing"](./graph-wide-adhoc-transformations.md#what-is-missing) table, verbatim,
-with each initiative's disposition.
+The rows below originated as
+[graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md)'s "What is
+missing" table (since compressed out of that file, which now points here for the design),
+with each initiative's disposition added.
 
 | Gap                                            | Initiative 1                                                                                                                                                                          | Initiative 2                                                                                       |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -117,9 +118,8 @@ one modern call path, and it is now confirmed rather than assumed: a GitHub code
 `OptionsPaneOptions.tsx`, and `PanelOptions.tsx`. `PanelOptionsPane` is constructed once,
 at `PanelEditor.tsx:234`, and **`PanelEditNext` renders that same object**
 (`PanelEditorRendererNext.tsx:54`, `{optionsPane && <optionsPane.Component model={optionsPane} />}`).
-This resolves the last open uncertainty in
-[graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md#what-would-settle-the-open-uncertainties):
-the new panel-edit experience has no separate override-picker path, so fixing
+This resolves the last open uncertainty raised while investigating this design: the new
+panel-edit experience has no separate override-picker path, so fixing
 `PanelOptionsPane.tsx:175`'s input fixes both.
 
 The same defect applies to #129563's extracted log fields, and it is worth stating
@@ -186,10 +186,10 @@ is a closed list of thirteen whose only config targets are `max`, `min`, `unit`,
 `decimals`, `displayName`, `color`, `thresholds` and `mappings`. **Nothing writes
 `config.custom.*` and nothing writes `config.links`**, and `rowsToFields` builds its output
 frame from scratch so `meta` never survives. So every `custom.*` row of the contract's
-[mapping tables](../src/modules/relations/node-wide-history.md#complete-mapping-from-graph--long),
+[mapping tables](../data-plane/graph-wide.md#graph-edges-wide-format-graph-edges-wide),
 `config.links`, and `meta.type: 'graph-edges-wide'` are unreachable through any
 JSON-configured prefix. Full measurements in
-[node-wide-history.md](../src/modules/relations/node-wide-history.md#what-a-native-pivot-cannot-carry).
+[relations-data-sources.md](../docs/relations-data-sources.md#what-the-pivot-cannot-carry-however-it-is-configured).
 
 Widening the return type to `Array<DataTransformerConfig | CustomTransformOperator>` closes
 that, and it costs nothing downstream, because **both types the prefix flows into already
