@@ -11,10 +11,10 @@ import {
   getRelationsLabelLayout,
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
-  RELATIONS_FOCUS_ADJACENCY_DEFAULT,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
+  resolveRelationsFocusAdjacency,
 } from 'lib/echarts/options/graph';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
@@ -124,8 +124,7 @@ export function getChordLinkStyle(options: PanelOptions): ChordSeriesOption['lin
  * https://echarts.apache.org/en/option.html#series-chord.emphasis
  */
 export function getChordEmphasis(options: PanelOptions): NonNullable<ChordSeriesOption['emphasis']> {
-  const focus = options.relationsFocusAdjacency ?? RELATIONS_FOCUS_ADJACENCY_DEFAULT;
-  return { focus: focus === true ? 'adjacency' : 'none' };
+  return { focus: resolveRelationsFocusAdjacency(options) ? 'adjacency' : 'none' };
 }
 
 /**

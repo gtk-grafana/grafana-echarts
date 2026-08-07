@@ -1,8 +1,10 @@
 import { type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
+import { type EChartsType } from 'echarts';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { deriveNodes } from 'lib/echarts/converters/deriveNodes';
 import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
+import { revealEdgeLabelsFor } from 'lib/echarts/features/edgeLabelLayout';
 import { getChart, normalizeCanvasEvents, readCanvasLayer, SERIES_LAYER_SELECTOR, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, waitForFinished, width } from 'test/panel';
 import { type PanelOptions } from 'types';
@@ -521,6 +523,274 @@ describe('relations (graph) canvas renders', () => {
         rerender(element());
         expect(thisPass()).toEqual(first);
       }
+    });
+
+    /**
+     * **The reported bug**: "Hide overlapping labels" reached node labels and left the edge
+     * values piled on top of each other.
+     *
+     * They were excluded from ECharts' label-layout stage because putting them through it
+     * made the render depend on how many times the panel had drawn (see the test above),
+     * and they are arbitrated by the family instead — measured on the settled geometry, and
+     * yielding to the node labels rather than outranking them. See
+     * `registerEdgeLabelLayout`.
+     *
+     * Stated on **two links between the same pair of nodes**, which a response can perfectly
+     * well contain (two call paths between the same services) and which is drawn as one line
+     * over another: the two values land on exactly the same spot, so they collide whatever
+     * the text measures. That last part is the reason for the fixture — `jest-canvas-mock`
+     * reports a string's width as its character count and its height as 1px, so nothing
+     * merely *near* anything else overlaps here. The real geometry is measured in a browser.
+     *
+     * A reciprocal pair (`a-->b` with `b-->a`) is deliberately *not* used: those two labels
+     * sit on opposite sides of the shared line, 10px apart, because the second is rotated by
+     * a further 180°. They do collide at real font sizes, and not at this one.
+     */
+    describe('overlapping edge values', () => {
+      // A third node, and an edge to it, so "the node it belongs to" is a claim with a
+      // counter-example: `c` touches neither of the two colliding values.
+      const reciprocalNodes = toDataFrame({
+        name: 'nodes',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['a', 'b', 'c'] },
+          { name: 'mainstat', type: FieldType.number, values: [1, 2, 3] },
+        ],
+      });
+      const reciprocalEdges = toDataFrame({
+        name: 'edges',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['one', 'two', 'three'] },
+          { name: 'source', type: FieldType.string, values: ['a', 'a', 'b'] },
+          { name: 'target', type: FieldType.string, values: ['b', 'b', 'c'] },
+          { name: 'mainstat', type: FieldType.number, values: [11, 22, 33] },
+        ],
+      });
+      const values = ['11', '22'];
+      const drawnValues = (events: CanvasRenderingContext2DEvent[]) =>
+        labelTexts(events).filter((text) => values.includes(text));
+
+      it('drops one of two values drawn on the same spot', async () => {
+        const { seriesEvents } = await renderGraph([reciprocalNodes, reciprocalEdges], {
+          relationsShowEdgeValues: true,
+        });
+
+        // One value per render pass, and the harness renders twice.
+        expect(drawnValues(seriesEvents)).toHaveLength(2);
+        expect(new Set(drawnValues(seriesEvents)).size).toBe(1);
+        // The nodes keep their names: an edge value never takes a label down with it.
+        expect(labelTexts(seriesEvents)).toEqual(expect.arrayContaining(['a', 'b']));
+      });
+
+      it('draws both when overlap hiding is switched off', async () => {
+        const { seriesEvents } = await renderGraph([reciprocalNodes, reciprocalEdges], {
+          relationsShowEdgeValues: true,
+          relationsHideOverlappingLabels: false,
+        });
+
+        expect(new Set(drawnValues(seriesEvents))).toEqual(new Set(values));
+      });
+
+      /**
+       * A dropped value has to come back when the reader asks for that edge — by hovering or
+       * pinning the edge itself, **or either node it joins**, since a node's edge values are
+       * what hovering it is asking about.
+       *
+       * Driven by calling the reveal with the indices directly rather than by moving a mouse:
+       * what is being claimed is which marks answer for which label, and an edge's stroke is
+       * a 2px target that a synthesized hover has to *aim* at. The cursor half is measured in
+       * a browser, where the aim is real. See `revealEdgeLabelsFor`.
+       */
+      describe('and asking for one back', () => {
+        /** Render, then report the hidden value and a reader of what is drawn from now on. */
+        const withOneHidden = async () => {
+          const { container } = render(
+            getComponent(
+              asPipelineWould([reciprocalNodes, reciprocalEdges]),
+              'graph',
+              canvasOptions({ relationsShowEdgeValues: true }),
+              undefined,
+              undefined,
+              'relations'
+            )
+          );
+          const { chartInstanceDom, chart } = getChart(container);
+          await waitForFinished(chart);
+
+          const painted = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+          const shown = new Set(drawnValues(painted));
+          const hidden = values.find((value) => !shown.has(value));
+          expect(hidden).toBeDefined();
+
+          let counted = painted.length;
+          const drawnSince = () => {
+            const all = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+            const fresh = drawnValues(all.slice(counted));
+            counted = all.length;
+            return fresh;
+          };
+          const reveal = (focus: Parameters<typeof revealEdgeLabelsFor>[1]) => {
+            revealEdgeLabelsFor(chart!.getZr(), focus);
+            chart!.getZr().flush();
+            return drawnSince();
+          };
+          // Each reading is a transition from nothing focused, which is how a reader arrives
+          // at a mark — and necessary, because a reveal that asks for the state already on
+          // screen deliberately repaints nothing, so there would be nothing to read.
+          const arriveAt = (focus: Parameters<typeof revealEdgeLabelsFor>[1]) => {
+            reveal(null);
+            return reveal(focus);
+          };
+          return { hidden: hidden!, reveal, arriveAt };
+        };
+
+        it('shows it again for either node the edge joins', async () => {
+          const { hidden, arriveAt } = await withOneHidden();
+
+          // `a` and `b` are the endpoints of both colliding edges; `c` is the third node.
+          expect(arriveAt({ seriesIndex: 0, dataIndex: 0, dataType: 'node' })).toContain(hidden);
+          expect(arriveAt({ seriesIndex: 0, dataIndex: 1, dataType: 'node' })).toContain(hidden);
+          expect(arriveAt({ seriesIndex: 0, dataIndex: 2, dataType: 'node' })).not.toContain(hidden);
+        });
+
+        it('shows it again for the edge itself', async () => {
+          const { hidden, arriveAt } = await withOneHidden();
+
+          // The second of the two links between `a` and `b` is the one that lost; the first
+          // kept its value, and the third edge is the one to `c`.
+          expect(arriveAt({ seriesIndex: 0, dataIndex: 1, dataType: 'edge' })).toContain(hidden);
+          expect(arriveAt({ seriesIndex: 0, dataIndex: 0, dataType: 'edge' })).not.toContain(hidden);
+          expect(arriveAt({ seriesIndex: 0, dataIndex: 2, dataType: 'edge' })).not.toContain(hidden);
+        });
+
+        // Nothing focused is the same question as a mark with no hidden values behind it, and
+        // the answer has to be the label going away again rather than accumulating on screen.
+        it('takes it away again when nothing is focused', async () => {
+          const { hidden, reveal } = await withOneHidden();
+
+          expect(reveal({ seriesIndex: 0, dataIndex: 0, dataType: 'node' })).toContain(hidden);
+          const afterLeaving = reveal(null);
+          expect(afterLeaving).not.toContain(hidden);
+          // Guard against reading an empty repaint as success: the rest was still drawn.
+          expect(afterLeaving.length).toBeGreaterThan(0);
+        });
+      });
+
+      // The property the exclusion was protecting: the same decision on every pass, rather
+      // than one more label surviving each time.
+      it('drops the same one on every render', async () => {
+        const options = canvasOptions({ relationsShowEdgeValues: true });
+        const element = () =>
+          getComponent(
+            asPipelineWould([reciprocalNodes, reciprocalEdges]),
+            'graph',
+            options,
+            undefined,
+            undefined,
+            'relations'
+          );
+        const { container, rerender } = render(element());
+
+        let counted = 0;
+        const thisPass = () => {
+          const all = drawnValues(readCanvasLayer(container, SERIES_LAYER_SELECTOR));
+          const fresh = all.slice(counted);
+          counted = all.length;
+          return fresh;
+        };
+
+        const first = thisPass();
+        expect(first).toHaveLength(1);
+
+        for (let pass = 0; pass < 3; pass++) {
+          rerender(element());
+          expect(thisPass()).toEqual(first);
+        }
+      });
+    });
+
+    /**
+     * **The reported bug**: panning a graph left every edge value behind, hanging in the
+     * middle of the panel while the links it labelled slid out from under it.
+     *
+     * A pan is a transform on the series group, so "moved with the graph" is the whole
+     * claim, and it is stated as the strictest form of it: *every* label drawn — node
+     * names and edge values alike — lands exactly one pan vector from where it was.
+     * Measured before the fix, the node names moved by (40, 25) and the edge values by
+     * (0, 0). See `registerLocalLabelAnchors` for why they were pinned to the canvas.
+     *
+     * Overlap hiding is left at its default (**on**), because that is the condition: it
+     * is what puts the labels through `labelLayout` in the first place.
+     */
+    describe('roam', () => {
+      const pan = { dx: 40, dy: 25 };
+
+      /** Every label drawn since `from`, in canvas coordinates. */
+      const labelPositions = (events: CanvasRenderingContext2DEvent[], from = 0) =>
+        events.slice(from).flatMap((event) => {
+          if (event.type !== 'fillText') {
+            return [];
+          }
+          const { text, x, y } = event.props as unknown as { text: string; x: number; y: number };
+          // zrender writes the element's transform as canvas state and the label's own
+          // offset as the draw call's arguments, so where a label actually landed is one
+          // applied to the other. The transform each call was made under is what
+          // `jest-canvas-mock` records alongside it.
+          const [a, b, c, d, e, f] = (event as unknown as { transform: number[] }).transform;
+          return [{ text: String(text), x: a * x + c * y + e, y: b * x + d * y + f }];
+        });
+
+      const panGraph = async (before?: (chart: EChartsType) => void) => {
+        const { container } = render(
+          getComponent(
+            asPipelineWould([nodesFrame, edgesFrame]),
+            'graph',
+            canvasOptions({ relationsShowEdgeValues: true, relationsPan: true }),
+            undefined,
+            undefined,
+            'relations'
+          )
+        );
+        const { chartInstanceDom, chart } = getChart(container);
+        await waitForFinished(chart);
+        before?.(chart!);
+        chart!.getZr().flush();
+
+        const painted = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+        chart!.dispatchAction({ type: 'graphRoam', seriesIndex: 0, ...pan });
+        chart!.getZr().flush();
+        const after = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+
+        // Draw calls accumulate, so the pan's repaint is the tail; the pass before it is
+        // the one to compare against, which is the tail of what was painted by then.
+        const moved = labelPositions(after, painted.length);
+        const still = labelPositions(painted).slice(-moved.length);
+        return { still, moved };
+      };
+
+      it('moves the edge values with the graph they label', async () => {
+        const { still, moved } = await panGraph();
+
+        expect(moved.map(({ text }) => text)).toEqual(still.map(({ text }) => text));
+        expect(moved).toEqual(
+          still.map(({ text, x, y }) => ({ text, x: expect.closeTo(x + pan.dx, 6), y: expect.closeTo(y + pan.dy, 6) }))
+        );
+        // Guard against agreeing on an empty graph, or on one drawn with no edge values.
+        expect(moved.map(({ text }) => text)).toEqual(expect.arrayContaining(['100', '50', '90', '40']));
+      });
+
+      // The zoom buttons re-run the label layout stage on their own (`updateLabelLayout`),
+      // without an update around it — a second way to reach the same detachment, and the
+      // reason the repair hooks that stage rather than the end of an update.
+      it('keeps them attached across a zoom', async () => {
+        const { still, moved } = await panGraph((chart) =>
+          chart.dispatchAction({ type: 'graphRoam', seriesIndex: 0, zoom: 2, originX: 0, originY: 0 })
+        );
+
+        expect(moved).toEqual(
+          still.map(({ text, x, y }) => ({ text, x: expect.closeTo(x + pan.dx, 6), y: expect.closeTo(y + pan.dy, 6) }))
+        );
+        expect(moved.map(({ text }) => text)).toEqual(expect.arrayContaining(['100', '50', '90', '40']));
+      });
     });
 
     it('curves links (Advanced)', async () => {

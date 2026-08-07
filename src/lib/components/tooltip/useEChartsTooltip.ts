@@ -1,6 +1,7 @@
 import { debug, LOG_LEVELS } from 'development';
 import { type ECElementEvent } from 'echarts/core';
 import { type EChartsType } from 'lib/echarts/echarts';
+import { revealEdgeLabelsFor } from 'lib/echarts/features/edgeLabelLayout';
 import { findHoveredPoint } from 'lib/echarts/tooltip/proximity';
 import { type EChartsTooltipTrigger, type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/types';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
@@ -13,6 +14,10 @@ import { type EChartsTooltipController, type EChartsTooltipOptions, type ECharts
  * tables that row belongs to. See {@link EChartsTooltipState.pinnedItem}.
  */
 type TooltipTarget = NonNullable<EChartsTooltipState['pinnedItem']>;
+
+/** Whether two targets address the same chart item (either may be absent). */
+const isSameTarget = (a: TooltipTarget | null, b: TooltipTarget | null): boolean =>
+  a?.seriesIndex === b?.seriesIndex && a?.dataIndex === b?.dataIndex && a?.dataType === b?.dataType;
 
 /**
  * Whether a target addresses a graph-like series' *edge* table rather than its
@@ -254,6 +259,10 @@ export function useEChartsTooltip(
   const livePositionRef = useRef<EChartsTooltipState['position']>(null);
   const liveHitRef = useRef<TooltipTarget | null>(null);
 
+  // The mark the cursor is on right now (`null` for none), written by the hover handlers
+  // and read once the whole event has been dispatched — see `settleFocus`.
+  const hoveredRef = useRef<TooltipTarget | null>(null);
+
   const cancelHide = useCallback(() => {
     if (hideTimerRef.current != null) {
       clearTimeout(hideTimerRef.current);
@@ -338,8 +347,14 @@ export function useEChartsTooltip(
     // Drop the emphasis and forget the replayed point, so the next move over the
     // same datapoint re-shows the tooltip instead of being deduped away.
     focusPoint(null);
+    // Nothing is focused now, so a hidden edge value revealed by the pin goes back — the
+    // hover handlers own this the rest of the time, but a dismiss can arrive (Escape, an
+    // outside click) with no chart event behind it.
+    if (chart != null && !chart.isDisposed()) {
+      revealEdgeLabelsFor(chart.getZr(), null);
+    }
     update({ pinned: false, pinnedItem: null, visible: false, model: null });
-  }, [cancelHide, focusPoint, update]);
+  }, [cancelHide, chart, focusPoint, update]);
 
   useEffect(() => {
     if (!chart) {
@@ -348,69 +363,96 @@ export function useEChartsTooltip(
     const zr = chart.getZr();
 
     /**
-     * Put the emphasis back on the pinned item, because **the cursor keeps taking it away**.
+     * Move the emphasis from `previous` to `next`, either of which may be nothing.
+     *
+     * Both actions matter. `highlight` alone usually strips the emphasis from wherever it
+     * was — `blurSeries` traverses the whole series group and resets every element's state
+     * before un-blurring the new focus set — but it returns early for a series that sets no
+     * `emphasis.focus`, and there is nothing to highlight at all when `next` is nothing. So
+     * the outgoing mark is downplayed explicitly, which covers both. Re-lighting the mark
+     * that already has it is skipped rather than special-cased away, since a downplay of the
+     * incoming mark would drop the very emphasis being asserted.
+     */
+    const applyFocus = (next: TooltipTarget | null, previous: TooltipTarget | null) => {
+      if (chart.isDisposed()) {
+        return;
+      }
+      if (previous?.seriesIndex != null && !isSameTarget(previous, next)) {
+        chart.dispatchAction({
+          type: 'downplay',
+          seriesIndex: previous.seriesIndex,
+          dataIndex: previous.dataIndex,
+          dataType: previous.dataType,
+        });
+      }
+      if (next?.seriesIndex != null) {
+        chart.dispatchAction({
+          type: 'highlight',
+          seriesIndex: next.seriesIndex,
+          dataIndex: next.dataIndex,
+          dataType: next.dataType,
+        });
+      }
+    };
+
+    /**
+     * Put the emphasis back on the pinned mark, because **the cursor keeps taking it away**.
      * A pinned tooltip freezes its content and position, and its emphasis is part of what it
      * froze: the panel must not show one node's tooltip beside another node's neighbourhood.
+     * Measured on a pinned four-node graph, hovering a non-neighbour reproduced the
+     * *unpinned* hover state exactly while the tooltip still named the pinned node.
      *
-     * Two ECharts behaviours fight this, both in `echarts/lib/util/states.js`, and both
-     * reached from `bindMouseEvent`'s ZRender listeners rather than from any action:
+     * Two ECharts behaviours fight this, both in `echarts/lib/util/states.js` and both
+     * reached from `bindMouseEvent`'s ZRender listeners rather than from any action, so
+     * neither is visible to this hook's state:
      *
      * - **`mouseout` erases the fade.** `handleGlobalMouseOutForHighDown` opens with an
      *   unconditional `allLeaveBlur(api)`. It has no notion of a highlight that came from
-     *   `dispatchAction` rather than from the cursor, so leaving *any* element clears the blur
-     *   the pin established — and a pinned relations tooltip lost the one thing it was pinned
-     *   to read.
+     *   `dispatchAction` rather than from the cursor, so leaving *any* element clears it.
      * - **`mouseover` moves the fade.** `handleGlobalMouseOverForHighDown` calls
-     *   `blurSeries(hovered…)` and emphasises the hovered element, so the fade follows the
-     *   cursor instead of the pin.
+     *   `blurSeries(hovered…)` and emphasises the hovered element.
      *
-     * The second used to be left alone as a "preview another node's neighbourhood" affordance,
-     * and it read as a bug rather than a feature: measured on a pinned four-node graph, hovering
-     * a non-neighbour reproduced the *unpinned* hover state exactly while the tooltip still
-     * named the pinned node. It is also what made the behaviour incoherent — arriving at a node
-     * from another element fired `mouseout` first, so the pin was restored by accident, and
-     * arriving from empty space was not.
+     * Unpinned, both of those are simply the hover behaviour, and nothing here competes with
+     * them: a fade that follows the cursor is what a cursor is for.
      *
-     * Deferred a frame so it lands *after* whichever handler ran, whatever order the listeners
-     * were bound in, and re-dispatched rather than tracked: `highlight` is idempotent, so
-     * re-asserting the same item costs nothing.
-     *
-     * `stolenBy` is the element that just took the emphasis, when there is one. Highlighting
-     * the pinned item is usually enough to strip it — `blurSeries` traverses the whole series
-     * group and resets every element's state before un-blurring the focus set, which leaves the
-     * hovered one in *normal* rather than emphasis — but `blurSeries` returns early when the
-     * series sets no `emphasis.focus`, and there is nothing to re-assert at all when the pin
-     * carries no item. So it is downplayed explicitly, which covers both.
+     * **Deferred to a microtask, which is the fix for the flicker rather than a detail of
+     * it.** This has to land after ECharts' handler, and it used to wait a frame to be sure
+     * of that — but ZRender paints on a frame too, and it gets there first, so every
+     * corrected hover was drawn wrong once before it was drawn right. A microtask runs after
+     * every handler of the same DOM event (ECharts binds `bindMouseEvent` at init and the
+     * instance-level listeners this hook uses before it, so its handler has certainly run)
+     * and still before the frame, so the wrong state is never painted. It also coalesces the
+     * pair of events a move between two marks emits — `mouseout` of the old and `mouseover`
+     * of the new, dispatched together — into the single question "what is hovered now".
      */
-    const restorePinnedFocus = (stolenBy?: TooltipTarget | null) => {
-      requestAnimationFrame(() => {
-        const { pinned, pinnedItem } = latestRef.current;
-        if (!pinned || chart.isDisposed()) {
+    let settleScheduled = false;
+    const scheduleSettle = () => {
+      if (settleScheduled) {
+        return;
+      }
+      settleScheduled = true;
+      queueMicrotask(() => {
+        settleScheduled = false;
+        if (chart.isDisposed()) {
           return;
         }
-        const isPinnedItem =
-          stolenBy != null &&
-          stolenBy.seriesIndex === pinnedItem?.seriesIndex &&
-          stolenBy.dataIndex === pinnedItem?.dataIndex &&
-          stolenBy.dataType === pinnedItem?.dataType;
-        if (stolenBy?.seriesIndex != null && !isPinnedItem) {
-          chart.dispatchAction({
-            type: 'downplay',
-            seriesIndex: stolenBy.seriesIndex,
-            dataIndex: stolenBy.dataIndex,
-            dataType: stolenBy.dataType,
-          });
-        }
-        if (pinnedItem?.seriesIndex == null) {
-          return;
-        }
-        chart.dispatchAction({
-          type: 'highlight',
-          seriesIndex: pinnedItem.seriesIndex,
-          dataIndex: pinnedItem.dataIndex,
-          dataType: pinnedItem.dataType,
-        });
+        settleFocus();
       });
+    };
+
+    const settleFocus = () => {
+      // A graph's hidden edge values belong to whichever mark is focused, and this is the one
+      // place that knows both halves of that — the cursor, and a pin that outranks it. A
+      // no-op for every chart with no hidden edge values, which is most of them.
+      revealEdgeLabelsFor(zr, latestRef.current.pinned ? latestRef.current.pinnedItem : hoveredRef.current);
+      if (!latestRef.current.pinned) {
+        // Nobody is competing with the cursor, so ECharts' own hover emphasis is the
+        // behaviour — and the only behaviour, since nothing was dispatched to contradict it.
+        return;
+      }
+      // The pin owns the emphasis for as long as it lasts, so whatever the cursor just took
+      // goes straight back.
+      applyFocus(latestRef.current.pinnedItem, hoveredRef.current);
     };
 
     /**
@@ -489,10 +531,11 @@ export function useEChartsTooltip(
      * crossing toward. The only hide path for axis ("All") tooltips.
      */
     const onGlobalOut = () => {
+      hoveredRef.current = null;
       if (latestRef.current.pinned) {
         // Leaving the canvas is a `mouseout` of whatever element the cursor was on,
         // so the pinned emphasis has just been cleared here too.
-        restorePinnedFocus();
+        scheduleSettle();
         return;
       }
       focusPoint(null);
@@ -516,11 +559,13 @@ export function useEChartsTooltip(
      * mode, where `globalout` and `onMove` respectively own hiding instead.
      */
     const onMouseOut = () => {
+      // Nothing is hovered *yet*; a move onto an adjacent mark reports its `mouseover`
+      // in this same dispatch, and `settleFocus` reads the ref once both have run.
+      hoveredRef.current = null;
+      scheduleSettle();
       if (latestRef.current.pinned) {
-        // The pin owns the emphasis, and ECharts has just cleared it — see
-        // `restorePinnedFocus`. Everything below is hide behaviour, which a pinned
-        // tooltip has none of.
-        restorePinnedFocus();
+        // The pin owns the emphasis, and ECharts has just cleared it — see `settleFocus`.
+        // Everything below is hide behaviour, which a pinned tooltip has none of.
         return;
       }
       // Without proximity, ECharts' own element hit-testing owns which item is
@@ -553,14 +598,15 @@ export function useEChartsTooltip(
      * mode marks the entered series as the active (bold) row.
      */
     const onMouseOver = (params: ECElementEvent) => {
+      // ECharts has just moved the emphasis and the adjacency fade onto this mark, which
+      // stands unless a pin outranks it — recorded for `settleFocus` to answer that.
+      hoveredRef.current = {
+        seriesIndex: params.seriesIndex,
+        dataIndex: params.dataIndex,
+        dataType: params.dataType,
+      };
+      scheduleSettle();
       if (latestRef.current.pinned) {
-        // ECharts has just moved the emphasis and the adjacency fade onto whatever the cursor
-        // entered. A pinned tooltip owns both, so take them back — see `restorePinnedFocus`.
-        restorePinnedFocus({
-          seriesIndex: params.seriesIndex,
-          dataIndex: params.dataIndex,
-          dataType: params.dataType,
-        });
         return;
       }
       cancelHide();
@@ -638,6 +684,10 @@ export function useEChartsTooltip(
         return;
       }
       update({ pinned: true, pinnedItem: target });
+      // The pin is the focused mark now, and asserting it re-applies element states — which
+      // is what would otherwise drop a hidden edge value the hover had revealed, with no
+      // event left to put it back until the cursor moves. See `settleFocus`.
+      scheduleSettle();
     };
 
     /**

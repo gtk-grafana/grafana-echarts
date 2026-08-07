@@ -17,11 +17,11 @@ import {
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
   getRelationsViewState,
-  RELATIONS_FOCUS_ADJACENCY_DEFAULT,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
-  resolveRelationsRoam,
   type RelationsSeriesContext,
+  resolveRelationsFocusAdjacency,
+  resolveRelationsRoam,
 } from 'lib/echarts/options/graph';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
@@ -160,9 +160,7 @@ export function getSankeyLinkStyle(options: PanelOptions): NonNullable<SankeySer
  * https://echarts.apache.org/en/option.html#series-sankey.emphasis
  */
 export function getSankeyEmphasis(options: PanelOptions): SankeySeriesOption['emphasis'] | undefined {
-  return (options.relationsFocusAdjacency ?? RELATIONS_FOCUS_ADJACENCY_DEFAULT) === true
-    ? { focus: 'adjacency' }
-    : undefined;
+  return resolveRelationsFocusAdjacency(options) ? { focus: 'adjacency' } : undefined;
 }
 
 /**

@@ -65,6 +65,7 @@ import { use as registerEChartsModules } from 'echarts/core';
 // https://echarts.apache.org/en/option.html#series-line.labelLayout
 import { LabelLayout, LegacyGridContainLabel } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
+import { registerEdgeLabelLayout } from './features/edgeLabelLayout';
 
 registerEChartsModules([
   // Series renderers
@@ -117,6 +118,10 @@ registerEChartsModules([
   // Renderer
   CanvasRenderer,
 ]);
+
+// After `use`, because it repairs what `LabelLayout` does and lifecycle hooks run in
+// registration order. See `registerEdgeLabelLayout`.
+registerEdgeLabelLayout();
 
 // `init` creates a chart instance bound to a DOM node. This module is imported
 // statically by Panel.tsx, which is itself React.lazy-loaded (see

@@ -64,6 +64,17 @@ function createFakeChart({ throwOnIndexedShowTip = false }: { throwOnIndexedShow
   };
 }
 
+/**
+ * Let the emphasis handling run, which it defers to a microtask so that it lands after
+ * every handler of the same event — including ECharts' own, which is the one it corrects
+ * (see `settleFocus`). Jest's fake timers own the microtask queue along with the clock,
+ * so draining it is a tick of zero.
+ *
+ * Called *inside* the `act` that emits, after all of that event's emissions, since the
+ * pair a move between two marks reports is one hover and settles once.
+ */
+const settle = () => jest.advanceTimersByTime(0);
+
 /** Two flat series whose points sit at y = 10 and y = 110 in fake-chart pixels. */
 const proximitySeries = [
   { x: [0, 10, 20], y: [10, 10, 10] },
@@ -337,7 +348,10 @@ describe('useEChartsTooltip', () => {
     it('re-applies the pinned item’s highlight when the cursor leaves it', () => {
       const { fake } = pinAnEdge();
 
-      act(() => fake.emit('mouseout'));
+      act(() => {
+        fake.emit('mouseout');
+        settle();
+      });
 
       expect(highlightsOfPin(fake)).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
     });
@@ -347,7 +361,10 @@ describe('useEChartsTooltip', () => {
     it('re-applies it when the cursor leaves the canvas', () => {
       const { fake, view } = pinAnEdge();
 
-      act(() => fake.emitZr('globalout'));
+      act(() => {
+        fake.emitZr('globalout');
+        settle();
+      });
 
       expect(highlightsOfPin(fake)).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
       expect(view.result.current.state.pinned).toBe(true);
@@ -361,7 +378,10 @@ describe('useEChartsTooltip', () => {
 
       act(() => view.result.current.dismiss());
       fake.dispatched.length = 0;
-      act(() => fake.emit('mouseout'));
+      act(() => {
+        fake.emit('mouseout');
+        settle();
+      });
 
       expect(highlightsOfPin(fake)).toEqual([]);
     });
@@ -378,7 +398,10 @@ describe('useEChartsTooltip', () => {
     it('takes the emphasis back when the cursor enters another mark', () => {
       const { fake } = pinAnEdge();
 
-      act(() => fake.emit('mouseover', { seriesIndex: 0, dataIndex: 7, dataType: 'node' }));
+      act(() => {
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 7, dataType: 'node' });
+        settle();
+      });
 
       expect(fake.dispatched).toEqual([
         { type: 'downplay', seriesIndex: 0, dataIndex: 7, dataType: 'node' },
@@ -391,7 +414,10 @@ describe('useEChartsTooltip', () => {
     it('does not downplay the pinned mark when the cursor re-enters it', () => {
       const { fake } = pinAnEdge();
 
-      act(() => fake.emit('mouseover', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' }));
+      act(() => {
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+        settle();
+      });
 
       expect(fake.dispatched).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
     });
@@ -414,7 +440,10 @@ describe('useEChartsTooltip', () => {
       expect(view.result.current.state.pinnedItem).toBeNull();
       fake.dispatched.length = 0;
 
-      act(() => fake.emit('mouseover', { seriesIndex: 0, dataIndex: 4 }));
+      act(() => {
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 4 });
+        settle();
+      });
 
       expect(fake.dispatched).toEqual([{ type: 'downplay', seriesIndex: 0, dataIndex: 4, dataType: undefined }]);
     });
@@ -424,7 +453,10 @@ describe('useEChartsTooltip', () => {
       const fake = createFakeChart();
       renderHook(() => useEChartsTooltip(fake.chart, containerRef));
 
-      act(() => fake.emit('mouseover', { seriesIndex: 0, dataIndex: 4 }));
+      act(() => {
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 4 });
+        settle();
+      });
 
       expect(fake.dispatched).toEqual([]);
     });

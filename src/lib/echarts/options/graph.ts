@@ -76,8 +76,10 @@ export const RELATIONS_FOCUS_ADJACENCY_DEFAULT = true;
  * chord variant's answer to the pie's `avoidLabelOverlap` as well: `series.chord` has no
  * such option, but its labels go through the same label-layout stage.
  *
- * **Node labels only** — see `getRelationsLabelLayout` for why an edge label may not go
- * through that stage at all.
+ * Reaches **edge values too**, but not through the same stage: a graph edge's label is
+ * arbitrated by the family, because the stage measures it before the link geometry has
+ * settled and would let it outrank a node's name. See `getRelationsLabelLayout` and
+ * `registerEdgeLabelLayout`.
  * https://echarts.apache.org/en/option.html#series-graph.labelLayout
  */
 export const RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT = true;
@@ -486,24 +488,30 @@ export function getRelationsLabelStyle(ctx: RelationsSeriesContext): RelationsLa
 }
 
 /**
- * Drop a **node** label that would collide with one already placed, via ECharts' shared
+ * Drop a label that would collide with one already placed, via ECharts' shared
  * label-layout stage — which every one of the three variants routes its labels
  * through, so this is the family's single answer to overlapping labels.
  *
- * **The callback form, and only so `dataType` can be read.** An edge label is excluded,
- * because putting one through `hideOverlap` makes the render depend on how many times the
- * panel has drawn: a graph's edge labels are measured before its link geometry has
- * settled, so the first pass hides nearly all of them and every subsequent pass lets one
- * more through — measured as 1, 2, 3, then all 4 edge values over four renders of an
- * unchanged four-edge fixture, which is exactly the "every refresh draws more edge values"
- * report. Node labels do not drift because a node's own position is settled by the time it
- * is measured. Excluding edges costs their overlap avoidance and buys a render that is the
- * same on the first pass as on the tenth; "Show edge values" is off by default precisely
- * because one number per link is a lot of ink either way.
+ * **The callback form, and only so `dataType` can be read.** A graph edge's label is held
+ * back from `hideOverlap` here and arbitrated by `registerEdgeLabelLayout` instead, on two
+ * counts the stage gets wrong for a label whose *host* positions it:
+ *
+ * - it is measured before the link geometry has settled, which makes the render depend on
+ *   how many times the panel has drawn — the first pass hides nearly all of them and each
+ *   later pass lets one more through, measured as 1, 2, 3, then all 4 edge values over four
+ *   renders of an unchanged four-edge fixture ("every refresh draws more edge values"). A
+ *   node's own position is settled by the time it is measured, so node labels do not drift;
+ * - it would outrank the node labels rather than yield to them, since the stage orders by
+ *   the area of the label's host and a link's host spans the whole link.
+ *
+ * So this returns "no layout for this label" for an edge — an empty option, which is how a
+ * callback says that, since `LabelManager.layout` filters on the resolved `hideOverlap` per
+ * label. What replaces it is not "nothing": see `registerEdgeLabelLayout`.
  *
  * Returns `undefined` when off: `LabelManager.addLabelsOfSeries` skips a series whose
  * `labelLayout` has no keys, so an empty object would be the same as omitting it, and
- * omitting it is clearer.
+ * omitting it is clearer. That is also the switch the edge arbitration reads, since a
+ * series with no `labelLayout` never reaches the stage at all.
  * https://echarts.apache.org/en/option.html#series-graph.labelLayout
  */
 export function getRelationsLabelLayout(options: PanelOptions): LabelLayoutOptionCallback | undefined {
@@ -605,6 +613,19 @@ export function getGraphEdgeSymbol(options: PanelOptions): GraphSeriesOption['ed
 }
 
 /**
+ * Whether hovering a mark fades everything outside its neighbourhood — the family's
+ * "Highlight adjacency" switch, on by default. Shared by all three variants' emphasis
+ * builders so one switch cannot mean three things.
+ *
+ * Also read outside the option build, by the panel: a hover that fades the rest of the
+ * chart repaints every mark in it, which is rate-limited rather than run at cursor
+ * speed. See `HOVER_FOCUS_THROTTLE_MS`.
+ */
+export function resolveRelationsFocusAdjacency(options: PanelOptions): boolean {
+  return (options.relationsFocusAdjacency ?? RELATIONS_FOCUS_ADJACENCY_DEFAULT) === true;
+}
+
+/**
  * Hover emphasis. `'adjacency'` fades everything but the hovered node and its
  * neighbours. On by default; the key is omitted when switched off, which is ECharts'
  * own no-focus behaviour for `graph` and `sankey` (chord differs — see
@@ -612,9 +633,7 @@ export function getGraphEdgeSymbol(options: PanelOptions): GraphSeriesOption['ed
  * https://echarts.apache.org/en/option.html#series-graph.emphasis
  */
 export function getGraphEmphasis(options: PanelOptions): GraphSeriesOption['emphasis'] | undefined {
-  return (options.relationsFocusAdjacency ?? RELATIONS_FOCUS_ADJACENCY_DEFAULT) === true
-    ? { focus: 'adjacency' }
-    : undefined;
+  return resolveRelationsFocusAdjacency(options) ? { focus: 'adjacency' } : undefined;
 }
 
 /**
