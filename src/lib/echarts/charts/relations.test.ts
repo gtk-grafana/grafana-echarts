@@ -461,13 +461,6 @@ describe('relationsChartModule', () => {
     });
   });
 
-  /**
-   * The legend's visibility override is an *exclude* matcher — "hide everything
-   * except these" — so the kept list has to name every field the engine can reach,
-   * not just the rows the legend drew. Edges are fields now, and they are not in the
-   * legend, so leaving them out erases every link in the panel the moment one node is
-   * hidden. See `ChartModule.getOverrideTargetNames`.
-   */
   describe('getZoomAction', () => {
     const withZoom = (context: RelationsChartContext): RelationsChartContext => ({
       ...context,
@@ -495,15 +488,17 @@ describe('relationsChartModule', () => {
       expect(relationsChartModule.getZoomAction?.(withZoom(chordCtx([nodesFrame, edgesFrame])))).toBeUndefined();
     });
 
-    // A dashboard saved with the superseded single "Zoom and pan" switch keeps both.
-    it('honours the superseded relationsRoam switch', () => {
-      const context = ctx([nodesFrame, edgesFrame]);
-      const legacy = { ...context, options: { ...context.options, relationsRoam: true } };
-
-      expect(relationsChartModule.getZoomAction?.(legacy)).toEqual({ type: 'graphRoam', seriesIndex: 0 });
-    });
+    // The superseded single "Zoom and pan" switch reaches this through
+    // `resolveRelationsZoom`, and is tested there — see `options/graph.test.ts`.
   });
 
+  /**
+   * The legend's visibility override is an *exclude* matcher — "hide everything
+   * except these" — so the kept list has to name every field the engine can reach,
+   * not just the rows the legend drew. Edges are fields now, and they are not in the
+   * legend, so leaving them out erases every link in the panel the moment one node is
+   * hidden. See `ChartModule.getOverrideTargetNames`.
+   */
   describe('getOverrideTargetNames', () => {
     it('reports edges as well as nodes', () => {
       expect(relationsChartModule.getOverrideTargetNames?.(ctx([nodesFrame, edgesFrame]))).toEqual([

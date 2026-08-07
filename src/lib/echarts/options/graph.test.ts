@@ -1,4 +1,4 @@
-import { createTheme, type Field, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
+import { type Field, FieldType, toDataFrame } from '@grafana/data';
 import { type CallbackDataParams, type LabelLayoutOptionCallbackParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
@@ -23,11 +23,11 @@ import {
   type RelationsSeriesContext,
 } from 'lib/echarts/options/graph';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { nodeGraph, relationsContext, relationsOptions, relationsTheme } from 'test/relations';
 import { type TooltipSource } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
-const theme = createTheme();
-const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
+const theme = relationsTheme;
 
 /**
  * Label-layout callback params. Only `dataType` is read, so the rest is left off
@@ -36,25 +36,10 @@ const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
 const labelParams = (dataType: 'node' | 'edge'): LabelLayoutOptionCallbackParams =>
   ({ dataType, dataIndex: 0, seriesIndex: 0 }) as LabelLayoutOptionCallbackParams;
 
-const baseOptions = (extra: Partial<PanelOptions> = {}): PanelOptions =>
-  ({
-    legend: { showLegend: true, displayMode: 'list', placement: 'bottom', calcs: [] },
-    tooltip: { mode: 'single' },
-    ...extra,
-  }) as PanelOptions;
+const baseOptions = relationsOptions;
 
 const ctx = (options: PanelOptions = baseOptions()): RelationsChartContext =>
-  ({
-    frames: [],
-    theme,
-    timeZone: 'utc',
-    timeRange: {} as RelationsChartContext['timeRange'],
-    options,
-    seriesType: 'graph',
-    formatValue: (value: unknown) => ({ text: String(value) }),
-    fieldConfig: emptyFieldConfig,
-    replaceVariables: (value: string) => value,
-  }) as unknown as RelationsChartContext;
+  relationsContext({ options, seriesType: 'graph' });
 
 /**
  * Nodes reach this layer already coloured — the reader resolves every mark's colour
@@ -63,14 +48,14 @@ const ctx = (options: PanelOptions = baseOptions()): RelationsChartContext =>
  * panel can produce. Colour *resolution* is tested there; this file only checks that
  * the resolved colour is painted.
  */
-const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData => ({
-  nodes: [
-    { id: 'a', name: 'A', value: 1, color: getPaletteColorByIndex(0, theme) },
-    { id: 'b', name: 'B', value: 2, color: getPaletteColorByIndex(1, theme) },
-  ],
-  links: [{ id: 'e1', source: 'a', target: 'b', value: 5 }],
-  ...extra,
-});
+const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
+  nodeGraph({
+    nodes: [
+      { id: 'a', name: 'A', value: 1, color: getPaletteColorByIndex(0, theme) },
+      { id: 'b', name: 'B', value: 2, color: getPaletteColorByIndex(1, theme) },
+    ],
+    ...extra,
+  });
 
 describe('getGraphLayout', () => {
   it('defaults to force', () => {
@@ -156,9 +141,19 @@ describe('resolveFixedPositions', () => {
 
     expect(positions.get('a')).toEqual({ x: 0, y: 0 });
     expect(positions.get('b')).toEqual({ x: 10, y: 0 });
-    // Centre of the pinned box is (5, 0) and its half-extent 5, so the ring sits at 6.25.
+
+    /**
+     * The property, not the number. "Outside the pinned box" is what the seeding is
+     * for; the exact ring radius is an implementation choice that a reader has no way
+     * to check and that would fail this test on any harmless tuning. Asserted as
+     * "further from the centre of the pinned box than the box's own half-extent", which
+     * is the claim the comment used to make and the constant only implied.
+     */
+    const pinnedCentre = { x: 5, y: 0 };
+    const pinnedHalfExtent = 5;
     const seeded = positions.get('c')!;
-    expect(Math.hypot(seeded.x - 5, seeded.y - 0)).toBeCloseTo(6.25);
+
+    expect(Math.hypot(seeded.x - pinnedCentre.x, seeded.y - pinnedCentre.y)).toBeGreaterThan(pinnedHalfExtent);
   });
 
   /**
@@ -250,12 +245,21 @@ describe('resolveRelationsRoam / resolveRelationsZoom', () => {
     expect(resolveRelationsZoom(baseOptions({ relationsZoom: true }))).toBe(true);
   });
 
-  // A dashboard saved with the superseded single switch keeps both behaviours.
+  /**
+   * A dashboard saved with the superseded single "Zoom and pan" switch keeps both
+   * behaviours. This is the only test of the fallback: `charts/relations.test.ts`
+   * asserted the same thing through `getZoomAction`, which reaches
+   * `resolveRelationsZoom` and so restated this one indirectly. The option-level answer
+   * belongs here; the action-level one is the same fact read through a second layer.
+   * `relationsRoam` is also the one entry on the Advanced-tier allow-list, because the
+   * control it names no longer exists — see `editor/relations/advancedTier.test.ts`.
+   */
   it('falls back to the superseded relationsRoam switch', () => {
     expect(resolveRelationsRoam(baseOptions({ relationsRoam: true }))).toBe('move');
     expect(resolveRelationsZoom(baseOptions({ relationsRoam: true }))).toBe(true);
     // An explicit new value wins over it, in both directions.
     expect(resolveRelationsZoom(baseOptions({ relationsRoam: true, relationsZoom: false }))).toBe(false);
+    expect(resolveRelationsRoam(baseOptions({ relationsRoam: true, relationsPan: false }))).toBe(false);
   });
 });
 

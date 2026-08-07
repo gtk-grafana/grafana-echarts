@@ -1,7 +1,3 @@
-import { createTheme, type FieldConfigSource } from '@grafana/data';
-import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
-import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
 import { type RelationsSeriesContext } from 'lib/echarts/options/graph';
 import {
   getSankeyDroppedNoticeText,
@@ -12,95 +8,30 @@ import {
   getSankeyOrient,
   getSankeySeries,
 } from 'lib/echarts/options/sankey';
-import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
+import {
+  linkItems,
+  nodeGraph,
+  nodeItems,
+  relationsOptions,
+  relationsSeriesContext,
+  relationsTheme,
+} from 'test/relations';
 import { type PanelOptions } from 'types';
 
-const theme = createTheme();
-const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
-
-const baseOptions = (extra: Partial<PanelOptions> = {}): PanelOptions =>
-  ({
-    legend: { showLegend: true, displayMode: 'list', placement: 'bottom', calcs: [] },
-    tooltip: { mode: 'single' },
-    ...extra,
-  }) as PanelOptions;
+const baseOptions = relationsOptions;
 
 const ctx = (options: PanelOptions = baseOptions()): RelationsSeriesContext =>
-  ({
-    frames: [],
-    theme,
-    timeZone: 'utc',
-    timeRange: {} as RelationsChartContext['timeRange'],
-    options,
-    seriesType: 'sankey',
-    formatValue: (value: unknown) => ({ text: String(value) }),
-    fieldConfig: emptyFieldConfig,
-    replaceVariables: (value: string) => value,
-  }) as unknown as RelationsSeriesContext;
+  relationsSeriesContext({ options, seriesType: 'sankey' });
 
-const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData => ({
-  nodes: [
-    { id: 'a', name: 'A', value: 1 },
-    { id: 'b', name: 'B', value: 2 },
-  ],
-  links: [{ id: 'e1', source: 'a', target: 'b', value: 5 }],
-  ...extra,
-});
+const data = nodeGraph;
+const theme = relationsTheme;
 
-/** The built series' node items, typed for assertions. */
-const nodeItems = (series: ReturnType<typeof getSankeySeries>['series']): RelationsNodeItem[] =>
-  series.data as unknown as RelationsNodeItem[];
-/** The built series' link items, typed for assertions. */
-const linkItems = (series: ReturnType<typeof getSankeySeries>['series']): RelationsLinkItem[] =>
-  series.links as unknown as RelationsLinkItem[];
-
-describe('editor-mode normalization', () => {
-  // Every sankey Advanced option, set to a non-default value.
-  const advanced: Partial<PanelOptions> = {
-    relationsSankeyNodeWidth: 30,
-    relationsSankeyNodeGap: 16,
-    relationsSankeyCurveness: 0.1,
-    relationsSankeyLinkOpacity: 0.9,
-    relationsSankeyLayoutIterations: 4,
-  };
-
-  // `showIf` hides a control without clearing its value, so Default mode has to reset
-  // the Advanced tier before the render reads it. Required of any family that gates
-  // options behind Advanced — see docs/options-modes.md.
-  it('resets every sankey Advanced option in Default mode', () => {
-    const normalized = applyEditorModeDefaults('sankey', baseOptions(advanced));
-
-    for (const key of Object.keys(advanced) as Array<keyof PanelOptions>) {
-      expect(normalized[key]).toBeUndefined();
-    }
-  });
-
-  it('keeps them in Advanced mode', () => {
-    const normalized = applyEditorModeDefaults('sankey', baseOptions({ ...advanced, editorMode: 'advanced' }));
-
-    expect(normalized.relationsSankeyNodeWidth).toBe(30);
-    expect(normalized.relationsSankeyLinkOpacity).toBe(0.9);
-  });
-
-  // The reset is keyed on the family, not the variant, so switching Chart type can
-  // never leave the other variant's hidden Advanced values in force.
-  it('resets the sankey tier for the graph variant too', () => {
-    const normalized = applyEditorModeDefaults('graph', baseOptions(advanced));
-
-    expect(normalized.relationsSankeyNodeWidth).toBeUndefined();
-  });
-
-  // Default-tier controls are visible in both modes, so they must survive.
-  it('leaves the Default-tier layout options alone', () => {
-    const normalized = applyEditorModeDefaults(
-      'sankey',
-      baseOptions({ relationsSankeyOrient: 'vertical', relationsSankeyNodeAlign: 'left' })
-    );
-
-    expect(normalized.relationsSankeyOrient).toBe('vertical');
-    expect(normalized.relationsSankeyNodeAlign).toBe('left');
-  });
-});
+// The Advanced-tier reset is not tested per-family any more. It was, twice, under the
+// same `editor-mode normalization` describe name in this file and in `chord.test.ts` —
+// two copies of one claim, neither of which could see the dispatch that routes a
+// `seriesType` to a tier. `options/editorMode.test.ts` now covers every family's tier
+// and the dispatch itself, and `editor/relations/advancedTier.test.ts` checks that the
+// tier and the registered Advanced controls name the same options.
 
 describe('getSankeyOrient', () => {
   // Omitted at the ECharts default, per the repo-wide convention.
@@ -215,16 +146,14 @@ describe('getSankeyEmphasis', () => {
   });
 });
 
+// One case for three counts, because there is one claim: the count, pluralised, and
+// nothing at all at zero. `charts/relations.test.ts` asserts the same string end to end
+// through `getNotices`, so what is left here is only the branch that has no other
+// coverage — the plural.
 describe('getSankeyDroppedNoticeText', () => {
-  it('returns nothing when no links were dropped', () => {
+  it('counts the dropped links, pluralised, and says nothing at zero', () => {
     expect(getSankeyDroppedNoticeText(0)).toBeUndefined();
-  });
-
-  it('reports a single dropped link in the singular', () => {
     expect(getSankeyDroppedNoticeText(1)).toBe('1 link hidden to remove cycles');
-  });
-
-  it('reports several dropped links in the plural', () => {
     expect(getSankeyDroppedNoticeText(3)).toBe('3 links hidden to remove cycles');
   });
 });
@@ -387,40 +316,14 @@ describe('getSankeySeries', () => {
     expect(nodeItems(series)[0]).not.toHaveProperty('y');
   });
 
-  describe('cycle policy', () => {
-    // The whole point of the variant's converter work: ECharts' sankey layout throws
-    // on a cycle even in production, so the series can never be built with one.
-    it('breaks a cycle and reports the cost', () => {
-      const cyclic = data({
-        links: [
-          { id: 'e1', source: 'a', target: 'b', value: 1 },
-          { id: 'e2', source: 'b', target: 'a', value: 1 },
-        ],
-      });
-
-      const { series, droppedCount } = getSankeySeries(cyclic, ctx());
-
-      expect(linkItems(series)).toEqual([{ markId: 'e1', source: 'a', target: 'b', value: 1 }]);
-      expect(droppedCount).toBe(1);
-    });
-
-    it('reports nothing dropped for an acyclic edge set', () => {
-      expect(getSankeySeries(data(), ctx()).droppedCount).toBe(0);
-    });
-
-    // The node set is untouched by cycle-breaking, so an endpoint that only appeared
-    // on a dropped link still gets a column.
-    it('keeps every node when a link is dropped', () => {
-      const cyclic = data({
-        links: [
-          { id: 'e1', source: 'a', target: 'b', value: 1 },
-          { id: 'e2', source: 'b', target: 'a', value: 1 },
-        ],
-      });
-
-      const { series } = getSankeySeries(cyclic, ctx());
-
-      expect(nodeItems(series)).toHaveLength(2);
-    });
-  });
+  /**
+   * **The cycle policy is not tested here.** It was, in a `cycle policy` describe that
+   * restated what its two neighbours already say: `converters/dag.test.ts` tests the
+   * algorithm itself (which back-edge is dropped, that self-loops go, that the node set
+   * is untouched), and `charts/relations.test.ts` tests the whole answer a panel gives
+   * — the surviving links *and* the "1 link hidden to remove cycles" notice — through
+   * `buildOption`. `relations sankey base a cyclic edge set` renders it. Four layers for
+   * one policy is three too many; the two that state something the others cannot are
+   * the algorithm and the picture.
+   */
 });

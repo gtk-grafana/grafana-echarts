@@ -1,48 +1,23 @@
-import { createTheme, type FieldConfigSource } from '@grafana/data';
-import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { getChordEmphasis, getChordLabel, getChordLinkStyle, getChordSeries } from 'lib/echarts/options/chord';
-import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
 import { type RelationsSeriesContext } from 'lib/echarts/options/graph';
-import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
+import {
+  linkItems,
+  nodeGraph,
+  nodeItems,
+  relationsOptions,
+  relationsSeriesContext,
+  relationsTheme,
+} from 'test/relations';
 import { type PanelOptions } from 'types';
 
-const theme = createTheme();
-const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
+const theme = relationsTheme;
 
-const baseOptions = (extra: Partial<PanelOptions> = {}): PanelOptions =>
-  ({
-    legend: { showLegend: true, displayMode: 'list', placement: 'bottom', calcs: [] },
-    tooltip: { mode: 'single' },
-    ...extra,
-  }) as PanelOptions;
+const baseOptions = relationsOptions;
 
 const ctx = (options: PanelOptions = baseOptions()): RelationsSeriesContext =>
-  ({
-    frames: [],
-    theme,
-    timeZone: 'utc',
-    timeRange: {} as RelationsChartContext['timeRange'],
-    options,
-    seriesType: 'chord',
-    formatValue: (value: unknown) => ({ text: String(value) }),
-    fieldConfig: emptyFieldConfig,
-    replaceVariables: (value: string) => value,
-  }) as unknown as RelationsSeriesContext;
+  relationsSeriesContext({ options, seriesType: 'chord' });
 
-const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData => ({
-  nodes: [
-    { id: 'a', name: 'A', value: 1 },
-    { id: 'b', name: 'B', value: 2 },
-  ],
-  links: [{ id: 'e1', source: 'a', target: 'b', value: 5 }],
-  ...extra,
-});
-
-const nodeItems = (series: ReturnType<typeof getChordSeries>): RelationsNodeItem[] =>
-  series.data as unknown as RelationsNodeItem[];
-const linkItems = (series: ReturnType<typeof getChordSeries>): RelationsLinkItem[] =>
-  series.links as unknown as RelationsLinkItem[];
+const data = nodeGraph;
 
 describe('getChordLabel', () => {
   it('shows themed labels by default', () => {
@@ -90,14 +65,20 @@ describe('getChordLinkStyle', () => {
    * keyword — but the ribbon it produces paints nothing in a browser, so the default
    * chord was empty outlines. It degrades to `source`, which is also ECharts' own chord
    * default, so the key is omitted entirely.
+   *
+   * The three ways of arriving at "nothing to say" are one case, because they are one
+   * claim: the whole `lineStyle` is omitted whenever every key on it would have matched
+   * an ECharts default. `LabelManager` and the series builder both treat an empty object
+   * and an absent one identically, so omitting is what says it.
    */
-  it('degrades the gradient default to source, and emits no key for it', () => {
+  it('omits the whole key whenever nothing differs from the ECharts defaults', () => {
+    // The family default, `gradient`, degraded to `source`…
     expect(getChordLinkStyle(baseOptions())).toBeUndefined();
     expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'gradient' }))).toBeUndefined();
-  });
-
-  it("omits the key only when the mode already matches ECharts' chord default", () => {
+    // …the same mode chosen explicitly…
     expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'source' }))).toBeUndefined();
+    // …and an opacity that is already ECharts' own.
+    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.2 }))).toBeUndefined();
   });
 
   it('emits an explicitly chosen mode', () => {
@@ -110,10 +91,6 @@ describe('getChordLinkStyle', () => {
     expect(
       getChordLinkStyle(baseOptions({ relationsLinkColor: 'target', relationsChordLinkOpacity: 0.2 }))
     ).not.toHaveProperty('opacity');
-  });
-
-  it('omits the whole key when nothing differs from the ECharts defaults', () => {
-    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.2 }))).toBeUndefined();
   });
 
   it('emits an overridden opacity', () => {
@@ -267,34 +244,9 @@ describe('getChordSeries', () => {
   });
 });
 
-describe('editor-mode normalization', () => {
-  const advanced: Partial<PanelOptions> = {
-    relationsChordStartAngle: 0,
-    relationsChordClockwise: false,
-    relationsChordPadAngle: 8,
-    relationsChordMinAngle: 2,
-    relationsChordLinkOpacity: 0.75,
-  };
-
-  it('resets every chord Advanced option in Default mode', () => {
-    const normalized = applyEditorModeDefaults('chord', baseOptions(advanced));
-
-    for (const key of Object.keys(advanced) as Array<keyof PanelOptions>) {
-      expect(normalized[key]).toBeUndefined();
-    }
-  });
-
-  it('keeps them in Advanced mode', () => {
-    const normalized = applyEditorModeDefaults('chord', baseOptions({ ...advanced, editorMode: 'advanced' }));
-
-    expect(normalized.relationsChordPadAngle).toBe(8);
-    expect(normalized.relationsChordClockwise).toBe(false);
-  });
-
-  // Keyed on the family, not the variant, so switching Chart type cannot leave another
-  // variant's hidden Advanced values in force.
-  it('resets the chord tier for the other variants too', () => {
-    expect(applyEditorModeDefaults('graph', baseOptions(advanced)).relationsChordPadAngle).toBeUndefined();
-    expect(applyEditorModeDefaults('sankey', baseOptions(advanced)).relationsChordPadAngle).toBeUndefined();
-  });
-});
+// The Advanced-tier reset is not tested per-family any more. It was, twice, under the
+// same `editor-mode normalization` describe name in this file and in `sankey.test.ts` —
+// two copies of one claim, neither of which could see the dispatch that routes a
+// `seriesType` to a tier. `options/editorMode.test.ts` now covers every family's tier
+// and the dispatch itself, and `editor/relations/advancedTier.test.ts` checks that the
+// tier and the registered Advanced controls name the same options.
