@@ -14,13 +14,15 @@ import {
 /**
  * How a mark with **no field of its own** formats: plainly, with no unit.
  *
- * Only a node derived from an edge's endpoints reaches this, and its value is not a
- * measurement — it is the node's degree, the count of links naming it. The obvious
- * fallback, the panel-level formatter, is wrong twice over: it is
- * `getRepresentativeFormatter`, i.e. the first numeric field of the first frame, which
- * is the "unit decided by frame order" rule the field contract exists to remove; and a
- * count has no unit to borrow. Measured on the proof dashboard before this existed —
- * with a `ms` override on the first edge, every derived node's tooltip read `2 ms`.
+ * A safety net rather than a path with traffic. A node derived from an edge's endpoints is
+ * the only mark that can reach it, and one now carries no stat at all — no value, no row —
+ * so the tooltip omits the row and the node label stays one line before this is consulted.
+ *
+ * It stays because the alternative fallback is actively wrong: the panel-level formatter is
+ * `getRepresentativeFormatter`, the first numeric field of the first frame, which is the
+ * "unit decided by frame order" rule the field contract exists to remove. Measured on the
+ * proof dashboard when derived nodes still carried their degree — with a `ms` override on
+ * the first edge, every one of them read `2 ms`.
  */
 export const formatDerivedMarkValue: ValueFormatter = (value) => ({ text: String(value) });
 
@@ -128,17 +130,23 @@ export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: Top
     const node = isNodeItem(data) ? data : undefined;
     const mark = node != null ? marks?.nodes.get(node.id) : undefined;
 
-    const rows: TooltipRow[] = [
-      {
+    // `stat` first: the sankey and chord variants carry the main stat there rather than
+    // in `value`, which they leave to ECharts' flow computation. See `RelationsNodeItem`.
+    const stat = node?.stat ?? node?.value ?? null;
+
+    const rows: TooltipRow[] = [];
+    // No stat, no row. A node the response only implied has nothing to report
+    // (`converters/deriveNodes.ts`), and rendering the field's empty-value text under a
+    // `Value` label would read as a measurement that failed rather than one that was never
+    // asked for. The header, the subtitle and the data-link footer all still render.
+    if (stat != null) {
+      rows.push({
         color,
         label: 'Value',
-        // `stat` first: the sankey and chord variants carry the main stat there
-        // rather than in `value`, which they leave to ECharts' flow computation.
-        // See `RelationsNodeItem`.
-        value: formatEChartsValue(node?.stat ?? node?.value ?? null, mark?.formatValue ?? formatDerivedMarkValue),
+        value: formatEChartsValue(stat, mark?.formatValue ?? formatDerivedMarkValue),
         source: mark?.source,
-      },
-    ];
+      });
+    }
     if (node?.subtitle != null) {
       rows.push({ label: 'Subtitle', value: node.subtitle });
     }

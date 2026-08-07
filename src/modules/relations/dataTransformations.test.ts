@@ -1,5 +1,6 @@
 import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 
+import { deriveNodesOperator } from 'lib/echarts/converters/deriveNodes';
 import { GRAPH_EDGES_WIDE } from 'lib/echarts/converters/graphWide';
 import { legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
 import { longToWideOperator } from 'lib/echarts/converters/longToWide';
@@ -33,7 +34,7 @@ const wideEdges = (): DataFrame =>
 
 describe('relationsDataTransformations', () => {
   it('registers the conversion for legacy node-graph frames', () => {
-    expect(relationsDataTransformations({ series: [rowEdges()] })).toEqual([legacyToWideOperator]);
+    expect(relationsDataTransformations({ series: [rowEdges()] })).toEqual([legacyToWideOperator, deriveNodesOperator]);
   });
 
   /**
@@ -46,26 +47,36 @@ describe('relationsDataTransformations', () => {
   it('registers the pivot for a long response, not nothing', () => {
     const series = [longEdge('a', 'b'), longEdge('b', 'c')];
 
-    expect(relationsDataTransformations({ series })).toEqual([longToWideOperator]);
+    expect(relationsDataTransformations({ series })).toEqual([longToWideOperator, deriveNodesOperator]);
   });
 
   it('registers exactly one converter, never both', () => {
     // A response cannot be both shapes, but a mixed one must still pick a single owner.
+    // The node derivation rides along with whichever wins and is not one of the two.
     for (const series of [[rowEdges()], [longEdge('a', 'b')], [rowEdges(), longEdge('a', 'b')]]) {
-      expect(relationsDataTransformations({ series })).toHaveLength(1);
+      const registered = relationsDataTransformations({ series }) ?? [];
+
+      expect(registered.filter((entry) => entry !== deriveNodesOperator)).toHaveLength(1);
     }
   });
 
-  it('registers nothing when a long series sits beside a frame that is already the edges frame', () => {
+  /**
+   * The pivot declines — something else is already the edges frame — but the response is
+   * still a graph, and still one whose nodes exist only as endpoints. Returning `[]` here
+   * would leave exactly the case the derivation exists for uncovered.
+   */
+  it('still derives nodes when a long series sits beside a frame that is already the edges frame', () => {
     const series = [wideEdges(), longEdge('c', 'd')];
 
-    expect(relationsDataTransformations({ series })).toEqual([]);
+    expect(relationsDataTransformations({ series })).toEqual([deriveNodesOperator]);
   });
 
-  it('registers nothing when the frames are already wide', () => {
+  it('reshapes nothing when the frames are already wide, but still derives their nodes', () => {
     // A datasource that starts emitting the wide kind natively silently stops
-    // triggering the conversion, with no dashboard change.
-    expect(relationsDataTransformations({ series: [wideEdges()] })).toEqual([]);
+    // triggering the conversion, with no dashboard change. The derivation stays: an
+    // edges-only wide response is exactly the shape whose nodes are all implied, and it
+    // returns the frames by reference when there is nothing to add.
+    expect(relationsDataTransformations({ series: [wideEdges()] })).toEqual([deriveNodesOperator]);
   });
 
   it('registers nothing for frames that are not a graph at all', () => {

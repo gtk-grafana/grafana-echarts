@@ -1,5 +1,6 @@
 import { type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
+import { deriveNodes } from 'lib/echarts/converters/deriveNodes';
 import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
 import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
@@ -32,29 +33,34 @@ const canvasOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions>
 
 /**
  * Fixtures are written in Grafana's row form, because that is what a datasource emits,
- * and converted the way the host does: by the transformation the plugin registers on
- * itself, which runs above the panel (`modules/relations/dataTransformations.ts`). The
+ * and converted the way the host does: by the transformations the plugin registers on
+ * itself, which run above the panel (`modules/relations/dataTransformations.ts`). The
  * panel itself reads only the field-based contract, so every render here goes through
  * the same conversion the real pipeline performs.
+ *
+ * **Both halves of the prefix, in the host's order.** `legacyToWide` reshapes, then
+ * `deriveNodes` declares any node the response only implied — which for an edges-only
+ * fixture is all of them. Adding the second half changed no snapshot in this file, which
+ * is the guarantee it is built around: the pre-pass adds configurability, not marks, so a
+ * dashboard looks the same on a host that cannot run it.
  */
 const asPipelineWould = (frames: Parameters<typeof getComponent>[0]): Parameters<typeof getComponent>[0] =>
-  legacyToWide(frames);
+  deriveNodes(legacyToWide(frames));
 
+/**
+ * `prefix` is the pipeline prefix to run the fixture through, and only the derived-node
+ * cases pass one: they compare a render against the same render with the *other* prefix,
+ * which is how "the pre-pass changes nothing visible" and "the override is inert without
+ * it" are stated as claims rather than as two snapshot files.
+ */
 const renderGraph = async (
   frames: Parameters<typeof getComponent>[0],
   options: Partial<PanelOptions> = {},
-  fieldConfig?: FieldConfigSource
+  fieldConfig?: FieldConfigSource,
+  prefix: (frames: Parameters<typeof getComponent>[0]) => Parameters<typeof getComponent>[0] = asPipelineWould
 ) => {
   const { container } = render(
-    getComponent(
-      asPipelineWould(frames),
-      'graph',
-      canvasOptions(options),
-      undefined,
-      undefined,
-      'relations',
-      fieldConfig
-    )
+    getComponent(prefix(frames), 'graph', canvasOptions(options), undefined, undefined, 'relations', fieldConfig)
   );
   return getSeriesCanvasEvents(container);
 };
@@ -297,6 +303,79 @@ describe('relations (graph) canvas renders', () => {
         { relationsCurveness: 0.1 },
         fieldConfig
       );
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
+  /**
+   * A node no frame declares — inferred from an edge's endpoints — drawn as a mark the
+   * override engine can reach. `converters/deriveNodes.ts` declares it as a field above the
+   * panel, which is what `asPipelineWould` runs here; see
+   * ../../../docs/relations-derived-nodes.md.
+   *
+   * The fixture is `edgesFrame` alone, so **every** node in these renders is derived: there
+   * is no nodes frame anywhere in the response, and `db` is a name only the edges' `target`
+   * column ever mentions.
+   */
+  describe('derived nodes', () => {
+    /** Colour, size and label, all three on a node the response never declared. */
+    const overrideDb: FieldConfigSource = {
+      defaults: {},
+      overrides: [
+        {
+          matcher: { id: 'byName', options: 'db' },
+          properties: [
+            { id: 'color', value: { mode: 'fixed', fixedColor: 'red' } },
+            { id: 'custom.nodeRadius', value: 34 },
+            { id: 'displayName', value: 'Database' },
+          ],
+        },
+      ],
+    };
+
+    it('honors a byName override on a node only the edges imply', async () => {
+      const { defaultEvents, seriesEvents } = await renderGraph([edgesFrame], {}, overrideDb);
+
+      // The snapshot is only worth reading if the override moved something, so say so
+      // here rather than trusting a reviewer to spot it in 22 kB of draw calls.
+      const plain = await renderGraph([edgesFrame]);
+      expect(normalizeCanvasEvents(seriesEvents)).not.toEqual(normalizeCanvasEvents(plain.seriesEvents));
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    /**
+     * The control, and the reason the pre-pass exists: without it the same override has
+     * nothing to match, because the node is invented inside the panel and the override
+     * engine has already run. Asserted against the un-overridden render rather than as a
+     * second snapshot — "identical to no override at all" is the claim.
+     */
+    it('leaves that same override inert when the pre-pass has not run', async () => {
+      const overridden = await renderGraph([edgesFrame], {}, overrideDb, legacyToWide);
+      const plain = await renderGraph([edgesFrame], {}, undefined, legacyToWide);
+
+      expect(normalizeCanvasEvents(overridden.seriesEvents)).toEqual(normalizeCanvasEvents(plain.seriesEvents));
+    });
+
+    /**
+     * The no-visual-change guarantee, checked on the pixels rather than on the model: the
+     * two derivations produce the same nodes in the same order, so the same palette colours
+     * land on the same symbols whether or not the host ran the pass.
+     */
+    it('draws the same graph with the pre-pass as without it', async () => {
+      const withPass = await renderGraph([edgesFrame]);
+      const withoutPass = await renderGraph([edgesFrame], {}, undefined, legacyToWide);
+
+      expect(normalizeCanvasEvents(withPass.seriesEvents)).toEqual(normalizeCanvasEvents(withoutPass.seriesEvents));
+    });
+
+    /**
+     * The stat slot is empty now, so "Show node values" adds no second line. It used to
+     * print the node's degree — a link count wearing a measurement's clothes.
+     */
+    it('adds no value line under a derived node when node values are on', async () => {
+      const { defaultEvents, seriesEvents } = await renderGraph([edgesFrame], { relationsShowNodeValues: true });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });

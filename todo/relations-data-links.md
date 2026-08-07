@@ -1,6 +1,6 @@
 # Data links for relations (graph / sankey / chord)
 
-> ## Resolution — gaps 1–3 are closed and shipped; gap 4 stays partially open
+> ## Resolution — gaps 1–3 are closed and shipped; gap 4 is closed wherever the derived-node pre-pass can run
 >
 > **Shipped in phase 5 of [graph-wide-migration.md](./graph-wide-migration.md), and
 > demonstrated on the relations panel in phase 6.**
@@ -14,13 +14,13 @@
 > puts a runbook link on node `db` and a trace link on edge `api-db`, and every other mark
 > pins a tooltip with no footer at all.
 >
-> | Gap                                              | Under `graph-*-wide`                                                                                                                                                                                                                                           |
-> | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-> | 1 — a link on `mainstat` is a link on every node | **Closed for wide input.** One field, one mark                                                                                                                                                                                                                 |
-> | 2 — only `mainstat` is ever consulted            | **Closed for wide input.** Each mark carries its own field                                                                                                                                                                                                     |
-> | 3 — a node can be handed the edges frame's field | **Closed for wide input.** Structurally impossible                                                                                                                                                                                                             |
-> | 4 — derived nodes have no row                    | **Partially open.** A derived node has no _field_ either, so nothing to configure. What changes is that supplying a nodes frame becomes cheap and side-effect-free, so "add a nodes frame" is a real answer. The union-of-incident-edges question is unchanged |
-> | 5 — pinning an edge replays a node tooltip       | Already fixed; unaffected                                                                                                                                                                                                                                      |
+> | Gap                                              | Under `graph-*-wide`                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+> | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | 1 — a link on `mainstat` is a link on every node | **Closed for wide input.** One field, one mark                                                                                                                                                                                                                                                                                                                                                                                                                          |
+> | 2 — only `mainstat` is ever consulted            | **Closed for wide input.** Each mark carries its own field                                                                                                                                                                                                                                                                                                                                                                                                              |
+> | 3 — a node can be handed the edges frame's field | **Closed for wide input.** Structurally impossible                                                                                                                                                                                                                                                                                                                                                                                                                      |
+> | 4 — derived nodes have no row                    | **Closed where the pre-pass runs.** `converters/deriveNodes.ts` declares every endpoint the response left implicit as a field, above the panel, so a derived node is an ordinary override target with a row of its own; it reverts to having no field only on a host without `panelPluginTransformations`. The union-of-incident-edges question is moot — the node has its own config now. See [../docs/relations-derived-nodes.md](../docs/relations-derived-nodes.md) |
+> | 5 — pinning an edge replays a node tooltip       | Already fixed; unaffected                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 >
 > **"Closed for wide input" is not "closed".** An adapter inside the panel runs _after_
 > `applyFieldOverrides`, so legacy row-format input can never gain per-mark links however
@@ -279,9 +279,11 @@ Gap 5 is already done, which unblocks the rest.
 
 ## Open questions
 
-- Should a **derived** node (edges-only response, gap 4) resolve links from the edges
-  frame rows that reference it? A node appears in many edge rows, so there is no single
-  row — the union of its incident rows' links is defensible but has no precedent here.
+- ~~Should a **derived** node (edges-only response, gap 4) resolve links from the edges
+  frame rows that reference it?~~ **Answered differently.** The node gets a field and a row
+  of its own instead, above the panel (`converters/deriveNodes.ts`), so its links come from
+  its own `config.links` like every other mark and the union question does not arise. It
+  still arises on a host that cannot run the pre-pass, where the node has no field at all.
 - `FieldConfigProperty.Actions` is registered along with the rest of the standard set,
   but the footer only renders `dataLinks` and `adHocFilters`
   ([EChartsTooltip.tsx:265](../src/lib/components/tooltip/EChartsTooltip.tsx)). Core's

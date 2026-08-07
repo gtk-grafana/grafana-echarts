@@ -145,7 +145,10 @@ retargets every override after it.
 Version: 0.1
 
 One field per node. Optional: when no nodes frame is present, the node set is the union of
-the edges' endpoints.
+the edges' endpoints. A consumer that infers its nodes this way should declare them, in a
+pre-pass over the response, as ordinary fields of a `graph-nodes-wide` frame — an inferred
+node is otherwise the one mark in the response that no field config can reach; see
+[../docs/relations-derived-nodes.md](../docs/relations-derived-nodes.md).
 
 **Example:** three nodes, instant.
 

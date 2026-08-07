@@ -460,6 +460,11 @@ because a derived node's value is its degree, a count of links with no unit to b
 family now uses no panel-level formatter at all, which is why `RelationsTooltipContext`
 is gone: a mark either has a field or is a count.
 
+Since [gap 4](#gap-4-is-closed-by-a-pre-pass-down-to-a-floor) it is not even a count. The
+degree was a link count sitting in the value slot, indistinguishable from a stat and
+impossible to relabel; a derived node now carries no stat at all, and
+`formatDerivedMarkValue` is the safety net rather than the path.
+
 #### A user transformation that consumes the row format is unreachable on this panel
 
 Panel 17 was written expecting "No data" — the adjacency-matrix interpretation is
@@ -780,22 +785,22 @@ Three verdicts:
 
 ### Every row of the "what this buys" argument
 
-| Documented problem                                                     | Where                                           | Verdict            | Note                                                                                                                           |
-| ---------------------------------------------------------------------- | ----------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| Only 2 of 8 colour modes reach the chart                               | `relations-color-schemes.md`                    | **Closed**         | Shipped in phase 3: colour is `field.display(value).color` and the resolver is gone. **Hierarchy still needs the fix.**        |
-| Edges have no colour-scheme path at all                                | `toLinkItems` took no `ctx` (`graph.ts`)        | **Closed**         | Shipped in phase 3. An edge is a field, so it has a display processor and a `byName` override targets it                       |
-| A `byName` fixed colour is not theme-resolved                          | `fields/seriesConfig.ts:116-127`                | **Closed**         | `applyFieldOverrides` resolves it upstream (measured: `dark-red` → `#C4162A`). Pie and hierarchy still route round it          |
-| `field.state.range` contaminated by `noderadius` / `arc__*` / `fixedx` | `relations-color-schemes.md`                    | **Wide only**      | Measured: legacy `{min: 0.5, max: 60}` vs wide `{min: 8, max: 12}`                                                             |
-| A link on `mainstat` paints on **every** node                          | `relations-data-links.md` gap 1                 | **Wide only**      | Shipped in phase 5: the footer resolves the hovered mark's own field. One link, one node — with a hover test to prove it       |
-| Only `mainstat` consulted for links; edges usually unreachable         | gap 2                                           | **Wide only**      | Shipped in phase 5. Each mark carries its own field, and an edge is addressed by `markId` so parallel edges stay distinct      |
-| A node can be handed the **edges** frame's field                       | gap 3                                           | **Wide only**      | Shipped in phase 5, and structurally impossible: nodes and edges are separate lookups keyed by the mark's own name             |
-| Derived nodes carry no row, so no links                                | gap 4                                           | **Partially open** | See [below](#gap-4-is-only-partially-closed)                                                                                   |
-| Tooltip unit decided by frame order, not the hovered item              | `formatter.ts`, `Panel.tsx`                     | **Wide only**      | Shipped in phase 5: each mark formats with its own `field.display`, in the tooltip **and** the node label                      |
-| `custom.hideFrom` registered with no reachable editor                  | `editor/relations/fieldConfig.ts`               | **Closed**         | Shipped in phase 4: the real `addHideFrom`, hiding one node or one edge                                                        |
-| Legend hiding re-implemented by name; `stripHiddenValueFields` skipped | `charts/relations.ts`, `options/panelOption.ts` | **Partially open** | The by-name read is gone for any mark with a field; a _derived_ node has none, and the strip exclusion earned a new reason     |
-| Per-item colour, links, size, curveness                                | `relations-item-overrides.md` (unbuilt)         | **Closed**         | Shipped: a `byName` override over `custom.*`. No new editor, no new schema, no `relationsItemRules`                            |
-| Two SQL Expressions to reshape Prometheus                              | `relations-data-sources.md`                     | **Closed**         | One `legendFormat` **and one `joinByField`** — a `Time series` response is one frame per edge. Panel 18 of the proof dashboard |
-| Instant queries mandatory                                              | `relations-data-sources.md`                     | **Closed**         | A range query is a row dimension, reduced by `calcs[0]`                                                                        |
+| Documented problem                                                     | Where                                           | Verdict                  | Note                                                                                                                                                        |
+| ---------------------------------------------------------------------- | ----------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Only 2 of 8 colour modes reach the chart                               | `relations-color-schemes.md`                    | **Closed**               | Shipped in phase 3: colour is `field.display(value).color` and the resolver is gone. **Hierarchy still needs the fix.**                                     |
+| Edges have no colour-scheme path at all                                | `toLinkItems` took no `ctx` (`graph.ts`)        | **Closed**               | Shipped in phase 3. An edge is a field, so it has a display processor and a `byName` override targets it                                                    |
+| A `byName` fixed colour is not theme-resolved                          | `fields/seriesConfig.ts:116-127`                | **Closed**               | `applyFieldOverrides` resolves it upstream (measured: `dark-red` → `#C4162A`). Pie and hierarchy still route round it                                       |
+| `field.state.range` contaminated by `noderadius` / `arc__*` / `fixedx` | `relations-color-schemes.md`                    | **Wide only**            | Measured: legacy `{min: 0.5, max: 60}` vs wide `{min: 8, max: 12}`                                                                                          |
+| A link on `mainstat` paints on **every** node                          | `relations-data-links.md` gap 1                 | **Wide only**            | Shipped in phase 5: the footer resolves the hovered mark's own field. One link, one node — with a hover test to prove it                                    |
+| Only `mainstat` consulted for links; edges usually unreachable         | gap 2                                           | **Wide only**            | Shipped in phase 5. Each mark carries its own field, and an edge is addressed by `markId` so parallel edges stay distinct                                   |
+| A node can be handed the **edges** frame's field                       | gap 3                                           | **Wide only**            | Shipped in phase 5, and structurally impossible: nodes and edges are separate lookups keyed by the mark's own name                                          |
+| Derived nodes carry no row, so no links                                | gap 4                                           | **Closed, with a floor** | `deriveNodes.ts` declares them as fields above the panel. Open only where that cannot run — see [below](#gap-4-is-only-partially-closed)                    |
+| Tooltip unit decided by frame order, not the hovered item              | `formatter.ts`, `Panel.tsx`                     | **Wide only**            | Shipped in phase 5: each mark formats with its own `field.display`, in the tooltip **and** the node label                                                   |
+| `custom.hideFrom` registered with no reachable editor                  | `editor/relations/fieldConfig.ts`               | **Closed**               | Shipped in phase 4: the real `addHideFrom`, hiding one node or one edge                                                                                     |
+| Legend hiding re-implemented by name; `stripHiddenValueFields` skipped | `charts/relations.ts`, `options/panelOption.ts` | **Closed, with a floor** | The by-name read is gone for any mark with a field, derived nodes included once `deriveNodes.ts` has run; the strip exclusion earned a new reason and stays |
+| Per-item colour, links, size, curveness                                | `relations-item-overrides.md` (unbuilt)         | **Closed**               | Shipped: a `byName` override over `custom.*`. No new editor, no new schema, no `relationsItemRules`                                                         |
+| Two SQL Expressions to reshape Prometheus                              | `relations-data-sources.md`                     | **Closed**               | One `legendFormat` **and one `joinByField`** — a `Time series` response is one frame per edge. Panel 18 of the proof dashboard                              |
+| Instant queries mandatory                                              | `relations-data-sources.md`                     | **Closed**               | A range query is a row dimension, reduced by `calcs[0]`                                                                                                     |
 
 ### Every field of `graph-long.md`
 
@@ -844,22 +849,30 @@ contract: `config.links` per mark (the whole of
 [relations-data-links.md](./relations-data-links.md)) and `config.custom.hideFrom` per
 mark. Both are **wide only**.
 
-### Gap 4 is only partially closed
+### Gap 4 is closed by a pre-pass, down to a floor
 
 `relations-data-links.md` gap 4 — a node **derived** from the edges frame has no backing
-row, so it can carry no link — is **partially open** under the wide contract, and the
-reason is the same one, restated: a derived node has no _field_ either, so there is
+row, so it can carry no link — was left partially open by the contract alone, and the
+reason was the same one restated: a derived node has no _field_ either, so there was
 nothing for an override to land on.
 
-What changes: the wide contract makes supplying a nodes frame cheap and side-effect-free
-(one field per node, no stat columns to contaminate the colour domain, config editable in
-the UI), so "add a nodes frame" is a real answer rather than a chore. What does not
-change: an edges-only response still renders nodes that cannot be individually
-configured. Any fix is the same open design question the gap already poses — whether a
-derived node should union the config of its incident edges — and it has no precedent in
-this repo.
+**The answer turned out not to be the open design question.** The gap posed one — should a
+derived node union the config of its incident edges? — and the resolution sidesteps it:
+`converters/deriveNodes.ts` runs the reader's own derivation **above** the panel, where a
+field can still be created, and declares every endpoint the response left implicit as an
+ordinary field of a `graph-nodes-wide` frame. The node then has its own config, its own row
+and its own links, like every other mark, and nothing needs unioning. Registered on all
+three branches of the supplier, because all three shapes can describe edges alone — and two
+of them routinely do, `longToWide` first among them.
 
-The matrix does not claim a clean sweep.
+Two things it does not change. It is gated behind `panelPluginTransformations` like
+everything else in the prefix, so on a stock host `deriveNodesFromLinks` still derives
+fieldless nodes inside the panel and the gap is exactly as open as it was; and relations
+stays out of `stripHiddenValueFields`, because deleting a hidden node's column just makes
+one of the two derivations put it back.
+
+The matrix claims a floor, not a clean sweep. See
+[../docs/relations-derived-nodes.md](../docs/relations-derived-nodes.md).
 
 ## Per-gap disposition for the three to-do docs
 

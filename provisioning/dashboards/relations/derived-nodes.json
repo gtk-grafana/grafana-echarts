@@ -1,0 +1,260 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "description": "Proof for derived nodes (docs/relations-derived-nodes.md): a node no frame declares, inferred from an edge's source/target, is still an ordinary field-config target. Every panel here is fed by ONE edges-only query — there is no nodes frame anywhere, and the bar chart in the top row shows exactly that. converters/deriveNodes.ts declares the missing nodes as fields above the panel, before applyFieldOverrides, which is what lets the byName overrides on the second panel land. REQUIRES the panel-registered transformations API (grafana/grafana#129992) with grafana.panelPluginTransformations on. Without it the graphs still draw, identically, and every per-node override on this dashboard is silently inert — which is the before/after, not a broken dashboard.",
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "node-graph", "data-plane", "graph-wide", "derived-nodes"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — derived nodes",
+  "uid": "echarts-relations-derived-nodes",
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Control — edges only, nothing configured",
+      "description": "**The baseline, and the shape this whole dashboard is about.**\n\nOne query, four edge fields, no nodes frame. The five nodes — `gateway`, `api`, `db`, `cache`, `auth` — exist only because an edge named them as its `source` or `target`. The wide contract allows exactly this: \"when no nodes frame is present, the node set is the union of the edges' endpoints\" ([data-plane/graph-wide.md](../../../data-plane/graph-wide.md)).\n\nThis panel renders the same on every host, with the pre-pass or without it. That is deliberate — `deriveNodes.ts` adds configurability, not marks.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 9, "w": 8, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "relationsLayout": "circular"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The same edges — three overrides on nodes the response never declared",
+      "description": "**The claim.** Identical fixture to the control on the left, plus `fieldConfig.overrides` naming three nodes that appear in no frame the datasource returned:\n\n- **`db`** → dark red, radius 34, renamed **Database** (`displayName`)\n- **`cache`** → a `Subtitle` row and a data link in its tooltip footer — hover it, then click to pin\n- **`auth`** → `custom.hideFrom.viz`, so the node **and** the edge that named it are gone\n\nNo plugin-local mechanism is involved: these are ordinary `byName` overrides, written the same way you would write one against a time series. They work because `converters/deriveNodes.ts` declares each inferred endpoint as a real field in a `graph-nodes-wide` frame **before** `applyFieldOverrides` runs.\n\n**Without `grafana.panelPluginTransformations` only the `auth` one survives.** The nodes are then invented inside the panel, downstream of the override engine, so colour, radius, `displayName`, subtitle and links have nothing to land on — but hiding is re-read by name (`hiddenNodeIds`, `charts/relations.ts`), the one by-name fallback the family still keeps and keeps *for this case*. So on a stock host this panel is the control with `auth` missing. See [docs/relations-derived-nodes.md](../../../docs/relations-derived-nodes.md).",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 9, "w": 8, "x": 8, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "db" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } },
+              { "id": "custom.nodeRadius", "value": 34 },
+              { "id": "displayName", "value": "Database" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "cache" },
+            "properties": [
+              { "id": "custom.subtitle", "value": "eu-west-1" },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Cache runbook",
+                    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "auth" },
+            "properties": [{ "id": "custom.hideFrom", "value": { "legend": false, "tooltip": false, "viz": true } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "relationsLayout": "circular"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "barchart",
+      "title": "What the query actually returns — four fields, none of them a node",
+      "description": "**The evidence that the nodes are not in the response.** A core panel over the identical query: four numeric fields, one per edge, and nothing named `gateway`, `api`, `db`, `cache` or `auth`.\n\nOpen this panel's override editor and the field picker offers those four edge names and no others. Open the relations panel's next to it and the five node names are there too — added by the pre-pass the relations panel registers on itself, which no other panel type runs.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisPlacement": "auto" } },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Show node values, edges only — one line per node",
+      "description": "**A derived node has no stat, and says so by drawing nothing.**\n\n\"Show node values\" is on, and every label is a single line. There is nothing to reduce: the node has no field of its own on a stock host, and the field the pre-pass creates for it holds `null`.\n\nIt used to print the node's **degree** here — a count of the links naming it, sitting in the slot a measurement goes in, with no way to relabel, reformat or switch it off. Compare with the panel on the right, whose nodes carry a real stat from a real nodes frame.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Show node values, nodes declared — the stat is real, and has a unit",
+      "description": "**The contrast.** The same edges, plus a nodes frame (query B) that gives each node a request rate.\n\nEvery node now labels with its own reduced value, formatted through its own field — `req/s` here, set once on the frame's defaults. `deriveNodes.ts` finds nothing missing and returns the response untouched, so this panel is identical with the pre-pass and without it.\n\nThis is what the degree was impersonating on the left before it was removed.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps", "decimals": 0 },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n980,760,240,120,90"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The same overrides, drawn as a sankey",
+      "description": "**The pre-pass is not a graph-variant feature.** It runs above the panel, on the frames, so all three render variants get the same declared nodes and the same overrides reach them.\n\nIdentical `fieldConfig` to the graph in the top row: `db` is dark red and renamed, `cache` carries a subtitle and a link, `auth` and its ribbon are hidden.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "db" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } },
+              { "id": "displayName", "value": "Database" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "cache" },
+            "properties": [{ "id": "custom.subtitle", "value": "eu-west-1" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "auth" },
+            "properties": [{ "id": "custom.hideFrom", "value": { "legend": false, "tooltip": false, "viz": true } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "sankey"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The same overrides, drawn as a chord",
+      "description": "As the sankey, on the ring layout. Same fixture, same overrides, same declared nodes — `db` dark red and renamed, `auth` and its ribbon hidden.\n\nChord is the variant to reach for on cyclic service-graph data, which is the shape most likely to arrive edges-only in the first place.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "db" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } },
+              { "id": "displayName", "value": "Database" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "auth" },
+            "properties": [{ "id": "custom.hideFrom", "value": { "legend": false, "tooltip": false, "viz": true } }]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "chord"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    }
+  ],
+  "weekStart": ""
+}

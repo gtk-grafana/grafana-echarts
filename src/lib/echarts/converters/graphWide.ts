@@ -221,8 +221,17 @@ function findNodesFrames(frames: DataFrame[], endpoints: ReadonlySet<string>): D
   );
 }
 
-/** Every node id the edges frames refer to, for the nodes-frame shape test. */
-function endpointNames(edgesFrames: DataFrame[]): Set<string> {
+/**
+ * Every node id the edges frames refer to, for the nodes-frame shape test.
+ *
+ * Exported for `deriveNodes.ts`, which needs the same union to decide which endpoints the
+ * response never declared — and must compute it the way the reader does, or the pre-pass
+ * would create a field for a node the reader does not believe in (or miss one it does).
+ * Insertion order is the reader's own — source then target, edges frame by edges frame —
+ * and is load-bearing: it is the order `deriveNodesFromLinks` derives in, so the palette
+ * colour a node ends up with does not depend on whether the pre-pass ran.
+ */
+export function endpointNames(edgesFrames: DataFrame[]): Set<string> {
   const names = new Set<string>();
   for (const frame of edgesFrames) {
     for (const field of numericFields(frame)) {
@@ -550,19 +559,28 @@ function fillPaletteColors(nodes: RelationNode[], theme: GrafanaTheme2): void {
 }
 
 /**
- * Node set from the links alone, for edge-only responses.
+ * Node set from the links alone, for an edges-only response.
  *
+ * The reader's own fallback for a host that cannot run the pre-pass which would have made
+ * these nodes real fields (`deriveNodes.ts`, gated behind `panelPluginTransformations`).
  * Order follows first appearance in the link list, which keeps palette colours stable
- * across renders. `value` is the node's degree — the only stat derivable with no field
- * behind the node, which is also why these nodes carry neither `field` nor a row.
+ * across renders and is the order `endpointNames` collects in, so a node's colour does not
+ * depend on which of the two paths produced it.
+ *
+ * `value` is **null**: a node with neither field nor row has no stat to report. It used to
+ * be the node's degree — the only number derivable here — but a link count in the value
+ * slot is drawn under the node by "Show node values" and read as `Value` in the tooltip,
+ * where nothing tells it apart from a measurement, and it cannot be relabelled, formatted
+ * or turned off because there is no field config to do it with. See
+ * ../../../../docs/relations-derived-nodes.md.
  */
 function deriveNodesFromLinks(links: RelationLink[]): RelationNode[] {
-  const degree = new Map<string, number>();
+  const ids = new Set<string>();
   for (const link of links) {
-    degree.set(link.source, (degree.get(link.source) ?? 0) + 1);
-    degree.set(link.target, (degree.get(link.target) ?? 0) + 1);
+    ids.add(link.source);
+    ids.add(link.target);
   }
-  return [...degree].map(([id, count]) => ({ id, name: id, value: count }));
+  return [...ids].map((id) => ({ id, name: id, value: null }));
 }
 
 /**

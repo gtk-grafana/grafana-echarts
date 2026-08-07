@@ -44,6 +44,13 @@ nested panel ships.
   needs no external data source. Demonstrates why node-graph detection has to key on
   field shape: the reshaped frames are named `B`/`C` by refId and carry no frame
   metadata. Requires the `sqlExpressions` feature toggle (GA, on by default).
+- **`derived-nodes.json`** — an **edges-only** response, where every node exists only
+  because an edge named it, and per-node `byName` overrides landing on nodes that appear
+  in no frame the datasource returned. Needs the panel-registered transformations API
+  ([#129992](https://github.com/grafana/grafana/pull/129992)) with
+  `grafana.panelPluginTransformations` on; without it the graphs still draw and the
+  overrides go inert except hiding, which the panel re-reads by name. Background:
+  [../docs/relations-derived-nodes.md](../docs/relations-derived-nodes.md).
 
 Which real data sources can produce this shape, and the Prometheus/Loki/SQL recipes,
 are in [../docs/relations-data-sources.md](../docs/relations-data-sources.md).

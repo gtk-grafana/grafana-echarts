@@ -141,20 +141,36 @@ describe('buildRelationsTooltipModel', () => {
     });
 
     /**
-     * Gap 4, which the contract does **not** close: a node derived from an edge's
-     * endpoints has no field, so there is nothing for an override to land on. It
-     * renders no footer, and formats through `formatDerivedMarkValue`.
+     * Gap 4, which the contract does **not** close on a host that cannot run the
+     * `deriveNodes` pre-pass: a node derived from an edge's endpoints has no field, so
+     * there is nothing for an override to land on and no footer to render.
      */
-    it('gives a derived node no source, and no unit', () => {
+    it('gives a derived node no source', () => {
       const model = modelFor([wideEdges()]);
 
-      const node = model(nodeParams({ id: 'gateway', name: 'gateway', value: 2 }));
+      const node = model(nodeParams({ id: 'gateway', name: 'gateway' }));
 
       expect(node.source).toBeUndefined();
-      // A derived node's value is its degree — a count of links, not a measurement.
-      // Formatting it with the panel formatter (the first numeric field of the first
-      // frame) printed `2 s` here, borrowing the first edge's unit for a link count.
-      expect(node.rows[0].value).toBe('2');
+      expect(node.header.label).toBe('gateway');
+    });
+
+    /**
+     * A derived node carries no stat at all now (`deriveNodesFromLinks`), and a value row
+     * with nothing in it reads as a measurement that failed rather than one that was never
+     * taken. The value it used to carry was its degree, which the panel formatter — the
+     * first numeric field of the first frame — printed here as `2 s`, borrowing the first
+     * edge's unit for a link count.
+     */
+    it('omits the value row for a node with no stat', () => {
+      const model = modelFor([wideEdges()]);
+
+      expect(model(nodeParams({ id: 'gateway', name: 'gateway' })).rows).toEqual([]);
+    });
+
+    it('still formats a stat a fieldless node does carry, plainly and with no unit', () => {
+      const model = modelFor([wideEdges()]);
+
+      expect(model(nodeParams({ id: 'gateway', name: 'gateway', value: 2 })).rows[0].value).toBe('2');
     });
   });
 

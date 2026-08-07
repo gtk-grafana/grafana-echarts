@@ -294,8 +294,11 @@ describe('frameToGraphWide — nodes', () => {
     const data = frameToGraphWide([labelledEdges()], theme);
 
     expect(data?.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
-    // Degree is the only stat derivable without a nodes frame.
-    expect(data?.nodes.map((node) => node.value)).toEqual([1, 2, 1]);
+    // No stat: a node with neither field nor row has nothing to report. It used to be the
+    // node's degree, which is a link count wearing a measurement's clothes — see
+    // `deriveNodesFromLinks` and `converters/deriveNodes.ts`, the pre-pass that gives these
+    // nodes a field instead on a host that can run it.
+    expect(data?.nodes.map((node) => node.value)).toEqual([null, null, null]);
   });
 });
 
@@ -673,7 +676,8 @@ describe('frame role resolution', () => {
     expect(data.nodes.map((node) => [node.id, node.value])).toEqual([
       ['a', 5],
       ['b', 6],
-      ['c', 1],
+      // Declared nodes keep their stat; `c`, which only the edges name, has none.
+      ['c', null],
     ]);
   });
 });
@@ -767,8 +771,8 @@ describe('collecting every edges frame', () => {
   /**
    * The nodes search runs over the union of every collected frame's endpoints. Here `c` is
    * named by the **second** edges frame alone, so a search over the first frame's endpoints
-   * would miss this nodes frame entirely and `c` would fall back to a derived node whose
-   * value is its degree.
+   * would miss this nodes frame entirely and `c` would be derived — statless — instead of
+   * keeping the stat the frame declares for it.
    */
   it('unions the endpoint set across every edges frame when looking for nodes', () => {
     const nodes = toDataFrame({
@@ -782,8 +786,8 @@ describe('collecting every edges frame', () => {
 
     expect(data.nodes.map((node) => [node.id, node.value])).toEqual([
       ['c', 6],
-      ['a', 1],
-      ['b', 2],
+      ['a', null],
+      ['b', null],
     ]);
   });
 

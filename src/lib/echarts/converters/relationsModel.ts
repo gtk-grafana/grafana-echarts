@@ -25,7 +25,11 @@ export interface RelationNode {
   name: string;
   /** `config.custom.subtitle`. */
   subtitle?: string;
-  /** The field's values reduced by `reduceOptions.calcs[0]`. */
+  /**
+   * The field's values reduced by `reduceOptions.calcs[0]`, and `null` for a node with no
+   * field — one the response only implied, which has no stat of its own to report. See
+   * `deriveNodesFromLinks` and `converters/deriveNodes.ts`.
+   */
   value: number | null;
   /**
    * The secondary stat, tooltip only: `calcs[1]` formatted through the mark's own

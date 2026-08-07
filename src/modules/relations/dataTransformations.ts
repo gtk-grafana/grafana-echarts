@@ -1,4 +1,5 @@
 import { debug, LOG_LEVELS } from 'development';
+import { deriveNodesOperator } from 'lib/echarts/converters/deriveNodes';
 import { isGraphWideFrames } from 'lib/echarts/converters/graphWide';
 import { isLegacyGraphFrames, legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
 import { isLongGraphFrames, longToWideOperator } from 'lib/echarts/converters/longToWide';
@@ -11,12 +12,24 @@ import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTran
  *
  * - a long response (one series per frame, endpoints in labels — what every labelled
  *   datasource returns) -> the pivot, so all N edges reach the panel as **named** marks;
- * - already wide (or natively emitted wide) -> `[]`, nothing runs, frame identity is
- *   preserved and `VizPanel.applyFieldConfig` still short-circuits;
+ * - already wide (or natively emitted wide) -> nothing to reshape;
  * - row-based node-graph frames -> the conversion, run above the panel so each node and
  *   edge is a field by the time field overrides are applied;
  * - anything else -> `[]`. The panel may be pointed at a frame it cannot draw, and a
  *   transformation is not the place to complain about it.
+ *
+ * **Every branch that claims a response then derives its missing nodes.** All three shapes
+ * are allowed to describe edges alone, and two of them routinely do — `longToWide` pivots
+ * edges only, and `sum by (source, target)` is the canonical time-series graph query — so
+ * without `deriveNodes` the marks that reach the override pass are the edges and nothing
+ * else, and every node in the panel is one no field config can address. It runs last
+ * because it completes the wide form rather than producing it: it reads the roles the
+ * others just established.
+ *
+ * That is also why the already-wide branch no longer returns `[]`. It still costs a
+ * response that declares all its nodes nothing — `deriveNodes` returns the input array
+ * itself when there is nothing missing, so frame identity is preserved and
+ * `VizPanel.applyFieldConfig` still short-circuits.
  *
  * **Exactly one converter claims a response, and the order is load-bearing.** The two
  * shapes are disjoint — a long series carries no `source`/`target` *columns*, a row frame
@@ -45,10 +58,10 @@ import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTran
 export const relationsDataTransformations: PanelDataTransformationsSupplier = ({ series }) => {
   debug('relationsDataTransformations', LOG_LEVELS.debug, { series });
   if (isLongGraphFrames(series)) {
-    return [longToWideOperator];
+    return [longToWideOperator, deriveNodesOperator];
   }
   if (isGraphWideFrames(series)) {
-    return [];
+    return [deriveNodesOperator];
   }
-  return isLegacyGraphFrames(series) ? [legacyToWideOperator] : [];
+  return isLegacyGraphFrames(series) ? [legacyToWideOperator, deriveNodesOperator] : [];
 };
