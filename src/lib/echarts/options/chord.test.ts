@@ -83,11 +83,17 @@ describe('getChordLabel', () => {
 });
 
 describe('getChordLinkStyle', () => {
-  // The family default is `gradient`, so a ribbon blends from one arc's colour into the
-  // other's; ECharts' own chord default is `source`, so the key has to be emitted for it
-  // to take effect. `ChordEdge` implements all three keywords, so nothing else is needed.
-  it('emits the family default, which ECharts does not share', () => {
-    expect(getChordLinkStyle(baseOptions())).toEqual({ color: 'gradient' });
+  /**
+   * **The reported bug**: a chord nobody had configured drew ribbons with no fill.
+   *
+   * The family default is `gradient`, and `ChordEdge.applyEdgeFill` does implement the
+   * keyword — but the ribbon it produces paints nothing in a browser, so the default
+   * chord was empty outlines. It degrades to `source`, which is also ECharts' own chord
+   * default, so the key is omitted entirely.
+   */
+  it('degrades the gradient default to source, and emits no key for it', () => {
+    expect(getChordLinkStyle(baseOptions())).toBeUndefined();
+    expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'gradient' }))).toBeUndefined();
   });
 
   it("omits the key only when the mode already matches ECharts' chord default", () => {
@@ -98,8 +104,16 @@ describe('getChordLinkStyle', () => {
     expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'target' }))).toEqual({ color: 'target' });
   });
 
+  // Paired with a non-default colour so the assertion is about `opacity` alone: on the
+  // default colour every key is omitted and the whole `lineStyle` disappears.
   it('omits opacity at the ECharts default', () => {
-    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.2 }))).not.toHaveProperty('opacity');
+    expect(
+      getChordLinkStyle(baseOptions({ relationsLinkColor: 'target', relationsChordLinkOpacity: 0.2 }))
+    ).not.toHaveProperty('opacity');
+  });
+
+  it('omits the whole key when nothing differs from the ECharts defaults', () => {
+    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.2 }))).toBeUndefined();
   });
 
   it('emits an overridden opacity', () => {
@@ -219,7 +233,7 @@ describe('getChordSeries', () => {
   // A ring of small arcs is exactly where labels pile up, and `series.chord` has no
   // `avoidLabelOverlap` of its own — the shared label-layout stage is the answer.
   it('hides overlapping labels by default', () => {
-    expect(getChordSeries(data(), ctx()).labelLayout).toEqual({ hideOverlap: true });
+    expect(typeof getChordSeries(data(), ctx()).labelLayout).toBe('function');
     expect(getChordSeries(data(), ctx(baseOptions({ relationsHideOverlappingLabels: false })))).not.toHaveProperty(
       'labelLayout'
     );

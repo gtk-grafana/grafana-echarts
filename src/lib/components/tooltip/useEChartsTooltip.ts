@@ -348,6 +348,38 @@ export function useEChartsTooltip(
     const zr = chart.getZr();
 
     /**
+     * Re-apply the pinned item's `highlight`, because ECharts throws it away on the
+     * next `mouseout` — **including the adjacency fade**, which is the visible loss.
+     *
+     * `bindMouseEvent` routes every element `mouseout` into
+     * `handleGlobalMouseOutForHighDown`, whose first statement is an unconditional
+     * `allLeaveBlur(api)` (`echarts/lib/util/states.js`). It has no notion of a
+     * highlight that came from `dispatchAction` rather than from the cursor, so the
+     * blur the pin established is cleared the moment the cursor leaves the element —
+     * and a pinned relations tooltip lost the one thing it was pinned to read, its
+     * node's neighbourhood.
+     *
+     * Deferred a frame so it lands *after* that handler whatever order the listeners
+     * were bound in, and re-dispatched rather than tracked: `highlight` is idempotent,
+     * so re-asserting the same item costs nothing. Hovering some *other* element while
+     * pinned still previews that element's neighbourhood — leaving it comes back here.
+     */
+    const reassertPinnedFocus = () => {
+      requestAnimationFrame(() => {
+        const { pinned, pinnedItem } = latestRef.current;
+        if (!pinned || pinnedItem?.seriesIndex == null || chart.isDisposed()) {
+          return;
+        }
+        chart.dispatchAction({
+          type: 'highlight',
+          seriesIndex: pinnedItem.seriesIndex,
+          dataIndex: pinnedItem.dataIndex,
+          dataType: pinnedItem.dataType,
+        });
+      });
+    };
+
+    /**
      * ZRender `mousemove`: tracks the cursor in window coordinates so the overlay
      * can follow it, and in proximity mode also resolves the nearest point and
      * replays it into ECharts — making this handler the owner of show, hide and
@@ -424,6 +456,9 @@ export function useEChartsTooltip(
      */
     const onGlobalOut = () => {
       if (latestRef.current.pinned) {
+        // Leaving the canvas is a `mouseout` of whatever element the cursor was on,
+        // so the pinned emphasis has just been cleared here too.
+        reassertPinnedFocus();
         return;
       }
       focusPoint(null);
@@ -448,6 +483,10 @@ export function useEChartsTooltip(
      */
     const onMouseOut = () => {
       if (latestRef.current.pinned) {
+        // The pin owns the emphasis, and ECharts has just cleared it — see
+        // `reassertPinnedFocus`. Everything below is hide behaviour, which a pinned
+        // tooltip has none of.
+        reassertPinnedFocus();
         return;
       }
       // Without proximity, ECharts' own element hit-testing owns which item is

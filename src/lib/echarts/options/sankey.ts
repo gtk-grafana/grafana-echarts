@@ -298,7 +298,7 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
     zlevel: ctx.options.zLevel?.series,
     data: toSankeyNodeItems(data.nodes),
     links: toSankeyLinkItems(links),
-    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks), ctx.tooltipSink),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options.reduceOptions), ctx.tooltipSink),
   };
 
   return { series, droppedCount };

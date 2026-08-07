@@ -1,5 +1,5 @@
 import { createTheme, type Field, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
-import { type CallbackDataParams } from 'echarts/types/dist/shared';
+import { type CallbackDataParams, type LabelLayoutOptionCallbackParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import {
@@ -15,6 +15,7 @@ import {
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
   RELATIONS_NODE_SIZE_DEFAULT,
+  resolveFixedPositions,
   resolveRelationsRoam,
   resolveRelationsZoom,
   type RelationsSeriesContext,
@@ -25,6 +26,13 @@ import { type PanelOptions } from 'types';
 
 const theme = createTheme();
 const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
+
+/**
+ * Label-layout callback params. Only `dataType` is read, so the rest is left off
+ * rather than filled with values no assertion depends on.
+ */
+const labelParams = (dataType: 'node' | 'edge'): LabelLayoutOptionCallbackParams =>
+  ({ dataType, dataIndex: 0, seriesIndex: 0 }) as LabelLayoutOptionCallbackParams;
 
 const baseOptions = (extra: Partial<PanelOptions> = {}): PanelOptions =>
   ({
@@ -98,6 +106,60 @@ describe('getGraphLayout', () => {
   });
 });
 
+describe('resolveFixedPositions', () => {
+  // The whole point: a node with no `x` lays out at `[NaN, NaN]` and is not drawn, so
+  // "Fixed" on data that pins nothing used to blank the panel.
+  it('gives every node a finite position when nothing is pinned', () => {
+    const positions = resolveFixedPositions(data().nodes);
+
+    expect(positions.size).toBe(2);
+    for (const { x, y } of positions.values()) {
+      expect(Number.isFinite(x)).toBe(true);
+      expect(Number.isFinite(y)).toBe(true);
+    }
+  });
+
+  // Deterministic, so a refresh does not reshuffle the graph — the same reason the force
+  // simulation is seeded (`RELATIONS_FORCE_INIT_LAYOUT`).
+  it('seeds the same positions for the same nodes', () => {
+    expect([...resolveFixedPositions(data().nodes)]).toEqual([...resolveFixedPositions(data().nodes)]);
+  });
+
+  it('leaves a pinned node exactly where it is pinned', () => {
+    const pinned = data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, fixedX: 5, fixedY: 6 },
+        { id: 'b', name: 'B', value: 2, fixedX: 7, fixedY: 8 },
+      ],
+    });
+
+    expect([...resolveFixedPositions(pinned.nodes)]).toEqual([
+      ['a', { x: 5, y: 6 }],
+      ['b', { x: 7, y: 8 }],
+    ]);
+  });
+
+  // Partially-pinned data: the pinned marks keep their exact coordinates and the rest go
+  // on a ring outside their bounding box, so they read as "not placed yet" rather than
+  // landing on top of the pinned cluster.
+  it('seeds the unpinned nodes clear of the pinned ones', () => {
+    const partial = data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, fixedX: 0, fixedY: 0 },
+        { id: 'b', name: 'B', value: 2, fixedX: 10, fixedY: 0 },
+        { id: 'c', name: 'C', value: 3 },
+      ],
+    });
+    const positions = resolveFixedPositions(partial.nodes);
+
+    expect(positions.get('a')).toEqual({ x: 0, y: 0 });
+    expect(positions.get('b')).toEqual({ x: 10, y: 0 });
+    // Centre of the pinned box is (5, 0) and its half-extent 5, so the ring sits at 6.25.
+    const seeded = positions.get('c')!;
+    expect(Math.hypot(seeded.x - 5, seeded.y - 0)).toBeCloseTo(6.25);
+  });
+});
+
 describe('getGraphForce', () => {
   // Always emitted, because three of the four keys disagree with ECharts on purpose:
   // the simulation is seeded so a render is reproducible, its steps are not drawn so a
@@ -166,8 +228,15 @@ describe('getGraphEdgeSymbol / getGraphEmphasis', () => {
 });
 
 describe('getRelationsLabelLayout', () => {
-  it('hides overlapping labels by default', () => {
-    expect(getRelationsLabelLayout(baseOptions())).toEqual({ hideOverlap: true });
+  it('hides overlapping node labels by default', () => {
+    expect(getRelationsLabelLayout(baseOptions())?.(labelParams('node'))).toEqual({ hideOverlap: true });
+  });
+
+  // The reason the callback form is used at all. An edge label put through
+  // `hideOverlap` is measured before the link geometry has settled, so each render
+  // lets one more through and "Show edge values" draws more labels every refresh.
+  it('leaves edge labels out of the overlap pass', () => {
+    expect(getRelationsLabelLayout(baseOptions())?.(labelParams('edge'))).toEqual({});
   });
 
   // Omitted rather than emitted empty: `LabelManager` skips a series whose
@@ -340,16 +409,54 @@ describe('getGraphSeries', () => {
     expect(series.data).toMatchObject([{ symbolSize: 8 }, { symbolSize: 8 }]);
   });
 
-  it('emits x/y only for pinned nodes', () => {
-    const pinned = data({
+  // Only the fixed layout reads `x`/`y`: `getGraphForce` pins `initLayout: 'circular'`,
+  // so `forceLayout` seeds from the ring and never consults them, and a circular layout
+  // computes its own. Emitting them anyway would only move the view's bounding box.
+  it('emits no x/y under a layout that does not read them', () => {
+    const partlyPinned = data({
       nodes: [
         { id: 'a', name: 'A', value: 1, fixedX: 5, fixedY: 6 },
         { id: 'b', name: 'B', value: 2 },
       ],
     });
-    const series = getGraphSeries(pinned, ctx());
-    expect(series.data![0]).toMatchObject({ x: 5, y: 6 });
+    const series = getGraphSeries(partlyPinned, ctx());
+
+    expect(series.layout).toBe('force');
+    expect(series.data![0]).not.toHaveProperty('x');
     expect(series.data![1]).not.toHaveProperty('x');
+  });
+
+  it('emits every pinned coordinate when all of them are pinned', () => {
+    const pinned = data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, fixedX: 5, fixedY: 6 },
+        { id: 'b', name: 'B', value: 2, fixedX: 7, fixedY: 8 },
+      ],
+    });
+    const series = getGraphSeries(pinned, ctx());
+
+    expect(series.layout).toBe('none');
+    expect(series.data).toMatchObject([
+      { x: 5, y: 6 },
+      { x: 7, y: 8 },
+    ]);
+  });
+
+  /**
+   * **The reported bug**: picking Fixed drew nothing. `simpleLayout` lays a node with no
+   * `x` out at `[NaN, NaN]`, and `fixedx`/`fixedy` are per-mark overrides that no fresh
+   * panel has written — so the layout the user selected blanked the panel and left
+   * nothing to drag or override from. See `resolveFixedPositions`.
+   */
+  it('seeds a position for every node when Fixed is selected with nothing pinned', () => {
+    const series = getGraphSeries(data(), ctx(baseOptions({ relationsLayout: 'none' })));
+
+    expect(series.layout).toBe('none');
+    for (const item of series.data ?? []) {
+      const node = item as { x?: number; y?: number };
+      expect(Number.isFinite(node.x)).toBe(true);
+      expect(Number.isFinite(node.y)).toBe(true);
+    }
   });
 
   it('maps a per-edge color, width and line type onto the link item', () => {
@@ -399,7 +506,7 @@ describe('getGraphSeries', () => {
     expect(series.force).toMatchObject({ initLayout: 'circular', layoutAnimation: false });
     expect(series.edgeSymbol).toEqual(['none', 'arrow']);
     expect(series.emphasis).toEqual({ focus: 'adjacency' });
-    expect(series.labelLayout).toEqual({ hideOverlap: true });
+    expect(typeof series.labelLayout).toBe('function');
   });
 
   it('omits edgeLabel unless edge values are switched on', () => {

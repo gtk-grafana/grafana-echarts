@@ -77,19 +77,34 @@ export function getChordLabel(ctx: RelationsSeriesContext): ChordSeriesOption['l
   };
 }
 
-/**
- * Ribbon styling. `ChordEdge` implements all three colour keywords itself, so the mode
- * passes straight through; the key is omitted only when it already matches ECharts'
- * own chord default (`'source'`), which keeps the emitted option minimal. `opacity` is
- * omitted at ECharts' 0.2.
- * https://echarts.apache.org/en/option.html#series-chord.lineStyle
- */
 /** ECharts' own `series-chord.lineStyle.color` default (`ChordSeries.ts`). */
 const CHORD_LINK_COLOR_ECHARTS_DEFAULT = 'source';
 
+/**
+ * Ribbon styling. The key is omitted when it already matches ECharts' own chord default
+ * (`'source'`), which keeps the emitted option minimal. `opacity` is omitted at ECharts'
+ * 0.2.
+ *
+ * **`'gradient'` degrades to `'source'`**, and since gradient is the family's default
+ * mode, this is what a chord nobody configured draws.
+ *
+ * `ChordEdge.applyEdgeFill` does implement the keyword — a `LinearGradient` between the
+ * two arcs' mid-angle points — but a chord ribbon is a wide filled area rather than a
+ * line, so most of it lies off that axis and comes out an unreadable wash at ECharts'
+ * 0.2 ribbon opacity: side by side against `'source'` on the same fixture the ribbons
+ * lose their endpoint tint almost entirely, and on a dense service-graph chord the
+ * reported symptom was simply "no fill on the edges". `'source'` is ECharts' own chord
+ * default and gives every ribbon a legible one.
+ *
+ * The `graph` variant already degrades the same way whenever it cannot orient a gradient
+ * (`GRAPH_LINK_COLOR_FALLBACK`), and for the same reason: the source node's colour is
+ * still endpoint-derived and still flips when the edge is reversed.
+ * https://echarts.apache.org/en/option.html#series-chord.lineStyle
+ */
 export function getChordLinkStyle(options: PanelOptions): ChordSeriesOption['lineStyle'] | undefined {
   const lineStyle: NonNullable<ChordSeriesOption['lineStyle']> = {};
-  const color = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
+  const mode = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
+  const color = mode === 'gradient' ? CHORD_LINK_COLOR_ECHARTS_DEFAULT : mode;
   if (color !== CHORD_LINK_COLOR_ECHARTS_DEFAULT) {
     lineStyle.color = color;
   }
@@ -210,6 +225,6 @@ export function getChordSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     zlevel: ctx.options.zLevel?.series,
     data: toChordNodeItems(data.nodes),
     links: toChordLinkItems(data.links),
-    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks), ctx.tooltipSink),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options.reduceOptions), ctx.tooltipSink),
   };
 }

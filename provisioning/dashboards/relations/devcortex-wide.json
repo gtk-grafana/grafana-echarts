@@ -96,6 +96,7 @@
       },
       "options": {
         "seriesType": "graph",
+        "editorMode": "advanced",
         "legend": {
           "showLegend": true,
           "displayMode": "list",
@@ -160,6 +161,7 @@
       },
       "options": {
         "seriesType": "sankey",
+        "editorMode": "advanced",
         "legend": {
           "showLegend": true,
           "displayMode": "list",
@@ -225,6 +227,7 @@
       },
       "options": {
         "seriesType": "chord",
+        "editorMode": "advanced",
         "legend": {
           "showLegend": true,
           "displayMode": "list",
@@ -327,6 +330,7 @@
       },
       "options": {
         "seriesType": "graph",
+        "editorMode": "advanced",
         "legend": {
           "showLegend": true,
           "displayMode": "list",
@@ -442,6 +446,7 @@
       },
       "options": {
         "seriesType": "graph",
+        "editorMode": "advanced",
         "legend": {
           "showLegend": true,
           "displayMode": "list",
@@ -506,6 +511,7 @@
       },
       "options": {
         "seriesType": "sankey",
+        "editorMode": "advanced",
         "legend": {
           "showLegend": true,
           "displayMode": "list",
@@ -571,6 +577,7 @@
       },
       "options": {
         "seriesType": "chord",
+        "editorMode": "advanced",
         "legend": {
           "showLegend": true,
           "displayMode": "list",
@@ -650,6 +657,7 @@
       },
       "options": {
         "seriesType": "graph",
+        "editorMode": "advanced",
         "legend": {
           "showLegend": true,
           "displayMode": "list",

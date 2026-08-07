@@ -1,5 +1,12 @@
-import { type Field, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
+import {
+  type Field,
+  fieldReducers,
+  type GrafanaTheme2,
+  type ReduceDataOptions,
+  type ValueFormatter,
+} from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { normalizeRelationsCalcs } from 'lib/echarts/converters/graphWide';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import {
@@ -25,6 +32,30 @@ import {
  * the first edge, every one of them read `2 ms`.
  */
 export const formatDerivedMarkValue: ValueFormatter = (value) => ({ text: String(value) });
+
+/**
+ * The label a stat row carries when no reducer named it.
+ *
+ * Only reachable for the *secondary* row, and only on the one path that does not come
+ * from a reducer at all: the `secondarystat` label the row-form conversion carries, where
+ * there is no second value to reduce and so no calculation to name. See `secondaryOf`.
+ */
+const SECONDARY_ROW_LABEL = 'Secondary';
+
+/**
+ * A stat row's label: the **reducer's** display name (`Mean`, `Min`, `Last *`), not the
+ * word "Value".
+ *
+ * Both stat slots are a reducer the user picked — `calcs[0]` and `calcs[1]` of the
+ * panel's Calculation setting — so labelling them `Value` and `Secondary` threw away the
+ * one thing the row does not otherwise say. Two rows reading `Mean` and `Min` are
+ * self-describing; two reading `Value` and `Secondary` need the options pane to decode.
+ * Falls back to the raw id for a reducer the registry does not know, which is the same
+ * reading the pie's centre readout and the table legend give it.
+ */
+function reducerLabel(calc: string): string {
+  return fieldReducers.getIfExists(calc)?.name ?? calc;
+}
 
 /**
  * A mark's secondary stat as tooltip text, shared by the node and edge branches so one
@@ -109,9 +140,13 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
  * axis pointer — so this is built in the series formatter rather than via an
  * axis-triggered tooltip, matching the hierarchy and pie families.
  *
- * - **Node**: name as header; the main stat as the `Value` row, plus `Subtitle` and
- *   `secondarystat` rows when present.
- * - **Link**: `source → target` as header; the resolved weight as `Value`.
+ * - **Node**: name as header; the main stat, plus `Subtitle` and secondary rows when
+ *   present.
+ * - **Link**: `source → target` as header; the resolved weight as the stat row.
+ *
+ * Each stat row is labelled with the **reducer** that produced it rather than with
+ * `Value` / `Secondary` — see {@link reducerLabel}, and `reduceOptions` for where the
+ * two come from.
  *
  * Values format with the **hovered mark's own** field, and the footer resolves that
  * field's data links; see {@link getRelationsTooltipMarks}. A node derived from an
@@ -119,7 +154,16 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
  * and shows no footer — `todo/relations-data-links.md` gap 4, which the contract does
  * not close.
  */
-export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: TopLevelFormatterParams) => TooltipModel {
+export function buildRelationsTooltipModel(
+  marks?: RelationsMarks,
+  reduceOptions?: ReduceDataOptions
+): (params: TopLevelFormatterParams) => TooltipModel {
+  // Resolved once per render rather than per hover: the same two reducers name every
+  // row, and this is the same normalization the reader reduced the marks with.
+  const [calc, secondaryCalc] = normalizeRelationsCalcs(reduceOptions);
+  const statLabel = reducerLabel(calc);
+  const secondaryLabel = secondaryCalc != null ? reducerLabel(secondaryCalc) : SECONDARY_ROW_LABEL;
+
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;
     const data: unknown = param?.data;
@@ -133,7 +177,7 @@ export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: Top
       const rows: TooltipRow[] = [
         {
           color,
-          label: 'Value',
+          label: statLabel,
           value: formatEChartsValue(data.value ?? null, mark?.formatValue ?? formatDerivedMarkValue),
           source: mark?.source,
         },
@@ -141,7 +185,7 @@ export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: Top
       // An edge reduces to two stats just as a node does, so `calcs[1]` reports here
       // too — the same row, formatted the same way. See `secondaryOf` and `readLinks`.
       if (data.secondary != null) {
-        rows.push({ label: 'Secondary', value: formatSecondary(data.secondary, mark?.formatValue) });
+        rows.push({ label: secondaryLabel, value: formatSecondary(data.secondary, mark?.formatValue) });
       }
       return { header: { label: `${data.source} → ${data.target}`, value: '' }, rows, source: mark?.source };
     }
@@ -161,7 +205,7 @@ export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: Top
     if (stat != null) {
       rows.push({
         color,
-        label: 'Value',
+        label: statLabel,
         value: formatEChartsValue(stat, mark?.formatValue ?? formatDerivedMarkValue),
         source: mark?.source,
       });
@@ -170,7 +214,7 @@ export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: Top
       rows.push({ label: 'Subtitle', value: node.subtitle });
     }
     if (node?.secondary != null) {
-      rows.push({ label: 'Secondary', value: formatSecondary(node.secondary, mark?.formatValue) });
+      rows.push({ label: secondaryLabel, value: formatSecondary(node.secondary, mark?.formatValue) });
     }
 
     return { header: { label: node?.name ?? String(param?.name ?? ''), value: '' }, rows, source: mark?.source };

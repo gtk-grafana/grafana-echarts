@@ -1,4 +1,4 @@
-import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { createTheme, type DataFrame, FieldType, type ReduceDataOptions, toDataFrame } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
 import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
@@ -58,12 +58,15 @@ const wideEdges = (): DataFrame =>
     ],
   });
 
-const modelFor = (frames: DataFrame[]): ((params: TopLevelFormatterParams) => TooltipModel) => {
-  const data = frameToRelationsGraph(frames, theme);
+const modelFor = (
+  frames: DataFrame[],
+  reduceOptions?: ReduceDataOptions
+): ((params: TopLevelFormatterParams) => TooltipModel) => {
+  const data = frameToRelationsGraph(frames, theme, reduceOptions);
   if (!data) {
     throw new Error('fixture produced no graph');
   }
-  return buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'));
+  return buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'), reduceOptions);
 };
 
 /** A hovered node, as the graph variant emits it. */
@@ -240,8 +243,11 @@ describe('buildRelationsTooltipModel', () => {
       );
 
       expect(node.header).toEqual({ label: 'Gateway', value: '' });
+      // `Last *` is `RELATIONS_CALC_DEFAULT`'s display name — the row says which reducer
+      // produced it, and with no second calculation picked the secondary row is the
+      // `secondarystat` label rather than a reduction, so it keeps the generic name.
       expect(node.rows.map((row) => [row.label, row.value])).toEqual([
-        ['Value', '12.0 ms'],
+        ['Last *', '12.0 ms'],
         ['Subtitle', 'eu-west'],
         ['Secondary', '3 errors'],
       ]);
@@ -264,7 +270,7 @@ describe('buildRelationsTooltipModel', () => {
       const link = model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5, secondary: '1.0 s' }));
 
       expect(link.rows.map((row) => [row.label, row.value])).toEqual([
-        ['Value', '3.50 s'],
+        ['Last *', '3.50 s'],
         ['Secondary', '1.0 s'],
       ]);
     });
@@ -273,6 +279,58 @@ describe('buildRelationsTooltipModel', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
       expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).rows).toHaveLength(1);
+    });
+  });
+
+  /**
+   * **The reported bug.** Both stat slots are a reducer the user picked, so a tooltip
+   * reading `Value` / `Secondary` threw away the only thing the row does not otherwise
+   * say — a panel reduced by mean and min should read `Mean` and `Min`.
+   */
+  describe('stat row labels', () => {
+    const meanAndMin: ReduceDataOptions = { calcs: ['mean', 'min'] };
+
+    it('names each node row after the reducer that produced it', () => {
+      const model = modelFor([wideNodes(), wideEdges()], meanAndMin);
+
+      const node = model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondary: '5.0 ms' }));
+
+      expect(node.rows.map((row) => row.label)).toEqual(['Mean', 'Min']);
+    });
+
+    it('names each edge row after the reducer that produced it', () => {
+      const model = modelFor([wideNodes(), wideEdges()], meanAndMin);
+
+      const link = model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5, secondary: '1.0 s' }));
+
+      expect(link.rows.map((row) => row.label)).toEqual(['Mean', 'Min']);
+    });
+
+    // The default reducer is still a reducer, and naming it is what makes a panel nobody
+    // configured say what its number means.
+    it('names the default calculation when none is picked', () => {
+      const model = modelFor([wideNodes(), wideEdges()]);
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Last *');
+    });
+
+    // No second calculation means the secondary row did not come from a reducer at all:
+    // it is the `secondarystat` label the row-form conversion carries, and there is no
+    // calculation to name. See `secondaryOf`.
+    it('keeps the generic label for a secondarystat with no reducer behind it', () => {
+      const model = modelFor([wideNodes(), wideEdges()], { calcs: ['mean'] });
+
+      const node = model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondary: '3 errors' }));
+
+      expect(node.rows.map((row) => row.label)).toEqual(['Mean', 'Secondary']);
+    });
+
+    // A reducer the registry does not know still names its row, rather than falling back
+    // to a word that says less than the raw id does.
+    it('falls back to the raw reducer id', () => {
+      const model = modelFor([wideNodes(), wideEdges()], { calcs: ['notAReducer'] });
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('notAReducer');
     });
   });
 });

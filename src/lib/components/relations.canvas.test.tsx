@@ -272,6 +272,38 @@ describe('relations (graph) canvas renders', () => {
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
+
+    /**
+     * **The reported bug**: selecting Fixed drew nothing at all.
+     *
+     * `fixedx`/`fixedy` are per-mark overrides, so a fresh panel has none, and ECharts'
+     * `simpleLayout` lays a node with no `x` out at `[NaN, NaN]` — no symbol, no label,
+     * and no link either, since a link needs both endpoints. Asserted on the drawn
+     * labels rather than a baseline: the claim is "it draws the graph", not any
+     * particular seed geometry. See `resolveFixedPositions`.
+     */
+    it('draws every node under Fixed even when the data pins nothing', async () => {
+      const { seriesEvents } = await renderGraph([nodesFrame, edgesFrame], { relationsLayout: 'none' });
+
+      expect(labelTexts(seriesEvents)).toEqual(expect.arrayContaining(['Gateway', 'API', 'Web', 'DB']));
+    });
+
+    // Partially-pinned data reaches the same layout the moment the user selects Fixed,
+    // and the two halves have to coexist: pinned marks verbatim, the rest seeded.
+    it('draws pinned and unpinned nodes together under Fixed', async () => {
+      const halfPinned = toDataFrame({
+        name: 'nodes',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['gateway', 'api', 'web', 'db'] },
+          { name: 'title', type: FieldType.string, values: ['Gateway', 'API', 'Web', 'DB'] },
+          { name: 'fixedx', type: FieldType.number, values: [50, 150, null, null] },
+          { name: 'fixedy', type: FieldType.number, values: [150, 80, null, null] },
+        ],
+      });
+      const { seriesEvents } = await renderGraph([halfPinned, edgesFrame], { relationsLayout: 'none' });
+
+      expect(labelTexts(seriesEvents)).toEqual(expect.arrayContaining(['Gateway', 'API', 'Web', 'DB']));
+    });
   });
 
   describe('nodes', () => {
@@ -446,6 +478,49 @@ describe('relations (graph) canvas renders', () => {
       expect(labelTexts(seriesEvents)).toEqual(expect.arrayContaining(['100', '50', '90', '40']));
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    /**
+     * **The reported bug**: every refresh drew *more* edge values than the last, with
+     * unchanged data.
+     *
+     * Cause was `labelLayout.hideOverlap` being applied to edge labels as well as node
+     * ones. A graph's edge labels are measured before the link geometry has settled, so
+     * the first pass hid nearly all of them and each later pass let one more through —
+     * exactly 1, 2, 3, then all 4 over four renders of this fixture. Counted per pass
+     * (draw calls accumulate across the harness's passes, hence the slice) with overlap
+     * hiding left **on**, since that is the default and the condition for the bug.
+     * See `getRelationsLabelLayout`.
+     */
+    it('draws the same edge weights on every render (Advanced)', async () => {
+      const options = canvasOptions({ relationsShowEdgeValues: true });
+      const element = () =>
+        getComponent(
+          asPipelineWould([nodesFrame, edgesFrame]),
+          'graph',
+          options,
+          undefined,
+          undefined,
+          'relations',
+          undefined
+        );
+      const { container, rerender } = render(element());
+
+      let counted = 0;
+      const thisPass = () => {
+        const all = labelTexts(readCanvasLayer(container, SERIES_LAYER_SELECTOR));
+        const fresh = all.slice(counted);
+        counted = all.length;
+        return fresh.filter((text) => ['100', '50', '90', '40'].includes(text));
+      };
+
+      const first = thisPass();
+      expect(first).toEqual(expect.arrayContaining(['100', '50', '90', '40']));
+
+      for (let pass = 0; pass < 3; pass++) {
+        rerender(element());
+        expect(thisPass()).toEqual(first);
+      }
     });
 
     it('curves links (Advanced)', async () => {

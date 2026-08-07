@@ -1,0 +1,186 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "description": "Proof for the graph variant's Fixed layout (ECharts `series.graph.layout: 'none'`). Every panel here selects Fixed; they differ only in where the node positions come from — nowhere, the data's fixedx/fixedy columns, per-node custom.fixedX/fixedY overrides, or a mix. The first panel is the regression: Fixed used to draw an empty panel whenever the response pinned nothing, because ECharts lays a node with no `x` out at [NaN, NaN] and drops it along with every link touching it.",
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "node-graph", "graph-wide", "layout"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — fixed layout",
+  "uid": "echarts-relations-fixed-layout",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Fixed layout — where the coordinates come from",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "markdown",
+        "content": "# Fixed layout\n\n`Layout: Fixed` is ECharts' `series.graph.layout: 'none'` — the panel does no placement of its own and draws each node where its coordinates say. A node is a **field**, so those coordinates are ordinary per-mark config: `custom.fixedX` / `custom.fixedY`, reachable from the override picker like any other property, or the legacy row form's `fixedx` / `fixedy` columns.\n\nThe catch this dashboard exists for: **overrides do not exist until somebody writes them.** ECharts' `simpleLayout` does `node.setLayout([+model.get('x'), +model.get('y')])`, so a node with no `x` lays out at `[NaN, NaN]` — invisible, and so is every link that touches it. Selecting Fixed on a fresh panel therefore used to blank the visualization outright, leaving nothing on screen to drag or to write an override *against*.\n\nSo any node without a full pair is now **seeded on a ring**, in data order, exactly the way the force simulation is seeded (`force.initLayout: 'circular'`). Deterministic, so a refresh does not reshuffle the graph; already spread out, so the labels have room. Where some nodes *are* pinned, the ring goes around their bounding box, so the pinned marks keep their layout and the rest read as \"not placed yet\".\n\n| panel | positions from |\n| --- | --- |\n| 1 | nothing — every node seeded |\n| 2 | the data (`fixedx` / `fixedy` columns, legacy row form) |\n| 3 | `custom.fixedX` / `custom.fixedY` overrides, one per node |\n| 4 | two overrides; the other two nodes seeded |\n\nPanels 1 and 4 have **Draggable nodes** on, which is what these seeds are for: drag a node to where it belongs and write that position back as an override."
+      }
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "1 · Fixed, nothing pinned — every node seeded",
+      "description": "**The regression.** One edges-only query, no nodes frame, no overrides: not a single node carries `fixedX`/`fixedY`, which is the state of every panel the moment Fixed is selected. This used to render an empty canvas.\n\nThe four nodes are seeded on a ring in the order the edges name them, so the panel draws its topology and the user has something to drag. Refresh the dashboard — the layout does not move, because the seed is data order rather than `Math.random()`.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 7 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLayout": "none",
+        "relationsDraggable": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "2 · Fixed, pinned by the data",
+      "description": "The route the node-graph row form has always had: a nodes frame with `fixedx` / `fixedy` columns, converted to the wide contract above the panel (`converters/legacyToWide.ts`). Every node pins both, which is also what makes Fixed the layout the panel would have inferred on its own with `Layout` left unset.\n\nThe coordinate space is arbitrary — ECharts takes the bounding box of the emitted `x`/`y` and scales it onto the panel rect (`createViewCoordSys`), so these could be 0–400 or 0–1 and draw identically. What survives is the *shape* of the point set.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 7 },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLayout": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "id,title,mainstat,fixedx,fixedy\ngateway,Gateway,120,60,150\napi,API,80,200,60\nweb,Web,60,200,240\ndb,DB,200,340,150"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,100\ne2,gateway,web,52\ne3,api,db,88\ne4,web,db,41"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "3 · Fixed, pinned by per-node overrides",
+      "description": "The same four positions as panel 2, written as **field overrides** rather than carried in the response — `custom.fixedX` / `custom.fixedY` under a `byName` matcher, one pair per node. This is only addressable because a node is a field: the row form could not express it without changing the query.\n\nIt is also the shape a \"remember where I dragged this node\" feature writes, which is why it gets a panel of its own.\n\n**Needs `grafana.panelPluginTransformations`** on an edges-only response like this one — the nodes are declared as fields above the panel by `converters/deriveNodes.ts`, and without that pass there is no field for a `byName` override to land on, so this panel falls back to panel 1's seeded ring.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 19 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "gateway" },
+            "properties": [
+              { "id": "custom.fixedX", "value": 60 },
+              { "id": "custom.fixedY", "value": 150 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "api" },
+            "properties": [
+              { "id": "custom.fixedX", "value": 200 },
+              { "id": "custom.fixedY", "value": 60 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "web" },
+            "properties": [
+              { "id": "custom.fixedX", "value": 200 },
+              { "id": "custom.fixedY", "value": 240 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "db" },
+            "properties": [
+              { "id": "custom.fixedX", "value": 340 },
+              { "id": "custom.fixedY", "value": 150 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLayout": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "4 · Fixed, half pinned — the two halves coexist",
+      "description": "`gateway` and `db` carry `custom.fixedX` / `custom.fixedY`; `api` and `web` carry nothing. This is the state a panel is in halfway through positioning a topology by hand, and it has to draw — the old all-or-nothing reading dropped the unpinned two and both links between them.\n\nThe seeded pair goes on a ring **around** the pinned bounding box rather than inside it, so which nodes are placed and which are not is readable at a glance. Drag one and it joins the pinned set.",
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 19 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "gateway" },
+            "properties": [
+              { "id": "custom.fixedX", "value": 60 },
+              { "id": "custom.fixedY", "value": 150 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "db" },
+            "properties": [
+              { "id": "custom.fixedX", "value": 340 },
+              { "id": "custom.fixedY", "value": 150 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLayout": "none",
+        "relationsDraggable": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
+        }
+      ]
+    }
+  ]
+}

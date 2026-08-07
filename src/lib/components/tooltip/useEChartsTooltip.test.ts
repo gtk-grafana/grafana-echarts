@@ -302,6 +302,67 @@ describe('useEChartsTooltip', () => {
     });
   });
 
+  /**
+   * **The reported bug**: a pinned tooltip lost its adjacency highlight as soon as the
+   * cursor moved off the node.
+   *
+   * `bindMouseEvent` routes every element `mouseout` into
+   * `handleGlobalMouseOutForHighDown`, which opens with an unconditional
+   * `allLeaveBlur(api)` — it cannot tell an action-driven highlight from a hover one, so
+   * the fade the pin established went with it. See `reassertPinnedFocus`.
+   */
+  describe('emphasis while pinned', () => {
+    /** Pin item `dataIndex: 2` of the graph's edge table, then clear the dispatch log. */
+    const pinAnEdge = () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(model);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      fake.dispatched.length = 0;
+      return { fake, view };
+    };
+
+    const highlightsOfPin = (fake: ReturnType<typeof createFakeChart>) =>
+      fake.dispatched.filter((d) => d.type === 'highlight');
+
+    it('re-applies the pinned item’s highlight when the cursor leaves it', () => {
+      const { fake } = pinAnEdge();
+
+      act(() => fake.emit('mouseout'));
+
+      expect(highlightsOfPin(fake)).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
+    });
+
+    // Leaving the canvas is a `mouseout` of whatever element the cursor was on, so the
+    // emphasis is cleared there too — and the tooltip stays pinned and on screen.
+    it('re-applies it when the cursor leaves the canvas', () => {
+      const { fake, view } = pinAnEdge();
+
+      act(() => fake.emitZr('globalout'));
+
+      expect(highlightsOfPin(fake)).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
+      expect(view.result.current.state.pinned).toBe(true);
+      expect(view.result.current.state.visible).toBe(true);
+    });
+
+    // Nothing to re-assert once the pin is gone: the next hover owns the emphasis, and
+    // re-lighting a dismissed item would leave a highlight nobody can clear.
+    it('stops re-applying once the tooltip is dismissed', () => {
+      const { fake, view } = pinAnEdge();
+
+      act(() => view.result.current.dismiss());
+      fake.dispatched.length = 0;
+      act(() => fake.emit('mouseout'));
+
+      expect(highlightsOfPin(fake)).toEqual([]);
+    });
+  });
+
   describe('scroll while pinned', () => {
     const pin = () => {
       const fake = createFakeChart();

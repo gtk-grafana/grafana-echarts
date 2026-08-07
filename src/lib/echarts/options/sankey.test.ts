@@ -302,7 +302,7 @@ describe('getSankeySeries', () => {
   });
 
   it('hides overlapping node labels by default', () => {
-    expect(getSankeySeries(data(), ctx()).series.labelLayout).toEqual({ hideOverlap: true });
+    expect(typeof getSankeySeries(data(), ctx()).series.labelLayout).toBe('function');
   });
 
   // A declared node `value` acts as a floor in ECharts' `computeNodeValues`

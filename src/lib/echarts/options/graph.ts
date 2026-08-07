@@ -1,5 +1,10 @@
 import { type GraphSeriesOption } from 'echarts';
-import { type CallbackDataParams, type ECBasicOption, type LinearGradientObject } from 'echarts/types/dist/shared';
+import {
+  type CallbackDataParams,
+  type ECBasicOption,
+  type LabelLayoutOptionCallback,
+  type LinearGradientObject,
+} from 'echarts/types/dist/shared';
 import { type RelationsLabelOverflow } from 'editor/types';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData, type RelationLink } from 'lib/echarts/converters/relationsModel';
@@ -70,6 +75,9 @@ export const RELATIONS_FOCUS_ADJACENCY_DEFAULT = true;
  * label — the node keeps its symbol, its colour and its tooltip either way. This is the
  * chord variant's answer to the pie's `avoidLabelOverlap` as well: `series.chord` has no
  * such option, but its labels go through the same label-layout stage.
+ *
+ * **Node labels only** — see `getRelationsLabelLayout` for why an edge label may not go
+ * through that stage at all.
  * https://echarts.apache.org/en/option.html#series-graph.labelLayout
  */
 export const RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT = true;
@@ -167,6 +175,90 @@ export function getGraphLayout(data: NodeGraphData, options: PanelOptions): 'for
   }
   const allPinned = data.nodes.length > 0 && data.nodes.every((node) => node.fixedX != null && node.fixedY != null);
   return allPinned ? 'none' : RELATIONS_LAYOUT_DEFAULT;
+}
+
+/** A node's position in the graph's own coordinate space. See {@link resolveFixedPositions}. */
+interface GraphPoint {
+  x: number;
+  y: number;
+}
+
+/**
+ * Ring radius used to seed nodes when **nothing** is pinned.
+ *
+ * Any value would do. `createViewCoordSys` takes the bounding box of the emitted `x`/`y`
+ * and scales it onto the panel rect, so the units are arbitrary and only the *shape* of
+ * the point set survives — a unit circle fills the panel exactly as a 1000px one would.
+ */
+const FIXED_SEED_RADIUS = 1;
+
+/**
+ * How far outside the pinned nodes' bounding box the seeded ones are placed, as a
+ * multiple of its half-extent. Just clear of the pinned cluster rather than lost beside
+ * it — the box is what the view scales to fit, so a large multiplier would shrink the
+ * pinned layout to make room.
+ */
+const FIXED_SEED_MARGIN = 1.25;
+
+/**
+ * Every node's position under `layout: 'none'` — its own pinned pair when it has one,
+ * a deterministic seed when it does not.
+ *
+ * **The seed is what makes "Fixed" a usable choice rather than a blank panel.** ECharts'
+ * `simpleLayout` does `node.setLayout([+model.get('x'), +model.get('y')])`, so a node with
+ * no `x` lays out at `[NaN, NaN]` and neither it nor any link touching it is drawn. Since
+ * `fixedx`/`fixedy` are per-mark overrides nobody has written yet on a fresh panel,
+ * selecting Fixed used to blank the visualization outright and give the user nothing to
+ * drag or override *from*.
+ *
+ * Seeded on a ring in data order, matching the force simulation's own `initLayout`
+ * (`RELATIONS_FORCE_INIT_LAYOUT`): deterministic, so the panel does not reshuffle on
+ * refresh, and already spread out, so the labels have room. Partially-pinned data is the
+ * interesting case — the seeds go on a ring *around* the pinned bounding box, so pinned
+ * marks keep their relative layout and the rest are visibly "not placed yet".
+ */
+export function resolveFixedPositions(nodes: NodeGraphData['nodes']): Map<string, GraphPoint> {
+  const positions = new Map<string, GraphPoint>();
+  const pinned: GraphPoint[] = [];
+  for (const node of nodes) {
+    if (node.fixedX != null && node.fixedY != null) {
+      const point = { x: node.fixedX, y: node.fixedY };
+      positions.set(node.id, point);
+      pinned.push(point);
+    }
+  }
+
+  const seeded = nodes.filter((node) => !positions.has(node.id));
+  if (seeded.length === 0) {
+    return positions;
+  }
+
+  const ring = seedRing(pinned);
+  seeded.forEach((node, index) => {
+    const angle = (2 * Math.PI * index) / seeded.length;
+    positions.set(node.id, {
+      x: ring.x + ring.radius * Math.cos(angle),
+      y: ring.y + ring.radius * Math.sin(angle),
+    });
+  });
+  return positions;
+}
+
+/** Centre and radius of the seed ring: around the pinned nodes, or the origin if none. */
+function seedRing(pinned: readonly GraphPoint[]): GraphPoint & { radius: number } {
+  if (pinned.length === 0) {
+    return { x: 0, y: 0, radius: FIXED_SEED_RADIUS };
+  }
+  const xs = pinned.map((point) => point.x);
+  const ys = pinned.map((point) => point.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  // A single pinned node, or a row of them, has a zero extent on one axis — fall back to
+  // the unit radius rather than stacking every seed on top of it.
+  const extent = Math.max(maxX - minX, maxY - minY) / 2 || FIXED_SEED_RADIUS;
+  return { x: (minX + maxX) / 2, y: (minY + maxY) / 2, radius: extent * FIXED_SEED_MARGIN };
 }
 
 /**
@@ -323,18 +415,34 @@ export function getRelationsLabelStyle(ctx: RelationsSeriesContext): RelationsLa
 }
 
 /**
- * Drop a node label that would collide with one already placed, via ECharts' shared
+ * Drop a **node** label that would collide with one already placed, via ECharts' shared
  * label-layout stage — which every one of the three variants routes its labels
  * through, so this is the family's single answer to overlapping labels.
+ *
+ * **The callback form, and only so `dataType` can be read.** An edge label is excluded,
+ * because putting one through `hideOverlap` makes the render depend on how many times the
+ * panel has drawn: a graph's edge labels are measured before its link geometry has
+ * settled, so the first pass hides nearly all of them and every subsequent pass lets one
+ * more through — measured as 1, 2, 3, then all 4 edge values over four renders of an
+ * unchanged four-edge fixture, which is exactly the "every refresh draws more edge values"
+ * report. Node labels do not drift because a node's own position is settled by the time it
+ * is measured. Excluding edges costs their overlap avoidance and buys a render that is the
+ * same on the first pass as on the tenth; "Show edge values" is off by default precisely
+ * because one number per link is a lot of ink either way.
  *
  * Returns `undefined` when off: `LabelManager.addLabelsOfSeries` skips a series whose
  * `labelLayout` has no keys, so an empty object would be the same as omitting it, and
  * omitting it is clearer.
  * https://echarts.apache.org/en/option.html#series-graph.labelLayout
  */
-export function getRelationsLabelLayout(options: PanelOptions): { hideOverlap: true } | undefined {
+export function getRelationsLabelLayout(options: PanelOptions): LabelLayoutOptionCallback | undefined {
   const hide = options.relationsHideOverlappingLabels ?? RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT;
-  return hide ? { hideOverlap: true } : undefined;
+  if (!hide) {
+    return undefined;
+  }
+  // An empty option for an edge is how a callback says "no layout for this label";
+  // `LabelManager.layout` filters on the resolved `hideOverlap` per label.
+  return (params) => (params.dataType === 'edge' ? {} : { hideOverlap: true });
 }
 
 /**
@@ -523,26 +631,23 @@ function resolveLinkColor(
  * is worse than not blending, so this returns `undefined` and the series keyword
  * (`'source'`) takes over.
  *
- * With every node pinned (`layout: 'none'`, which is also what `getGraphLayout` infers
- * from pinned positions) the sign of `dx`/`dy` picks the correct box corner and the
+ * Under `layout: 'none'` the sign of `dx`/`dy` picks the correct box corner and the
  * gradient runs exactly along the edge. A degenerate axis is harmless: a horizontal edge
  * has zero box height, so the vertical component of the gradient spans nothing.
+ *
+ * `positions` is therefore supplied only for that layout, and is the *rendered* position
+ * of every node — pinned or seeded (`resolveFixedPositions`). Reading `fixedX`/`fixedY`
+ * directly instead would be wrong in both directions now: a seeded node has neither, and
+ * a force-layout graph whose data happens to pin every node would orient its gradients by
+ * coordinates ECharts never uses.
  */
 function makeEdgeGradientResolver(
-  data: NodeGraphData,
+  positions: ReadonlyMap<string, GraphPoint> | undefined,
   nodeColors: ReadonlyMap<string, string>,
   options: PanelOptions
 ): EdgeGradientResolver | undefined {
-  if ((options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT) !== 'gradient') {
+  if (positions == null || (options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT) !== 'gradient') {
     return undefined;
-  }
-
-  const positions = new Map<string, { x: number; y: number }>();
-  for (const node of data.nodes) {
-    if (node.fixedX == null || node.fixedY == null) {
-      return undefined;
-    }
-    positions.set(node.id, { x: node.fixedX, y: node.fixedY });
   }
 
   return (link) => {
@@ -571,8 +676,15 @@ function makeEdgeGradientResolver(
   };
 }
 
-/** Map the model's nodes to ECharts graph data items. */
-function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): RelationsNodeItem[] {
+/**
+ * Map the model's nodes to ECharts graph data items. `positions` is supplied only under
+ * `layout: 'none'`, where it holds *every* node — see {@link resolveFixedPositions}.
+ */
+function toNodeItems(
+  data: NodeGraphData,
+  ctx: RelationsSeriesContext,
+  positions: ReadonlyMap<string, GraphPoint> | undefined
+): RelationsNodeItem[] {
   const defaultSize = ctx.options.relationsNodeSize ?? RELATIONS_NODE_SIZE_DEFAULT;
 
   return data.nodes.map((node) => {
@@ -592,10 +704,12 @@ function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): Relation
     if (node.color != null) {
       item.itemStyle = { color: node.color };
     }
-    // Honor pinned coordinates; only meaningful under `layout: 'none'`.
-    if (node.fixedX != null && node.fixedY != null) {
-      item.x = node.fixedX;
-      item.y = node.fixedY;
+    // Only meaningful under `layout: 'none'`, which is the only layout `positions` is
+    // built for — and there it answers for every node, pinned or seeded.
+    const position = positions?.get(node.id);
+    if (position != null) {
+      item.x = position.x;
+      item.y = position.y;
     }
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
@@ -668,7 +782,11 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
   // endpoints and a `source` edge would not match its source.
   const nodeColors = nodeColorsById(data);
   const mode = ctx.options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
-  const resolveGradient = makeEdgeGradientResolver(data, nodeColors, ctx.options);
+  // Every node's rendered position, but only for the layout that reads one: the other
+  // two lay out for themselves, and emitting `x`/`y` there would just move the view's
+  // bounding box around. See `resolveFixedPositions`.
+  const positions = layout === 'none' ? resolveFixedPositions(data.nodes) : undefined;
+  const resolveGradient = makeEdgeGradientResolver(positions, nodeColors, ctx.options);
 
   return {
     type: 'graph',
@@ -686,8 +804,8 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     label: getGraphLabel(ctx),
     lineStyle: getGraphLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,
-    data: toNodeItems(data, ctx),
+    data: toNodeItems(data, ctx, positions),
     links: toLinkItems(data.links, nodeColors, mode, resolveGradient),
-    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks), ctx.tooltipSink),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options.reduceOptions), ctx.tooltipSink),
   };
 }
