@@ -48,22 +48,28 @@ export function addRelationsInteractionOptions(builder: PanelOptionsEditorBuilde
   });
 
   /**
-   * Dragging, and — under the two layouts that can remember one — where the node stays.
+   * Dragging, and where the node stays.
    *
-   * Offered on **fixed** as well as force, which it was not. Under force a drag only
-   * nudges the simulation, and the node is wherever the physics leaves it on the next
-   * refresh; under `Fixed` the position *is* the layout, so a drag is an edit and the
-   * panel writes it back as a `custom.fixedX`/`fixedY` override on that node — the same
-   * store the legend's colour picker uses. A sankey re-lays out around a dragged node
-   * and remembers it the same way, in its own 0-1 `localX`/`localY` space.
+   * Offered on the **sankey** variant and on a graph under `Fixed` — the two layouts where a
+   * dragged position is a position. There the drag is an edit, and the panel writes it back
+   * as a `custom.fixedX`/`fixedY` override on that node, the same store the legend's colour
+   * picker uses; the sankey keeps its own 0-1 `localX`/`localY` space.
    * See `useRelationsPersistence`.
+   *
+   * **Force and circular are excluded, not merely unsaved.** Both re-solve on every render,
+   * so a drag could never be kept — but they are worse than that in practice. A circular drag
+   * re-solves the ring from the drop point, and a force drag re-runs the whole simulation per
+   * pointer move: `force.layoutAnimation` is off by default here (so a refresh does not
+   * jiggle), and with it off ECharts iterates to convergence synchronously inside the `drag`
+   * handler, so every mouse move visibly rearranges the graph. Offering a switch for that is
+   * offering a broken interaction. `getGraphSeries` refuses it as well as hiding it, so a
+   * dashboard that saved the pair keeps a working panel rather than an unreachable setting.
    */
   addAdvancedBooleanSwitch(builder, {
     path: 'relationsDraggable',
     name: 'Draggable nodes',
-    description: 'Let nodes be dragged. Under Fixed layout the new position is saved as a field override',
-    showIf: (options) =>
-      isSankeyVariant(options) || (isGraphVariant(options) && (options.relationsLayout ?? 'force') !== 'circular'),
+    description: 'Let nodes be dragged. The new position is saved as a field override',
+    showIf: (options) => isSankeyVariant(options) || (isGraphVariant(options) && options.relationsLayout === 'none'),
   });
 
   /**

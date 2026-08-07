@@ -17,6 +17,7 @@ import {
   getRelationsViewState,
   RELATIONS_NODE_SIZE_DEFAULT,
   resolveFixedPositions,
+  resolveGraphDraggable,
   resolveRelationsRoam,
   resolveRelationsZoom,
   type RelationsSeriesContext,
@@ -158,6 +159,51 @@ describe('resolveFixedPositions', () => {
     // Centre of the pinned box is (5, 0) and its half-extent 5, so the ring sits at 6.25.
     const seeded = positions.get('c')!;
     expect(Math.hypot(seeded.x - 5, seeded.y - 0)).toBeCloseTo(6.25);
+  });
+
+  /**
+   * **The reported "edges are not attached to any nodes".** The seed ring was a *unit* circle
+   * on the reasoning that the view rescales the bounding box anyway, so only the shape
+   * survives — true for the nodes, and false for the edges between them.
+   *
+   * A graph edge is drawn by an `ECLinePath` with `subPixelOptimize: true`, and zrender's
+   * `subPixelOptimizeLine` shifts an axis-aligned line by half a *unit* to land a 1px stroke
+   * on a pixel centre. Those units are the graph's data space, so on a unit ring the shift was
+   * half the graph: the two edges of a four-node ring that happen to share an x or a y were
+   * drawn ~159px away from their nodes. A pixel-ish space makes it sub-pixel again.
+   *
+   * Asserted as an order of magnitude rather than an exact radius: the number is arbitrary,
+   * the scale is not.
+   */
+  it('seeds in a pixel-ish space, so an axis-aligned edge is not nudged off its nodes', () => {
+    const positions = [...resolveFixedPositions(data().nodes).values()];
+
+    for (const { x, y } of positions) {
+      expect(Math.max(Math.abs(x), Math.abs(y))).toBeGreaterThan(50);
+    }
+  });
+});
+
+describe('resolveGraphDraggable', () => {
+  // Fixed is the only layout that reads a stored coordinate back, so it is the only one where
+  // a drag is an edit rather than a nudge the next render discards.
+  it('allows dragging under the fixed layout', () => {
+    expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'none')).toBe(true);
+  });
+
+  /**
+   * Refused as well as hidden, so a dashboard that saved `relationsDraggable: true` alongside
+   * a force layout gets a working panel rather than an interaction that rearranges the graph
+   * on every mouse move — `layoutAnimation` is off, so ECharts iterates the simulation to
+   * convergence inside the `drag` handler.
+   */
+  it('refuses it under force and circular, whatever the option says', () => {
+    expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'force')).toBe(false);
+    expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'circular')).toBe(false);
+  });
+
+  it('is off unless asked for', () => {
+    expect(resolveGraphDraggable(baseOptions(), 'none')).toBe(false);
   });
 });
 
@@ -484,6 +530,20 @@ describe('getGraphSeries', () => {
       expect(Number.isFinite(node.x)).toBe(true);
       expect(Number.isFinite(node.y)).toBe(true);
     }
+  });
+
+  it('lets nodes be dragged under the fixed layout when asked', () => {
+    const series = getGraphSeries(data(), ctx(baseOptions({ relationsLayout: 'none', relationsDraggable: true })));
+
+    expect(series.draggable).toBe(true);
+  });
+
+  // The switch is hidden for force and circular, and refused here too, so a dashboard that
+  // saved the pair keeps a working panel. See `resolveGraphDraggable`.
+  it('refuses dragging under force even when the option says otherwise', () => {
+    const series = getGraphSeries(data(), ctx(baseOptions({ relationsLayout: 'force', relationsDraggable: true })));
+
+    expect(series.draggable).toBe(false);
   });
 
   it('maps a per-edge color, width and line type onto the link item', () => {

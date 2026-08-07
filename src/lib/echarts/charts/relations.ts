@@ -13,7 +13,7 @@ import {
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/options/sankey';
 import { getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
-import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
+import { getHiddenSeriesNames, getMarkPositionOverride } from 'lib/grafana/fields/seriesConfig';
 import {
   type ChartModule,
   type ChartNotice,
@@ -90,15 +90,45 @@ function withoutHiddenMarks(data: NodeGraphData, fieldConfig: FieldConfigSource)
 
   const connected = new Set(links.flatMap((link) => [link.source, link.target]));
   return {
+    ...data,
     nodes: data.nodes.filter((node) => !hidden.has(node.id) && (node.field != null || connected.has(node.id))),
     links,
+  };
+}
+
+/**
+ * Pinned positions for the nodes Grafana's override engine could not reach.
+ *
+ * A **derived** node has no field, so a `byName` `custom.fixedX` override matches nothing and
+ * the coordinate never arrives — which is every node of an edges-only response on a host
+ * without the `deriveNodes` pre-pass. Reading the override directly is the same escape hatch
+ * `hiddenNodeIds` already uses one function above, and it is what makes a dragged position
+ * survive a reload there rather than being a nudge that lasts until the next refresh.
+ *
+ * Matched on `name` as well as `id` because that is what a `byName` matcher compares against:
+ * the field name or its display name. They are the same string for a derived node, and
+ * distinct only for a declared one — which does not reach here.
+ */
+function withOverriddenPositions(data: NodeGraphData, fieldConfig: FieldConfigSource): NodeGraphData {
+  if (fieldConfig.overrides.length === 0 || data.nodes.every((node) => node.field != null)) {
+    return data;
+  }
+  return {
+    ...data,
+    nodes: data.nodes.map((node) => {
+      if (node.field != null) {
+        return node;
+      }
+      const pinned = getMarkPositionOverride(fieldConfig, node.id) ?? getMarkPositionOverride(fieldConfig, node.name);
+      return pinned ? { ...node, fixedX: pinned.x, fixedY: pinned.y } : node;
+    }),
   };
 }
 
 /** The node/link model as rendered: hidden marks and their orphaned links removed. */
 function getVisibleNodeGraph(ctx: RelationsChartContext): NodeGraphData | null {
   const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
-  return data == null ? null : withoutHiddenMarks(data, ctx.fieldConfig);
+  return data == null ? null : withOverriddenPositions(withoutHiddenMarks(data, ctx.fieldConfig), ctx.fieldConfig);
 }
 
 /**

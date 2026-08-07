@@ -3,8 +3,9 @@ import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import {
   changeSeriesColorConfig,
   getHiddenSeriesNames,
+  getMarkPositionOverride,
   getSeriesColorOverride,
-  setMarkPositionConfig,
+  setMarkPositionsConfig,
   toggleSeriesVisibilityConfig,
 } from 'lib/grafana/fields/seriesConfig';
 
@@ -48,9 +49,11 @@ describe('changeSeriesColorConfig', () => {
   });
 });
 
-describe('setMarkPositionConfig', () => {
+describe('setMarkPositionsConfig', () => {
+  const at = (name: string, x: number, y: number) => new Map([[name, { x, y }]]);
+
   it('writes both axes onto one byName override', () => {
-    const result = setMarkPositionConfig(emptyConfig(), 'gateway', { x: 60, y: 150 });
+    const result = setMarkPositionsConfig(emptyConfig(), at('gateway', 60, 150));
 
     expect(result.overrides).toEqual([
       {
@@ -67,9 +70,9 @@ describe('setMarkPositionConfig', () => {
   // wipe whatever else the user configured on that mark.
   it('replaces an earlier position and preserves other properties', () => {
     const first = changeSeriesColorConfig(emptyConfig(), 'gateway', '#ff0000');
-    const placed = setMarkPositionConfig(first, 'gateway', { x: 10, y: 20 });
+    const placed = setMarkPositionsConfig(first, at('gateway', 10, 20));
 
-    const moved = setMarkPositionConfig(placed, 'gateway', { x: 30, y: 40 });
+    const moved = setMarkPositionsConfig(placed, at('gateway', 30, 40));
 
     expect(moved.overrides).toHaveLength(1);
     expect(moved.overrides[0].properties).toEqual([
@@ -77,6 +80,74 @@ describe('setMarkPositionConfig', () => {
       { id: 'custom.fixedX', value: 30 },
       { id: 'custom.fixedY', value: 40 },
     ]);
+  });
+
+  /**
+   * A graph drag writes the layout **as drawn** — every node, not just the one that moved —
+   * because the unpinned ones are seeded around whichever nodes are pinned. Recording only
+   * the dragged node re-seeds all its neighbours around it on the next render, which reads as
+   * the graph rearranging itself. See `useRelationsPersistence`.
+   */
+  it('writes one override per mark in a single config', () => {
+    const result = setMarkPositionsConfig(
+      emptyConfig(),
+      new Map([
+        ['gateway', { x: 1, y: 2 }],
+        ['api', { x: 3, y: 4 }],
+      ])
+    );
+
+    expect(result.overrides.map((rule) => rule.matcher.options)).toEqual(['gateway', 'api']);
+    expect(result.overrides[1].properties).toEqual([
+      { id: 'custom.fixedX', value: 3 },
+      { id: 'custom.fixedY', value: 4 },
+    ]);
+  });
+});
+
+/**
+ * The by-name read, for a mark Grafana's override engine cannot reach: a relations node
+ * derived from an edge's endpoints has no field, so `custom.fixedX` never lands on one.
+ */
+describe('getMarkPositionOverride', () => {
+  it('round-trips a written position', () => {
+    const config = setMarkPositionsConfig(emptyConfig(), new Map([['gateway', { x: 60, y: 150 }]]));
+
+    expect(getMarkPositionOverride(config, 'gateway')).toEqual({ x: 60, y: 150 });
+    expect(getMarkPositionOverride(config, 'api')).toBeUndefined();
+  });
+
+  // Half a pair lays the node out at `[NaN, NaN]` under `layout: 'none'` and takes every link
+  // touching it with it, so a partial override is no position at all.
+  it('ignores an override with only one axis', () => {
+    const config: FieldConfigSource = {
+      defaults: {},
+      overrides: [
+        {
+          matcher: { id: FieldMatcherID.byName, options: 'gateway' },
+          properties: [{ id: 'custom.fixedX', value: 60 }],
+        },
+      ],
+    };
+
+    expect(getMarkPositionOverride(config, 'gateway')).toBeUndefined();
+  });
+
+  it('ignores a non-numeric value', () => {
+    const config: FieldConfigSource = {
+      defaults: {},
+      overrides: [
+        {
+          matcher: { id: FieldMatcherID.byName, options: 'gateway' },
+          properties: [
+            { id: 'custom.fixedX', value: '60' },
+            { id: 'custom.fixedY', value: 150 },
+          ],
+        },
+      ],
+    };
+
+    expect(getMarkPositionOverride(config, 'gateway')).toBeUndefined();
   });
 });
 

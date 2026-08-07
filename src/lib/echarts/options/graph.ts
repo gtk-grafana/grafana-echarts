@@ -183,6 +183,27 @@ export function getGraphLayout(data: NodeGraphData, options: PanelOptions): 'for
   return allPinned ? 'none' : RELATIONS_LAYOUT_DEFAULT;
 }
 
+/**
+ * Whether graph nodes can be dragged: only under `layout: 'none'`, whatever the option says.
+ *
+ * The option is hidden for the other two layouts (`editor/relations/interaction.ts`), and
+ * this is the half that makes a dashboard which saved the pair behave rather than merely stop
+ * offering it. Neither excluded layout can *keep* a drag — both re-solve on every render —
+ * and both are actively broken while dragging:
+ *
+ * - **circular** re-solves the ring from the drop point on every pointer move, so the node
+ *   under the cursor is not the node that moves;
+ * - **force** re-runs the simulation, and `layoutAnimation` is off by default here so ECharts
+ *   iterates it to convergence synchronously inside the `drag` handler — every mouse move
+ *   rearranges the whole graph. See {@link getGraphForce}.
+ *
+ * Resolved against the *resolved* layout rather than the option, so data that pins every node
+ * (which infers `none`) stays draggable with `Layout` left unset. See {@link getGraphLayout}.
+ */
+export function resolveGraphDraggable(options: PanelOptions, layout: 'force' | 'circular' | 'none'): boolean {
+  return options.relationsDraggable === true && layout === 'none';
+}
+
 /** A node's position in the graph's own coordinate space. See {@link resolveFixedPositions}. */
 interface GraphPoint {
   x: number;
@@ -192,11 +213,26 @@ interface GraphPoint {
 /**
  * Ring radius used to seed nodes when **nothing** is pinned.
  *
- * Any value would do. `createViewCoordSys` takes the bounding box of the emitted `x`/`y`
- * and scales it onto the panel rect, so the units are arbitrary and only the *shape* of
- * the point set survives — a unit circle fills the panel exactly as a 1000px one would.
+ * `createViewCoordSys` takes the bounding box of the emitted `x`/`y` and scales it onto the
+ * panel rect, so the *shape* of the point set is all that survives and any radius draws the
+ * same graph. The magnitude still matters, and this used to be `1`:
+ *
+ * **zrender sub-pixel-optimizes axis-aligned edges, in whatever space the coordinates are
+ * in.** A graph edge is an `ECLinePath` with `subPixelOptimize: true`, so
+ * `subPixelOptimizeLine` nudges a horizontal or vertical line by half a unit to land a 1px
+ * stroke on a pixel centre (`round(y1 * 2) === round(y2 * 2)` picks it out, and
+ * `strokeNoScale` means the width it compares against is `1`). Those coordinates are the
+ * graph's *data* space, which the view scales onto the panel — so on a unit ring the "half
+ * pixel" was half a data unit, and the two edges of a four-node ring that happen to be
+ * axis-aligned were drawn 159px away from the nodes they joined. That is the reported
+ * "edges are not attached to any nodes", and why dragging a node fixed it: the drop is
+ * almost never exactly axis-aligned, so the nudge stops applying.
+ *
+ * A pixel-ish radius makes the nudge sub-pixel again, which is what it was written to be.
+ * It is also the space a drag writes back (`useRelationsPersistence`), so the stored
+ * coordinates stay well conditioned across reloads.
  */
-const FIXED_SEED_RADIUS = 1;
+const FIXED_SEED_RADIUS = 400;
 
 /**
  * How far outside the pinned nodes' bounding box the seeded ones are placed, as a
@@ -831,7 +867,8 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     roam: resolveRelationsRoam(ctx.options),
     // The remembered pan/zoom, when the user asked for one to be remembered.
     ...getRelationsViewState(ctx.options),
-    draggable: ctx.options.relationsDraggable === true,
+    // Only under the layout that keeps a position. See `resolveGraphDraggable`.
+    draggable: resolveGraphDraggable(ctx.options, layout),
     // Always emitted: three of its keys deliberately disagree with ECharts'.
     force: getGraphForce(ctx.options),
     ...(edgeSymbol ? { edgeSymbol } : {}),

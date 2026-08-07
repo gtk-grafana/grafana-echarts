@@ -389,6 +389,79 @@ describe('relationsChartModule', () => {
   });
 
   /**
+   * **Where a dragged node's position is remembered when there is no field to remember it on.**
+   *
+   * `custom.fixedX`/`fixedY` are ordinary per-mark config, so Grafana's override engine applies
+   * them to a node that *is* a field. A node derived from an edge's endpoints is not — which is
+   * every node of an edges-only response on a host that cannot run the `deriveNodes` pre-pass,
+   * i.e. the default — so the coordinate never arrived and dragging could not be kept. The
+   * position is read by name for exactly those marks; the same escape hatch as the legend's
+   * colour and visibility reads.
+   */
+  describe('positions for derived nodes', () => {
+    const wideEdges = toDataFrame({
+      name: 'edges',
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['e1'] },
+        { name: 'source', type: FieldType.string, values: ['a'] },
+        { name: 'target', type: FieldType.string, values: ['b'] },
+        { name: 'mainstat', type: FieldType.number, values: [5] },
+      ],
+    });
+    const declaredNodes = toDataFrame({
+      name: 'nodes',
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['a', 'b'] },
+        { name: 'mainstat', type: FieldType.number, values: [1, 2] },
+      ],
+    });
+
+    const pinning = (name: string, x: number, y: number): FieldConfigSource => ({
+      defaults: {},
+      overrides: [
+        {
+          matcher: { id: 'byName', options: name },
+          properties: [
+            { id: 'custom.fixedX', value: x },
+            { id: 'custom.fixedY', value: y },
+          ],
+        },
+      ],
+    });
+
+    const fixedLayout = (frames: DataFrame[], fieldConfig: FieldConfigSource): RelationsChartContext => {
+      const context = ctx(frames, fieldConfig);
+      return { ...context, options: { ...context.options, relationsLayout: 'none' } };
+    };
+
+    const nodeAt = (context: RelationsChartContext, id: string) => {
+      const series = (relationsChartModule.buildOption(context, base)!.series as Array<Record<string, unknown>>)[0];
+      return (series.data as Array<{ id: string; x?: number; y?: number }>).find((node) => node.id === id);
+    };
+
+    it('places a derived node at the position an override names', () => {
+      expect(nodeAt(fixedLayout([wideEdges], pinning('a', 120, 340)), 'a')).toMatchObject({ x: 120, y: 340 });
+    });
+
+    // The other node is still unpinned, so it keeps its seeded ring position rather than
+    // inheriting the pinned one.
+    it('leaves the nodes no override names where the seed put them', () => {
+      const seeded = nodeAt(fixedLayout([wideEdges], pinning('a', 120, 340)), 'b');
+
+      expect(Number.isFinite(seeded?.x)).toBe(true);
+      expect(seeded).not.toMatchObject({ x: 120, y: 340 });
+    });
+
+    // A node that *is* a field has already been answered by the override engine, so the by-name
+    // read must not be a second, competing source of truth for it.
+    it('leaves a fielded node to the override engine', () => {
+      const withNodes = fixedLayout([declaredNodes, wideEdges], pinning('a', 120, 340));
+
+      expect(nodeAt(withNodes, 'a')).toMatchObject({ x: 120, y: 340 });
+    });
+  });
+
+  /**
    * The legend's visibility override is an *exclude* matcher — "hide everything
    * except these" — so the kept list has to name every field the engine can reach,
    * not just the rows the legend drew. Edges are fields now, and they are not in the

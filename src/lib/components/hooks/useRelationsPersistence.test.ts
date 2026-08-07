@@ -21,10 +21,7 @@ const options = (extra: Partial<PanelOptions> = {}): PanelOptions =>
     ...extra,
   }) as PanelOptions;
 
-/**
- * A wide response naming every mark, which is what a `byName` override needs to land
- * on — see `hasFieldNamed`.
- */
+/** A wide response naming every mark, so an override lands on a real field. */
 const frames = () => [
   toDataFrame({
     fields: [
@@ -151,11 +148,14 @@ describe('useRelationsPersistence', () => {
     });
 
     /**
-     * A node the response only *implied* has no field for a `byName` override to land
-     * on, so writing one would re-render the panel and snap the node straight back with
-     * no explanation. Declining leaves the drag standing. See `hasFieldNamed`.
+     * A node the response only *implied* has no field, so Grafana's override engine has
+     * nothing to apply `custom.fixedX` to — which used to mean the drag was declined
+     * outright, and since `grafana.panelPluginTransformations` is off by default that was
+     * every node of every edges-only response. It is written anyway now: the reader looks
+     * the position up by name for exactly these marks (`withOverriddenPositions`), so it
+     * survives a reload rather than lasting until the next refresh.
      */
-    it('declines to write for a mark no field answers to', () => {
+    it('writes for a mark no field answers to, which the reader reads back by name', () => {
       const fake = createFakeChart();
       const { onFieldConfigChange } = render(fake);
 
@@ -164,7 +164,54 @@ describe('useRelationsPersistence', () => {
         fake.emitZr('dragend', { offsetX: 105, offsetY: 84 });
       });
 
-      expect(onFieldConfigChange).not.toHaveBeenCalled();
+      expect(onFieldConfigChange).toHaveBeenCalledWith({
+        defaults: {},
+        overrides: [
+          {
+            matcher: { id: 'byName', options: 'cache' },
+            properties: [
+              { id: 'custom.fixedX', value: 100 },
+              { id: 'custom.fixedY', value: 80 },
+            ],
+          },
+        ],
+      });
+    });
+
+    /**
+     * **The reported "moving a node breaks the graph".** Unpinned nodes are seeded onto a
+     * ring around whichever nodes *are* pinned (`resolveFixedPositions`), so recording the
+     * first drag alone re-seeds every neighbour around the one node that now has a
+     * position — the user moves one node and the whole topology rearranges. The drag
+     * records the layout as drawn instead, read straight off the rendered option.
+     */
+    it('records every rendered node’s position, not just the dragged one', () => {
+      const fake = createFakeChart({
+        data: [
+          { id: 'gateway', x: 60, y: 150 },
+          { id: 'db', x: 340, y: 150 },
+          // No coordinate: nothing to keep, and inventing one would stack it on the origin.
+          { id: 'cache' },
+        ],
+      });
+      const { onFieldConfigChange } = render(fake);
+
+      act(() => {
+        fake.emit('mousedown', nodeMouseDown({ id: 'gateway', x: 60, y: 150 }, { x: 65, y: 154 }));
+        fake.emitZr('dragend', { offsetX: 105, offsetY: 84 });
+      });
+
+      const written: FieldConfigSource = onFieldConfigChange.mock.calls[0][0];
+      expect(written.overrides.map((rule) => rule.matcher.options)).toEqual(['gateway', 'db']);
+      // The dragged node takes its new position; the untouched one keeps exactly what was drawn.
+      expect(written.overrides[0].properties).toEqual([
+        { id: 'custom.fixedX', value: 100 },
+        { id: 'custom.fixedY', value: 80 },
+      ]);
+      expect(written.overrides[1].properties).toEqual([
+        { id: 'custom.fixedX', value: 340 },
+        { id: 'custom.fixedY', value: 150 },
+      ]);
     });
 
     // An edge shares the node table's index space; without the discriminator a

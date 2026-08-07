@@ -7,41 +7,43 @@ thing neither can assert is the **round trip through a saved dashboard**. That n
 
 ## What is covered today
 
-| claim                                                                      | where                             |
-| -------------------------------------------------------------------------- | --------------------------------- |
-| a graph drag writes `custom.fixedX`/`fixedY` for the dragged node          | `useRelationsPersistence.test.ts` |
-| the displacement is used, not the drop pointer                             | same                              |
-| a sankey drag writes its `localX`/`localY` fraction                        | same                              |
-| a roam writes `relationsViewZoom` / `relationsViewCenter`, only when asked | same                              |
-| a mark no field answers to is not written at all                           | same                              |
-| the override is one `byName` rule and replaces an earlier position         | `seriesConfig.test.ts`            |
-| the stored position is read back onto the item                             | `graph.test.ts`, `sankey.test.ts` |
-| a dragged node stays put across an option rebuild                          | measured in a browser, 2026-08-07 |
-| a zoomed view survives an option rebuild                                   | measured in a browser, 2026-08-07 |
+| claim                                                                       | where                                       |
+| --------------------------------------------------------------------------- | ------------------------------------------- |
+| a graph drag writes `custom.fixedX`/`fixedY` for the dragged node           | `useRelationsPersistence.test.ts`           |
+| the displacement is used, not the drop pointer                              | same                                        |
+| **every** rendered node's position is written, not only the dragged one     | same                                        |
+| a node with no coordinate is skipped rather than defaulted to the origin    | same                                        |
+| a mark no field answers to is written anyway                                | same                                        |
+| a sankey drag writes its `localX`/`localY` fraction, and only that node     | same                                        |
+| a roam writes `relationsViewZoom` / `relationsViewCenter`, only when asked  | same                                        |
+| the override is one `byName` rule per mark and replaces an earlier position | `seriesConfig.test.ts`                      |
+| a position is read back by name for a mark with no field                    | `seriesConfig.test.ts`, `relations.test.ts` |
+| the stored position is read back onto the item                              | `graph.test.ts`, `sankey.test.ts`           |
+| dragging is refused under force and circular, however the option was saved  | `graph.test.ts`, `interaction.test.ts`      |
+| the seed ring is pixel-ish, so an axis-aligned edge is not nudged off it    | `graph.test.ts`                             |
+| a dragged node stays put across a data refresh (sankey **and** graph)       | measured in a browser, 2026-08-07           |
+| a drag moves only the node dragged, edges still attached                    | measured in a browser, 2026-08-07           |
+| a zoomed view survives an option rebuild                                    | measured in a browser, 2026-08-07           |
 
-The two browser measurements were made against `d/echarts-relations-fixed-layout`
-panel 5 on the dev container: the node's painted centroid was unchanged by a resize
-(which rebuilds the whole option from the panel's config), and the painted bounding box
-stayed at its zoomed size, 409x357 against 323x323 unzoomed.
+The browser measurements were made against a scratch dashboard with a wide nodes+edges
+response drawn twice (sankey and fixed-layout graph): the dragged node's painted centroid
+was unchanged across a **counted** refresh — one `/api/ds/query` request, so the option was
+genuinely rebuilt from the response rather than left holding ECharts' own mutation. The
+graph's recorded layout coordinates confirmed the untouched nodes kept their exact
+positions.
 
 ## What e2e should add
 
 1. **Drag, save, reload.** Drag a node, save the dashboard, reload the page, assert the
-   node is where it was left — i.e. that the override reached the persisted dashboard
+   node is where it was left — i.e. that the overrides reached the persisted dashboard
    JSON and not only the in-memory scene.
 2. **Pan/zoom, save, reload**, same shape, with `Remember view` on. Plus the negative:
    with it off, the view resets on reload and the dashboard is _not_ marked dirty.
-3. **Clearing.** Delete the override in the Overrides tab and confirm the node returns
-   to its seeded ring position, so the write is reversible through the ordinary UI.
-4. **Derived nodes.** On a host with `grafana.panelPluginTransformations`, dragging a
-   node the response only implied should persist (the pre-pass made it a field); with
-   the flag off it should be a no-op rather than a snap-back. Only an e2e run can put
-   the two hosts side by side.
-
-## Known limitation to encode as a test, not fix
-
-Dragging persists **only where the mark is a field**. On a stock host an edges-only
-response's nodes are invented inside the panel, so there is nothing for a `byName`
-override to land on and `hasFieldNamed` declines the write — the drag stands for the
-session and is forgotten on the next data refresh. That is the same boundary as every
-other per-node override (`docs/relations-derived-nodes.md`), not a persistence bug.
+3. **Clearing.** Delete the overrides in the Overrides tab and confirm the nodes return
+   to their seeded ring positions, so the write is reversible through the ordinary UI.
+4. **Both hosts.** With and without `grafana.panelPluginTransformations`, an edges-only
+   response should remember a drag either way — via the pre-pass's field on one host and
+   via the by-name read on the other. Only an e2e run can put the two side by side.
+5. **The N-overrides cost.** A first drag on a large topology writes one override per
+   node. Worth an assertion on the count, and a look at what the Overrides tab does with
+   fifty of them.

@@ -98,8 +98,14 @@ function upsertProperty(
   return next;
 }
 
+/** A mark's pinned position, in whichever coordinate space its render variant reads. */
+export interface MarkPosition {
+  x: number;
+  y: number;
+}
+
 /**
- * Persist a mark's position by name — where a dragged relations node is remembered.
+ * Persist marks' positions by name — where dragged relations nodes are remembered.
  *
  * The same shape as the legend's colour pick, and deliberately so: dragging a node is
  * an interaction that has to survive a reload, and a field override is the only store
@@ -107,16 +113,61 @@ function upsertProperty(
  * the user can see and clear in the override editor afterwards, which a hidden
  * position cache would not be.
  *
- * The two axes are written as one config so a drag is one undo step rather than two.
+ * **Several marks at once, in one config**, so a drag is one undo step rather than 2N —
+ * and because one drag legitimately moves more than one mark's *record*. The graph
+ * variant seeds every unpinned node onto a ring around the pinned ones, so pinning the
+ * first node would otherwise re-seed all its neighbours around it: the user drags one
+ * node and the whole topology rearranges. Writing every rendered position turns the
+ * first drag into "this is the layout now", which is what Fixed means.
  * See `useRelationsPersistence` for where the coordinates come from.
  */
-export function setMarkPositionConfig(
+export function setMarkPositionsConfig(
   fieldConfig: FieldConfigSource,
-  name: string,
-  position: { x: number; y: number }
+  positions: ReadonlyMap<string, MarkPosition>
 ): FieldConfigSource {
-  const withX = upsertProperty(fieldConfig.overrides, name, { id: FIXED_X_PROP_ID, value: position.x });
-  return { ...fieldConfig, overrides: upsertProperty(withX, name, { id: FIXED_Y_PROP_ID, value: position.y }) };
+  let overrides = fieldConfig.overrides;
+  for (const [name, position] of positions) {
+    overrides = upsertProperty(overrides, name, { id: FIXED_X_PROP_ID, value: position.x });
+    overrides = upsertProperty(overrides, name, { id: FIXED_Y_PROP_ID, value: position.y });
+  }
+  return { ...fieldConfig, overrides };
+}
+
+/**
+ * A mark's pinned position read straight out of the overrides, by name.
+ *
+ * The same by-name escape hatch as {@link getSeriesColorOverride}, and for the same reason:
+ * a relations node **derived** from an edge's endpoints has no field, so Grafana's override
+ * engine has nothing to apply `custom.fixedX` to and the value never reaches the reader.
+ * That is every node of an edges-only response on a host that cannot run the `deriveNodes`
+ * pre-pass — which is the default, since `grafana.panelPluginTransformations` is off — so
+ * without this read, dragging a node there could not be remembered at all.
+ *
+ * Only consulted for a mark with no field of its own; a fielded mark has already been
+ * answered by the engine, overrides, defaults and all.
+ */
+export function getMarkPositionOverride(fieldConfig: FieldConfigSource, name: string): MarkPosition | undefined {
+  let x: number | undefined;
+  let y: number | undefined;
+  for (const rule of fieldConfig.overrides) {
+    if (matcherName(rule) !== name) {
+      continue;
+    }
+    for (const property of rule.properties) {
+      const value: unknown = property.value;
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        continue;
+      }
+      if (property.id === FIXED_X_PROP_ID) {
+        x = value;
+      } else if (property.id === FIXED_Y_PROP_ID) {
+        y = value;
+      }
+    }
+  }
+  // Both or neither: a node with one coordinate lays out at `[NaN, NaN]` under
+  // `layout: 'none'` and takes every link touching it with it. See `resolveFixedPositions`.
+  return x != null && y != null ? { x, y } : undefined;
 }
 
 /**

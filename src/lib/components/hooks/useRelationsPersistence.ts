@@ -3,7 +3,7 @@ import { type ECElementEvent } from 'echarts/core';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { type RelationsNodeItem } from 'lib/echarts/tooltip/types';
-import { setMarkPositionConfig } from 'lib/grafana/fields/seriesConfig';
+import { type MarkPosition, setMarkPositionsConfig } from 'lib/grafana/fields/seriesConfig';
 import { useEffect, useRef } from 'react';
 import { type PanelOptions } from 'types';
 
@@ -51,21 +51,6 @@ function asNodeItem(value: unknown): RelationsNodeItem | undefined {
     ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- narrowed above
       (value as RelationsNodeItem)
     : undefined;
-}
-
-/**
- * Whether the response actually contains a field this mark's name would match — i.e.
- * whether a `byName` override written for it has anywhere to land.
- *
- * The guard exists because failing this is *worse* than not saving. A node the response
- * only implied has no field on a host that cannot run the `deriveNodes` pre-pass
- * (`grafana.panelPluginTransformations`, off by default), so the override matches
- * nothing — but writing it still re-renders the panel, and the node snaps straight back
- * to where it was with no explanation. Declining to write leaves the drag standing for
- * the session and keeps the dashboard clean.
- */
-function hasFieldNamed(ctx: ChartContext, name: string): boolean {
-  return ctx.frames.some((frame) => frame.fields.some((field) => field.name === name));
 }
 
 /** The view state ECharts synced back onto the series after a roam. */
@@ -117,12 +102,12 @@ export function useRelationsPersistence(
       }, PERSIST_DEBOUNCE_MS);
     };
 
-    const persistPosition = (id: string, position: { x: number; y: number }) => {
+    const persistPositions = (positions: ReadonlyMap<string, MarkPosition>) => {
       const { chartContext: ctx, onFieldConfigChange: write } = latest.current;
-      if (!hasFieldNamed(ctx, id)) {
+      if (positions.size === 0) {
         return;
       }
-      write(setMarkPositionConfig(ctx.fieldConfig, id, position));
+      write(setMarkPositionsConfig(ctx.fieldConfig, positions));
     };
 
     /**
@@ -171,10 +156,18 @@ export function useRelationsPersistence(
       if (!Array.isArray(from) || !Array.isArray(to)) {
         return;
       }
-      persistPosition(grab.id, {
+      // **Every** node's position, not just the dragged one. The graph variant seeds any
+      // node without a stored pair onto a ring around the nodes that have one
+      // (`resolveFixedPositions`), so recording the first drag alone would re-seed all of
+      // its neighbours around it — drag one node and the topology rearranges itself, which
+      // is what "moving a node breaks the graph" was. Writing the layout as drawn makes the
+      // drag mean what it looks like it means, and every subsequent one moves one node.
+      const positions = readNodePositions(chart);
+      positions.set(grab.id, {
         x: (grab.from.x ?? 0) + (to[0] - from[0]),
         y: (grab.from.y ?? 0) + (to[1] - from[1]),
       });
+      persistPositions(positions);
     };
 
     /**
@@ -202,7 +195,10 @@ export function useRelationsPersistence(
       }
       const id = readNodeIdAt(chart, dataIndex);
       if (id != null) {
-        debounce(() => persistPosition(id, { x: localX, y: localY }));
+        // One node, unlike the graph branch: a sankey's other nodes are *computed* by the
+        // flow layout rather than seeded from the pinned ones, so pinning this one cannot
+        // move them.
+        debounce(() => persistPositions(new Map([[id, { x: localX, y: localY }]])));
       }
     };
 
@@ -249,6 +245,17 @@ export function useRelationsPersistence(
   }, [chart]);
 }
 
+/** The rendered series' node items, read back off the merged option. */
+function readNodeItems(chart: EChartsType): unknown[] {
+  const series: unknown = chart.getOption()?.series;
+  const first: unknown = Array.isArray(series) ? series[SERIES_INDEX] : undefined;
+  if (typeof first !== 'object' || first === null || !('data' in first)) {
+    return [];
+  }
+  const data: unknown = first.data;
+  return Array.isArray(data) ? data : [];
+}
+
 /**
  * The mark id at a node index of the rendered series, read back off the option.
  *
@@ -258,12 +265,25 @@ export function useRelationsPersistence(
  * per drag.
  */
 function readNodeIdAt(chart: EChartsType, dataIndex: number): string | undefined {
-  const series: unknown = chart.getOption()?.series;
-  const first: unknown = Array.isArray(series) ? series[SERIES_INDEX] : undefined;
-  if (typeof first !== 'object' || first === null || !('data' in first)) {
-    return undefined;
+  return asNodeItem(readNodeItems(chart)[dataIndex])?.id;
+}
+
+/**
+ * Every node's position as the option currently states it, keyed by mark id.
+ *
+ * The option is where the *rendered* layout is: the option layer emits an `x`/`y` per node
+ * under `layout: 'none'`, pinned or seeded (`resolveFixedPositions`), so this is the graph
+ * exactly as the user is looking at it — which is what a drag has to preserve for every node
+ * it did not touch. Nodes without a pair are skipped rather than defaulted: that is a layout
+ * with no coordinate to keep, and inventing `0, 0` would stack them on the origin.
+ */
+function readNodePositions(chart: EChartsType): Map<string, MarkPosition> {
+  const positions = new Map<string, MarkPosition>();
+  for (const item of readNodeItems(chart)) {
+    const node = asNodeItem(item);
+    if (node != null && typeof node.x === 'number' && typeof node.y === 'number') {
+      positions.set(node.id, { x: node.x, y: node.y });
+    }
   }
-  const data: unknown = first.data;
-  const item: unknown = Array.isArray(data) ? data[dataIndex] : undefined;
-  return asNodeItem(item)?.id;
+  return positions;
 }
