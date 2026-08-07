@@ -1,9 +1,10 @@
 import { type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
+import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { deriveNodes } from 'lib/echarts/converters/deriveNodes';
 import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
-import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
-import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
+import { getChart, normalizeCanvasEvents, readCanvasLayer, SERIES_LAYER_SELECTOR, SERIES_ZLEVEL } from 'test/canvas';
+import { getComponent, getSeriesCanvasEvents, height, waitForFinished, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
 // Relations (graph) canvas snapshots, mirroring `part-to-whole.canvas.test.tsx`.
@@ -11,18 +12,17 @@ import { type PanelOptions } from 'types';
 // paints nothing on the default grid layer — so only the series layer is read, via
 // the tolerant `getSeriesCanvasEvents` (like pie/funnel/hierarchy).
 //
-// **Layouts are pinned deliberately.** `layout: 'force'` runs a physics simulation
-// whose node positions depend on iteration count and timing, so it cannot produce a
-// stable snapshot even with animation disabled. Every case below therefore uses
-// `circular` (deterministic ring placement) or `none` with `fixedx`/`fixedy`
-// coordinates from the data. Force-layout *option mapping* is covered by unit tests
-// in `lib/echarts/options/graph.test.ts` instead.
+// **Most layouts are pinned deliberately.** `layout: 'circular'` (deterministic ring
+// placement) or `none` with `fixedx`/`fixedy` from the data keeps a snapshot readable
+// as "these nodes, these links" rather than as an artefact of the simulation. The
+// force layout is now reproducible too — see the `force layout` block, which is the
+// test for that — but its coordinates carry no meaning, so it is not snapshotted.
 //
 // Rendered in Advanced editor mode so the advanced options these tests exercise
-// (edge arrows, curveness, link color, adjacency focus) are respected as-is; in
-// Default mode `applyEditorModeDefaults` resets every advanced option — including
-// forcing `animation.enabled` back to its default, which would clobber the
-// `animation: { enabled: false }` these snapshots rely on for determinism.
+// (edge arrows, curveness, link color, edge values) are respected as-is; in Default
+// mode `applyEditorModeDefaults` resets every advanced option. `animation: { enabled:
+// false }` is explicit because the relations family defaults it *on*, and a snapshot
+// taken mid-animation is not a snapshot of anything.
 const canvasOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions> => ({
   zLevel: { series: SERIES_ZLEVEL },
   animation: { enabled: false },
@@ -46,6 +46,15 @@ const canvasOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions>
  */
 const asPipelineWould = (frames: Parameters<typeof getComponent>[0]): Parameters<typeof getComponent>[0] =>
   deriveNodes(legacyToWide(frames));
+
+/**
+ * The text of every label actually painted, so a label test can assert what was drawn
+ * rather than only pin it. Draw calls accumulate across the harness's two render passes
+ * (see todo/canvas-snapshot-double-render.md), which is fine for both uses here: the
+ * *content* of a truncated label, and a *comparison* of two renders counted the same way.
+ */
+const labelTexts = (events: CanvasRenderingContext2DEvent[]): string[] =>
+  events.filter((event) => event.type === 'fillText').map((event) => String(event.props.text));
 
 /**
  * `prefix` is the pipeline prefix to run the fixture through, and only the derived-node
@@ -108,6 +117,67 @@ const renderChord = async (
   return getSeriesCanvasEvents(container);
 };
 
+/**
+ * Zoom is the panel's own buttons, not ECharts' scroll wheel, and this is the claim
+ * that rests on: the roam **action** scales the view even though `roam` is `false`.
+ *
+ * It holds because the action is registered independently of the controller
+ * (`registerRoamActionSimply`) and resolves the series' view coordinate system directly
+ * (`getOwnRoamViewCoordSys`), where `roam` only decides whether the *mouse* is bound. If
+ * that ever stopped being true the buttons would silently do nothing, so it is asserted
+ * on the pixels rather than on the option.
+ */
+describe('relations zoom buttons', () => {
+  const nodes = toDataFrame({
+    name: 'nodes',
+    fields: [
+      { name: 'id', type: FieldType.string, values: ['a', 'b', 'c'] },
+      { name: 'mainstat', type: FieldType.number, values: [10, 20, 30] },
+    ],
+  });
+  const edges = toDataFrame({
+    name: 'edges',
+    fields: [
+      { name: 'id', type: FieldType.string, values: ['e1', 'e2'] },
+      { name: 'source', type: FieldType.string, values: ['a', 'b'] },
+      { name: 'target', type: FieldType.string, values: ['b', 'c'] },
+      { name: 'mainstat', type: FieldType.number, values: [1, 2] },
+    ],
+  });
+
+  it('scales the view from the roam action while scroll-to-zoom stays off', async () => {
+    const { container } = render(
+      getComponent(
+        asPipelineWould([nodes, edges]),
+        'graph',
+        canvasOptions({ relationsZoom: true }),
+        undefined,
+        undefined,
+        'relations'
+      )
+    );
+    const { chartInstanceDom, chart } = getChart(container);
+    await waitForFinished(chart);
+
+    // Pan is off, so the wheel is not bound — which is the point of the buttons.
+    const series = (chart!.getOption() as { series: Array<{ roam?: unknown }> }).series[0];
+    expect(series.roam).toBe(false);
+
+    const before = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR).length;
+    chart!.dispatchAction({ type: 'graphRoam', seriesIndex: 0, zoom: 1.5, originX: width / 2, originY: height / 2 });
+    chart!.getZr().flush();
+    const after = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
+
+    // jest-canvas-mock accumulates draw calls, so the repaint shows up as more of them.
+    // The transform is what actually moved: a scaled view writes a new `setTransform`.
+    expect(after.length).toBeGreaterThan(before);
+    const scales = after
+      .filter((event) => event.type === 'setTransform')
+      .map((event) => (event.props as { a?: number }).a);
+    expect(scales.some((scale) => scale != null && Math.abs(scale - 1) > 1e-6)).toBe(true);
+  });
+});
+
 describe('relations (graph) canvas renders', () => {
   // A small service graph: gateway fans out to api and web, both of which call db.
   const nodesFrame = toDataFrame({
@@ -144,6 +214,40 @@ describe('relations (graph) canvas renders', () => {
       const { defaultEvents, seriesEvents } = await renderGraph([edgesFrame]);
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
+  /**
+   * The force layout is **reproducible**, which it was not: `forceHelper` seeds every
+   * node at `Math.random()` inside the view rect when the item carries no `x`/`y`, so
+   * the same frames drew a different graph on every render and the panel appeared to
+   * shuffle its nodes on each refresh. `force.initLayout: 'circular'` seeds them on a
+   * ring in data order instead — see `RELATIONS_FORCE_INIT_LAYOUT`.
+   *
+   * Asserted as "two renders agree" rather than against a stored snapshot: what is
+   * being claimed is reproducibility, not any particular set of coordinates, and a
+   * baseline would additionally pin the simulation's arithmetic across ECharts
+   * versions for no benefit.
+   */
+  describe('force layout', () => {
+    it('draws the same graph twice from the same frames', async () => {
+      const first = await renderGraph([nodesFrame, edgesFrame], { relationsLayout: 'force' });
+      const second = await renderGraph([nodesFrame, edgesFrame], { relationsLayout: 'force' });
+
+      expect(normalizeCanvasEvents(second.seriesEvents)).toEqual(normalizeCanvasEvents(first.seriesEvents));
+      // Guard against the assertion passing on two empty layers.
+      expect(first.seriesEvents.length).toBeGreaterThan(0);
+    });
+
+    // The same claim for an edges-only response, where every node is derived and
+    // therefore carries no stat — the case `initLayout: 'circular'` distributes evenly
+    // (`sum` is 0, so every node gets an equal slice) rather than by value.
+    it('draws the same derived-node graph twice', async () => {
+      const first = await renderGraph([edgesFrame], { relationsLayout: 'force' });
+      const second = await renderGraph([edgesFrame], { relationsLayout: 'force' });
+
+      expect(normalizeCanvasEvents(second.seriesEvents)).toEqual(normalizeCanvasEvents(first.seriesEvents));
+      expect(first.seriesEvents.length).toBeGreaterThan(0);
     });
   });
 
@@ -193,6 +297,101 @@ describe('relations (graph) canvas renders', () => {
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
+    /**
+     * Long names are ellipsised at the label width rather than allowed to run into the
+     * next node, and a label that would still collide with one already placed is dropped
+     * outright. Both are on by default — see `RELATIONS_LABEL_OVERFLOW_DEFAULT` and
+     * `RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT`.
+     *
+     * **Both are asserted on the drawn text, not only snapshotted**, and the widths are
+     * scaled to the harness rather than left at the defaults. `jest-canvas-mock`'s
+     * `TextMetrics` reports `width = text.length` — one pixel per character — so at the
+     * real 120px default a 30-character name measures 30 and nothing ever truncates or
+     * collides. The mechanism is identical either way; only the scale differs, so the
+     * fixtures pick widths that reach it. See `crowdedLabelOptions`.
+     */
+    // Twelve nodes on a 400x300 ring, each named long enough that neighbouring label
+    // boxes genuinely intersect under the harness metric.
+    const crowdedIds = [
+      'gateway',
+      'api',
+      'web',
+      'db',
+      'cache',
+      'queue',
+      'search',
+      'auth',
+      'billing',
+      'notify',
+      'audit',
+      'report',
+    ];
+    const crowdedNodes = toDataFrame({
+      name: 'nodes',
+      fields: [
+        { name: 'id', type: FieldType.string, values: crowdedIds },
+        {
+          name: 'title',
+          type: FieldType.string,
+          values: crowdedIds.map((id) => `${id}-service-primary-eu-west-1-with-a-name-that-keeps-going`),
+        },
+        { name: 'mainstat', type: FieldType.number, values: crowdedIds.map((_, index) => 20 + index * 15) },
+      ],
+    });
+
+    const crowdedEdges = toDataFrame({
+      name: 'edges',
+      fields: [
+        { name: 'id', type: FieldType.string, values: crowdedIds.slice(1).map((_, index) => `e${index}`) },
+        { name: 'source', type: FieldType.string, values: crowdedIds.slice(0, -1) },
+        { name: 'target', type: FieldType.string, values: crowdedIds.slice(1) },
+        { name: 'mainstat', type: FieldType.number, values: crowdedIds.slice(1).map((_, index) => 10 + index * 5) },
+      ],
+    });
+
+    it('truncates a long label at the label width', async () => {
+      const { defaultEvents, seriesEvents } = await renderGraph([crowdedNodes, crowdedEdges], {
+        // 14 "px" = 14 characters under the harness metric; overlap hiding off so the
+        // claim is about truncation alone.
+        relationsLabelWidth: 14,
+        relationsHideOverlappingLabels: false,
+      });
+
+      const drawn = labelTexts(seriesEvents);
+      expect(drawn.length).toBeGreaterThan(0);
+      expect(drawn.every((text) => text.endsWith('...') && text.length <= 14)).toBe(true);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('wraps a long label instead of truncating it', async () => {
+      const { defaultEvents, seriesEvents } = await renderGraph([crowdedNodes, crowdedEdges], {
+        relationsLabelOverflow: 'break',
+        relationsLabelWidth: 14,
+        relationsHideOverlappingLabels: false,
+      });
+
+      // Wrapping emits one draw per line rather than one per node, and no ellipsis.
+      expect(labelTexts(seriesEvents).some((text) => text.endsWith('...'))).toBe(false);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('drops a label that would collide with one already drawn', async () => {
+      const hidden = await renderGraph([crowdedNodes, crowdedEdges], { relationsLabelOverflow: 'none' });
+      const overlapping = await renderGraph([crowdedNodes, crowdedEdges], {
+        relationsLabelOverflow: 'none',
+        relationsHideOverlappingLabels: false,
+      });
+
+      expect(labelTexts(hidden.seriesEvents).length).toBeLessThan(labelTexts(overlapping.seriesEvents).length);
+
+      expect(normalizeCanvasEvents(hidden.seriesEvents)).toMatchCanvasSnapshot(hidden.defaultEvents, {
+        width,
+        height,
+      });
+    });
+
     // A per-node `color` field wins over the palette; `db` is explicitly red.
     it('colors nodes from the color field', async () => {
       const coloredNodes = toDataFrame({
@@ -226,10 +425,25 @@ describe('relations (graph) canvas renders', () => {
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
-    it('draws arrowheads at the target end (Advanced)', async () => {
+    // Arrowheads are on by default now (the base case above draws them); this is the
+    // opt-out. See `RELATIONS_EDGE_ARROWS_DEFAULT`.
+    it('omits arrowheads when switched off (Advanced)', async () => {
       const { defaultEvents, seriesEvents } = await renderGraph([nodesFrame, edgesFrame], {
-        relationsEdgeArrows: true,
+        relationsEdgeArrows: false,
       });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // Overlap hiding off, because an edge label sits at the link's midpoint and would
+    // otherwise be arbitrated against the node labels — the weights are what this pins.
+    it('draws each edge weight on the link (Advanced)', async () => {
+      const { defaultEvents, seriesEvents } = await renderGraph([nodesFrame, edgesFrame], {
+        relationsShowEdgeValues: true,
+        relationsHideOverlappingLabels: false,
+      });
+
+      expect(labelTexts(seriesEvents)).toEqual(expect.arrayContaining(['100', '50', '90', '40']));
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
@@ -248,6 +462,34 @@ describe('relations (graph) canvas renders', () => {
       });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    /**
+     * **The reported bug.** "Link color" did nothing at all on a graph: ECharts'
+     * `edgeVisual` swaps the `'source'` / `'target'` keywords for the endpoint node's
+     * fill at `PRIORITY.VISUAL.CHART` (3000), but the task that applies each node's own
+     * `itemStyle.color` runs at `CHART_DATA_CUSTOM` (4500) — so the swap read a colour
+     * the nodes did not have yet and every edge came out the same palette blue,
+     * whichever mode was picked. The colours are resolved in the panel now; see
+     * `resolveLinkColor`.
+     *
+     * Stated as "the two modes differ" before either is snapshotted, because that is
+     * the claim the snapshots cannot make on their own.
+     */
+    it('colors links from the endpoint the mode names (Advanced)', async () => {
+      const source = await renderGraph([nodesFrame, edgesFrame], { relationsLinkColor: 'source' });
+      const target = await renderGraph([nodesFrame, edgesFrame], { relationsLinkColor: 'target' });
+
+      expect(normalizeCanvasEvents(source.seriesEvents)).not.toEqual(normalizeCanvasEvents(target.seriesEvents));
+
+      expect(normalizeCanvasEvents(source.seriesEvents)).toMatchCanvasSnapshot(source.defaultEvents, {
+        width,
+        height,
+      });
+      expect(normalizeCanvasEvents(target.seriesEvents)).toMatchCanvasSnapshot(target.defaultEvents, {
+        width,
+        height,
+      });
     });
   });
 
@@ -420,10 +662,56 @@ describe('relations (graph) canvas renders', () => {
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
+    /**
+     * Vertical flow, where the node labels used to be drawn **over the next node's
+     * fill**: ECharts places a sankey label `'right'` in both orientations, and
+     * vertically the bars run along the row `nodeGap` (8px) apart, so a label 5px to
+     * the right of one lands on its neighbour — unreadable against a saturated colour,
+     * and colliding with that neighbour's own label. They sit below the bar now, in the
+     * ribbon gap. See `getSankeyLabelPosition`.
+     */
     it('lays out vertically when the flow direction is switched', async () => {
       const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, edgesFrame], {
         relationsSankeyOrient: 'vertical',
       });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // Long names in the vertical orientation, which is where the collision was worst:
+    // truncation plus the below-the-bar position have to hold together.
+    it('keeps long labels legible on a vertical flow', async () => {
+      const longNodes = toDataFrame({
+        name: 'nodes',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['gateway', 'api', 'web', 'db'] },
+          {
+            name: 'title',
+            type: FieldType.string,
+            values: [
+              'edge-gateway-ingress-eu-west-1',
+              'checkout-api-service-primary',
+              'storefront-web-frontend-v2',
+              'orders-postgres-primary-db',
+            ],
+          },
+          { name: 'mainstat', type: FieldType.number, values: [120, 80, 60, 200] },
+        ],
+      });
+      const { defaultEvents, seriesEvents } = await renderSankey([longNodes, edgesFrame], {
+        relationsSankeyOrient: 'vertical',
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('draws each ribbon weight on the ribbon (Advanced)', async () => {
+      const { defaultEvents, seriesEvents } = await renderSankey([nodesFrame, edgesFrame], {
+        relationsShowEdgeValues: true,
+        relationsHideOverlappingLabels: false,
+      });
+
+      expect(labelTexts(seriesEvents)).toEqual(expect.arrayContaining(['100', '50', '90', '40']));
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
@@ -511,6 +799,60 @@ describe('relations (graph) canvas renders', () => {
       });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    /**
+     * The chord's version of the pie's `avoidLabelOverlap`, which `series.chord` does
+     * **not** have: a ring of many small arcs puts several labels at nearly the same
+     * angle, so they pile into an unreadable smear. `series.chord` routes its labels
+     * through the shared label-layout stage like every other series, so `hideOverlap` is
+     * the lever. See `getRelationsLabelLayout`.
+     *
+     * Twelve nodes, four carrying real flow and eight reduced to slivers — the exact
+     * shape the option exists for, since the slivers collapse into a narrow wedge and
+     * their labels stack on one another.
+     *
+     * **One label is dropped here, and many more would be in a browser.** The harness's
+     * `TextMetrics` reports one pixel per character (see `crowdedNodes`), so a chord
+     * label is a quarter of its real width and only the most collapsed pair actually
+     * intersects. The assertion is therefore "fewer, with the switch on" rather than a
+     * count; the option-level wiring is pinned in `options/chord.test.ts`.
+     */
+    const ringIds = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'];
+    const manySmallEdges = toDataFrame({
+      name: 'edges',
+      fields: [
+        { name: 'id', type: FieldType.string, values: ringIds.map((_, index) => `e${index}`) },
+        { name: 'source', type: FieldType.string, values: ringIds },
+        { name: 'target', type: FieldType.string, values: [...ringIds.slice(1), ringIds[0]] },
+        { name: 'mainstat', type: FieldType.number, values: ringIds.map((_, index) => (index < 4 ? 200 : 1)) },
+      ],
+    });
+    const ringNodes = toDataFrame({
+      name: 'nodes',
+      fields: [
+        { name: 'id', type: FieldType.string, values: ringIds },
+        {
+          name: 'title',
+          type: FieldType.string,
+          values: ringIds.map((id) => `${id}-service-primary-eu-west-1`),
+        },
+      ],
+    });
+
+    it('drops labels that collide on a ring of small arcs', async () => {
+      const hidden = await renderChord([ringNodes, manySmallEdges], { relationsLabelOverflow: 'none' });
+      const overlapping = await renderChord([ringNodes, manySmallEdges], {
+        relationsLabelOverflow: 'none',
+        relationsHideOverlappingLabels: false,
+      });
+
+      expect(labelTexts(hidden.seriesEvents).length).toBeLessThan(labelTexts(overlapping.seriesEvents).length);
+
+      expect(normalizeCanvasEvents(hidden.seriesEvents)).toMatchCanvasSnapshot(hidden.defaultEvents, {
+        width,
+        height,
+      });
     });
   });
 });

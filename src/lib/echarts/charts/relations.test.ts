@@ -395,6 +395,42 @@ describe('relationsChartModule', () => {
    * legend, so leaving them out erases every link in the panel the moment one node is
    * hidden. See `ChartModule.getOverrideTargetNames`.
    */
+  describe('getZoomAction', () => {
+    const withZoom = (context: RelationsChartContext): RelationsChartContext => ({
+      ...context,
+      options: { ...context.options, relationsZoom: true },
+    });
+
+    it('draws no buttons until zoom is switched on', () => {
+      expect(relationsChartModule.getZoomAction?.(ctx([nodesFrame, edgesFrame]))).toBeUndefined();
+    });
+
+    it('names the roam action after the render variant', () => {
+      expect(relationsChartModule.getZoomAction?.(withZoom(ctx([nodesFrame, edgesFrame])))).toEqual({
+        type: 'graphRoam',
+        seriesIndex: 0,
+      });
+      expect(relationsChartModule.getZoomAction?.(withZoom(sankeyCtx([nodesFrame, edgesFrame])))).toEqual({
+        type: 'sankeyRoam',
+        seriesIndex: 0,
+      });
+    });
+
+    // Not a preference: `ChordSeries` pins `coordinateSystem: 'none'` and declares no
+    // `roam`, so there is no view to scale and no action registered for it.
+    it('has nothing to dispatch on a chord, which owns no view', () => {
+      expect(relationsChartModule.getZoomAction?.(withZoom(chordCtx([nodesFrame, edgesFrame])))).toBeUndefined();
+    });
+
+    // A dashboard saved with the superseded single "Zoom and pan" switch keeps both.
+    it('honours the superseded relationsRoam switch', () => {
+      const context = ctx([nodesFrame, edgesFrame]);
+      const legacy = { ...context, options: { ...context.options, relationsRoam: true } };
+
+      expect(relationsChartModule.getZoomAction?.(legacy)).toEqual({ type: 'graphRoam', seriesIndex: 0 });
+    });
+  });
+
   describe('getOverrideTargetNames', () => {
     it('reports edges as well as nodes', () => {
       expect(relationsChartModule.getOverrideTargetNames?.(ctx([nodesFrame, edgesFrame]))).toEqual([

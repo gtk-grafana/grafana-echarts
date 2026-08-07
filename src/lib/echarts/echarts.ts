@@ -54,7 +54,16 @@ import { use as registerEChartsModules } from 'echarts/core';
 // registered; without it axis labels overflow the grid. Registering it restores
 // label-aware grid layout for the cartesian charts.
 // https://echarts.apache.org/handbook/en/basics/release-note/v6-upgrade-guide/#about-grid-containlabel
-import { LegacyGridContainLabel } from 'echarts/features';
+//
+// `LabelLayout` is the same kind of trap and easier to miss. `series.labelLayout`
+// (`hideOverlap`, `moveOverlap`) reads like a plain series option, but the stage that
+// acts on it is a *feature*: the full `echarts` barrel calls `use(installLabelLayout)`,
+// and a modular build gets it only if something drags the barrel in. Registered here so
+// the relations family's overlapping-label handling depends on a declaration rather than
+// on that accident — an unregistered stage would leave the key accepted, present on the
+// built option, and completely inert.
+// https://echarts.apache.org/en/option.html#series-line.labelLayout
+import { LabelLayout, LegacyGridContainLabel } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
 
 registerEChartsModules([
@@ -104,6 +113,7 @@ registerEChartsModules([
   MarkAreaComponent, // threshold filled regions on cartesian series
   // Features
   LegacyGridContainLabel, // makes `grid.containLabel` work in ECharts 6
+  LabelLayout, // the stage `series.labelLayout` (hideOverlap) needs — see the import
   // Renderer
   CanvasRenderer,
 ]);

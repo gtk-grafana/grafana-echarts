@@ -1,0 +1,947 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "description": "Readability defaults for the relations family, and the bugs behind them. Each new default is paired with a control that switches it off, so the change is visible rather than asserted: label truncation and overlap hiding, arrowheads, adjacency highlighting, a seeded (reproducible) force layout whose settling is not painted, link colour actually resolving to the endpoint colours, the sankey's vertical label position, edge values, split zoom/pan driven by panel buttons, and a second reducer that reaches edges as well as nodes. Fixtures are written in the field-based graph contract (data-plane/graph-wide.md) rather than Grafana's row form, so every panel reads on a host without the panel-transformation flag.",
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Graph — readable by default",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Defaults, as shipped",
+      "description": "**Everything here is a default.** No option is set beyond the chart type.\n\n- Force layout spread by `repulsion: 400` / `edgeLength: 200`; ECharts' own `[0,50]` / `30` pack a real topology into a knot in the middle of the panel.\n- Node positions are **reproducible**: the simulation is seeded on a ring (`force.initLayout`) where ECharts seeds it at `Math.random()`, so this graph is the same on every refresh instead of shuffling.\n- The simulation's steps are **not painted** (`force.layoutAnimation: false`), so a refresh does not jiggle.\n- Arrowheads at the target end, since an edge is directed by contract.\n- Hover a node: adjacency highlighting is on, and Default-tier rather than Advanced.\n- Labels truncate at 120px and any that would still collide are dropped.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1,checkout-api-service-primary,storefront-web-frontend-v2,orders-postgres-primary-db,session-redis-cache-cluster,events-kafka-queue-broker,catalog-opensearch-cluster,identity-auth-service,billing-ledger-service-eu,notification-fanout-worker\n120,86,64,204,41,57,33,92,48,22"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1-->checkout-api-service-primary,edge-gateway-ingress-eu-west-1-->storefront-web-frontend-v2,checkout-api-service-primary-->orders-postgres-primary-db,storefront-web-frontend-v2-->orders-postgres-primary-db,checkout-api-service-primary-->session-redis-cache-cluster,checkout-api-service-primary-->events-kafka-queue-broker,identity-auth-service-->catalog-opensearch-cluster,edge-gateway-ingress-eu-west-1-->identity-auth-service,checkout-api-service-primary-->billing-ledger-service-eu,events-kafka-queue-broker-->notification-fanout-worker\n100,52,88,41,30,25,15,60,18,12"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph"
+      }
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Control — labels unmanaged",
+      "description": "The same data with both label defaults off (`Label overflow: None`, `Hide overlapping labels: off`), which is what the panel used to draw: every name in full, several of them on top of each other.\n\nNothing else differs — this is the comparison the defaults exist for.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1,checkout-api-service-primary,storefront-web-frontend-v2,orders-postgres-primary-db,session-redis-cache-cluster,events-kafka-queue-broker,catalog-opensearch-cluster,identity-auth-service,billing-ledger-service-eu,notification-fanout-worker\n120,86,64,204,41,57,33,92,48,22"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1-->checkout-api-service-primary,edge-gateway-ingress-eu-west-1-->storefront-web-frontend-v2,checkout-api-service-primary-->orders-postgres-primary-db,storefront-web-frontend-v2-->orders-postgres-primary-db,checkout-api-service-primary-->session-redis-cache-cluster,checkout-api-service-primary-->events-kafka-queue-broker,identity-auth-service-->catalog-opensearch-cluster,edge-gateway-ingress-eu-west-1-->identity-auth-service,checkout-api-service-primary-->billing-ledger-service-eu,events-kafka-queue-broker-->notification-fanout-worker\n100,52,88,41,30,25,15,60,18,12"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsHideOverlappingLabels": false,
+        "relationsLabelOverflow": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "row",
+      "title": "Graph — link colour, which used to do nothing",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "panels": []
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Link colour: Source",
+      "description": "Each link takes the colour of the node it leaves.\n\n**The bug.** ECharts' `graph` series resolves the `source` / `target` keywords in `edgeVisual` at visual priority 3000, but the pass that applies each node's own `itemStyle.color` runs at 4500 — so the keyword read a colour the nodes did not have yet and *every* edge came out the same palette blue, whichever mode was picked. The panel resolves the endpoint colours itself now.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1,checkout-api-service-primary,storefront-web-frontend-v2,orders-postgres-primary-db,session-redis-cache-cluster,events-kafka-queue-broker,catalog-opensearch-cluster,identity-auth-service,billing-ledger-service-eu,notification-fanout-worker\n120,86,64,204,41,57,33,92,48,22"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1-->checkout-api-service-primary,edge-gateway-ingress-eu-west-1-->storefront-web-frontend-v2,checkout-api-service-primary-->orders-postgres-primary-db,storefront-web-frontend-v2-->orders-postgres-primary-db,checkout-api-service-primary-->session-redis-cache-cluster,checkout-api-service-primary-->events-kafka-queue-broker,identity-auth-service-->catalog-opensearch-cluster,edge-gateway-ingress-eu-west-1-->identity-auth-service,checkout-api-service-primary-->billing-ledger-service-eu,events-kafka-queue-broker-->notification-fanout-worker\n100,52,88,41,30,25,15,60,18,12"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLinkColor": "source"
+      }
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Link colour: Target",
+      "description": "Each link takes the colour of the node it arrives at — visibly different from the panel on the left, which is the whole claim.\n\n**The bug.** ECharts' `graph` series resolves the `source` / `target` keywords in `edgeVisual` at visual priority 3000, but the pass that applies each node's own `itemStyle.color` runs at 4500 — so the keyword read a colour the nodes did not have yet and *every* edge came out the same palette blue, whichever mode was picked. The panel resolves the endpoint colours itself now.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1,checkout-api-service-primary,storefront-web-frontend-v2,orders-postgres-primary-db,session-redis-cache-cluster,events-kafka-queue-broker,catalog-opensearch-cluster,identity-auth-service,billing-ledger-service-eu,notification-fanout-worker\n120,86,64,204,41,57,33,92,48,22"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1-->checkout-api-service-primary,edge-gateway-ingress-eu-west-1-->storefront-web-frontend-v2,checkout-api-service-primary-->orders-postgres-primary-db,storefront-web-frontend-v2-->orders-postgres-primary-db,checkout-api-service-primary-->session-redis-cache-cluster,checkout-api-service-primary-->events-kafka-queue-broker,identity-auth-service-->catalog-opensearch-cluster,edge-gateway-ingress-eu-west-1-->identity-auth-service,checkout-api-service-primary-->billing-ledger-service-eu,events-kafka-queue-broker-->notification-fanout-worker\n100,52,88,41,30,25,15,60,18,12"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLinkColor": "target"
+      }
+    },
+    {
+      "id": 7,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Link colour: Gradient (the default), on pinned positions",
+      "description": "`Gradient` is the family default. Under a **fixed** layout the node positions are known before ECharts lays the graph out, so each edge gets a real source-to-target blend oriented along the edge. The positions come from `custom.fixedX` / `custom.fixedY` overrides — one per node, which is only addressable because a node is a field.\n\nUnder force or circular it degrades to the source node's colour: a bounding-box gradient cannot be oriented without the positions, and half the edges would report their direction backwards. The arrowheads carry the direction there instead.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress,checkout-api,storefront-web,orders-postgres-db\n120,86,64,204"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-->checkout-api,edge-gateway-ingress-->storefront-web,checkout-api-->orders-postgres-db,storefront-web-->orders-postgres-db\n100,52,88,41"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "edge-gateway-ingress"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 60
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "checkout-api"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 200
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 60
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "storefront-web"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 200
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 240
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "orders-postgres-db"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 340
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 150
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLinkColor": "gradient"
+      }
+    },
+    {
+      "id": 8,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Edge values, zoom and pan",
+      "description": "Three Advanced options, all off by default:\n\n- **Show edge values** draws each link's own weight on the link, formatted through that edge's field.\n- **Zoom** adds zoom in / out / reset buttons in the panel's bottom-right corner. They dispatch the ECharts roam *action* rather than binding the scroll wheel — a panel that captured the wheel would be one the dashboard could not be scrolled past.\n- **Pan** is the drag half, and the only one routed through `roam`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress,checkout-api,storefront-web,orders-postgres-db\n120,86,64,204"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-->checkout-api,edge-gateway-ingress-->storefront-web,checkout-api-->orders-postgres-db,storefront-web-->orders-postgres-db\n100,52,88,41"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsShowEdgeValues": true,
+        "relationsZoom": true,
+        "relationsPan": true,
+        "relationsHideOverlappingLabels": false
+      }
+    },
+    {
+      "id": 9,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Derived nodes — no \"Show node values\" control",
+      "description": "An edges-only response: every node here is inferred from an endpoint, so none carries a stat.\n\nOpen the editor and look at the **Relations** section — **Show node values** is absent. It used to sit there as a switch that could be flipped and would visibly do nothing.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 47
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "ingress-gateway-->checkout-api,ingress-gateway-->storefront-web,checkout-api-->orders-db,storefront-web-->orders-db,checkout-api-->session-cache\n140,90,120,70,40"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph"
+      }
+    },
+    {
+      "id": 10,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Force tuning, and the jiggle put back",
+      "description": "**Animate layout** switched on, which is ECharts' default and no longer the panel's: every simulation step is painted, so the graph visibly settles. On a dashboard refreshing on a timer that reads as the nodes jiggling for no reason, since the topology has not changed. Compare with the first panel.\n\nRepulsion and edge length sit next to it, both carrying the family's defaults rather than ECharts'.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 47
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1,checkout-api-service-primary,storefront-web-frontend-v2,orders-postgres-primary-db,session-redis-cache-cluster,events-kafka-queue-broker,catalog-opensearch-cluster,identity-auth-service,billing-ledger-service-eu,notification-fanout-worker\n120,86,64,204,41,57,33,92,48,22"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1-->checkout-api-service-primary,edge-gateway-ingress-eu-west-1-->storefront-web-frontend-v2,checkout-api-service-primary-->orders-postgres-primary-db,storefront-web-frontend-v2-->orders-postgres-primary-db,checkout-api-service-primary-->session-redis-cache-cluster,checkout-api-service-primary-->events-kafka-queue-broker,identity-auth-service-->catalog-opensearch-cluster,edge-gateway-ingress-eu-west-1-->identity-auth-service,checkout-api-service-primary-->billing-ledger-service-eu,events-kafka-queue-broker-->notification-fanout-worker\n100,52,88,41,30,25,15,60,18,12"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLayoutAnimation": true,
+        "relationsRepulsion": 700,
+        "relationsEdgeLength": 260
+      }
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "title": "Sankey — vertical labels",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 62
+      },
+      "panels": []
+    },
+    {
+      "id": 12,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Vertical flow, labels below the bars",
+      "description": "**The fix.** ECharts places a sankey label `right` of the node in both orientations. Vertically the bars run *along* the row, `nodeGap` (8px) apart, so a label 5px to the right of one is drawn straight over the next node's fill — unreadable against a saturated colour, and colliding with that node's own label.\n\nThe label sits below the bar now, in the ribbon gap.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 63
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1,checkout-api-service-primary,storefront-web-frontend-v2,orders-postgres-primary-db,session-redis-cache-cluster,events-kafka-queue-broker,catalog-opensearch-cluster,identity-auth-service,billing-ledger-service-eu,notification-fanout-worker\n120,86,64,204,41,57,33,92,48,22"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1-->checkout-api-service-primary,edge-gateway-ingress-eu-west-1-->storefront-web-frontend-v2,checkout-api-service-primary-->orders-postgres-primary-db,storefront-web-frontend-v2-->orders-postgres-primary-db,checkout-api-service-primary-->session-redis-cache-cluster,checkout-api-service-primary-->events-kafka-queue-broker,identity-auth-service-->catalog-opensearch-cluster,edge-gateway-ingress-eu-west-1-->identity-auth-service,checkout-api-service-primary-->billing-ledger-service-eu,events-kafka-queue-broker-->notification-fanout-worker\n100,52,88,41,30,25,15,60,18,12"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsSankeyOrient": "vertical"
+      }
+    },
+    {
+      "id": 13,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Horizontal flow with ribbon values",
+      "description": "Horizontally `right` is the correct placement and is left alone: the node columns are separated by the ribbon area, so a label beside a bar has nothing but ribbons behind it.\n\n**Show edge values** is on, so each ribbon carries its own weight.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 63
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1,checkout-api-service-primary,storefront-web-frontend-v2,orders-postgres-primary-db,session-redis-cache-cluster,events-kafka-queue-broker,catalog-opensearch-cluster,identity-auth-service,billing-ledger-service-eu,notification-fanout-worker\n120,86,64,204,41,57,33,92,48,22"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge-gateway-ingress-eu-west-1-->checkout-api-service-primary,edge-gateway-ingress-eu-west-1-->storefront-web-frontend-v2,checkout-api-service-primary-->orders-postgres-primary-db,storefront-web-frontend-v2-->orders-postgres-primary-db,checkout-api-service-primary-->session-redis-cache-cluster,checkout-api-service-primary-->events-kafka-queue-broker,identity-auth-service-->catalog-opensearch-cluster,edge-gateway-ingress-eu-west-1-->identity-auth-service,checkout-api-service-primary-->billing-ledger-service-eu,events-kafka-queue-broker-->notification-fanout-worker\n100,52,88,41,30,25,15,60,18,12"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "editorMode": "advanced",
+        "relationsShowEdgeValues": true,
+        "relationsSankeyLinkOpacity": 0.35
+      }
+    },
+    {
+      "id": 14,
+      "type": "row",
+      "title": "Chord — small arcs, colliding labels",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 78
+      },
+      "panels": []
+    },
+    {
+      "id": 15,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Overlapping labels dropped (default)",
+      "description": "Four real flows and six slivers. The slivers collapse into a narrow wedge of the ring and their labels stack on one another — the case the pie answers with `avoidLabelOverlap`, which `series.chord` has no equivalent of.\n\nChord labels go through the same label-layout stage as every other series, so **Hide overlapping labels** is the lever, and it is on by default. Animation is on by default for the whole family too: reload and the ribbons grow into place.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 79
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "us-east-1-primary-region-->us-west-2-primary-region,us-west-2-primary-region-->eu-west-1-primary-region,eu-west-1-primary-region-->ap-south-1-edge,ap-south-1-edge-->sa-east-1-edge,sa-east-1-edge-->af-south-1-edge,af-south-1-edge-->me-central-1-edge,me-central-1-edge-->ca-central-1-edge,ca-central-1-edge-->ap-northeast-1-edge,ap-northeast-1-edge-->eu-north-1-edge,eu-north-1-edge-->us-east-1-primary-region\n900,760,610,480,9,7,6,5,4,3"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord"
+      }
+    },
+    {
+      "id": 16,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Control — every label drawn",
+      "description": "The same ring with **Hide overlapping labels** off and no truncation. This is the smear the default removes.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 79
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "us-east-1-primary-region-->us-west-2-primary-region,us-west-2-primary-region-->eu-west-1-primary-region,eu-west-1-primary-region-->ap-south-1-edge,ap-south-1-edge-->sa-east-1-edge,sa-east-1-edge-->af-south-1-edge,af-south-1-edge-->me-central-1-edge,me-central-1-edge-->ca-central-1-edge,ca-central-1-edge-->ap-northeast-1-edge,ap-northeast-1-edge-->eu-north-1-edge,eu-north-1-edge-->us-east-1-primary-region\n900,760,610,480,9,7,6,5,4,3"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord",
+        "editorMode": "advanced",
+        "relationsHideOverlappingLabels": false,
+        "relationsLabelOverflow": "none"
+      }
+    },
+    {
+      "id": 17,
+      "type": "row",
+      "title": "Value options — two calculations, both kinds of mark",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 94
+      },
+      "panels": []
+    },
+    {
+      "id": 18,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Main and secondary stat on nodes and edges",
+      "description": "**Calculation** takes exactly two reducers now — the picker used to accept any number while only the first two could mean anything, and dropped the rest silently.\n\nHere they are `max` and `min`. Hover a **node** or an **edge**: both report a `Value` and a `Secondary` row. The second reducer used to apply to nodes only, so on an edges-only response — the common shape — choosing one produced no second value anywhere.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 95
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache\n120,86,204,41\n150,60,180,55\n90,110,240,30"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache\n100,88,25\n140,30,55\n60,120,10"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "reduceOptions": {
+          "calcs": ["max", "min"]
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The same marks as a chord",
+      "description": "One converter, three layouts: the reducers, the tooltip rows and the per-mark formatting belong to the family, not to the variant.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 95
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache\n120,86,204,41\n150,60,180,55\n90,110,240,30"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache\n100,88,25\n140,30,55\n60,120,10"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord",
+        "reduceOptions": {
+          "calcs": ["max", "min"]
+        }
+      }
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "readability", "node-graph"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "ECharts Relations — readability defaults",
+  "uid": "echarts-relations-readability",
+  "version": 1,
+  "weekStart": ""
+}

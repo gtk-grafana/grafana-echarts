@@ -69,6 +69,14 @@ export type RelationsGraphLayout = 'force' | 'circular' | 'none';
  */
 export type RelationsLinkColor = 'source' | 'target' | 'gradient';
 /**
+ * How a long relations node label is handled at `relationsLabelWidth` — the same
+ * shape as `lib/echarts/options/labels.LabelOverflow`, spelled out per family the way
+ * `PieLabelOverflow` is so this module stays free of `lib` imports. Advanced;
+ * defaults to `truncate`, since a topology's node names are frequently long enough to
+ * reach a neighbour. See `getRelationsLabelStyle`.
+ */
+export type RelationsLabelOverflow = 'none' | 'truncate' | 'break' | 'breakAll';
+/**
  * Sankey flow direction (ECharts `series.sankey.orient`, typed `LayoutOrient`
  * there): `horizontal` lays the node columns left-to-right, `vertical` top-to-bottom.
  * Default-tier. See `getSankeyOrient`.

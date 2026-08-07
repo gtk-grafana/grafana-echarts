@@ -4,7 +4,12 @@ import { toSankeyLinks } from 'lib/echarts/converters/dag';
 import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { getChordSeries } from 'lib/echarts/options/chord';
-import { getGraphSeries, relationsDefaultOptions, type RelationsSeriesContext } from 'lib/echarts/options/graph';
+import {
+  getGraphSeries,
+  relationsDefaultOptions,
+  resolveRelationsZoom,
+  type RelationsSeriesContext,
+} from 'lib/echarts/options/graph';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/options/sankey';
 import { getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
@@ -12,6 +17,7 @@ import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
 import {
   type ChartModule,
   type ChartNotice,
+  type ChartZoomAction,
   type EChartChordSeriesOption,
   type EChartGraphSeriesOption,
   type EChartSankeySeriesOption,
@@ -161,6 +167,22 @@ export const relationsChartModule: ChartModule = {
     }
     const text = getSankeyDroppedNoticeText(toSankeyLinks(data.links).droppedCount);
     return text != null ? [{ severity: 'warning', text }] : [];
+  },
+
+  /**
+   * The roam action the panel's zoom buttons dispatch, when zoom is switched on.
+   *
+   * Chord is excluded and that is a hard exclusion, not a preference: `ChordSeries`
+   * pins `coordinateSystem: 'none'` and declares no `roam` at all, so there is no view
+   * to scale and no action registered for it. `graph` and `sankey` each register one
+   * (`registerRoamActionSimply`), named after the series type.
+   */
+  getZoomAction(ctx: RelationsChartContext): ChartZoomAction | undefined {
+    if (!resolveRelationsZoom(ctx.options) || ctx.seriesType === 'chord') {
+      return undefined;
+    }
+    // The family emits exactly one series per render, whichever variant is selected.
+    return { type: ctx.seriesType === 'sankey' ? 'sankeyRoam' : 'graphRoam', seriesIndex: 0 };
   },
 
   /**

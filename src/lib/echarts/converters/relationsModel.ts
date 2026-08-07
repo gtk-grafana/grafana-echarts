@@ -101,6 +101,13 @@ export interface RelationLink {
   target: string;
   value: number | null;
   /**
+   * The secondary stat, tooltip only: `calcs[1]` reduced over the edge's own field and
+   * formatted through its own display processor, else a `secondarystat` label carried
+   * by the conversion. The edge counterpart of {@link RelationNode.secondary} — one
+   * "Calculation" setting, the same meaning on both kinds of mark.
+   */
+  secondary?: number | string;
+  /**
    * Set **only** when the edge's field carries a real colour choice, so that an
    * unconfigured edge falls through to the series-level endpoint colouring
    * (`relationsLinkColor`). See `colorOf` and `getGraphLinkStyle`.

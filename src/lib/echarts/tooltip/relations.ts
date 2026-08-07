@@ -27,6 +27,20 @@ import {
 export const formatDerivedMarkValue: ValueFormatter = (value) => ({ text: String(value) });
 
 /**
+ * A mark's secondary stat as tooltip text, shared by the node and edge branches so one
+ * "Calculation" setting reads the same on both.
+ *
+ * The reducer path already formatted it through the mark's own display processor
+ * (`secondaryOf`), so a **number** only reaches here from a `secondarystat` label the
+ * conversion carried, which has no unit of its own — hence the union and the split.
+ */
+function formatSecondary(secondary: number | string, formatValue?: ValueFormatter): string {
+  return typeof secondary === 'number'
+    ? formatEChartsValue(secondary, formatValue ?? formatDerivedMarkValue)
+    : String(secondary);
+}
+
+/**
  * A `graph` series emits both node and link hovers through one formatter, so the
  * model has to tell them apart. ECharts sets `dataType` to `'node'` or `'edge'` on
  * the callback params for graph-like series, which is the documented discriminator.
@@ -124,6 +138,11 @@ export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: Top
           source: mark?.source,
         },
       ];
+      // An edge reduces to two stats just as a node does, so `calcs[1]` reports here
+      // too — the same row, formatted the same way. See `secondaryOf` and `readLinks`.
+      if (data.secondary != null) {
+        rows.push({ label: 'Secondary', value: formatSecondary(data.secondary, mark?.formatValue) });
+      }
       return { header: { label: `${data.source} → ${data.target}`, value: '' }, rows, source: mark?.source };
     }
 
@@ -151,16 +170,7 @@ export function buildRelationsTooltipModel(marks?: RelationsMarks): (params: Top
       rows.push({ label: 'Subtitle', value: node.subtitle });
     }
     if (node?.secondary != null) {
-      // The reducer path already formatted the secondary stat through the mark's own
-      // display processor (`secondaryOf`), so a number only reaches here from a
-      // `secondarystat` label the conversion carried, which has no unit of its own.
-      rows.push({
-        label: 'Secondary',
-        value:
-          typeof node.secondary === 'number'
-            ? formatEChartsValue(node.secondary, mark?.formatValue ?? formatDerivedMarkValue)
-            : String(node.secondary),
-      });
+      rows.push({ label: 'Secondary', value: formatSecondary(node.secondary, mark?.formatValue) });
     }
 
     return { header: { label: node?.name ?? String(param?.name ?? ''), value: '' }, rows, source: mark?.source };

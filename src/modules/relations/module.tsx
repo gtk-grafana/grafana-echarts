@@ -3,10 +3,10 @@ import { initPluginTranslations } from '@grafana/i18n';
 import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } from 'editor/constants';
 import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
-import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
+import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsCustomConfig } from 'lib/grafana/editor/relations/fieldConfig';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
@@ -87,9 +87,11 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
     addRelationsForceOptions(builder);
     addRelationsLinkOptions(builder);
 
-    // The family has no per-point fast path, so it registers the shared animation
-    // switch directly rather than the cartesian `addPerformanceOptions` bundle.
-    addAnimationOption(builder);
+    // The family has no per-point fast path, so it registers an animation switch
+    // directly rather than the cartesian `addPerformanceOptions` bundle — its own
+    // rather than the shared `addAnimationOption`, because it is Default-tier and on
+    // here. See `addRelationsAnimationOption`.
+    addRelationsAnimationOption(builder);
 
     // `singleOnly`: a relations hover is one node or one link, so "All" has nothing
     // to list. `includeLegendCalcs: false`: a legend entry is one mark, already

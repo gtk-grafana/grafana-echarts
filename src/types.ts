@@ -38,6 +38,7 @@ import {
   type ParallelLayout,
   type RadarShape,
   type RelationsGraphLayout,
+  type RelationsLabelOverflow,
   type RelationsLinkColor,
   type RelationsSankeyNodeAlign,
   type RelationsSankeyOrient,
@@ -525,10 +526,32 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsNodeSize?: number;
 
   /**
-   * Relations zoom & pan (Advanced; ECharts `series.graph.roam`). Off by default,
-   * matching the other families' static panels. See `buildGraphOption`.
+   * Relations zoom & pan, the **superseded** single switch (Advanced; ECharts
+   * `series.graph.roam`). Split into {@link relationsZoom} and {@link relationsPan}
+   * because the two answer different questions — "may the view scale" and "may the
+   * view be dragged" — and because zoom is driven by the panel's own buttons now
+   * rather than by the scroll wheel, which a dashboard cannot scroll past.
+   *
+   * Still read, so a dashboard saved with the old switch keeps both behaviours:
+   * `resolveRelationsZoom` / `resolveRelationsPan` fall back to it. Never written.
+   *
+   * @deprecated Use `relationsZoom` / `relationsPan`.
    */
   relationsRoam?: boolean;
+
+  /**
+   * Relations zoom (Advanced). Shows the panel's zoom in / out / reset buttons and
+   * lets them scale the view; **not** ECharts' scroll-to-zoom, which is deliberately
+   * never enabled — a wheel event over a panel belongs to the dashboard's scroll.
+   * Off by default. See `getRelationsZoomAction` and `ChartZoomControls`.
+   */
+  relationsZoom?: boolean;
+
+  /**
+   * Relations pan (Advanced; ECharts `series.graph.roam: 'move'`): drag the view
+   * within the panel. Off by default. See `resolveRelationsRoam`.
+   */
+  relationsPan?: boolean;
 
   /**
    * Relations draggable nodes (Advanced; ECharts `series.graph.draggable`). Only
@@ -539,17 +562,25 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   /**
    * Relations force-layout repulsion (Advanced; ECharts
    * `series.graph.force.repulsion`). Higher values spread nodes further apart.
-   * Unset uses ECharts' default; only applies to the force layout. See
-   * `getGraphForce`.
+   * Unset uses `RELATIONS_REPULSION_DEFAULT`, which is far above ECharts' own — see
+   * there. Force layout only. See `getGraphForce`.
    */
   relationsRepulsion?: number;
 
   /**
    * Relations force-layout edge length in px (Advanced; ECharts
-   * `series.graph.force.edgeLength`). Unset uses ECharts' default; force layout
-   * only. See `getGraphForce`.
+   * `series.graph.force.edgeLength`). Unset uses `RELATIONS_EDGE_LENGTH_DEFAULT`,
+   * again well above ECharts' own. Force layout only. See `getGraphForce`.
    */
   relationsEdgeLength?: number;
+
+  /**
+   * Relations force-layout animation (Advanced; ECharts
+   * `series.graph.force.layoutAnimation`): draw every simulation step, so the graph
+   * visibly settles. **Off by default**, unlike ECharts — the settling reads as the
+   * nodes jiggling on every data refresh. Force layout only. See `getGraphForce`.
+   */
+  relationsLayoutAnimation?: boolean;
 
   /**
    * Relations force-layout gravity (Advanced; ECharts `series.graph.force.gravity`),
@@ -560,10 +591,19 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
 
   /**
    * Relations edge arrows (Advanced; ECharts `series.graph.edgeSymbol`). Draws an
-   * arrowhead at the target end, making direction readable. Off by default so the
-   * key is omitted. See `getGraphEdgeSymbol`.
+   * arrowhead at the target end. **On by default**: an edge is directed by contract,
+   * and the arrowhead is the only thing that says so on a force layout, where the
+   * source-to-target gradient cannot be built. See `getGraphEdgeSymbol`.
    */
   relationsEdgeArrows?: boolean;
+
+  /**
+   * Relations edge values (Advanced; ECharts `series.*.edgeLabel`): draw each edge's
+   * weight on the link itself. Off by default — one number per edge is a lot of ink
+   * on anything but a small graph. Graph and sankey only: `ChordEdge` draws no label
+   * element, so the option is hidden there. See `getRelationsEdgeLabel`.
+   */
+  relationsShowEdgeValues?: boolean;
 
   /**
    * Relations link curveness 0–1 (Advanced; ECharts
@@ -574,17 +614,41 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsCurveness?: number;
 
   /**
-   * Relations hover emphasis (Advanced; ECharts `series.graph.emphasis.focus`):
-   * when on, hovering a node fades everything except it and its neighbours
-   * (`'adjacency'`). Off by default so the key is omitted. See `getGraphEmphasis`.
+   * Relations hover emphasis (Default tier; ECharts `series.*.emphasis.focus`):
+   * hovering a node fades everything except it and its neighbours (`'adjacency'`).
+   * **On by default** — reading one node's neighbourhood out of a dense topology is
+   * the main thing a relations panel is hovered for. See `getGraphEmphasis`.
    */
   relationsFocusAdjacency?: boolean;
 
   /**
-   * Relations link color mode (Advanced; ECharts `series.graph.lineStyle.color`
+   * Relations label overlap handling (Default tier; ECharts `series.labelLayout`):
+   * drop a node label that would collide with one already drawn. On by default —
+   * overlapping labels are the first thing that goes wrong on a graph with more than
+   * a handful of nodes. See `getRelationsLabelLayout`.
+   */
+  relationsHideOverlappingLabels?: boolean;
+
+  /**
+   * Relations label overflow (Advanced; ECharts `series.*.label.overflow`): how a
+   * long node name is handled at `relationsLabelWidth`. Defaults to
+   * `RELATIONS_LABEL_OVERFLOW_DEFAULT` (`truncate`); `none` writes no key.
+   * See `getRelationsLabelStyle`.
+   */
+  relationsLabelOverflow?: RelationsLabelOverflow;
+
+  /**
+   * Relations label width in px (Advanced; ECharts `series.*.label.width`) — the
+   * width at which `relationsLabelOverflow` applies. Defaults to
+   * `RELATIONS_LABEL_WIDTH_DEFAULT`. See `getRelationsLabelStyle`.
+   */
+  relationsLabelWidth?: number;
+
+  /**
+   * Relations link color mode (Advanced; ECharts `series.*.lineStyle.color`
    * keywords): inherit the `source` node's color, the `target`'s, or a `gradient`
    * between them. An explicit per-edge `color` field always wins. Unset uses
-   * `RELATIONS_LINK_COLOR_DEFAULT` (`source`). See `getGraphLinkColor`.
+   * `RELATIONS_LINK_COLOR_DEFAULT` (`gradient`). See `resolveRelationsLinkColor`.
    */
   relationsLinkColor?: RelationsLinkColor;
 

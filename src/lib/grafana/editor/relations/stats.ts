@@ -1,10 +1,13 @@
-import { type PanelOptionsEditorBuilder, standardEditorsRegistry } from '@grafana/data';
+import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { RELATIONS_CALC_DEFAULT } from 'lib/echarts/converters/graphWide';
+import { RELATIONS_MAX_CALCS, StatsPickerPair } from 'lib/grafana/editor/relations/StatsPickerPair';
 import { type PanelOptions } from 'types';
 
 /**
- * The mark reducers: `calcs[0]` is a mark's main stat, `calcs[1]` its secondary.
+ * The mark reducers: `calcs[0]` is a mark's main stat, `calcs[1]` its secondary. Both
+ * apply to **nodes and edges alike** — a mark is a mark — which is what the description
+ * promises and what `readNodes` / `readLinks` deliver.
  *
  * Deliberately **not** `addStandardDataReduceOptions`, even though this family now has
  * a `reduceOptions` to fill. That helper also registers "Show: Calculate / All values"
@@ -16,9 +19,10 @@ import { type PanelOptions } from 'types';
  * `reduceOptions.fields` is left out for the same reason: which fields are marks is
  * decided by frame role, not by a matcher.
  *
- * The picker allows more than two selections because the stats picker has no maximum;
- * anything past the second is dropped by `normalizeRelationsCalcs`, which is the same
- * arrangement part-to-whole uses to keep one calc (`normalizePieReduceOptions`).
+ * The picker is `StatsPickerPair` rather than the stock `stats-picker` for one reason:
+ * the stock one has no maximum, so it accepted any number of reducers while a mark has
+ * exactly two stat slots and `normalizeRelationsCalcs` quietly dropped the rest. The
+ * description said two; now the control does too.
  */
 export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   builder.addCustomEditor({
@@ -30,8 +34,8 @@ export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<Panel
       'How each node and edge reduces its values. The first is the main stat, the second the secondary stat'
     ),
     category: [t('stat.add-standard-data-reduce-options.category-value-options', 'Value options')],
-    editor: standardEditorsRegistry.get('stats-picker').editor,
+    editor: StatsPickerPair,
     defaultValue: [RELATIONS_CALC_DEFAULT],
-    settings: { allowMultiple: true },
+    settings: { allowMultiple: true, maxCount: RELATIONS_MAX_CALCS },
   });
 }

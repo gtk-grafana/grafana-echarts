@@ -108,15 +108,16 @@ describe('getChordLinkStyle', () => {
 });
 
 describe('getChordEmphasis', () => {
-  // ECharts defaults a chord to `focus: 'adjacency'`. Omitting the key would leave
-  // adjacency highlighting active while the shared switch reads off, so the control
-  // would be lying — it is pinned to 'none' instead.
-  it('pins focus to none when the switch is off, against the ECharts default', () => {
-    expect(getChordEmphasis(baseOptions())).toEqual({ focus: 'none' });
+  // The family default is adjacency now, which is also ECharts' own chord default, so
+  // the two finally agree out of the box.
+  it('focuses adjacency by default', () => {
+    expect(getChordEmphasis(baseOptions())).toEqual({ focus: 'adjacency' });
   });
 
-  it('focuses adjacency when switched on', () => {
-    expect(getChordEmphasis(baseOptions({ relationsFocusAdjacency: true }))).toEqual({ focus: 'adjacency' });
+  // Still always emitted: omitting it would leave ECharts' adjacency highlighting
+  // active while the switch reads off, and the control would be lying.
+  it('pins focus to none when the switch is off, against the ECharts default', () => {
+    expect(getChordEmphasis(baseOptions({ relationsFocusAdjacency: false }))).toEqual({ focus: 'none' });
   });
 });
 
@@ -205,12 +206,23 @@ describe('getChordSeries', () => {
     expect(nodeItems(series)[0]).not.toHaveProperty('y');
   });
 
-  // Chord has no `draggable`, so only `roam` is emitted.
-  it('emits roam but never draggable', () => {
-    const series = getChordSeries(data(), ctx(baseOptions({ relationsDraggable: true, relationsRoam: true })));
+  // Neither key is emitted. `ChordSeries` declares no `draggable` and no `roam` — it
+  // pins `coordinateSystem: 'none'`, so there is no view to move or scale and the two
+  // switches were writing keys nothing reads. The panel hides them on chord instead.
+  it('emits neither roam nor draggable, which chord does not implement', () => {
+    const series = getChordSeries(data(), ctx(baseOptions({ relationsDraggable: true, relationsPan: true })));
 
-    expect(series.roam).toBe(true);
+    expect(series).not.toHaveProperty('roam');
     expect(series).not.toHaveProperty('draggable');
+  });
+
+  // A ring of small arcs is exactly where labels pile up, and `series.chord` has no
+  // `avoidLabelOverlap` of its own — the shared label-layout stage is the answer.
+  it('hides overlapping labels by default', () => {
+    expect(getChordSeries(data(), ctx()).labelLayout).toEqual({ hideOverlap: true });
+    expect(getChordSeries(data(), ctx(baseOptions({ relationsHideOverlappingLabels: false })))).not.toHaveProperty(
+      'labelLayout'
+    );
   });
 
   // The headline difference from sankey: no DAG restriction, so nothing is rewritten.

@@ -12,9 +12,14 @@ import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient } from 'edito
 import { toSankeyLinks } from 'lib/echarts/converters/dag';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
+  getRelationsEdgeLabel,
+  getRelationsLabelLayout,
+  getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
+  RELATIONS_FOCUS_ADJACENCY_DEFAULT,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
+  resolveRelationsRoam,
   type RelationsSeriesContext,
 } from 'lib/echarts/options/graph';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
@@ -72,9 +77,28 @@ export function getSankeyNodeAlign(options: PanelOptions): RelationsSankeyNodeAl
 }
 
 /**
- * Node label config. On by default. ECharts places a sankey label `right` of the
- * node (unlike the graph variant's `bottom`), which is left alone — only the theme
- * font and color are applied, so labels match the rest of the panel.
+ * Where a sankey node label sits, which **depends on the flow direction** even though
+ * ECharts uses one default (`'right'`) for both.
+ *
+ * `'right'` is correct horizontally: the columns are separated by the ribbon area, so
+ * a label to the right of a node bar has the ribbons behind it and nothing else.
+ * Vertically it is close to unusable, and for a geometric reason rather than a
+ * stylistic one — the node bars now run *along* the row, separated by `nodeGap` (8px
+ * by default), so a label placed to the right of one starts 5px away and is drawn
+ * straight over the **next node's fill**. That is the double failure: the text lands on
+ * a saturated node colour it was never contrast-checked against, and it collides with
+ * that node's own label. `'bottom'` puts it in the ribbon gap below the row instead,
+ * over the translucent ribbons, where `hideOverlap` can also arbitrate between
+ * neighbours.
+ * https://echarts.apache.org/en/option.html#series-sankey.label.position
+ */
+export function getSankeyLabelPosition(options: PanelOptions): 'right' | 'bottom' {
+  return (options.relationsSankeyOrient ?? SANKEY_ORIENT_DEFAULT) === 'vertical' ? 'bottom' : 'right';
+}
+
+/**
+ * Node label config. On by default. Position follows the flow direction — see
+ * `getSankeyLabelPosition`.
  *
  * **`formatter` is a correction, not an option.** `SankeyView` labels a node with
  * `defaultText: node.id` — the *graph key*, i.e. whatever
@@ -93,12 +117,12 @@ export function getSankeyLabel(ctx: RelationsSeriesContext): SankeySeriesOption[
   }
   return {
     show: true,
+    position: getSankeyLabelPosition(ctx.options),
     // With "Show node values" on, the shared formatter emits the name *and* the
     // stat, so it replaces the `'{b}'` correction (it reads `params.name`, which
     // is the same value `'{b}'` resolves to).
     formatter: getRelationsNodeLabelFormatter(ctx) ?? '{b}',
-    color: ctx.theme.colors.text.primary,
-    fontFamily: ctx.theme.typography.fontFamily,
+    ...getRelationsLabelStyle(ctx),
   };
 }
 
@@ -129,12 +153,15 @@ export function getSankeyLinkStyle(options: PanelOptions): NonNullable<SankeySer
 
 /**
  * Hover emphasis. `'adjacency'` fades everything but the hovered node and the
- * ribbons touching it — the same option the graph variant exposes. Off by default,
- * so the key is omitted.
+ * ribbons touching it — the same option the graph variant exposes, and on by default
+ * for the same reason. The key is omitted when switched off, which is ECharts' own
+ * sankey behaviour.
  * https://echarts.apache.org/en/option.html#series-sankey.emphasis
  */
 export function getSankeyEmphasis(options: PanelOptions): SankeySeriesOption['emphasis'] | undefined {
-  return options.relationsFocusAdjacency === true ? { focus: 'adjacency' } : undefined;
+  return (options.relationsFocusAdjacency ?? RELATIONS_FOCUS_ADJACENCY_DEFAULT) === true
+    ? { focus: 'adjacency' }
+    : undefined;
 }
 
 /**
@@ -191,6 +218,9 @@ function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {
     if (link.value != null) {
       item.value = link.value;
     }
+    if (link.secondary != null) {
+      item.secondary = link.secondary;
+    }
     if (link.color != null) {
       item.lineStyle = { color: link.color };
     }
@@ -237,6 +267,8 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
   const orient = getSankeyOrient(ctx.options);
   const nodeAlign = getSankeyNodeAlign(ctx.options);
   const emphasis = getSankeyEmphasis(ctx.options);
+  const edgeLabel = getRelationsEdgeLabel(ctx);
+  const labelLayout = getRelationsLabelLayout(ctx.options);
   const { relationsSankeyNodeWidth, relationsSankeyNodeGap, relationsSankeyLayoutIterations } = ctx.options;
 
   const series: SankeySeriesOption = {
@@ -253,12 +285,14 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
       ? { layoutIterations: relationsSankeyLayoutIterations }
       : {}),
     ...(emphasis ? { emphasis } : {}),
+    ...(edgeLabel ? { edgeLabel } : {}),
+    ...(labelLayout ? { labelLayout } : {}),
     // Both are pinned rather than omitted. ECharts' sankey defaults are
     // `draggable: true` and `roam: false`; the graph variant is static on both
     // counts, so emitting them keeps the two variants behaving alike instead of
     // letting a sankey be dragged apart by default.
     draggable: ctx.options.relationsDraggable === true,
-    roam: ctx.options.relationsRoam === true,
+    roam: resolveRelationsRoam(ctx.options),
     label: getSankeyLabel(ctx),
     lineStyle: getSankeyLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,

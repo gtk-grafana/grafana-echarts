@@ -133,10 +133,19 @@ describe('getSankeyLabel', () => {
     expect(label?.color).toBe(theme.colors.text.primary);
   });
 
-  // ECharts places a sankey label `right` of the node; that is left untouched, unlike
-  // the graph variant which pins `bottom`.
-  it('does not override the ECharts label position', () => {
-    expect(getSankeyLabel(ctx())).not.toHaveProperty('position');
+  // Horizontally, `right` is ECharts' own default and the right answer: the node
+  // columns are separated by the ribbon area, so a label to the right of a bar has
+  // nothing but ribbons behind it.
+  it('keeps the ECharts label position on a horizontal flow', () => {
+    expect(getSankeyLabel(ctx())?.position).toBe('right');
+  });
+
+  // Vertically it is the wrong answer, and geometrically so: the bars now run *along*
+  // the row, `nodeGap` (8px) apart, so a label 5px to the right of one is drawn over
+  // the next node's fill — unreadable against a saturated colour and colliding with
+  // that node's own label. `bottom` puts it in the ribbon gap instead.
+  it('moves the label below the bar on a vertical flow', () => {
+    expect(getSankeyLabel(ctx(baseOptions({ relationsSankeyOrient: 'vertical' })))?.position).toBe('bottom');
   });
 
   // `SankeyView` labels a node with `defaultText: node.id` — the graph key, which the
@@ -197,12 +206,12 @@ describe('getSankeyLinkStyle', () => {
 });
 
 describe('getSankeyEmphasis', () => {
-  it('omits the key when adjacency focus is off', () => {
-    expect(getSankeyEmphasis(baseOptions())).toBeUndefined();
+  it('focuses adjacency by default', () => {
+    expect(getSankeyEmphasis(baseOptions())).toEqual({ focus: 'adjacency' });
   });
 
-  it('focuses adjacency when switched on', () => {
-    expect(getSankeyEmphasis(baseOptions({ relationsFocusAdjacency: true }))).toEqual({ focus: 'adjacency' });
+  it('omits the key when switched off, which is ECharts own sankey behaviour', () => {
+    expect(getSankeyEmphasis(baseOptions({ relationsFocusAdjacency: false }))).toBeUndefined();
   });
 });
 
@@ -246,7 +255,9 @@ describe('getSankeySeries', () => {
     expect(series).not.toHaveProperty('nodeWidth');
     expect(series).not.toHaveProperty('nodeGap');
     expect(series).not.toHaveProperty('layoutIterations');
-    expect(series).not.toHaveProperty('emphasis');
+    // `emphasis` is not in this list: adjacency focus is on by default now, so the key
+    // is emitted — see `getSankeyEmphasis`.
+    expect(series).not.toHaveProperty('edgeLabel');
   });
 
   it('emits geometry keys when overridden', () => {
@@ -275,11 +286,23 @@ describe('getSankeySeries', () => {
     expect(series.roam).toBe(false);
   });
 
+  // `roam` is pan only: zoom is driven by the panel's buttons, so the wheel is never
+  // bound and the dashboard can still be scrolled past the panel.
   it('honors the interaction switches when enabled', () => {
-    const { series } = getSankeySeries(data(), ctx(baseOptions({ relationsDraggable: true, relationsRoam: true })));
+    const { series } = getSankeySeries(data(), ctx(baseOptions({ relationsDraggable: true, relationsPan: true })));
 
     expect(series.draggable).toBe(true);
-    expect(series.roam).toBe(true);
+    expect(series.roam).toBe('move');
+  });
+
+  it('draws the ribbon weight when edge values are switched on', () => {
+    const { series } = getSankeySeries(data(), ctx(baseOptions({ relationsShowEdgeValues: true })));
+
+    expect(series.edgeLabel).toMatchObject({ show: true });
+  });
+
+  it('hides overlapping node labels by default', () => {
+    expect(getSankeySeries(data(), ctx()).series.labelLayout).toEqual({ hideOverlap: true });
   });
 
   // A declared node `value` acts as a floor in ECharts' `computeNodeValues`

@@ -264,6 +264,37 @@ export function resolveGraphWideRoles(
   return { edgesFrames, nodesFrames: findNodesFrames(frames, endpointNames(edgesFrames)) };
 }
 
+/**
+ * Whether **no** node in this response has a stat of its own — so "Show node values"
+ * would add nothing whatever it is switched to.
+ *
+ * Two ways that happens, and both are the same fact: the node was never declared, only
+ * implied by an edge's endpoints. Either no nodes frame reached the panel at all (the
+ * reader invents the whole node set — `deriveNodesFromLinks`), or the pre-pass declared
+ * them as fields above the panel and those fields carry `null` for every row by design
+ * (`converters/deriveNodes.ts` — a degree is not a measurement).
+ *
+ * Answers **false whenever it cannot tell**, which is the important half: this drives an
+ * editor `showIf`, and hiding a working control is worse than showing an inert one. A
+ * response that is not the wide contract at all (the row form, on a host that cannot run
+ * the pre-pass) therefore keeps the control.
+ *
+ * Reads values rather than reducing them: any reducer of an all-null field is null, and
+ * "has a value at all" is the question. Short-circuits on the first one found.
+ */
+export function hasNoNodeStats(frames: DataFrame[] | undefined): boolean {
+  const roles = frames != null && frames.length > 0 ? resolveGraphWideRoles(frames) : null;
+  if (roles == null) {
+    return false;
+  }
+  const nodeFields = roles.nodesFrames.flatMap(numericFields);
+  if (nodeFields.length === 0) {
+    // No declared nodes, but edges to derive them from: every node will be derived.
+    return true;
+  }
+  return !nodeFields.some((field) => field.values.some((value) => value != null));
+}
+
 /** Reduce a mark's values to one of its stats. On instant data every reducer agrees. */
 function reduceValue(field: Field, calc: string): number | null {
   const value: unknown = reduceField({ field, reducers: [calc] })[calc];
@@ -357,7 +388,7 @@ function secondaryOf(field: Field, calc: string | undefined): string | undefined
   return stringFrom(field.labels?.[SECONDARYSTAT_LABEL]);
 }
 
-function readLinks(frame: DataFrame, calc: string): RelationLink[] {
+function readLinks(frame: DataFrame, calc: string, secondaryCalc: string | undefined): RelationLink[] {
   const links: RelationLink[] = [];
 
   for (const field of numericFields(frame)) {
@@ -404,6 +435,14 @@ function readLinks(frame: DataFrame, calc: string): RelationLink[] {
     const curveness = numberFrom(custom.curveness);
     if (curveness != null) {
       link.curveness = curveness;
+    }
+    // The same second reducer the nodes get. `calcs[1]` used to be read for nodes only,
+    // so picking a second calculation on a panel whose marks are edges — an edges-only
+    // response, which is the common shape — produced no second value anywhere and the
+    // option read as broken. See `secondaryOf`.
+    const secondary = secondaryOf(field, secondaryCalc);
+    if (secondary != null) {
+      link.secondary = secondary;
     }
     if (isHiddenFrom(field)) {
       link.hidden = true;
@@ -629,7 +668,7 @@ export function frameToGraphWide(
   // Each mark reduces over its **own** rows, however ragged: every reducer skips nulls,
   // so a raw series and the same series null-padded onto a pivot's shared row grid give
   // the same number. What the pivot does fix is `sourceRowIndex` — see `readLinks`.
-  const perFrame = roles.edgesFrames.map((frame) => readLinks(frame, calc));
+  const perFrame = roles.edgesFrames.map((frame) => readLinks(frame, calc, secondaryCalc));
   const links = perFrame.flat();
   if (links.length === 0) {
     return null;

@@ -8,7 +8,10 @@ import {
 } from 'editor/chord';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
+  getRelationsLabelLayout,
+  getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
+  RELATIONS_FOCUS_ADJACENCY_DEFAULT,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
@@ -70,8 +73,7 @@ export function getChordLabel(ctx: RelationsSeriesContext): ChordSeriesOption['l
     // stat, replacing the `'{b}'` correction below (it reads `params.name`, which
     // is what `'{b}'` resolves to — so the index-labelling bug stays fixed).
     formatter: getRelationsNodeLabelFormatter(ctx) ?? '{b}',
-    color: ctx.theme.colors.text.primary,
-    fontFamily: ctx.theme.typography.fontFamily,
+    ...getRelationsLabelStyle(ctx),
   };
 }
 
@@ -100,16 +102,15 @@ export function getChordLinkStyle(options: PanelOptions): ChordSeriesOption['lin
 /**
  * Hover emphasis — the one chord option that is **always emitted**.
  *
- * ECharts defaults a chord to `emphasis.focus: 'adjacency'`, where `graph` and
- * `sankey` default to no focus. Omitting the key would leave adjacency highlighting
- * active while the shared "Highlight adjacency" switch reads off, so the control would
- * be lying about what the chart does. It is pinned to `'none'` when the switch is off
- * instead, which keeps the family consistent and the control honest — at the cost of
- * an out-of-box chord that differs from ECharts' own examples.
+ * ECharts defaults a chord to `emphasis.focus: 'adjacency'`, and so does the family
+ * now, so the two agree out of the box. The key is still written either way: omitting
+ * it would leave adjacency highlighting active when the switch is turned *off*, and the
+ * control would be lying about what the chart does.
  * https://echarts.apache.org/en/option.html#series-chord.emphasis
  */
 export function getChordEmphasis(options: PanelOptions): NonNullable<ChordSeriesOption['emphasis']> {
-  return { focus: options.relationsFocusAdjacency === true ? 'adjacency' : 'none' };
+  const focus = options.relationsFocusAdjacency ?? RELATIONS_FOCUS_ADJACENCY_DEFAULT;
+  return { focus: focus === true ? 'adjacency' : 'none' };
 }
 
 /**
@@ -160,6 +161,9 @@ function toChordLinkItems(links: RelationLink[]): RelationsLinkItem[] {
     if (link.value != null) {
       item.value = link.value;
     }
+    if (link.secondary != null) {
+      item.secondary = link.secondary;
+    }
     if (link.color != null) {
       item.lineStyle = { color: link.color };
     }
@@ -177,6 +181,10 @@ export function getChordSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
   const { relationsChordStartAngle, relationsChordClockwise, relationsChordPadAngle, relationsChordMinAngle } =
     ctx.options;
   const lineStyle = getChordLinkStyle(ctx.options);
+  // The chord's answer to the pie's `avoidLabelOverlap`: `series.chord` has no such
+  // option, but its labels go through the shared label-layout stage, and a ring of
+  // small arcs is exactly where they pile up. See `getRelationsLabelLayout`.
+  const labelLayout = getRelationsLabelLayout(ctx.options);
 
   // @todo clean this up
   return {
@@ -194,12 +202,10 @@ export function getChordSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
       ? { minAngle: relationsChordMinAngle }
       : {}),
     ...(lineStyle ? { lineStyle } : {}),
+    ...(labelLayout ? { labelLayout } : {}),
     // Always emitted — ECharts' chord default is `'adjacency'`, so omitting would
     // contradict the switch. See `getChordEmphasis`.
     emphasis: getChordEmphasis(ctx.options),
-    // Chord has no `draggable`; `roam` comes from `RoamOptionMixin` and is emitted for
-    // consistency with the other two variants.
-    roam: ctx.options.relationsRoam === true,
     label: getChordLabel(ctx),
     zlevel: ctx.options.zLevel?.series,
     data: toChordNodeItems(data.nodes),

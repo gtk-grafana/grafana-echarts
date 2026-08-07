@@ -16,6 +16,7 @@ import {
   frameToGraphWide,
   GRAPH_EDGES_WIDE,
   GRAPH_NODES_WIDE,
+  hasNoNodeStats,
   isEdgesWideFrame,
   isGraphWideFrames,
   normalizeRelationsCalcs,
@@ -711,6 +712,85 @@ describe('reduceOptions', () => {
     expect(frameToGraphWide(frames, theme, { calcs: ['max'], values: false, fields: '' })!.nodes[0].secondary).toBe(
       '12 req/s'
     );
+  });
+
+  /**
+   * The second reducer applies to **edges too**, which it did not: `readLinks` took only
+   * `calcs[0]`, so on the common shape — an edges-only response, where every mark is an
+   * edge — picking a second calculation produced no second value anywhere and the
+   * option read as broken. A mark is a mark; both kinds reduce the same way.
+   */
+  it('reduces an edge secondary stat with calcs[1]', () => {
+    const rangedEdges = toDataFrame({
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [
+        {
+          name: 'e1',
+          type: FieldType.number,
+          config: { unit: 'ms' },
+          labels: { source: 'a', target: 'b' },
+          values: [1, 5, 9],
+        },
+      ],
+    });
+    const data = frameToGraphWide([withDisplay(rangedEdges)], theme, {
+      calcs: ['max', 'min'],
+      values: false,
+      fields: '',
+    })!;
+
+    expect(data.links[0].value).toBe(9);
+    // Formatted through the edge's own display processor, as a node's is.
+    expect(data.links[0].secondary).toBe('1 ms');
+  });
+
+  it('leaves an edge secondary unset when only one calc is chosen', () => {
+    const data = frameToGraphWide([labelledEdges()], theme, { calcs: ['max'], values: false, fields: '' })!;
+
+    expect(data.links[0].secondary).toBeUndefined();
+  });
+});
+
+/**
+ * The predicate behind "Show node values"'s visibility: on an edges-only response every
+ * node is derived from an endpoint and carries no stat, so the switch would be a control
+ * that visibly does nothing. See `hasNoNodeStats`.
+ */
+describe('hasNoNodeStats', () => {
+  it('is true when no nodes frame reached the panel at all', () => {
+    expect(hasNoNodeStats([labelledEdges()])).toBe(true);
+  });
+
+  it('is true when the derived-node pre-pass declared them with null values', () => {
+    const derived = toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [
+        { name: 'a', type: FieldType.number, values: [null] },
+        { name: 'b', type: FieldType.number, values: [null] },
+      ],
+    });
+
+    expect(hasNoNodeStats([labelledEdges(), derived])).toBe(true);
+  });
+
+  it('is false as soon as one node carries a value', () => {
+    const mixed = toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [
+        { name: 'a', type: FieldType.number, values: [null] },
+        { name: 'b', type: FieldType.number, values: [7] },
+      ],
+    });
+
+    expect(hasNoNodeStats([labelledEdges(), mixed])).toBe(false);
+  });
+
+  // The important half: it answers false whenever it cannot tell, because hiding a
+  // working control is worse than showing an inert one.
+  it('is false for frames that are not the wide contract, and for no frames', () => {
+    expect(hasNoNodeStats([])).toBe(false);
+    expect(hasNoNodeStats(undefined)).toBe(false);
+    expect(hasNoNodeStats([toDataFrame({ fields: [{ name: 'x', type: FieldType.number, values: [1] }] })])).toBe(false);
   });
 });
 

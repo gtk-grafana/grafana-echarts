@@ -248,6 +248,13 @@ export interface RelationsLinkItem {
    */
   markId?: string;
   value?: number;
+  /**
+   * The edge's secondary stat (`reduceOptions.calcs[1]`), tooltip only — the same slot
+   * {@link RelationsNodeItem.secondary} fills for a node, so one "Calculation" setting
+   * means the same thing on both kinds of mark. Already a display string when it came
+   * from a reducer; see `secondaryOf`.
+   */
+  secondary?: number | string;
   lineStyle?: {
     /**
      * A colour, or a gradient between the two endpoints' colours. The gradient form

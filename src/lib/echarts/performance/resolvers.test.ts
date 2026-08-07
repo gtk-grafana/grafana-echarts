@@ -291,4 +291,27 @@ describe('resolveAnimation', () => {
     expect(getSeriesDensity([timeFrame(500, 20)]).totalPoints).toBe(10_000);
     expect(resolveAnimation(options({ animation: { enabled: true } }))).toBe(true);
   });
+
+  /**
+   * The relations family is the one exception, because the density argument does not
+   * reach it: a mark there is a whole *field*, so the panel is tens of marks rather
+   * than tens of thousands of points. See `RELATIONS_ANIMATION_ENABLED_DEFAULT`.
+   */
+  describe('the relations family default', () => {
+    it('is on for each of the three render variants', () => {
+      expect(resolveAnimation(options(), 'graph')).toBe(true);
+      expect(resolveAnimation(options(), 'sankey')).toBe(true);
+      expect(resolveAnimation(options(), 'chord')).toBe(true);
+    });
+
+    it('is still off for another family, and when the caller does not say', () => {
+      expect(resolveAnimation(options(), 'line')).toBe(false);
+      expect(resolveAnimation(options())).toBe(false);
+    });
+
+    it('yields to an explicit switch in both directions', () => {
+      expect(resolveAnimation(options({ animation: { enabled: false } }), 'graph')).toBe(false);
+      expect(resolveAnimation(options({ animation: { enabled: true } }), 'line')).toBe(true);
+    });
+  });
 });

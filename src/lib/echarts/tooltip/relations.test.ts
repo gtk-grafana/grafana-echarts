@@ -252,6 +252,28 @@ describe('buildRelationsTooltipModel', () => {
 
       expect(model(nodeParams({ id: 'db', name: 'db', value: 0.42 })).rows[0].color).toBe('#ffffff');
     });
+
+    /**
+     * An **edge** reports its secondary stat too, which it did not: `calcs[1]` was read
+     * for nodes only, so on an edges-only response — the common shape — choosing a
+     * second calculation produced no second value anywhere. See `readLinks`.
+     */
+    it('adds a secondary row to an edge that carries one', () => {
+      const model = modelFor([wideNodes(), wideEdges()]);
+
+      const link = model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5, secondary: '1.0 s' }));
+
+      expect(link.rows.map((row) => [row.label, row.value])).toEqual([
+        ['Value', '3.50 s'],
+        ['Secondary', '1.0 s'],
+      ]);
+    });
+
+    it('leaves an edge with no secondary at one row', () => {
+      const model = modelFor([wideNodes(), wideEdges()]);
+
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).rows).toHaveLength(1);
+    });
   });
 });
 
