@@ -653,6 +653,22 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsLinkColor?: RelationsLinkColor;
 
   /**
+   * Label key an edge's **source** endpoint is offered under in the pinned tooltip's
+   * "Filter for" / "Filter out" buttons (Advanced). Unset uses the contract's own
+   * `source`, which is what the frame carries.
+   *
+   * Exists because the frame's endpoint labels are a topology carrier rather than
+   * necessarily a datasource dimension: `sum by (source, target) (label_replace(…))`
+   * leaves the frame labelled `source` while the metric is still labelled `client`,
+   * so an ad-hoc filter built from the frame matches nothing. See
+   * `relationsFilterLabels`.
+   */
+  relationsSourceFilterLabel?: string;
+
+  /** As {@link relationsSourceFilterLabel}, for the **target** endpoint. */
+  relationsTargetFilterLabel?: string;
+
+  /**
    * Sankey flow direction (ECharts `series.sankey.orient`): node columns run
    * left-to-right (`horizontal`) or top-to-bottom (`vertical`). Default-tier;
    * omitted at the horizontal default. See `getSankeyOrient`.

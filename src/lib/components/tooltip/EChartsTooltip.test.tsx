@@ -92,6 +92,57 @@ describe('EChartsTooltip', () => {
     expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'host', value: 'web1', operator: '=' });
   });
 
+  /**
+   * **The reported gap**: the footer only ever offered positive filters.
+   *
+   * `VizTooltipFooter` labels every `adHocFilters` entry "Filter for '<value>'"
+   * regardless of its operator, so a `!=` cannot go through that list — core's
+   * `filterByGroupedLabels` pair is where a negative belongs. See
+   * `groupedLabelFilters`.
+   */
+  it('offers a filter-out button that negates every pair at once', () => {
+    const onAddAdHocFilter = jest.fn();
+    const filters = [
+      { key: 'source', value: 'gateway' },
+      { key: 'target', value: 'db' },
+    ];
+
+    renderTooltip(state({ model: model({ filters }), pinned: true }), { onAddAdHocFilter });
+
+    fireEvent.click(screen.getByRole('button', { name: /Filter out this value/i }));
+    expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'source', value: 'gateway', operator: '!=' });
+    expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'target', value: 'db', operator: '!=' });
+  });
+
+  it('offers a filter-for button covering the whole mark', () => {
+    const onAddAdHocFilter = jest.fn();
+    const filters = [
+      { key: 'source', value: 'gateway' },
+      { key: 'target', value: 'db' },
+    ];
+
+    renderTooltip(state({ model: model({ filters }), pinned: true }), { onAddAdHocFilter });
+
+    fireEvent.click(screen.getByRole('button', { name: /Filter on this value/i }));
+    expect(onAddAdHocFilter).toHaveBeenNthCalledWith(1, { key: 'source', value: 'gateway', operator: '=' });
+    expect(onAddAdHocFilter).toHaveBeenNthCalledWith(2, { key: 'target', value: 'db', operator: '=' });
+  });
+
+  // A model that states its own filters replaces the label walk: relations nodes carry
+  // their identity in `field.name`, so deriving from labels as well would offer nothing
+  // useful and, on an edge, would re-offer the endpoints under the unmapped keys.
+  it('prefers the model’s own filters over the source field’s labels', () => {
+    const onAddAdHocFilter = jest.fn();
+    const source = { field: fieldWithLabels(), rowIndex: 0 };
+    const filters = [{ key: 'client', value: 'gateway' }];
+
+    renderTooltip(state({ model: model({ source, filters }), pinned: true }), { onAddAdHocFilter });
+
+    expect(screen.queryByRole('button', { name: /Filter for 'web1'/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Filter for 'gateway'/i }));
+    expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'client', value: 'gateway', operator: '=' });
+  });
+
   it('resolves the footer from the clicked row in multi-row (All) tooltips', () => {
     const source = { field: fieldWithLinks(), rowIndex: 0 };
     const multiModel = model({

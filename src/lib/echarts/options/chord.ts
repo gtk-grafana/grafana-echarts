@@ -225,6 +225,6 @@ export function getChordSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     zlevel: ctx.options.zLevel?.series,
     data: toChordNodeItems(data.nodes),
     links: toChordLinkItems(data.links),
-    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options.reduceOptions), ctx.tooltipSink),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options), ctx.tooltipSink),
   };
 }

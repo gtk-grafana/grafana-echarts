@@ -150,6 +150,8 @@ export const ADVANCED_RELATIONS_DEFAULTS: Partial<PanelOptions> = {
   relationsLabelOverflow: undefined,
   relationsLabelWidth: undefined,
   relationsLinkColor: undefined,
+  relationsSourceFilterLabel: undefined,
+  relationsTargetFilterLabel: undefined,
 };
 
 /** The chart context plus the per-mark lookup the tooltip and node labels read. */
@@ -806,6 +808,6 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
     zlevel: ctx.options.zLevel?.series,
     data: toNodeItems(data, ctx, positions),
     links: toLinkItems(data.links, nodeColors, mode, resolveGradient),
-    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options.reduceOptions), ctx.tooltipSink),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options), ctx.tooltipSink),
   };
 }

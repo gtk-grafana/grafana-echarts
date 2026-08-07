@@ -42,14 +42,14 @@
       "type": "text",
       "title": "The variables",
       "gridPos": {
-        "h": 6,
+        "h": 11,
         "w": 24,
         "x": 0,
         "y": 18
       },
       "options": {
         "mode": "markdown",
-        "content": "### The variables\n\nAll of them are multi-select with `All` = `.*`, so every matcher in every query is `=~`,\nnever `=`. Prometheus interpolates a multi variable as a regex group \u2014 `(a|b)` \u2014 even\nwhen one option is selected, which is exactly why `=` would silently match nothing.\n\n| variable | source | notes |\n| --- | --- | --- |\n| `$prom` | datasource picker, `prometheus` | committed pointing at `ops-cortex-dev` |\n| `$cluster` | `label_values(traces_service_graph_request_total, client_k8s_cluster_name)` | |\n| `$namespace` | `label_values(\u2026{client_k8s_cluster_name=~\"$cluster\"}, client_k8s_namespace_name)` | chained on `$cluster` |\n| `$client` | `label_values(\u2026{cluster, namespace}, client)` | chained on both |\n| `$server` | `label_values(\u2026{cluster, namespace}, server)` | chained on both |\n| `$connection` | `label_values(\u2026, connection_type)` | `database`, `messaging_system`, `virtual_node` |\n| `$topk` | custom | edge budget per panel |\n\nThe service graph carries cluster and namespace **twice**, once per end\n(`client_k8s_*` and `server_k8s_*`), so which end a panel filters on is a real choice:\n\n- the dependency maps (1, 4, 8) scope the **client** side \u2014 \"traffic originating in this\n  selection, wherever it goes\";\n- the chords (3, 7) scope **both** ends, which is what keeps the matrix square;\n- the cluster \u2192 namespace \u2192 service sankey (6) scopes the **server** side, since that is\n  the hierarchy it draws.\n\n`$client`/`$server` do not apply to the Kafka graph, where both ends are already pinned.\n\nOne consequence worth knowing: the service-graph processor emits **virtual nodes** for\nexternal dependencies \u2014 `kafka`, `mysql` and friends come back with\n`connection_type=\"virtual_node\"` and **no** `server_k8s_*` labels at all. So any panel\nscoped on the server side (6) excludes them by construction, and selecting one as\n`$server` empties that panel while the client-scoped panels still draw it. That is the\ndata being honest, not a broken panel."
+        "content": "### The variables\n\nAll of them are multi-select with `All` = `.*`, so every matcher in every query is `=~`,\nnever `=`. Prometheus interpolates a multi variable as a regex group \u2014 `(a|b)` \u2014 even\nwhen one option is selected, which is exactly why `=` would silently match nothing.\n\n| variable | source | notes |\n| --- | --- | --- |\n| `$prom` | datasource picker, `prometheus` | committed pointing at `ops-cortex-dev` |\n| `$cluster` | `label_values(traces_service_graph_request_total, client_k8s_cluster_name)` | |\n| `$namespace` | `label_values(\u2026{client_k8s_cluster_name=~\"$cluster\"}, client_k8s_namespace_name)` | chained on `$cluster` |\n| `$client` | `label_values(\u2026{cluster, namespace}, client)` | chained on both |\n| `$server` | `label_values(\u2026{cluster, namespace}, server)` | chained on both |\n| `$connection` | `label_values(\u2026, connection_type)` | `database`, `messaging_system`, `virtual_node` |\n| `$topk` | custom | edge budget per panel |\n\nThe service graph carries cluster and namespace **twice**, once per end\n(`client_k8s_*` and `server_k8s_*`), so which end a panel filters on is a real choice:\n\n- the dependency maps (1, 4, 8) scope the **client** side \u2014 \"traffic originating in this\n  selection, wherever it goes\";\n- the chords (3, 7) scope **both** ends, which is what keeps the matrix square;\n- the cluster \u2192 namespace \u2192 service sankey (6) scopes the **server** side, since that is\n  the hierarchy it draws.\n\n`$client`/`$server` do not apply to the Kafka graph, where both ends are already pinned.\n\nOne consequence worth knowing: the service-graph processor emits **virtual nodes** for\nexternal dependencies \u2014 `kafka`, `mysql` and friends come back with\n`connection_type=\"virtual_node\"` and **no** `server_k8s_*` labels at all. So any panel\nscoped on the server side (6) excludes them by construction, and selecting one as\n`$server` empties that panel while the client-scoped panels still draw it. That is the\ndata being honest, not a broken panel.\n\n### Ad hoc filters\n\nPin a tooltip (click a node or a link) and the footer offers **Filter for**, **Filter on this value** and **Filter out this value**. They write into the `$filters` ad-hoc variable above, which Prometheus injects into every query's metric selector.\n\nThat injection is why the endpoints need mapping. The frame is labelled `source`/`target` because `sum by (source, target)` said so, but `traces_service_graph_request_total` has no such label \u2014 `source=\"web-api\"` would be added to the selector and match nothing. Each panel therefore sets **Source/target filter label** (Advanced) to the label the *metric* carries: `client`/`server` for the service-graph panels, `client_k8s_cluster_name`/`server_k8s_cluster_name` for the cross-cluster chord.\n\nPanels 2 and 6 leave it unset, and that is the honest answer rather than an omission: both are `or`-joined multi-level flows whose two halves relabel from *different* sources (`cluster`\u2192`namespace`, then `namespace`\u2192`workload`), so no single label is \"the source\" for the panel. Their tooltips fall back to the frame's own keys."
       },
       "transparent": true
     },
@@ -61,7 +61,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 29
       },
       "options": {
         "mode": "markdown",
@@ -82,7 +82,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 32
       },
       "fieldConfig": {
         "defaults": {
@@ -114,7 +114,9 @@
         "relationsLinkColor": "source",
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        }
+        },
+        "relationsSourceFilterLabel": "client",
+        "relationsTargetFilterLabel": "server"
       },
       "targets": [
         {
@@ -147,7 +149,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 32
       },
       "fieldConfig": {
         "defaults": {
@@ -213,7 +215,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 39
+        "y": 44
       },
       "fieldConfig": {
         "defaults": {
@@ -243,7 +245,9 @@
         "relationsLinkColor": "source",
         "reduceOptions": {
           "calcs": ["mean"]
-        }
+        },
+        "relationsSourceFilterLabel": "client",
+        "relationsTargetFilterLabel": "server"
       },
       "targets": [
         {
@@ -276,7 +280,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 39
+        "y": 44
       },
       "fieldConfig": {
         "defaults": {
@@ -348,7 +352,9 @@
         "relationsLinkColor": "target",
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        }
+        },
+        "relationsSourceFilterLabel": "client",
+        "relationsTargetFilterLabel": "server"
       },
       "targets": [
         {
@@ -411,7 +417,7 @@
         "h": 13,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 56
       },
       "options": {
         "mode": "markdown",
@@ -432,7 +438,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 64
+        "y": 69
       },
       "fieldConfig": {
         "defaults": {
@@ -464,7 +470,9 @@
         "relationsLinkColor": "source",
         "reduceOptions": {
           "calcs": ["max"]
-        }
+        },
+        "relationsSourceFilterLabel": "client",
+        "relationsTargetFilterLabel": "server"
       },
       "targets": [
         {
@@ -497,7 +505,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 64
+        "y": 69
       },
       "fieldConfig": {
         "defaults": {
@@ -563,7 +571,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 76
+        "y": 81
       },
       "fieldConfig": {
         "defaults": {
@@ -593,7 +601,9 @@
         "relationsLinkColor": "source",
         "reduceOptions": {
           "calcs": ["mean"]
-        }
+        },
+        "relationsSourceFilterLabel": "client_k8s_cluster_name",
+        "relationsTargetFilterLabel": "server_k8s_cluster_name"
       },
       "targets": [
         {
@@ -626,7 +636,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 76
+        "y": 81
       },
       "fieldConfig": {
         "defaults": {
@@ -675,7 +685,9 @@
         "relationsLinkColor": "source",
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        }
+        },
+        "relationsSourceFilterLabel": "client",
+        "relationsTargetFilterLabel": "server"
       },
       "targets": [
         {
@@ -701,6 +713,17 @@
   "tags": ["echarts", "relations", "prometheus", "live-data", "no-transformations"],
   "templating": {
     "list": [
+      {
+        "name": "filters",
+        "label": "Ad hoc filters",
+        "type": "adhoc",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${prom}"
+        },
+        "filters": [],
+        "hide": 0
+      },
       {
         "name": "prom",
         "label": "Prometheus",

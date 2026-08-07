@@ -9,6 +9,7 @@ import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-
 import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsCustomConfig } from 'lib/grafana/editor/relations/fieldConfig';
+import { addRelationsFilterOptions } from 'lib/grafana/editor/relations/filters';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
@@ -82,10 +83,13 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
     // Chord-only ring geometry, all Advanced (gated on `isChordVariant` internally).
     addRelationsChordOptions(builder);
 
-    // Advanced tier: interaction, force tuning, link styling.
+    // Advanced tier: interaction, force tuning, link styling, and the one option
+    // about the *query* rather than the chart — which label an endpoint is filtered
+    // on. See `addRelationsFilterOptions`.
     addRelationsInteractionOptions(builder);
     addRelationsForceOptions(builder);
     addRelationsLinkOptions(builder);
+    addRelationsFilterOptions(builder);
 
     // The family has no per-point fast path, so it registers an animation switch
     // directly rather than the cartesian `addPerformanceOptions` bundle — its own

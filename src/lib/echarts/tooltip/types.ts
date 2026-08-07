@@ -58,6 +58,32 @@ export interface TooltipModel {
    * hierarchy nodes), which render no footer.
    */
   source?: TooltipSource;
+  /**
+   * Ad-hoc filters the pinned footer should offer, when the hovered item's own
+   * `field.labels` are **not** the right answer.
+   *
+   * Set only by relations, and for two reasons the generic derivation cannot cover.
+   * A **node** carries its identity in `field.name` rather than in labels, and a node
+   * derived from an edge's endpoints has no field at all, so a label walk finds
+   * nothing to offer on the very marks a topology is filtered by. And an **edge**'s
+   * endpoint labels are the contract's canonical `source`/`target`, which are a
+   * topology carrier rather than necessarily a dimension the datasource knows —
+   * `relationsSourceFilterLabel` maps them back. See `relationsFiltersFor`.
+   *
+   * When set it replaces the label walk rather than adding to it; every other family
+   * leaves it unset and the overlay keeps deriving from {@link TooltipSource}.
+   */
+  filters?: TooltipAdHocFilter[];
+}
+
+/**
+ * A label/value pair a pinned tooltip offers as an ad-hoc filter. Deliberately not
+ * `@grafana/ui`'s `AdHocFilterModel`, which carries an `onClick` — the ECharts layer
+ * states the pair and the React overlay wires the panel context to it.
+ */
+export interface TooltipAdHocFilter {
+  key: string;
+  value: string;
 }
 
 /**

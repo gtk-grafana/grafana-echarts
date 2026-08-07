@@ -1,9 +1,10 @@
-import { createTheme, type DataFrame, FieldType, type ReduceDataOptions, toDataFrame } from '@grafana/data';
+import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
 import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
 import { buildRelationsTooltipModel, getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
 import { type RelationsLinkItem, type RelationsNodeItem, type TooltipModel } from 'lib/echarts/tooltip/types';
+import { type PanelOptions } from 'types';
 
 // The reader warns when collected marks share a `field.name`, which the fixtures below do
 // deliberately. Mocked so the decision is testable in `graphWide.test.ts` and silent here.
@@ -58,15 +59,23 @@ const wideEdges = (): DataFrame =>
     ],
   });
 
+/** Only the keys the tooltip model reads; the rest of `PanelOptions` is irrelevant here. */
+const options = (extra: Partial<PanelOptions> = {}): PanelOptions =>
+  ({
+    legend: { showLegend: true, displayMode: 'list', placement: 'bottom', calcs: [] },
+    tooltip: { mode: 'single' },
+    ...extra,
+  }) as PanelOptions;
+
 const modelFor = (
   frames: DataFrame[],
-  reduceOptions?: ReduceDataOptions
+  panelOptions: PanelOptions = options()
 ): ((params: TopLevelFormatterParams) => TooltipModel) => {
-  const data = frameToRelationsGraph(frames, theme, reduceOptions);
+  const data = frameToRelationsGraph(frames, theme, panelOptions.reduceOptions);
   if (!data) {
     throw new Error('fixture produced no graph');
   }
-  return buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'), reduceOptions);
+  return buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'), panelOptions);
 };
 
 /** A hovered node, as the graph variant emits it. */
@@ -288,7 +297,7 @@ describe('buildRelationsTooltipModel', () => {
    * say — a panel reduced by mean and min should read `Mean` and `Min`.
    */
   describe('stat row labels', () => {
-    const meanAndMin: ReduceDataOptions = { calcs: ['mean', 'min'] };
+    const meanAndMin = options({ reduceOptions: { calcs: ['mean', 'min'] } });
 
     it('names each node row after the reducer that produced it', () => {
       const model = modelFor([wideNodes(), wideEdges()], meanAndMin);
@@ -318,7 +327,7 @@ describe('buildRelationsTooltipModel', () => {
     // it is the `secondarystat` label the row-form conversion carries, and there is no
     // calculation to name. See `secondaryOf`.
     it('keeps the generic label for a secondarystat with no reducer behind it', () => {
-      const model = modelFor([wideNodes(), wideEdges()], { calcs: ['mean'] });
+      const model = modelFor([wideNodes(), wideEdges()], options({ reduceOptions: { calcs: ['mean'] } }));
 
       const node = model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondary: '3 errors' }));
 
@@ -328,9 +337,120 @@ describe('buildRelationsTooltipModel', () => {
     // A reducer the registry does not know still names its row, rather than falling back
     // to a word that says less than the raw id does.
     it('falls back to the raw reducer id', () => {
-      const model = modelFor([wideNodes(), wideEdges()], { calcs: ['notAReducer'] });
+      const model = modelFor([wideNodes(), wideEdges()], options({ reduceOptions: { calcs: ['notAReducer'] } }));
 
       expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('notAReducer');
+    });
+  });
+
+  /**
+   * **The reported bug**, in two halves: a hovered *node* offered no ad-hoc filter at
+   * all, and an edge's endpoint filters were written under the contract's own
+   * `source`/`target` keys, which a datasource that never emitted them cannot match.
+   */
+  describe('ad-hoc filters', () => {
+    /** An edges frame whose marks carry a real datasource label beside the endpoints. */
+    const labelledEdges = (): DataFrame =>
+      toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'db', connection_type: 'database' },
+            values: [3.5],
+          },
+        ],
+      });
+
+    it('offers both endpoints of a hovered edge', () => {
+      const model = modelFor([wideNodes(), wideEdges()]);
+
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters).toEqual([
+        { key: 'source', value: 'gateway' },
+        { key: 'target', value: 'db' },
+      ]);
+    });
+
+    // The half that always worked: a label that is not an endpoint is a real datasource
+    // dimension and passes through under its own name.
+    it('keeps an edge’s non-endpoint labels', () => {
+      const model = modelFor([labelledEdges()]);
+
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters).toEqual([
+        { key: 'source', value: 'gateway' },
+        { key: 'target', value: 'db' },
+        { key: 'connection_type', value: 'database' },
+      ]);
+    });
+
+    // A node's identity is its `field.name`, not a label, so walking `field.labels` —
+    // the generic derivation every other family uses — found nothing to offer.
+    it('offers a hovered node as either end of an edge', () => {
+      const model = modelFor([wideNodes(), wideEdges()]);
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).filters).toEqual([
+        { key: 'source', value: 'gateway' },
+        { key: 'target', value: 'gateway' },
+      ]);
+    });
+
+    // The case with no field at all — on a host that cannot run the pre-pass, every
+    // node is this. The filters come off the item, so they survive it.
+    it('offers filters for a derived node that has no field', () => {
+      const model = modelFor([wideEdges()]);
+
+      const node = model(nodeParams({ id: 'gateway', name: 'gateway' }));
+
+      expect(node.source).toBeUndefined();
+      expect(node.filters).toEqual([
+        { key: 'source', value: 'gateway' },
+        { key: 'target', value: 'gateway' },
+      ]);
+    });
+
+    /**
+     * The mapping. `sum by (source, target) (label_replace(…, "source", "$1", "client",
+     * "(.*)"))` leaves the frame labelled `source` while the metric is still labelled
+     * `client`, so the frame's own key filters on nothing.
+     */
+    it('writes the endpoints under the configured datasource labels', () => {
+      const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
+      const model = modelFor([labelledEdges()], mapped);
+
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters).toEqual([
+        { key: 'client', value: 'gateway' },
+        { key: 'server', value: 'db' },
+        // Renamed on the field's labels too, so the endpoint is not offered twice
+        // under two different keys.
+        { key: 'connection_type', value: 'database' },
+      ]);
+    });
+
+    it('maps a node’s endpoints as well', () => {
+      const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
+
+      expect(modelFor([wideEdges()], mapped)(nodeParams({ id: 'gateway', name: 'gateway' })).filters).toEqual([
+        { key: 'client', value: 'gateway' },
+        { key: 'server', value: 'gateway' },
+      ]);
+    });
+
+    // With one key mapped onto the other, a self-loop's two endpoints collapse to one
+    // pair — one button rather than two identical ones.
+    it('dedupes two endpoints that resolve to the same filter', () => {
+      const selfLoop = toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'gateway', target: 'gateway' }, values: [1] }],
+      });
+      const mapped = options({ relationsSourceFilterLabel: 'svc', relationsTargetFilterLabel: 'svc' });
+      const model = modelFor([selfLoop], mapped);
+
+      expect(model(linkParams({ source: 'gateway', target: 'gateway', markId: 'e1', value: 1 })).filters).toEqual([
+        { key: 'svc', value: 'gateway' },
+      ]);
     });
   });
 });
