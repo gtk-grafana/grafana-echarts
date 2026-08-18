@@ -11,7 +11,13 @@ import { lastValueFrom, of } from 'rxjs';
 
 import { deriveNodes, deriveNodesOperator } from 'lib/echarts/converters/deriveNodes';
 import { applyTestFieldConfig } from 'test/fieldConfig';
-import { frameToGraphWide, GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE, resolveGraphWideRoles } from './graphWide';
+import {
+  frameToGraphWide,
+  GRAPH_EDGES_WIDE,
+  GRAPH_NODES_WIDE,
+  isDerivedNodesFrame,
+  resolveGraphWideRoles,
+} from './graphWide';
 import { longToWide } from './longToWide';
 
 const theme = createTheme();
@@ -38,6 +44,20 @@ const longEdge = (source: string, target: string): DataFrame =>
   });
 
 const fieldNames = (frame: DataFrame): string[] => frame.fields.map((field) => field.name);
+
+/** A `byName` override carrying one standard and one custom property. */
+const byName = (name: string): FieldConfigSource => ({
+  defaults: {},
+  overrides: [
+    {
+      matcher: { id: FieldMatcherID.byName, options: name },
+      properties: [
+        { id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: 'red' } },
+        { id: 'custom.nodeRadius', value: 40 },
+      ],
+    },
+  ],
+});
 
 describe('deriveNodes', () => {
   it('declares every endpoint an edges-only response only implied', () => {
@@ -149,6 +169,77 @@ describe('deriveNodes', () => {
     expect(nodes.meta?.type).toBe(GRAPH_NODES_WIDE);
     expect(fieldNames(nodes)).toEqual(['a', 'b', 'c']);
   });
+
+  it('marks a frame it mints, and only that one, as a placeholder', () => {
+    const declared = toDataFrame({
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [{ name: 'a', type: FieldType.number, values: [5] }],
+    });
+
+    expect(isDerivedNodesFrame(deriveNodes([wideEdges()])[0])).toBe(true);
+    expect(isDerivedNodesFrame(deriveNodes([declared, wideEdges()])[0])).toBe(false);
+  });
+});
+
+/**
+ * The pre-pass runs at the *head* of the pipeline, so "the response declares no nodes" can
+ * mean "not yet": the node-stat route builds its nodes frame in the user's own
+ * transformations, downstream of here (`instant + organize + rowsToFields`, measured on
+ * `echarts-relations-devcortex-wide` panel 6). The frame the pre-pass mints then meets the
+ * real one at the reader, and a declared frame beats a shape-matched one by contract — so
+ * before {@link GRAPH_META_DERIVED_NODES} every real node stat was replaced by a placeholder
+ * holding `null`, and a value-based colour mode painted every node the base threshold.
+ */
+describe('a placeholder frame meeting the real nodes frame downstream', () => {
+  /** What `organize` + `rowsToFields` leaves behind: one row per node, no `meta.type`. */
+  const nodeStats = (): DataFrame =>
+    toDataFrame({
+      refId: 'rowsToFields-B',
+      fields: [
+        { name: 'a', type: FieldType.number, config: { unit: 'percentunit' }, values: [0.02] },
+        { name: 'b', type: FieldType.number, config: { unit: 'percentunit' }, values: [0.07] },
+      ],
+    });
+
+  /** The response as the reader sees it: pre-pass output, then the user's transformations. */
+  const asRendered = (): DataFrame[] => [...deriveNodes([wideEdges()]), nodeStats()];
+
+  it('collects the real frame instead of letting the placeholder filter it out', () => {
+    const roles = resolveGraphWideRoles(asRendered())!;
+
+    expect(roles.nodesFrames.map((frame) => frame.refId)).toEqual(['A', 'rowsToFields-B']);
+    expect(roles.nodesFrames.map(isDerivedNodesFrame)).toEqual([true, false]);
+  });
+
+  it('reads each node’s stat from the real field, not the placeholder', () => {
+    const graph = frameToGraphWide(applyTestFieldConfig(asRendered(), { defaults: {}, overrides: [] }, theme), theme)!;
+
+    expect(graph.nodes.map(({ id, value }) => [id, value])).toEqual([
+      ['a', 0.02],
+      ['b', 0.07],
+      ['c', null],
+    ]);
+  });
+
+  /**
+   * Order is the placeholder's, i.e. the endpoint order — so the palette colours do not
+   * depend on where in the response the real frame ended up.
+   */
+  it('keeps the endpoint order even though the real frame arrives last', () => {
+    const graph = frameToGraphWide(applyTestFieldConfig(asRendered(), { defaults: {}, overrides: [] }, theme), theme)!;
+
+    expect(graph.nodes.map(({ id }) => id)).toEqual(['a', 'b', 'c']);
+  });
+
+  /** An endpoint the real frame does not declare still gets its placeholder field. */
+  it('still declares the endpoints the real frame left out', () => {
+    const frames = applyTestFieldConfig(asRendered(), byName('c'), theme);
+
+    const node = frameToGraphWide(frames, theme)!.nodes.find(({ id }) => id === 'c')!;
+
+    expect(node.color).toBe(theme.visualization.getColorByName('red'));
+    expect(node.radius).toBe(40);
+  });
 });
 
 describe('deriveNodes and the reader agree', () => {
@@ -203,19 +294,6 @@ describe('deriveNodes and the reader agree', () => {
  * ordinary `byName` override target once it has been declared above the panel.
  */
 describe('a derived node under applyFieldOverrides', () => {
-  const byName = (name: string): FieldConfigSource => ({
-    defaults: {},
-    overrides: [
-      {
-        matcher: { id: FieldMatcherID.byName, options: name },
-        properties: [
-          { id: 'color', value: { mode: FieldColorModeId.Fixed, fixedColor: 'red' } },
-          { id: 'custom.nodeRadius', value: 40 },
-        ],
-      },
-    ],
-  });
-
   it('takes a byName colour and per-mark config, like any other mark', () => {
     const frames = applyTestFieldConfig(deriveNodes([wideEdges()]), byName('b'), theme);
 

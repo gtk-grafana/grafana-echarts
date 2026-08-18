@@ -3,7 +3,12 @@
 // taken from the host.
 import { type CustomTransformOperator, type DataFrame, type Field, FieldType } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
-import { endpointNames, resolveGraphWideRoles } from 'lib/echarts/converters/graphWide';
+import {
+  endpointNames,
+  GRAPH_META_CUSTOM,
+  GRAPH_META_DERIVED_NODES,
+  resolveGraphWideRoles,
+} from 'lib/echarts/converters/graphWide';
 import { nodesWideFrame } from 'lib/echarts/converters/toGraphWide';
 import { type RelationsFamilyField } from 'lib/grafana/fields/fieldTypes';
 import { map } from 'rxjs';
@@ -98,6 +103,28 @@ function withDerivedNodes(frame: DataFrame, missing: readonly string[]): DataFra
 }
 
 /**
+ * The frame the pre-pass creates when the response declares no nodes at all.
+ *
+ * Marked as a placeholder ({@link GRAPH_META_DERIVED_NODES}), which matters only for the
+ * frame this function creates and never for {@link withDerivedNodes}: appending leaves a real
+ * frame real. The pre-pass runs at the head of the pipeline, so "no nodes frame" can mean
+ * "none yet" — the node-stat chain (`instant + organize + rowsToFields`) builds its nodes
+ * frame in the user's transformations, downstream of here. Without the mark, the frame below
+ * would win role resolution against that one and every real node stat would be replaced by a
+ * `null` placeholder.
+ */
+function placeholderNodesFrame(refId: string | undefined, missing: readonly string[]): DataFrame {
+  const frame = nodesWideFrame(refId != null ? { refId } : {}, derivedNodeFields(missing, 1));
+  // `custom` is assigned rather than merged: this frame is built here from an empty base, so
+  // there is never an existing block to preserve — and merging one would mean spreading
+  // `QueryResultMeta.custom`, which is `any`.
+  return {
+    ...frame,
+    meta: { ...frame.meta, custom: { [GRAPH_META_CUSTOM]: { [GRAPH_META_DERIVED_NODES]: true } } },
+  };
+}
+
+/**
  * Declare every endpoint the response left implicit.
  *
  * Frames this does not own are returned **by reference**, and when nothing is missing the
@@ -112,6 +139,10 @@ function withDerivedNodes(frame: DataFrame, missing: readonly string[]): DataFra
  * them indices `0..n-1`: the colours `deriveNodesFromLinks` and `fillPaletteColors` already
  * produce on a host that never runs this. Trailing it would recolour every node of every
  * existing dashboard by the number of edges in front of it.
+ *
+ * A new frame is also marked as a **placeholder**, because "the response declares no nodes"
+ * is only true *here*, at the head of the pipeline: the user's own transformations may build
+ * one downstream. See {@link placeholderNodesFrame}.
  */
 export function deriveNodes(frames: DataFrame[]): DataFrame[] {
   const roles = resolveGraphWideRoles(frames);
@@ -133,8 +164,7 @@ export function deriveNodes(frames: DataFrame[]): DataFrame[] {
 
   const [target] = roles.nodesFrames;
   if (target == null) {
-    const { refId } = roles.edgesFrames[0];
-    return [nodesWideFrame(refId != null ? { refId } : {}, derivedNodeFields(missing, 1)), ...frames];
+    return [placeholderNodesFrame(roles.edgesFrames[0].refId, missing), ...frames];
   }
   return frames.map((frame) => (frame === target ? withDerivedNodes(frame, missing) : frame));
 }

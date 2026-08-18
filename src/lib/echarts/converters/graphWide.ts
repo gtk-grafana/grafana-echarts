@@ -170,9 +170,38 @@ export const ENDPOINT_LABEL_PAIRS: readonly GraphEndpointKeys[] = [
  */
 export const GRAPH_META_CUSTOM = 'graph';
 
+/**
+ * Marks a `graph-nodes-wide` frame as a **placeholder**: one this plugin synthesised for
+ * endpoints the response only implied (`converters/deriveNodes.ts`), rather than one a
+ * datasource or a conversion declared.
+ *
+ * It exists because the pre-pass runs at the *head* of the pipeline, before the user's own
+ * transformations, so a response whose real nodes frame is produced downstream — the
+ * `instant + organize + rowsToFields` node-stat chain — has no nodes frame at all when the
+ * pre-pass looks. The pre-pass then creates one, and a frame that declares
+ * `graph-nodes-wide` beats a merely shape-matched one by contract, so the real node stats
+ * were dropped in favour of placeholders carrying `null`. That is the exact failure
+ * `deriveNodes` avoids when it can see the nodes frame and appends to it; this flag is how
+ * the two paths stay equivalent when it cannot.
+ *
+ * Read in two places, and both are "a placeholder never displaces a real field":
+ * {@link findNodesFrames} does not let it act as the declared filter, and
+ * {@link readNodeFrames} takes the real field's node whenever both name the same id.
+ */
+export const GRAPH_META_DERIVED_NODES = 'derivedNodes';
+
 /** Whether a pair is the contract's own, i.e. there is nothing worth declaring. */
 export function isCanonicalEndpointKeys(keys: GraphEndpointKeys): boolean {
   return keys.source === SOURCE_LABEL && keys.target === TARGET_LABEL;
+}
+
+/**
+ * Whether this frame is a placeholder nodes frame from the pre-pass. See
+ * {@link GRAPH_META_DERIVED_NODES}.
+ */
+export function isDerivedNodesFrame(frame: DataFrame): boolean {
+  const custom: unknown = isRecord(frame.meta?.custom) ? frame.meta.custom[GRAPH_META_CUSTOM] : undefined;
+  return isRecord(custom) && custom[GRAPH_META_DERIVED_NODES] === true;
 }
 
 /** The endpoint keys a frame declares in {@link GRAPH_META_CUSTOM}, validated. */
@@ -316,15 +345,28 @@ function findEdgesFrames(frames: DataFrame[]): DataFrame[] {
  * The exclusion is `isEdgesWideFrame`, i.e. **every** edges candidate, collected or not:
  * a shape-matched frame passed over because something else declared itself is not a
  * fallback nodes frame either.
+ *
+ * **A placeholder frame does not act as the filter.** The pre-pass declares
+ * `graph-nodes-wide` for endpoints the response only implied, and it runs before the user's
+ * transformations — so on the node-stat chain (`instant + organize + rowsToFields`) the only
+ * declared frame is the placeholder and the real nodes frame is merely shape-matched. Letting
+ * the placeholder filter would drop every real node stat in favour of a field holding `null`,
+ * which is the one thing {@link GRAPH_META_DERIVED_NODES} exists to prevent. Placeholders are
+ * therefore collected *in addition to* the shape-matched frames, and kept first so the node
+ * order stays the endpoint order (see {@link endpointNames}).
  */
 function findNodesFrames(frames: DataFrame[], endpoints: ReadonlySet<string>): DataFrame[] {
   const declared = frames.filter((frame) => frame.meta?.type === GRAPH_NODES_WIDE);
-  if (declared.length > 0) {
+  if (declared.some((frame) => !isDerivedNodesFrame(frame))) {
     return declared;
   }
-  return frames.filter(
-    (frame) => !isEdgesWideFrame(frame) && numericFields(frame).some((field) => endpoints.has(field.name))
+  const matched = frames.filter(
+    (frame) =>
+      !declared.includes(frame) &&
+      !isEdgesWideFrame(frame) &&
+      numericFields(frame).some((field) => endpoints.has(field.name))
   );
+  return [...declared, ...matched];
 }
 
 /**
@@ -707,22 +749,47 @@ function readNodes(frame: DataFrame, calc: string, secondaryCalcs: readonly stri
 }
 
 /**
- * Every declared node, across every nodes frame, **first field per id winning**.
+ * Every declared node, across every nodes frame, **first field per id winning** — except
+ * that a real field always beats a placeholder one.
  *
  * A node id is the ECharts graph key that each edge's `source`/`target` resolves against,
  * so two frames declaring the same node is a genuine collision rather than a display
  * problem — there is one node either way. Response order decides, which is the only
  * stable answer available and matches the reader's "first appearance" rule for derived
  * nodes.
+ *
+ * The one exception is not really a collision. A placeholder field
+ * ({@link GRAPH_META_DERIVED_NODES}) carries `null` by construction and exists only so the
+ * override engine had something to match; a real field for the same id is what the response
+ * actually measured, and it wins however the frames are ordered. Position still comes from
+ * response order, so the placeholder keeps holding the node's slot — which is what keeps the
+ * palette colours identical to the path where the pre-pass never ran.
  */
 function readNodeFrames(frames: DataFrame[], calc: string, secondaryCalcs: readonly string[]): RelationNode[] {
+  const perFrame = frames.map((frame) => ({
+    placeholder: isDerivedNodesFrame(frame),
+    nodes: readNodes(frame, calc, secondaryCalcs),
+  }));
+
+  const measured = new Map<string, RelationNode>();
+  for (const { placeholder, nodes } of perFrame) {
+    if (placeholder) {
+      continue;
+    }
+    for (const node of nodes) {
+      if (!measured.has(node.id)) {
+        measured.set(node.id, node);
+      }
+    }
+  }
+
   const nodes: RelationNode[] = [];
   const known = new Set<string>();
-  for (const frame of frames) {
-    for (const node of readNodes(frame, calc, secondaryCalcs)) {
+  for (const frame of perFrame) {
+    for (const node of frame.nodes) {
       if (!known.has(node.id)) {
         known.add(node.id);
-        nodes.push(node);
+        nodes.push(measured.get(node.id) ?? node);
       }
     }
   }

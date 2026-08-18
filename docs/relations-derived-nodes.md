@@ -69,6 +69,16 @@ Three rules make it safe to leave on:
   it, padded to its row count. Emitting a second, _declared_ `graph-nodes-wide` frame beside
   a merely shape-matched one would trip the contract's own precedence rule — declared wins
   as a filter — and the reader would collect the synthetic frame and drop the real one.
+- **A minted frame is a placeholder.** Appending is only possible when there _is_ a nodes
+  frame, and the pre-pass runs at the head of the pipeline, so "no nodes frame" can mean "not
+  yet": the node-stat route builds its nodes frame in the user's own transformations
+  (`instant` + `organize` + `rowsToFields`), downstream of the pass. A frame the pass mints is
+  therefore marked `meta.custom.graph.derivedNodes`, and the reader treats it as strictly
+  additive — it never acts as the declared filter (`findNodesFrames`), and a real field always
+  supplies the node's stat and config while the placeholder keeps its slot in the order
+  (`readNodeFrames`). Without the mark, a response whose real nodes arrive downstream had
+  every node stat replaced by a `null` placeholder, so a value-based colour mode painted every
+  node the base threshold — measured on `echarts-relations-devcortex-wide` panel 6.
 - **Nodes first.** A newly created frame is prepended, because Grafana assigns `seriesIndex`
   (and therefore each classic-palette colour) in field order across the response. Trailing
   it would recolour every node of every existing dashboard by the number of edges in front
