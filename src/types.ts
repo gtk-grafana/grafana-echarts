@@ -645,28 +645,39 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsLabelWidth?: number;
 
   /**
+   * Read every mark at **one timestamp** instead of reducing its rows to a stat
+   * (Default tier; no ECharts key — it changes what the converter reads). Draws an
+   * in-panel slider under the chart and hides the "Calculation" picker, which has
+   * nothing to reduce once a row is selected. Off by default; see
+   * `RELATIONS_TIME_SLIDER_DEFAULT`, `graphWideTimeline` and `ChartTimeSlider`.
+   *
+   * Inert on an instant response — there is no row dimension to step through — so the
+   * control is **hidden** there unless it is already on (`hasGraphTimeline`), and a panel
+   * that has it on against instant data says so through a notice rather than drawing a
+   * one-position slider.
+   *
+   * The *selection itself* is transient panel state, never a saved option: scrubbing a
+   * dashboard someone is only reading must not mark it dirty. With it on, a mark's
+   * tooltip labels the main row `Value` rather than naming a reducer that did not run.
+   */
+  relationsTimeSlider?: boolean;
+
+  /**
+   * Wall-clock milliseconds between playback steps while the time slider is playing
+   * (Advanced, slider only). **Not** an aggregation window: at each stop the panel reads
+   * the one sample at that timestamp. Unset uses
+   * `RELATIONS_TIME_STEP_DURATION_DEFAULT` (1000), as does any value at or below zero,
+   * which would otherwise spin the timer. See `useTimelinePlayback`.
+   */
+  relationsTimeStepDuration?: number;
+
+  /**
    * Relations link color mode (Advanced; ECharts `series.*.lineStyle.color`
    * keywords): inherit the `source` node's color, the `target`'s, or a `gradient`
    * between them. An explicit per-edge `color` field always wins. Unset uses
    * `RELATIONS_LINK_COLOR_DEFAULT` (`gradient`). See `resolveRelationsLinkColor`.
    */
   relationsLinkColor?: RelationsLinkColor;
-
-  /**
-   * Label key an edge's **source** endpoint is offered under in the pinned tooltip's
-   * "Filter for" / "Filter out" buttons (Advanced). Unset uses the contract's own
-   * `source`, which is what the frame carries.
-   *
-   * Exists because the frame's endpoint labels are a topology carrier rather than
-   * necessarily a datasource dimension: `sum by (source, target) (label_replace(…))`
-   * leaves the frame labelled `source` while the metric is still labelled `client`,
-   * so an ad-hoc filter built from the frame matches nothing. See
-   * `relationsFilterLabels`.
-   */
-  relationsSourceFilterLabel?: string;
-
-  /** As {@link relationsSourceFilterLabel}, for the **target** endpoint. */
-  relationsTargetFilterLabel?: string;
 
   /**
    * Remember the panned/zoomed view across reloads (Advanced), by writing

@@ -1,6 +1,7 @@
 import { type FieldConfigSource } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
 import { toSankeyLinks } from 'lib/echarts/converters/dag';
+import { graphWideTimeline } from 'lib/echarts/converters/graphWide';
 import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { getChordSeries } from 'lib/echarts/options/chord';
@@ -10,6 +11,7 @@ import {
   resolveRelationsZoom,
   type RelationsSeriesContext,
 } from 'lib/echarts/options/graph';
+import { resolveRelationsTimeSlider } from 'lib/echarts/options/timeline';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/options/sankey';
 import { getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
@@ -127,7 +129,7 @@ function withOverriddenPositions(data: NodeGraphData, fieldConfig: FieldConfigSo
 
 /** The node/link model as rendered: hidden marks and their orphaned links removed. */
 function getVisibleNodeGraph(ctx: RelationsChartContext): NodeGraphData | null {
-  const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
+  const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions, ctx.selectedTime);
   return data == null ? null : withOverriddenPositions(withoutHiddenMarks(data, ctx.fieldConfig), ctx.fieldConfig);
 }
 
@@ -180,23 +182,54 @@ export const relationsChartModule: ChartModule = {
   },
 
   /**
-   * Only the sankey variant reports anything: it is the one render path that
-   * rewrites the user's link set (`converters/dag.ts`) to satisfy ECharts'
-   * acyclic layout, so the panel says so rather than silently dropping edges.
-   * `graph` and `chord` take any digraph and have nothing to report.
+   * Two advisories, and both are cases where what the panel drew is not what the
+   * options asked for.
+   *
+   * The **sankey** one is the render path that rewrites the user's link set
+   * (`converters/dag.ts`) to satisfy ECharts' acyclic layout, so the panel says so
+   * rather than silently dropping edges. `graph` and `chord` take any digraph.
+   *
+   * The **time slider** one covers switching it on against a response that has no row
+   * dimension to step through: the option hides the reducer picker, so without this the
+   * user is left with no control at all and nothing saying why. See `getTimeline`.
    */
   getNotices(ctx: RelationsChartContext): ChartNotice[] {
-    if (ctx.seriesType !== 'sankey') {
-      return [];
+    const notices: ChartNotice[] = [];
+
+    if (resolveRelationsTimeSlider(ctx.options) && this.getTimeline?.(ctx) == null) {
+      notices.push({
+        severity: 'info',
+        text: 'This query returns one value per mark, so there is no timeline to step through. Marks are read as they are; switch the time slider off to choose a calculation.',
+      });
     }
-    // The *visible* graph, so the count matches the ribbons actually drawn:
-    // hiding a node can remove the very link the cycle policy would have cut.
-    const data = getVisibleNodeGraph(ctx);
-    if (!data) {
-      return [];
+
+    if (ctx.seriesType === 'sankey') {
+      // The *visible* graph, so the count matches the ribbons actually drawn:
+      // hiding a node can remove the very link the cycle policy would have cut.
+      const data = getVisibleNodeGraph(ctx);
+      const text = data ? getSankeyDroppedNoticeText(toSankeyLinks(data.links).droppedCount) : null;
+      if (text != null) {
+        notices.push({ severity: 'warning', text });
+      }
     }
-    const text = getSankeyDroppedNoticeText(toSankeyLinks(data.links).droppedCount);
-    return text != null ? [{ severity: 'warning', text }] : [];
+
+    return notices;
+  },
+
+  /**
+   * The timestamps the panel's slider can step through, or `null` for no slider.
+   *
+   * Both halves have to hold: the option is on, **and** the response has a row
+   * dimension with more than one stop. One stop is an instant response with a clock on
+   * it — there is nowhere to scrub to, and a one-position slider is worse than none.
+   * The advisory above covers the case where the option is on and this returns `null`.
+   */
+  getTimeline(ctx: RelationsChartContext): number[] | null {
+    if (!resolveRelationsTimeSlider(ctx.options)) {
+      return null;
+    }
+    const timeline = graphWideTimeline(ctx.frames);
+    return timeline.length > 1 ? timeline : null;
   },
 
   /**
@@ -256,7 +289,7 @@ export const relationsChartModule: ChartModule = {
    * so an already-hidden mark stays in the universe and can be restored.
    */
   getOverrideTargetNames(ctx: RelationsChartContext): string[] {
-    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
+    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions, ctx.selectedTime);
     if (!data) {
       return [];
     }
@@ -275,7 +308,7 @@ export const relationsChartModule: ChartModule = {
   buildLegendItems(ctx): VizLegendItem[] {
     // The *unfiltered* graph: a hidden node stays listed (greyed) so it can be
     // toggled back on, which is how every other family's legend behaves.
-    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
+    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions, ctx.selectedTime);
     if (!data) {
       return [];
     }

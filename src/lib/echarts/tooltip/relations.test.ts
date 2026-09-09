@@ -525,6 +525,42 @@ describe('buildRelationsTooltipModel', () => {
       expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Last *');
     });
 
+    /**
+     * Under the time slider the value was **read**, not reduced — so no reducer is named.
+     * `Last *` there would label a calculation the panel did not run and whose picker the
+     * switch has hidden, which is the wart this closes. `Value` is what core's tooltips
+     * call an unnamed measurement.
+     */
+    it('labels the main row Value under the time slider, on nodes and edges alike', () => {
+      const model = modelFor([wideNodes(), wideEdges()], options({ relationsTimeSlider: true }));
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Value');
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).rows[0].label).toBe(
+        'Value'
+      );
+    });
+
+    /**
+     * Keyed on the **switch**, not on whether a stop is selected. The switch is also what
+     * hides the reducer picker, and the two have to agree: a refresh that takes the
+     * timeline away must not flip the label back to a reducer whose control is still gone.
+     */
+    it('keeps the Value label with the slider on but a stored calculation', () => {
+      const model = modelFor(
+        [wideNodes(), wideEdges()],
+        options({ relationsTimeSlider: true, reduceOptions: { calcs: ['mean', 'min'] } })
+      );
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Value');
+    });
+
+    // The switch off is the reducing reading, and there the reducer is named as before.
+    it('names the reducer again once the slider is off', () => {
+      const model = modelFor([wideNodes(), wideEdges()], options({ relationsTimeSlider: false }));
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Last *');
+    });
+
     // A stat with no reducer behind it did not come from a reduction at all: it is the
     // `secondarystat` label the row-form conversion carries, where an instant response has no
     // second value to reduce. See `secondaryStatsOf`.
@@ -644,15 +680,36 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
+    /** The mapping, as a `byName` override lands it on one edge's own field. */
+    const mappedEdges = (custom: Record<string, string>): DataFrame =>
+      toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'db', connection_type: 'database' },
+            values: [3.5],
+            config: { custom },
+          },
+          {
+            name: 'e2',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'db' },
+            values: [7],
+          },
+        ],
+      });
+
     /**
      * The mapping. `sum by (source, target) (label_replace(…, "source", "$1", "client",
      * "(.*)"))` leaves the frame labelled `source` while the metric is still labelled
      * `client`, so the frame's own key filters on nothing — and the aggregation dropped the
-     * original, so only the panel option can recover it.
+     * original, so only the mark's own config can recover it.
      */
-    it('writes the endpoints under the configured datasource labels', () => {
-      const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
-      const model = modelFor([labelledEdges()], mapped);
+    it('writes the endpoints under the mark’s own filter labels', () => {
+      const model = modelFor([mappedEdges({ sourceFilterLabel: 'client', targetFilterLabel: 'server' })]);
 
       expect(
         model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters?.filterFor
@@ -663,14 +720,57 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
+    /**
+     * **Why it is field config and not a panel option.** One panel can join two queries,
+     * so the key that filters one edge need not be the key that filters the next; the
+     * second edge here configures nothing and falls back to the contract's own pair.
+     */
+    it('lets two edges of one panel answer differently', () => {
+      const model = modelFor([mappedEdges({ sourceFilterLabel: 'client', targetFilterLabel: 'server' })]);
+
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e2', value: 7 })).filters?.filterFor).toEqual(
+        [
+          { key: 'source', value: 'gateway' },
+          { key: 'target', value: 'db' },
+        ]
+      );
+    });
+
+    /**
+     * A node maps too, off its **own** field — the node is an endpoint in both directions,
+     * so both keys come from the node the user hovered rather than from any edge.
+     */
     it('maps a node’s endpoints as well', () => {
-      const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
+      const nodes = toDataFrame({
+        name: 'nodes',
+        meta: { type: GRAPH_NODES_WIDE },
+        fields: [
+          {
+            name: 'gateway',
+            type: FieldType.number,
+            values: [12],
+            config: { custom: { sourceFilterLabel: 'client', targetFilterLabel: 'server' } },
+          },
+        ],
+      });
 
       expect(
-        modelFor([wideEdges()], mapped)(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut
+        modelFor([nodes, wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway', value: 12 })).filters?.filterOut
       ).toEqual([
         { key: 'client', value: 'gateway' },
         { key: 'server', value: 'gateway' },
+      ]);
+    });
+
+    /**
+     * A node the response only implied has no field, so it has no mapping of its own and
+     * falls back to the pair the response carried — one more thing the derived-node
+     * pre-pass buys, since a declared node *can* be overridden.
+     */
+    it('falls back to the response’s pair for a node with no field', () => {
+      expect(modelFor([wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
+        { key: 'source', value: 'gateway' },
+        { key: 'target', value: 'gateway' },
       ]);
     });
 
@@ -701,10 +801,17 @@ describe('buildRelationsTooltipModel', () => {
       const selfLoop = toDataFrame({
         name: 'edges',
         meta: { type: GRAPH_EDGES_WIDE },
-        fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'gateway', target: 'gateway' }, values: [1] }],
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'gateway' },
+            values: [1],
+            config: { custom: { sourceFilterLabel: 'svc', targetFilterLabel: 'svc' } },
+          },
+        ],
       });
-      const mapped = options({ relationsSourceFilterLabel: 'svc', relationsTargetFilterLabel: 'svc' });
-      const model = modelFor([selfLoop], mapped);
+      const model = modelFor([selfLoop]);
 
       expect(
         model(linkParams({ source: 'gateway', target: 'gateway', markId: 'e1', value: 1 })).filters?.filterFor

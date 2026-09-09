@@ -65,16 +65,18 @@ export interface TooltipModel {
    * `field.labels` are **not** the right answer.
    *
    * Set only by relations, and for two reasons the generic derivation cannot cover.
-   * A **node** carries its identity in `field.name` rather than in labels, and a node
-   * derived from an edge's endpoints has no field at all, so a label walk finds
-   * nothing to offer on the very marks a topology is filtered by. And an **edge**'s
-   * endpoint labels are the contract's canonical `source`/`target`, which are a
-   * topology carrier rather than necessarily a dimension the datasource knows —
-   * `resolveEndpointLabelKeys` and `relationsSourceFilterLabel` map them back.
+   * A **node** carries its identity in `field.name` rather than in labels, so a label
+   * walk finds nothing to offer on the very mark a topology is filtered by. And an
+   * **edge**'s endpoint labels are the contract's canonical `source`/`target`, which are
+   * a topology carrier rather than necessarily a dimension the datasource knows —
+   * `resolveEndpointLabelKeys` and the per-mark `custom.sourceFilterLabel` map them back.
    * See `relationsFilterLabels`.
    *
    * When set it replaces the label walk rather than adding to it; every other family
-   * leaves it unset and the overlay keeps deriving from {@link TooltipSource}.
+   * leaves it unset and the overlay keeps deriving from {@link TooltipSource}. Either
+   * way the footer offers nothing unless the hovered field is `filterable` — the gate is
+   * in the overlay, not here, so a family states what it *would* offer and one rule
+   * decides whether it is offered.
    */
   filters?: TooltipFilters;
 }

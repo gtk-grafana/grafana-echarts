@@ -23,7 +23,7 @@ import { addCartesianPointSizeOptions } from 'lib/grafana/editor/cartesian/point
 import { addCartesianValueLabelOptions } from 'lib/grafana/editor/cartesian/value-labels';
 import { addCartesianXTickRotateOptions } from 'lib/grafana/editor/cartesian/x-tick-rotate';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addPerformanceOptions } from 'lib/grafana/editor/common/performance-options';
 import { type PanelOptions } from 'types';
@@ -44,7 +44,7 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsGraphFieldConfig>(mak
   // includes the full set by default and applies them to every field in
   // `data.series` before the panel renders; here we only customize Color.
   .useFieldConfig({
-    standardOptions: STANDARD_COLOR_OPTIONS,
+    standardOptions: STANDARD_FIELD_OPTIONS,
     // Per-field series type override. Combined with Grafana field overrides
     // (by name, regex, type, or query), this lets a single panel mix cartesian
     // types, e.g. drawing one field as `bar` and another as `line`. Unset

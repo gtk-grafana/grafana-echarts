@@ -5,13 +5,13 @@ import { ADVANCED_RELATIONS_DEFAULTS } from 'lib/echarts/options/graph';
 import { ADVANCED_SANKEY_DEFAULTS } from 'lib/echarts/options/sankey';
 import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
-import { addRelationsFilterOptions } from 'lib/grafana/editor/relations/filters';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
+import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { type PanelOptions } from 'types';
 
 /**
@@ -25,9 +25,11 @@ import { type PanelOptions } from 'types';
  * for, and a defaults entry for a control that no longer exists resets nothing while
  * looking like coverage.
  *
- * That is not hypothetical here. `filters.ts` — two Advanced text inputs for the
+ * That is not hypothetical here. `filters.ts` — then two Advanced text inputs for the
  * endpoint label keys — was added by hand, and the tier had to be updated by hand to
- * match. This test is what makes the next one fail loudly instead.
+ * match. (Those two are per-mark field config now, `addRelationsFilterConfig`, so they
+ * have no tier at all and are absent from both lists.) This test is what makes the next
+ * mismatch fail loudly instead.
  *
  * The tier membership is read from the **category** rather than from probing each
  * `showIf`: every Advanced control goes through `addAdvanced*`, which fixes the category
@@ -58,6 +60,7 @@ standardEditorsRegistry.setInit(() =>
  */
 const registeredOptions = () => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
+  addRelationsTimelineOptions(builder);
   addRelationsLayoutOptions(builder);
   addRelationsNodeOptions(builder);
   addRelationsSankeyOptions(builder);
@@ -65,7 +68,6 @@ const registeredOptions = () => {
   addRelationsInteractionOptions(builder);
   addRelationsForceOptions(builder);
   addRelationsLinkOptions(builder);
-  addRelationsFilterOptions(builder);
   addRelationsAnimationOption(builder);
   return builder.getItems();
 };

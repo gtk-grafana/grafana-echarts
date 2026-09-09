@@ -1,0 +1,219 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "The relations time slider: read every mark at one timestamp instead of reducing its rows to a stat. Deterministic TestData throughout — fixed epoch timestamps, so every panel looks the same twice.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**The ragged multi-frame shape, with the slider on.**\n\nThree `csv_content` queries, one edge each, and — deliberately — **three different time columns**. `api-->db` starts one step late and `api-->cache` samples every other step, which is what a real response looks like when a series has a gap or a scrape is missed.\n\nThat raggedness is why the selection is a **timestamp** and not a slider index: row 2 is a different instant in each of these frames, so the timestamp is resolved to a row *per frame* (`graphWideTimeline` unions the stops; `rowAt` resolves each frame's own).\n\nDrag the slider, or press play. Three things to look for:\n\n- the edge weights change (they are drawn on the links — \"Show edge values\" is on);\n- at the **first** stop `api-->db` has no sample at all, so it draws weightless rather than vanishing — the topology does not move while you scrub;\n- the \"Calculation\" picker is gone from the Value options: at one selected row every reducer agrees, so there is nothing left to reduce — and a mark's tooltip labels its main row `Value` rather than `Last *`, for the same reason.\n\nPlayback steps every 1500ms (\"Playback step\", Advanced) and loops at the end.\n\n**The data link on `gateway-->api` is the fix you cannot see anywhere else.** Hover that edge and read the footer: `${__value.numeric}` interpolates the value at the **selected row**, so it now agrees with the tooltip. Under the reducer it could only ever point at row 0 — the oldest sample — because there is no one row a mean came from.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "gateway-->api" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Interpolated value: ${__value.numeric}",
+                    "url": "https://example.com/?edge=gateway-api&value=${__value.numeric}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "editorMode": "advanced",
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsTimeSlider": true,
+        "relationsTimeStepDuration": 1500,
+        "relationsShowEdgeValues": true
+      },
+      "targets": [
+        {
+          "csvContent": "time,gateway-->api\n1704067200000,10\n1704067500000,40\n1704067800000,20\n1704068100000,60\n1704068400000,30",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        },
+        {
+          "csvContent": "time,api-->db\n1704067500000,5\n1704067800000,50\n1704068100000,15\n1704068400000,45",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "B",
+          "scenarioId": "csv_content"
+        },
+        {
+          "csvContent": "time,api-->cache\n1704067200000,80\n1704067800000,20\n1704068400000,70",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "C",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Ragged ranged edges — one frame per edge, scrubbable",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**The control: the same three frames, reduced.**\n\nIdentical data to the panel on its left, with the slider **off** — so the \"Calculation\" picker is back and `calcs[0]` (`Last *` by default) collapses each mark's whole timeline to one number.\n\nSide by side these two are the choice this feature adds. The reducer answers \"one number for the window\"; the slider answers \"the graph as it was at 00:05\". Note that the slider's *default* position is the newest stop, which is exactly what `Last *` shows — so switching the option on changes no picture until you move it.\n\nSwitch the calculation to Max or Mean to see what the reducer can say that a single row cannot.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": {
+        "editorMode": "advanced",
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowEdgeValues": true,
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "csvContent": "time,gateway-->api\n1704067200000,10\n1704067500000,40\n1704067800000,20\n1704068100000,60\n1704068400000,30",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        },
+        {
+          "csvContent": "time,api-->db\n1704067500000,5\n1704067800000,50\n1704068100000,15\n1704068400000,45",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "B",
+          "scenarioId": "csv_content"
+        },
+        {
+          "csvContent": "time,api-->cache\n1704067200000,80\n1704067800000,20\n1704068400000,70",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "C",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "The same edges, reduced by calcs[0] — no slider",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**The pivoted shape: one wide frame, one shared row grid.**\n\nThis is what a real Prometheus or Loki range query becomes once `converters/longToWide.ts` has run above the panel — a single time field that is the ascending union of every series' timestamps, one numeric field per edge, `null` where a series has no sample.\n\nThe slider behaves identically. That is the point of testing both shapes: the row dimension is resolved per frame either way, so a response that shares one grid and a response that shares none step through the same stops.\n\nA sankey, so the scrub is visible in the **geometry** rather than in a label: a ribbon's thickness is its weight, where a graph link's thickness comes from `custom.lineWidth`.\n\n**It cuts rather than morphing, and that is ECharts'.** `SankeyView.render` writes every shape imperatively and has no diff against the previous render, so there is nothing to tween; the chord panel below shows what a morph looks like. See [todo/relations-scrub-animation.md](../../../todo/relations-scrub-animation.md) for the three fixes that were measured and rejected.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 11 },
+      "id": 3,
+      "options": {
+        "editorMode": "advanced",
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" },
+        "seriesType": "sankey",
+        "relationsTimeSlider": true,
+        "relationsTimeStepDuration": 1500,
+        "relationsShowEdgeValues": true
+      },
+      "targets": [
+        {
+          "csvContent": "time,gateway-->api,gateway-->web,api-->db,web-->db\n1704067200000,10,70,80,25\n1704067500000,40,30,55,60\n1704067800000,20,60,20,35\n1704068100000,60,20,65,50\n1704068400000,30,50,70,20",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "One wide ranged frame (the pivoted shape) — sankey",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**The negative case: the option on, against instant data.**\n\nOne row and no time column at all — the `csv_content` / `rowsToFields` / Tempo service-map route. There is nowhere to scrub to, so no strip is drawn and the plot keeps the whole panel.\n\nBecause the option *also* hides the \"Calculation\" picker, that would leave no control and no explanation — so the panel posts an advisory in its corner instead (hover the info icon).\n\nThe **switch itself** is hidden on data like this: open the editor and \"Time slider\" is absent from the Value options on a panel that never had it on. It stays visible here only because this panel does have it on — the escape hatch that keeps a refresh from stranding a panel with a hidden picker and no way back. `tempo-service-map.json` is the live version of this case; it is deliberately left alone.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 11 },
+      "id": 4,
+      "options": {
+        "editorMode": "advanced",
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsTimeSlider": true,
+        "relationsShowEdgeValues": true
+      },
+      "targets": [
+        {
+          "csvContent": "gateway-->api,api-->db,api-->cache\n30,45,70",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Instant data with the slider on — no strip, one advisory",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "**The one variant that morphs between stops.**\n\nThe same wide ranged frame as the sankey, drawn as a chord — and this is where a step *animates* rather than cutting. The difference is ECharts', not the panel's: `ChordView.render` diffs the new data against the old and updates each arc in place, so the arcs and ribbons tween. `SankeyView.render` sets every shape imperatively (`curve.setShape`) and has no diff at all, so a sankey redraws correctly but instantly. A `graph` tweens its node symbols, but a link's thickness comes from `custom.lineWidth` rather than from its weight, so on this data there is nothing there to move.\n\nUse this panel to see what a scrub *is*; use the sankey to see the weights, which are easier to read as ribbons.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 22 },
+      "id": 5,
+      "options": {
+        "editorMode": "advanced",
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" },
+        "seriesType": "chord",
+        "relationsTimeSlider": true,
+        "relationsTimeStepDuration": 1500
+      },
+      "targets": [
+        {
+          "csvContent": "time,gateway-->api,gateway-->web,api-->db,web-->db\n1704067200000,10,70,80,25\n1704067500000,40,30,55,60\n1704067800000,20,60,20,35\n1704068100000,60,20,65,50\n1704068400000,30,50,70,20",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "The same wide frame as a chord — the variant that morphs",
+      "type": "grafana-echartsrelations-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "timeline"],
+  "templating": { "list": [] },
+  "time": { "from": "2024-01-01T00:00:00.000Z", "to": "2024-01-01T00:25:00.000Z" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — time slider",
+  "uid": "echarts-relations-timeline",
+  "version": 1,
+  "weekStart": ""
+}

@@ -62,7 +62,7 @@ One field per edge. The frame grows _wider_ as edges are added.
 **Example:** three edges over three nodes, instant.
 
 | **Type: Number**<br>**Name: gw-api**<br>**Labels: {"source": "gateway", "target": "api"}** | **Type: Number**<br>**Name: api-db**<br>**Labels: {"source": "api", "target": "db"}** | **Type: Number**<br>**Name: gw-db**<br>**Labels: {"source": "gateway", "target": "db"}** |
-|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | 1200                                                                                       | 800                                                                                   | 40                                                                                       |
 
 It should have the following properties:
@@ -82,7 +82,7 @@ It should have the following properties:
 Optional field configuration, all of it standard:
 
 | `field.config`                                   | Is the edge's                                                      |
-|--------------------------------------------------|--------------------------------------------------------------------|
+| ------------------------------------------------ | ------------------------------------------------------------------ |
 | `displayName`                                    | Label                                                              |
 | `color`                                          | Colour, in any of the eight standard modes                         |
 | `unit` / `decimals` / `mappings` / `min` / `max` | Value formatting                                                   |
@@ -163,7 +163,7 @@ Two edges joining the same pair of nodes must be two fields with **distinct name
 their endpoints in **labels**:
 
 | **Type: Number**<br>**Name: e1**<br>**Labels: {"source": "a", "target": "b"}** | **Type: Number**<br>**Name: e2**<br>**Labels: {"source": "a", "target": "b"}** |
-|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | 10                                                                             | 20                                                                             |
 
 The name-split form cannot express this: both edges would be named `a-->b`, and while a
@@ -184,7 +184,7 @@ node is otherwise the one mark in the response that no field config can reach; s
 **Example:** three nodes, instant.
 
 | **Type: Number**<br>**Name: gateway**<br>**Labels: {"zone": "us-east-1"}** | **Type: Number**<br>**Name: api**<br>**Labels: nil** | **Type: Number**<br>**Name: db**<br>**Labels: nil** |
-|----------------------------------------------------------------------------|------------------------------------------------------|-----------------------------------------------------|
+| -------------------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------- |
 | 12                                                                         | 8                                                    | 3                                                   |
 
 It should have the following properties:
@@ -198,7 +198,7 @@ It should have the following properties:
 Optional field configuration:
 
 | `field.config`                                   | Is the node's                                                            |
-|--------------------------------------------------|--------------------------------------------------------------------------|
+| ------------------------------------------------ | ------------------------------------------------------------------------ |
 | `displayName`                                    | Title                                                                    |
 | `color`                                          | Colour, in any of the eight standard modes                               |
 | `unit` / `decimals` / `mappings` / `min` / `max` | Stat formatting                                                          |
@@ -231,12 +231,38 @@ where there is a row dimension to reduce differently.
 Reducing "all values" is not part of this kind: it would make one mark per row, and a mark
 is a field.
 
+### Reading a single row
+
+Reduction is not the only reading of the row dimension. A consumer may instead select **one
+row** — one timestamp — and read every mark's value there, which is the graph as it was at
+that instant rather than a summary of the window. The two readings are alternatives, not
+layers: a consumer offers one or the other.
+
+Three consequences follow, and a consumer that reads a row has to honour all three:
+
+- **The row is resolved per frame, from a timestamp.** A row _index_ is only shared where
+  one frame carries every mark. The _Multi_ row-dimension variant gives each frame its own
+  row dimension, and they need not agree — a series with a gap is shorter than its
+  siblings — so index 4 is a different instant in each. Selecting by timestamp is what
+  makes the reading well defined across the variants.
+- **A mark with no sample at that timestamp reads `null`** — the same value an all-null
+  field reduces to, so nothing further is needed to handle it. An absent scrape is not a
+  zero, and it is not the previous value either: this kind carries no carry-forward rule.
+- **The two stats degenerate.** Every reducer agrees over one value, so a secondary stat
+  read this way would restate the main one under a different name. The stat slots past the
+  first are empty at a selected row; the `secondarystat` label is not affected, since it is
+  a carried value rather than a reducer's output.
+
+This is also the only reading under which a mark's **source row** is exact. Under reduction
+there is no one row a mean came from, so a data link interpolating a row-scoped variable can
+only be pointed at row 0 and will disagree with the reduced stat on ranged data.
+
 ## Frame role resolution
 
 In precedence order:
 
 | Signal                          | Survives                                           |
-|---------------------------------|----------------------------------------------------|
+| ------------------------------- | -------------------------------------------------- |
 | 1. `frame.meta.type`            | Only producers that can set frame meta             |
 | 2. **Field shape**              | Everything — CSV, SQL expressions, transformations |
 | 3. A consumer-side frame picker | Always; the manual override of last resort         |
@@ -276,7 +302,7 @@ Field shape is enough to _render_. Frame meta is what makes the kind **discovera
 a producer emitting this kind should set all of it:
 
 | Meta key                          | Value                                   | What it buys                                                                                                                      |
-|-----------------------------------|-----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `meta.type`                       | `graph-nodes-wide` / `graph-edges-wide` | Unambiguous role resolution, and visualization suggestions                                                                        |
 | `meta.typeVersion`                | `[0, 1]`                                | The contract's versioning rule for a kind that has not stabilised                                                                 |
 | `meta.preferredVisualisationType` | `nodeGraph`                             | Routing in Explore                                                                                                                |
@@ -287,29 +313,29 @@ The proposed additions to `@grafana/data`, **not yet present in core Grafana**:
 ```typescript
 // packages/grafana-data/src/types/dataFrameTypes.ts
 export enum DataFrameType {
-    // …existing twelve members…
+  // …existing twelve members…
 
-    /** One field per node; `field.name` is the node id. */
-    GraphNodesWide = 'graph-nodes-wide',
-    /** One field per edge; endpoints in `field.labels`. */
-    GraphEdgesWide = 'graph-edges-wide',
+  /** One field per node; `field.name` is the node id. */
+  GraphNodesWide = 'graph-nodes-wide',
+  /** One field per edge; endpoints in `field.labels`. */
+  GraphEdgesWide = 'graph-edges-wide',
 
-    // The sibling formats propose their own members:
-    // graph-nodes-long / graph-edges-long   — graph-long.md
-    // graph-nodes-multi / graph-edges-multi — graph-multi.md
+  // The sibling formats propose their own members:
+  // graph-nodes-long / graph-edges-long   — graph-long.md
+  // graph-nodes-multi / graph-edges-multi — graph-multi.md
 }
 
 /** The shape of `frame.meta.custom.graph`, for any graph format. Optional. */
 export interface GraphFrameMeta {
-    /**
-     * Label key holding an edge's source node id, as the **datasource** names the dimension.
-     * Default `'source'`. A converter that rewrites the labels to the contract's keys leaves
-     * this pointing at the original, so a consumer writing a query back out — an ad-hoc
-     * filter, a drilldown link — has a key the datasource will recognise.
-     */
-    sourceKey?: string;
-    /** Label key holding an edge's target node id. Default `'target'`. See `sourceKey`. */
-    targetKey?: string;
+  /**
+   * Label key holding an edge's source node id, as the **datasource** names the dimension.
+   * Default `'source'`. A converter that rewrites the labels to the contract's keys leaves
+   * this pointing at the original, so a consumer writing a query back out — an ad-hoc
+   * filter, a drilldown link — has a key the datasource will recognise.
+   */
+  sourceKey?: string;
+  /** Label key holding an edge's target node id. Default `'target'`. See `sourceKey`. */
+  targetKey?: string;
 }
 ```
 
@@ -332,7 +358,7 @@ set, and what it returns changes with the rest of the response: a node field `a`
 an edges frame joins the response.
 
 | Frame content                                          | Display name                  |
-|--------------------------------------------------------|-------------------------------|
+| ------------------------------------------------------ | ----------------------------- |
 | `e1`, labels `{source: 'a', target: 'b'}`              | `e1 {source="a", target="b"}` |
 | `a`, labels `{title: 'Gateway'}` — nodes frame alone   | `a Gateway`                   |
 | `a`, labels `{title: 'Gateway'}` — with an edges frame | `a {title="Gateway"}`         |
@@ -355,7 +381,7 @@ against — so it would look addressable while being unaddressable.
 ## Converting between graph formats
 
 | Src                 | Dst                 | Modifies data | Notes                                                                                                                                   |
-|---------------------|---------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | ------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `graph-edges-long`  | `graph-edges-wide`  | **No**        | One row becomes one field. Reserved columns become field config; unreserved columns become labels. See [graph-long.md](./graph-long.md) |
 | `graph-nodes-long`  | `graph-nodes-wide`  | **No**        | As above                                                                                                                                |
 | `graph-edges-multi` | `graph-edges-wide`  | Yes\*         | Needs a shared row grid: the frames are joined on their time field, and gaps become nulls                                               |

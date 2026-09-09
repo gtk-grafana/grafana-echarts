@@ -19,7 +19,7 @@ import {
   type RelationLink,
   type RelationNode,
 } from 'lib/echarts/converters/relationsModel';
-import { contestedIds, edgeId, uniqueId, withoutEndpoints } from 'lib/echarts/converters/toGraphWide';
+import { contestedIds, edgeId, numberAt, uniqueId, withoutEndpoints } from 'lib/echarts/converters/toGraphWide';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { type ConfigTypedField } from 'lib/grafana/types';
 
@@ -408,8 +408,8 @@ export function endpointNames(edgesFrames: DataFrame[]): Set<string> {
  *
  * Consumed by the tooltip footer, which writes ad-hoc filters under these keys rather than
  * under the contract's: `source="web-api"` is a filter on a label the datasource dropped.
- * Overridable per panel (`relationsSourceFilterLabel`) for the case no response can answer
- * — a query that aggregated the original key away. See `relationsFilterLabels`.
+ * Overridable per mark (`custom.sourceFilterLabel`) for the case no response can answer —
+ * a query that aggregated the original key away. See `relationsFilterLabels`.
  */
 export function resolveEndpointLabelKeys(edgesFrames: DataFrame[]): GraphEndpointKeys | undefined {
   for (const frame of edgesFrames) {
@@ -479,10 +479,126 @@ export function hasNoNodeStats(frames: DataFrame[] | undefined): boolean {
   return !nodeFields.some((field) => field.values.some((value) => value != null));
 }
 
+/**
+ * How a mark's value is read: **reduced over its rows**, or **taken at one row**.
+ *
+ * The row dimension is the only thing a mark has more than one of, so this is the whole
+ * question the reader asks of it. `reduce` is the family's original reading — every value
+ * collapsed to one stat by `reduceOptions.calcs`, `lastNotNull` by default. `at` is the
+ * time slider's: one row, chosen by timestamp and resolved **per frame**, because a
+ * ragged response shares no row grid. See {@link graphWideTimeline}.
+ */
+type MarkRead =
+  | { kind: 'reduce'; calc: string; secondary: readonly string[] }
+  /** `null` when this frame has no sample at the selected timestamp — every mark reads null. */
+  | { kind: 'at'; row: number | null };
+
 /** Reduce a mark's values to one of its stats. On instant data every reducer agrees. */
 function reduceValue(field: Field, calc: string): number | null {
   const value: unknown = reduceField({ field, reducers: [calc] })[calc];
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+/** A mark's value under the reading in force — see {@link MarkRead}. */
+function markValue(field: Field, read: MarkRead): number | null {
+  if (read.kind === 'reduce') {
+    return reduceValue(field, read.calc);
+  }
+  return read.row == null ? null : numberAt(field, read.row);
+}
+
+/**
+ * The row a mark's data link interpolates against — see `readLinks`.
+ *
+ * Row 0 under `reduce`, which is the long-standing behaviour and the best available:
+ * there is no one row a mean came from. Under `at` it is the selected row, and 0 again
+ * when the frame has no sample there, so an interpolated link still resolves.
+ */
+function sourceRowOf(read: MarkRead): number {
+  return read.kind === 'at' ? (read.row ?? 0) : 0;
+}
+
+/** The row dimension of a frame, which a ranged response always has and an instant one does not. */
+function rowDimension(frame: DataFrame): Field | undefined {
+  return frame.fields.find((field) => field.type === FieldType.time);
+}
+
+/**
+ * Every timestamp this response carries, ascending and deduped — the stops a time slider
+ * can select. **Empty on instant data**, which is what hides the control there.
+ *
+ * A union across every role frame rather than one frame's column, for the same reason
+ * `longToWide.ts:joinedRows` unions before pivoting: a series with a gap has fewer points
+ * than its siblings, and the raw shape (one frame per edge, each with its own time field)
+ * shares no row grid at all, so no single column is the timeline. Kept separate from that
+ * one rather than exporting it — the pivot runs above the panel, on frames this reader may
+ * never be handed.
+ */
+export function graphWideTimeline(frames: DataFrame[]): number[] {
+  return [...collectStops(frames)].sort((first, second) => first - second);
+}
+
+/**
+ * The distinct timestamps every role frame carries, **stopping as soon as `limit` of them
+ * are known**.
+ *
+ * The limit is what lets {@link hasGraphTimeline} answer a yes/no question without walking
+ * a ranged response end to end: it runs from an editor `showIf`, which is re-evaluated on
+ * every keystroke in the options pane, where {@link graphWideTimeline} runs once per render
+ * behind a memo.
+ */
+function collectStops(frames: DataFrame[], limit = Infinity): Set<number> {
+  const stops = new Set<number>();
+  const roles = frames.length > 0 ? resolveGraphWideRoles(frames) : null;
+  if (roles == null) {
+    return stops;
+  }
+  for (const frame of [...roles.edgesFrames, ...roles.nodesFrames]) {
+    const time = rowDimension(frame);
+    for (let row = 0; row < (time?.values.length ?? 0); row++) {
+      const at = numberAt(time, row);
+      if (at != null) {
+        stops.add(at);
+        if (stops.size >= limit) {
+          return stops;
+        }
+      }
+    }
+  }
+  return stops;
+}
+
+/**
+ * Whether this response has **somewhere to scrub to** — a row dimension carrying more than
+ * one distinct timestamp. Drives the "Time slider" control's visibility.
+ *
+ * The opposite default to {@link hasNoNodeStats}, and deliberately so. That one answers
+ * `false` when it cannot tell because `false` keeps its control, and hiding a working
+ * control is the worse mistake. Here the same instinct would show the switch everywhere,
+ * including on every instant panel in a dashboard, where turning it on hides the reducer
+ * picker and produces nothing but an advisory. So this answers `false` when it cannot tell
+ * too — and the control's `showIf` keeps a switch that is *already on* visible regardless,
+ * which is the escape hatch that makes hiding safe.
+ */
+export function hasGraphTimeline(frames: DataFrame[] | undefined): boolean {
+  return frames != null && collectStops(frames, 2).size > 1;
+}
+
+/**
+ * The row this frame carries `at` on, or `null` when it has no sample there.
+ *
+ * Resolved per frame, which is the only correct resolution for a ragged response: row 4
+ * of a 57-row series and row 4 of a one-row series are not the same instant. A shared row
+ * index would silently read one mark at another mark's timestamp.
+ */
+function rowAt(frame: DataFrame, at: number): number | null {
+  const time = rowDimension(frame);
+  for (let row = 0; row < (time?.values.length ?? 0); row++) {
+    if (numberAt(time, row) === at) {
+      return row;
+    }
+  }
+  return null;
 }
 
 /**
@@ -566,9 +682,11 @@ function stringFrom(value: unknown): string | undefined {
  * with no calculation behind it — and only when no reducer produced anything: an instant
  * response has no second value to reduce, so that label *is* the secondary stat there.
  */
-function secondaryStatsOf(field: Field, calcs: readonly string[]): MarkStat[] {
+function secondaryStatsOf(field: Field, read: MarkRead): MarkStat[] {
   const stats: MarkStat[] = [];
-  for (const calc of calcs) {
+  // None of its own at a selected row: every reducer agrees over one value, so the extra
+  // calcs would render as duplicate tooltip rows. The legacy label below still applies.
+  for (const calc of read.kind === 'reduce' ? read.secondary : []) {
     const value = reduceValue(field, calc);
     if (value != null) {
       stats.push({ calc, value: field.display ? formattedValueToString(field.display(value)) : String(value) });
@@ -581,7 +699,7 @@ function secondaryStatsOf(field: Field, calcs: readonly string[]): MarkStat[] {
   return legacy != null ? [{ value: legacy }] : [];
 }
 
-function readLinks(frame: DataFrame, calc: string, secondaryCalcs: readonly string[]): RelationLink[] {
+function readLinks(frame: DataFrame, read: MarkRead): RelationLink[] {
   const links: RelationLink[] = [];
   // The frame's own answer to "which labels are the endpoints", tried ahead of the
   // conventional pairs. See `GRAPH_META_CUSTOM`.
@@ -593,7 +711,7 @@ function readLinks(frame: DataFrame, calc: string, secondaryCalcs: readonly stri
       continue;
     }
 
-    const value = reduceValue(field, calc);
+    const value = markValue(field, read);
     const custom = customOf(field);
     const link: RelationLink = {
       id: field.name,
@@ -604,15 +722,15 @@ function readLinks(frame: DataFrame, calc: string, secondaryCalcs: readonly stri
       // A field with no samples at all reduces to `null` and draws a weightless edge
       // rather than disappearing: the frame still claimed to describe this edge.
       value: value ?? 1,
-      // Row 0 — the first sample, which is only "the reduced row" for a single-row
-      // frame. On a ranged response a data link interpolating `${__value.numeric}`
-      // therefore disagrees with the tooltip's reduced value, and across raw frames it
-      // disagrees differently per edge, because row 0 of a 1-row series is now and row 0
-      // of a 57-row series is an hour ago. Pre-existing since the row dimension arrived,
-      // and not fixable here: "the row the reducer picked" is well defined for
-      // first/last/min/max and meaningless for mean/sum. The pivot does fix it — one
-      // shared row grid means row 0 is one timestamp for every mark.
-      sourceRowIndex: 0,
+      // The row the value was read from, which the selected-row reading makes exact and
+      // the reducing one cannot: under `reduce` this is row 0 — the first sample, only
+      // "the reduced row" for a single-row frame — so on a ranged response a data link
+      // interpolating `${__value.numeric}` disagrees with the tooltip, and across raw
+      // frames it disagrees differently per edge, because row 0 of a 1-row series is now
+      // and row 0 of a 57-row series is an hour ago. Not fixable there: "the row the
+      // reducer picked" is well defined for first/last/min/max and meaningless for
+      // mean/sum. Under `at` there *is* one row and the two agree.
+      sourceRowIndex: sourceRowOf(read),
       field,
     };
 
@@ -636,7 +754,7 @@ function readLinks(frame: DataFrame, calc: string, secondaryCalcs: readonly stri
     // so picking a second calculation on a panel whose marks are edges — an edges-only
     // response, which is the common shape — produced no second value anywhere and the
     // option read as broken. See `secondaryStatsOf`.
-    const secondaries = secondaryStatsOf(field, secondaryCalcs);
+    const secondaries = secondaryStatsOf(field, read);
     if (secondaries.length > 0) {
       link.secondaries = secondaries;
     }
@@ -699,11 +817,11 @@ function assignMarkKeys(links: RelationLink[]): void {
   });
 }
 
-function readNodes(frame: DataFrame, calc: string, secondaryCalcs: readonly string[]): RelationNode[] {
+function readNodes(frame: DataFrame, read: MarkRead): RelationNode[] {
   const nodes: RelationNode[] = [];
 
   for (const field of numericFields(frame)) {
-    const value = reduceValue(field, calc);
+    const value = markValue(field, read);
     const custom = customOf(field);
     const node: RelationNode = {
       id: field.name,
@@ -711,7 +829,7 @@ function readNodes(frame: DataFrame, calc: string, secondaryCalcs: readonly stri
       // `getFieldDisplayName`, which appends the label set.
       name: field.config.displayName ?? field.name,
       value,
-      sourceRowIndex: 0,
+      sourceRowIndex: sourceRowOf(read),
       field,
     };
 
@@ -735,7 +853,7 @@ function readNodes(frame: DataFrame, calc: string, secondaryCalcs: readonly stri
     if (fixedY != null) {
       node.fixedY = fixedY;
     }
-    const secondaries = secondaryStatsOf(field, secondaryCalcs);
+    const secondaries = secondaryStatsOf(field, read);
     if (secondaries.length > 0) {
       node.secondaries = secondaries;
     }
@@ -765,10 +883,10 @@ function readNodes(frame: DataFrame, calc: string, secondaryCalcs: readonly stri
  * response order, so the placeholder keeps holding the node's slot — which is what keeps the
  * palette colours identical to the path where the pre-pass never ran.
  */
-function readNodeFrames(frames: DataFrame[], calc: string, secondaryCalcs: readonly string[]): RelationNode[] {
+function readNodeFrames(frames: DataFrame[], readFor: (frame: DataFrame) => MarkRead): RelationNode[] {
   const perFrame = frames.map((frame) => ({
     placeholder: isDerivedNodesFrame(frame),
-    nodes: readNodes(frame, calc, secondaryCalcs),
+    nodes: readNodes(frame, readFor(frame)),
   }));
 
   const measured = new Map<string, RelationNode>();
@@ -874,13 +992,20 @@ function noteCollectedFrames(perFrame: RelationLink[][]): void {
  * by an edge but absent from the nodes frames are appended, so a partial nodes frame does
  * not drop edges.
  *
+ * `at` selects **one timestamp** instead of reducing: every mark reads the value on its
+ * own frame's row for that instant, and `null` where the frame has no sample there — the
+ * same thing an all-null field reduces to, so an edge still draws weightless rather than
+ * vanishing and the topology stays stable while scrubbing. Omit it for the reducing
+ * reading, which is the default and what an instant response can only do.
+ *
  * Returns `null` when no usable graph can be derived, so callers fall back to the
  * no-data view.
  */
 export function frameToGraphWide(
   frames: DataFrame[],
   theme: GrafanaTheme2,
-  reduceOptions?: ReduceDataOptions
+  reduceOptions?: ReduceDataOptions,
+  at?: number | null
 ): NodeGraphData | null {
   const roles = resolveGraphWideRoles(frames);
   if (!roles) {
@@ -888,11 +1013,15 @@ export function frameToGraphWide(
   }
 
   const [calc, ...secondaryCalcs] = normalizeRelationsCalcs(reduceOptions);
+  // The reading, resolved per frame — see {@link MarkRead}. Under `reduce` each mark
+  // reduces over its **own** rows, however ragged: every reducer skips nulls, so a raw
+  // series and the same series null-padded onto a pivot's shared row grid give the same
+  // number. Under `at` the timestamp is resolved against each frame's own row dimension,
+  // for the same reason.
+  const readFor = (frame: DataFrame): MarkRead =>
+    at == null ? { kind: 'reduce', calc, secondary: secondaryCalcs } : { kind: 'at', row: rowAt(frame, at) };
   // Per frame first, so the diagnostic can say what the old reading would have drawn.
-  // Each mark reduces over its **own** rows, however ragged: every reducer skips nulls,
-  // so a raw series and the same series null-padded onto a pivot's shared row grid give
-  // the same number. What the pivot does fix is `sourceRowIndex` — see `readLinks`.
-  const perFrame = roles.edgesFrames.map((frame) => readLinks(frame, calc, secondaryCalcs));
+  const perFrame = roles.edgesFrames.map((frame) => readLinks(frame, readFor(frame)));
   const links = perFrame.flat();
   if (links.length === 0) {
     return null;
@@ -903,7 +1032,7 @@ export function frameToGraphWide(
   const derived = deriveNodesFromLinks(links);
   // Empty when no frame took the nodes role, which leaves the append below to fill the
   // list from the endpoints alone — the edges-only response.
-  const nodes = readNodeFrames(roles.nodesFrames, calc, secondaryCalcs);
+  const nodes = readNodeFrames(roles.nodesFrames, readFor);
 
   // Append any endpoint the nodes frames did not declare. Without this an edge to an
   // unlisted node would be dropped by ECharts, which resolves links by node id.

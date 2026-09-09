@@ -1,5 +1,6 @@
 import { type Field, fieldReducers, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type EChartsRelationsFieldConfig } from 'editor/types';
 import {
   ENDPOINT_LABEL_PAIRS,
   type GraphEndpointKeys,
@@ -9,6 +10,7 @@ import {
 } from 'lib/echarts/converters/graphWide';
 import { type MarkStat, type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
+import { resolveRelationsTimeSlider } from 'lib/echarts/options/timeline';
 import {
   type RelationsAdjacentEdge,
   type RelationsLinkItem,
@@ -60,6 +62,17 @@ const SECONDARY_ROW_LABEL = 'Secondary';
 function reducerLabel(calc: string): string {
   return fieldReducers.getIfExists(calc)?.name ?? calc;
 }
+
+/**
+ * The main stat's label when **no reducer produced it** — the time slider's reading, where
+ * the value is the one sample at the selected timestamp.
+ *
+ * `Last *` under a slider would name a calculation the panel did not run and the user
+ * cannot see a control for: the switch hides the picker precisely because at one row there
+ * is nothing to reduce. `Value` is what core's tooltips call an unnamed measurement, and it
+ * is what the instant-data advisory already promises ("marks are read as they are").
+ */
+const VALUE_ROW_LABEL = 'Value';
 
 /**
  * A mark's stats past the first, one row each, shared by the node and edge branches so one
@@ -223,7 +236,7 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
 }
 
 /**
- * The two label keys a mark's endpoints are offered under as ad-hoc filters.
+ * The two label keys **this mark's** endpoints are offered under as ad-hoc filters.
  *
  * The contract's own `source` / `target` is what the *frame* carries, and it is a **topology
  * carrier** rather than necessarily a dimension the datasource has ever heard of. A "Filter
@@ -232,35 +245,59 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
  *
  * Three sources, most specific first:
  *
- * 1. the panel's own `relationsSourceFilterLabel` / `relationsTargetFilterLabel`. Explicit
- *    intent wins, and it is the only answer for a query that *destroyed* the original key —
+ * 1. the mark's own `custom.sourceFilterLabel` / `custom.targetFilterLabel`. Explicit intent
+ *    wins, and it is the only answer for a query that *destroyed* the original key —
  *    `sum by (source, target) (label_replace(…, "source", "$1", "client", "(.*)"))` renames
- *    the label and then aggregates the original away, so no response can recover it;
+ *    the label and then aggregates the original away, so no response can recover it. It is
+ *    **field config**, not a panel option, for the reason everything else per-mark is: one
+ *    panel can join several queries, so the answer is per edge — while the Fields tab's
+ *    default still says "all of them" in one place. See `addRelationsFilterConfig`;
  * 2. `endpointLabels`, the pair the response itself carried — either still on the edge
  *    fields, or declared by the pivot that rewrote them (`GRAPH_META_CUSTOM`). This is
  *    what makes the setting unnecessary for the query that *doesn't* destroy the key:
  *    `sum by (client, server)` now draws, and filters, with nothing configured;
  * 3. the contract's canonical pair, which is also the right answer for a response that
  *    really did group by `source`/`target`.
+ *
+ * Read off the hovered mark rather than resolved once per render, because two marks can
+ * answer differently — which is the whole point of it being a field override.
  */
 export function relationsFilterLabels(
-  options?: Pick<PanelOptions, 'relationsSourceFilterLabel' | 'relationsTargetFilterLabel'>,
+  field?: Field,
   fromData?: GraphEndpointKeys
 ): {
   source: string;
   target: string;
 } {
   return {
-    source: options?.relationsSourceFilterLabel || fromData?.source || SOURCE_LABEL,
-    target: options?.relationsTargetFilterLabel || fromData?.target || TARGET_LABEL,
+    source: customFilterLabel(field, 'sourceFilterLabel') ?? fromData?.source ?? SOURCE_LABEL,
+    target: customFilterLabel(field, 'targetFilterLabel') ?? fromData?.target ?? TARGET_LABEL,
   };
+}
+
+/**
+ * One of the mark's two filter-label keys, read defensively: `FieldConfig['custom']` is
+ * `any`, and these keys are plugin-declared rather than guaranteed by any type — the same
+ * narrowing `customOf` does in the reader. An empty string is "unset", which is what
+ * clearing the text input leaves behind.
+ */
+function customFilterLabel(
+  field: Field | undefined,
+  key: keyof Pick<EChartsRelationsFieldConfig, 'sourceFilterLabel' | 'targetFilterLabel'>
+): string | undefined {
+  const custom: unknown = field?.config.custom;
+  if (typeof custom !== 'object' || custom === null || !(key in custom)) {
+    return undefined;
+  }
+  const value: unknown = Reflect.get(custom, key);
+  return typeof value === 'string' && value !== '' ? value : undefined;
 }
 
 /** Keep the first entry per key, preserving order — the endpoints are added first. */
 function dedupeFilters(filters: TooltipAdHocFilter[]): TooltipAdHocFilter[] {
   const seen = new Set<string>();
   return filters.filter((filter) => {
-    const id = `${filter.key} ${filter.value}`;
+    const id = `${filter.key}\u0000${filter.value}`;
     if (seen.has(id) || filter.value === '') {
       return false;
     }
@@ -298,8 +335,10 @@ const ENDPOINT_LABEL_KEYS = new Set(ENDPOINT_LABEL_PAIRS.flatMap((pair) => [pair
  * well — which is what produced four buttons for a two-label mark — adds nothing the node's
  * own tooltip does not already offer, and reads as three ways to do one thing.
  *
- * Endpoints come off the *item* rather than off the field, so an edge whose mark has no
- * field — an N-raw-frames response on a host that cannot run the pivot — still offers them.
+ * Endpoints come off the *item* rather than off the field, which keeps this independent of
+ * how the response arrived. Whether the buttons are shown at all is the field's call, though:
+ * the footer gates every one of them on the standard `filterable` config, so a mark with no
+ * field of its own offers nothing. See `resolveFilters` in `lib/components/tooltip`.
  */
 function edgeFilters(
   item: RelationsLinkItem,
@@ -320,9 +359,9 @@ function edgeFilters(
  *
  * Nodes had none at all, which is the half of the report that is a plain gap rather than a
  * mapping question. A node's identity is its `field.name` under the wide contract — not a
- * label — so the generic "walk `field.labels`" derivation finds nothing, and a node *derived*
- * from an edge's endpoints has no field to walk. Both are the marks a topology is most
- * obviously filtered by.
+ * label — so the generic "walk `field.labels`" derivation finds nothing on the very mark a
+ * topology is most obviously filtered by. Stating the pairs here is what fills that gap;
+ * whether they are offered is still the field's `filterable` call.
  *
  * **The two halves are deliberately asymmetric**, because a node is an endpoint in both
  * directions and ad-hoc filters can only be ANDed:
@@ -366,15 +405,20 @@ function nodeFilters(
  *
  * Each stat row is labelled with the **reducer** that produced it rather than with
  * `Value` / `Secondary` — see {@link reducerLabel}, and `reduceOptions` for where the
- * two come from.
+ * two come from. Under the time slider no reducer ran, and the main row is labelled
+ * `Value` instead — see {@link VALUE_ROW_LABEL}.
  *
  * Values format with the **hovered mark's own** field, and the footer resolves that
  * field's data links; see {@link getRelationsTooltipMarks}. A node derived from an
  * edge's endpoints has no field, so it formats through {@link formatDerivedMarkValue}
- * and shows no footer — `todo/relations-data-links.md` gap 4, which the contract does
- * not close. Its **filters** it does get, though: they come off the item's own
- * endpoints rather than off a field. See {@link nodeFilters}. And having no field, it
- * has no stat either, so its rows are its edges.
+ * and shows no footer at all — no data links (`todo/relations-data-links.md` gap 4, which
+ * the contract does not close) and no filters either, since there is no field to carry
+ * the `filterable` opt-in. The derived-node pre-pass is what gives it both
+ * (`docs/relations-derived-nodes.md`). Having no field it has no stat either, so its rows
+ * are its edges.
+ *
+ * The endpoint keys the filters are written under come off the hovered mark as well —
+ * see {@link relationsFilterLabels}.
  */
 export function buildRelationsTooltipModel(
   marks?: RelationsMarks,
@@ -384,9 +428,13 @@ export function buildRelationsTooltipModel(
   // every mark, and this is the same normalization the reader reduced them with. The rows
   // after it name themselves — each carries the reducer that produced it (`MarkStat`), so a
   // calc that reduces to nothing on one mark cannot shift the labels below it on the next.
+  //
+  // Under the time slider no reducer ran, so none is named — see {@link VALUE_ROW_LABEL}.
+  // Keyed on the switch rather than on whether a stop is selected, so the label does not
+  // flicker between `Value` and `Last *` as a refresh takes the timeline away: the switch
+  // is also what hides the picker, and the two must agree.
   const [calc] = normalizeRelationsCalcs(options?.reduceOptions);
-  const statLabel = reducerLabel(calc);
-  const filterKeys = relationsFilterLabels(options, marks?.endpointLabels);
+  const statLabel = options != null && resolveRelationsTimeSlider(options) ? VALUE_ROW_LABEL : reducerLabel(calc);
 
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;
@@ -413,7 +461,7 @@ export function buildRelationsTooltipModel(
         header: { label: `${data.source} → ${data.target}`, value: '' },
         rows,
         source: mark?.source,
-        filters: edgeFilters(data, mark, filterKeys),
+        filters: edgeFilters(data, mark, relationsFilterLabels(mark?.source.field, marks?.endpointLabels)),
       };
     }
 
@@ -456,7 +504,9 @@ export function buildRelationsTooltipModel(
       // Only for something that really is a node item: the formatter also fields the
       // odd hover that carries no recognisable item at all, and a filter on nothing
       // would be a button that adds `source=""`.
-      ...(node != null ? { filters: nodeFilters(node, mark, filterKeys) } : {}),
+      ...(node != null
+        ? { filters: nodeFilters(node, mark, relationsFilterLabels(mark?.source.field, marks?.endpointLabels)) }
+        : {}),
     };
   };
 }

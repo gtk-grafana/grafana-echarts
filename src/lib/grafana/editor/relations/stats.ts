@@ -1,6 +1,7 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { RELATIONS_CALC_DEFAULT } from 'lib/echarts/converters/graphWide';
+import { resolveRelationsTimeSlider } from 'lib/echarts/options/timeline';
 import { RelationsStatsPicker } from 'lib/grafana/editor/relations/RelationsStatsPicker';
 import { type PanelOptions } from 'types';
 
@@ -24,6 +25,11 @@ import { type PanelOptions } from 'types';
  *
  * `reduceOptions.fields` is left out for the same reason: which fields are marks is
  * decided by frame role, not by a matcher.
+ *
+ * **Hidden while the time slider is on** (`addRelationsTimelineOptions`), which is the
+ * other answer to the same question: at one selected row there is nothing left to
+ * reduce, every reducer agrees, and leaving the picker up would read as a control that
+ * does nothing. The stored `calcs` survive the toggle, so switching back restores them.
  */
 export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   builder.addCustomEditor({
@@ -38,5 +44,6 @@ export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<Panel
     editor: RelationsStatsPicker,
     defaultValue: [RELATIONS_CALC_DEFAULT],
     settings: { allowMultiple: true },
+    showIf: (options) => !resolveRelationsTimeSlider(options),
   });
 }

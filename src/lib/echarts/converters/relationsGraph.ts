@@ -19,14 +19,47 @@ import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
  * response reaching the panel means the pipeline is missing a step the user can supply
  * by hand, and a silent empty panel would hide that. See
  * ../../../../todo/graph-wide-migration.md.
+ *
+ * `at` selects one timestamp rather than reducing — the panel's time slider. See
+ * {@link frameToGraphWide}.
+ *
+ * **Memoized** on its inputs (`graphCache`): the family resolves the same graph three
+ * times per render — the built option, the override universe and the legend each call
+ * this — and scrubbing or playing the slider multiplies that by a frame rate. The pie's
+ * slice model is cached the same way, for the same reason (`converters/pie.ts`).
  */
 export function frameToRelationsGraph(
   frames: DataFrame[],
   theme: GrafanaTheme2,
-  reduceOptions?: ReduceDataOptions
+  reduceOptions?: ReduceDataOptions,
+  at?: number | null
+): NodeGraphData | null {
+  const deps: readonly unknown[] = [theme, reduceOptions, at];
+  const cached = graphCache.get(frames);
+  if (cached && cached.deps.every((dep, index) => Object.is(dep, deps[index]))) {
+    return cached.data;
+  }
+  const data = computeRelationsGraph(frames, theme, reduceOptions, at);
+  graphCache.set(frames, { deps, data });
+  return data;
+}
+
+/**
+ * Last resolved graph per source-frame array, keyed on `frames` through a `WeakMap` so
+ * separate panels keep independent entries and stale frames are collected. The remaining
+ * inputs are compared by identity — all are render-stable, which is what `Panel`'s
+ * `chartContext` memo already guarantees.
+ */
+const graphCache = new WeakMap<DataFrame[], { deps: readonly unknown[]; data: NodeGraphData | null }>();
+
+function computeRelationsGraph(
+  frames: DataFrame[],
+  theme: GrafanaTheme2,
+  reduceOptions: ReduceDataOptions | undefined,
+  at: number | null | undefined
 ): NodeGraphData | null {
   if (isGraphWideFrames(frames)) {
-    return frameToGraphWide(frames, theme, reduceOptions);
+    return frameToGraphWide(frames, theme, reduceOptions, at);
   }
   if (isLegacyGraphFrames(frames)) {
     throw new Error(

@@ -99,7 +99,10 @@ export const renderRelations = async ({
       fieldConfig
     )
   );
-  return getSeriesCanvasEvents(container);
+  // The container comes back too, for the two suites that need the panel's **DOM** as
+  // well as its canvas: the time slider is a React control that takes layout off the
+  // plot, so proving it works means driving it and re-reading the chart.
+  return { ...(await getSeriesCanvasEvents(container)), container };
 };
 
 /**
