@@ -1,9 +1,9 @@
-import { type RelationLink } from 'lib/echarts/converters/nodeGraph';
+import { type RelationLink } from 'lib/echarts/converters/relationsModel';
 
 /**
  * Cycle policy for the sankey render variant.
  *
- * Kept separate from `nodeGraph.ts` because this is graph theory, not frame
+ * Kept separate from `graphWide.ts` because this is graph theory, not frame
  * reading: it takes the already-converted link list and returns a DAG.
  *
  * **Why this has to exist.** ECharts' `sankeyLayout.ts` runs Kahn's algorithm and
@@ -17,7 +17,7 @@ import { type RelationLink } from 'lib/echarts/converters/nodeGraph';
  * This is not expressible as a user option: the only alternative to breaking a
  * cycle is crashing. `graph` and `chord` accept any digraph and never call this.
  *
- * See ../../../../data-plane/node-graph.md ("Pitfalls for a converter") and the
+ * See ../../../../data-plane/echarts-coverage.md ("Sankey is DAG-only") and the
  * `sankey` row in ../../../../data-plane/echarts-coverage.md.
  */
 

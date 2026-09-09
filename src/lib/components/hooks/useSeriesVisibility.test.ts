@@ -46,6 +46,21 @@ describe('useSeriesVisibility', () => {
     ]);
   });
 
+  /**
+   * The override is an *exclude* matcher, so any field left out of the kept list is
+   * hidden — including fields the legend never drew a row for. A family that has such
+   * fields (relations edges) supplies the wider universe itself.
+   */
+  it('prefers an explicit override universe over the legend rows', () => {
+    const { result } = renderHook(() =>
+      useSeriesVisibility(emptyConfig, jest.fn(), items, ['cpu_seconds', 'Idle', 'a-->b'])
+    );
+
+    result.current('CPU', SeriesVisibilityChangeMode.AppendToSelection);
+
+    expect(toggleConfig.mock.calls[0][3]).toEqual(['cpu_seconds', 'Idle', 'a-->b']);
+  });
+
   it('forwards a multi-label and a null selection unchanged', () => {
     const { result } = renderHook(() => useSeriesVisibility(emptyConfig, jest.fn(), items));
 

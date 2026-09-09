@@ -1,33 +1,49 @@
 import { PanelPlugin } from '@grafana/data';
+import { initPluginTranslations } from '@grafana/i18n';
 import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } from 'editor/constants';
-import { type EChartsFieldConfig } from 'editor/types';
+import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
-import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
+import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
+import { addRelationsCustomConfig } from 'lib/grafana/editor/relations/fieldConfig';
+import { addRelationsFilterOptions } from 'lib/grafana/editor/relations/filters';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
+import { addRelationsStatOptions } from 'lib/grafana/editor/relations/stats';
+import { setSystemTransformations } from 'lib/grafana/panelDataTransformations';
 import { type PanelOptions } from 'types';
+import { relationsDataTransformations } from './dataTransformations';
 import { relationsSuggestionsSupplier } from './suggestions';
 
-// Relations family panel: nodes plus the links between them, built from Grafana's
-// node-graph frame pair (an edges frame, plus an optional nodes frame). Three render
-// variants — `graph`, `sankey` and `chord` — over one converter, since all three
-// ECharts series consume the identical node/link input. See
-// data-plane/node-graph.md and lib/echarts/converters/nodeGraph.ts.
-export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('relations'))
+// Needs to be called at each top-level module to prevent panels from breaking when
+// calling grafana/i18n methods (like t()). `addRelationsStatOptions` calls `t()` while
+// the options supplier runs, and the plugin bundles its own `@grafana/i18n` (it is not
+// in the shared externals list), so without this the supplier throws
+// "t() was called before i18n was initialized" — which surfaces as a panel stuck
+// forever on "Loading plugin panel...", with no error anywhere in the UI.
+
+initPluginTranslations('grafana-echarts-app');
+
+// Relations family panel: nodes plus the links between them, read from the field-based
+// graph contract — one node is one field, one edge is one field. Three render variants —
+// `graph`, `sankey` and `chord` — over one converter, since all three ECharts series
+// consume the identical node/link input. See data-plane/graph-wide.md and
+// lib/echarts/converters/graphWide.ts. Grafana's row-based node-graph frames are
+// converted to the contract above the panel, by the transformation registered below.
+const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({
     standardOptions: STANDARD_COLOR_OPTIONS,
-    // No `useCustomConfig`/`addHideFrom`: nodes are frame *rows*, not fields, so a
-    // byName `custom.hideFrom` override would never match one and
-    // `stripHiddenValueFields` could only strip the underlying stat column. The
-    // hierarchy family omits it for the same reason; see parity.md.
+    // Per-mark style, addressable by an ordinary field override because a mark is a
+    // field: node radius, subtitle and pinned position; edge width, line type and
+    // curveness; and the real "Hide in area" switches. See `addRelationsCustomConfig`.
+    useCustomConfig: addRelationsCustomConfig,
   })
   .setPanelOptions((builder) => {
     // Editor mode (Default / Advanced) — registered first so it renders at the top.
@@ -47,6 +63,13 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
       });
     }
 
+    // How each mark reduces its own values: `calcs[0]` is the stat that sizes and colours
+    // it, and every calc after that is an extra tooltip row. On the field-based contract a
+    // mark is a field, so this is the standard `reduceOptions` question every
+    // value-reducing family answers — see `addRelationsStatOptions` for why only the
+    // calculation picker is registered.
+    addRelationsStatOptions(builder);
+
     // Default tier: layout and node presentation — the controls a user coming from
     // core Grafana's Node graph panel expects. Each graph-only control gates on
     // `isGraphVariant` internally.
@@ -61,21 +84,43 @@ export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazy
     // Chord-only ring geometry, all Advanced (gated on `isChordVariant` internally).
     addRelationsChordOptions(builder);
 
-    // Advanced tier: interaction, force tuning, link styling.
+    // Advanced tier: interaction, force tuning, link styling, and the one option
+    // about the *query* rather than the chart — which label an endpoint is filtered
+    // on. See `addRelationsFilterOptions`.
     addRelationsInteractionOptions(builder);
     addRelationsForceOptions(builder);
     addRelationsLinkOptions(builder);
+    addRelationsFilterOptions(builder);
 
-    // The family has no per-point fast path, so it registers the shared animation
-    // switch directly rather than the cartesian `addPerformanceOptions` bundle.
-    addAnimationOption(builder);
+    // The family has no per-point fast path, so it registers an animation switch
+    // directly rather than the cartesian `addPerformanceOptions` bundle — its own
+    // rather than the shared `addAnimationOption`, because it is Default-tier and on
+    // here. See `addRelationsAnimationOption`.
+    addRelationsAnimationOption(builder);
 
     // `singleOnly`: a relations hover is one node or one link, so "All" has nothing
-    // to list. `includeLegendCalcs: false`: legend entries are nodes (rows), not
-    // fields, so there is no series to reduce. Matches `singleTooltipOnly` on
-    // `relationsChartModule`, which clamps a persisted `multi` at render time.
+    // to list. `includeLegendCalcs: false`: a legend entry is one mark, already
+    // reduced to its own stat by `reduceOptions`, so there is nothing further to
+    // reduce per legend row. Matches `singleTooltipOnly` on `relationsChartModule`,
+    // which clamps a persisted `multi` at render time.
     addCommonLegendAndTooltip(builder, { singleTooltipOnly: true, includeLegendCalcs: false });
     return builder;
   })
   // Registered for consistency; it never returns a suggestion — see suggestions.ts.
   .setSuggestionsSupplier(relationsSuggestionsSupplier);
+
+/**
+ * Declare the row->field conversion as a panel-registered transformation so it runs
+ * *above* the panel, before field overrides — which is what makes each node and edge a
+ * `byName` override target and lists them in the override editor's field picker.
+ *
+ * This is the family's **only** path from Grafana's row-based node-graph frames to
+ * something the panel can read, so the API is a hard requirement rather than an
+ * enhancement: the plugin's minimum supported Grafana is the release that carries
+ * grafana/grafana#129992 (expected 13.2). Registration is feature-detected so an older
+ * host does not fail to load the plugin at all, but a row-format response there reaches
+ * the panel unconverted and the panel reports that it cannot read it — see
+ * `frameToRelationsGraph`. A user on such a host can supply the conversion by hand with
+ * a "Rows to fields" transformation. See `lib/grafana/panelDataTransformations.ts`.
+ */
+export const plugin = setSystemTransformations(relationsPlugin, relationsDataTransformations);

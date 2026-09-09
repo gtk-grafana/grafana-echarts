@@ -1,0 +1,819 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Phase 5 of todo/graph-wide-migration.md: every mark resolves its own field, so the tooltip formats with that mark's unit, its config.links reach the pinned footer, and the legend writes ordinary byName overrides. Every panel runs the same row-format query; the plugin's registered transformation converts it above the panel, before field overrides.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "This dashboard is the **phase 5** proof of [todo/graph-wide-migration.md](https://github.com/grafana/grafana-echarts-panel):\neach mark answers for itself. Every panel runs the *same* row-format query \u2014 the plugin's\nregistered transformation converts it to `graph-nodes-wide` / `graph-edges-wide` above the\npanel, so each node and each edge exists as a field before overrides are applied.\n\n**Try it:**\n\n1. **Hover** a node, then an edge. Each value is formatted by that mark's own unit and decimals.\n2. **Click** a mark to pin its tooltip. Only the marks with a `links` override show a footer link.\n3. **Click a legend swatch** and pick a colour: Grafana writes a plain `byName` colour override \u2014\n   no plugin-specific mechanism \u2014 and the node repaints. **Click a legend label** to hide that node\n   and the edges touching it.\n4. Open **Field overrides** and look at the field picker: it lists `gateway`, `api`, `db`,\n   `gw-api`, `api-db`, `gw-db` \u2014 one entry per mark."
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Per-mark units \u2014 hover any node or edge",
+      "description": "**One unit per mark, not one per frame.**\n\n`gateway` and `api` are milliseconds, `db` is a percentage, and each edge carries its own unit again (`gw-api` req/s, `api-db` seconds, `gw-db` percent). Node values are printed on the canvas too, through the same per-mark formatter \u2014 the label and the tooltip cannot disagree.\n\nBefore the field contract the tooltip formatted every mark with the frame's *first* numeric column, so the hovered item's unit depended on frame order.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gateway"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "api"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gw-api"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "api-db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gw-db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 26,
+        "seriesType": "graph",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Control \u2014 same query, no overrides",
+      "description": "The identical query with an empty `overrides` list. Every mark shows a raw number, which is all the row form could ever offer: `mainstat` is one column, so its unit is the graph's unit.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 26,
+        "seriesType": "graph",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Per-mark data links \u2014 click a mark to pin its tooltip",
+      "description": "**A link on exactly one node and exactly one edge.**\n\n`config.links` is set by a `byName` override on node `db` and on edge `api-db`. Pin `db` (click it) and the footer offers *Database runbook*; pin `gateway` or `api` and there is no footer at all. Pin the `api \u2192 db` edge for *Trace api-db*, whose URL interpolates `${__field.name}`.\n\nGaps 1-3 of `todo/relations-data-links.md`: in the row form a link lives on the `mainstat` column, so it paints on **every** node, and an edge could be handed the nodes frame's field.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Database runbook",
+                    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/#data-link-variables",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "api-db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Trace ${__field.name}",
+                    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/?edge=${__field.name}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 26,
+        "seriesType": "graph"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Control \u2014 same query, no links",
+      "description": "Nothing to pin: no mark carries `config.links`, so no tooltip renders a footer. Pair this with the panel on the left to see that the link's *presence* \u2014 not just its destination \u2014 is per mark.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 26,
+        "seriesType": "graph"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Legend \u2014 the colour picker writes an ordinary byName override",
+      "description": "**No family-specific legend mechanism.** `gateway` already carries a fixed `dark-red` colour override, exactly the shape the legend's colour picker writes; Grafana's override engine applies it to that node's field and the panel reads it back as `field.display(value).color`.\n\nPick a colour for another node and compare the two overrides in the Fields tab \u2014 they are the same thing. Toggling a legend row writes the standard `hideSeriesFrom` override, which hides that node **and the edges touching it** while keeping every other edge (the edges are fields too, so they have to be named in the kept list).",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gateway"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-red"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "api-db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 26,
+        "seriesType": "graph"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Sankey \u2014 the same answers in another variant",
+      "description": "The three render variants read one model, so per-mark units and per-mark links are a family property rather than a graph-variant one. Hover a ribbon: it formats with the edge field's own unit; pin the `api \u2192 db` ribbon for its link.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 38
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Database runbook",
+                    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/#data-link-variables",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "api-db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Trace ${__field.name}",
+                    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/?edge=${__field.name}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gateway"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gw-api"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsNodeSize": 26,
+        "seriesType": "sankey"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Chord \u2014 and again",
+      "description": "Same model, same overrides, laid out as a ring. Chord takes cyclic input unchanged, so this is also the variant to reach for when a service graph has a loop.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 38
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Database runbook",
+                    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/#data-link-variables",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "api-db"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Trace ${__field.name}",
+                    "url": "https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/?edge=${__field.name}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gateway"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gw-api"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsNodeSize": 26,
+        "seriesType": "chord"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
+        }
+      ]
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "graph-wide", "tooltip", "data-links"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations \u2014 per-mark tooltips, links and legend",
+  "uid": "echarts-relations-per-mark",
+  "version": 1,
+  "weekStart": ""
+}

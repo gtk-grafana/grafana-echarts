@@ -2,6 +2,7 @@ import {
   type NumberFieldConfigSettings,
   type PanelOptionsEditorBuilder,
   type SelectFieldConfigSettings,
+  type StringFieldConfigSettings,
 } from '@grafana/data';
 import { advancedOptionsCategoryName } from 'editor/constants';
 import { isAdvancedEditorMode } from 'lib/grafana/editor/common/editor-mode';
@@ -70,6 +71,10 @@ interface AdvancedSelectSpec<TOption> extends AdvancedSpecBase<TOption> {
 type AdvancedBooleanSpec = AdvancedSpecBase<boolean>;
 type AdvancedColorSpec = AdvancedSpecBase<string>;
 
+interface AdvancedTextSpec extends AdvancedSpecBase<string> {
+  settings?: StringFieldConfigSettings;
+}
+
 /** Advanced-gated number input (ECharts numeric option). */
 export function addAdvancedNumberInput(
   builder: PanelOptionsEditorBuilder<PanelOptions>,
@@ -100,6 +105,14 @@ export function addAdvancedBooleanSwitch(
   { showIf, ...rest }: AdvancedBooleanSpec
 ): void {
   builder.addBooleanSwitch({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
+}
+
+/** Advanced-gated text input (a free-form string, e.g. a datasource label key). */
+export function addAdvancedTextInput(
+  builder: PanelOptionsEditorBuilder<PanelOptions>,
+  { showIf, ...rest }: AdvancedTextSpec
+): void {
+  builder.addTextInput({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
 }
 
 /** Advanced-gated color picker (hex or theme token). */

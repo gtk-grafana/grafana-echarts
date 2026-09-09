@@ -77,6 +77,36 @@ its service's logs and metrics, and the Tempo service map → Prometheus.
 **`dashboards/lgtm-stack.json`** is the smoke test — if its five panels have
 data, all four signals are wired.
 
+### `dashboards/lgtm-relations/` — real frames into the relations charts
+
+Four dashboards showing how each datasource's **real** response reaches the
+field-based graph contract the relations family reads (one node is one field,
+one edge is one field, endpoints in `field.labels`). They land in a Grafana
+folder called `lgtm-relations`, separate from the TestData-backed `relations`
+folder the shared provider contributes.
+
+| Dashboard                       | Source                                           | The route it demonstrates                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tempo-service-map.json`        | `queryType: serviceMap`                          | Tempo emits Grafana's **row-based** node-graph frames. `filterFieldsByName` + `rowsToFields` converts them — two transformations, no renaming, because Tempo already calls its endpoint columns `source` / `target`.                                                                                                                                                                                                                                                                                                            |
+| `prometheus-service-graph.json` | `traces_service_graph_*`, `traces_spanmetrics_*` | Two routes side by side: a ranged query with an **empty Transform tab** (draws every edge, all sharing the field name `Value`), and instant + `label_join` + `organize` + `rowsToFields` (a named field per edge, so `byName` overrides and per-edge data links work).                                                                                                                                                                                                                                                          |
+| `loki-log-flows.json`           | LogQL metric queries                             | A LogQL metric query is the same frame shape as a Prometheus one, so the same two routes apply — with `label_format` in place of `label_replace`, and a three-tier sankey built from two queries the reader unions.                                                                                                                                                                                                                                                                                                             |
+| `prometheus-derived-nodes.json` | `traces_service_graph_request_total`             | **Deliberately the _before_ picture.** A service graph is edges-only, so every node is derived; `converters/deriveNodes.ts` declares them as fields so overrides can reach them, but that needs [#129992](https://github.com/grafana/grafana/pull/129992) and this stack's Grafana has no such API. The graphs draw; the per-node overrides are inert except hiding, which the panel still re-reads by name. Flips on its own when the API lands. See [../docs/relations-derived-nodes.md](../docs/relations-derived-nodes.md). |
+
+Every panel description carries the query and the reasoning, including the
+traps that cost real time: `topk` in a ranged query is evaluated per step, an
+instant Prometheus query must be `Format: Time series` and not Table or the
+labels flatten into columns, Loki has no instant form that keeps labels at all,
+and a `rate(..._failed_total)` division silently returns nothing for a service
+that has never failed.
+
+**This Grafana is 13.1.0, which is why the conversions are written out.** The
+plugin registers the row→field conversion as a panel transformation
+(grafana/grafana#129992, expected 13.2), which runs above the panel and before
+field overrides. On a host with that API the Tempo dashboard's chain becomes
+unnecessary and Prometheus's Route A gains per-edge ids on its own. One panel on
+the Tempo dashboard is left unconverted on purpose, to show what the panel says
+when nothing has reshaped its input.
+
 ## Known gaps in tracing
 
 Metrics and logs come from all five services. Traces come from three: Grafana,

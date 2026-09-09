@@ -442,6 +442,63 @@
         "relationsSankeyLinkOpacity": 0.6,
         "relationsSankeyNodeAlign": "right"
       }
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "**Show node values** on. Each node label gains a second line carrying that node's `mainstat`, formatted with the field's unit and decimals — the same value, and the same `stat ?? value` precedence, the tooltip shows.\n\nThe option is shared by all three render variants and rides on the node label, so it is hidden in the editor when **Show node labels** is off.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 50
+      },
+      "id": 10,
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        },
+        {
+          "csvContent": "id,title,mainstat\ngateway,Gateway,1200\napi,API,2450\nweb,Web,800\nauth,Auth,650\ndb,Database,1200",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "B",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Node values — mainstat under each label",
+      "type": "grafana-echartsrelations-panel",
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsShowNodeValues": true
+      }
     }
   ],
   "refresh": "",

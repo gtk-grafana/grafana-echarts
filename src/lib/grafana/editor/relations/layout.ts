@@ -16,7 +16,11 @@ import { type PanelOptions } from 'types';
 const layoutOptions: Array<SelectableValue<RelationsGraphLayout>> = [
   { value: 'force', label: 'Force', description: 'Physics simulation; good for exploring topology' },
   { value: 'circular', label: 'Circular', description: 'Nodes on a ring; stable and deterministic' },
-  { value: 'none', label: 'Fixed', description: 'Use node fixedx/fixedy coordinates from the data' },
+  {
+    value: 'none',
+    label: 'Fixed',
+    description: 'Pin nodes at their fixed x/y; any node without a pair is seeded on a ring',
+  },
 ];
 
 export function addRelationsLayoutOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {

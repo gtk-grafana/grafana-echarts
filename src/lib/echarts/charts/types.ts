@@ -1,5 +1,4 @@
 import {
-  type DataFrame,
   type FieldConfigSource,
   type GrafanaTheme2,
   type InterpolateFunction,
@@ -40,17 +39,25 @@ import {
 // `TooltipOption` are elsewhere in this codebase).
 import { type SingleAxisOption } from 'echarts/types/dist/shared';
 import { type LineSeriesOption } from 'echarts/types/src/chart/line/LineSeries';
-import { type SeriesType } from 'editor/types';
+import {
+  type CartesianSingleValueSeriesType,
+  type EChartsFieldConfig,
+  type EChartsGraphFieldConfig,
+  type HeatmapSeriesType,
+  type MultiValueSeriesType,
+  type SeriesType,
+} from 'editor/types';
 import {
   type TooltipFieldResolver,
   type TooltipSink,
   type TooltipValueFormatterResolver,
 } from 'lib/echarts/tooltip/types';
+import { type EChartsValueType, type FieldTypedDataFrame } from 'lib/grafana/types';
 import { type PanelOptions } from 'types';
 
 /** Shared chart render context passed to chart modules. */
-export interface ChartContext<T = SeriesType> {
-  frames: DataFrame[];
+export interface ChartContext<T = SeriesType, C = EChartsFieldConfig, V = EChartsValueType> {
+  frames: Array<FieldTypedDataFrame<V, C>>;
   theme: GrafanaTheme2;
   timeZone: TimeZone;
   timeRange: TimeRange;
@@ -77,6 +84,32 @@ export type HierarchyChartContext = ChartContext<'sunburst' | 'treemap'>;
 export type RelationsChartContext = ChartContext<'graph' | 'sankey' | 'chord'>;
 
 export type StreamChartContext = ChartContext<'themeRiver'>;
+
+/** The cartesian family's own context: every render type its module dispatches on. */
+export type CartesianContext = ChartContext<
+  CartesianSingleValueSeriesType | MultiValueSeriesType,
+  EChartsGraphFieldConfig
+>;
+
+/**
+ * Context for the `[time, value]` converter, which two families share: the
+ * cartesian panel proper, and the binned heatmap's cartesian overlay layer.
+ *
+ * `seriesType` is the *fallback* the converter hands `resolveFieldSeriesType`
+ * when a field carries no per-field override, so it spans the single-value
+ * cartesian types plus `heatmap` — the value the heatmap family passes, meaning
+ * "this overlay field opted out of a cartesian type, draw it color-only".
+ * Multi-value types are excluded deliberately: candlestick/boxplot build one
+ * series from several fields and never route through this converter.
+ *
+ * Typed against the *base* field config rather than `EChartsGraphFieldConfig` so
+ * the heatmap family (registered with the base config) can call it too; the
+ * converter reads only base-config keys.
+ */
+export type CartesianContextWithOverlay = ChartContext<
+  CartesianSingleValueSeriesType | HeatmapSeriesType,
+  EChartsFieldConfig
+>;
 
 /** Parts of the render pipeline supplied by the panel before chart-specific merge. */
 export interface BaseOptionParts {
@@ -145,9 +178,7 @@ export type EChartSunburstSeriesOption = ComposeOption<SunburstSeriesOption>;
 // `View` coordinate system, so no coordinate component is composed in.
 export type EChartGraphSeriesOption = ComposeOption<GraphSeriesOption>;
 // Relations (sankey) lays the same node/link model out as weighted flow ribbons.
-// Composes the `title` component too: a sankey may carry a bottom-left note
-// reporting links removed by the cycle policy (see `getSankeyDroppedNote`).
-export type EChartSankeySeriesOption = ComposeOption<SankeySeriesOption | TitleComponentOption>;
+export type EChartSankeySeriesOption = ComposeOption<SankeySeriesOption>;
 // Relations (chord) lays the same node/link model out as a ring of arcs joined by
 // ribbons. Self-contained: it pins `coordinateSystem: 'none'`, so nothing is composed in.
 export type EChartChordSeriesOption = ComposeOption<ChordSeriesOption>;
@@ -206,12 +237,103 @@ export type EChartBuildOption =
   | EChartMultiValueCartesianSeriesOption;
 
 /** Self-contained chart family: option building, legend, and tooltip metadata. */
+/**
+ * An advisory the panel surfaces in its corner, for when the chart had to change
+ * the user's data to render it at all (today: the sankey cycle policy).
+ *
+ * Deliberately not a Grafana panel-*chrome* notice. That slot is fed only from
+ * `DataFrame.meta.notices` on the scene's data object — `PanelNoticesRenderer`
+ * reads `sceneGraph.getData(model).useState()` — which a panel plugin does not
+ * own and cannot write without mutating a prop it was handed. So the panel renders
+ * its own equivalent affordance (icon + tooltip) inside the viz area instead.
+ */
+export interface ChartNotice {
+  severity: 'info' | 'warning';
+  /** Short sentence shown in the notice tooltip. */
+  text: string;
+}
+
+/**
+ * Chart items to emphasise while a legend row is hovered, as an ECharts
+ * `highlight`/`downplay` payload. One entry per data table involved: graph-like
+ * series (graph / sankey / chord) keep nodes and edges in two tables addressed by
+ * `dataType`, so emphasising a node *and its links* takes two.
+ * https://echarts.apache.org/en/api.html#action.highlight
+ */
+export interface LegendHighlightTarget {
+  /** `'node'` / `'edge'` for graph-like series; omit for single-table series. */
+  dataType?: 'node' | 'edge';
+  /** Rows within that table. Batched, since ECharts accepts an array. */
+  dataIndex: number[];
+}
+
+/**
+ * How the panel's own zoom buttons reach a family's view — see `ChartZoomControls`.
+ *
+ * ECharts registers one roam action per series type that owns a `View` coordinate
+ * system (`registerRoamActionSimply`), and the action resolves that view directly, so
+ * it scales the chart whether or not `roam` is enabled. That is what lets zoom be a
+ * button instead of the scroll wheel.
+ * https://echarts.apache.org/en/api.html#action.graphRoam
+ */
+export interface ChartZoomAction {
+  /** The registered action type, e.g. `'graphRoam'` / `'sankeyRoam'`. */
+  type: string;
+  /** Index of the series that owns the view coordinate system. */
+  seriesIndex: number;
+}
+
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
+
   // @todo replace null with reason why chart cannot render?
   buildOption(ctx: ChartContext, base: BaseOptionParts): EChartBuildOption | null;
+
   buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];
+
+  /**
+   * Advisories to show in the panel's corner for this render — see
+   * {@link ChartNotice}. Optional; families with nothing to report omit it and
+   * the panel renders no badge.
+   */
+  getNotices?(ctx: ChartContext): ChartNotice[];
+
+  /**
+   * Chart items to emphasise while the legend row labelled `label` is hovered —
+   * see {@link LegendHighlightTarget}. Optional; families that omit it get no
+   * legend hover emphasis, which is the existing behaviour everywhere else.
+   */
+  getLegendHighlightTargets?(ctx: ChartContext, label: string): LegendHighlightTarget[];
+
+  /**
+   * The roam action the panel's zoom buttons should dispatch for this render, or
+   * `undefined` to draw no buttons — see {@link ChartZoomAction}. Optional; a family
+   * that omits it gets no zoom controls, which is every family but relations.
+   */
+  getZoomAction?(ctx: ChartContext): ChartZoomAction | undefined;
+
+  /**
+   * Every name the legend's visibility override has to account for, when that is
+   * **wider than the legend itself**.
+   *
+   * The toggle persists as core's `hideSeriesFrom` system override: a `byNames`
+   * matcher in *exclude* mode listing the names to keep, i.e. "hide everything
+   * else". "Everything else" is whatever Grafana's override engine can match, so if
+   * a family has fields the legend does not list, isolating one legend row hides
+   * those too — silently, because nothing in the legend refers to them.
+   *
+   * Relations is the case: the legend lists nodes, but under the field-based graph
+   * contract each **edge** is also a field, so hiding one node would otherwise erase
+   * every edge in the panel. It returns node names plus edge names, which keeps the
+   * edges in the kept list and leaves the graph semantics (drop the links touching a
+   * hidden node) to the chart, where they belong.
+   *
+   * Optional: families whose legend rows are their whole field universe omit it, and
+   * `useSeriesVisibility` falls back to the legend item names.
+   */
+  getOverrideTargetNames?(ctx: ChartContext): string[];
+
   /**
    * Resolve the value formatter for a hovered tooltip item so each series
    * formats with its own field's unit/decimals overrides. Chart families map the
@@ -220,6 +342,7 @@ export interface ChartModule {
    * `buildPanelTooltip` falls back to `ctx.formatValue`.
    */
   getTooltipValueFormatter?(ctx: ChartContext): TooltipValueFormatterResolver;
+
   /**
    * Resolve the source `Field` + row index for a hovered tooltip item, so the
    * tooltip footer can surface that field's data links and label-based ad-hoc
@@ -228,6 +351,7 @@ export interface ChartModule {
    * footer.
    */
   getTooltipFieldResolver?(ctx: ChartContext): TooltipFieldResolver;
+
   /**
    * Labels for the dimensions a multi-value series packs into one item, so the
    * tooltip lists them all instead of just the last. Only families that draw
@@ -235,6 +359,7 @@ export interface ChartModule {
    * {@link TooltipModelOptions.multiValueDimensions}.
    */
   getTooltipDimensions?(ctx: ChartContext): string[] | undefined;
+
   /**
    * The family has no meaningful "All" tooltip, so a persisted
    * `tooltip.mode: multi` is clamped back to Single when building the option.
