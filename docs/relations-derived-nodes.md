@@ -92,6 +92,29 @@ then omits `value`, so the node label stays on one line and the tooltip omits th
 than printing the field's empty-value text under a `Value` label. The degree is still
 readable from the graph — it is how many lines touch the node.
 
+### What its tooltip says instead
+
+A header and no rows at all reads as a mark the panel knows nothing about, so a node with no
+stat — derived, or declared with nothing to reduce — **lists the edges touching it**, one row
+each, in the response's own field order:
+
+```
+gateway
+web →        800 ms
+→ API          1.2 s
+→ gateway          4
+```
+
+The arrow carries the direction (`→ other` leaves the node, `other →` arrives) rather than
+repeating the hovered node's name on every row, the other endpoint reads with its display
+name, and each weight formats through that **edge's** own field — so two edges with different
+units stay in their own units, exactly as each edge's own tooltip would show them. A self-loop
+is listed once. The list stops at ten rows with a `+N more` count, because the relations
+tooltip is a Single-mode tooltip and core only scrolls a Multi-mode one.
+
+It is a fallback, not an addition: a node that has a stat reports the stat. See
+`adjacencyRows` in `src/lib/echarts/tooltip/relations.ts`.
+
 ## What is still open
 
 **The pre-pass is gated.** The host runs panel-registered transformations only behind

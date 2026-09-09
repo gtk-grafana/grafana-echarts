@@ -339,6 +339,28 @@ export interface RelationsLinkItem {
 }
 
 /**
+ * One edge touching a node, as that node's own tooltip lists it.
+ *
+ * Built only for the nodes with no stat of their own. A node derived from an edge's
+ * endpoints carries `null` deliberately — a link count is not a measurement, see
+ * `docs/relations-derived-nodes.md` — so its tooltip was a header and nothing else, which
+ * reads as a mark the panel knows nothing about. Its edges are the one thing it *does* know,
+ * and they are numbers the response actually measured, so they are what the tooltip reports.
+ *
+ * The weight arrives as a display string, formatted through the **edge's** own display
+ * processor rather than through the node's: the node has none, and each edge is a field with
+ * its own unit under the wide contract. Same reasoning as {@link MarkStat}.
+ */
+export interface RelationsAdjacentEdge {
+  /** The other endpoint's display name (`RelationNode.name`), not its id. */
+  node: string;
+  /** True when the hovered node is this edge's `source` — the edge leaves it. */
+  outgoing: boolean;
+  /** The edge's weight, formatted through the edge's own field. */
+  value: string;
+}
+
+/**
  * One mark's own field, resolved once per render so a hover is a map lookup.
  *
  * A mark **is** a field under the graph contract, which is what makes this
@@ -371,6 +393,16 @@ export interface RelationsMark {
 export interface RelationsMarks {
   nodes: ReadonlyMap<string, RelationsMark>;
   links: ReadonlyMap<string, RelationsMark>;
+  /**
+   * The edges touching each **statless** node, keyed by node id, in the model's own link
+   * order.
+   *
+   * Present only for the nodes that need it — a node with a stat reports the stat, and
+   * listing every node's edges would format every edge twice on every render. An id missing
+   * from this map therefore means "has a value of its own, or has no edges at all", not
+   * "unknown node". See {@link RelationsAdjacentEdge}.
+   */
+  adjacency?: ReadonlyMap<string, RelationsAdjacentEdge[]>;
   /**
    * The datasource's own endpoint label keys, carried through from the model so the
    * footer's ad-hoc filters are written under a key the datasource recognises. Unset means

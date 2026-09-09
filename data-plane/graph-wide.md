@@ -22,8 +22,6 @@ Related kinds:
   `graph-edges-long`, which every graph-native datasource emits today.
 - [graph-multi.md](./graph-multi.md) — the same contract as this one, spread one mark per
   **frame**, for responses whose marks do not share a row grid.
-- [graph-matrix.md](./graph-matrix.md) — an adjacency-matrix edges format, proposed and
-  rejected.
 
 ## Common properties
 
@@ -64,7 +62,7 @@ One field per edge. The frame grows _wider_ as edges are added.
 **Example:** three edges over three nodes, instant.
 
 | **Type: Number**<br>**Name: gw-api**<br>**Labels: {"source": "gateway", "target": "api"}** | **Type: Number**<br>**Name: api-db**<br>**Labels: {"source": "api", "target": "db"}** | **Type: Number**<br>**Name: gw-db**<br>**Labels: {"source": "gateway", "target": "db"}** |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | 1200                                                                                       | 800                                                                                   | 40                                                                                       |
 
 It should have the following properties:
@@ -84,7 +82,7 @@ It should have the following properties:
 Optional field configuration, all of it standard:
 
 | `field.config`                                   | Is the edge's                                                      |
-| ------------------------------------------------ | ------------------------------------------------------------------ |
+|--------------------------------------------------|--------------------------------------------------------------------|
 | `displayName`                                    | Label                                                              |
 | `color`                                          | Colour, in any of the eight standard modes                         |
 | `unit` / `decimals` / `mappings` / `min` / `max` | Value formatting                                                   |
@@ -165,7 +163,7 @@ Two edges joining the same pair of nodes must be two fields with **distinct name
 their endpoints in **labels**:
 
 | **Type: Number**<br>**Name: e1**<br>**Labels: {"source": "a", "target": "b"}** | **Type: Number**<br>**Name: e2**<br>**Labels: {"source": "a", "target": "b"}** |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | 10                                                                             | 20                                                                             |
 
 The name-split form cannot express this: both edges would be named `a-->b`, and while a
@@ -186,7 +184,7 @@ node is otherwise the one mark in the response that no field config can reach; s
 **Example:** three nodes, instant.
 
 | **Type: Number**<br>**Name: gateway**<br>**Labels: {"zone": "us-east-1"}** | **Type: Number**<br>**Name: api**<br>**Labels: nil** | **Type: Number**<br>**Name: db**<br>**Labels: nil** |
-| -------------------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------- |
+|----------------------------------------------------------------------------|------------------------------------------------------|-----------------------------------------------------|
 | 12                                                                         | 8                                                    | 3                                                   |
 
 It should have the following properties:
@@ -200,7 +198,7 @@ It should have the following properties:
 Optional field configuration:
 
 | `field.config`                                   | Is the node's                                                            |
-| ------------------------------------------------ | ------------------------------------------------------------------------ |
+|--------------------------------------------------|--------------------------------------------------------------------------|
 | `displayName`                                    | Title                                                                    |
 | `color`                                          | Colour, in any of the eight standard modes                               |
 | `unit` / `decimals` / `mappings` / `min` / `max` | Stat formatting                                                          |
@@ -238,7 +236,7 @@ is a field.
 In precedence order:
 
 | Signal                          | Survives                                           |
-| ------------------------------- | -------------------------------------------------- |
+|---------------------------------|----------------------------------------------------|
 | 1. `frame.meta.type`            | Only producers that can set frame meta             |
 | 2. **Field shape**              | Everything — CSV, SQL expressions, transformations |
 | 3. A consumer-side frame picker | Always; the manual override of last resort         |
@@ -278,7 +276,7 @@ Field shape is enough to _render_. Frame meta is what makes the kind **discovera
 a producer emitting this kind should set all of it:
 
 | Meta key                          | Value                                   | What it buys                                                                                                                      |
-| --------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------------------|-----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `meta.type`                       | `graph-nodes-wide` / `graph-edges-wide` | Unambiguous role resolution, and visualization suggestions                                                                        |
 | `meta.typeVersion`                | `[0, 1]`                                | The contract's versioning rule for a kind that has not stabilised                                                                 |
 | `meta.preferredVisualisationType` | `nodeGraph`                             | Routing in Explore                                                                                                                |
@@ -289,29 +287,29 @@ The proposed additions to `@grafana/data`, **not yet present in core Grafana**:
 ```typescript
 // packages/grafana-data/src/types/dataFrameTypes.ts
 export enum DataFrameType {
-  // …existing twelve members…
+    // …existing twelve members…
 
-  /** One field per node; `field.name` is the node id. */
-  GraphNodesWide = 'graph-nodes-wide',
-  /** One field per edge; endpoints in `field.labels`. */
-  GraphEdgesWide = 'graph-edges-wide',
+    /** One field per node; `field.name` is the node id. */
+    GraphNodesWide = 'graph-nodes-wide',
+    /** One field per edge; endpoints in `field.labels`. */
+    GraphEdgesWide = 'graph-edges-wide',
 
-  // The sibling formats propose their own members:
-  // graph-nodes-long / graph-edges-long   — graph-long.md
-  // graph-nodes-multi / graph-edges-multi — graph-multi.md
+    // The sibling formats propose their own members:
+    // graph-nodes-long / graph-edges-long   — graph-long.md
+    // graph-nodes-multi / graph-edges-multi — graph-multi.md
 }
 
 /** The shape of `frame.meta.custom.graph`, for any graph format. Optional. */
 export interface GraphFrameMeta {
-  /**
-   * Label key holding an edge's source node id, as the **datasource** names the dimension.
-   * Default `'source'`. A converter that rewrites the labels to the contract's keys leaves
-   * this pointing at the original, so a consumer writing a query back out — an ad-hoc
-   * filter, a drilldown link — has a key the datasource will recognise.
-   */
-  sourceKey?: string;
-  /** Label key holding an edge's target node id. Default `'target'`. See `sourceKey`. */
-  targetKey?: string;
+    /**
+     * Label key holding an edge's source node id, as the **datasource** names the dimension.
+     * Default `'source'`. A converter that rewrites the labels to the contract's keys leaves
+     * this pointing at the original, so a consumer writing a query back out — an ad-hoc
+     * filter, a drilldown link — has a key the datasource will recognise.
+     */
+    sourceKey?: string;
+    /** Label key holding an edge's target node id. Default `'target'`. See `sourceKey`. */
+    targetKey?: string;
 }
 ```
 
@@ -334,7 +332,7 @@ set, and what it returns changes with the rest of the response: a node field `a`
 an edges frame joins the response.
 
 | Frame content                                          | Display name                  |
-| ------------------------------------------------------ | ----------------------------- |
+|--------------------------------------------------------|-------------------------------|
 | `e1`, labels `{source: 'a', target: 'b'}`              | `e1 {source="a", target="b"}` |
 | `a`, labels `{title: 'Gateway'}` — nodes frame alone   | `a Gateway`                   |
 | `a`, labels `{title: 'Gateway'}` — with an edges frame | `a {title="Gateway"}`         |
@@ -357,7 +355,7 @@ against — so it would look addressable while being unaddressable.
 ## Converting between graph formats
 
 | Src                 | Dst                 | Modifies data | Notes                                                                                                                                   |
-| ------------------- | ------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+|---------------------|---------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | `graph-edges-long`  | `graph-edges-wide`  | **No**        | One row becomes one field. Reserved columns become field config; unreserved columns become labels. See [graph-long.md](./graph-long.md) |
 | `graph-nodes-long`  | `graph-nodes-wide`  | **No**        | As above                                                                                                                                |
 | `graph-edges-multi` | `graph-edges-wide`  | Yes\*         | Needs a shared row grid: the frames are joined on their time field, and gaps become nulls                                               |

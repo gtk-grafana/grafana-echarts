@@ -59,6 +59,65 @@ const wideEdges = (): DataFrame =>
     ],
   });
 
+/**
+ * A hub the response never declared, and its own edges have different units.
+ *
+ * `gateway` is only ever an endpoint, so it has no field and therefore no stat — the shape
+ * `docs/relations-derived-nodes.md` describes, and the one whose tooltip was a header and
+ * nothing else. `web` is derived too; `api` is declared by {@link hubNodes}. The third edge
+ * is a self-loop.
+ */
+const hubEdges = (): DataFrame =>
+  toDataFrame({
+    name: 'edges',
+    meta: { type: GRAPH_EDGES_WIDE },
+    fields: [
+      {
+        name: 'web-gw',
+        type: FieldType.number,
+        labels: { source: 'web', target: 'gateway' },
+        values: [800],
+        config: { unit: 'ms', decimals: 0 },
+      },
+      {
+        name: 'gw-api',
+        type: FieldType.number,
+        labels: { source: 'gateway', target: 'api' },
+        values: [1.2],
+        config: { unit: 's', decimals: 1 },
+      },
+      {
+        name: 'gw-gw',
+        type: FieldType.number,
+        labels: { source: 'gateway', target: 'gateway' },
+        values: [4],
+        config: { decimals: 0 },
+      },
+    ],
+  });
+
+/** One declared node with a `displayName`, so an edge row can be shown to use it. */
+const hubNodes = (): DataFrame =>
+  toDataFrame({
+    name: 'nodes',
+    meta: { type: GRAPH_NODES_WIDE },
+    fields: [{ name: 'api', type: FieldType.number, values: [7], config: { displayName: 'API', unit: 'ms' } }],
+  });
+
+/** One undeclared node with `count` edges leaving it, for the row cap. */
+const fanOutEdges = (count: number): DataFrame =>
+  toDataFrame({
+    name: 'edges',
+    meta: { type: GRAPH_EDGES_WIDE },
+    fields: Array.from({ length: count }, (_unused, index) => ({
+      name: `e${index}`,
+      type: FieldType.number,
+      labels: { source: 'hub', target: `leaf-${index}` },
+      values: [index],
+      config: { decimals: 0 },
+    })),
+  });
+
 /** Only the keys the tooltip model reads; the rest of `PanelOptions` is irrelevant here. */
 const options = (extra: Partial<PanelOptions> = {}): PanelOptions =>
   ({
@@ -172,11 +231,15 @@ describe('buildRelationsTooltipModel', () => {
      * taken. The value it used to carry was its degree, which the panel formatter — the
      * first numeric field of the first frame — printed here as `2 s`, borrowing the first
      * edge's unit for a link count.
+     *
+     * What the rows are instead is the subject of `a statless node's edges` below.
      */
     it('omits the value row for a node with no stat', () => {
       const model = modelFor([wideEdges()]);
 
-      expect(model(nodeParams({ id: 'gateway', name: 'gateway' })).rows).toEqual([]);
+      expect(model(nodeParams({ id: 'gateway', name: 'gateway' })).rows.map((row) => row.label)).not.toContain(
+        'Last *'
+      );
     });
 
     it('still formats a stat a fieldless node does carry, plainly and with no unit', () => {
@@ -330,6 +393,93 @@ describe('buildRelationsTooltipModel', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
       expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).rows).toHaveLength(1);
+    });
+  });
+
+  /**
+   * A node with no stat of its own used to produce a tooltip with a header and no rows at
+   * all — the normal case, not a corner one: an edges-only response derives every one of its
+   * nodes (`docs/relations-derived-nodes.md`). It has no measurement to report, but it does
+   * know its edges, and those are numbers the response really returned.
+   */
+  describe('a statless node’s edges', () => {
+    /**
+     * Direction is an arrow rather than a repeat of the hovered node's name, the other
+     * endpoint reads with its **display name** (`API`, not `api`), and each row formats
+     * through that **edge's** own field — `ms` on one, `s` on the next.
+     */
+    it('lists the edges touching the node, in place of no rows at all', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
+
+      const node = model(nodeParams({ id: 'gateway', name: 'gateway' }));
+
+      expect(node.header).toEqual({ label: 'gateway', value: '' });
+      expect(node.rows.map((row) => [row.label, row.value])).toEqual([
+        ['web →', '800 ms'],
+        ['→ API', '1.2 s'],
+        ['→ gateway', '4'],
+      ]);
+    });
+
+    // A self-loop is one edge, and the node is both of its endpoints: listing it under
+    // each direction would print the same edge twice.
+    it('lists a self-loop once', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
+
+      const rows = model(nodeParams({ id: 'gateway', name: 'gateway' })).rows;
+
+      expect(rows.filter((row) => row.label.includes('gateway'))).toEqual([{ label: '→ gateway', value: '4' }]);
+    });
+
+    it('reads an edge from the other end when the other end is hovered', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
+
+      expect(model(nodeParams({ id: 'web', name: 'web' })).rows.map((row) => [row.label, row.value])).toEqual([
+        ['→ gateway', '800 ms'],
+      ]);
+    });
+
+    // The list is the fallback for a node with nothing to say, not an addition to a node
+    // that has a measurement of its own.
+    it('reports the stat, not the edges, for a node that has one', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
+
+      expect(model(nodeParams({ id: 'api', name: 'API', value: 7 })).rows.map((row) => [row.label, row.value])).toEqual(
+        [['Last *', '7 ms']]
+      );
+    });
+
+    /**
+     * The relations tooltip is a Single-mode tooltip and `isTooltipScrollable` only scrolls
+     * in Multi mode, so an uncapped list would run a hub node's tooltip off the screen. The
+     * count says so rather than the list simply stopping.
+     */
+    it('caps the list and counts what it left out', () => {
+      const model = modelFor([fanOutEdges(13)]);
+
+      const rows = model(nodeParams({ id: 'hub', name: 'hub' })).rows;
+
+      expect(rows).toHaveLength(11);
+      expect(rows[9]).toEqual({ label: '→ leaf-9', value: '9' });
+      expect(rows[10]).toEqual({ label: '+3 more', value: '' });
+    });
+
+    it('leaves the list at the end, behind a subtitle and a secondary stat', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
+
+      const node = model(
+        nodeParams({ id: 'web', name: 'web', subtitle: 'eu-west', secondaries: [{ value: '3 errors' }] })
+      );
+
+      expect(node.rows.map((row) => row.label)).toEqual(['Subtitle', 'Secondary', '→ gateway']);
+    });
+
+    // Nothing is invented for a hover the model cannot place — the formatter also fields
+    // items that are not marks at all.
+    it('adds no rows for a node the model does not know', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
+
+      expect(model(nodeParams({ id: 'nope', name: 'nope' })).rows).toEqual([]);
     });
   });
 
@@ -591,6 +741,16 @@ describe('getRelationsTooltipMarks', () => {
 
     expect(marks.nodes.get('e1')?.source.field.config.unit).toBe('ms');
     expect(marks.links.get('e1')?.source.field.config.unit).toBe('percent');
+  });
+
+  it('collects an adjacency list for the statless nodes only', () => {
+    const withStats = frameToRelationsGraph([wideNodes(), wideEdges()], theme)!;
+    const derived = frameToRelationsGraph([wideEdges()], theme)!;
+
+    // Both nodes carry a stat, so neither needs its edges listed and no edge is formatted.
+    expect([...getRelationsTooltipMarks(withStats, theme, 'utc').adjacency!.keys()]).toEqual([]);
+    // Neither does, so both get one — the two parallel edges, from each end.
+    expect([...getRelationsTooltipMarks(derived, theme, 'utc').adjacency!.keys()]).toEqual(['gateway', 'db']);
   });
 
   it('holds no entry for a mark with no field, so the lookup misses cleanly', () => {

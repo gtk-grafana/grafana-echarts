@@ -10,6 +10,7 @@ import {
 import { type MarkStat, type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import {
+  type RelationsAdjacentEdge,
   type RelationsLinkItem,
   type RelationsMark,
   type RelationsMarks,
@@ -124,6 +125,84 @@ function toMarkMap(marks: FieldedMark[], theme: GrafanaTheme2, timeZone?: string
 }
 
 /**
+ * How many edges a statless node's tooltip lists before it stops counting.
+ *
+ * A cap rather than a scroll because the relations tooltip is a Single-mode tooltip:
+ * `isTooltipScrollable` only scrolls in Multi mode with a `maxHeight` set, so an uncapped
+ * list would run a hub node's tooltip off the screen with no way to reach its end. Ten rows
+ * fill the box and still fit beside the cursor.
+ */
+const MAX_ADJACENT_EDGE_ROWS = 10;
+
+/**
+ * The edges touching each node with no stat of its own, keyed by node id.
+ *
+ * Built from the *visible* model — `getVisibleNodeGraph` has already dropped hidden marks
+ * and their orphaned links — and in the model's own link order, which is the response's
+ * field order. Deliberately **not** sorted by weight: each edge is a field with its own
+ * unit under the wide contract, so ranking a `3.5 s` edge against a `25%` one compares two
+ * different measurements and the "biggest" edge would be an artefact of the units.
+ *
+ * Only statless nodes get an entry. That is the case the list exists for, and it keeps the
+ * work proportional to those nodes rather than formatting every edge twice per render.
+ */
+function toAdjacency(
+  data: NodeGraphData,
+  links: ReadonlyMap<string, RelationsMark>
+): Map<string, RelationsAdjacentEdge[]> {
+  const byNode = new Map<string, RelationsAdjacentEdge[]>();
+  const statless = new Set(data.nodes.filter((node) => node.value == null).map((node) => node.id));
+  if (statless.size === 0) {
+    return byNode;
+  }
+  // The endpoints are ids; a declared node's `displayName` makes its name a different
+  // string, and the row should read the same as the node's own header.
+  const names = new Map(data.nodes.map((node) => [node.id, node.name]));
+
+  for (const link of data.links) {
+    // The edge's own field formats its weight, exactly as the edge's own tooltip does —
+    // keyed the same way (`markKey ?? id`), so parallel edges keep their separate units.
+    const mark = links.get(link.markKey ?? link.id);
+    const value = formatEChartsValue(link.value ?? null, mark?.formatValue ?? formatDerivedMarkValue);
+
+    const ends = [{ id: link.source, other: link.target, outgoing: true }];
+    // A self-loop is one edge. Listing it under both directions would print it twice.
+    if (link.target !== link.source) {
+      ends.push({ id: link.target, other: link.source, outgoing: false });
+    }
+    for (const { id, other, outgoing } of ends) {
+      if (!statless.has(id)) {
+        continue;
+      }
+      const rows = byNode.get(id) ?? [];
+      rows.push({ node: names.get(other) ?? other, outgoing, value });
+      byNode.set(id, rows);
+    }
+  }
+  return byNode;
+}
+
+/**
+ * A statless node's edges, one row each: `→ other` for an edge leaving the node,
+ * `other →` for one arriving.
+ *
+ * The arrow carries the direction because the node's own name is already the header, so
+ * repeating it on every row (`gateway → api`) would spend the tooltip's width restating what
+ * the user hovered. The overflow row is labelled rather than valued: `VizTooltipRow` renders
+ * the label in the muted secondary colour, which is what a count of unshown rows is.
+ */
+function adjacencyRows(edges: RelationsAdjacentEdge[]): TooltipRow[] {
+  const rows: TooltipRow[] = edges
+    .slice(0, MAX_ADJACENT_EDGE_ROWS)
+    .map((edge) => ({ label: edge.outgoing ? `→ ${edge.node}` : `${edge.node} →`, value: edge.value }));
+  const remaining = edges.length - rows.length;
+  if (remaining > 0) {
+    rows.push({ label: `+${remaining} more`, value: '' });
+  }
+  return rows;
+}
+
+/**
  * Each mark's own display processor and link source, built once per render.
  *
  * This is what closes "tooltip unit decided by frame order" and gaps 1-3 of
@@ -134,9 +213,11 @@ function toMarkMap(marks: FieldedMark[], theme: GrafanaTheme2, timeZone?: string
  * different units, and a `byName` `links` override paints a link on exactly one node.
  */
 export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaTheme2, timeZone?: string): RelationsMarks {
+  const links = toMarkMap(data.links, theme, timeZone);
   return {
     nodes: toMarkMap(data.nodes, theme, timeZone),
-    links: toMarkMap(data.links, theme, timeZone),
+    links,
+    adjacency: toAdjacency(data, links),
     ...(data.endpointLabels ? { endpointLabels: data.endpointLabels } : {}),
   };
 }
@@ -279,7 +360,8 @@ function nodeFilters(
  * axis-triggered tooltip, matching the hierarchy and pie families.
  *
  * - **Node**: name as header; the main stat, plus `Subtitle` and secondary rows when
- *   present.
+ *   present. A node with **no** stat lists the edges touching it instead, each with that
+ *   edge's own weight — see {@link adjacencyRows}.
  * - **Link**: `source → target` as header; the resolved weight as the stat row.
  *
  * Each stat row is labelled with the **reducer** that produced it rather than with
@@ -291,7 +373,8 @@ function nodeFilters(
  * edge's endpoints has no field, so it formats through {@link formatDerivedMarkValue}
  * and shows no footer — `todo/relations-data-links.md` gap 4, which the contract does
  * not close. Its **filters** it does get, though: they come off the item's own
- * endpoints rather than off a field. See {@link nodeFilters}.
+ * endpoints rather than off a field. See {@link nodeFilters}. And having no field, it
+ * has no stat either, so its rows are its edges.
  */
 export function buildRelationsTooltipModel(
   marks?: RelationsMarks,
@@ -358,6 +441,13 @@ export function buildRelationsTooltipModel(
       rows.push({ label: 'Subtitle', value: node.subtitle });
     }
     rows.push(...secondaryRows(node?.secondaries));
+    // No stat of its own, so report what the node *does* know: the edges touching it, with
+    // each edge's own weight. A derived node carries `null` by design, so without this its
+    // tooltip was its name and nothing else — see `RelationsAdjacentEdge`. Last, so a node
+    // that has a subtitle or a `secondarystat` still leads with those.
+    if (stat == null && node != null) {
+      rows.push(...adjacencyRows(marks?.adjacency?.get(node.id) ?? []));
+    }
 
     return {
       header: { label: node?.name ?? String(param?.name ?? ''), value: '' },
