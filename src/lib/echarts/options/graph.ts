@@ -1,5 +1,11 @@
 import { type GraphSeriesOption } from 'echarts';
-import { type CallbackDataParams, type ECBasicOption, type LinearGradientObject } from 'echarts/types/dist/shared';
+import {
+  type CallbackDataParams,
+  type ECBasicOption,
+  type LabelLayoutOptionCallback,
+  type LinearGradientObject,
+} from 'echarts/types/dist/shared';
+import { type RelationsLabelOverflow } from 'editor/types';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData, type RelationLink } from 'lib/echarts/converters/relationsModel';
 import { createBaseOptions } from 'lib/echarts/options/base';
@@ -30,10 +36,11 @@ export const RELATIONS_NODE_SIZE_DEFAULT = 20;
  */
 export const RELATIONS_LINK_COLOR_DEFAULT = 'gradient';
 /**
- * What ECharts' `graph` series can express on its own: `edgeVisual.ts` swaps `'source'`
- * and `'target'` for the endpoint's fill and leaves anything else as a literal colour.
- * `'gradient'` is implemented by `sankey` and `chord` only, so the graph variant builds
- * it here (`makeEdgeGradientResolver`) and degrades to this when it cannot.
+ * What the `graph` variant degrades a gradient to when it cannot orient one: the source
+ * node's own colour, resolved here rather than by ECharts. Still endpoint-derived and
+ * still flips when the edge is reversed — just not a blend. See
+ * `makeEdgeGradientResolver` for when that happens and `resolveLinkColor` for why the
+ * keyword cannot be handed to ECharts at all.
  */
 const GRAPH_LINK_COLOR_FALLBACK = 'source';
 /** Default graph layout when the data does not pin positions. */
@@ -42,6 +49,81 @@ export const RELATIONS_LAYOUT_DEFAULT = 'force';
 export const RELATIONS_SHOW_NODE_LABELS_DEFAULT = true;
 /** Node values off by default: a second label line on every node is a lot of ink. */
 export const RELATIONS_SHOW_NODE_VALUES_DEFAULT = false;
+/** Edge values off by default: one number per link buries a graph of any size. */
+export const RELATIONS_SHOW_EDGE_VALUES_DEFAULT = false;
+/**
+ * Arrowheads on by default.
+ *
+ * An edge is directed by contract (`source`/`target`), and on a force layout the
+ * arrowhead is the *only* thing that says which way — the source-to-target gradient
+ * cannot be oriented without knowing the node positions. See `makeEdgeGradientResolver`.
+ */
+export const RELATIONS_EDGE_ARROWS_DEFAULT = true;
+/**
+ * Adjacency highlighting on by default, and out of the Advanced tier.
+ *
+ * Reading one node's neighbourhood out of a dense topology is the main thing a
+ * relations panel is hovered for, and it is also ECharts' own chord default. Note the
+ * chord variant emits the key either way — see `getChordEmphasis`.
+ */
+export const RELATIONS_FOCUS_ADJACENCY_DEFAULT = true;
+/**
+ * Overlapping node labels are dropped by default (ECharts `labelLayout.hideOverlap`).
+ *
+ * The first thing that goes wrong on a graph past a handful of nodes is that the labels
+ * pile up into an unreadable smear, and a label that is 40% covered is worse than no
+ * label — the node keeps its symbol, its colour and its tooltip either way. This is the
+ * chord variant's answer to the pie's `avoidLabelOverlap` as well: `series.chord` has no
+ * such option, but its labels go through the same label-layout stage.
+ *
+ * Reaches **edge values too**, but not through the same stage: a graph edge's label is
+ * arbitrated by the family, because the stage measures it before the link geometry has
+ * settled and would let it outrank a node's name. See `getRelationsLabelLayout` and
+ * `registerEdgeLabelLayout`.
+ * https://echarts.apache.org/en/option.html#series-graph.labelLayout
+ */
+export const RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT = true;
+/** Long node names are ellipsised rather than allowed to run into a neighbour. */
+export const RELATIONS_LABEL_OVERFLOW_DEFAULT: RelationsLabelOverflow = 'truncate';
+/** Width in px at which `relationsLabelOverflow` bites. */
+export const RELATIONS_LABEL_WIDTH_DEFAULT = 120;
+/**
+ * Force repulsion, **far** above ECharts' own `[0, 50]`.
+ *
+ * ECharts' default is tuned for the tens-of-nodes demo graphs in its gallery; on a
+ * service topology it packs the nodes into a knot in the middle of the panel with every
+ * label on top of every other. 400 spreads them to where the labels have room.
+ * https://echarts.apache.org/en/option.html#series-graph.force.repulsion
+ */
+export const RELATIONS_REPULSION_DEFAULT = 400;
+/** Target link length in px; likewise well above ECharts' 30. */
+export const RELATIONS_EDGE_LENGTH_DEFAULT = 200;
+/**
+ * The force simulation's steps are **not** drawn by default, unlike ECharts.
+ *
+ * `layoutAnimation` renders every iteration, so the graph visibly settles from its seed
+ * — which on a dashboard refreshing every 30s reads as the nodes jiggling for no reason,
+ * since the topology did not change. Off, the same iterations run in one synchronous
+ * pass and only the settled layout is painted.
+ * https://echarts.apache.org/en/option.html#series-graph.force.layoutAnimation
+ */
+export const RELATIONS_LAYOUT_ANIMATION_DEFAULT = false;
+/**
+ * The force simulation's **seed** layout, pinned so a render is reproducible.
+ *
+ * With no seed, `forceHelper` places every node at `Math.random()` within the view rect
+ * and the simulation walks from there, so the same frames draw a different graph every
+ * time — the panel appears to shuffle its nodes on each refresh. `'circular'` seeds them
+ * on a ring in data order instead, which is deterministic and, being already spread out,
+ * converges to a tidier result.
+ *
+ * Not exposed as an option: "lay this out differently every time" is not a thing to
+ * want. The one residual case is a node whose stat is exactly 0 in a set that sums above
+ * it — `circularLayout(…, 'value')` gives it a zero-width slice, so it can land on its
+ * neighbour's angle and the coincident-node repulse falls back to `Math.random()`.
+ * https://echarts.apache.org/en/option.html#series-graph.force.initLayout
+ */
+const RELATIONS_FORCE_INIT_LAYOUT = 'circular';
 
 /**
  * Every Advanced-gated relations option at its default. Spread over the stored
@@ -50,18 +132,32 @@ export const RELATIONS_SHOW_NODE_VALUES_DEFAULT = false;
  * control, it does not clear the value. Required of any family that gates options
  * behind Advanced; see `docs/options-modes.md` and
  * `applyPartToWholeEditorModeDefaults`.
+ *
+ * `relationsFocusAdjacency`, `relationsHideOverlappingLabels` and `animation` are
+ * deliberately **absent**: all three are Default-tier controls now, so resetting them
+ * here would clear a value the user can still see.
  */
 export const ADVANCED_RELATIONS_DEFAULTS: Partial<PanelOptions> = {
   relationsRoam: undefined,
+  relationsZoom: undefined,
+  relationsPan: undefined,
   relationsDraggable: undefined,
   relationsRepulsion: undefined,
   relationsEdgeLength: undefined,
   relationsGravity: undefined,
+  relationsLayoutAnimation: undefined,
   relationsEdgeArrows: undefined,
+  relationsShowEdgeValues: undefined,
   relationsCurveness: undefined,
-  relationsFocusAdjacency: undefined,
+  relationsLabelOverflow: undefined,
+  relationsLabelWidth: undefined,
   relationsLinkColor: undefined,
-  animation: undefined,
+  relationsSourceFilterLabel: undefined,
+  relationsTargetFilterLabel: undefined,
+  // The switch resets, and the state it stored goes with it — `getRelationsViewState`
+  // reads nothing without the switch, so a Default-mode panel is never left holding a
+  // pan the user cannot see the control for.
+  relationsRememberView: undefined,
 };
 
 /** The chart context plus the per-mark lookup the tooltip and node labels read. */
@@ -90,22 +186,206 @@ export function getGraphLayout(data: NodeGraphData, options: PanelOptions): 'for
 }
 
 /**
- * Force-layout tuning. Returns `undefined` when nothing is overridden so the key
- * is omitted and ECharts' own defaults apply.
+ * Whether graph nodes can be dragged: only under `layout: 'none'`, whatever the option says.
+ *
+ * The option is hidden for the other two layouts (`editor/relations/interaction.ts`), and
+ * this is the half that makes a dashboard which saved the pair behave rather than merely stop
+ * offering it. Neither excluded layout can *keep* a drag — both re-solve on every render —
+ * and both are actively broken while dragging:
+ *
+ * - **circular** re-solves the ring from the drop point on every pointer move, so the node
+ *   under the cursor is not the node that moves;
+ * - **force** re-runs the simulation, and `layoutAnimation` is off by default here so ECharts
+ *   iterates it to convergence synchronously inside the `drag` handler — every mouse move
+ *   rearranges the whole graph. See {@link getGraphForce}.
+ *
+ * Resolved against the *resolved* layout rather than the option, so data that pins every node
+ * (which infers `none`) stays draggable with `Layout` left unset. See {@link getGraphLayout}.
+ */
+export function resolveGraphDraggable(options: PanelOptions, layout: 'force' | 'circular' | 'none'): boolean {
+  return options.relationsDraggable === true && layout === 'none';
+}
+
+/** A node's position in the graph's own coordinate space. See {@link resolveFixedPositions}. */
+interface GraphPoint {
+  x: number;
+  y: number;
+}
+
+/**
+ * Ring radius used to seed nodes when **nothing** is pinned.
+ *
+ * `createViewCoordSys` takes the bounding box of the emitted `x`/`y` and scales it onto the
+ * panel rect, so the *shape* of the point set is all that survives and any radius draws the
+ * same graph. The magnitude still matters, and this used to be `1`:
+ *
+ * **zrender sub-pixel-optimizes axis-aligned edges, in whatever space the coordinates are
+ * in.** A graph edge is an `ECLinePath` with `subPixelOptimize: true`, so
+ * `subPixelOptimizeLine` nudges a horizontal or vertical line by half a unit to land a 1px
+ * stroke on a pixel centre (`round(y1 * 2) === round(y2 * 2)` picks it out, and
+ * `strokeNoScale` means the width it compares against is `1`). Those coordinates are the
+ * graph's *data* space, which the view scales onto the panel — so on a unit ring the "half
+ * pixel" was half a data unit, and the two edges of a four-node ring that happen to be
+ * axis-aligned were drawn 159px away from the nodes they joined. That is the reported
+ * "edges are not attached to any nodes", and why dragging a node fixed it: the drop is
+ * almost never exactly axis-aligned, so the nudge stops applying.
+ *
+ * A pixel-ish radius makes the nudge sub-pixel again, which is what it was written to be.
+ * It is also the space a drag writes back (`useRelationsPersistence`), so the stored
+ * coordinates stay well conditioned across reloads.
+ */
+const FIXED_SEED_RADIUS = 400;
+
+/**
+ * How far outside the pinned nodes' bounding box the seeded ones are placed, as a
+ * multiple of its half-extent. Just clear of the pinned cluster rather than lost beside
+ * it — the box is what the view scales to fit, so a large multiplier would shrink the
+ * pinned layout to make room.
+ */
+const FIXED_SEED_MARGIN = 1.25;
+
+/**
+ * Every node's position under `layout: 'none'` — its own pinned pair when it has one,
+ * a deterministic seed when it does not.
+ *
+ * **The seed is what makes "Fixed" a usable choice rather than a blank panel.** ECharts'
+ * `simpleLayout` does `node.setLayout([+model.get('x'), +model.get('y')])`, so a node with
+ * no `x` lays out at `[NaN, NaN]` and neither it nor any link touching it is drawn. Since
+ * `fixedx`/`fixedy` are per-mark overrides nobody has written yet on a fresh panel,
+ * selecting Fixed used to blank the visualization outright and give the user nothing to
+ * drag or override *from*.
+ *
+ * Seeded on a ring in data order, matching the force simulation's own `initLayout`
+ * (`RELATIONS_FORCE_INIT_LAYOUT`): deterministic, so the panel does not reshuffle on
+ * refresh, and already spread out, so the labels have room. Partially-pinned data is the
+ * interesting case — the seeds go on a ring *around* the pinned bounding box, so pinned
+ * marks keep their relative layout and the rest are visibly "not placed yet".
+ */
+export function resolveFixedPositions(nodes: NodeGraphData['nodes']): Map<string, GraphPoint> {
+  const positions = new Map<string, GraphPoint>();
+  const pinned: GraphPoint[] = [];
+  for (const node of nodes) {
+    if (node.fixedX != null && node.fixedY != null) {
+      const point = { x: node.fixedX, y: node.fixedY };
+      positions.set(node.id, point);
+      pinned.push(point);
+    }
+  }
+
+  const seeded = nodes.filter((node) => !positions.has(node.id));
+  if (seeded.length === 0) {
+    return positions;
+  }
+
+  const ring = seedRing(pinned);
+  seeded.forEach((node, index) => {
+    const angle = (2 * Math.PI * index) / seeded.length;
+    positions.set(node.id, {
+      x: ring.x + ring.radius * Math.cos(angle),
+      y: ring.y + ring.radius * Math.sin(angle),
+    });
+  });
+  return positions;
+}
+
+/** Centre and radius of the seed ring: around the pinned nodes, or the origin if none. */
+function seedRing(pinned: readonly GraphPoint[]): GraphPoint & { radius: number } {
+  if (pinned.length === 0) {
+    return { x: 0, y: 0, radius: FIXED_SEED_RADIUS };
+  }
+  const xs = pinned.map((point) => point.x);
+  const ys = pinned.map((point) => point.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  // A single pinned node, or a row of them, has a zero extent on one axis — fall back to
+  // the unit radius rather than stacking every seed on top of it.
+  const extent = Math.max(maxX - minX, maxY - minY) / 2 || FIXED_SEED_RADIUS;
+  return { x: (minX + maxX) / 2, y: (minY + maxY) / 2, radius: extent * FIXED_SEED_MARGIN };
+}
+
+/**
+ * Force-layout tuning. **Always** emitted, unlike the other option groups here,
+ * because three of its four keys disagree with ECharts' own defaults on purpose:
+ * the simulation is seeded (`initLayout`) so a render is reproducible, its steps are
+ * not drawn (`layoutAnimation`) so a refresh does not jiggle, and it is spread far
+ * wider (`repulsion` / `edgeLength`) so the labels have room. `gravity` is the one
+ * key left to ECharts when unset.
  * https://echarts.apache.org/en/option.html#series-graph.force
  */
-export function getGraphForce(options: PanelOptions): GraphSeriesOption['force'] | undefined {
-  const force: NonNullable<GraphSeriesOption['force']> = {};
-  if (options.relationsRepulsion != null) {
-    force.repulsion = options.relationsRepulsion;
-  }
-  if (options.relationsEdgeLength != null) {
-    force.edgeLength = options.relationsEdgeLength;
-  }
+export function getGraphForce(options: PanelOptions): NonNullable<GraphSeriesOption['force']> {
+  const force: NonNullable<GraphSeriesOption['force']> = {
+    initLayout: RELATIONS_FORCE_INIT_LAYOUT,
+    repulsion: options.relationsRepulsion ?? RELATIONS_REPULSION_DEFAULT,
+    edgeLength: options.relationsEdgeLength ?? RELATIONS_EDGE_LENGTH_DEFAULT,
+    layoutAnimation: options.relationsLayoutAnimation ?? RELATIONS_LAYOUT_ANIMATION_DEFAULT,
+  };
   if (options.relationsGravity != null) {
     force.gravity = options.relationsGravity;
   }
-  return Object.keys(force).length > 0 ? force : undefined;
+  return force;
+}
+
+/**
+ * `series.*.roam`, which is **pan only** here, ever.
+ *
+ * Zoom is deliberately not routed through it: ECharts' roam zoom is the scroll wheel,
+ * and a wheel event over a panel is the dashboard's to scroll — capturing it means a
+ * user scrolling past the panel silently rescales it instead. The panel draws its own
+ * zoom buttons and dispatches the roam *action* directly, which needs no `roam` value
+ * at all (the action resolves the view coordinate system, not the controller). See
+ * `getRelationsZoomAction` and `ChartZoomControls`.
+ *
+ * https://echarts.apache.org/en/option.html#series-graph.roam
+ */
+export function resolveRelationsRoam(options: PanelOptions): 'move' | false {
+  return resolveRelationsPan(options) ? 'move' : false;
+}
+
+/**
+ * Whether drag-to-pan is on, falling back to the superseded single `relationsRoam`
+ * switch so a dashboard saved before the split keeps panning. These two are the only
+ * readers of the deprecated option, which is exactly why they may read it.
+ */
+export function resolveRelationsPan(options: PanelOptions): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- reading it is the migration
+  return (options.relationsPan ?? options.relationsRoam) === true;
+}
+
+/** Whether the panel's zoom buttons are shown. Same back-compat fallback as pan. */
+export function resolveRelationsZoom(options: PanelOptions): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- reading it is the migration
+  return (options.relationsZoom ?? options.relationsRoam) === true;
+}
+
+/** The remembered view, as the keys ECharts keeps a `View`'s roam state in. */
+export interface RelationsViewState {
+  zoom?: number;
+  center?: [number, number];
+}
+
+/**
+ * The saved pan/zoom, for the two variants that have a view to save.
+ *
+ * `zoom` and `center` are where ECharts itself keeps the roam state — the roam action
+ * syncs them back onto the series model (`viewCoordSysSyncBack`), which is what makes
+ * them readable and writable rather than an internal transform. Emitting them is
+ * therefore the whole of "restore the view".
+ *
+ * Empty unless the user asked for it: `relationsRememberView` is off by default, and a
+ * stale `zoom` left in a dashboard's JSON must not survive switching the switch back
+ * off. See `useRelationsPersistence` for the writing half.
+ * https://echarts.apache.org/en/option.html#series-graph.zoom
+ */
+export function getRelationsViewState(options: PanelOptions): RelationsViewState {
+  if (options.relationsRememberView !== true) {
+    return {};
+  }
+  return {
+    ...(options.relationsViewZoom != null ? { zoom: options.relationsViewZoom } : {}),
+    ...(options.relationsViewCenter != null ? { center: options.relationsViewCenter } : {}),
+  };
 }
 
 /**
@@ -171,6 +451,80 @@ function readNodeId(data: CallbackDataParams['data']): string | undefined {
 }
 
 /**
+ * The theme font/colour every relations label carries, plus the two legibility keys
+ * that keep a long name from running into its neighbour.
+ *
+ * Typed as a plain shape rather than as one variant's label option because all three
+ * variants and the edge label share it, and ECharts types those four differently — a
+ * sankey `edgeLabel` allows only `position: 'inside'`, a graph one takes the line
+ * positions. Everything here is common to all four.
+ */
+export interface RelationsLabelStyle {
+  color: string;
+  fontFamily: string;
+  /** Never `'none'`: that is ECharts' own default, so it is written as no key at all. */
+  overflow?: 'truncate' | 'break' | 'breakAll';
+  width?: number;
+}
+
+/**
+ * Theme font/colour plus overflow handling, shared by all three variants so one node
+ * reads the same however it is drawn. Each variant adds its own `position` and
+ * `formatter` around it.
+ * https://echarts.apache.org/en/option.html#series-graph.label
+ */
+export function getRelationsLabelStyle(ctx: RelationsSeriesContext): RelationsLabelStyle {
+  const overflow = ctx.options.relationsLabelOverflow ?? RELATIONS_LABEL_OVERFLOW_DEFAULT;
+  return {
+    color: ctx.theme.colors.text.primary,
+    fontFamily: ctx.theme.typography.fontFamily,
+    // `'none'` is ECharts' own default, so it is treated as "write no key" — the same
+    // reading `getThemedLabelStyle` gives it. `width` rides along with it, since
+    // ECharts ignores `overflow` without one.
+    ...(overflow !== 'none'
+      ? { overflow, width: ctx.options.relationsLabelWidth ?? RELATIONS_LABEL_WIDTH_DEFAULT }
+      : {}),
+  };
+}
+
+/**
+ * Drop a label that would collide with one already placed, via ECharts' shared
+ * label-layout stage — which every one of the three variants routes its labels
+ * through, so this is the family's single answer to overlapping labels.
+ *
+ * **The callback form, and only so `dataType` can be read.** A graph edge's label is held
+ * back from `hideOverlap` here and arbitrated by `registerEdgeLabelLayout` instead, on two
+ * counts the stage gets wrong for a label whose *host* positions it:
+ *
+ * - it is measured before the link geometry has settled, which makes the render depend on
+ *   how many times the panel has drawn — the first pass hides nearly all of them and each
+ *   later pass lets one more through, measured as 1, 2, 3, then all 4 edge values over four
+ *   renders of an unchanged four-edge fixture ("every refresh draws more edge values"). A
+ *   node's own position is settled by the time it is measured, so node labels do not drift;
+ * - it would outrank the node labels rather than yield to them, since the stage orders by
+ *   the area of the label's host and a link's host spans the whole link.
+ *
+ * So this returns "no layout for this label" for an edge — an empty option, which is how a
+ * callback says that, since `LabelManager.layout` filters on the resolved `hideOverlap` per
+ * label. What replaces it is not "nothing": see `registerEdgeLabelLayout`.
+ *
+ * Returns `undefined` when off: `LabelManager.addLabelsOfSeries` skips a series whose
+ * `labelLayout` has no keys, so an empty object would be the same as omitting it, and
+ * omitting it is clearer. That is also the switch the edge arbitration reads, since a
+ * series with no `labelLayout` never reaches the stage at all.
+ * https://echarts.apache.org/en/option.html#series-graph.labelLayout
+ */
+export function getRelationsLabelLayout(options: PanelOptions): LabelLayoutOptionCallback | undefined {
+  const hide = options.relationsHideOverlappingLabels ?? RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT;
+  if (!hide) {
+    return undefined;
+  }
+  // An empty option for an edge is how a callback says "no layout for this label";
+  // `LabelManager.layout` filters on the resolved `hideOverlap` per label.
+  return (params) => (params.dataType === 'edge' ? {} : { hideOverlap: true });
+}
+
+/**
  * Node label config. On by default; the label sits below the node.
  * https://echarts.apache.org/en/option.html#series-graph.label
  */
@@ -186,45 +540,112 @@ export function getGraphLabel(ctx: RelationsSeriesContext): GraphSeriesOption['l
     // Omitted unless values are shown: `Symbol.js` labels a graph node from
     // `data.getName(idx)`, which is already the name.
     ...(formatter ? { formatter } : {}),
-    color: ctx.theme.colors.text.primary,
-    fontFamily: ctx.theme.typography.fontFamily,
+    ...getRelationsLabelStyle(ctx),
   };
 }
 
 /**
- * Arrowhead at the target end, making edge direction readable. Off by default, so
- * the key is omitted and ECharts draws plain line ends.
+ * The edge-label shape both variants that can draw one accept — deliberately without a
+ * `position`, since the graph and sankey types disagree on what may go there.
+ */
+export interface RelationsEdgeLabel extends RelationsLabelStyle {
+  show: true;
+  formatter: (params: CallbackDataParams) => string;
+}
+
+/**
+ * Each edge's own weight, drawn on the link. Off by default, so the key is omitted
+ * and ECharts' `show: false` stands.
+ *
+ * Formatted through the **edge's own** field, for the same reason the node label is:
+ * two edges can carry different units, and the number drawn on a link must agree with
+ * the one its tooltip reports. A `graph` edge label reads `params.value`; the
+ * `markId` on the item is what finds the field (see `toLinkItems`).
+ *
+ * Chord is excluded at the editor rather than here: `ChordEdge` creates no text
+ * element at all, so the key would be inert there.
+ * https://echarts.apache.org/en/option.html#series-graph.edgeLabel
+ */
+export function getRelationsEdgeLabel(ctx: RelationsSeriesContext): RelationsEdgeLabel | undefined {
+  if ((ctx.options.relationsShowEdgeValues ?? RELATIONS_SHOW_EDGE_VALUES_DEFAULT) !== true) {
+    return undefined;
+  }
+  return {
+    show: true,
+    formatter: (params: CallbackDataParams) => {
+      const value = readEdgeValue(params.data);
+      if (value == null) {
+        return '';
+      }
+      const markId = readEdgeMarkId(params.data);
+      const formatValue = (markId != null ? ctx.marks?.links.get(markId)?.formatValue : undefined) ?? undefined;
+      return formatEChartsValue(value, formatValue ?? ctx.formatValue);
+    },
+    ...getRelationsLabelStyle(ctx),
+  };
+}
+
+/** The weight carried on a relations link item; narrowed structurally, as above. */
+function readEdgeValue(data: CallbackDataParams['data']): number | string | undefined {
+  if (typeof data !== 'object' || data === null || !('value' in data)) {
+    return undefined;
+  }
+  const value: unknown = data.value;
+  return typeof value === 'number' || typeof value === 'string' ? value : undefined;
+}
+
+/** The edge's tooltip lookup key (`markKey ?? id`); narrowed structurally, as above. */
+function readEdgeMarkId(data: CallbackDataParams['data']): string | undefined {
+  if (typeof data !== 'object' || data === null || !('markId' in data)) {
+    return undefined;
+  }
+  const markId: unknown = data.markId;
+  return typeof markId === 'string' ? markId : undefined;
+}
+
+/**
+ * Arrowhead at the target end, making edge direction readable. On by default — see
+ * `RELATIONS_EDGE_ARROWS_DEFAULT`.
  * https://echarts.apache.org/en/option.html#series-graph.edgeSymbol
  */
 export function getGraphEdgeSymbol(options: PanelOptions): GraphSeriesOption['edgeSymbol'] | undefined {
-  return options.relationsEdgeArrows === true ? ['none', 'arrow'] : undefined;
+  return (options.relationsEdgeArrows ?? RELATIONS_EDGE_ARROWS_DEFAULT) === true ? ['none', 'arrow'] : undefined;
+}
+
+/**
+ * Whether hovering a mark fades everything outside its neighbourhood — the family's
+ * "Highlight adjacency" switch, on by default. Shared by all three variants' emphasis
+ * builders so one switch cannot mean three things.
+ *
+ * Also read outside the option build, by the panel: a hover that fades the rest of the
+ * chart repaints every mark in it, which is rate-limited rather than run at cursor
+ * speed. See `HOVER_FOCUS_THROTTLE_MS`.
+ */
+export function resolveRelationsFocusAdjacency(options: PanelOptions): boolean {
+  return (options.relationsFocusAdjacency ?? RELATIONS_FOCUS_ADJACENCY_DEFAULT) === true;
 }
 
 /**
  * Hover emphasis. `'adjacency'` fades everything but the hovered node and its
- * neighbours. Off by default so the key is omitted.
+ * neighbours. On by default; the key is omitted when switched off, which is ECharts'
+ * own no-focus behaviour for `graph` and `sankey` (chord differs — see
+ * `getChordEmphasis`).
  * https://echarts.apache.org/en/option.html#series-graph.emphasis
  */
 export function getGraphEmphasis(options: PanelOptions): GraphSeriesOption['emphasis'] | undefined {
-  return options.relationsFocusAdjacency === true ? { focus: 'adjacency' } : undefined;
+  return resolveRelationsFocusAdjacency(options) ? { focus: 'adjacency' } : undefined;
 }
 
 /**
- * Series-level link style: the ECharts keyword every edge starts from, before a
- * per-edge colour or gradient overrides it on the item itself. `curveness` is omitted
- * at 0 so straight links stay ECharts-default.
- *
- * `'gradient'` collapses to `'source'` here, always, because the graph series cannot
- * read it. When the gradient *can* be built every item carries its own and this value is
- * never seen; when it cannot, `'source'` is the honest degradation — still
- * endpoint-derived, still changing if the edge is reversed, just not a blend.
+ * Series-level link style. **Carries no colour**, deliberately: every edge is coloured
+ * on its own item by `resolveLinkColor`, and the ECharts keywords this used to emit do
+ * not work on a `graph` series at all — see there. What is left is `curveness`, omitted
+ * at 0 so straight links stay ECharts-default, and ECharts' own neutral grey as the
+ * last resort for an edge whose endpoint somehow has no colour.
  * https://echarts.apache.org/en/option.html#series-graph.lineStyle
  */
 export function getGraphLinkStyle(options: PanelOptions): NonNullable<GraphSeriesOption['lineStyle']> {
-  const mode = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
-  const lineStyle: NonNullable<GraphSeriesOption['lineStyle']> = {
-    color: mode === 'gradient' ? GRAPH_LINK_COLOR_FALLBACK : mode,
-  };
+  const lineStyle: NonNullable<GraphSeriesOption['lineStyle']> = {};
   if (options.relationsCurveness != null && options.relationsCurveness !== 0) {
     lineStyle.curveness = options.relationsCurveness;
   }
@@ -247,8 +668,45 @@ function nodeColorsById(data: NodeGraphData): Map<string, string> {
   return colors;
 }
 
-/** Builds one edge's source->target gradient, or `undefined` to leave it to the keyword. */
+/** Builds one edge's source->target gradient, or `undefined` when it cannot be oriented. */
 type EdgeGradientResolver = (link: RelationLink) => LinearGradientObject | undefined;
+
+/**
+ * One edge's colour, resolved **here rather than by ECharts** — which is the whole
+ * point of this function, because on a `graph` series ECharts gets it wrong.
+ *
+ * `edgeVisual.ts` swaps a `lineStyle.color` of `'source'` / `'target'` for the endpoint
+ * node's `style.fill`, and it is registered at `PRIORITY.VISUAL.CHART` (3000) while the
+ * per-item style task that reads each node's `itemStyle.color` runs at
+ * `CHART_DATA_CUSTOM` (4500). So at the moment the swap happens the nodes still carry
+ * only the *series-level* fill, and every edge in the panel comes out the same ECharts
+ * palette colour — the keywords look supported and are inert. (ECharts' own graph demos
+ * hide this: they colour nodes by `categories`, and `categoryVisual` does run first.)
+ *
+ * The node colours here are the rendered ones, overrides included, so an edge meets its
+ * endpoints exactly. Order of precedence, highest first:
+ *
+ * 1. the edge's **own** field colour (`link.color`, set only when that field carries a
+ *    real colour choice — see `edgeColorOf`);
+ * 2. the source-to-target gradient, when it can be oriented (`resolveGradient`);
+ * 3. the endpoint colour the mode names, degrading `'gradient'` to the source's.
+ */
+function resolveLinkColor(
+  link: RelationLink,
+  nodeColors: ReadonlyMap<string, string>,
+  mode: string,
+  resolveGradient?: EdgeGradientResolver
+): string | LinearGradientObject | undefined {
+  if (link.color != null) {
+    return link.color;
+  }
+  const gradient = resolveGradient?.(link);
+  if (gradient != null) {
+    return gradient;
+  }
+  const endpoint = mode === 'gradient' ? GRAPH_LINK_COLOR_FALLBACK : mode;
+  return nodeColors.get(endpoint === 'target' ? link.target : link.source);
+}
 
 /**
  * Per-edge `source -> target` gradients for the `graph` variant, which ECharts cannot
@@ -263,26 +721,23 @@ type EdgeGradientResolver = (link: RelationLink) => LinearGradientObject | undef
  * is worse than not blending, so this returns `undefined` and the series keyword
  * (`'source'`) takes over.
  *
- * With every node pinned (`layout: 'none'`, which is also what `getGraphLayout` infers
- * from pinned positions) the sign of `dx`/`dy` picks the correct box corner and the
+ * Under `layout: 'none'` the sign of `dx`/`dy` picks the correct box corner and the
  * gradient runs exactly along the edge. A degenerate axis is harmless: a horizontal edge
  * has zero box height, so the vertical component of the gradient spans nothing.
+ *
+ * `positions` is therefore supplied only for that layout, and is the *rendered* position
+ * of every node — pinned or seeded (`resolveFixedPositions`). Reading `fixedX`/`fixedY`
+ * directly instead would be wrong in both directions now: a seeded node has neither, and
+ * a force-layout graph whose data happens to pin every node would orient its gradients by
+ * coordinates ECharts never uses.
  */
 function makeEdgeGradientResolver(
-  data: NodeGraphData,
+  positions: ReadonlyMap<string, GraphPoint> | undefined,
   nodeColors: ReadonlyMap<string, string>,
   options: PanelOptions
 ): EdgeGradientResolver | undefined {
-  if ((options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT) !== 'gradient') {
+  if (positions == null || (options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT) !== 'gradient') {
     return undefined;
-  }
-
-  const positions = new Map<string, { x: number; y: number }>();
-  for (const node of data.nodes) {
-    if (node.fixedX == null || node.fixedY == null) {
-      return undefined;
-    }
-    positions.set(node.id, { x: node.fixedX, y: node.fixedY });
   }
 
   return (link) => {
@@ -311,8 +766,15 @@ function makeEdgeGradientResolver(
   };
 }
 
-/** Map the model's nodes to ECharts graph data items. */
-function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): RelationsNodeItem[] {
+/**
+ * Map the model's nodes to ECharts graph data items. `positions` is supplied only under
+ * `layout: 'none'`, where it holds *every* node — see {@link resolveFixedPositions}.
+ */
+function toNodeItems(
+  data: NodeGraphData,
+  ctx: RelationsSeriesContext,
+  positions: ReadonlyMap<string, GraphPoint> | undefined
+): RelationsNodeItem[] {
   const defaultSize = ctx.options.relationsNodeSize ?? RELATIONS_NODE_SIZE_DEFAULT;
 
   return data.nodes.map((node) => {
@@ -332,39 +794,48 @@ function toNodeItems(data: NodeGraphData, ctx: RelationsSeriesContext): Relation
     if (node.color != null) {
       item.itemStyle = { color: node.color };
     }
-    // Honor pinned coordinates; only meaningful under `layout: 'none'`.
-    if (node.fixedX != null && node.fixedY != null) {
-      item.x = node.fixedX;
-      item.y = node.fixedY;
+    // Only meaningful under `layout: 'none'`, which is the only layout `positions` is
+    // built for — and there it answers for every node, pinned or seeded.
+    const position = positions?.get(node.id);
+    if (position != null) {
+      item.x = position.x;
+      item.y = position.y;
     }
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
     }
-    if (node.secondary != null) {
-      item.secondary = node.secondary;
+    if (node.secondaries != null) {
+      item.secondaries = node.secondaries;
     }
     return item;
   });
 }
 
 /** Map the model's links to ECharts graph link items. */
-function toLinkItems(links: RelationLink[], resolveGradient?: EdgeGradientResolver): RelationsLinkItem[] {
+function toLinkItems(
+  links: RelationLink[],
+  nodeColors: ReadonlyMap<string, string>,
+  mode: string,
+  resolveGradient?: EdgeGradientResolver
+): RelationsLinkItem[] {
   return links.map((link) => {
     // `markId` is how a hovered edge finds its own field for formatting and data
     // links; the endpoints cannot identify it, since parallel edges share them.
-    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.id };
+    // `markKey` first, for the one case where the ids are not unique either — N raw
+    // frames whose value field is called `Value`. See `RelationLink.markKey`.
+    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.markKey ?? link.id };
     if (link.value != null) {
       item.value = link.value;
     }
+    if (link.secondaries != null) {
+      item.secondaries = link.secondaries;
+    }
     const lineStyle: NonNullable<RelationsLinkItem['lineStyle']> = {};
-    // An explicit per-edge colour wins; otherwise the endpoint gradient, and failing
-    // that the series keyword. `link.color` is only set when the edge's field carries
-    // a real colour choice — see `edgeColorOf` in `converters/graphWide.ts`.
-    const gradient = link.color == null ? resolveGradient?.(link) : undefined;
-    if (link.color != null) {
-      lineStyle.color = link.color;
-    } else if (gradient != null) {
-      lineStyle.color = gradient;
+    // Every edge carries its own colour: the series-level ECharts keywords do not
+    // work on a `graph` series. See `resolveLinkColor`.
+    const color = resolveLinkColor(link, nodeColors, mode, resolveGradient);
+    if (color != null) {
+      lineStyle.color = color;
     }
     if (link.width != null) {
       lineStyle.width = link.width;
@@ -392,27 +863,42 @@ function toLinkItems(links: RelationLink[], resolveGradient?: EdgeGradientResolv
  */
 export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext): GraphSeriesOption {
   const layout = getGraphLayout(data, ctx.options);
-  const force = getGraphForce(ctx.options);
   const edgeSymbol = getGraphEdgeSymbol(ctx.options);
   const emphasis = getGraphEmphasis(ctx.options);
-  // Indexed by endpoint: the edge gradients must use the very colours the nodes were
-  // painted with, overrides included, or the blend would not meet its endpoints.
-  const resolveGradient = makeEdgeGradientResolver(data, nodeColorsById(data), ctx.options);
+  const edgeLabel = getRelationsEdgeLabel(ctx);
+  const labelLayout = getRelationsLabelLayout(ctx.options);
+  // Indexed by endpoint: the edge colours and gradients must use the very colours the
+  // nodes were painted with, overrides included, or a blend would not meet its
+  // endpoints and a `source` edge would not match its source.
+  const nodeColors = nodeColorsById(data);
+  const mode = ctx.options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
+  // Every node's rendered position, but only for the layout that reads one: the other
+  // two lay out for themselves, and emitting `x`/`y` there would just move the view's
+  // bounding box around. See `resolveFixedPositions`.
+  const positions = layout === 'none' ? resolveFixedPositions(data.nodes) : undefined;
+  const resolveGradient = makeEdgeGradientResolver(positions, nodeColors, ctx.options);
 
   return {
     type: 'graph',
     layout,
-    // Off by default, keeping the panel static like the other families.
-    roam: ctx.options.relationsRoam === true,
-    draggable: ctx.options.relationsDraggable === true,
-    ...(force ? { force } : {}),
+    // Pan only, and off by default; zoom is driven by the panel's buttons rather than
+    // by the scroll wheel. See `resolveRelationsRoam`.
+    roam: resolveRelationsRoam(ctx.options),
+    // The remembered pan/zoom, when the user asked for one to be remembered.
+    ...getRelationsViewState(ctx.options),
+    // Only under the layout that keeps a position. See `resolveGraphDraggable`.
+    draggable: resolveGraphDraggable(ctx.options, layout),
+    // Always emitted: three of its keys deliberately disagree with ECharts'.
+    force: getGraphForce(ctx.options),
     ...(edgeSymbol ? { edgeSymbol } : {}),
     ...(emphasis ? { emphasis } : {}),
+    ...(edgeLabel ? { edgeLabel } : {}),
+    ...(labelLayout ? { labelLayout } : {}),
     label: getGraphLabel(ctx),
     lineStyle: getGraphLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,
-    data: toNodeItems(data, ctx),
-    links: toLinkItems(data.links, resolveGradient),
-    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks), ctx.tooltipSink),
+    data: toNodeItems(data, ctx, positions),
+    links: toLinkItems(data.links, nodeColors, mode, resolveGradient),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options), ctx.tooltipSink),
   };
 }

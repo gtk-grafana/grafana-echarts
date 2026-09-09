@@ -3,12 +3,13 @@ import { initPluginTranslations } from '@grafana/i18n';
 import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } from 'editor/constants';
 import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
-import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
+import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsCustomConfig } from 'lib/grafana/editor/relations/fieldConfig';
+import { addRelationsFilterOptions } from 'lib/grafana/editor/relations/filters';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
@@ -16,7 +17,7 @@ import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { addRelationsStatOptions } from 'lib/grafana/editor/relations/stats';
-import { setDataTransformations } from 'lib/grafana/panelDataTransformations';
+import { setSystemTransformations } from 'lib/grafana/panelDataTransformations';
 import { type PanelOptions } from 'types';
 import { relationsDataTransformations } from './dataTransformations';
 import { relationsSuggestionsSupplier } from './suggestions';
@@ -62,10 +63,11 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
       });
     }
 
-    // How each mark reduces its own values to a main and a secondary stat. On the
-    // field-based contract a mark is a field, so this is the standard `reduceOptions`
-    // question every value-reducing family answers — see `addRelationsStatOptions`
-    // for why only the calculation picker is registered.
+    // How each mark reduces its own values: `calcs[0]` is the stat that sizes and colours
+    // it, and every calc after that is an extra tooltip row. On the field-based contract a
+    // mark is a field, so this is the standard `reduceOptions` question every
+    // value-reducing family answers — see `addRelationsStatOptions` for why only the
+    // calculation picker is registered.
     addRelationsStatOptions(builder);
 
     // Default tier: layout and node presentation — the controls a user coming from
@@ -82,14 +84,19 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
     // Chord-only ring geometry, all Advanced (gated on `isChordVariant` internally).
     addRelationsChordOptions(builder);
 
-    // Advanced tier: interaction, force tuning, link styling.
+    // Advanced tier: interaction, force tuning, link styling, and the one option
+    // about the *query* rather than the chart — which label an endpoint is filtered
+    // on. See `addRelationsFilterOptions`.
     addRelationsInteractionOptions(builder);
     addRelationsForceOptions(builder);
     addRelationsLinkOptions(builder);
+    addRelationsFilterOptions(builder);
 
-    // The family has no per-point fast path, so it registers the shared animation
-    // switch directly rather than the cartesian `addPerformanceOptions` bundle.
-    addAnimationOption(builder);
+    // The family has no per-point fast path, so it registers an animation switch
+    // directly rather than the cartesian `addPerformanceOptions` bundle — its own
+    // rather than the shared `addAnimationOption`, because it is Default-tier and on
+    // here. See `addRelationsAnimationOption`.
+    addRelationsAnimationOption(builder);
 
     // `singleOnly`: a relations hover is one node or one link, so "All" has nothing
     // to list. `includeLegendCalcs: false`: a legend entry is one mark, already
@@ -116,4 +123,4 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
  * `frameToRelationsGraph`. A user on such a host can supply the conversion by hand with
  * a "Rows to fields" transformation. See `lib/grafana/panelDataTransformations.ts`.
  */
-export const plugin = setDataTransformations(relationsPlugin, relationsDataTransformations);
+export const plugin = setSystemTransformations(relationsPlugin, relationsDataTransformations);

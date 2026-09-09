@@ -130,32 +130,6 @@ describe('categorical cartesian per-field overrides', () => {
   });
 });
 
-/** Symbol draw calls on the series layer — one `arc` group per rendered point. */
-const countArcs = (events: Array<{ type: string }>) =>
-  events.reduce((acc, { type }) => acc + (type === 'arc' ? 1 : 0), 0);
-
-// A category a frame has no row for must draw no symbol. Asserted by counting
-// symbols rather than snapshotting, because `normalizeCanvasEvents` strips the
-// transforms that carry each symbol's position (bars keep absolute coords, so
-// their geometry *is* in the snapshot). Comparing a full render against a gapped
-// one keeps this independent of how many `arc` calls ECharts spends per symbol.
-describe('categorical cartesian label join: missing cells draw no symbol', () => {
-  const overlay = (labels: string[], values: number[]) => [
-    barFrame(),
-    valueFrame('Marker', 'markerLabel', labels, 'markerValue', values, { seriesType: 'scatter' }),
-  ];
-
-  it('draws one symbol fewer per category the overlay frame has no row for', async () => {
-    // Overlay covers all four categories.
-    const full = await renderSeriesLayer(overlay(CATEGORIES, [3, 10, 20, 30]), 'bar');
-    // Same frame minus one category, so one symbol should disappear.
-    const gapped = await renderSeriesLayer(overlay(['x', 'a', 'b'], [3, 10, 20]), 'bar');
-
-    const fullArcs = countArcs(full.seriesEvents);
-    const gappedArcs = countArcs(gapped.seriesEvents);
-
-    expect(fullArcs).toBeGreaterThan(0);
-    // Four symbols vs three, so the drop is exactly a quarter of the full count.
-    expect(gappedArcs).toBe((fullArcs / 4) * 3);
-  });
-});
+// The label-join claim this pairs with — a category the overlay frame has no row for
+// draws no symbol, counted rather than pictured — is in
+// `categorical-cartesian.integration.test.tsx`.

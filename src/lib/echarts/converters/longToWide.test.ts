@@ -80,9 +80,9 @@ describe('longToWide — the pivot', () => {
    * title of its own.
    *
    * Deliberately says nothing about how the reader treats a *raw* multi-frame response —
-   * whether it takes the first frame or all of them is the reader's own contract, asserted
-   * in `graphWide.test.ts`. The pivot's job is identity either way: N frames whose value
-   * field is called `Value` are N marks sharing one name, and no override can address them.
+   * that it collects all of them is the reader's own contract, asserted in
+   * `graphWide.test.ts`. The pivot's job is identity either way: N frames whose value field
+   * is called `Value` are N marks sharing one name, and no override can address them.
    */
   it('gives every edge its own id in the model the panel reads', () => {
     const data = frameToRelationsGraph(longToWide(edges()), createTheme());
@@ -124,6 +124,90 @@ describe('longToWide — the pivot', () => {
 
     expect(wide.refId).toBe('A');
     expect(wide.name).toBeUndefined();
+  });
+});
+
+/**
+ * The endpoint pair a datasource actually used.
+ *
+ * The contract's `source`/`target` is what the panel reads and what this pivot writes, but no
+ * datasource emits it: Grafana's own service-graph metrics are labelled `client`/`server`, and
+ * the query that reached the panel before this existed spent two `label_replace` calls renaming
+ * them — then aggregated the originals away, which is why an ad-hoc filter on an endpoint could
+ * only ever be written under a key the datasource had never heard of.
+ */
+describe('longToWide — conventional endpoint labels', () => {
+  const clientServer = (): DataFrame[] => [
+    series({ client: 'a', server: 'b' }, [10, 12]),
+    series({ client: 'b', server: 'c' }, [20, 22]),
+  ];
+
+  it('claims a client/server response as edges', () => {
+    expect(isLongGraphFrames(clientServer())).toBe(true);
+  });
+
+  it('pivots it to the canonical keys, so the reader needs no new carrier', () => {
+    const [wide] = longToWide(clientServer());
+
+    expect(wide.fields.map((field) => field.name)).toEqual(['Time', 'a-->b', 'b-->c']);
+    expect(wide.fields[1].labels).toEqual({ source: 'a', target: 'b' });
+  });
+
+  /**
+   * The declaration, and the reason this pivot has to leave one: its output is canonical by
+   * construction, so without it nothing downstream can tell `sum by (client, server)` from
+   * `sum by (source, target)` — and the tooltip's filters would go on writing `source=`.
+   */
+  it('declares the pair it read on the frame', () => {
+    const [wide] = longToWide(clientServer());
+
+    expect(wide.meta?.custom?.graph).toEqual({ sourceKey: 'client', targetKey: 'server' });
+  });
+
+  it('records nothing for a response that really did group by source/target', () => {
+    const [wide] = longToWide(edges());
+
+    expect(wide.meta?.custom?.graph).toBeUndefined();
+  });
+
+  // Recording one of two pairs would be worse than recording neither: the tooltip would write
+  // a key that is right for half the edges and silently wrong for the rest.
+  it('records nothing when the response mixes pairs', () => {
+    const [wide] = longToWide([series({ client: 'a', server: 'b' }, [1]), series({ source: 'b', target: 'c' }, [1])]);
+
+    expect(wide.meta?.custom?.graph).toBeUndefined();
+  });
+
+  // The endpoints are not a discriminator, whatever they are called: leaving `client`/`server`
+  // in the "everything else" label set would make every parallel edge look distinguishable by
+  // the one thing its siblings share.
+  it('keeps the endpoints out of the parallel-edge discriminator', () => {
+    const [wide] = longToWide([
+      series({ client: 'a', server: 'b', protocol: 'grpc' }, [1]),
+      series({ client: 'a', server: 'b', protocol: 'http' }, [2]),
+    ]);
+
+    expect(wide.fields.map((field) => field.name)).toEqual([
+      'Time',
+      'a-->b {protocol="grpc"}',
+      'a-->b {protocol="http"}',
+    ]);
+  });
+
+  // Precedence: a frame carrying both pairs is read as the contract says, since that is the
+  // pair a converter would have written.
+  it('prefers the canonical pair when both are present', () => {
+    const [wide] = longToWide([series({ source: 'a', target: 'b', client: 'x', server: 'y' }, [1])]);
+
+    expect(wide.fields[1].labels).toEqual({ source: 'a', target: 'b', client: 'x', server: 'y' });
+    expect(wide.meta?.custom?.graph).toBeUndefined();
+  });
+
+  // End to end: the keys reach the model the tooltip footer reads.
+  it('reaches the model as the response’s endpoint labels', () => {
+    const data = frameToRelationsGraph(longToWide(clientServer()), createTheme());
+
+    expect(data?.endpointLabels).toEqual({ source: 'client', target: 'server' });
   });
 });
 
@@ -357,8 +441,10 @@ describe('longToWide — detection', () => {
 
   /**
    * A declared edges frame *is* the edges frame; a labelled series beside it is a second
-   * query. Pivoting it would mint a rival edges frame for `findEdgesFrame` to choose
-   * between, which is how two converters end up disagreeing about one response.
+   * query. Pivoting it would mint a rival edges frame — a second set of ids over the same
+   * topology — which is how two converters end up disagreeing about one response. The
+   * reader agrees from the other side: declared frames win as a *filter*, so this response
+   * renders exactly the declared frame's edges.
    */
   it('declines the whole response when something else is already the edges frame', () => {
     const declared = toDataFrame({

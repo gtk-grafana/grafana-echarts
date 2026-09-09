@@ -203,17 +203,16 @@ describe('relationsChartModule', () => {
   });
 
   /**
-   * Item 15 of `todo/graph-wide-migration.md`: the legend's colour picker needs no
-   * family-specific path any more. It writes the ordinary `byName` fixed-colour
-   * override every panel writes (`changeSeriesColorConfig`, driven here rather than
-   * hand-written), Grafana's override engine applies it to the node's own field, and
-   * the family reads the answer back as `field.display(value).color`.
+   * The legend's colour picker needs no family-specific path any more. It writes the
+   * ordinary `byName` fixed-colour override every panel writes (`changeSeriesColorConfig`,
+   * driven here rather than hand-written), Grafana's override engine applies it to the
+   * node's own field, and the family reads the answer back as `field.display(value).color`.
    *
    * The old route — `getSeriesColorOverride`, matching the legend label against
-   * `fieldConfig` inside the converter — was deleted in phase 3, and the reason this
-   * test exists is that nothing else would notice if it came back: a re-implementation
-   * would look identical from the outside until an override used `byRegexp`, or the
-   * theme had to resolve the colour name.
+   * `fieldConfig` inside the converter — was deleted when the family pivoted to the
+   * field-based wide contract, and the reason this test exists is that nothing else would
+   * notice if it came back: a re-implementation would look identical from the outside
+   * until an override used `byRegexp`, or the theme had to resolve the colour name.
    */
   describe('legend colour', () => {
     const nodeColors = (fieldConfig: FieldConfigSource) => {
@@ -358,7 +357,8 @@ describe('relationsChartModule', () => {
     const edgesOf = (series: Record<string, unknown>) =>
       (series.links as Array<{ source: string; target: string }>).map((link) => `${link.source}->${link.target}`);
 
-    // The headline of phase 4 item 11: one edge, named, gone — and nothing else moves.
+    // A `custom.hideFrom` override on one edge's field removes exactly that edge —
+    // named, gone — and nothing else moves.
     it('hides one edge without touching its endpoints', () => {
       const series = seriesOf([wideNodes, wideEdges], hiding('e1'));
 
@@ -386,6 +386,110 @@ describe('relationsChartModule', () => {
       expect(edgesOf(derived)).toEqual(['b->c']);
       expect(namesOf(derived)).toEqual(['b', 'c']);
     });
+  });
+
+  /**
+   * **Where a dragged node's position is remembered when there is no field to remember it on.**
+   *
+   * `custom.fixedX`/`fixedY` are ordinary per-mark config, so Grafana's override engine applies
+   * them to a node that *is* a field. A node derived from an edge's endpoints is not — which is
+   * every node of an edges-only response on a host that cannot run the `deriveNodes` pre-pass,
+   * i.e. the default — so the coordinate never arrived and dragging could not be kept. The
+   * position is read by name for exactly those marks; the same escape hatch as the legend's
+   * colour and visibility reads.
+   */
+  describe('positions for derived nodes', () => {
+    const wideEdges = toDataFrame({
+      name: 'edges',
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['e1'] },
+        { name: 'source', type: FieldType.string, values: ['a'] },
+        { name: 'target', type: FieldType.string, values: ['b'] },
+        { name: 'mainstat', type: FieldType.number, values: [5] },
+      ],
+    });
+    const declaredNodes = toDataFrame({
+      name: 'nodes',
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['a', 'b'] },
+        { name: 'mainstat', type: FieldType.number, values: [1, 2] },
+      ],
+    });
+
+    const pinning = (name: string, x: number, y: number): FieldConfigSource => ({
+      defaults: {},
+      overrides: [
+        {
+          matcher: { id: 'byName', options: name },
+          properties: [
+            { id: 'custom.fixedX', value: x },
+            { id: 'custom.fixedY', value: y },
+          ],
+        },
+      ],
+    });
+
+    const fixedLayout = (frames: DataFrame[], fieldConfig: FieldConfigSource): RelationsChartContext => {
+      const context = ctx(frames, fieldConfig);
+      return { ...context, options: { ...context.options, relationsLayout: 'none' } };
+    };
+
+    const nodeAt = (context: RelationsChartContext, id: string) => {
+      const series = (relationsChartModule.buildOption(context, base)!.series as Array<Record<string, unknown>>)[0];
+      return (series.data as Array<{ id: string; x?: number; y?: number }>).find((node) => node.id === id);
+    };
+
+    it('places a derived node at the position an override names', () => {
+      expect(nodeAt(fixedLayout([wideEdges], pinning('a', 120, 340)), 'a')).toMatchObject({ x: 120, y: 340 });
+    });
+
+    // The other node is still unpinned, so it keeps its seeded ring position rather than
+    // inheriting the pinned one.
+    it('leaves the nodes no override names where the seed put them', () => {
+      const seeded = nodeAt(fixedLayout([wideEdges], pinning('a', 120, 340)), 'b');
+
+      expect(Number.isFinite(seeded?.x)).toBe(true);
+      expect(seeded).not.toMatchObject({ x: 120, y: 340 });
+    });
+
+    // A node that *is* a field has already been answered by the override engine, so the by-name
+    // read must not be a second, competing source of truth for it.
+    it('leaves a fielded node to the override engine', () => {
+      const withNodes = fixedLayout([declaredNodes, wideEdges], pinning('a', 120, 340));
+
+      expect(nodeAt(withNodes, 'a')).toMatchObject({ x: 120, y: 340 });
+    });
+  });
+
+  describe('getZoomAction', () => {
+    const withZoom = (context: RelationsChartContext): RelationsChartContext => ({
+      ...context,
+      options: { ...context.options, relationsZoom: true },
+    });
+
+    it('draws no buttons until zoom is switched on', () => {
+      expect(relationsChartModule.getZoomAction?.(ctx([nodesFrame, edgesFrame]))).toBeUndefined();
+    });
+
+    it('names the roam action after the render variant', () => {
+      expect(relationsChartModule.getZoomAction?.(withZoom(ctx([nodesFrame, edgesFrame])))).toEqual({
+        type: 'graphRoam',
+        seriesIndex: 0,
+      });
+      expect(relationsChartModule.getZoomAction?.(withZoom(sankeyCtx([nodesFrame, edgesFrame])))).toEqual({
+        type: 'sankeyRoam',
+        seriesIndex: 0,
+      });
+    });
+
+    // Not a preference: `ChordSeries` pins `coordinateSystem: 'none'` and declares no
+    // `roam`, so there is no view to scale and no action registered for it.
+    it('has nothing to dispatch on a chord, which owns no view', () => {
+      expect(relationsChartModule.getZoomAction?.(withZoom(chordCtx([nodesFrame, edgesFrame])))).toBeUndefined();
+    });
+
+    // The superseded single "Zoom and pan" switch reaches this through
+    // `resolveRelationsZoom`, and is tested there — see `options/graph.test.ts`.
   });
 
   /**

@@ -1,4 +1,5 @@
 import { type Field } from '@grafana/data';
+import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
 
 /**
  * Chart-agnostic node/link model shared by the relations family's render variants
@@ -13,9 +14,32 @@ import { type Field } from '@grafana/data';
  * converted to the wide form *above* the panel by the transformation this plugin
  * registers (`legacyToWide.ts`, `modules/relations/dataTransformations.ts`), so that
  * every mark exists as a field before field overrides are applied. The row format
- * itself is still documented in ../../../../data-plane/node-graph.md, because it is
+ * itself is still documented in ../../../../data-plane/graph-long.md, because it is
  * what the conversion reads.
  */
+
+/**
+ * One **extra** stat a mark reports, beyond the main one — a tooltip row and nothing else.
+ *
+ * `reduceOptions.calcs[0]` is the main stat and is structurally singular: it is the number
+ * that sizes a node, colours it, and weighs an edge or a sankey ribbon, and a chart has one
+ * geometry. Every reducer *after* the first has nowhere to go but the tooltip, so there is no
+ * reason to cap how many there are — one row each. See `normalizeRelationsCalcs`.
+ *
+ * Carried as a `{calc, value}` pair rather than a bare list of strings so a row cannot be
+ * labelled with the wrong reducer: a calc that reduces to nothing on one mark and to a number
+ * on the next would otherwise shift every label after it by one.
+ */
+export interface MarkStat {
+  /**
+   * The reducer that produced it, so the tooltip can label the row with the reducer's own
+   * display name. Unset for the legacy `secondarystat` column, which is a value the response
+   * carried with no calculation behind it — see `secondaryStatsOf`.
+   */
+  calc?: string;
+  /** Already a display string: formatted through the mark's **own** display processor. */
+  value: string;
+}
 
 /** A single node. `value` is the main stat, which drives sizing/colour and the tooltip. */
 export interface RelationNode {
@@ -25,14 +49,18 @@ export interface RelationNode {
   name: string;
   /** `config.custom.subtitle`. */
   subtitle?: string;
-  /** The field's values reduced by `reduceOptions.calcs[0]`. */
+  /**
+   * The field's values reduced by `reduceOptions.calcs[0]`, and `null` for a node with no
+   * field — one the response only implied, which has no stat of its own to report. See
+   * `deriveNodesFromLinks` and `converters/deriveNodes.ts`.
+   */
   value: number | null;
   /**
-   * The secondary stat, tooltip only: `calcs[1]` formatted through the mark's own
-   * display processor, else a `secondarystat` label carried by the conversion.
-   * Already a display string in the first case, hence the union.
+   * The stats past the first, tooltip only: one per `calcs[1..]`, each formatted through the
+   * mark's own display processor — else the single `secondarystat` label the row-form
+   * conversion carries. See {@link MarkStat}.
    */
-  secondary?: number | string;
+  secondaries?: MarkStat[];
   /** `config.custom.nodeRadius` — ECharts `symbolSize`. */
   radius?: number;
   /**
@@ -69,11 +97,39 @@ export interface RelationNode {
 
 /** A single directed edge. `value` is the numeric weight sankey/chord need. */
 export interface RelationLink {
-  /** `field.name`. */
+  /**
+   * `field.name` — always, even when two collected marks share it.
+   *
+   * That is the contract's invariant and the reason the reader never synthesises one: an
+   * id is the **override target**, and `byName`/`byNames` compare against `field.name` or
+   * the display name, so a minted `a-->b` would be an id that looks addressable and is
+   * not. Duplicates happen when the edges arrive as N raw frames whose value field is
+   * called `Value`; the fix is at the source — a legend format, or letting the
+   * `graph-edges-wide` pivot run above the panel — not in the reader. See {@link markKey}
+   * for the one consumer that cannot live with the duplication.
+   */
   id: string;
+  /**
+   * An **item key**, not an id: unique among the links of one render, set by the reader
+   * only when {@link id} is not.
+   *
+   * Its only job is the item-to-field lookup the tooltip does (`getRelationsTooltipMarks`
+   * keys its link map by `markKey ?? id`, and the three render variants emit the same
+   * expression as the item's `markId`). It is never rendered — an edge's tooltip header is
+   * `source → target` — and never matched against, so its stability bar is far lower than
+   * an id's. Minted from the endpoints, then the label set that tells parallel edges
+   * apart, then `#n` — `toGraphWide.uniqueId`, the ladder the pivot names fields with.
+   */
+  markKey?: string;
   source: string;
   target: string;
   value: number | null;
+  /**
+   * The stats past the first, tooltip only — the edge counterpart of
+   * {@link RelationNode.secondaries}, so one "Calculation" setting means the same thing on
+   * both kinds of mark.
+   */
+  secondaries?: MarkStat[];
   /**
    * Set **only** when the edge's field carries a real colour choice, so that an
    * unconfigured edge falls through to the series-level endpoint colouring
@@ -92,7 +148,10 @@ export interface RelationLink {
   curveness?: number;
   /** `config.custom.hideFrom.viz`. See {@link RelationNode.hidden}. */
   hidden?: boolean;
-  /** Always `0`: a wide frame reduces to a single row. See {@link RelationNode.sourceRowIndex}. */
+  /**
+   * Always `0` — the mark's first sample, which is the reduced row only for a
+   * single-row frame. See {@link RelationNode.sourceRowIndex} and `readLinks`.
+   */
   sourceRowIndex?: number;
   /** The field this edge *is*. See {@link RelationNode.field}. */
   field?: Field;
@@ -102,4 +161,16 @@ export interface RelationLink {
 export interface NodeGraphData {
   nodes: RelationNode[];
   links: RelationLink[];
+  /**
+   * The label keys the **datasource** carried this response's endpoints under, when they are
+   * not the contract's own `source`/`target`.
+   *
+   * Topology never reads this — every link above already resolved its endpoints — and no mark
+   * renders differently because of it. Its one consumer is the tooltip footer's ad-hoc
+   * filters, which have to write a key the datasource will recognise: a response grouped by
+   * `client`/`server` filters on nothing at all under `source="web-api"`. Unset means the
+   * canonical pair, which is both the contract's answer and the right one for a response that
+   * really did group by it. See `resolveEndpointLabelKeys` and `relationsFilterLabels`.
+   */
+  endpointLabels?: GraphEndpointKeys;
 }

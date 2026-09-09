@@ -267,6 +267,22 @@ export interface LegendHighlightTarget {
   dataIndex: number[];
 }
 
+/**
+ * How the panel's own zoom buttons reach a family's view — see `ChartZoomControls`.
+ *
+ * ECharts registers one roam action per series type that owns a `View` coordinate
+ * system (`registerRoamActionSimply`), and the action resolves that view directly, so
+ * it scales the chart whether or not `roam` is enabled. That is what lets zoom be a
+ * button instead of the scroll wheel.
+ * https://echarts.apache.org/en/api.html#action.graphRoam
+ */
+export interface ChartZoomAction {
+  /** The registered action type, e.g. `'graphRoam'` / `'sankeyRoam'`. */
+  type: string;
+  /** Index of the series that owns the view coordinate system. */
+  seriesIndex: number;
+}
+
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
@@ -289,6 +305,13 @@ export interface ChartModule {
    * legend hover emphasis, which is the existing behaviour everywhere else.
    */
   getLegendHighlightTargets?(ctx: ChartContext, label: string): LegendHighlightTarget[];
+
+  /**
+   * The roam action the panel's zoom buttons should dispatch for this render, or
+   * `undefined` to draw no buttons — see {@link ChartZoomAction}. Optional; a family
+   * that omits it gets no zoom controls, which is every family but relations.
+   */
+  getZoomAction?(ctx: ChartContext): ChartZoomAction | undefined;
 
   /**
    * Every name the legend's visibility override has to account for, when that is

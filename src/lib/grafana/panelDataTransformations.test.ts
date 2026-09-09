@@ -1,17 +1,17 @@
 import {
   hostSupportsDataTransformations,
-  type PanelDataTransformationsSupplier,
-  setDataTransformations,
+  setSystemTransformations,
+  type SystemTransformationsSupplier,
 } from 'lib/grafana/panelDataTransformations';
 
-const supplier: PanelDataTransformationsSupplier = () => [];
+const supplier: SystemTransformationsSupplier = () => [];
 
 describe('setDataTransformations', () => {
   it('registers the supplier on a host that supports the API', () => {
     const setter = jest.fn();
-    const plugin = { setDataTransformations: setter };
+    const plugin = { setSystemTransformations: setter };
 
-    expect(setDataTransformations(plugin, supplier)).toBe(plugin);
+    expect(setSystemTransformations(plugin, supplier)).toBe(plugin);
     expect(setter).toHaveBeenCalledWith(supplier);
   });
 
@@ -21,12 +21,12 @@ describe('setDataTransformations', () => {
     // the conversion is downstream of `applyFieldOverrides`.
     const plugin = { setPanelOptions: jest.fn() };
 
-    expect(() => setDataTransformations(plugin, supplier)).not.toThrow();
-    expect(setDataTransformations(plugin, supplier)).toBe(plugin);
+    expect(() => setSystemTransformations(plugin, supplier)).not.toThrow();
+    expect(setSystemTransformations(plugin, supplier)).toBe(plugin);
   });
 
   it('reports host support', () => {
-    expect(hostSupportsDataTransformations({ setDataTransformations: jest.fn() })).toBe(true);
+    expect(hostSupportsDataTransformations({ setSystemTransformations: jest.fn() })).toBe(true);
     expect(hostSupportsDataTransformations({})).toBe(false);
     expect(hostSupportsDataTransformations(undefined)).toBe(false);
   });

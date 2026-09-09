@@ -1,12 +1,12 @@
 # Migrating the relations family onto `graph-*-wide`
 
-> **Status: phases 1–5 shipped, and the long reader is already gone.** The contract is
+> **Status: all six phases shipped, and the long reader is already gone.** The contract is
 > specified and validated in [../data-plane/graph-wide.md](../data-plane/graph-wide.md),
 > with a proof dashboard at `provisioning/dashboards/relations/graph-wide.json` and a
 > phase 5 demo at `provisioning/dashboards/relations/per-mark-tooltip-links.json`.
 > `converters/graphWide.ts` is now the family's only reader **and its only colour path**;
 > `converters/legacyToWide.ts` converts Grafana's row format **above** the panel through
-> `PanelPlugin.setDataTransformations`. Phase 6 remains.
+> `PanelPlugin.setDataTransformations`.
 >
 > Two decisions changed during implementation and are recorded inline below, at
 > [Deviations from the original plan](#deviations-from-the-original-plan): the long
@@ -36,6 +36,7 @@
 | P5.15 legend items from fields                         | Done by already being true; `getHiddenSeriesNames` survives for derived nodes. See [phase 5](#phase-5--tooltip-links-and-legend--done) |
 | P6.16 fold the proof dashboard onto the panel          | Done — `graph-wide.json`, 12 panels to 18; two stale claims corrected, three findings recorded                                         |
 | P6.17 parity and the three to-do docs                  | Done — every `[wide: …]` marker resolved; all three docs now say what shipped                                                          |
+| Role resolution is one-to-many                         | Done — `findEdgesFrames` / `findNodesFrames`; see [The reader collects every edges frame](#the-reader-collects-every-edges-frame)      |
 
 The contract makes one node one field and one edge one field, so Grafana's own override
 engine addresses each mark. That closes, as ordinary field behaviour, most of what the
@@ -91,7 +92,7 @@ feeds for it and prepends the result before `transformDataFrame`. The panel decl
 transformer asks; nothing is persisted; the override picker is fixed for free because the
 pane reads the transformer's output. Mechanism, the three places the conversion could live,
 and why the ad-hoc-transformations stack is the wrong shape for this:
-[graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md#where-should-the-conversion-live).
+[graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md#where-the-conversion-should-live-instead).
 
 Two consequences for this plan:
 
@@ -217,7 +218,7 @@ corrections:
 
 **Note for hierarchy.** `hierarchy.ts:64-69` has the byte-identical broken guard, and
 hierarchy is **not** pivoting in this plan. So
-[relations-color-schemes.md](./relations-color-schemes.md) must stay open: its A1/A4
+[hierarchy-color-schemes.md](./hierarchy-color-schemes.md) must stay open: its A1/A4
 fixes are still needed there. Deleting the relations resolver does not delete the bug.
 
 ### Phase 4 — per-mark custom config — **done**
@@ -459,6 +460,11 @@ because a derived node's value is its degree, a count of links with no unit to b
 family now uses no panel-level formatter at all, which is why `RelationsTooltipContext`
 is gone: a mark either has a field or is a count.
 
+Since [gap 4](#gap-4-is-closed-by-a-pre-pass-down-to-a-floor) it is not even a count. The
+degree was a link count sitting in the value slot, indistinguishable from a stat and
+impossible to relabel; a derived node now carries no stat at all, and
+`formatDerivedMarkValue` is the safety net rather than the path.
+
 #### A user transformation that consumes the row format is unreachable on this panel
 
 Panel 17 was written expecting "No data" — the adjacency-matrix interpretation is
@@ -484,6 +490,55 @@ Prometheus recipe in `docs/relations-data-sources.md`; panel 18 is now the worke
 in one row, and `provisioning/dashboards/relations/observability-sources.json` carries the
 full chain from the frame shapes Prometheus and Loki actually return. The capability
 matrix's "one `legendFormat`" row is more precisely "one `legendFormat` **and one join**".
+
+_Superseded twice since._ `converters/longToWide.ts` pivots the response above the panel
+where the host allows it, and the reader now collects every edges frame regardless — so a
+join is no longer required for topology. It is still exactly right about the label keys:
+`sum by (client, server)` needs the legend format, because `client`/`server` are not the
+contract's endpoint keys and the separator in the field name is all that is left to split
+on. See below.
+
+### The reader collects every edges frame
+
+Role resolution was one frame per role: `findEdgesFrame` was `find(declared) ?? find(shape)`.
+Since a `Format: Time series` response is N frames of `[Time, Value]` and **every one of
+them** passes the shape test, a ten-series query drew a one-edge graph — no error, no
+notice, no log, because `links.length > 0` and the option was valid.
+
+The fix is in the reader rather than above it, for three reasons in decreasing order of
+force:
+
+1. **The host gate is off by default.** `setDataTransformations` is feature-detected _and_
+   gated behind `grafana.panelPluginTransformations`, so on a stock host the prefix does not
+   run and the reader is the entire data path.
+2. **A response can carry two edges frames no transformation can union.** Two legacy
+   `node_graph` queries in one panel become two `graph-edges-wide` frames (`legacyToWide`
+   maps per frame); `joinByField` cannot merge two already-wide frames without colliding
+   their names, and `groupingToMatrix` returns its input unchanged on any multi-frame
+   response.
+3. **The reader is where the shape is unambiguous.** `longToWide` has to _decide_ whether a
+   labelled series is long or is a single-edge wide frame with a row dimension — an inherent
+   ambiguity it warns about. The reader never faces the question.
+
+Two rules keep the plural reading well-defined, and both are stated in the contract's
+[role resolution](../data-plane/graph-wide.md#a-role-is-one-to-many) section: declared wins
+as a **filter**, not a find; and the nodes search excludes every edges candidate, collected
+or not, with the first field per id winning across nodes frames.
+
+**What the prefix still buys is identity, not topology.** N raw frames whose value field is
+called `Value` are N marks with one `field.name`, and only a transformation running before
+`applyFieldOverrides` can turn a model id into a real field — an override target, a picker
+entry, a `byName` match. So `relationsDataTransformations` still tests `isLongGraphFrames`
+ahead of `isGraphWideFrames`; flipping the order would trade N override targets for zero.
+
+**The reader does not mint ids.** It keeps `RelationLink.id === field.name` even under
+duplication — a synthetic id is not an override target, and `getOverrideTargetNames` feeds
+an _exclude_ matcher, so an id no field answers to there would resurrect the phase-4
+catastrophe (hiding one node erasing every link). Exactly one consumer could not live with
+duplicate ids — `getRelationsTooltipMarks`, whose link map would be last-write-wins, the
+same class of bug phase 5 existed to kill — so the reader mints a `markKey` for that lookup
+alone. It is never rendered and never matched against. Implementation:
+`src/lib/echarts/converters/graphWide.ts`, `findEdgesFrames` and `assignMarkKeys`.
 
 ## Deviations from the original plan
 
@@ -644,7 +699,7 @@ first is the one that settles it, and it was measured after this decision was fi
   `custom.lineType`, `noderadius` → `custom.nodeRadius`, `subtitle` → `custom.subtitle`,
   `icon` → `custom.icon`, per-mark `links`, and `meta.type: 'graph-edges-wide'` are all
   unreachable — they degrade to `field.labels` or vanish. Measurements:
-  [graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+  [relations-data-sources.md](../docs/relations-data-sources.md#what-the-pivot-cannot-carry-however-it-is-configured).
   A `CustomTransformOperator` has none of these limits, which is why the delegated option is
   dead but `transformDataFrame` as a _host_ is not.
 
@@ -686,7 +741,7 @@ rather than `calcs[1]`, and on the natively-long producers the mappings must be 
 column's **display name** or the transformation silently returns its input unchanged. So the
 recipe is the route to overridable fields, not a faithful conversion — that is what
 `legacyToWide` is for, and it is why the two coexist rather than one replacing the other.
-Measured in [graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+Measured in [relations-data-sources.md](../docs/relations-data-sources.md#what-the-pivot-cannot-carry-however-it-is-configured).
 
 The notice is cheap and it is the only thing that can teach a user the difference,
 because the difference is not visible in the render.
@@ -730,28 +785,28 @@ Three verdicts:
 
 ### Every row of the "what this buys" argument
 
-| Documented problem                                                     | Where                                           | Verdict            | Note                                                                                                                           |
-| ---------------------------------------------------------------------- | ----------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| Only 2 of 8 colour modes reach the chart                               | `relations-color-schemes.md`                    | **Closed**         | Shipped in phase 3: colour is `field.display(value).color` and the resolver is gone. **Hierarchy still needs the fix.**        |
-| Edges have no colour-scheme path at all                                | `toLinkItems` took no `ctx` (`graph.ts`)        | **Closed**         | Shipped in phase 3. An edge is a field, so it has a display processor and a `byName` override targets it                       |
-| A `byName` fixed colour is not theme-resolved                          | `fields/seriesConfig.ts:116-127`                | **Closed**         | `applyFieldOverrides` resolves it upstream (measured: `dark-red` → `#C4162A`). Pie and hierarchy still route round it          |
-| `field.state.range` contaminated by `noderadius` / `arc__*` / `fixedx` | `relations-color-schemes.md`                    | **Wide only**      | Measured: legacy `{min: 0.5, max: 60}` vs wide `{min: 8, max: 12}`                                                             |
-| A link on `mainstat` paints on **every** node                          | `relations-data-links.md` gap 1                 | **Wide only**      | Shipped in phase 5: the footer resolves the hovered mark's own field. One link, one node — with a hover test to prove it       |
-| Only `mainstat` consulted for links; edges usually unreachable         | gap 2                                           | **Wide only**      | Shipped in phase 5. Each mark carries its own field, and an edge is addressed by `markId` so parallel edges stay distinct      |
-| A node can be handed the **edges** frame's field                       | gap 3                                           | **Wide only**      | Shipped in phase 5, and structurally impossible: nodes and edges are separate lookups keyed by the mark's own name             |
-| Derived nodes carry no row, so no links                                | gap 4                                           | **Partially open** | See [below](#gap-4-is-only-partially-closed)                                                                                   |
-| Tooltip unit decided by frame order, not the hovered item              | `formatter.ts`, `Panel.tsx`                     | **Wide only**      | Shipped in phase 5: each mark formats with its own `field.display`, in the tooltip **and** the node label                      |
-| `custom.hideFrom` registered with no reachable editor                  | `editor/relations/fieldConfig.ts`               | **Closed**         | Shipped in phase 4: the real `addHideFrom`, hiding one node or one edge                                                        |
-| Legend hiding re-implemented by name; `stripHiddenValueFields` skipped | `charts/relations.ts`, `options/panelOption.ts` | **Partially open** | The by-name read is gone for any mark with a field; a _derived_ node has none, and the strip exclusion earned a new reason     |
-| Per-item colour, links, size, curveness                                | `relations-item-overrides.md` (unbuilt)         | **Closed**         | Shipped: a `byName` override over `custom.*`. No new editor, no new schema, no `relationsItemRules`                            |
-| Two SQL Expressions to reshape Prometheus                              | `relations-data-sources.md`                     | **Closed**         | One `legendFormat` **and one `joinByField`** — a `Time series` response is one frame per edge. Panel 18 of the proof dashboard |
-| Instant queries mandatory                                              | `relations-data-sources.md`                     | **Closed**         | A range query is a row dimension, reduced by `calcs[0]`                                                                        |
+| Documented problem                                                     | Where                                           | Verdict                  | Note                                                                                                                                                        |
+| ---------------------------------------------------------------------- | ----------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Only 2 of 8 colour modes reach the chart                               | `hierarchy-color-schemes.md`                    | **Closed**               | Shipped in phase 3: colour is `field.display(value).color` and the resolver is gone. **Hierarchy still needs the fix.**                                     |
+| Edges have no colour-scheme path at all                                | `toLinkItems` took no `ctx` (`graph.ts`)        | **Closed**               | Shipped in phase 3. An edge is a field, so it has a display processor and a `byName` override targets it                                                    |
+| A `byName` fixed colour is not theme-resolved                          | `fields/seriesConfig.ts:116-127`                | **Closed**               | `applyFieldOverrides` resolves it upstream (measured: `dark-red` → `#C4162A`). Pie and hierarchy still route round it                                       |
+| `field.state.range` contaminated by `noderadius` / `arc__*` / `fixedx` | `hierarchy-color-schemes.md`                    | **Wide only**            | Measured: legacy `{min: 0.5, max: 60}` vs wide `{min: 8, max: 12}`                                                                                          |
+| A link on `mainstat` paints on **every** node                          | `relations-data-links.md` gap 1                 | **Wide only**            | Shipped in phase 5: the footer resolves the hovered mark's own field. One link, one node — with a hover test to prove it                                    |
+| Only `mainstat` consulted for links; edges usually unreachable         | gap 2                                           | **Wide only**            | Shipped in phase 5. Each mark carries its own field, and an edge is addressed by `markId` so parallel edges stay distinct                                   |
+| A node can be handed the **edges** frame's field                       | gap 3                                           | **Wide only**            | Shipped in phase 5, and structurally impossible: nodes and edges are separate lookups keyed by the mark's own name                                          |
+| Derived nodes carry no row, so no links                                | gap 4                                           | **Closed, with a floor** | `deriveNodes.ts` declares them as fields above the panel. Open only where that cannot run — see [below](#gap-4-is-closed-by-a-pre-pass-down-to-a-floor)     |
+| Tooltip unit decided by frame order, not the hovered item              | `formatter.ts`, `Panel.tsx`                     | **Wide only**            | Shipped in phase 5: each mark formats with its own `field.display`, in the tooltip **and** the node label                                                   |
+| `custom.hideFrom` registered with no reachable editor                  | `editor/relations/fieldConfig.ts`               | **Closed**               | Shipped in phase 4: the real `addHideFrom`, hiding one node or one edge                                                                                     |
+| Legend hiding re-implemented by name; `stripHiddenValueFields` skipped | `charts/relations.ts`, `options/panelOption.ts` | **Closed, with a floor** | The by-name read is gone for any mark with a field, derived nodes included once `deriveNodes.ts` has run; the strip exclusion earned a new reason and stays |
+| Per-item colour, links, size, curveness                                | per-item overrides (unbuilt)                    | **Closed**               | Shipped: a `byName` override over `custom.*`. No new editor, no new schema, no `relationsItemRules`                                                         |
+| Two SQL Expressions to reshape Prometheus                              | `relations-data-sources.md`                     | **Closed**               | One `legendFormat` **and one `joinByField`** — a `Time series` response is one frame per edge. Panel 18 of the proof dashboard                              |
+| Instant queries mandatory                                              | `relations-data-sources.md`                     | **Closed**               | A range query is a row dimension, reduced by `calcs[0]`                                                                                                     |
 
-### Every field of `node-graph.md`
+### Every field of `graph-long.md`
 
 Exhaustive: every field of both tables in
-[node-graph.md](../data-plane/node-graph.md). The wide-form target for each is in
-[the contract's mapping](../data-plane/graph-wide.md#complete-mapping-from-graph--long);
+[graph-long.md](../data-plane/graph-long.md). The wide-form target for each is in
+[the contract's mapping](../data-plane/graph-wide.md#graph-edges-wide-format-graph-edges-wide);
 this table adds the verdict.
 
 **Edges frame**
@@ -794,26 +849,34 @@ contract: `config.links` per mark (the whole of
 [relations-data-links.md](./relations-data-links.md)) and `config.custom.hideFrom` per
 mark. Both are **wide only**.
 
-### Gap 4 is only partially closed
+### Gap 4 is closed by a pre-pass, down to a floor
 
 `relations-data-links.md` gap 4 — a node **derived** from the edges frame has no backing
-row, so it can carry no link — is **partially open** under the wide contract, and the
-reason is the same one, restated: a derived node has no _field_ either, so there is
+row, so it can carry no link — was left partially open by the contract alone, and the
+reason was the same one restated: a derived node has no _field_ either, so there was
 nothing for an override to land on.
 
-What changes: the wide contract makes supplying a nodes frame cheap and side-effect-free
-(one field per node, no stat columns to contaminate the colour domain, config editable in
-the UI), so "add a nodes frame" is a real answer rather than a chore. What does not
-change: an edges-only response still renders nodes that cannot be individually
-configured. Any fix is the same open design question the gap already poses — whether a
-derived node should union the config of its incident edges — and it has no precedent in
-this repo.
+**The answer turned out not to be the open design question.** The gap posed one — should a
+derived node union the config of its incident edges? — and the resolution sidesteps it:
+`converters/deriveNodes.ts` runs the reader's own derivation **above** the panel, where a
+field can still be created, and declares every endpoint the response left implicit as an
+ordinary field of a `graph-nodes-wide` frame. The node then has its own config, its own row
+and its own links, like every other mark, and nothing needs unioning. Registered on all
+three branches of the supplier, because all three shapes can describe edges alone — and two
+of them routinely do, `longToWide` first among them.
 
-The matrix does not claim a clean sweep.
+Two things it does not change. It is gated behind `panelPluginTransformations` like
+everything else in the prefix, so on a stock host `deriveNodesFromLinks` still derives
+fieldless nodes inside the panel and the gap is exactly as open as it was; and relations
+stays out of `stripHiddenValueFields`, because deleting a hidden node's column just makes
+one of the two derivations put it back.
+
+The matrix claims a floor, not a clean sweep. See
+[../docs/relations-derived-nodes.md](../docs/relations-derived-nodes.md).
 
 ## Per-gap disposition for the three to-do docs
 
-### `relations-item-overrides.md`
+### Per-item overrides (formerly `relations-item-overrides.md`, since deleted)
 
 The doc's own question — how does a user say "colour `eu-west` red" — is answered by the
 contract, so its **recommendation is superseded**:
@@ -848,7 +911,7 @@ contract, so its **recommendation is superseded**:
 - The doc's note that relations has **no case in `dataLinks.test.tsx`** still stands and
   is now more important, because a per-mark link is the headline capability.
 
-### `relations-color-schemes.md`
+### `hierarchy-color-schemes.md` (formerly `relations-color-schemes.md`)
 
 - Problem **1** (the two-branch dispatch) — **closed for relations by deletion**
   (phase 3), **still open for hierarchy**, which shares the identical guard. **Do not
@@ -902,15 +965,15 @@ than on the diff.
 
 ### What functionality would be lost in this package
 
-| Lost                                                                       | Severity     | Detail                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| -------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Tempo, AWS X-Ray and TestData `node_graph` stop working out of the box** | **Severe**   | All three emit long natively and will for years. Each panel would need two user-added transformations, and — measured on `response_small`, a saved X-Ray map — zero-config `rowsToFields` names the node fields `0`…`16` and picks the wrong edge stat, so it needs four explicit mappings to be useful. See the [reality check](../data-plane/graph-wide.md#reality-check-the-natively-long-producers-are-the-awkward-case) |
-| **Every provisioned relations fixture breaks**                             | **Accepted** | `chord.json` (7 CSV + 1 `node_graph`), `sankey.json` (8 + 2), `node-graph-testdata.json` (1 + 10) — 29 panels to rewrite. They are ours to rewrite, the wide fixtures are shorter, and this is scheduled into phase 6 rather than weighed as a cost                                                                                                                                                                          |
-| **A string `mainstat`**                                                    | Minor        | Legal in the long form and used by X-Ray (`"Success 100.00%"`). Under the wide contract a mark's field is numeric; `config.mappings` covers the display-text case but not an arbitrary computed string                                                                                                                                                                                                                       |
-| **Parallel edges from an unmodified query**                                | Minor        | Two long rows over one pair are fine; the wide equivalent needs distinct ids and labels, which only `rowsToFields` can produce                                                                                                                                                                                                                                                                                               |
-| **The cheapest shape at very large scale**                                 | Minor        | 5 000 marks is 0.1 ms in long and ~19 ms in edge-per-field wide. Only matters where nothing is configured per mark — see [Performance](../data-plane/graph-wide.md#performance-which-frame-shape-is-cheapest)                                                                                                                                                                                                                |
-| **Edges-only responses that derive their node set**                        | None         | Unaffected — a wide edges frame derives nodes from labels or name splits exactly as the long form derives them from `source`/`target`                                                                                                                                                                                                                                                                                        |
-| **Suggestions**                                                            | None today   | Never suggested in either form. But note that `hasPreferredVisualisationType('nodeGraph')` — which all three natively-long datasources set — is the **only** summary signal that identifies graph data without walking frames; dropping the long reader throws away the one suggestion hook that works. See [Frame meta](../data-plane/graph-wide.md#frame-meta)                                                             |
+| Lost                                                                       | Severity     | Detail                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tempo, AWS X-Ray and TestData `node_graph` stop working out of the box** | **Severe**   | All three emit long natively and will for years. Each panel would need two user-added transformations, and — measured on `response_small`, a saved X-Ray map — zero-config `rowsToFields` names the node fields `0`…`16` and picks the wrong edge stat, so it needs four explicit mappings to be useful. See [relations-data-sources.md](../docs/relations-data-sources.md#sql-and-csv--rows-to-fields) |
+| **Every provisioned relations fixture breaks**                             | **Accepted** | `chord.json` (7 CSV + 1 `node_graph`), `sankey.json` (8 + 2), `node-graph-testdata.json` (1 + 10) — 29 panels to rewrite. They are ours to rewrite, the wide fixtures are shorter, and this is scheduled into phase 6 rather than weighed as a cost                                                                                                                                                     |
+| **A string `mainstat`**                                                    | Minor        | Legal in the long form and used by X-Ray (`"Success 100.00%"`). Under the wide contract a mark's field is numeric; `config.mappings` covers the display-text case but not an arbitrary computed string                                                                                                                                                                                                  |
+| **Parallel edges from an unmodified query**                                | Minor        | Two long rows over one pair are fine; the wide equivalent needs distinct ids and labels, which only `rowsToFields` can produce                                                                                                                                                                                                                                                                          |
+| **The cheapest shape at very large scale**                                 | Minor        | 5 000 marks is 0.1 ms in long and ~19 ms in edge-per-field wide. Only matters where nothing is configured per mark — see [Performance](../todo/graph-wide-history.md#performance-which-frame-shape-is-cheapest)                                                                                                                                                                                         |
+| **Edges-only responses that derive their node set**                        | None         | Unaffected — a wide edges frame derives nodes from labels or name splits exactly as the long form derives them from `source`/`target`                                                                                                                                                                                                                                                                   |
+| **Suggestions**                                                            | None today   | Never suggested in either form. But note that `hasPreferredVisualisationType('nodeGraph')` — which all three natively-long datasources set — is the **only** summary signal that identifies graph data without walking frames; dropping the long reader throws away the one suggestion hook that works. See [Frame meta](../data-plane/graph-wide.md#frame-meta)                                        |
 
 ### What parity would be lost or made complex
 
@@ -925,7 +988,7 @@ how the cycle policy was demonstrated at all.
 | **The comparison is no longer of _panels_ but of _pipelines_**                | A reviewer looking at a difference cannot tell whether the panel or the reshaping caused it. That is a real loss of diagnostic value, not a cosmetic one                                                                             |
 | **`arc__*`, `icon`, `detail__*`, `isinstrumented` parity becomes untestable** | These are the four long-form fields this plugin already drops or approximates. Today the parity claim is checkable against core on one query; wide-only makes it a claim about a transformed frame                                   |
 | **Core interop becomes strictly one-directional**                             | A user cannot point core's Node graph at a wide frame at all, so a dashboard mixing the two panels needs both formats queried. The reverse transformation (wide → long) is the core change named in the contract's out-of-scope list |
-| **Documentation debt doubles rather than halves**                             | `data-plane/node-graph.md` must stay — it documents a published core format — but it would no longer describe anything this plugin reads, so the folder carries a spec with no consumer                                              |
+| **Documentation debt doubles rather than halves**                             | `data-plane/graph-long.md` must stay — it documents a published core format — but it would no longer describe anything this plugin reads, so the folder carries a spec with no consumer                                              |
 
 ### The narrow case for dropping it anyway
 
@@ -1018,11 +1081,11 @@ transforms.
 ## References
 
 - The contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
-- The legacy format, still supported: [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- The row format, still supported: [../data-plane/graph-long.md](../data-plane/graph-long.md)
 - Proof dashboard: `provisioning/dashboards/relations/graph-wide.json`
 - Sourcing: [../docs/relations-data-sources.md](../docs/relations-data-sources.md)
-- The question this answers: [relations-item-overrides.md](./relations-item-overrides.md)
-- Still open for hierarchy: [relations-color-schemes.md](./relations-color-schemes.md)
+- The question this answers, now resolved: [../src/modules/relations/parity.md](../src/modules/relations/parity.md), "Notes / gaps"
+- Still open for hierarchy: [hierarchy-color-schemes.md](./hierarchy-color-schemes.md)
 - Gap 4 remains: [relations-data-links.md](./relations-data-links.md)
 - Editor parity: [../src/modules/relations/parity.md](../src/modules/relations/parity.md)
 - The core proposal this reframes:

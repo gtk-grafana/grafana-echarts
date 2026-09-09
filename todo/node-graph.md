@@ -8,14 +8,14 @@
 > This doc is kept as the design record: the proposal, what was verified, and the
 > ECharts traps found along the way. For what shipped, see
 > [../src/modules/relations/parity.md](../src/modules/relations/parity.md) (options and
-> divergences) and [../data-plane/node-graph.md](../data-plane/node-graph.md) (frame
+> divergences) and [../data-plane/graph-long.md](../data-plane/graph-long.md) (frame
 > spec and read path). The sections below are marked where reality diverged from the
 > proposal.
 
 ## Problem
 
 Grafana emits **node graph** data (a nodes + edges frame pair, see
-[../data-plane/node-graph.md](../data-plane/node-graph.md)) from tracing/service-map
+[../data-plane/graph-long.md](../data-plane/graph-long.md)) from tracing/service-map
 sources (Tempo, AWS X-Ray, ...). _At the time of writing_ the plugin had no converter,
 chart module, or registered ECharts series for it: `graph`, `sankey` and `chord`
 already existed in the `SeriesType` union (`src/editor/types.ts`) but were
@@ -97,7 +97,7 @@ cycle!')`. That throw is **not** behind a `__DEV__` guard, so a production build
   >
   > Implemented exactly so, with the removed-link count surfaced as a panel note.
   > Two further ECharts divergences surfaced while building it, both documented in
-  > [../data-plane/node-graph.md](../data-plane/node-graph.md#pitfalls-for-a-converter):
+  > [../data-plane/echarts-coverage.md](../data-plane/echarts-coverage.md#sankey-is-dag-only):
   > a declared node `value` acts as a layout _floor_, and a sankey labels from the
   > node key rather than its name.
 
@@ -179,7 +179,10 @@ and with Grafana's legacy "Graph" panel name.
   → chart-agnostic `{ nodes, links }` model, plus `isNodeGraphFrames(frames)` and a
   `getNodeGraphValueField(frames)` for color/format resolution (mirroring
   `getHierarchyValueField`). Keep it Grafana-isolated (no ECharts imports), like
-  `binnedHeatmap.ts`.
+  `binnedHeatmap.ts`. **Since replaced** by `converters/graphWide.ts` (the reader) and
+  `converters/legacyToWide.ts` (the row-to-wide adapter) in the later `graph-*-wide`
+  migration — see [graph-wide-migration.md](./graph-wide-migration.md); `nodeGraph.ts`
+  itself no longer exists.
 - Cycle policy `src/lib/echarts/converters/dag.ts`, used only by the sankey path —
   kept separate because it is graph theory, not frame reading.
 - Options `src/lib/echarts/options/{graph,sankey,chord}.ts`: map the shared model →
@@ -207,7 +210,7 @@ and with Grafana's legacy "Graph" panel name.
 - **Frame roles.** Grafana decides nodes-vs-edges with a single test — a frame with a
   `source` field is the edges frame, anything else is nodes — and matches field names
   lowercased. The converter should mirror it. See
-  [../data-plane/node-graph.md](../data-plane/node-graph.md#frame-roles).
+  [../data-plane/graph-long.md](../data-plane/graph-long.md#frame-role-resolution).
 - **Detection must be field-shape-first.** Of Grafana's three detection signals, the
   two metadata ones (`preferredVisualisationType`, frame named `nodes`/`edges`) are
   unavailable on the paths that matter: provisioned `csv_content` fixtures cannot set

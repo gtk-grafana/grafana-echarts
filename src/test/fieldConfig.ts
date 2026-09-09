@@ -68,6 +68,11 @@ const customItem = (path: string, name: string): FieldConfigPropertyItem => ({
  */
 export const testFieldConfigRegistry = new FieldConfigOptionsRegistry(() => [
   item('color', 'Color scheme'),
+  // The relations family reads this back as a mark's rendered name (`readNodes`), which is
+  // the only way to prove an override reached a node that no frame declared. Safe to add
+  // for the reason the note above gives: no fixture sets `defaults.displayName`, so
+  // registering it changes nothing any other family renders.
+  item('displayName', 'Display name'),
   customItem('hideFrom', 'Hide in area'),
   customItem('nodeRadius', 'Node radius'),
   customItem('subtitle', 'Subtitle'),

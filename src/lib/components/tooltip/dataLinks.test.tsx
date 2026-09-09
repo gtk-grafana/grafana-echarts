@@ -282,9 +282,16 @@ describe('pinned tooltip data links', () => {
     };
 
     // Circular layout so node positions are deterministic (the force simulation is
-    // not), and a wide symbol so the pointer lands inside it.
+    // not), and a wide symbol so the pointer lands inside it. Animation off because
+    // the family defaults it *on* and `waitForFinished` would then wait out the whole
+    // load animation before the first hover — see `RELATIONS_ANIMATION_ENABLED_DEFAULT`.
+    const staticOptions = { animation: { enabled: false } };
     const renderGraph = () =>
-      renderPanel(graphFrames(), 'graph', 'relations', { relationsLayout: 'circular', relationsNodeSize: 30 });
+      renderPanel(graphFrames(), 'graph', 'relations', {
+        ...staticOptions,
+        relationsLayout: 'circular',
+        relationsNodeSize: 30,
+      });
 
     it('resolves a node back to its own field, and leaves the other nodes linkless', async () => {
       const chart = await renderGraph();
@@ -315,7 +322,7 @@ describe('pinned tooltip data links', () => {
       // Sankey lays the identical model out as ribbons and drops the `graph`-only
       // layout option, so this is the cheapest check that the wiring is per-family
       // rather than per-variant.
-      const chart = await renderPanel(graphFrames(), 'sankey', 'relations');
+      const chart = await renderPanel(graphFrames(), 'sankey', 'relations', staticOptions);
 
       await pinMark(chart, 'node', 0);
 

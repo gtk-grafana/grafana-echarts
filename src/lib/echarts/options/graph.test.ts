@@ -1,5 +1,5 @@
-import { createTheme, type Field, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
-import { type CallbackDataParams } from 'echarts/types/dist/shared';
+import { type Field, FieldType, toDataFrame } from '@grafana/data';
+import { type CallbackDataParams, type LabelLayoutOptionCallbackParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import {
@@ -10,36 +10,36 @@ import {
   getGraphLayout,
   getGraphLinkStyle,
   getGraphSeries,
+  getRelationsEdgeLabel,
+  getRelationsLabelLayout,
+  getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
+  getRelationsViewState,
   RELATIONS_NODE_SIZE_DEFAULT,
+  resolveFixedPositions,
+  resolveGraphDraggable,
+  resolveRelationsRoam,
+  resolveRelationsZoom,
   type RelationsSeriesContext,
 } from 'lib/echarts/options/graph';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
+import { nodeGraph, relationsContext, relationsOptions, relationsTheme } from 'test/relations';
 import { type TooltipSource } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
-const theme = createTheme();
-const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
+const theme = relationsTheme;
 
-const baseOptions = (extra: Partial<PanelOptions> = {}): PanelOptions =>
-  ({
-    legend: { showLegend: true, displayMode: 'list', placement: 'bottom', calcs: [] },
-    tooltip: { mode: 'single' },
-    ...extra,
-  }) as PanelOptions;
+/**
+ * Label-layout callback params. Only `dataType` is read, so the rest is left off
+ * rather than filled with values no assertion depends on.
+ */
+const labelParams = (dataType: 'node' | 'edge'): LabelLayoutOptionCallbackParams =>
+  ({ dataType, dataIndex: 0, seriesIndex: 0 }) as LabelLayoutOptionCallbackParams;
+
+const baseOptions = relationsOptions;
 
 const ctx = (options: PanelOptions = baseOptions()): RelationsChartContext =>
-  ({
-    frames: [],
-    theme,
-    timeZone: 'utc',
-    timeRange: {} as RelationsChartContext['timeRange'],
-    options,
-    seriesType: 'graph',
-    formatValue: (value: unknown) => ({ text: String(value) }),
-    fieldConfig: emptyFieldConfig,
-    replaceVariables: (value: string) => value,
-  }) as unknown as RelationsChartContext;
+  relationsContext({ options, seriesType: 'graph' });
 
 /**
  * Nodes reach this layer already coloured — the reader resolves every mark's colour
@@ -48,14 +48,14 @@ const ctx = (options: PanelOptions = baseOptions()): RelationsChartContext =>
  * panel can produce. Colour *resolution* is tested there; this file only checks that
  * the resolved colour is painted.
  */
-const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData => ({
-  nodes: [
-    { id: 'a', name: 'A', value: 1, color: getPaletteColorByIndex(0, theme) },
-    { id: 'b', name: 'B', value: 2, color: getPaletteColorByIndex(1, theme) },
-  ],
-  links: [{ id: 'e1', source: 'a', target: 'b', value: 5 }],
-  ...extra,
-});
+const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
+  nodeGraph({
+    nodes: [
+      { id: 'a', name: 'A', value: 1, color: getPaletteColorByIndex(0, theme) },
+      { id: 'b', name: 'B', value: 2, color: getPaletteColorByIndex(1, theme) },
+    ],
+    ...extra,
+  });
 
 describe('getGraphLayout', () => {
   it('defaults to force', () => {
@@ -93,47 +93,277 @@ describe('getGraphLayout', () => {
   });
 });
 
-describe('getGraphForce', () => {
-  it('is undefined when nothing is overridden, so the key is omitted', () => {
-    expect(getGraphForce(baseOptions())).toBeUndefined();
+describe('resolveFixedPositions', () => {
+  // The whole point: a node with no `x` lays out at `[NaN, NaN]` and is not drawn, so
+  // "Fixed" on data that pins nothing used to blank the panel.
+  it('gives every node a finite position when nothing is pinned', () => {
+    const positions = resolveFixedPositions(data().nodes);
+
+    expect(positions.size).toBe(2);
+    for (const { x, y } of positions.values()) {
+      expect(Number.isFinite(x)).toBe(true);
+      expect(Number.isFinite(y)).toBe(true);
+    }
   });
 
-  it('includes only the overridden knobs', () => {
-    expect(getGraphForce(baseOptions({ relationsRepulsion: 200 }))).toEqual({ repulsion: 200 });
+  // Deterministic, so a refresh does not reshuffle the graph — the same reason the force
+  // simulation is seeded (`RELATIONS_FORCE_INIT_LAYOUT`).
+  it('seeds the same positions for the same nodes', () => {
+    expect([...resolveFixedPositions(data().nodes)]).toEqual([...resolveFixedPositions(data().nodes)]);
+  });
+
+  it('leaves a pinned node exactly where it is pinned', () => {
+    const pinned = data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, fixedX: 5, fixedY: 6 },
+        { id: 'b', name: 'B', value: 2, fixedX: 7, fixedY: 8 },
+      ],
+    });
+
+    expect([...resolveFixedPositions(pinned.nodes)]).toEqual([
+      ['a', { x: 5, y: 6 }],
+      ['b', { x: 7, y: 8 }],
+    ]);
+  });
+
+  // Partially-pinned data: the pinned marks keep their exact coordinates and the rest go
+  // on a ring outside their bounding box, so they read as "not placed yet" rather than
+  // landing on top of the pinned cluster.
+  it('seeds the unpinned nodes clear of the pinned ones', () => {
+    const partial = data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, fixedX: 0, fixedY: 0 },
+        { id: 'b', name: 'B', value: 2, fixedX: 10, fixedY: 0 },
+        { id: 'c', name: 'C', value: 3 },
+      ],
+    });
+    const positions = resolveFixedPositions(partial.nodes);
+
+    expect(positions.get('a')).toEqual({ x: 0, y: 0 });
+    expect(positions.get('b')).toEqual({ x: 10, y: 0 });
+
+    /**
+     * The property, not the number. "Outside the pinned box" is what the seeding is
+     * for; the exact ring radius is an implementation choice that a reader has no way
+     * to check and that would fail this test on any harmless tuning. Asserted as
+     * "further from the centre of the pinned box than the box's own half-extent", which
+     * is the claim the comment used to make and the constant only implied.
+     */
+    const pinnedCentre = { x: 5, y: 0 };
+    const pinnedHalfExtent = 5;
+    const seeded = positions.get('c')!;
+
+    expect(Math.hypot(seeded.x - pinnedCentre.x, seeded.y - pinnedCentre.y)).toBeGreaterThan(pinnedHalfExtent);
+  });
+
+  /**
+   * **The reported "edges are not attached to any nodes".** The seed ring was a *unit* circle
+   * on the reasoning that the view rescales the bounding box anyway, so only the shape
+   * survives — true for the nodes, and false for the edges between them.
+   *
+   * A graph edge is drawn by an `ECLinePath` with `subPixelOptimize: true`, and zrender's
+   * `subPixelOptimizeLine` shifts an axis-aligned line by half a *unit* to land a 1px stroke
+   * on a pixel centre. Those units are the graph's data space, so on a unit ring the shift was
+   * half the graph: the two edges of a four-node ring that happen to share an x or a y were
+   * drawn ~159px away from their nodes. A pixel-ish space makes it sub-pixel again.
+   *
+   * Asserted as an order of magnitude rather than an exact radius: the number is arbitrary,
+   * the scale is not.
+   */
+  it('seeds in a pixel-ish space, so an axis-aligned edge is not nudged off its nodes', () => {
+    const positions = [...resolveFixedPositions(data().nodes).values()];
+
+    for (const { x, y } of positions) {
+      expect(Math.max(Math.abs(x), Math.abs(y))).toBeGreaterThan(50);
+    }
+  });
+});
+
+describe('resolveGraphDraggable', () => {
+  // Fixed is the only layout that reads a stored coordinate back, so it is the only one where
+  // a drag is an edit rather than a nudge the next render discards.
+  it('allows dragging under the fixed layout', () => {
+    expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'none')).toBe(true);
+  });
+
+  /**
+   * Refused as well as hidden, so a dashboard that saved `relationsDraggable: true` alongside
+   * a force layout gets a working panel rather than an interaction that rearranges the graph
+   * on every mouse move — `layoutAnimation` is off, so ECharts iterates the simulation to
+   * convergence inside the `drag` handler.
+   */
+  it('refuses it under force and circular, whatever the option says', () => {
+    expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'force')).toBe(false);
+    expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'circular')).toBe(false);
+  });
+
+  it('is off unless asked for', () => {
+    expect(resolveGraphDraggable(baseOptions(), 'none')).toBe(false);
+  });
+});
+
+describe('getGraphForce', () => {
+  // Always emitted, because three of the four keys disagree with ECharts on purpose:
+  // the simulation is seeded so a render is reproducible, its steps are not drawn so a
+  // refresh does not jiggle, and it is spread far wider so the labels have room.
+  it('always emits the seeded, non-animated, spread-out defaults', () => {
+    expect(getGraphForce(baseOptions())).toEqual({
+      initLayout: 'circular',
+      repulsion: 400,
+      edgeLength: 200,
+      layoutAnimation: false,
+    });
+  });
+
+  it('lets each knob be overridden, and adds gravity only when set', () => {
+    expect(getGraphForce(baseOptions({ relationsRepulsion: 200 }))).toMatchObject({ repulsion: 200 });
+    expect(getGraphForce(baseOptions())).not.toHaveProperty('gravity');
     expect(
-      getGraphForce(baseOptions({ relationsRepulsion: 200, relationsGravity: 0.2, relationsEdgeLength: 40 }))
-    ).toEqual({ repulsion: 200, gravity: 0.2, edgeLength: 40 });
+      getGraphForce(
+        baseOptions({
+          relationsRepulsion: 200,
+          relationsGravity: 0.2,
+          relationsEdgeLength: 40,
+          relationsLayoutAnimation: true,
+        })
+      )
+    ).toEqual({ initLayout: 'circular', repulsion: 200, gravity: 0.2, edgeLength: 40, layoutAnimation: true });
+  });
+});
+
+describe('resolveRelationsRoam / resolveRelationsZoom', () => {
+  it('keeps both off by default', () => {
+    expect(resolveRelationsRoam(baseOptions())).toBe(false);
+    expect(resolveRelationsZoom(baseOptions())).toBe(false);
+  });
+
+  // Pan is the only thing routed through `roam`: zoom is the panel's buttons, so the
+  // scroll wheel is never bound and the dashboard can still be scrolled past.
+  it('maps pan alone to move, and zoom alone to no roam at all', () => {
+    expect(resolveRelationsRoam(baseOptions({ relationsPan: true }))).toBe('move');
+    expect(resolveRelationsRoam(baseOptions({ relationsZoom: true }))).toBe(false);
+    expect(resolveRelationsZoom(baseOptions({ relationsZoom: true }))).toBe(true);
+  });
+
+  /**
+   * A dashboard saved with the superseded single "Zoom and pan" switch keeps both
+   * behaviours. This is the only test of the fallback: `charts/relations.test.ts`
+   * asserted the same thing through `getZoomAction`, which reaches
+   * `resolveRelationsZoom` and so restated this one indirectly. The option-level answer
+   * belongs here; the action-level one is the same fact read through a second layer.
+   * `relationsRoam` is also the one entry on the Advanced-tier allow-list, because the
+   * control it names no longer exists — see `editor/relations/advancedTier.test.ts`.
+   */
+  it('falls back to the superseded relationsRoam switch', () => {
+    expect(resolveRelationsRoam(baseOptions({ relationsRoam: true }))).toBe('move');
+    expect(resolveRelationsZoom(baseOptions({ relationsRoam: true }))).toBe(true);
+    // An explicit new value wins over it, in both directions.
+    expect(resolveRelationsZoom(baseOptions({ relationsRoam: true, relationsZoom: false }))).toBe(false);
+    expect(resolveRelationsRoam(baseOptions({ relationsRoam: true, relationsPan: false }))).toBe(false);
   });
 });
 
 describe('getGraphEdgeSymbol / getGraphEmphasis', () => {
-  it('omit their keys at the default (off)', () => {
-    expect(getGraphEdgeSymbol(baseOptions())).toBeUndefined();
-    expect(getGraphEmphasis(baseOptions())).toBeUndefined();
+  // Both flipped on: an edge is directed by contract and the arrowhead is the only
+  // thing that says so under a force layout, and adjacency is what a topology is
+  // hovered for.
+  it('emit an arrow and adjacency focus at their defaults', () => {
+    expect(getGraphEdgeSymbol(baseOptions())).toEqual(['none', 'arrow']);
+    expect(getGraphEmphasis(baseOptions())).toEqual({ focus: 'adjacency' });
   });
 
-  it('emit an arrow at the target end when enabled', () => {
-    expect(getGraphEdgeSymbol(baseOptions({ relationsEdgeArrows: true }))).toEqual(['none', 'arrow']);
+  it('omit their keys when switched off', () => {
+    expect(getGraphEdgeSymbol(baseOptions({ relationsEdgeArrows: false }))).toBeUndefined();
+    expect(getGraphEmphasis(baseOptions({ relationsFocusAdjacency: false }))).toBeUndefined();
+  });
+});
+
+describe('getRelationsViewState', () => {
+  // `zoom`/`center` are where ECharts keeps a `View`'s roam state, and the roam action
+  // syncs them back onto the series model — so emitting them *is* restoring the view.
+  it('restores the saved view when Remember view is on', () => {
+    const saved = baseOptions({ relationsRememberView: true, relationsViewZoom: 2, relationsViewCenter: [10, 20] });
+
+    expect(getRelationsViewState(saved)).toEqual({ zoom: 2, center: [10, 20] });
+    expect(getGraphSeries(data(), ctx(saved))).toMatchObject({ zoom: 2, center: [10, 20] });
   });
 
-  it('focus adjacency when enabled', () => {
-    expect(getGraphEmphasis(baseOptions({ relationsFocusAdjacency: true }))).toEqual({ focus: 'adjacency' });
+  // The switch gates the *read* as well as the write, so turning it off restores the
+  // default view rather than leaving the panel stuck at a pan nobody can see a control
+  // for. `ADVANCED_RELATIONS_DEFAULTS` clears the switch in Default editor mode, which
+  // is what makes that reachable.
+  it('emits nothing when the switch is off, whatever was stored', () => {
+    const stored = baseOptions({ relationsViewZoom: 2, relationsViewCenter: [10, 20] });
+
+    expect(getRelationsViewState(stored)).toEqual({});
+    expect(getGraphSeries(data(), ctx(stored))).not.toHaveProperty('zoom');
+  });
+
+  it('emits only what has been stored so far', () => {
+    expect(getRelationsViewState(baseOptions({ relationsRememberView: true }))).toEqual({});
+  });
+});
+
+describe('getRelationsLabelLayout', () => {
+  it('hides overlapping node labels by default', () => {
+    expect(getRelationsLabelLayout(baseOptions())?.(labelParams('node'))).toEqual({ hideOverlap: true });
+  });
+
+  // The reason the callback form is used at all. An edge label put through
+  // `hideOverlap` is measured before the link geometry has settled, so each render
+  // lets one more through and "Show edge values" draws more labels every refresh.
+  it('leaves edge labels out of the overlap pass', () => {
+    expect(getRelationsLabelLayout(baseOptions())?.(labelParams('edge'))).toEqual({});
+  });
+
+  // Omitted rather than emitted empty: `LabelManager` skips a series whose
+  // `labelLayout` has no keys, so the two are equivalent and omitting says it.
+  it('omits the key when switched off', () => {
+    expect(getRelationsLabelLayout(baseOptions({ relationsHideOverlappingLabels: false }))).toBeUndefined();
+  });
+});
+
+describe('getRelationsLabelStyle', () => {
+  it('truncates at the default label width', () => {
+    expect(getRelationsLabelStyle(ctx())).toMatchObject({ overflow: 'truncate', width: 120 });
+  });
+
+  it('writes no overflow keys at none, which is ECharts own default', () => {
+    const style = getRelationsLabelStyle(ctx(baseOptions({ relationsLabelOverflow: 'none' })));
+    expect(style).not.toHaveProperty('overflow');
+    expect(style).not.toHaveProperty('width');
+  });
+
+  it('honours an explicit overflow mode and width', () => {
+    const style = getRelationsLabelStyle(
+      ctx(baseOptions({ relationsLabelOverflow: 'break', relationsLabelWidth: 60 }))
+    );
+    expect(style).toMatchObject({ overflow: 'break', width: 60 });
+  });
+});
+
+describe('getRelationsEdgeLabel', () => {
+  it('is undefined by default, so the key is omitted', () => {
+    expect(getRelationsEdgeLabel(ctx())).toBeUndefined();
+  });
+
+  it('formats an edge weight through the panel formatter when the mark has no field', () => {
+    const edgeLabel = getRelationsEdgeLabel(ctx(baseOptions({ relationsShowEdgeValues: true })));
+
+    expect(edgeLabel).toMatchObject({ show: true });
+    expect(edgeLabel?.formatter({ data: { value: 12 } } as never)).toBe('12');
+    // A link with no weight draws nothing rather than an empty box.
+    expect(edgeLabel?.formatter({ data: {} } as never)).toBe('');
   });
 });
 
 describe('getGraphLinkStyle', () => {
-  // The family default is `gradient`, which ECharts' `graph` series cannot read —
-  // `edgeVisual.ts` swaps only `source`/`target` and would treat `gradient` as a literal
-  // colour. So the series keyword degrades to `source` and the blend, when the layout
-  // allows one, is emitted per link instead.
-  it('degrades the gradient default to source, which the graph series can read', () => {
-    const style = getGraphLinkStyle(baseOptions());
-    expect(style).toEqual({ color: 'source' });
-    expect(style).not.toHaveProperty('curveness');
-  });
-
-  it('passes through a mode the graph series implements', () => {
-    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'target' })).color).toBe('target');
+  // No colour at series level any more: the ECharts keywords do not work on a `graph`
+  // series (see `resolveLinkColor`), so every edge carries its own resolved colour and
+  // ECharts' neutral grey stays as the last resort.
+  it('emits no colour keyword at all', () => {
+    expect(getGraphLinkStyle(baseOptions())).toEqual({});
+    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'target' }))).toEqual({});
   });
 
   it('omits curveness at 0 but emits it above', () => {
@@ -226,8 +456,9 @@ describe('getRelationsNodeLabelFormatter', () => {
     const formatter = getRelationsNodeLabelFormatter(withMarks)!;
 
     expect(formatter(params('A', { id: 'a', name: 'A', value: 42 }))).toBe('A\n42 ms');
-    // A node with no field of its own (a derived node) prints a plain count — its
-    // value is a degree, so there is no unit to borrow. See `formatDerivedMarkValue`.
+    // A node with no field of its own has no unit to borrow, so it prints plainly rather
+    // than in the first edge's. A derived node reaches this only if it somehow carries a
+    // stat — it no longer does — which is why `formatDerivedMarkValue` is a safety net.
     expect(formatter(params('Z', { id: 'z', name: 'Z', value: 42 }))).toBe('Z\n42');
   });
 });
@@ -255,16 +486,68 @@ describe('getGraphSeries', () => {
     expect(series.data).toMatchObject([{ symbolSize: 8 }, { symbolSize: 8 }]);
   });
 
-  it('emits x/y only for pinned nodes', () => {
-    const pinned = data({
+  // Only the fixed layout reads `x`/`y`: `getGraphForce` pins `initLayout: 'circular'`,
+  // so `forceLayout` seeds from the ring and never consults them, and a circular layout
+  // computes its own. Emitting them anyway would only move the view's bounding box.
+  it('emits no x/y under a layout that does not read them', () => {
+    const partlyPinned = data({
       nodes: [
         { id: 'a', name: 'A', value: 1, fixedX: 5, fixedY: 6 },
         { id: 'b', name: 'B', value: 2 },
       ],
     });
-    const series = getGraphSeries(pinned, ctx());
-    expect(series.data![0]).toMatchObject({ x: 5, y: 6 });
+    const series = getGraphSeries(partlyPinned, ctx());
+
+    expect(series.layout).toBe('force');
+    expect(series.data![0]).not.toHaveProperty('x');
     expect(series.data![1]).not.toHaveProperty('x');
+  });
+
+  it('emits every pinned coordinate when all of them are pinned', () => {
+    const pinned = data({
+      nodes: [
+        { id: 'a', name: 'A', value: 1, fixedX: 5, fixedY: 6 },
+        { id: 'b', name: 'B', value: 2, fixedX: 7, fixedY: 8 },
+      ],
+    });
+    const series = getGraphSeries(pinned, ctx());
+
+    expect(series.layout).toBe('none');
+    expect(series.data).toMatchObject([
+      { x: 5, y: 6 },
+      { x: 7, y: 8 },
+    ]);
+  });
+
+  /**
+   * **The reported bug**: picking Fixed drew nothing. `simpleLayout` lays a node with no
+   * `x` out at `[NaN, NaN]`, and `fixedx`/`fixedy` are per-mark overrides that no fresh
+   * panel has written — so the layout the user selected blanked the panel and left
+   * nothing to drag or override from. See `resolveFixedPositions`.
+   */
+  it('seeds a position for every node when Fixed is selected with nothing pinned', () => {
+    const series = getGraphSeries(data(), ctx(baseOptions({ relationsLayout: 'none' })));
+
+    expect(series.layout).toBe('none');
+    for (const item of series.data ?? []) {
+      const node = item as { x?: number; y?: number };
+      expect(Number.isFinite(node.x)).toBe(true);
+      expect(Number.isFinite(node.y)).toBe(true);
+    }
+  });
+
+  it('lets nodes be dragged under the fixed layout when asked', () => {
+    const series = getGraphSeries(data(), ctx(baseOptions({ relationsLayout: 'none', relationsDraggable: true })));
+
+    expect(series.draggable).toBe(true);
+  });
+
+  // The switch is hidden for force and circular, and refused here too, so a dashboard that
+  // saved the pair keeps a working panel. See `resolveGraphDraggable`.
+  it('refuses dragging under force even when the option says otherwise', () => {
+    const series = getGraphSeries(data(), ctx(baseOptions({ relationsLayout: 'force', relationsDraggable: true })));
+
+    expect(series.draggable).toBe(false);
   });
 
   it('maps a per-edge color, width and line type onto the link item', () => {
@@ -285,8 +568,16 @@ describe('getGraphSeries', () => {
     expect(series.lineStyle).toMatchObject({ curveness: 0.1 });
   });
 
-  it('omits lineStyle entirely for an unstyled link', () => {
-    expect(getGraphSeries(data(), ctx()).links![0]).not.toHaveProperty('lineStyle');
+  // Every link carries a colour now, since ECharts cannot resolve the endpoint
+  // keywords itself on a `graph` series — see `resolveLinkColor`. `lineStyle` is
+  // therefore never absent; what an unstyled link omits is everything *else*.
+  it('gives an unstyled link a colour and nothing else', () => {
+    expect(getGraphSeries(data(), ctx()).links![0]).toMatchObject({
+      lineStyle: { color: getPaletteColorByIndex(0, theme) },
+    });
+    expect(Object.keys((getGraphSeries(data(), ctx()).links![0] as { lineStyle: object }).lineStyle)).toEqual([
+      'color',
+    ]);
   });
 
   it('keeps roam and draggable off by default', () => {
@@ -295,11 +586,25 @@ describe('getGraphSeries', () => {
     expect(series.draggable).toBe(false);
   });
 
-  it('omits force, edgeSymbol and emphasis at their defaults', () => {
+  // Pan binds drag, not the wheel; zoom never touches `roam` at all.
+  it('emits move roam when panning is on', () => {
+    expect(getGraphSeries(data(), ctx(baseOptions({ relationsPan: true }))).roam).toBe('move');
+    expect(getGraphSeries(data(), ctx(baseOptions({ relationsZoom: true }))).roam).toBe(false);
+  });
+
+  it('emits the force, arrow, adjacency and label-layout defaults', () => {
     const series = getGraphSeries(data(), ctx());
-    expect(series).not.toHaveProperty('force');
-    expect(series).not.toHaveProperty('edgeSymbol');
-    expect(series).not.toHaveProperty('emphasis');
+    expect(series.force).toMatchObject({ initLayout: 'circular', layoutAnimation: false });
+    expect(series.edgeSymbol).toEqual(['none', 'arrow']);
+    expect(series.emphasis).toEqual({ focus: 'adjacency' });
+    expect(typeof series.labelLayout).toBe('function');
+  });
+
+  it('omits edgeLabel unless edge values are switched on', () => {
+    expect(getGraphSeries(data(), ctx())).not.toHaveProperty('edgeLabel');
+    expect(getGraphSeries(data(), ctx(baseOptions({ relationsShowEdgeValues: true }))).edgeLabel).toMatchObject({
+      show: true,
+    });
   });
 
   // The whole of the family's colour path: the mark's own field already decided it,
@@ -331,17 +636,24 @@ describe('getGraphSeries', () => {
 });
 
 /**
- * ECharts' `graph` series implements `lineStyle.color: 'source' | 'target'` and nothing
- * else — `'gradient'` is sankey/chord-only — so the blend is built per link here.
+ * Edge colour on a `graph` series is resolved **here, per link** — none of the three
+ * modes can be handed to ECharts.
  *
- * It can only be built when the node positions are known, because zrender resolves a
- * non-global gradient against the shape's bounding box: `x: 0 -> x2: 1` runs left to
- * right across the edge, which is source-to-target only if the source sits on the left.
- * Under a force or circular layout the positions do not exist until ECharts has laid the
- * graph out, so orienting would be a coin flip and half the edges would report their
- * direction backwards.
+ * `'source'` / `'target'` are keywords `edgeVisual.ts` swaps for the endpoint node's
+ * fill, but it runs at `PRIORITY.VISUAL.CHART` (3000) and the task that applies each
+ * node's own `itemStyle.color` runs at `CHART_DATA_CUSTOM` (4500) — so the swap sees
+ * only the series-level fill and every edge comes out the same palette colour. (ECharts'
+ * own demos hide this by colouring nodes through `categories`, which *does* run first.)
+ * `'gradient'` it does not implement for `graph` at all.
+ *
+ * The blend can only be *oriented* when the node positions are known, because zrender
+ * resolves a non-global gradient against the shape's bounding box: `x: 0 -> x2: 1` runs
+ * left to right across the edge, which is source-to-target only if the source sits on
+ * the left. Under a force or circular layout the positions do not exist until ECharts
+ * has laid the graph out, so orienting would be a coin flip and half the edges would
+ * report their direction backwards — hence the degradation to the source colour.
  */
-describe('getGraphSeries — edge gradients', () => {
+describe('getGraphSeries — edge colours', () => {
   const pinned = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
     data({
       nodes: [
@@ -375,16 +687,16 @@ describe('getGraphSeries — edge gradients', () => {
     expect(gradientOf(getGraphSeries(reversed, ctx()))).toMatchObject({ x: 1, y: 1, x2: 0, y2: 0 });
   });
 
-  it('leaves the keyword to do the work when the layout has not pinned positions', () => {
-    // The default force layout: no positions, so no honest orientation exists.
-    expect(getGraphSeries(data(), ctx()).links![0]).not.toHaveProperty('lineStyle');
-    expect(getGraphLinkStyle(baseOptions()).color).toBe('source');
+  it('degrades to the source node colour when the layout has not pinned positions', () => {
+    // The default force layout: no positions, so no honest orientation exists. The
+    // colour is still endpoint-derived — a real hex, not the inert `'source'` keyword.
+    expect(gradientOf(getGraphSeries(data(), ctx()))).toBe(getPaletteColorByIndex(0, theme));
   });
 
   it('does not blend a self-loop, which has no direction to express', () => {
     const loop = pinned({ links: [{ id: 'e1', source: 'a', target: 'a', value: 5 }] });
 
-    expect(getGraphSeries(loop, ctx()).links![0]).not.toHaveProperty('lineStyle');
+    expect(gradientOf(getGraphSeries(loop, ctx()))).toBe(getPaletteColorByIndex(0, theme));
   });
 
   it('yields to an explicit per-edge colour', () => {
@@ -393,10 +705,15 @@ describe('getGraphSeries — edge gradients', () => {
     expect(gradientOf(getGraphSeries(overridden, ctx()))).toBe('cyan');
   });
 
-  it('emits no gradient when another colour mode is chosen', () => {
-    const series = getGraphSeries(pinned(), ctx(baseOptions({ relationsLinkColor: 'target' })));
+  // The reported bug: picking Source or Target changed nothing at all, because the
+  // keyword reached ECharts and resolved against a colour the nodes did not have yet.
+  it('resolves the source and target modes to the endpoint colours themselves', () => {
+    const source = getGraphSeries(pinned(), ctx(baseOptions({ relationsLinkColor: 'source' })));
+    const target = getGraphSeries(pinned(), ctx(baseOptions({ relationsLinkColor: 'target' })));
 
-    expect(series.links![0]).not.toHaveProperty('lineStyle');
-    expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'target' })).color).toBe('target');
+    expect(gradientOf(source)).toBe(getPaletteColorByIndex(0, theme));
+    expect(gradientOf(target)).toBe(getPaletteColorByIndex(1, theme));
+    // …and the two differ, which is the whole claim.
+    expect(gradientOf(source)).not.toBe(gradientOf(target));
   });
 });

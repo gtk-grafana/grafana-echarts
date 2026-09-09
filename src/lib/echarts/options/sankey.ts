@@ -12,10 +12,16 @@ import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient } from 'edito
 import { toSankeyLinks } from 'lib/echarts/converters/dag';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
+  getRelationsEdgeLabel,
+  getRelationsLabelLayout,
+  getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
+  getRelationsViewState,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
+  resolveRelationsFocusAdjacency,
+  resolveRelationsRoam,
 } from 'lib/echarts/options/graph';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
@@ -72,9 +78,28 @@ export function getSankeyNodeAlign(options: PanelOptions): RelationsSankeyNodeAl
 }
 
 /**
- * Node label config. On by default. ECharts places a sankey label `right` of the
- * node (unlike the graph variant's `bottom`), which is left alone — only the theme
- * font and color are applied, so labels match the rest of the panel.
+ * Where a sankey node label sits, which **depends on the flow direction** even though
+ * ECharts uses one default (`'right'`) for both.
+ *
+ * `'right'` is correct horizontally: the columns are separated by the ribbon area, so
+ * a label to the right of a node bar has the ribbons behind it and nothing else.
+ * Vertically it is close to unusable, and for a geometric reason rather than a
+ * stylistic one — the node bars now run *along* the row, separated by `nodeGap` (8px
+ * by default), so a label placed to the right of one starts 5px away and is drawn
+ * straight over the **next node's fill**. That is the double failure: the text lands on
+ * a saturated node colour it was never contrast-checked against, and it collides with
+ * that node's own label. `'bottom'` puts it in the ribbon gap below the row instead,
+ * over the translucent ribbons, where `hideOverlap` can also arbitrate between
+ * neighbours.
+ * https://echarts.apache.org/en/option.html#series-sankey.label.position
+ */
+export function getSankeyLabelPosition(options: PanelOptions): 'right' | 'bottom' {
+  return (options.relationsSankeyOrient ?? SANKEY_ORIENT_DEFAULT) === 'vertical' ? 'bottom' : 'right';
+}
+
+/**
+ * Node label config. On by default. Position follows the flow direction — see
+ * `getSankeyLabelPosition`.
  *
  * **`formatter` is a correction, not an option.** `SankeyView` labels a node with
  * `defaultText: node.id` — the *graph key*, i.e. whatever
@@ -93,12 +118,12 @@ export function getSankeyLabel(ctx: RelationsSeriesContext): SankeySeriesOption[
   }
   return {
     show: true,
+    position: getSankeyLabelPosition(ctx.options),
     // With "Show node values" on, the shared formatter emits the name *and* the
     // stat, so it replaces the `'{b}'` correction (it reads `params.name`, which
     // is the same value `'{b}'` resolves to).
     formatter: getRelationsNodeLabelFormatter(ctx) ?? '{b}',
-    color: ctx.theme.colors.text.primary,
-    fontFamily: ctx.theme.typography.fontFamily,
+    ...getRelationsLabelStyle(ctx),
   };
 }
 
@@ -129,12 +154,13 @@ export function getSankeyLinkStyle(options: PanelOptions): NonNullable<SankeySer
 
 /**
  * Hover emphasis. `'adjacency'` fades everything but the hovered node and the
- * ribbons touching it — the same option the graph variant exposes. Off by default,
- * so the key is omitted.
+ * ribbons touching it — the same option the graph variant exposes, and on by default
+ * for the same reason. The key is omitted when switched off, which is ECharts' own
+ * sankey behaviour.
  * https://echarts.apache.org/en/option.html#series-sankey.emphasis
  */
 export function getSankeyEmphasis(options: PanelOptions): SankeySeriesOption['emphasis'] | undefined {
-  return options.relationsFocusAdjacency === true ? { focus: 'adjacency' } : undefined;
+  return resolveRelationsFocusAdjacency(options) ? { focus: 'adjacency' } : undefined;
 }
 
 /**
@@ -166,11 +192,32 @@ function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
     }
-    if (node.secondary != null) {
-      item.secondary = node.secondary;
+    if (node.secondaries != null) {
+      item.secondaries = node.secondaries;
+    }
+    // A dragged sankey node is remembered in the same `custom.fixedX`/`fixedY` pair
+    // the graph variant uses, but a sankey reads its own **fraction** of the layout
+    // rect (`localX`/`localY`, 0-1) rather than a coordinate — so the pair means
+    // something different here and is only honoured when both are present and in
+    // range. See `RelationNode.fixedX` and `useRelationsPersistence`.
+    if (isLocalFraction(node.fixedX) && isLocalFraction(node.fixedY)) {
+      item.localX = node.fixedX;
+      item.localY = node.fixedY;
     }
     return item;
   });
+}
+
+/**
+ * Whether a stored coordinate is usable as a sankey `localX`/`localY`.
+ *
+ * The range check is what keeps the shared field pair honest: a dashboard that pinned
+ * a *graph* at `fixedX: 340` and switched the variant to sankey would otherwise place
+ * that node 340 layout-widths off screen. Out of range means "not a sankey position",
+ * and the node falls back to the computed column.
+ */
+function isLocalFraction(value: number | undefined): value is number {
+  return value != null && value >= 0 && value <= 1;
 }
 
 /**
@@ -185,10 +232,14 @@ function toSankeyNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
  */
 function toSankeyLinkItems(links: RelationLink[]): RelationsLinkItem[] {
   return links.map((link) => {
-    // `markId` carries the edge's field name for the tooltip; see `toLinkItems`.
-    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.id };
+    // `markId` carries the edge's field name for the tooltip, or its `markKey` when
+    // several marks share that name; see `toLinkItems`.
+    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.markKey ?? link.id };
     if (link.value != null) {
       item.value = link.value;
+    }
+    if (link.secondaries != null) {
+      item.secondaries = link.secondaries;
     }
     if (link.color != null) {
       item.lineStyle = { color: link.color };
@@ -236,6 +287,8 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
   const orient = getSankeyOrient(ctx.options);
   const nodeAlign = getSankeyNodeAlign(ctx.options);
   const emphasis = getSankeyEmphasis(ctx.options);
+  const edgeLabel = getRelationsEdgeLabel(ctx);
+  const labelLayout = getRelationsLabelLayout(ctx.options);
   const { relationsSankeyNodeWidth, relationsSankeyNodeGap, relationsSankeyLayoutIterations } = ctx.options;
 
   const series: SankeySeriesOption = {
@@ -252,18 +305,22 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
       ? { layoutIterations: relationsSankeyLayoutIterations }
       : {}),
     ...(emphasis ? { emphasis } : {}),
+    ...(edgeLabel ? { edgeLabel } : {}),
+    ...(labelLayout ? { labelLayout } : {}),
     // Both are pinned rather than omitted. ECharts' sankey defaults are
     // `draggable: true` and `roam: false`; the graph variant is static on both
     // counts, so emitting them keeps the two variants behaving alike instead of
     // letting a sankey be dragged apart by default.
     draggable: ctx.options.relationsDraggable === true,
-    roam: ctx.options.relationsRoam === true,
+    roam: resolveRelationsRoam(ctx.options),
+    // The remembered pan/zoom, when the user asked for one to be remembered.
+    ...getRelationsViewState(ctx.options),
     label: getSankeyLabel(ctx),
     lineStyle: getSankeyLinkStyle(ctx.options),
     zlevel: ctx.options.zLevel?.series,
     data: toSankeyNodeItems(data.nodes),
     links: toSankeyLinkItems(links),
-    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks), ctx.tooltipSink),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options), ctx.tooltipSink),
   };
 
   return { series, droppedCount };

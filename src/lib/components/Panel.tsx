@@ -12,6 +12,7 @@ import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useMemo, useRef } from 'react';
 import { type PanelOptions } from 'types';
 import { ChartNotices } from './ChartNotices';
+import { ChartZoomControls } from './ChartZoomControls';
 import { EChart } from './EChart';
 import { useLegend } from './hooks/useLegend';
 import { useLegendHighlight } from './hooks/useLegendHighlight';
@@ -34,6 +35,7 @@ export const Panel: React.FC<Props> = ({
   timeRange,
   onChangeTimeRange,
   onFieldConfigChange,
+  onOptionsChange,
   replaceVariables,
 }) => {
   debug('panelData series', LOG_LEVELS.debug, data.series);
@@ -78,6 +80,11 @@ export const Panel: React.FC<Props> = ({
   // (e.g. the sankey cycle policy). Most families supply none.
   const notices = useMemo(() => chartModule.getNotices?.(chartContext) ?? [], [chartModule, chartContext]);
 
+  // The roam action the corner zoom buttons dispatch, or `undefined` for a family or a
+  // render with no zoomable view. Only relations supplies one — see `ChartZoomControls`
+  // for why zoom is buttons rather than the scroll wheel.
+  const zoomAction = useMemo(() => chartModule.getZoomAction?.(chartContext), [chartModule, chartContext]);
+
   // The legend is `VizLayout`'s sibling, not `EChart`'s child, so its hover
   // emphasis reaches the chart through this ref rather than through the chart
   // instance state `EChart` keeps for its own hooks.
@@ -109,11 +116,14 @@ export const Panel: React.FC<Props> = ({
             chartModule={chartModule}
             isGrafanaLegend={isVizLegend}
             onChangeTimeRange={onChangeTimeRange}
+            onFieldConfigChange={onFieldConfigChange}
+            onOptionsChange={onOptionsChange}
             width={vizWidth}
             height={vizHeight}
             instanceRef={chartInstanceRef}
           />
           <ChartNotices notices={notices} />
+          <ChartZoomControls action={zoomAction} chartRef={chartInstanceRef} width={vizWidth} height={vizHeight} />
         </div>
       )}
     </VizLayout>

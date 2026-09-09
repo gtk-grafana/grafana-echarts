@@ -1,0 +1,173 @@
+{
+  "annotations": { "list": [] },
+  "description": "Derived nodes on live data: Tempo's service graph is edges-only, so every node in these panels is one the response never declared. converters/deriveNodes.ts declares them as fields above the panel so field overrides can reach them — which requires the panel-registered transformations API (grafana/grafana#129992). This stack's Grafana does NOT have it yet, so this dashboard is the before half of the before/after: the graphs draw correctly, and every per-node override is inert except hiding, which the panel still re-reads by name. Kept live so it flips on its own the day the API lands. The TestData version of the same proof is ECharts Relations — derived nodes, mounted into this stack from the repo's own provisioning.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "lgtm", "prometheus", "live-data", "derived-nodes"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — derived nodes on live service-graph data (LGTM)",
+  "uid": "echarts-lgtm-relations-derived-nodes",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 0 },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "# Derived nodes, on data nobody shaped for the panel\n\n`traces_service_graph_request_total{client, server}` describes **edges**. It says `user` called `grafana`, and `prometheus` scraped itself; it never says what a `grafana` *is*. Neither does any other service-graph metric, in this stack or in Grafana Cloud — the node set is whatever the endpoints add up to.\n\nThe panel has always drawn those nodes. What it could not do is let you **configure** one, because a node invented inside the panel arrives after `applyFieldOverrides` has run, and a mark with no field is a mark Grafana's config pipeline cannot address: no colour, no radius, no subtitle, no data link, no hide. `converters/deriveNodes.ts` fixes that by declaring each implied endpoint as an ordinary field of a `graph-nodes-wide` frame, in the pipeline prefix the plugin registers on itself — **above** the panel, before the override pass.\n\n## This dashboard is currently the *before* picture\n\nThe prefix runs through `PanelPlugin.setDataTransformations` ([grafana/grafana#129992](https://github.com/grafana/grafana/pull/129992)), gated behind `grafana.panelPluginTransformations`. Neither exists in this stack's Grafana, so on **this** host:\n\n- the graphs below draw, correctly and completely — the reader still derives the nodes itself;\n- colour, radius, `displayName`, subtitle and data links on panel 3 are **silently inert**;\n- **hiding still works.** `hiddenNodeIds` falls back to matching a fieldless node by *name*, which is the one by-name read the family kept and kept for exactly this case — so `grafana-assistant-app` is missing from panel 3 even here;\n- nothing errors, and nothing is missing that was ever there.\n\nWhen the API lands, the rest start landing too, with no dashboard change. Until then the honest comparison is panel 2 against panel 3: on this host they differ by one hidden node and nothing else; on a host with the flag they differ by all three overrides.\n\nThe same proof against TestData, where it can be run today, is in **ECharts Relations — derived nodes** (mounted into this stack from the repo's `provisioning/dashboards/relations`). Background: `docs/relations-derived-nodes.md`."
+      }
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Control — the live service graph, nothing configured",
+      "description": "Every node here — `user`, `grafana`, `prometheus`, `alloy`, `grafana-assistant-app` — is derived. The query groups by `source` and `target` and returns one ranged series per edge; no frame in the response names a node.\n\n`prometheus → prometheus` is Prometheus scraping itself, a genuine self-loop. `user` is Tempo's own virtual node for requests that arrived with no client span — unrelated to a derived node, and a good reminder that the two words mean different things here.",
+      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 14 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps", "decimals": 3 },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 18,
+        "relationsShowNodeLabels": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "editorMode": "code",
+          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The same graph, with three overrides on nodes nothing declared",
+      "description": "**Identical query and options to the control.** The only difference is `fieldConfig.overrides`, naming three services that appear in no frame Prometheus returned:\n\n- **`grafana`** → dark red, radius 34, renamed **Grafana (this stack)**\n- **`user`** → a `Subtitle` row and a data link into the Tempo docs, both tooltip-only\n- **`grafana-assistant-app`** → `custom.hideFrom.viz`, so the node and the edge into it are gone\n\n**On this host only the third one takes effect.** The nodes are invented inside the panel, downstream of the override engine, so `byName` has nothing to match for colour, radius, `displayName`, subtitle or links — but hiding is re-read by name in the panel (`hiddenNodeIds`), so `grafana-assistant-app` really is gone. Compare with the control: one node's difference, where there should be three overrides' worth.\n\nOn a Grafana with `grafana.panelPluginTransformations` the pre-pass declares each node as a field first and all three land. Verified in that state against a source-built 13.2 (`docs/relations-derived-nodes.md`); the equivalent TestData panel is panel 2 of **ECharts Relations — derived nodes**.",
+      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 14 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps", "decimals": 3 },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "grafana" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } },
+              { "id": "custom.nodeRadius", "value": 34 },
+              { "id": "displayName", "value": "Grafana (this stack)" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "user" },
+            "properties": [
+              { "id": "custom.subtitle", "value": "Tempo virtual node — no client span" },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "What a Tempo virtual node is",
+                    "url": "https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "grafana-assistant-app" },
+            "properties": [{ "id": "custom.hideFrom", "value": { "legend": false, "tooltip": false, "viz": true } }]
+          }
+        ]
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 18,
+        "relationsShowNodeLabels": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "editorMode": "code",
+          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Show node values — a derived node has no stat to show",
+      "description": "\"Show node values\" is on and every label is still a single line. There is nothing to reduce: the field the pre-pass creates for an implied node holds `null`, and on this host the node has no field at all.\n\nIt used to print the node's **degree** here — a count of the links naming it, sitting in the slot a request rate goes in, formatted with whichever unit the first edge happened to carry. On a service graph that read as a per-service measurement and was not one.\n\nThe edges keep their real stat: hover any line and the tooltip reads `req/s` off that edge's own field.",
+      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 26 },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps", "decimals": 3 },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "single" },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 18,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "editorMode": "code",
+          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{source}}-->{{target}}"
+        }
+      ],
+      "transformations": []
+    }
+  ]
+}

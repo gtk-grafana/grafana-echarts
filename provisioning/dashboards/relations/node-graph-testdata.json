@@ -370,7 +370,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "TestData `node_graph` with `nodes.type: feature_showcase` — exercises the optional node fields, notably `arc__*` (the multi-section coloured ring) and `icon`.\n\nNeither has a native equivalent in any ECharts relationship series: `arc__*` would need a custom symbol or composed pie to render faithfully, and `icon` values are Grafana built-in icon names that need resolving before they can become an ECharts `symbol`. This panel shows what the first pass will approximate or drop — see data-plane/node-graph.md.",
+      "description": "TestData `node_graph` with `nodes.type: feature_showcase` — exercises the optional node fields, notably `arc__*` (the multi-section coloured ring) and `icon`.\n\nNeither has a native equivalent in any ECharts relationship series: `arc__*` would need a custom symbol or composed pie to render faithfully, and `icon` values are Grafana built-in icon names that need resolving before they can become an ECharts `symbol`. This panel shows what the first pass will approximate or drop — see data-plane/graph-long.md.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []

@@ -4,14 +4,20 @@ import { toSankeyLinks } from 'lib/echarts/converters/dag';
 import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
 import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { getChordSeries } from 'lib/echarts/options/chord';
-import { getGraphSeries, relationsDefaultOptions, type RelationsSeriesContext } from 'lib/echarts/options/graph';
+import {
+  getGraphSeries,
+  relationsDefaultOptions,
+  resolveRelationsZoom,
+  type RelationsSeriesContext,
+} from 'lib/echarts/options/graph';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/options/sankey';
 import { getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
-import { getHiddenSeriesNames } from 'lib/grafana/fields/seriesConfig';
+import { getHiddenSeriesNames, getMarkPositionOverride } from 'lib/grafana/fields/seriesConfig';
 import {
   type ChartModule,
   type ChartNotice,
+  type ChartZoomAction,
   type EChartChordSeriesOption,
   type EChartGraphSeriesOption,
   type EChartSankeySeriesOption,
@@ -84,15 +90,45 @@ function withoutHiddenMarks(data: NodeGraphData, fieldConfig: FieldConfigSource)
 
   const connected = new Set(links.flatMap((link) => [link.source, link.target]));
   return {
+    ...data,
     nodes: data.nodes.filter((node) => !hidden.has(node.id) && (node.field != null || connected.has(node.id))),
     links,
+  };
+}
+
+/**
+ * Pinned positions for the nodes Grafana's override engine could not reach.
+ *
+ * A **derived** node has no field, so a `byName` `custom.fixedX` override matches nothing and
+ * the coordinate never arrives — which is every node of an edges-only response on a host
+ * without the `deriveNodes` pre-pass. Reading the override directly is the same escape hatch
+ * `hiddenNodeIds` already uses one function above, and it is what makes a dragged position
+ * survive a reload there rather than being a nudge that lasts until the next refresh.
+ *
+ * Matched on `name` as well as `id` because that is what a `byName` matcher compares against:
+ * the field name or its display name. They are the same string for a derived node, and
+ * distinct only for a declared one — which does not reach here.
+ */
+function withOverriddenPositions(data: NodeGraphData, fieldConfig: FieldConfigSource): NodeGraphData {
+  if (fieldConfig.overrides.length === 0 || data.nodes.every((node) => node.field != null)) {
+    return data;
+  }
+  return {
+    ...data,
+    nodes: data.nodes.map((node) => {
+      if (node.field != null) {
+        return node;
+      }
+      const pinned = getMarkPositionOverride(fieldConfig, node.id) ?? getMarkPositionOverride(fieldConfig, node.name);
+      return pinned ? { ...node, fixedX: pinned.x, fixedY: pinned.y } : node;
+    }),
   };
 }
 
 /** The node/link model as rendered: hidden marks and their orphaned links removed. */
 function getVisibleNodeGraph(ctx: RelationsChartContext): NodeGraphData | null {
   const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions);
-  return data == null ? null : withoutHiddenMarks(data, ctx.fieldConfig);
+  return data == null ? null : withOverriddenPositions(withoutHiddenMarks(data, ctx.fieldConfig), ctx.fieldConfig);
 }
 
 /**
@@ -164,6 +200,22 @@ export const relationsChartModule: ChartModule = {
   },
 
   /**
+   * The roam action the panel's zoom buttons dispatch, when zoom is switched on.
+   *
+   * Chord is excluded and that is a hard exclusion, not a preference: `ChordSeries`
+   * pins `coordinateSystem: 'none'` and declares no `roam` at all, so there is no view
+   * to scale and no action registered for it. `graph` and `sankey` each register one
+   * (`registerRoamActionSimply`), named after the series type.
+   */
+  getZoomAction(ctx: RelationsChartContext): ChartZoomAction | undefined {
+    if (!resolveRelationsZoom(ctx.options) || ctx.seriesType === 'chord') {
+      return undefined;
+    }
+    // The family emits exactly one series per render, whichever variant is selected.
+    return { type: ctx.seriesType === 'sankey' ? 'sankeyRoam' : 'graphRoam', seriesIndex: 0 };
+  },
+
+  /**
    * Emphasise the hovered legend row's node **and every link touching it**, which
    * is what makes a legend hover useful on a topology — the node alone says little.
    *
@@ -210,7 +262,14 @@ export const relationsChartModule: ChartModule = {
     }
     // Nodes by display name (what the legend shows and the matcher tests), edges by
     // field name — an edge has no display name of its own.
-    return [...data.nodes.map((node) => node.name), ...data.links.map((link) => link.id)];
+    //
+    // `link.field?.name` first, spelling out that the universe is **field names**: this
+    // list feeds an exclude matcher, so anything in it that no field answers to would
+    // stop covering the edge fields and hiding one node would erase every link in the
+    // panel. `link.id` is that name by contract; the read says so rather than relying on
+    // it. Never `markKey`, which is an item key and matches nothing. Duplicates are fine
+    // — `byNames` holds a `Set`, and a repeated `Value` matches every edge field anyway.
+    return [...data.nodes.map((node) => node.name), ...data.links.map((link) => link.field?.name ?? link.id)];
   },
 
   buildLegendItems(ctx): VizLegendItem[] {

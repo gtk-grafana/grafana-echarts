@@ -3,6 +3,7 @@ import { type Field, type GrafanaTheme2, type LinkModel } from '@grafana/data';
 import { TooltipDisplayMode, type VizTooltipOptions } from '@grafana/schema';
 import {
   type AdHocFilterModel,
+  type FilterByGroupedLabelsModel,
   getFieldDisplayLinks,
   IconButton,
   isTooltipScrollable,
@@ -18,7 +19,12 @@ import {
   type VizTooltipItem,
   VizTooltipWrapper,
 } from '@grafana/ui';
-import { type TooltipRow, type TooltipSource } from 'lib/echarts/tooltip/types';
+import {
+  type TooltipAdHocFilter,
+  type TooltipFilters,
+  type TooltipRow,
+  type TooltipSource,
+} from 'lib/echarts/tooltip/types';
 import React, { useLayoutEffect, useRef } from 'react';
 import { TOOLTIP_MARKER_ATTR, TOOLTIP_OFFSET } from './constants';
 import { type EChartsTooltipState } from './types';
@@ -36,6 +42,8 @@ interface Props extends Pick<VizTooltipOptions, 'mode' | 'maxWidth' | 'maxHeight
 
 /** "filter for" operator (`=`); `AdHocFilterModel['operator']` is `'=' | '!='`. */
 const FILTER_FOR: AdHocFilterModel['operator'] = '=';
+/** "filter out" operator (`!=`), applied to the whole hovered mark at once. */
+const FILTER_OUT: AdHocFilterModel['operator'] = '!=';
 
 /**
  * Room core reserves for its window-edge math: `TooltipPlugin2` subtracts a
@@ -62,17 +70,22 @@ function rowToItem(row: TooltipRow, activeSeriesIndex: number | null): VizToolti
   };
 }
 
-/** One "filter for" ad-hoc filter per field label, wired to the panel context. */
-function buildAdHocFilters(field: Field, onAddAdHocFilter: PanelContext['onAddAdHocFilter']): AdHocFilterModel[] {
-  if (onAddAdHocFilter == null || field.labels == null) {
-    return [];
+/** The filters a hovered item offers, grouped the way the footer renders them. */
+function resolveFilters(state: EChartsTooltipState, sources: TooltipSource[]): TooltipFilters {
+  // A model that states its own filters replaces the label walk rather than adding to
+  // it. Only relations does, and it has to: a node's identity is its `field.name`
+  // rather than a label, an edge's endpoint labels are the wide contract's canonical
+  // keys, which may not be keys the datasource knows, and the two groups below are not
+  // the same set on either mark. See `TooltipFilters`.
+  if (state.model?.filters != null) {
+    return state.model.filters;
   }
-  return Object.entries(field.labels).map(([key, value]) => ({
-    key,
-    value,
-    operator: FILTER_FOR,
-    onClick: () => onAddAdHocFilter({ key, value, operator: FILTER_FOR }),
-  }));
+  // Every other family: one pair per label, offered individually and as a whole. The
+  // values of a real label set differ, so no two buttons read the same.
+  const pairs = sources.flatMap((source) =>
+    Object.entries(source.field.labels ?? {}).map(([key, value]) => ({ key, value }))
+  );
+  return { each: pairs, filterFor: pairs, filterOut: pairs };
 }
 
 /** Keep the first entry per key, preserving order. */
@@ -94,13 +107,54 @@ function collectDataLinks(sources: TooltipSource[]): Array<LinkModel<Field>> {
   return dedupeBy(links, (link) => `${link.title}/${link.href}`);
 }
 
-/** The footer's ad-hoc filters across every source field, deduped by key/value. */
+/** The footer's "filter for" buttons: one per label/value pair, deduped. */
 function collectAdHocFilters(
-  sources: TooltipSource[],
+  pairs: TooltipAdHocFilter[],
   onAddAdHocFilter: PanelContext['onAddAdHocFilter']
 ): AdHocFilterModel[] {
-  const filters = sources.flatMap((source) => buildAdHocFilters(source.field, onAddAdHocFilter));
+  if (onAddAdHocFilter == null) {
+    return [];
+  }
+  const filters = pairs.map(({ key, value }) => ({
+    key,
+    value,
+    operator: FILTER_FOR,
+    onClick: () => onAddAdHocFilter({ key, value, operator: FILTER_FOR }),
+  }));
   return dedupeBy(filters, (filter) => `${filter.key}/${filter.value}`);
+}
+
+/**
+ * The footer's "Filter on / Filter out this value" pair, each half applying its own set of
+ * pairs at once.
+ *
+ * The negative half is why this exists: `VizTooltipFooter` renders each `adHocFilters`
+ * entry as literally "Filter for '<value>'" whatever its operator, so a `!=` smuggled
+ * through that list would be a button that says the opposite of what it does.
+ * `filterByGroupedLabels` is core's own answer — two correctly-labelled buttons over a
+ * whole set — so a `!=` is offered there rather than invented here.
+ *
+ * The two halves take **separate** sets because the component renders both buttons whenever
+ * it is given the object at all, so a mark whose positive conjunction is meaningless cannot
+ * simply omit one. A relations node is that mark: negating both endpoints excludes it,
+ * asserting both matches only self-loops. See `nodeFilters`.
+ */
+function groupedLabelFilters(
+  { filterFor, filterOut }: TooltipFilters,
+  onAddAdHocFilter: PanelContext['onAddAdHocFilter']
+): FilterByGroupedLabelsModel | undefined {
+  if (onAddAdHocFilter == null || (filterFor.length === 0 && filterOut.length === 0)) {
+    return undefined;
+  }
+  const apply = (pairs: TooltipAdHocFilter[], operator: AdHocFilterModel['operator']) => () => {
+    for (const { key, value } of pairs) {
+      onAddAdHocFilter({ key, value, operator });
+    }
+  };
+  return {
+    onFilterForGroupedLabels: apply(filterFor, FILTER_FOR),
+    onFilterOutGroupedLabels: apply(filterOut, FILTER_OUT),
+  };
 }
 
 /**
@@ -258,11 +312,19 @@ export const EChartsTooltip: React.FC<Props> = ({ state, dismiss, mode, maxWidth
   if (pinned) {
     const sources = resolveActiveSources(state);
     const dataLinks = collectDataLinks(sources);
-    const adHocFilters = collectAdHocFilters(sources, onAddAdHocFilter);
-    if (dataLinks.length > 0 || adHocFilters.length > 0) {
+    const filters = resolveFilters(state, sources);
+    const adHocFilters = collectAdHocFilters(filters.each, onAddAdHocFilter);
+    const filterByGroupedLabels = groupedLabelFilters(filters, onAddAdHocFilter);
+    if (dataLinks.length > 0 || adHocFilters.length > 0 || filterByGroupedLabels != null) {
       // @todo pass `annotate` once Grafana externalizes the annotation API for
       // plugins (VizTooltipFooter supports it; core wires it from PanelContext).
-      footer = <VizTooltipFooter dataLinks={dataLinks} adHocFilters={adHocFilters} />;
+      footer = (
+        <VizTooltipFooter
+          dataLinks={dataLinks}
+          adHocFilters={adHocFilters}
+          filterByGroupedLabels={filterByGroupedLabels}
+        />
+      );
     }
   }
   return (

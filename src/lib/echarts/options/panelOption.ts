@@ -112,10 +112,10 @@ export function buildPanelChartOption(
   return {
     ...echartOption,
     tooltip: tooltipOption,
-    // Animation is opt-in and off by default for every family — density
-    // thresholds were tried and could not fire early enough to help. See
+    // Animation is opt-in and off by default for every family except relations —
+    // density thresholds were tried and could not fire early enough to help. See
     // `resolveAnimation`.
-    animation: resolveAnimation(ctx.options),
+    animation: resolveAnimation(ctx.options, ctx.seriesType),
     ...(axisPointer ? { axisPointer } : {}),
     ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };

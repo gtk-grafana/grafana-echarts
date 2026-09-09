@@ -1,21 +1,28 @@
 # Data sources for graph / flow / relations charts
 
 Which Grafana data sources can produce data for the **graph / flow / relations**
-chart family (ECharts `graph`, `sankey`, `chord`), and how to reshape the ones that
-cannot.
+chart family (ECharts `graph`, `sankey`, `chord`), and how to source or reshape the
+ones that don't emit it natively.
 
-The frame format itself is specced in
-[../data-plane/node-graph.md](../data-plane/node-graph.md); the proposed panel is in
-[../todo/node-graph.md](../todo/node-graph.md). This doc is about **sourcing** the
-data, which is the practical blocker: the family needs a nodes + edges frame pair,
-and the three data sources most Grafana users have — Prometheus, Loki and SQL —
-emit none.
+The panel reads the field-based [`graph-*-wide` contract](../data-plane/graph-wide.md) —
+one node is one field, one edge is one field. It still supports the row form specced in
+[../data-plane/graph-long.md](../data-plane/graph-long.md), converting it automatically
+above the panel; the panel's original design record is
+[../todo/node-graph.md](../todo/node-graph.md). This doc is about **sourcing** the data,
+which is the practical blocker either way: the family needs edges (and, optionally,
+nodes), and the three data sources most Grafana users have — Prometheus, Loki and SQL —
+emit neither shape natively.
 
-> **Two source formats, one target.** The panel reads the field-based
-> [`graph-*-wide` contract](../data-plane/graph-wide.md) and nothing else. It converts the
-> **row format** (`graph-*-long`) to it automatically, above the panel, so every recipe in
-> this doc still works unchanged — you can keep emitting rows and never think about the
-> contract. That conversion needs Grafana **13.2 or later**
+> **Two source formats, one target.** [Sourcing the wide form](#sourcing-the-wide-form)
+> below is the cheaper path for Prometheus, Loki and SQL — it needs no `id` column, no
+> SQL Expressions and no instant-only restriction. [Sourcing the row
+> form](#sourcing-the-row-form) covers the sources that still emit rows natively (Tempo,
+> AWS X-Ray, TestData), hosts before Grafana **13.2**, or when you want row-shaped output
+> so core's Node graph panel and this one can read the same query side by side.
+>
+> The panel converts a row-format response to the wide contract automatically, above the
+> panel, so every recipe under "Sourcing the row form" still works unchanged even if you
+> never read this doc's first half. That conversion needs Grafana **13.2 or later**
 > ([grafana/grafana#129992](https://github.com/grafana/grafana/pull/129992)); on an older
 > host the panel reports that it cannot read row frames, and the workaround is to add a
 > **Rows to fields** transformation by hand, with the caveats in
@@ -28,240 +35,6 @@ emit none.
 > `provisioning/dashboards/relations/graph-wide.json`. Transformations that operate on the
 > _wide_ frames still work normally, `joinByField` among them (see
 > [Prometheus / Loki](#prometheus--loki--one-setting-and-one-transformation)).
->
-> So: everything from [The short version](#the-short-version) to
-> [Aggregation is the hidden requirement](#aggregation-is-the-hidden-requirement) is about
-> sourcing rows, which remains the normal thing to do.
-> [Sourcing the wide form](#sourcing-the-wide-form) at the end is about emitting the
-> contract directly, which is materially cheaper and skips the conversion entirely.
-
-## The short version
-
-A relations chart needs **one row per edge**: a source, a target, and ideally a
-weight. That is a `GROUP BY` over two dimensions. Any data source that can group by
-two labels/columns can feed this family; it just needs the columns renamed to the
-`source` / `target` / `mainstat` convention.
-
-## What each source can do
-
-| Source                       | How                                       | Emits the frame pair? |
-| ---------------------------- | ----------------------------------------- | --------------------- |
-| **Tempo** (service graph)    | metrics-generator → service-graph view    | Yes, natively         |
-| **AWS X-Ray**                | Service map query                         | Yes, natively         |
-| **TestData DB**              | `scenarioId: "node_graph"`                | Yes (frontend-built)  |
-| **Prometheus**               | instant query, two grouping labels        | No — reshape          |
-| **Loki**                     | instant metric query over structured logs | No — reshape          |
-| **SQL** (Postgres/MySQL/…)   | an edges table, or `GROUP BY src, dst`    | No — rename fields    |
-| **Infinity / JSON API**      | arbitrary JSON                            | No — reshape          |
-| Elasticsearch, CloudWatch, … | terms-on-terms aggregation                | No — reshape          |
-
-Only the first three need no work. Everything else produces a flat table whose
-columns happen to describe edges, and the gap is purely naming.
-
-### TestData DB — the fixture source
-
-`scenarioId: "node_graph"` takes a `nodes` object with `type`, `count` and `seed`:
-
-| `nodes.type`       | Output                                                     |
-| ------------------ | ---------------------------------------------------------- |
-| `random` (default) | Generated nodes + edges frames; honours `count` and `seed` |
-| `response_small`   | A saved, deterministic service-map response                |
-| `response_medium`  | A larger saved service-map response                        |
-| `feature_showcase` | Exercises every optional field (`arc__*`, `icon`, …)       |
-| `random edges`     | **A single edges frame** — the edges-only case             |
-
-Two things worth knowing before relying on it:
-
-- **`random` is not fully reproducible.** `seed` only drives the edge topology; the
-  per-node stats, `icon`, `noderadius` and `highlighted` values come from bare
-  `Math.random()`. Prefer `response_small` / `response_medium` for anything that
-  should look the same twice.
-- **`random` deliberately creates cycles** — `generateRandomNodes` has a loop
-  commented _"Add some random edges to create possible cycle"_. That makes it a
-  useful adversarial fixture for sankey (which
-  [throws in production on cyclic input](../data-plane/node-graph.md#pitfalls-for-a-converter)),
-  and a reason not to point a naive sankey at it.
-
-## Use case 1 — Prometheus
-
-Prometheus has no graph kind, but it has something better than a contrived example:
-**Tempo's metrics-generator publishes service-graph edges as ordinary Prometheus
-counters.** `traces_service_graph_request_total` carries `client` and `server`
-labels — which _is_ a source/target pair — and the counter is the weight.
-
-```promql
-sum by (client, server) (rate(traces_service_graph_request_total[$__range]))
-```
-
-Run it as an **instant** query. One row per edge, with `client`, `server` and
-`Value`. As a `graph` it is the service topology; as a `sankey` it is request volume
-between services.
-
-The same shape appears in any metric with two "endpoint" labels — for example HTTP
-calls broken down by caller and callee:
-
-```promql
-sum by (source_workload, destination_workload) (rate(istio_requests_total[$__range]))
-```
-
-Reshape it with [SQL Expressions](#reshaping-with-sql-expressions).
-
-## Use case 2 — Loki
-
-Edges can be derived from structured logs whenever a line records both ends of a
-call. With `logfmt` or `json` parsing, group by both fields in an **instant** metric
-query:
-
-```logql
-sum by (service, upstream) (
-  count_over_time({job="api"} | logfmt | __error__="" [$__range])
-)
-```
-
-That yields one row per `service → upstream` pair with a call count. Add a filter to
-weight by failures instead, which makes a far more useful sankey — the ribbons show
-where errors concentrate:
-
-```logql
-sum by (service, upstream) (
-  count_over_time({job="api"} | logfmt | __error__="" | level="error" [$__range])
-)
-```
-
-`__error__=""` drops lines the parser could not read, so malformed lines do not
-silently become an edge to an empty-string node.
-
-## Use case 3 — SQL
-
-SQL is the easiest case, because the aggregation is native and the column names are
-yours to choose. Either the edges already exist as a table, or one `GROUP BY`
-produces them:
-
-```sql
-SELECT
-  CONCAT(caller, '->', callee) AS id,
-  caller                       AS source,
-  callee                       AS target,
-  COUNT(*)                     AS mainstat
-FROM service_calls
-WHERE ts BETWEEN $__timeFrom() AND $__timeTo()
-GROUP BY caller, callee;
-```
-
-Because the field names already match the convention, this needs **no reshaping** —
-the panel consumes it directly. An optional second query supplies node metadata:
-
-```sql
-SELECT service AS id, service AS title, team AS subtitle
-FROM services;
-```
-
-This is the cheapest path to a real relations chart and worth reaching for first.
-
-## Reshaping with SQL Expressions
-
-Prometheus and Loki return the right _rows_ with the wrong _column names_, and no
-`id` column. **SQL Expressions** fix that server-side: a SQL query whose tables are
-other queries in the same panel.
-
-Verified against Grafana's source (`pkg/expr/sql/`):
-
-- **Enabled by the `sqlExpressions` feature toggle**, which is at GA stage with
-  `Expression: "true"` — on by default in current Grafana.
-- **The dialect is MySQL.** The engine is
-  [`github.com/dolthub/go-mysql-server`](https://github.com/dolthub/go-mysql-server),
-  so MySQL functions and syntax apply — not Postgres.
-- **Each upstream query's `refId` is a table name.** A query with `refId: A` is
-  referenced as `FROM A`.
-- **The SQL is checked against an allow-list** (`parser_allow.go`) before it runs.
-  CTEs, `UNION`, joins, `GROUP BY` and `CASE` are permitted; arbitrary functions are
-  not — verify anything unusual against that file.
-- **There are output caps**: a query timeout and a `MaxOutputCells` limit.
-- **32-bit ARM hosts have no SQL Expressions.** `dummy_arm.go` returns
-  `"sql expressions not supported in arm"`. Its build constraint is `//go:build arm`,
-  and Go treats `arm` (32-bit) and `arm64` as distinct `GOARCH` values, so **arm64
-  hosts — including Apple Silicon — are unaffected** and compile the real
-  implementation.
-
-### Two frames means two expressions
-
-The panel wants an edges frame and (optionally) a nodes frame, so that is **two SQL
-Expression queries** over the same upstream query.
-
-Given a Prometheus instant query `A` returning `client`, `server`, `Value`:
-
-```sql
--- B: the edges frame
-SELECT CONCAT(client, '->', server) AS id,
-       client                       AS source,
-       server                       AS target,
-       `Value`                      AS mainstat
-FROM A
-```
-
-```sql
--- C: the nodes frame — union both endpoint columns, then de-duplicate
-SELECT DISTINCT n.id AS id, n.id AS title
-FROM (SELECT client AS id FROM A
-      UNION
-      SELECT server AS id FROM A) AS n
-```
-
-`Value` is backtick-quoted because it is the conventional name Prometheus gives the
-value column and is capitalised; `UNION` (not `UNION ALL`) plus `DISTINCT` collapses
-services that appear as both caller and callee.
-
-The nodes query is **optional** — Grafana derives the node set from `source`/`target`
-when no nodes frame is present, so query `B` alone renders. Add `C` when nodes need
-titles, subtitles or their own stats.
-
-### Cast numeric columns inside the SQL
-
-SQL Expressions run **server-side, before** frontend transformations. So the
-`convertFieldType` transformation this repo normally uses to turn CSV strings into
-numbers **cannot** prepare data for an expression — by the time it runs, the
-expression has already executed.
-
-Cast in the SQL instead:
-
-```sql
-CAST(calls AS DECIMAL(20, 4)) AS mainstat
-```
-
-MySQL `CAST` is a no-op on a value that is already numeric, so this is safe whether
-the column arrived typed (Prometheus `Value`) or as text (`csv_content`). `CAST` is
-permitted by the allow-list (`ConvertExpr` / `ConvertType`). It matters most for
-sankey and chord, which size their ribbons from the link value and collapse to zero
-height without a number.
-
-### Why this forces field-shape detection
-
-The output frames of `B` and `C` are named by refId. They are **not** called `nodes`
-or `edges`, and a SQL Expression cannot set `meta.preferredVisualisationType`. So of
-the three signals Grafana uses to detect and classify node-graph frames, only one
-survives: **field shape**. An edges frame is recognised by carrying `source` (and
-`target`); anything else is a nodes frame.
-
-That is why the converter proposed in
-[../todo/node-graph.md](../todo/node-graph.md) treats field shape as the primary
-signal rather than a fallback — the most realistic reshaping path in Grafana produces
-frames with no other identifying marks. The same applies to the provisioned
-`csv_content` fixtures, which cannot set frame metadata either.
-
-## Aggregation is the hidden requirement
-
-One caveat that catches people out: the **legacy row format** wants **one row per unique
-edge**, not one row per event or per timestamp. (The wide form does not — a range query
-is a row dimension there; see [below](#sourcing-the-wide-form).)
-
-- Use **instant** queries in Prometheus and Loki, not range queries. A range query
-  returns a time series per label pair, i.e. many rows per edge.
-- If a range query is unavoidable, reduce it first — a `Reduce` expression or a
-  `Group by` transformation collapses it to one row per series.
-- In SQL, `GROUP BY` both endpoint columns.
-
-A sankey given per-timestamp rows will either draw duplicate parallel ribbons or
-collapse, depending on how duplicates are merged.
 
 ## Sourcing the wide form
 
@@ -271,7 +44,7 @@ rendering story, because the shape it wants is the shape Prometheus, Loki and
 `rowsToFields` already produce.
 
 Every recipe below was run against Grafana 13.1.0; the observed outputs are recorded in
-the contract's [Verified behaviours](../data-plane/graph-wide.md#verified-behaviours)
+the contract's [Verified behaviours](../todo/graph-wide-history.md#verified-behaviours)
 table, and the live panels are in
 `provisioning/dashboards/relations/graph-wide.json`.
 
@@ -288,25 +61,40 @@ Then, in the query editor:
 | Setting    | Value                     | Why                                                                  |
 | ---------- | ------------------------- | -------------------------------------------------------------------- |
 | **Format** | `Time series`             | One frame per series, i.e. one frame per edge                        |
-| **Legend** | `{{client}}-->{{server}}` | **Required.** This is the edge id and the override target            |
+| **Legend** | `{{client}}-->{{server}}` | The edge id and the override target — see below                      |
 | **Type**   | Instant _or_ Range        | Either. A range query is simply a row dimension the reduce collapses |
 
-**And one transformation.** A `Time series` response is _many_ frames — one per series,
-so one per edge — and the reader takes the **first** frame that looks like edges
-(`findEdgesFrame`). Left alone, a nine-edge query draws one edge. `joinByField` on
-`Time` collapses them into the single wide frame the contract wants:
+**The whole topology draws with no transformation at all.** A `Time series` response is
+_many_ frames — one per series, so one per edge — and the reader collects **every** frame
+that looks like edges, so a nine-edge query draws nine edges. That is the contract's
+[multi format](../data-plane/graph-multi.md), and it holds on a
+stock host with no feature flags.
+
+What you still need the legend format for is **identity**. Without one, every frame's value
+field is called `Value`, so all nine marks share one name: `byName: 'Value'` matches all of
+them at once, the override picker lists `Value` once per frame, and a per-edge unit, colour
+or data link is unreachable. The plugin's own conversion
+(`converters/longToWide.ts`) pivots the response above the panel and gives each edge the
+legend format as its `field.name` — but it runs only where the host allows panel-registered
+transformations (`grafana.panelPluginTransformations`), so a legend format is the portable
+answer.
+
+**A join is no longer required, and is usually the wrong tool.** For the record, what it
+does: `joinByField` on `Time`
 
 ```json
 { "id": "joinByField", "options": { "byField": "Time", "mode": "outer" } }
 ```
 
-It widens them into the _right_ shape because `joinDataFrames` renames a field called
-`Value` — which is what every Prometheus and Loki value field is called — to its **frame
-name**, keeping its labels. The frame name is the rendered legend format, so the joined
-frame's numeric field names are the edge ids. That is the whole conversion.
+collapses the frames into one, and `joinDataFrames` renames a field called `Value` to its
+**frame name**, keeping its labels — so with a legend format the joined frame's field names
+are the edge ids. Two caveats measured against live Mimir: a Prometheus range query sets no
+frame name, so **without** a legend format the join produces a frame whose fields are all
+still called `Value`; and a join cannot union two frames that are already wide, which the
+reader can.
 
-**Edges and nodes in one panel** need one join each, filtered by refId, or the second
-query's frames are swallowed into the first join:
+**Edges and nodes in one panel**, if you do join, need one join each filtered by refId, or
+the second query's frames are swallowed into the first join:
 
 ```json
 [
@@ -328,17 +116,16 @@ back by `postProcessTransform`, and `joinByField` stamps its output `refId` as
 `joinByField-A-A-…` — so the second filter cannot re-capture the first join's result.
 Both frames survive: A becomes the edges frame, B the nodes frame.
 
-So: no SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction — but
-not zero reshaping either.
+So: no SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction — and,
+with the canonical label keys, zero reshaping.
 
-**The legend format is not optional, and it is what carries the endpoints.** The
+**With non-canonical label keys the legend format is what carries the endpoints.** The
 contract reads exactly two label keys, `source` and `target` (`endpointsOf`). A
 `sum by (client, server)` emits `client` / `server`, which it does **not** recognise, so
-the endpoints come from splitting the field name on `-->` — i.e. from the legend format.
-Without one, `getFieldDisplayName` pushes both the frame name and the label set and the
-display name comes out doubled — `{client="a", server="b"} {client="a", server="b"}`
-(observed); the raw field name stays `Value` on every frame, so `byName: Value` matches
-**every** edge at once; and there is no separator to split on.
+the endpoints have to come from splitting the field name on `-->` — i.e. from the legend
+format. Without one there is no separator to split on and the response is not a graph at
+all. (With `source` / `target` the labels carry the endpoints and the legend format is
+about identity only, as above.)
 
 Relabel to `source` / `target` (`label_replace` in PromQL, `label_format` in LogQL) when
 you want the labels to carry the endpoints instead. That is the only way to express an
@@ -346,7 +133,7 @@ id that is not `left-->right` — including two **parallel edges** over one pair
 need distinct field names but identical endpoints.
 
 The same applies to the Loki queries in [Use case 2](#use-case-2--loki): set
-`{{service}}-->{{upstream}}` as the legend and add the same join.
+`{{service}}-->{{upstream}}` as the legend.
 
 Worked examples of every variation above, against TestData fixtures that reproduce the
 Prometheus and Loki frame shapes exactly:
@@ -421,8 +208,7 @@ handlers whose only targets are `max`, `min`, `unit`, `decimals`, `displayName`,
 The last two rows matter for more than fidelity: because `meta` does not survive, no
 transformation can set `meta.type: 'graph-edges-wide'`, and a frame that carried no `refId`
 comes out as the literal `rowsToFields-undefined` — so both pivoted frames share a refId and
-can no longer be told apart by one. Full measurements:
-[../data-plane/graph-wide.md](../data-plane/graph-wide.md#what-a-native-pivot-cannot-carry).
+can no longer be told apart by one.
 
 **This is the reason the recipe below is a debugging aid rather than the shipping plan.** A
 faithful conversion has to write `custom.*`, `links` and `meta`, which no core transformation
@@ -469,7 +255,7 @@ For a dense topology, `Grouping to matrix` (Column = `target`, Row = `source`, C
 node instead of one per edge, so the field count grows as N rather than N². Observed
 specifics — the key column is named `source\target`, columns appear in first-appearance
 order, and the frame is not square — are in the contract's
-[adjacency matrix section](../data-plane/graph-wide.md#dense-graphs-the-adjacency-matrix-variant),
+[adjacency matrix section](../data-plane/graph-matrix.md),
 along with the trade-off: node overrides work, per-edge overrides do not, because an edge
 is a cell.
 
@@ -481,12 +267,247 @@ field its `applyTo` matcher selects receives the _same_ config (observed: two no
 both got `displayName: Gateway`). It is the wrong tool for per-node metadata. `Rows to
 fields` is the per-row path.
 
+## Sourcing the row form
+
+Still the right choice for a source that emits rows natively (Tempo, AWS X-Ray, TestData),
+for a host before Grafana 13.2, or when you want row-shaped output to run core's Node
+graph panel and this one side by side off one query. The panel converts everything below
+to the wide contract automatically, above the panel, on 13.2+.
+
+### The short version
+
+A relations chart needs **one row per edge**: a source, a target, and ideally a
+weight. That is a `GROUP BY` over two dimensions. Any data source that can group by
+two labels/columns can feed this family; it just needs the columns renamed to the
+`source` / `target` / `mainstat` convention.
+
+### What each source can do
+
+| Source                       | How                                       | Emits the frame pair? |
+| ---------------------------- | ----------------------------------------- | --------------------- |
+| **Tempo** (service graph)    | metrics-generator → service-graph view    | Yes, natively         |
+| **AWS X-Ray**                | Service map query                         | Yes, natively         |
+| **TestData DB**              | `scenarioId: "node_graph"`                | Yes (frontend-built)  |
+| **Prometheus**               | instant query, two grouping labels        | No — reshape          |
+| **Loki**                     | instant metric query over structured logs | No — reshape          |
+| **SQL** (Postgres/MySQL/…)   | an edges table, or `GROUP BY src, dst`    | No — rename fields    |
+| **Infinity / JSON API**      | arbitrary JSON                            | No — reshape          |
+| Elasticsearch, CloudWatch, … | terms-on-terms aggregation                | No — reshape          |
+
+Only the first three need no work. Everything else produces a flat table whose
+columns happen to describe edges, and the gap is purely naming.
+
+#### TestData DB — the fixture source
+
+`scenarioId: "node_graph"` takes a `nodes` object with `type`, `count` and `seed`:
+
+| `nodes.type`       | Output                                                     |
+| ------------------ | ---------------------------------------------------------- |
+| `random` (default) | Generated nodes + edges frames; honours `count` and `seed` |
+| `response_small`   | A saved, deterministic service-map response                |
+| `response_medium`  | A larger saved service-map response                        |
+| `feature_showcase` | Exercises every optional field (`arc__*`, `icon`, …)       |
+| `random edges`     | **A single edges frame** — the edges-only case             |
+
+Two things worth knowing before relying on it:
+
+- **`random` is not fully reproducible.** `seed` only drives the edge topology; the
+  per-node stats, `icon`, `noderadius` and `highlighted` values come from bare
+  `Math.random()`. Prefer `response_small` / `response_medium` for anything that
+  should look the same twice.
+- **`random` deliberately creates cycles** — `generateRandomNodes` has a loop
+  commented _"Add some random edges to create possible cycle"_. That makes it a
+  useful adversarial fixture for sankey (which
+  [throws in production on cyclic input](../data-plane/echarts-coverage.md#sankey-is-dag-only)),
+  and a reason not to point a naive sankey at it.
+
+### Use case 1 — Prometheus
+
+Prometheus has no graph kind, but it has something better than a contrived example:
+**Tempo's metrics-generator publishes service-graph edges as ordinary Prometheus
+counters.** `traces_service_graph_request_total` carries `client` and `server`
+labels — which _is_ a source/target pair — and the counter is the weight.
+
+```promql
+sum by (client, server) (rate(traces_service_graph_request_total[$__range]))
+```
+
+Run it as an **instant** query. One row per edge, with `client`, `server` and
+`Value`. As a `graph` it is the service topology; as a `sankey` it is request volume
+between services.
+
+The same shape appears in any metric with two "endpoint" labels — for example HTTP
+calls broken down by caller and callee:
+
+```promql
+sum by (source_workload, destination_workload) (rate(istio_requests_total[$__range]))
+```
+
+Reshape it with [SQL Expressions](#reshaping-with-sql-expressions).
+
+### Use case 2 — Loki
+
+Edges can be derived from structured logs whenever a line records both ends of a
+call. With `logfmt` or `json` parsing, group by both fields in an **instant** metric
+query:
+
+```logql
+sum by (service, upstream) (
+  count_over_time({job="api"} | logfmt | __error__="" [$__range])
+)
+```
+
+That yields one row per `service → upstream` pair with a call count. Add a filter to
+weight by failures instead, which makes a far more useful sankey — the ribbons show
+where errors concentrate:
+
+```logql
+sum by (service, upstream) (
+  count_over_time({job="api"} | logfmt | __error__="" | level="error" [$__range])
+)
+```
+
+`__error__=""` drops lines the parser could not read, so malformed lines do not
+silently become an edge to an empty-string node.
+
+### Use case 3 — SQL
+
+SQL is the easiest case, because the aggregation is native and the column names are
+yours to choose. Either the edges already exist as a table, or one `GROUP BY`
+produces them:
+
+```sql
+SELECT
+  CONCAT(caller, '->', callee) AS id,
+  caller                       AS source,
+  callee                       AS target,
+  COUNT(*)                     AS mainstat
+FROM service_calls
+WHERE ts BETWEEN $__timeFrom() AND $__timeTo()
+GROUP BY caller, callee;
+```
+
+Because the field names already match the convention, this needs **no reshaping** —
+the panel consumes it directly. An optional second query supplies node metadata:
+
+```sql
+SELECT service AS id, service AS title, team AS subtitle
+FROM services;
+```
+
+This is the cheapest path to a real relations chart and worth reaching for first.
+
+### Reshaping with SQL Expressions
+
+Prometheus and Loki return the right _rows_ with the wrong _column names_, and no
+`id` column. **SQL Expressions** fix that server-side: a SQL query whose tables are
+other queries in the same panel.
+
+Verified against Grafana's source (`pkg/expr/sql/`):
+
+- **Enabled by the `sqlExpressions` feature toggle**, which is at GA stage with
+  `Expression: "true"` — on by default in current Grafana.
+- **The dialect is MySQL.** The engine is
+  [`github.com/dolthub/go-mysql-server`](https://github.com/dolthub/go-mysql-server),
+  so MySQL functions and syntax apply — not Postgres.
+- **Each upstream query's `refId` is a table name.** A query with `refId: A` is
+  referenced as `FROM A`.
+- **The SQL is checked against an allow-list** (`parser_allow.go`) before it runs.
+  CTEs, `UNION`, joins, `GROUP BY` and `CASE` are permitted; arbitrary functions are
+  not — verify anything unusual against that file.
+- **There are output caps**: a query timeout and a `MaxOutputCells` limit.
+- **32-bit ARM hosts have no SQL Expressions.** `dummy_arm.go` returns
+  `"sql expressions not supported in arm"`. Its build constraint is `//go:build arm`,
+  and Go treats `arm` (32-bit) and `arm64` as distinct `GOARCH` values, so **arm64
+  hosts — including Apple Silicon — are unaffected** and compile the real
+  implementation.
+
+#### Two frames means two expressions
+
+The panel wants an edges frame and (optionally) a nodes frame, so that is **two SQL
+Expression queries** over the same upstream query.
+
+Given a Prometheus instant query `A` returning `client`, `server`, `Value`:
+
+```sql
+-- B: the edges frame
+SELECT CONCAT(client, '->', server) AS id,
+       client                       AS source,
+       server                       AS target,
+       `Value`                      AS mainstat
+FROM A
+```
+
+```sql
+-- C: the nodes frame — union both endpoint columns, then de-duplicate
+SELECT DISTINCT n.id AS id, n.id AS title
+FROM (SELECT client AS id FROM A
+      UNION
+      SELECT server AS id FROM A) AS n
+```
+
+`Value` is backtick-quoted because it is the conventional name Prometheus gives the
+value column and is capitalised; `UNION` (not `UNION ALL`) plus `DISTINCT` collapses
+services that appear as both caller and callee.
+
+The nodes query is **optional** — Grafana derives the node set from `source`/`target`
+when no nodes frame is present, so query `B` alone renders. Add `C` when nodes need
+titles, subtitles or their own stats.
+
+#### Cast numeric columns inside the SQL
+
+SQL Expressions run **server-side, before** frontend transformations. So the
+`convertFieldType` transformation this repo normally uses to turn CSV strings into
+numbers **cannot** prepare data for an expression — by the time it runs, the
+expression has already executed.
+
+Cast in the SQL instead:
+
+```sql
+CAST(calls AS DECIMAL(20, 4)) AS mainstat
+```
+
+MySQL `CAST` is a no-op on a value that is already numeric, so this is safe whether
+the column arrived typed (Prometheus `Value`) or as text (`csv_content`). `CAST` is
+permitted by the allow-list (`ConvertExpr` / `ConvertType`). It matters most for
+sankey and chord, which size their ribbons from the link value and collapse to zero
+height without a number.
+
+#### Why this forces field-shape detection
+
+The output frames of `B` and `C` are named by refId. They are **not** called `nodes`
+or `edges`, and a SQL Expression cannot set `meta.preferredVisualisationType`. So of
+the three signals Grafana uses to detect and classify node-graph frames, only one
+survives: **field shape**. An edges frame is recognised by carrying `source` (and
+`target`); anything else is a nodes frame.
+
+That is why the converter proposed in
+[../todo/node-graph.md](../todo/node-graph.md) treats field shape as the primary
+signal rather than a fallback — the most realistic reshaping path in Grafana produces
+frames with no other identifying marks. The same applies to the provisioned
+`csv_content` fixtures, which cannot set frame metadata either.
+
+### Aggregation is the hidden requirement
+
+One caveat that catches people out: the **legacy row format** wants **one row per unique
+edge**, not one row per event or per timestamp. (The wide form does not — a range query
+is a row dimension there; see [Sourcing the wide form](#sourcing-the-wide-form).)
+
+- Use **instant** queries in Prometheus and Loki, not range queries. A range query
+  returns a time series per label pair, i.e. many rows per edge.
+- If a range query is unavoidable, reduce it first — a `Reduce` expression or a
+  `Group by` transformation collapses it to one row per series.
+- In SQL, `GROUP BY` both endpoint columns.
+
+A sankey given per-timestamp rows will either draw duplicate parallel ribbons or
+collapse, depending on how duplicates are merged.
+
 ## References
 
-- Node graph frame format (legacy rows): [../data-plane/node-graph.md](../data-plane/node-graph.md)
+- Node graph frame format (rows): [../data-plane/graph-long.md](../data-plane/graph-long.md)
 - Field-based contract: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
 - Rewrite plan: [../todo/graph-wide-migration.md](../todo/graph-wide-migration.md)
-- Proposed panel: [../todo/node-graph.md](../todo/node-graph.md)
+- Panel design record: [../todo/node-graph.md](../todo/node-graph.md)
 - Rows to fields:
   https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#rows-to-fields
 - Grouping to matrix:
