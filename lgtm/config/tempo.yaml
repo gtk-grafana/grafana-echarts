@@ -1,0 +1,63 @@
+# Single-binary Tempo for the local LGTM stack (`pnpm run server:lgtm`).
+#
+# Two jobs: receive OTLP traces from every other service in the stack, and run
+# the metrics-generator so those traces become Prometheus metrics. The
+# generator is what makes the stack interesting to this repo — it publishes
+# `traces_service_graph_request_total{client,server}`, the source/target pair
+# that `provisioning/dashboards/relations/devcortex-*.json` are written
+# against, so the relations panels have real data to draw locally.
+
+stream_over_http_enabled: true
+
+server:
+  http_listen_port: 3200
+  log_level: info
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        # Bind to 0.0.0.0: the OTel Collector bundled in recent Tempo defaults
+        # the receiver to localhost, which no other container can reach.
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+ingester:
+  # Flush often so traces are queryable seconds after they are pushed.
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: 24h
+
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      stack: lgtm
+  storage:
+    path: /var/tempo/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+        send_exemplars: true
+  traces_storage:
+    path: /var/tempo/generator/traces
+
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
+
+overrides:
+  defaults:
+    metrics_generator:
+      # local-blocks is required for TraceQL metrics.
+      processors: [service-graphs, span-metrics, local-blocks]
+
+usage_report:
+  reporting_enabled: false
