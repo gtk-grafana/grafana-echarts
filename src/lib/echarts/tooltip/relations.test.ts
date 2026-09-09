@@ -28,8 +28,13 @@ const wideNodes = (): DataFrame =>
     name: 'nodes',
     meta: { type: GRAPH_NODES_WIDE },
     fields: [
-      { name: 'gateway', type: FieldType.number, values: [12], config: { unit: 'ms', decimals: 1 } },
-      { name: 'db', type: FieldType.number, values: [0.42], config: { unit: 'percentunit', decimals: 0 } },
+      { name: 'gateway', type: FieldType.number, values: [12], config: { unit: 'ms', decimals: 1, filterable: true } },
+      {
+        name: 'db',
+        type: FieldType.number,
+        values: [0.42],
+        config: { unit: 'percentunit', decimals: 0, filterable: true },
+      },
     ],
   });
 
@@ -47,14 +52,19 @@ const wideEdges = (): DataFrame =>
         type: FieldType.number,
         labels: { source: 'gateway', target: 'db' },
         values: [3.5],
-        config: { unit: 's', decimals: 2, links: [{ title: 'Trace e1', url: 'http://example.com/e1' }] },
+        config: {
+          unit: 's',
+          decimals: 2,
+          filterable: true,
+          links: [{ title: 'Trace e1', url: 'http://example.com/e1' }],
+        },
       },
       {
         name: 'e2',
         type: FieldType.number,
         labels: { source: 'gateway', target: 'db' },
         values: [25],
-        config: { unit: 'percent', decimals: 1 },
+        config: { unit: 'percent', decimals: 1, filterable: true },
       },
     ],
   });
@@ -77,21 +87,21 @@ const hubEdges = (): DataFrame =>
         type: FieldType.number,
         labels: { source: 'web', target: 'gateway' },
         values: [800],
-        config: { unit: 'ms', decimals: 0 },
+        config: { unit: 'ms', decimals: 0, filterable: true },
       },
       {
         name: 'gw-api',
         type: FieldType.number,
         labels: { source: 'gateway', target: 'api' },
         values: [1.2],
-        config: { unit: 's', decimals: 1 },
+        config: { unit: 's', decimals: 1, filterable: true },
       },
       {
         name: 'gw-gw',
         type: FieldType.number,
         labels: { source: 'gateway', target: 'gateway' },
         values: [4],
-        config: { decimals: 0 },
+        config: { decimals: 0, filterable: true },
       },
     ],
   });
@@ -101,7 +111,14 @@ const hubNodes = (): DataFrame =>
   toDataFrame({
     name: 'nodes',
     meta: { type: GRAPH_NODES_WIDE },
-    fields: [{ name: 'api', type: FieldType.number, values: [7], config: { displayName: 'API', unit: 'ms' } }],
+    fields: [
+      {
+        name: 'api',
+        type: FieldType.number,
+        values: [7],
+        config: { displayName: 'API', unit: 'ms', filterable: true },
+      },
+    ],
   });
 
 /** One undeclared node with `count` edges leaving it, for the row cap. */
@@ -564,6 +581,7 @@ describe('buildRelationsTooltipModel', () => {
             type: FieldType.number,
             labels: { source: 'gateway', target: 'db', connection_type: 'database' },
             values: [3.5],
+            config: { filterable: true },
           },
         ],
       });
@@ -611,14 +629,14 @@ describe('buildRelationsTooltipModel', () => {
      * A node's identity is its `field.name`, not a label, so walking `field.labels` — the
      * generic derivation every other family uses — found nothing to offer.
      *
-     * The two halves differ on purpose: negating both directions is "everything that does
-     * not touch this node", while asserting both would be `source=x AND target=x`, i.e.
-     * self-loops. See `nodeFilters`.
+     * The two halves differ on purpose for a node in the **middle** of a chain: negating
+     * both directions is "everything that does not touch this node", while asserting both
+     * would be `source=x AND target=x`, i.e. self-loops. See `nodeFilters`.
      */
-    it('negates both of a node’s endpoint directions but asserts only the source', () => {
-      const model = modelFor([wideNodes(), wideEdges()]);
+    it('negates both directions of a node in the middle but asserts only the source', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
 
-      const filters = model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).filters;
+      const filters = model(nodeParams({ id: 'gateway', name: 'gateway' })).filters;
 
       expect(filters).toEqual({
         each: [],
@@ -630,29 +648,135 @@ describe('buildRelationsTooltipModel', () => {
       });
     });
 
-    // The case with no field at all — on a host that cannot run the pre-pass, every
-    // node is this. The filters come off the item, so they survive it.
-    it('offers filters for a derived node that has no field', () => {
+    /**
+     * **The reported bug.** A destination-only service — `warpstream-agent-write` on the
+     * live service graph — is never a `source`, so asserting the source key wrote
+     * `client="warpstream-agent-write"` and matched no series at all. No key mapping could
+     * fix it: the key was right, the *direction* was wrong. Which keys a node may claim is
+     * a property of the topology, so it comes off the link set (`toNodeRoles`).
+     */
+    it('asserts the target key for a destination-only node', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
+
+      const filters = model(nodeParams({ id: 'api', name: 'API', value: 7 })).filters;
+
+      expect(filters?.filterFor).toEqual([{ key: 'target', value: 'api' }]);
+      // And negates only that direction: `source!=api` is a chip that filters nothing.
+      expect(filters?.filterOut).toEqual([{ key: 'target', value: 'api' }]);
+    });
+
+    it('asserts the source key for an origin-only node', () => {
+      const model = modelFor([hubNodes(), hubEdges()]);
+
+      const filters = model(nodeParams({ id: 'web', name: 'web' })).filters;
+
+      expect(filters?.filterFor).toEqual([{ key: 'source', value: 'web' }]);
+      expect(filters?.filterOut).toEqual([{ key: 'source', value: 'web' }]);
+    });
+
+    /**
+     * The case with no field at all — on a host that cannot run the derived-node pre-pass,
+     * **every** node of an edges-only response is this. The filters come off the item, so
+     * they survive it, and the `filterable` opt-in comes off the **edges** that named the
+     * node: gating on the node's own (absent) field left a service-graph panel offering
+     * filters on its links and none at all on its nodes. See `markFilterable`.
+     */
+    it('offers filters for a derived node, on the edges’ opt-in', () => {
       const model = modelFor([wideEdges()]);
 
       const node = model(nodeParams({ id: 'gateway', name: 'gateway' }));
 
       expect(node.source).toBeUndefined();
-      expect(node.filters?.filterOut).toEqual([
+      // Source-only in this fixture — both edges leave it — so one direction.
+      expect(node.filters?.filterOut).toEqual([{ key: 'source', value: 'gateway' }]);
+    });
+
+    /**
+     * A self-loop makes the node both an origin and a destination by itself, so the
+     * dedupe — not the roles — is what collapses the pair when both keys map to one.
+     */
+    it('claims both directions for a node with only a self-loop', () => {
+      const selfOnly = toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'gateway' },
+            values: [1],
+            config: { filterable: true },
+          },
+        ],
+      });
+
+      expect(modelFor([selfOnly])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
         { key: 'source', value: 'gateway' },
         { key: 'target', value: 'gateway' },
       ]);
     });
 
+    /** No opt-in anywhere: the footer's buttons would write filters nothing can answer. */
+    it('offers nothing when no field is filterable', () => {
+      const plainEdges = toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'gateway', target: 'db' }, values: [3.5] }],
+      });
+      const model = modelFor([plainEdges]);
+
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters).toBeUndefined();
+      expect(model(nodeParams({ id: 'gateway', name: 'gateway' })).filters).toBeUndefined();
+    });
+
+    /**
+     * A mark that **has** a field answers for itself, `false` included: an explicit "not
+     * filterable" is an override the user wrote, and the edges' answer must not overrule it.
+     */
+    it('lets a declared node opt out even where the edges opt in', () => {
+      const nodes = toDataFrame({
+        name: 'nodes',
+        meta: { type: GRAPH_NODES_WIDE },
+        fields: [{ name: 'gateway', type: FieldType.number, values: [12], config: { filterable: false } }],
+      });
+      const model = modelFor([nodes, wideEdges()]);
+
+      expect(model(nodeParams({ id: 'gateway', name: 'gateway', value: 12 })).filters).toBeUndefined();
+      // The other end is derived, so it still takes the edges' answer.
+      expect(model(nodeParams({ id: 'db', name: 'db' })).filters).toBeDefined();
+    });
+
+    /** The mapping, as a `byName` override lands it on one edge's own field. */
+    const mappedEdges = (custom: Record<string, string>): DataFrame =>
+      toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'db', connection_type: 'database' },
+            values: [3.5],
+            config: { filterable: true, custom },
+          },
+          {
+            name: 'e2',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'db' },
+            values: [7],
+            config: { filterable: true },
+          },
+        ],
+      });
+
     /**
      * The mapping. `sum by (source, target) (label_replace(…, "source", "$1", "client",
      * "(.*)"))` leaves the frame labelled `source` while the metric is still labelled
      * `client`, so the frame's own key filters on nothing — and the aggregation dropped the
-     * original, so only the panel option can recover it.
+     * original, so only the mark's own config can recover it.
      */
-    it('writes the endpoints under the configured datasource labels', () => {
-      const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
-      const model = modelFor([labelledEdges()], mapped);
+    it('writes the endpoints under the mark’s own filter labels', () => {
+      const model = modelFor([mappedEdges({ sourceFilterLabel: 'client', targetFilterLabel: 'server' })]);
 
       expect(
         model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters?.filterFor
@@ -663,14 +787,53 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
+    /**
+     * **Why it is field config and not a panel option.** One panel can join two queries,
+     * so the key that filters one edge need not be the key that filters the next; the
+     * second edge here configures nothing and falls back to the contract's own pair.
+     */
+    it('lets two edges of one panel answer differently', () => {
+      const model = modelFor([mappedEdges({ sourceFilterLabel: 'client', targetFilterLabel: 'server' })]);
+
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e2', value: 7 })).filters?.filterFor).toEqual(
+        [
+          { key: 'source', value: 'gateway' },
+          { key: 'target', value: 'db' },
+        ]
+      );
+    });
+
+    /**
+     * A node maps too, off its **own** field — the node is an endpoint in both directions,
+     * so both keys come from the node the user hovered rather than from any edge.
+     */
     it('maps a node’s endpoints as well', () => {
-      const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
+      const nodes = toDataFrame({
+        name: 'nodes',
+        meta: { type: GRAPH_NODES_WIDE },
+        fields: [
+          {
+            name: 'gateway',
+            type: FieldType.number,
+            values: [12],
+            config: { filterable: true, custom: { sourceFilterLabel: 'client', targetFilterLabel: 'server' } },
+          },
+        ],
+      });
 
       expect(
-        modelFor([wideEdges()], mapped)(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut
-      ).toEqual([
-        { key: 'client', value: 'gateway' },
-        { key: 'server', value: 'gateway' },
+        modelFor([nodes, wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway', value: 12 })).filters?.filterOut
+      ).toEqual([{ key: 'client', value: 'gateway' }]);
+    });
+
+    /**
+     * A node the response only implied has no field, so it has no mapping of its own and
+     * falls back to the pair the response carried — one more thing the derived-node
+     * pre-pass buys, since a declared node *can* be overridden.
+     */
+    it('falls back to the response’s pair for a node with no field', () => {
+      expect(modelFor([wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
+        { key: 'source', value: 'gateway' },
       ]);
     });
 
@@ -683,7 +846,15 @@ describe('buildRelationsTooltipModel', () => {
       const clientServer = toDataFrame({
         name: 'edges',
         meta: { type: GRAPH_EDGES_WIDE },
-        fields: [{ name: 'e1', type: FieldType.number, labels: { client: 'gateway', server: 'db' }, values: [3.5] }],
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { client: 'gateway', server: 'db' },
+            values: [3.5],
+            config: { filterable: true },
+          },
+        ],
       });
       const model = modelFor([clientServer]);
 
@@ -701,10 +872,17 @@ describe('buildRelationsTooltipModel', () => {
       const selfLoop = toDataFrame({
         name: 'edges',
         meta: { type: GRAPH_EDGES_WIDE },
-        fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'gateway', target: 'gateway' }, values: [1] }],
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'gateway' },
+            values: [1],
+            config: { filterable: true, custom: { sourceFilterLabel: 'svc', targetFilterLabel: 'svc' } },
+          },
+        ],
       });
-      const mapped = options({ relationsSourceFilterLabel: 'svc', relationsTargetFilterLabel: 'svc' });
-      const model = modelFor([selfLoop], mapped);
+      const model = modelFor([selfLoop]);
 
       expect(
         model(linkParams({ source: 'gateway', target: 'gateway', markId: 'e1', value: 1 })).filters?.filterFor
@@ -741,6 +919,60 @@ describe('getRelationsTooltipMarks', () => {
 
     expect(marks.nodes.get('e1')?.source.field.config.unit).toBe('ms');
     expect(marks.links.get('e1')?.source.field.config.unit).toBe('percent');
+  });
+
+  /**
+   * The two derivations the filter footer reads, asserted directly rather than through a
+   * hover: which endpoint keys a node may claim, and whether anything opted in at all.
+   */
+  describe('the filter footer’s inputs', () => {
+    /** `a → b → c`, one node per role, plus a self-loop on `d`. */
+    const chain = () =>
+      toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          { name: 'a-b', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] },
+          { name: 'b-c', type: FieldType.number, labels: { source: 'b', target: 'c' }, values: [2] },
+          {
+            name: 'd-d',
+            type: FieldType.number,
+            labels: { source: 'd', target: 'd' },
+            values: [3],
+            config: { filterable: true },
+          },
+        ],
+      });
+
+    it('reads each node’s endpoint roles off the link set', () => {
+      const marks = getRelationsTooltipMarks(frameToRelationsGraph([chain()], theme)!, theme, 'utc');
+
+      expect([...marks.nodeRoles!]).toEqual([
+        ['a', { source: true, target: false }],
+        ['b', { source: true, target: true }],
+        ['c', { source: false, target: true }],
+        ['d', { source: true, target: true }],
+      ]);
+    });
+
+    // Any, not every: the endpoint keys are resolved response-wide, so one filterable edge
+    // means the response's endpoint dimensions are filterable. Only `d-d` carries it here.
+    it('takes one filterable edge as the response’s opt-in', () => {
+      const marks = getRelationsTooltipMarks(frameToRelationsGraph([chain()], theme)!, theme, 'utc');
+
+      expect(marks.endpointsFilterable).toBe(true);
+    });
+
+    it('reports no opt-in when no edge carries one', () => {
+      const marks = getRelationsTooltipMarks(frameToRelationsGraph([wideEdges()], theme)!, theme, 'utc');
+      const plain = { ...wideEdges(), fields: wideEdges().fields.map((field) => ({ ...field, config: {} })) };
+
+      // `wideEdges` opts in; the same frames stripped of it do not.
+      expect(marks.endpointsFilterable).toBe(true);
+      expect(getRelationsTooltipMarks(frameToRelationsGraph([plain], theme)!, theme, 'utc').endpointsFilterable).toBe(
+        false
+      );
+    });
   });
 
   it('collects an adjacency list for the statless nodes only', () => {

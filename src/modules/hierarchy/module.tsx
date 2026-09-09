@@ -3,7 +3,7 @@ import { commonOptionsBuilder } from '@grafana/ui';
 import { hierarchySeriesTypeOptions, seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
-import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { type PanelOptions } from 'types';
 import { hierarchySuggestionsSupplier } from './suggestions';
 
@@ -14,7 +14,7 @@ import { hierarchySuggestionsSupplier } from './suggestions';
 // picks the render variant.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('hierarchy'))
   .useFieldConfig({
-    standardOptions: STANDARD_COLOR_OPTIONS,
+    standardOptions: STANDARD_FIELD_OPTIONS,
   })
   .setPanelOptions((builder) => {
     // Panel-level render variant: treemap vs sunburst.

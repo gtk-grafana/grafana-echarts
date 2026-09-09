@@ -7,7 +7,7 @@ import { PIE_CALC_DEFAULT, partToWholeSeriesTypeOptions } from 'editor/pie';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { removeOption } from 'lib/grafana/editor/common/removeOption';
 import { addStandardDataReduceOptions } from 'lib/grafana/editor/common/standardReducer';
@@ -50,7 +50,7 @@ initPluginTranslations('grafana-echarts-app');
 // the same slices. gauge is a planned third variant.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('part-to-whole'))
   .useFieldConfig({
-    standardOptions: STANDARD_COLOR_OPTIONS,
+    standardOptions: STANDARD_FIELD_OPTIONS,
     // Register `custom.hideFrom` so the legend visibility toggle's `byName`
     // override is applied by Grafana (unregistered override properties are
     // skipped). Pie/funnel slices are rows of one field, so the converter reads

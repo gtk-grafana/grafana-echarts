@@ -81,6 +81,12 @@ export const testFieldConfigRegistry = new FieldConfigOptionsRegistry(() => [
   customItem('lineWidth', 'Line width'),
   customItem('lineType', 'Line type'),
   customItem('curveness', 'Curveness'),
+  // The tooltip footer's two: the standard flag that decides whether any filter button is
+  // offered at all (`resolveFilters`), and the per-mark endpoint keys they are written
+  // under. Both are unset in every fixture, so registering them changes no render.
+  item('filterable', 'Filterable'),
+  customItem('sourceFilterLabel', 'Source filter label'),
+  customItem('targetFilterLabel', 'Target filter label'),
 ]);
 
 const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
