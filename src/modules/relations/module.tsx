@@ -17,7 +17,7 @@ import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { addRelationsStatOptions } from 'lib/grafana/editor/relations/stats';
-import { setDataTransformations } from 'lib/grafana/panelDataTransformations';
+import { setSystemTransformations } from 'lib/grafana/panelDataTransformations';
 import { type PanelOptions } from 'types';
 import { relationsDataTransformations } from './dataTransformations';
 import { relationsSuggestionsSupplier } from './suggestions';
@@ -123,4 +123,4 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
  * `frameToRelationsGraph`. A user on such a host can supply the conversion by hand with
  * a "Rows to fields" transformation. See `lib/grafana/panelDataTransformations.ts`.
  */
-export const plugin = setDataTransformations(relationsPlugin, relationsDataTransformations);
+export const plugin = setSystemTransformations(relationsPlugin, relationsDataTransformations);

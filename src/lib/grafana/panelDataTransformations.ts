@@ -33,22 +33,22 @@ import { type CustomTransformOperator, type DataFrame, type DataTransformerConfi
  */
 
 /** The supplier signature from the PR: evaluated on every data update. */
-export type PanelDataTransformationsSupplier = (ctx: {
+export type SystemTransformationsSupplier = (ctx: {
   series: DataFrame[];
 }) => Array<DataTransformerConfig | CustomTransformOperator> | undefined;
 
-interface PluginWithDataTransformations {
-  setDataTransformations: (supplier: PanelDataTransformationsSupplier) => unknown;
+interface PluginWithSystemTransformations {
+  setSystemTransformations: (supplier: SystemTransformationsSupplier) => unknown;
 }
 
-function supportsDataTransformations(plugin: unknown): plugin is PluginWithDataTransformations {
+function supportsSystemTransformations(plugin: unknown): plugin is PluginWithSystemTransformations {
   // Feature detection rather than a version check: the method is absent from
   // `@grafana/data` 13.1.1's types *and* from any host built without the PR.
   return (
     typeof plugin === 'object' &&
     plugin !== null &&
-    'setDataTransformations' in plugin &&
-    typeof plugin.setDataTransformations === 'function'
+    'setSystemTransformations' in plugin &&
+    typeof plugin.setSystemTransformations === 'function'
   );
 }
 
@@ -58,14 +58,14 @@ function supportsDataTransformations(plugin: unknown): plugin is PluginWithDataT
  * Returns the plugin unchanged so it stays chainable, and reports whether registration
  * happened so callers can assert on it in tests.
  */
-export function setDataTransformations<T>(plugin: T, supplier: PanelDataTransformationsSupplier): T {
-  if (supportsDataTransformations(plugin)) {
-    plugin.setDataTransformations(supplier);
+export function setSystemTransformations<T>(plugin: T, supplier: SystemTransformationsSupplier): T {
+  if (supportsSystemTransformations(plugin)) {
+    plugin.setSystemTransformations(supplier);
   }
   return plugin;
 }
 
 /** True when the running host exposes the API. Exported for diagnostics and tests. */
 export function hostSupportsDataTransformations(plugin: unknown): boolean {
-  return supportsDataTransformations(plugin);
+  return supportsSystemTransformations(plugin);
 }

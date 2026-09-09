@@ -3,7 +3,7 @@ import { deriveNodesOperator } from 'lib/echarts/converters/deriveNodes';
 import { isGraphWideFrames } from 'lib/echarts/converters/graphWide';
 import { isLegacyGraphFrames, legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
 import { isLongGraphFrames, longToWideOperator } from 'lib/echarts/converters/longToWide';
-import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTransformations';
+import { type SystemTransformationsSupplier } from 'lib/grafana/panelDataTransformations';
 
 /**
  * The transformations the relations family needs before it can be drawn or configured.
@@ -56,7 +56,7 @@ import { type PanelDataTransformationsSupplier } from 'lib/grafana/panelDataTran
  * ambiguous case it would help with is unreachable from here regardless. That ceiling is
  * also why the pivot reads the contract's canonical label keys rather than configurable ones.
  */
-export const relationsDataTransformations: PanelDataTransformationsSupplier = ({ series }) => {
+export const relationsDataTransformations: SystemTransformationsSupplier = ({ series }) => {
   debug('relationsDataTransformations', LOG_LEVELS.debug, { series });
   if (isLongGraphFrames(series)) {
     return [longToWideOperator, deriveNodesOperator];
