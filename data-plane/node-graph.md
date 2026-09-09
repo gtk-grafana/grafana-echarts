@@ -1,12 +1,29 @@
-# Node graph
+# Node graph — the legacy row format (`graph-*-long`)
 
 A **node graph** visualizes elements (nodes) and the relationships between them
 (edges). Grafana models it as a pair of column-oriented data frames: an **edges**
-frame and an optional **nodes** frame.
+frame and an optional **nodes** frame, with **one row per node and one row per
+edge**.
+
+> **This is the legacy form, and it stays supported.** Everything below is accurate
+> and current: it is the format Tempo, AWS X-Ray and TestData emit natively, it is
+> published on the core Node graph panel's
+> [Data API](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/node-graph/#data-api),
+> and it is what `frameToNodeGraph` reads today.
+>
+> Read alongside it: **[graph-wide.md](./graph-wide.md)**, a field-based contract
+> (`graph-nodes-wide` / `graph-edges-wide`) in which one node is one **field** and one
+> edge is one **field**. That pivot exists because a row cannot be targeted by a Grafana
+> field override, so nothing here — colour, unit, links, visibility — can be configured
+> per node or per edge. Under the naming convention this format is retroactively
+> `graph-*-long`: the nodes/edges pair is an ordinary **`numeric-long`** frame pair with
+> reserved column names, where `source`/`target` are dimension columns and `mainstat` is
+> the value column.
 
 > **Not a data plane contract kind.** Unlike the other docs in this folder
 > (Numeric, Heatmap, ...), node graph is **out of the Grafana data plane
-> contract**. It carries no `frame.meta.type`. Grafana identifies it through a
+> contract**. It carries no `frame.meta.type` — `DataFrameType` in `@grafana/data`
+> 13.1.1 has twelve members and none is graph-related. Grafana identifies it through a
 > separate routing signal (`frame.meta.preferredVisualisationType`) and field/
 > frame naming conventions.
 >
@@ -268,6 +285,15 @@ swap; each is handled, with the handling named.
 - **Edges-only responses are legal**, and handled: Grafana derives the node set and
   its stats from `source`/`target` when no nodes frame is present, so a converter
   that required both frames would render nothing for a valid response.
+- **Nothing here is configurable per node or per edge.** A mark is a row, and Grafana's
+  override matcher is `(field, frame, allFrames) => boolean`, so `byName` has nothing to
+  bind to: the picker on a relations panel lists exactly `id, source, target, mainstat`
+  however many nodes and edges the response contains. Colour, unit, decimals, data links
+  and visibility are therefore all-marks-or-none, and `field.state.range` — the by-value
+  colour domain — is the min/max across `mainstat`, `secondarystat`, `noderadius`,
+  `arc__*` and `fixedx`/`fixedy` together (measured: a frame with `mainstat` 8–12 and
+  `noderadius` 40–60 gives every field `{min: 0.5, max: 60}`). This is inherent to the
+  row shape, not a converter bug; [graph-wide.md](./graph-wide.md) is the response to it.
 
 ## Example
 
@@ -345,6 +371,8 @@ const nodesWithArcs = toDataFrame({
 
 ## References
 
+- The field-based alternative: [graph-wide.md](./graph-wide.md), and its rewrite plan
+  [../todo/graph-wide-migration.md](../todo/graph-wide-migration.md)
 - Node graph panel Data API:
   https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/node-graph/#data-api
 - Field-name enum `NodeGraphDataFrameFieldNames`:

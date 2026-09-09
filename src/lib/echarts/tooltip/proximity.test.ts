@@ -65,7 +65,8 @@ function mount(
   mode = TooltipDisplayMode.Single,
   patchAxisPointer?: Record<string, unknown>
 ): { chart: EChartsType; series: SeriesPoints[] } {
-  const option = buildPanelChartOption(makeContext(frames, mode), { isGrafanaLegend: true });
+  // Non-null: every fixture here is a cartesian frame the family can draw.
+  const option = buildPanelChartOption(makeContext(frames, mode), { isGrafanaLegend: true })!;
   if (patchAxisPointer) {
     Object.assign(option.axisPointer as object, patchAxisPointer);
     Object.assign((option.tooltip as { axisPointer: object }).axisPointer, patchAxisPointer);

@@ -1,5 +1,6 @@
 import { type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
+import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
 import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
@@ -29,13 +30,31 @@ const canvasOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelOptions>
   ...extra,
 });
 
+/**
+ * Fixtures are written in Grafana's row form, because that is what a datasource emits,
+ * and converted the way the host does: by the transformation the plugin registers on
+ * itself, which runs above the panel (`modules/relations/dataTransformations.ts`). The
+ * panel itself reads only the field-based contract, so every render here goes through
+ * the same conversion the real pipeline performs.
+ */
+const asPipelineWould = (frames: Parameters<typeof getComponent>[0]): Parameters<typeof getComponent>[0] =>
+  legacyToWide(frames);
+
 const renderGraph = async (
   frames: Parameters<typeof getComponent>[0],
   options: Partial<PanelOptions> = {},
   fieldConfig?: FieldConfigSource
 ) => {
   const { container } = render(
-    getComponent(frames, 'graph', canvasOptions(options), undefined, undefined, 'relations', fieldConfig)
+    getComponent(
+      asPipelineWould(frames),
+      'graph',
+      canvasOptions(options),
+      undefined,
+      undefined,
+      'relations',
+      fieldConfig
+    )
   );
   return getSeriesCanvasEvents(container);
 };
@@ -50,7 +69,7 @@ const renderSankey = async (
 ) => {
   const { container } = render(
     getComponent(
-      frames,
+      asPipelineWould(frames),
       'sankey',
       { ...canvasOptions(options), relationsLayout: undefined },
       undefined,
@@ -71,7 +90,7 @@ const renderChord = async (
 ) => {
   const { container } = render(
     getComponent(
-      frames,
+      asPipelineWould(frames),
       'chord',
       { ...canvasOptions(options), relationsLayout: undefined },
       undefined,
@@ -234,11 +253,50 @@ describe('relations (graph) canvas renders', () => {
         overrides: [
           {
             matcher: { id: 'byName', options: 'DB' },
-            properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'purple' } }],
+            properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'red' } }],
           },
         ],
       };
       const { defaultEvents, seriesEvents } = await renderGraph([nodesFrame, edgesFrame], {}, fieldConfig);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // An edge is a field under the wide contract, so "Hide in area" can name one —
+    // something the row form could not express at all. `e1` is gateway->api, so the
+    // node symbols are untouched and exactly one line goes missing.
+    it('hides a single edge named by a byName override', async () => {
+      const fieldConfig: FieldConfigSource = {
+        defaults: {},
+        overrides: [
+          {
+            matcher: { id: 'byName', options: 'e1' },
+            properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
+          },
+        ],
+      };
+      const { defaultEvents, seriesEvents } = await renderGraph([nodesFrame, edgesFrame], {}, fieldConfig);
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // Per-edge `custom.curveness` beats the panel-level "Link curveness": `e1` bows
+    // hard while the other three stay on the panel value.
+    it('curves a single edge named by a byName override', async () => {
+      const fieldConfig: FieldConfigSource = {
+        defaults: {},
+        overrides: [
+          {
+            matcher: { id: 'byName', options: 'e1' },
+            properties: [{ id: 'custom.curveness', value: 0.6 }],
+          },
+        ],
+      };
+      const { defaultEvents, seriesEvents } = await renderGraph(
+        [nodesFrame, edgesFrame],
+        { relationsCurveness: 0.1 },
+        fieldConfig
+      );
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });

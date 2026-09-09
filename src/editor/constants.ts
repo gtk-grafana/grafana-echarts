@@ -113,10 +113,10 @@ export const hierarchySeriesTypeOptions: Array<SelectableValue<HierarchySeriesTy
   { value: 'sunburst', label: 'Sunburst' },
 ];
 /**
- * Relations types: nodes plus the links between them, built from Grafana's
- * node-graph frame pair. All three ECharts series consume the identical node/link
- * input, so they are render variants of one family rather than separate panels. See
- * echarts/converters/nodeGraph.ts.
+ * Relations types: nodes plus the links between them, built from the field-based graph
+ * contract. All three ECharts series consume the identical node/link input, so they are
+ * render variants of one family rather than separate panels. See
+ * echarts/converters/graphWide.ts.
  */
 export const relationsSeriesTypes: RelationsSeriesType[] = ['graph', 'sankey', 'chord'];
 /**

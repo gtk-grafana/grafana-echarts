@@ -510,6 +510,14 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsShowNodeLabels?: boolean;
 
   /**
+   * Relations node values (Default tier; ECharts `series.*.label.formatter`): append
+   * each node's stat to its label, on a second line. Off by default, since it
+   * doubles the height of every label. Shares one formatter across all three render
+   * variants — see `getRelationsNodeLabelFormatter`.
+   */
+  relationsShowNodeValues?: boolean;
+
+  /**
    * Relations node size in px (Default tier; ECharts `series.graph.symbolSize`).
    * Only applies to nodes with no `noderadius` value, which always wins. Unset uses
    * `RELATIONS_NODE_SIZE_DEFAULT`. See `getGraphNodeSize`.

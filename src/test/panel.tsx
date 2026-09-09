@@ -1,10 +1,8 @@
 import {
-  applyFieldOverrides,
   createTheme,
   type DataFrame,
   dateTime,
   EventBusSrv,
-  FieldColorModeId,
   type FieldConfigSource,
   LoadingState,
   type PanelData,
@@ -28,6 +26,7 @@ import {
   SERIES_LAYER_SELECTOR,
   setupECharts,
 } from 'test/canvas';
+import { applyTestFieldConfig } from 'test/fieldConfig';
 import { type PanelOptions } from 'types';
 
 // Shared harness for the canvas integration tests: render the real <Panel />
@@ -48,34 +47,16 @@ export const defaultTimeRange: TimeRange = {
 
 const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
 
-// Set the color palette. Note you can't set defaults in `applyFieldOverrides` and expect it to do its job in tests,
-// `applyFieldOverrides` copies defaults onto fields via the standard field-config registry.
-// Since grafana doesn't expose any way to mock the registry in plugins we're left with manually doing the work of applyFieldOverrides without any of the benefit
-// @todo create an issue for core Grafana to support registry mocking
-//
-// `fieldConfig` (defaults + byName/byType overrides) is applied to the frames the
-// same way real Grafana does before the panel renders, so byName color overrides
-// reach the converter's `getFieldDisplayValues` call.
+/**
+ * `fieldConfig` (defaults + byName/byType overrides) applied to the frames the same way
+ * real Grafana does before the panel renders, so a byName color override lands on the
+ * matching field's config and display processor. See `test/fieldConfig.ts` for why the
+ * property registry has to be supplied by hand.
+ */
 export const applyGrafanaFieldDefaults = (
   frames: DataFrame[],
   fieldConfig: FieldConfigSource = emptyFieldConfig
-): DataFrame[] =>
-  applyFieldOverrides({
-    data: frames.map((frame) => ({
-      ...frame,
-      fields: frame.fields.map((field) => ({
-        ...field,
-        config: {
-          ...field.config,
-          color: field.config.color ?? { mode: FieldColorModeId.PaletteClassic },
-        },
-      })),
-    })),
-    fieldConfig,
-    replaceVariables: (value) => value,
-    theme,
-    timeZone: 'utc',
-  });
+): DataFrame[] => applyTestFieldConfig(frames, fieldConfig, theme);
 
 /**
  * Returns the Panel component with overrideable default props

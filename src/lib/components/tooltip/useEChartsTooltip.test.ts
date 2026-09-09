@@ -11,6 +11,8 @@ interface Dispatched {
   type: string;
   seriesIndex?: number;
   dataIndex?: number;
+  /** `'node'` / `'edge'` for graph-like series; absent elsewhere. */
+  dataType?: string;
 }
 
 /**
@@ -208,6 +210,96 @@ describe('useEChartsTooltip', () => {
     });
     expect(result.current.state.pinned).toBe(true);
     expect(result.current.state.pinnedItem).toEqual({ seriesIndex: 1, dataIndex: 3 });
+  });
+
+  // A graph-like series (graph / sankey / chord) keeps nodes and edges in two
+  // separate data tables, discriminated by `dataType`. ECharts' `showTip` cannot
+  // address the edge table — `findPointFromSeries` calls `seriesModel.getData()`
+  // with no `dataType` — so replaying a clicked edge resolves the *node* at the
+  // same `dataIndex` and pins an unrelated node's tooltip.
+  describe('re-pinning onto an edge of a graph-like series', () => {
+    const nodeModel: TooltipModel = { header: { label: 'gateway', value: '' }, rows: [{ label: 'Value', value: '7' }] };
+    const edgeModel: TooltipModel = {
+      header: { label: 'us-west → us-east', value: '' },
+      rows: [{ label: 'Value', value: '380' }],
+    };
+
+    /**
+     * Pin on a node, then hover an edge and click it — the reported sequence.
+     * Both items sit at `dataIndex: 2`, which is what makes the bug visible: only
+     * `dataType` tells them apart.
+     *
+     * `dispatched` is emptied after the first pin so assertions see only what the
+     * re-pin dispatched — the node pin legitimately replays a `showTip` at that
+     * same index.
+     */
+    const rePinOntoEdge = () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(nodeModel);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'node' });
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      fake.dispatched.length = 0;
+
+      act(() => {
+        // ECharts keeps hit-testing while the React tooltip is frozen, so the
+        // edge's model still reaches the sink even though it is not displayed.
+        view.result.current.sink(edgeModel);
+        // The outside-click handler unpins on mousedown; the click then re-pins.
+        fireEvent.mouseDown(document.body);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+      });
+      return { fake, view };
+    };
+
+    it('pins the clicked edge, not the node sharing its dataIndex', () => {
+      const { view } = rePinOntoEdge();
+
+      expect(view.result.current.state.pinned).toBe(true);
+      expect(view.result.current.state.model).toEqual(edgeModel);
+      expect(view.result.current.state.pinnedItem).toEqual({ seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+    });
+
+    it('does not replay an edge through showTip, which would resolve the node', () => {
+      const { fake } = rePinOntoEdge();
+
+      // No replay at all for an edge: a typed one is ignored by ECharts and an
+      // untyped one is the exact dispatch that resolved the wrong node.
+      expect(fake.dispatched.filter((d) => d.type === 'showTip')).toEqual([]);
+    });
+
+    it('emphasises the edge rather than the node at the same index', () => {
+      const { fake } = rePinOntoEdge();
+
+      expect(fake.dispatched).toContainEqual({
+        type: 'highlight',
+        seriesIndex: 0,
+        dataIndex: 2,
+        dataType: 'edge',
+      });
+    });
+
+    // The node path is unchanged: `showTip` can address the main data table, so
+    // it still drives the replay that rebuilds content after a re-pin.
+    it('still replays through showTip when the clicked item is a node', () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(nodeModel);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 1, dataType: 'node' });
+      });
+
+      expect(view.result.current.state.pinned).toBe(true);
+      // Untyped on purpose: `showTip` ignores `dataType`, and the main data table
+      // is the node table, so the bare index pair resolves the right item.
+      expect(fake.dispatched).toContainEqual({ type: 'showTip', seriesIndex: 0, dataIndex: 1 });
+    });
   });
 
   describe('scroll while pinned', () => {

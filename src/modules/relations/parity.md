@@ -2,14 +2,34 @@
 
 Compares the editor options of this ECharts **Relations** module
 ([module.tsx](./module.tsx)) against core Grafana's **Node graph** panel
-([`public/app/plugins/panel/nodeGraph/module.tsx`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/module.tsx),
+([
+`public/app/plugins/panel/nodeGraph/module.tsx`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/module.tsx),
 options in
 [`panelcfg.cue`](https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/panelcfg.cue)).
 
-Both consume the same input: Grafana's node-graph frame pair. See
-[data-plane/node-graph.md](../../../data-plane/node-graph.md) for the field spec and
-[docs/relations-data-sources.md](../../../docs/relations-data-sources.md) for which
-data sources can produce it.
+Both are fed from the same query. Core's Node graph reads Grafana's node-graph frame pair
+directly ([data-plane/node-graph.md](../../../data-plane/node-graph.md) has the field spec,
+and [docs/relations-data-sources.md](../../../docs/relations-data-sources.md) which data
+sources produce it); this module reads the **field-based** contract those frames are
+converted to above the panel, so a byte-identical query still feeds both and the
+side-by-side comparison this doc rests on is intact.
+
+> **This module now reads `graph-*-wide` only.**
+> [data-plane/graph-wide.md](../../../data-plane/graph-wide.md) defines
+> `graph-nodes-wide` / `graph-edges-wide`, where one node is one **field** and one edge is
+> one **field**. `converters/legacyToWide.ts`, registered through
+> `PanelPlugin.setDataTransformations`, converts the row form to it before field overrides
+> are applied — which is what makes each node and edge an override target.
+>
+> **Colour, per-mark config, tooltips and data links have all landed (phases 3–5).** A
+> mark's colour is `field.display(value).color`, its style is `custom.*` set by an
+> ordinary override, hiding reads `custom.hideFrom.viz` off the mark, and a hovered node
+> or edge formats with **its own** field and surfaces **its own** `config.links` — so two
+> nodes of one graph can carry different units, and a link can be put on exactly one mark.
+> **All six phases have shipped.** What remains is the genuinely open items below, chiefly
+> a node _derived_ from an edge's endpoints, which has no field for any of this to hang on.
+> [todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md) records what each
+> phase changed and the three decisions that went differently in the writing.
 
 ## Design difference
 
@@ -169,26 +189,45 @@ name, No value, Thresholds, Value mappings, Data links), customizing only Color
 (PaletteClassic, byValue + bySeries). Core's Node graph keeps the full set too, but
 routes stat units through its own panel options rather than the standard Unit.
 
-| Option         | Meaningful here? | Notes                                                                                                                                                                                                   | Regression test                                                                                                                     | Demo panel |
-| -------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Color scheme   | **Yes**          | The load-bearing one. Three tiers: byName fixed-color override → the node's own `color` field → the `mainstat` field's by-value scheme → classic palette by position. See `makeRelationsColorResolver`. | [canvas: colors nodes from the color field, honors a byName color override][canvas], [unit: makeRelationsColorResolver][graph-opts] | —          |
-| Unit           | **Yes**          | Formats `mainstat` / `secondarystat` / link weight in the tooltip.                                                                                                                                      | —                                                                                                                                   | —          |
-| Decimals       | **Yes**          | Same path as Unit.                                                                                                                                                                                      | —                                                                                                                                   | —          |
-| Value mappings | **Yes**          | Applied through the field's display processor.                                                                                                                                                          | —                                                                                                                                   | —          |
-| Data links     | **Yes**          | The pinned tooltip footer resolves a hovered node back to its nodes-frame row, and a hovered link to its edges-frame row. Nodes _derived_ from the edges frame carry no row, so they show no footer.    | —                                                                                                                                   | —          |
-| Min            | Marginal         | Only bounds the by-value color domain.                                                                                                                                                                  | —                                                                                                                                   | —          |
-| Max            | Marginal         | Only bounds the by-value color domain.                                                                                                                                                                  | —                                                                                                                                   | —          |
-| No value       | Marginal         | A null `mainstat` renders a node with no stat.                                                                                                                                                          | [unit: optional edge and node fields][ng-conv] (a missing `mainstat` reaches the model as undefined)                                | —          |
-| Thresholds     | Marginal         | Reachable only as a by-value color scheme; there is no `markLine` equivalent because there are no axes.                                                                                                 | —                                                                                                                                   | —          |
-| Display name   | **Inert**        | Node and link names come from frame _rows_ (`title` / `id`), not from field names — the same limitation pie and candlestick have.                                                                       | n/a (inert)                                                                                                                         | n/a        |
+| Option         | Meaningful here? | Notes                                                                                                                                                                                                                                                                                                                                                           | Regression test                                                                                                                   | Demo panel                                                                                     |
+| -------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Color scheme   | **Yes**          | The load-bearing one, and now plain field behaviour: a mark's colour is `field.display(value).color`, which `applyFieldOverrides` already resolved, so all eight modes work and a `byName` override targets one node or one edge. Only a node with no field of its own — one derived from an edge's endpoints — falls back, to the classic palette by position. | [canvas: colors nodes from the color field, honors a byName color override][canvas], [unit: node colour / edge colour][wide-conv] | [graph-wide.json][db-wide] · [#13 live][live-wide-13]                                          |
+| Unit           | **Yes**          | Per mark, not per frame: a hovered node or edge formats with its own field's unit, in the tooltip **and** in the "Show node values" label. Two nodes of one graph can differ, which the row form cannot express.                                                                                                                                                | [unit: per-mark formatting][tip-marks], [e2e: emitted model][tip-emit]                                                            | [per-mark-tooltip-links.json][db-marks], [graph-wide.json][db-wide] · [#14 live][live-wide-14] |
+| Decimals       | **Yes**          | Same path as Unit.                                                                                                                                                                                                                                                                                                                                              | [unit: per-mark formatting][tip-marks]                                                                                            | [per-mark-tooltip-links.json][db-marks]                                                        |
+| Value mappings | **Yes**          | Applied through the field's display processor.                                                                                                                                                                                                                                                                                                                  | —                                                                                                                                 | —                                                                                              |
+| Data links     | **Yes**          | The pinned footer resolves the hovered mark's **own** field, so a `byName` `links` override puts a link on exactly one node or one edge and leaves the others with no footer at all. A node _derived_ from an edge's endpoints has no field, so it still shows none.                                                                                            | [e2e: node, edge and the marks without a link][dl-test]                                                                           | [per-mark-tooltip-links.json][db-marks], [graph-wide.json][db-wide] · [#15 live][live-wide-15] |
+| Min            | Marginal         | Only bounds the by-value color domain.                                                                                                                                                                                                                                                                                                                          | —                                                                                                                                 | —                                                                                              |
+| Max            | Marginal         | Only bounds the by-value color domain.                                                                                                                                                                                                                                                                                                                          | —                                                                                                                                 | —                                                                                              |
+| No value       | Marginal         | A null `mainstat` renders a node with no stat.                                                                                                                                                                                                                                                                                                                  | [unit: optional edge and node fields][ng-conv] (a missing `mainstat` reaches the model as undefined)                              | —                                                                                              |
+| Thresholds     | Marginal         | Reachable only as a by-value color scheme; there is no `markLine` equivalent because there are no axes.                                                                                                                                                                                                                                                         | —                                                                                                                                 | —                                                                                              |
+| Display name   | **Yes**          | A node's name **is** its field's display name: the reader takes `config.displayName` (the row form's `title`) and falls back to the field name, so a `byName` override renames one node. Edges keep their field name — an edge's display name carries its labels, `e1 {source="a", target="b"}`.                                                                | [unit: one node per field, titled by displayName][wide-conv]                                                                      | [graph-wide.json][db-wide] · [#8 live][live-wide-8]                                            |
 
 Not registered, deliberately:
 
-- **`reduceOptions`** (`addStandardDataReduceOptions`) — rows _are_ the entities, so
-  there is nothing to reduce. Unlike part-to-whole, this family never calls it.
-- **Legend calcs** — `includeLegendCalcs: false`, since legend entries are nodes, not
-  fields, so there are no series values to reduce.
-- **`custom.hideFrom`** (`commonOptionsBuilder.addHideFrom`) — see the gap below.
+- ~~**`reduceOptions`**~~ — **now registered** (`addRelationsStatOptions`): `calcs[0]` is a
+  mark's main stat, `calcs[1]` its secondary. Deliberately _not_
+  `addStandardDataReduceOptions`, which would also add an inert "Show: Calculate / All
+  values" radio and a "Limit" input — a mark is a field, so neither can mean anything here.
+  `normalizeRelationsCalcs` truncates to the two stat slots.
+- **Legend calcs** — `includeLegendCalcs: false`. The original reason (legend entries are
+  not fields, so there is nothing to reduce) is obsolete: a legend entry **is** a field
+  now. Reconsidered in phase 6 and **still off**, for a narrower reason — a mark is
+  already reduced to one value by `reduceOptions`, so on the instant data this family
+  normally sees, every legend calc would print that same number again. It becomes a real
+  option only for a _ranged_ wide frame, where a mark has many rows and Max/Mean over the
+  range would say something `calcs[0]` does not. Left open rather than built, because
+  `getDisplayValues` would have to reduce each mark's own field a second time and the
+  legend has no other per-mark surface to justify it.
+- **`custom.hideFrom`** (`commonOptionsBuilder.addHideFrom`) — the real one, with both
+  editors reachable: a mark is a field, so a `byName` override hides exactly one node or
+  one edge. See the gap below for what the legend does with it.
+- **Per-mark style** (`editor/relations/fieldConfig.ts`) — `custom.nodeRadius`,
+  `.subtitle`, `.fixedX`, `.fixedY` on nodes; `custom.lineWidth`, `.lineType`,
+  `.curveness` on edges. Override-only (`hideFromDefaults`), because the Fields tab
+  would apply one value to every node _and_ every edge at once, which either duplicates
+  a panel option or means nothing. These are the columns the row form carried as data —
+  the same keys `converters/legacyToWide.ts` writes — now editable without touching the
+  query.
 
 Two structural limits apply here as they do everywhere else in this plugin (see
 [heatmap/parity.md](../heatmap/parity.md)): standard options **cannot be
@@ -217,10 +256,16 @@ there is nothing to toggle. Traversal order follows frame row order, so the _sam
 is dropped on every render — an unstable choice would change the panel's shape between
 refreshes.
 
-Because dropping links silently changes the graph, the panel reports the count in a
-bottom-left note ("N links hidden to remove cycles"), rendered through the same
-ECharts `title` mechanism as the pie's donut-center readout. Acyclic data shows no
-note. A merge is not counted, since summing weights loses no flow.
+Because dropping links silently changes the graph, the panel reports the count as a
+corner notice ("N links hidden to remove cycles") — a hoverable warning icon in the
+top-right of the viz area, built by `relationsChartModule.getNotices` and rendered by
+`ChartNotices`. Acyclic data shows no notice. A merge is not counted, since summing
+weights loses no flow.
+
+The notice is drawn by the panel rather than handed to Grafana's panel _chrome_: that
+slot is fed only from `DataFrame.meta.notices` on the scene's data object (see
+`PanelNoticesRenderer`, which reads `sceneGraph.getData(model).useState()`), which a
+panel plugin receives read-only.
 
 `graph` accepts any digraph and never runs this pass, so the two variants over the same
 frames can legitimately show a different number of links.
@@ -260,11 +305,30 @@ frames can legitimately show a different number of links.
 - **`detail__*` has no context menu.** Core surfaces these in a node/edge context menu
   header; this panel has no such surface, so they can only fold into tooltip content
   (not yet done).
-- **No legend hide toggle.** `addHideFrom` is not registered, because nodes are frame
-  _rows_: a byName `custom.hideFrom` override would never match a node, and
-  `stripHiddenValueFields` could only strip the underlying stat column. The hierarchy
-  family omits it for the same reason. Hiding individual nodes would need
-  row-level filtering inside the converter, as `resolvePieSlices` does for slices.
+- **Legend hide** goes through Grafana's override engine now that a mark is a field:
+  `custom.hideFrom.viz` is applied to the mark upstream and the reader reads it off the
+  mark (`RelationNode.hidden`). `withoutHiddenMarks` (`charts/relations.ts`) then drops
+  the mark **and every link touching a hidden node**, which is the part no field config
+  can express. Three wrinkles remain:
+  - **The kept-name universe includes edges.** The toggle persists as a `byNames`
+    matcher in _exclude_ mode, so any field missing from the kept list is hidden — and
+    edges are fields the legend never lists. Without `getOverrideTargetNames` naming
+    them, hiding one node would erase every link in the panel.
+  - **A derived node still hides by name.** It has no field for an override to land on,
+    so `hiddenNodeIds` falls back to matching its name — the same hole as
+    `relations-data-links.md` gap 4.
+  - **Relations stays out of `stripHiddenValueFields`.** Deleting a hidden node's column
+    would make the reader re-derive that node from the edges still naming it, so it
+    would come straight back (see `options/panelOption.ts`).
+
+  Clicking uses `Hide` semantics, not the per-field `Isolate` default: isolating one
+  node leaves a graph of one node and no links.
+  Hover emphasis arrives over the panel event bus rather than through props —
+  `VizLegend` declares `onLabelMouseOver`/`onLabelMouseOut` but its implementation
+  ignores them and publishes `DataHoverEvent`/`DataHoverClearEvent` instead. See
+  `useLegendHighlight` and `relationsChartModule.getLegendHighlightTargets`, which
+  emphasises the node plus its incident links via ECharts' `dataType` discriminator.
+
 - **No proximity hover.** Hovering _near_ a node or link does nothing; you must be on
   it. The proximity gate (`tooltip/proximity.ts`) admits only
   `line`/`scatter`/`effectScatter`, and `graph` fails its structural preconditions —
@@ -292,6 +356,36 @@ frames can legitimately show a different number of links.
   additional frames are dropped. Consistent with the other non-cartesian families —
   see [todo/multiple-frames.md](../../../todo/multiple-frames.md).
 
+## What `graph-*-wide` would change
+
+Every row of this doc that reads **Inert**, **Not supported\*** or **No** because a mark
+is a frame _row_ rather than a field, and what
+[data-plane/graph-wide.md](../../../data-plane/graph-wide.md) does to it. Rows marked
+**shipped** are done; the rest are still ahead in
+[todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md), and the evidence is
+`provisioning/dashboards/relations/graph-wide.json` (the contract) plus
+`provisioning/dashboards/relations/per-mark-tooltip-links.json` (per-mark tooltips, links
+and the legend).
+
+| Row / gap in this doc                                                                    | Under `graph-*-wide`                                                                                                                                                                           |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Display name — Inert**                                                                 | **Flips to Yes.** A mark's name _is_ its field's display name; `config.displayName` replaces the `title` column                                                                                |
+| **Color scheme** — "three tiers ... See `makeRelationsColorResolver`"                    | **Deleted — shipped.** Colour is `field.display(value).color`, so all eight modes work and a `byName` override arrives theme-resolved rather than as a raw colour name                         |
+| **Unit / Decimals / Value mappings** — one column, one format for every mark             | **Shipped.** Per mark, in the tooltip and in the node label: two nodes of one graph can carry different units, which core's Node graph cannot express at all                                   |
+| **Data links** — "nodes _derived_ from the edges frame carry no row, so no footer"       | **Shipped.** Per mark via `config.links`, so a link lands on one node or one edge. Derived nodes stay **partially open** — no field either                                                     |
+| **Min / Max — Marginal** ("only bounds the by-value color domain")                       | Still the colour domain, but the domain stops being contaminated: measured `{min: 8, max: 12}` vs the legacy `{min: 0.5, max: 60}`                                                             |
+| **Thresholds — Marginal**                                                                | Per mark, and the approximate replacement for `arc__*`                                                                                                                                         |
+| **`reduceOptions` not registered**                                                       | **Registered — shipped.** `calcs[0]` = main stat, `calcs[1]` = secondary                                                                                                                       |
+| **Legend calcs `includeLegendCalcs: false`**                                             | Reconsider — a legend entry is a field again                                                                                                                                                   |
+| **`custom.hideFrom` registered with no reachable editor**                                | **Shipped.** The real `commonOptionsBuilder.addHideFrom`; a `byName` override hides exactly one mark, node or edge                                                                             |
+| **Legend hide re-implemented by name; relations excluded from `stripHiddenValueFields`** | **Half shipped.** The by-name read is gone for any mark that has a field; it survives only for a _derived_ node, which has none. The strip exclusion **stays** — see the legend-hide gap above |
+| **`arc__*` approximated**                                                                | **Dropped — shipped.** The conversion maps no `arc__*`, and no ECharts relationship series draws a multi-section ring anyway                                                                   |
+| **`icon` dropped**                                                                       | Becomes `custom.icon` and is **typed but given no editor**, since it is still unrendered — Grafana icon names need resolving to an ECharts symbol first                                        |
+| **`noderadius` / `subtitle` / `thickness` / `strokedasharray` are data, not config**     | **Shipped.** All four are per-mark `custom.*`, editable by an override; `curveness` joins them with no row-form equivalent at all                                                              |
+| **`detail__*` has no context menu**                                                      | Becomes `field.labels`, still no surface                                                                                                                                                       |
+| **Cycle policy**                                                                         | **Unchanged.** The sankey DAG restriction is an ECharts constraint, not a data-shape one                                                                                                       |
+| **Never auto-suggested** (`PanelDataSummary` exposes no field names)                     | **Unchanged**, and possibly harder: a wide graph frame looks like any other numeric-wide frame to the summary                                                                                  |
+
 ## ECharts API support
 
 High-level [ECharts option](https://echarts.apache.org/en/option.html) components used
@@ -312,7 +406,7 @@ runtime surface.
 | `tooltip`                        | Partial   | Item trigger with a per-series formatter feeding the React overlay                                                                                  |
 | `legend`                         | Not used  | Grafana DOM legend instead (`buildLegendItems`)                                                                                                     |
 | `animation`                      | Supported | Off by default via the shared switch                                                                                                                |
-| `title`                          | Partial   | `subtext` only, for the sankey dropped-link note (`getSankeyDroppedNote`)                                                                           |
+| `title`                          | Not used  | The sankey dropped-link note is a panel corner notice (`ChartNotices`), not canvas text                                                             |
 | `grid` / `xAxis` / `yAxis`       | N/A       | `graph` creates its own `View` coordinate system; `sankey` uses a box layout                                                                        |
 | `visualMap`                      | Not used  | By-value node color goes through the field's Color scheme instead                                                                                   |
 | `dataZoom` / `brush` / `toolbox` | Not used  | —                                                                                                                                                   |
@@ -324,13 +418,23 @@ runtime surface.
 [sankey-opts]: ../../lib/echarts/options/sankey.test.ts
 [chord-opts]: ../../lib/echarts/options/chord.test.ts
 [rel-chart]: ../../lib/echarts/charts/relations.test.ts
-[ng-conv]: ../../lib/echarts/converters/nodeGraph.test.ts
+[ng-conv]: ../../lib/echarts/converters/graphWide.test.ts
+[wide-conv]: ../../lib/echarts/converters/graphWide.test.ts
 [use-legend]: ../../lib/components/hooks/useLegend.test.tsx
+[tip-marks]: ../../lib/echarts/tooltip/relations.test.ts
+[tip-emit]: ../../lib/echarts/tooltip/tooltipEmit.test.ts
+[dl-test]: ../../lib/components/tooltip/dataLinks.test.tsx
 
 <!-- Provisioned dashboards: committed JSON, then the panel in a running Grafana -->
 
+[db-wide]: ../../../provisioning/dashboards/relations/graph-wide.json
+[live-wide-8]: http://localhost:3001/d/echarts-relations-graph-wide?viewPanel=8
+[live-wide-13]: http://localhost:3001/d/echarts-relations-graph-wide?viewPanel=13
+[live-wide-14]: http://localhost:3001/d/echarts-relations-graph-wide?viewPanel=14
+[live-wide-15]: http://localhost:3001/d/echarts-relations-graph-wide?viewPanel=15
 [db-testdata]: ../../../provisioning/dashboards/relations/node-graph-testdata.json
 [live-testdata-6]: http://localhost:3001/d/echarts-relations-node-graph-testdata?viewPanel=6
+[db-marks]: ../../../provisioning/dashboards/relations/per-mark-tooltip-links.json
 [db-sankey]: ../../../provisioning/dashboards/relations/sankey.json
 [live-sankey-1]: http://localhost:3001/d/echarts-relations-sankey?viewPanel=1
 [live-sankey-2]: http://localhost:3001/d/echarts-relations-sankey?viewPanel=2
