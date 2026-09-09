@@ -22,8 +22,6 @@ Related kinds:
   `graph-edges-long`, which every graph-native datasource emits today.
 - [graph-multi.md](./graph-multi.md) — the same contract as this one, spread one mark per
   **frame**, for responses whose marks do not share a row grid.
-- [graph-matrix.md](./graph-matrix.md) — an adjacency-matrix edges format, proposed and
-  rejected.
 
 ## Common properties
 

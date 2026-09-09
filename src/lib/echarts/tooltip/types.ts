@@ -65,16 +65,18 @@ export interface TooltipModel {
    * `field.labels` are **not** the right answer.
    *
    * Set only by relations, and for two reasons the generic derivation cannot cover.
-   * A **node** carries its identity in `field.name` rather than in labels, and a node
-   * derived from an edge's endpoints has no field at all, so a label walk finds
-   * nothing to offer on the very marks a topology is filtered by. And an **edge**'s
-   * endpoint labels are the contract's canonical `source`/`target`, which are a
-   * topology carrier rather than necessarily a dimension the datasource knows —
-   * `resolveEndpointLabelKeys` and `relationsSourceFilterLabel` map them back.
+   * A **node** carries its identity in `field.name` rather than in labels, so a label
+   * walk finds nothing to offer on the very mark a topology is filtered by. And an
+   * **edge**'s endpoint labels are the contract's canonical `source`/`target`, which are
+   * a topology carrier rather than necessarily a dimension the datasource knows —
+   * `resolveEndpointLabelKeys` and the per-mark `custom.sourceFilterLabel` map them back.
    * See `relationsFilterLabels`.
    *
    * When set it replaces the label walk rather than adding to it; every other family
-   * leaves it unset and the overlay keeps deriving from {@link TooltipSource}.
+   * leaves it unset and the overlay keeps deriving from {@link TooltipSource}. Either
+   * way the footer offers nothing unless the hovered field is `filterable` — the gate is
+   * in the overlay, not here, so a family states what it *would* offer and one rule
+   * decides whether it is offered.
    */
   filters?: TooltipFilters;
 }
@@ -339,6 +341,41 @@ export interface RelationsLinkItem {
 }
 
 /**
+ * The endpoint directions a node is drawn in — the two ends of the arrows touching it.
+ *
+ * Both true for a node in the middle of a chain, one for a pure origin or a pure
+ * destination. See {@link RelationsMarks.nodeRoles}.
+ */
+export interface RelationsNodeRole {
+  /** At least one edge **leaves** the node, so it appears under the source key. */
+  source: boolean;
+  /** At least one edge **arrives**, so it appears under the target key. */
+  target: boolean;
+}
+
+/**
+ * One edge touching a node, as that node's own tooltip lists it.
+ *
+ * Built only for the nodes with no stat of their own. A node derived from an edge's
+ * endpoints carries `null` deliberately — a link count is not a measurement, see
+ * `docs/relations-derived-nodes.md` — so its tooltip was a header and nothing else, which
+ * reads as a mark the panel knows nothing about. Its edges are the one thing it *does* know,
+ * and they are numbers the response actually measured, so they are what the tooltip reports.
+ *
+ * The weight arrives as a display string, formatted through the **edge's** own display
+ * processor rather than through the node's: the node has none, and each edge is a field with
+ * its own unit under the wide contract. Same reasoning as {@link MarkStat}.
+ */
+export interface RelationsAdjacentEdge {
+  /** The other endpoint's display name (`RelationNode.name`), not its id. */
+  node: string;
+  /** True when the hovered node is this edge's `source` — the edge leaves it. */
+  outgoing: boolean;
+  /** The edge's weight, formatted through the edge's own field. */
+  value: string;
+}
+
+/**
  * One mark's own field, resolved once per render so a hover is a map lookup.
  *
  * A mark **is** a field under the graph contract, which is what makes this
@@ -372,11 +409,48 @@ export interface RelationsMarks {
   nodes: ReadonlyMap<string, RelationsMark>;
   links: ReadonlyMap<string, RelationsMark>;
   /**
+   * The edges touching each **statless** node, keyed by node id, in the model's own link
+   * order.
+   *
+   * Present only for the nodes that need it — a node with a stat reports the stat, and
+   * listing every node's edges would format every edge twice on every render. An id missing
+   * from this map therefore means "has a value of its own, or has no edges at all", not
+   * "unknown node". See {@link RelationsAdjacentEdge}.
+   */
+  adjacency?: ReadonlyMap<string, RelationsAdjacentEdge[]>;
+  /**
    * The datasource's own endpoint label keys, carried through from the model so the
    * footer's ad-hoc filters are written under a key the datasource recognises. Unset means
    * the contract's `source`/`target`. See `NodeGraphData.endpointLabels`.
    */
   endpointLabels?: GraphEndpointKeys;
+  /**
+   * Which endpoint keys each node actually appears under, from the *visible* link set:
+   * `source` when at least one edge leaves it, `target` when at least one arrives.
+   *
+   * A node's ad-hoc filters are written under the endpoint keys, and which of them can
+   * honestly carry the node's name is a property of the **topology**, not of the node: a
+   * destination-only service is never a `source`, so `source="warpstream-agent-write"` is
+   * a filter that matches nothing and empties the dashboard, whatever the keys are mapped
+   * to. See `nodeFilters`.
+   *
+   * A node missing from the map has no visible edge at all — a declared node the response
+   * connected to nothing — and there is no key it demonstrably appears under.
+   */
+  nodeRoles?: ReadonlyMap<string, RelationsNodeRole>;
+  /**
+   * Whether any **edge** field opts into ad-hoc filtering (standard `filterable`) — the
+   * opt-in for a mark that has no field of its own to carry one.
+   *
+   * A node the response only implied is the mark that needs it, and it is not a loophole:
+   * a node's filters are written under the *endpoint label keys*, which are the **edges'**
+   * dimensions (`endpointLabels` is resolved from the edges frames too). So the field that
+   * can honestly say whether `source="gateway"` means anything is an edge field, not the
+   * node's — the node has none, and where the derived-node pre-pass gives it one, that
+   * field answers first. Any rather than every: the keys are resolved response-wide, so
+   * one filterable edge means the response's endpoint dimensions are filterable.
+   */
+  endpointsFilterable?: boolean;
 }
 
 /**

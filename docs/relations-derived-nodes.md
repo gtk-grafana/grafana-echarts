@@ -35,6 +35,7 @@ A derived node has no field. It is invented by the reader (`deriveNodesFromLinks
 | Unit / decimals / mappings / thresholds              | Yes, per mark           | None — no config to read    |
 | `custom.nodeRadius` / `subtitle` / `fixedX`/`fixedY` | Yes                     | None                        |
 | Data links (tooltip footer)                          | Yes                     | No footer at all            |
+| Ad-hoc filters (needs standard `filterable`)         | Yes, its own opt-in     | Yes, on the edges' opt-in   |
 | Hide from viz                                        | Via the override engine | By **name** matching only   |
 | Appears in the override picker                       | Yes                     | No                          |
 
@@ -91,6 +92,38 @@ value slot is where measurements go; `readNodes` reduces `[null]` to `null`, `to
 then omits `value`, so the node label stays on one line and the tooltip omits the row rather
 than printing the field's empty-value text under a `Value` label. The degree is still
 readable from the graph — it is how many lines touch the node.
+
+### What its tooltip says instead
+
+A header and no rows at all reads as a mark the panel knows nothing about, so a node with no
+stat — derived, or declared with nothing to reduce — **lists the edges touching it**, one row
+each, in the response's own field order:
+
+```
+gateway
+web →        800 ms
+→ API          1.2 s
+→ gateway          4
+```
+
+The arrow carries the direction (`→ other` leaves the node, `other →` arrives) rather than
+repeating the hovered node's name on every row, the other endpoint reads with its display
+name, and each weight formats through that **edge's** own field — so two edges with different
+units stay in their own units, exactly as each edge's own tooltip would show them. A self-loop
+is listed once. The list stops at ten rows with a `+N more` count, because the relations
+tooltip is a Single-mode tooltip and core only scrolls a Multi-mode one.
+
+It is a fallback, not an addition: a node that has a stat reports the stat. See
+`adjacencyRows` in `src/lib/echarts/tooltip/relations.ts`.
+
+The tooltip's ad-hoc filters are the one capability that does **not** degrade here, and
+deliberately so. A node's filters are written under the _endpoint label keys_, which are the
+**edges'** dimensions, so the field that can honestly say whether `source="gateway"` filters
+anything is an edge field — the node has none. A derived node therefore takes its
+`filterable` opt-in from the edges that named it (`markFilterable`), while a node the
+pre-pass declared answers with its own field first. Gating it on the node's own field
+instead left a service-graph panel offering filters on every link and none at all on its
+nodes.
 
 ## What is still open
 

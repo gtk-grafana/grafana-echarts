@@ -4,7 +4,7 @@ import { cartesianOverrideOptions } from 'editor/cartesian';
 import { heatmapLegendCategoryName, seriesCategoryName } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
-import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { heatmapColorSchemeDefault, heatmapLayoutDefault } from 'lib/echarts/options/constants';
 import { heatmapColorSchemeOptions, heatmapLayoutOptions } from 'modules/heatmap/constants';
@@ -21,7 +21,7 @@ import { heatmapSuggestionsSupplier } from './suggestions';
 // overlay on top of the heatmap cells (see `frameHasCartesianOverride`).
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('heatmap'))
   .useFieldConfig({
-    standardOptions: STANDARD_COLOR_OPTIONS,
+    standardOptions: STANDARD_FIELD_OPTIONS,
     // Per-field series type override, scoped to cartesian types. Overriding a
     // numeric frame's field to line/bar/scatter promotes it from a heatmap
     // bucket row to a cartesian overlay drawn over the cells — the sanctioned

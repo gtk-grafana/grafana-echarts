@@ -1,6 +1,7 @@
 import { type FieldConfigEditorBuilder, type SelectableValue } from '@grafana/data';
 import { commonOptionsBuilder } from '@grafana/ui';
 import { type EChartsRelationsFieldConfig, type RelationsLineType } from 'editor/types';
+import { addRelationsFilterConfig } from 'lib/grafana/editor/relations/filters';
 
 /**
  * Per-mark custom field config for the relations family.
@@ -11,12 +12,16 @@ import { type EChartsRelationsFieldConfig, type RelationsLineType } from 'editor
  * this — its `noderadius` / `thickness` / `strokedasharray` columns were data, so the
  * only way to change one was to change the query.
  *
- * **Every control is override-only** (`hideFromDefaults: true`). The Fields tab sets a
- * value for *all* fields at once, which here means every node **and** every edge, and
+ * **Every style control is override-only** (`hideFromDefaults: true`). The Fields tab sets
+ * a value for *all* fields at once, which here means every node **and** every edge, and
  * none of these properties means anything applied that way: `subtitle` and `fixedX`
  * are per-mark by nature, while node size and edge curveness already have panel-level
  * options that say "all marks" properly (`addRelationsNodeOptions`,
  * `addRelationsLinkOptions`). A default would either duplicate those or be nonsense.
+ *
+ * The two ad-hoc filter labels are the exception and keep their defaults editor: one
+ * response usually does group by one endpoint pair, so "every mark" is the common answer
+ * there rather than a nonsensical one. See `addRelationsFilterConfig`.
  *
  * Node and edge controls sit in separate categories because a field override cannot
  * know which frame its field came from — both sets are offered for any mark, and the
@@ -95,6 +100,10 @@ export function addRelationsCustomConfig(builder: FieldConfigEditorBuilder<EChar
       hideFromDefaults: true,
       settings: { min: 0, max: 1, step: 0.05 },
     });
+
+  // Which label each endpoint is filtered on — the one setting here that is about the
+  // query rather than the chart, and the only one with a meaningful default.
+  addRelationsFilterConfig(builder);
 
   // The real "Hide in area" switches, not the editor-less registration this family
   // used to need. A mark is a field, so a `byName` `custom.hideFrom` override now

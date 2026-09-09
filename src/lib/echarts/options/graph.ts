@@ -152,8 +152,6 @@ export const ADVANCED_RELATIONS_DEFAULTS: Partial<PanelOptions> = {
   relationsLabelOverflow: undefined,
   relationsLabelWidth: undefined,
   relationsLinkColor: undefined,
-  relationsSourceFilterLabel: undefined,
-  relationsTargetFilterLabel: undefined,
   // The switch resets, and the state it stored goes with it — `getRelationsViewState`
   // reads nothing without the switch, so a Default-mode panel is never left holding a
   // pan the user cannot see the control for.

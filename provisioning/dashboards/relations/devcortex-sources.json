@@ -95,7 +95,8 @@
                 "value": 0.05
               }
             ]
-          }
+          },
+          "filterable": true
         },
         "overrides": [
           {
@@ -221,7 +222,12 @@
             "mode": "palette-classic"
           },
           "unit": "suffix:cores",
-          "decimals": 1
+          "decimals": 1,
+          "filterable": true,
+          "custom": {
+            "sourceFilterLabel": "cluster",
+            "targetFilterLabel": "namespace"
+          }
         },
         "overrides": []
       },
@@ -246,9 +252,7 @@
         "relationsShowNodeValues": false,
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        },
-        "relationsSourceFilterLabel": "cluster",
-        "relationsTargetFilterLabel": "namespace"
+        }
       },
       "targets": [
         {
@@ -310,7 +314,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true
         },
         "overrides": []
       },
@@ -393,7 +398,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true
         },
         "overrides": []
       },
@@ -496,7 +502,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true
         },
         "overrides": []
       },
@@ -581,7 +588,12 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true,
+          "custom": {
+            "sourceFilterLabel": "server_k8s_namespace_name",
+            "targetFilterLabel": "server"
+          }
         },
         "overrides": []
       },
@@ -606,9 +618,7 @@
         "relationsShowNodeValues": false,
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        },
-        "relationsSourceFilterLabel": "server_k8s_namespace_name",
-        "relationsTargetFilterLabel": "server"
+        }
       },
       "targets": [
         {
@@ -670,7 +680,12 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true,
+          "custom": {
+            "sourceFilterLabel": "client_k8s_cluster_name",
+            "targetFilterLabel": "server_k8s_cluster_name"
+          }
         },
         "overrides": []
       },
@@ -692,9 +707,7 @@
         "relationsLinkColor": "source",
         "reduceOptions": {
           "calcs": ["lastNotNull"]
-        },
-        "relationsSourceFilterLabel": "client_k8s_cluster_name",
-        "relationsTargetFilterLabel": "server_k8s_cluster_name"
+        }
       },
       "targets": [
         {
@@ -755,7 +768,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true
         },
         "overrides": [
           {

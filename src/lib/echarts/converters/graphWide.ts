@@ -408,8 +408,8 @@ export function endpointNames(edgesFrames: DataFrame[]): Set<string> {
  *
  * Consumed by the tooltip footer, which writes ad-hoc filters under these keys rather than
  * under the contract's: `source="web-api"` is a filter on a label the datasource dropped.
- * Overridable per panel (`relationsSourceFilterLabel`) for the case no response can answer
- * — a query that aggregated the original key away. See `relationsFilterLabels`.
+ * Overridable per mark (`custom.sourceFilterLabel`) for the case no response can answer —
+ * a query that aggregated the original key away. See `relationsFilterLabels`.
  */
 export function resolveEndpointLabelKeys(edgesFrames: DataFrame[]): GraphEndpointKeys | undefined {
   for (const frame of edgesFrames) {

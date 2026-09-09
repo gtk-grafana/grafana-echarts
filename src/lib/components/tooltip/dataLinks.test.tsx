@@ -1,13 +1,19 @@
 import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
-import { act, render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { type EChartsType } from 'echarts';
 import { type SeriesType } from 'editor/types';
 import { type ChartFamily } from 'lib/echarts/charts/autoSeriesType';
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
-import { getChart } from 'test/canvas';
-import { getComponent, waitForFinished } from 'test/panel';
+import {
+  clickAt,
+  dispatch,
+  hoverAndPin,
+  markPoint,
+  renderTooltipPanel,
+  tooltipEl,
+  tooltipText,
+} from 'test/tooltipPointer';
 import { type PanelOptions } from 'types';
-import { TOOLTIP_MARKER_ATTR } from './constants';
 
 /**
  * End-to-end cover for the pinned tooltip's data-link footer, driven through
@@ -36,59 +42,12 @@ const withLink = (frame: DataFrame, fieldName: string, title = LINK_TITLE): Data
   return frame;
 };
 
-/**
- * Dispatch through zrender's `Handler` (not the zr Eventful) so ECharts sees a
- * genuine pointer: it runs `findHover`, dispatches element events, and only
- * synthesizes `click` after a matching press/release pair.
- */
-const dispatch = async (chart: EChartsType, type: string, x: number, y: number) => {
-  await act(async () => {
-    // ZRender's Handler is not part of the public typings.
-    const handler = (chart.getZr() as unknown as { handler: { dispatch: (t: string, e: unknown) => void } }).handler;
-    handler.dispatch(type, { zrX: x, zrY: y, offsetX: x, offsetY: y, preventDefault: () => undefined });
-    // Let ECharts' tooltip timers and the hook's rAF flush settle.
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  });
-};
-
-const tooltipEl = () => document.querySelector<HTMLElement>(`[${TOOLTIP_MARKER_ATTR}]`);
-const tooltipText = () => tooltipEl()?.textContent ?? '';
-
-/** Emulate a browser click: zrender only synthesizes `click` after a press pair. */
-const clickAt = async (chart: EChartsType, x: number, y: number) => {
-  // The document-level mousedown is what dismisses a pinned tooltip, so it has
-  // to fire too — re-pinning depends on the click rebuilding state afterwards.
-  await act(async () => {
-    document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-  });
-  await dispatch(chart, 'mousedown', x, y);
-  await dispatch(chart, 'mouseup', x, y);
-  await dispatch(chart, 'click', x, y);
-};
-
-/** Hover each candidate point until one lands on a chart item, then click to pin. */
-const hoverAndPin = async (chart: EChartsType, points: Array<[number, number]>): Promise<readonly [number, number]> => {
-  for (const [x, y] of points) {
-    await dispatch(chart, 'mousemove', x, y);
-    if (tooltipText() !== '') {
-      await clickAt(chart, x, y);
-      return [x, y] as const;
-    }
-  }
-  throw new Error('No chart item was hoverable at any candidate point');
-};
-
-const renderPanel = async (
+const renderPanel = (
   frames: DataFrame[],
   seriesType: SeriesType,
   family: ChartFamily,
   options?: Partial<PanelOptions>
-) => {
-  const { container } = render(getComponent(frames, seriesType, options, undefined, undefined, family));
-  const { chart } = getChart(container);
-  await waitForFinished(chart);
-  return chart!;
-};
+) => renderTooltipPanel({ frames, seriesType, family, options });
 
 const categoryFrame = () =>
   withLink(
@@ -237,42 +196,6 @@ describe('pinned tooltip data links', () => {
         EDGE_LINK
       ),
     ];
-
-    /**
-     * The rendered centre of a mark, read off the chart rather than guessed.
-     * Scanning candidate points, as the cases above do, cannot say *which* mark was
-     * hit — and that is the whole claim here.
-     *
-     * `getItemLayout` shape depends on the variant: a graph node is `[x, y]` and a
-     * graph edge is its endpoint pair, while a sankey node is the `{x, y, dx, dy}`
-     * rectangle the layout assigned it.
-     */
-    const markPoint = (chart: EChartsType, dataType: 'node' | 'edge', dataIndex: number): [number, number] => {
-      // ECharts' model/data internals are not part of the public typings.
-      const model = chart as unknown as {
-        getModel: () => {
-          getSeriesByIndex: (index: number) => {
-            getData: (type?: string) => { getItemLayout: (i: number) => unknown };
-          };
-        };
-      };
-      const layout = model
-        .getModel()
-        .getSeriesByIndex(0)
-        .getData(dataType === 'edge' ? 'edge' : undefined)
-        .getItemLayout(dataIndex);
-      if (Array.isArray(layout)) {
-        const points: Array<number | [number, number]> = layout;
-        const [first, second] = points;
-        if (typeof first === 'number' && typeof second === 'number') {
-          return [first, second];
-        }
-        const [[x1, y1], [x2, y2]] = [first, second] as Array<[number, number]>;
-        return [(x1 + x2) / 2, (y1 + y2) / 2];
-      }
-      const rect = layout as { x: number; y: number; dx: number; dy: number };
-      return [rect.x + rect.dx / 2, rect.y + rect.dy / 2];
-    };
 
     const pinMark = async (chart: EChartsType, dataType: 'node' | 'edge', dataIndex: number) => {
       const [x, y] = markPoint(chart, dataType, dataIndex);

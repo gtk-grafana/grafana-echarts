@@ -4,7 +4,7 @@ import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addStreamBoundaryGapOptions } from 'lib/grafana/editor/stream/boundary-gap';
 import { addStreamBubbleOptions } from 'lib/grafana/editor/stream/bubble';
@@ -25,7 +25,7 @@ import { streamSuggestionsSupplier } from './suggestions';
 // picker: the shared Panel's `'Auto'` resolver returns it for this family.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('stream'))
   .useFieldConfig({
-    standardOptions: STANDARD_COLOR_OPTIONS,
+    standardOptions: STANDARD_FIELD_OPTIONS,
     // Register `custom.hideFrom` so the legend visibility toggle's `byName`
     // override is applied by Grafana. A fields-path layer is a numeric field, so
     // the chart strips fields flagged `hideFrom.viz`; label-path layers are rows

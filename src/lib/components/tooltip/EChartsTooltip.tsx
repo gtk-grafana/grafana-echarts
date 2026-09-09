@@ -70,21 +70,42 @@ function rowToItem(row: TooltipRow, activeSeriesIndex: number | null): VizToolti
   };
 }
 
-/** The filters a hovered item offers, grouped the way the footer renders them. */
+/**
+ * The filters a hovered item offers, grouped the way the footer renders them.
+ *
+ * **Every filter is gated on the standard `filterable` field config**, which is core's own
+ * gate for the same buttons: the table's cell menu offers "Filter for value" only when
+ * `field.config.filterable` is set (`DefaultCell`, `render-hooks`). The flag means "this
+ * field can be filtered on at the source" — datasources that support ad-hoc filters set it,
+ * and a user asserts it per field with a **Filterable** override or the Fields tab's switch.
+ * Without it a "Filter for" button writes a filter the datasource ignores or, worse, one
+ * that matches nothing and empties the dashboard.
+ *
+ * The gate is applied **twice, in two places**, because there are two ways filters arrive:
+ *
+ * - a model that states its own `filters` has already applied it, per mark, and its answer
+ *   is taken as given. Only relations does, and it has to: one of its marks — a node the
+ *   response only implied — has no field for this function to ask, and takes its opt-in
+ *   from the edges that named it instead. See `markFilterable` in `tooltip/relations.ts`;
+ * - the label walk every other family uses is gated here, on the hovered field itself.
+ *
+ * Data links are **not** gated either way: a link is the field's own config, not a claim
+ * about the query.
+ */
 function resolveFilters(state: EChartsTooltipState, sources: TooltipSource[]): TooltipFilters {
   // A model that states its own filters replaces the label walk rather than adding to
-  // it. Only relations does, and it has to: a node's identity is its `field.name`
-  // rather than a label, an edge's endpoint labels are the wide contract's canonical
-  // keys, which may not be keys the datasource knows, and the two groups below are not
-  // the same set on either mark. See `TooltipFilters`.
+  // it. A node's identity is its `field.name` rather than a label, an edge's endpoint
+  // labels are the wide contract's canonical keys, which may not be keys the datasource
+  // knows, and the two groups below are not the same set on either mark. See
+  // {@link TooltipFilters}.
   if (state.model?.filters != null) {
     return state.model.filters;
   }
   // Every other family: one pair per label, offered individually and as a whole. The
   // values of a real label set differ, so no two buttons read the same.
-  const pairs = sources.flatMap((source) =>
-    Object.entries(source.field.labels ?? {}).map(([key, value]) => ({ key, value }))
-  );
+  const pairs = sources
+    .filter((source) => source.field.config.filterable === true)
+    .flatMap((source) => Object.entries(source.field.labels ?? {}).map(([key, value]) => ({ key, value })));
   return { each: pairs, filterFor: pairs, filterOut: pairs };
 }
 
