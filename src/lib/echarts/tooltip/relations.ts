@@ -229,6 +229,7 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
     links,
     adjacency: toAdjacency(data, links),
     nodeFilterLabels: toNodeFilterLabels(data),
+    endpointsFilterable: data.links.some((link) => link.field?.config.filterable === true),
     ...(data.endpointLabels ? { endpointLabels: data.endpointLabels } : {}),
   };
 }
@@ -360,6 +361,30 @@ function customFilterLabel(
   return typeof value === 'string' && value !== '' ? value : undefined;
 }
 
+/**
+ * Whether this mark's ad-hoc filters may be offered at all.
+ *
+ * The standard `filterable` field config is the gate — core's own for the same buttons, see
+ * `resolveFilters` in `lib/components/tooltip` — but relations applies it here rather than
+ * leaving it to the footer, because the footer can only ask the *hovered mark's* field and
+ * one mark has none: a node the response only implied.
+ *
+ * So, in order:
+ *
+ * - a mark **with** a field answers for itself, `false` included. An explicit "not
+ *   filterable" on one node is a `byName` override the user wrote, and no fallback may
+ *   overrule it;
+ * - a mark **without** one — a derived node on a host that cannot run the pre-pass, and
+ *   therefore *every* node of an edges-only response there — takes the edges' answer
+ *   ({@link RelationsMarks.endpointsFilterable}). Its filters are written under the
+ *   endpoint label keys, which are the edges' dimensions, so the edges are the honest
+ *   authority. Without this a service-graph panel offered filters on its links and none
+ *   at all on its nodes.
+ */
+function markFilterable(mark: RelationsMark | undefined, marks: RelationsMarks | undefined): boolean {
+  return mark != null ? mark.source.field.config.filterable === true : marks?.endpointsFilterable === true;
+}
+
 /** Keep the first entry per key, preserving order — the endpoints are added first. */
 function dedupeFilters(filters: TooltipAdHocFilter[]): TooltipAdHocFilter[] {
   const seen = new Set<string>();
@@ -403,9 +428,9 @@ function extraLabelFilters(field: Field | undefined, keys: GraphEndpointKeys): T
  * own tooltip does not already offer, and reads as three ways to do one thing.
  *
  * Endpoints come off the *item* rather than off the field, which keeps this independent of
- * how the response arrived. Whether the buttons are shown at all is the field's call, though:
- * the footer gates every one of them on the standard `filterable` config, so a mark with no
- * field of its own offers nothing. See `resolveFilters` in `lib/components/tooltip`.
+ * how the response arrived — an edge whose mark has no field, an N-raw-frames response on a
+ * host that cannot run the pivot, still offers them. Whether they are offered at all is
+ * {@link markFilterable}'s call.
  */
 function edgeFilters(
   item: RelationsLinkItem,
@@ -428,7 +453,7 @@ function edgeFilters(
  * mapping question. A node's identity is its `field.name` under the wide contract — not a
  * label — so the generic "walk `field.labels`" derivation finds nothing on the very mark a
  * topology is most obviously filtered by. Stating the pairs here is what fills that gap;
- * whether they are offered is still the field's `filterable` call.
+ * whether they are offered is {@link markFilterable}'s call.
  *
  * **The two halves are deliberately asymmetric**, because a node is an endpoint in both
  * directions and ad-hoc filters can only be ANDed:
@@ -507,11 +532,12 @@ function nodeFilters(
  * Values format with the **hovered mark's own** field, and the footer resolves that
  * field's data links; see {@link getRelationsTooltipMarks}. A node derived from an
  * edge's endpoints has no field, so it formats through {@link formatDerivedMarkValue}
- * and shows no footer at all — no data links (`todo/relations-data-links.md` gap 4, which
- * the contract does not close) and no filters either, since there is no field to carry
- * the `filterable` opt-in. The derived-node pre-pass is what gives it both
- * (`docs/relations-derived-nodes.md`). Having no field it has no stat either, so its rows
- * are its edges.
+ * and surfaces no data links — `todo/relations-data-links.md` gap 4, which the contract
+ * does not close, and which the derived-node pre-pass closes instead
+ * (`docs/relations-derived-nodes.md`). Its **filters** it does get: they come off the item's
+ * own endpoints rather than off a field, and their `filterable` opt-in comes off the edges
+ * that named it — see {@link nodeFilters} and {@link markFilterable}. Having no field it has
+ * no stat either, so its rows are its edges.
  *
  * The endpoint keys the filters are written under come off the hovered mark as well —
  * see {@link relationsFilterLabels}.
@@ -552,13 +578,18 @@ export function buildRelationsTooltipModel(
         header: { label: `${data.source} → ${data.target}`, value: '' },
         rows,
         source: mark?.source,
-        filters: edgeFilters(
-          data,
-          mark,
-          // The edge's *own* recovered pair first: two edges of one frame can filter under
-          // different keys, which is what a multi-level flow is. See `relationsFilterLabels`.
-          relationsFilterLabels(mark?.source.field, mark?.filterLabels ?? marks?.endpointLabels)
-        ),
+        ...(markFilterable(mark, marks)
+          ? {
+              filters: edgeFilters(
+                data,
+                mark,
+                // The edge's *own* recovered pair first: two edges of one frame can filter
+                // under different keys, which is what a multi-level flow is. See
+                // `relationsFilterLabels`.
+                relationsFilterLabels(mark?.source.field, mark?.filterLabels ?? marks?.endpointLabels)
+              ),
+            }
+          : {}),
       };
     }
 
@@ -601,7 +632,7 @@ export function buildRelationsTooltipModel(
       // Only for something that really is a node item: the formatter also fields the
       // odd hover that carries no recognisable item at all, and a filter on nothing
       // would be a button that adds `source=""`.
-      ...(node != null
+      ...(node != null && markFilterable(mark, marks)
         ? {
             filters: nodeFilters(
               node,

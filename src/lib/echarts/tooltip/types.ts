@@ -74,9 +74,10 @@ export interface TooltipModel {
    *
    * When set it replaces the label walk rather than adding to it; every other family
    * leaves it unset and the overlay keeps deriving from {@link TooltipSource}. Either
-   * way the footer offers nothing unless the hovered field is `filterable` — the gate is
-   * in the overlay, not here, so a family states what it *would* offer and one rule
-   * decides whether it is offered.
+   * way the footer offers nothing unless the mark is `filterable`: the label walk is gated
+   * in the overlay, and a family that states its own filters has applied the same gate per
+   * mark before it gets here — which relations has to, since one of its marks has no field
+   * for the overlay to ask. See `markFilterable`.
    */
   filters?: TooltipFilters;
 }
@@ -435,6 +436,19 @@ export interface RelationsMarks {
    * the contract's `source`/`target`. See `NodeGraphData.endpointLabels`.
    */
   endpointLabels?: GraphEndpointKeys;
+  /**
+   * Whether any **edge** field opts into ad-hoc filtering (standard `filterable`) — the
+   * opt-in for a mark that has no field of its own to carry one.
+   *
+   * A node the response only implied is the mark that needs it, and it is not a loophole:
+   * a node's filters are written under the *endpoint label keys*, which are the **edges'**
+   * dimensions (`endpointLabels` is resolved from the edges frames too). So the field that
+   * can honestly say whether `source="gateway"` means anything is an edge field, not the
+   * node's — the node has none, and where the derived-node pre-pass gives it one, that
+   * field answers first. Any rather than every: the keys are resolved response-wide, so
+   * one filterable edge means the response's endpoint dimensions are filterable.
+   */
+  endpointsFilterable?: boolean;
 }
 
 /** The distinct keys a node is an endpoint under, by role. See {@link RelationsMarks.nodeFilterLabels}. */

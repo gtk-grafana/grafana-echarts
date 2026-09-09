@@ -61,9 +61,6 @@ const fieldWithLabels = ({ filterable = true } = {}): Field => {
   return field;
 };
 
-/** A filterable source for the model-stated filters, which relations always supplies. */
-const filterableSource = () => ({ field: fieldWithLabels(), rowIndex: 0 });
-
 describe('EChartsTooltip', () => {
   it('renders nothing when hidden, or without a model / position', () => {
     renderTooltip(state({ visible: false }));
@@ -124,7 +121,7 @@ describe('EChartsTooltip', () => {
   it('offers a filter-out button that negates every pair at once', () => {
     const onAddAdHocFilter = jest.fn();
 
-    renderTooltip(state({ model: model({ filters: edgeFilters(), source: filterableSource() }), pinned: true }), {
+    renderTooltip(state({ model: model({ filters: edgeFilters() }), pinned: true }), {
       onAddAdHocFilter,
     });
 
@@ -136,7 +133,7 @@ describe('EChartsTooltip', () => {
   it('offers a filter-for button covering the whole mark', () => {
     const onAddAdHocFilter = jest.fn();
 
-    renderTooltip(state({ model: model({ filters: edgeFilters(), source: filterableSource() }), pinned: true }), {
+    renderTooltip(state({ model: model({ filters: edgeFilters() }), pinned: true }), {
       onAddAdHocFilter,
     });
 
@@ -152,7 +149,7 @@ describe('EChartsTooltip', () => {
    * and `target=gateway` are indistinguishable. Only `each` gets per-pair buttons now.
    */
   it('renders no per-pair button for a pair the grouped set covers', () => {
-    renderTooltip(state({ model: model({ filters: edgeFilters(), source: filterableSource() }), pinned: true }), {
+    renderTooltip(state({ model: model({ filters: edgeFilters() }), pinned: true }), {
       onAddAdHocFilter: jest.fn(),
     });
 
@@ -177,9 +174,7 @@ describe('EChartsTooltip', () => {
       ],
     };
 
-    renderTooltip(state({ model: model({ filters, source: filterableSource() }), pinned: true }), {
-      onAddAdHocFilter,
-    });
+    renderTooltip(state({ model: model({ filters }), pinned: true }), { onAddAdHocFilter });
 
     fireEvent.click(screen.getByRole('button', { name: /Filter on this value/i }));
     expect(onAddAdHocFilter).toHaveBeenCalledTimes(1);
@@ -210,27 +205,38 @@ describe('EChartsTooltip', () => {
    * **The gate.** `filterable` is what core checks before offering the same buttons on a
    * table cell, and it means "this field can be filtered on at the source". Without it a
    * "Filter for" button writes a key the datasource does not carry — a no-op at best, an
-   * empty dashboard at worst — so nothing is offered: neither the model's own filters nor
-   * the ones a label walk would produce.
+   * empty dashboard at worst.
    */
-  it('hides every filter button for a field that is not filterable', () => {
-    const source = { field: fieldWithLabels({ filterable: false }), rowIndex: 0 };
-    const pairs = [{ key: 'client', value: 'gateway' }];
-
-    renderTooltip(
-      state({ model: model({ source, filters: { each: pairs, filterFor: pairs, filterOut: pairs } }), pinned: true }),
-      { onAddAdHocFilter: jest.fn() }
-    );
-
-    expect(screen.queryByRole('button', { name: /Filter/i })).not.toBeInTheDocument();
-  });
-
-  it('hides the label-derived filters too when the field is not filterable', () => {
+  it('hides the label-derived filters when the field is not filterable', () => {
     const source = { field: fieldWithLabels({ filterable: false }), rowIndex: 0 };
 
     renderTooltip(state({ model: model({ source }), pinned: true }), { onAddAdHocFilter: jest.fn() });
 
     expect(screen.queryByRole('button', { name: /Filter for/i })).not.toBeInTheDocument();
+  });
+
+  /**
+   * A model that states its own filters has **already** applied the gate, per mark, so its
+   * answer is taken as given rather than re-derived from the hovered field. Relations needs
+   * that: a node the response only implied has no field for this component to ask, and its
+   * opt-in comes from the edges that named it — re-checking here left every node of an
+   * edges-only response with no filters at all. See `markFilterable`.
+   */
+  it('takes a model’s own filters as already gated', () => {
+    const onAddAdHocFilter = jest.fn();
+    const pairs = [{ key: 'client', value: 'gateway' }];
+
+    // No source at all: the derived-node shape, which has no field to carry `filterable`.
+    renderTooltip(
+      state({
+        model: model({ source: undefined, filters: { each: pairs, filterFor: pairs, filterOut: pairs } }),
+        pinned: true,
+      }),
+      { onAddAdHocFilter }
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Filter for 'gateway'/i }));
+    expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'client', value: 'gateway', operator: '=' });
   });
 
   // Data links are the field's own config rather than a claim about the query, so the
