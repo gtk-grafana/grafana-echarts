@@ -113,10 +113,10 @@ export const hierarchySeriesTypeOptions: Array<SelectableValue<HierarchySeriesTy
   { value: 'sunburst', label: 'Sunburst' },
 ];
 /**
- * Relations types: nodes plus the links between them, built from Grafana's
- * node-graph frame pair. All three ECharts series consume the identical node/link
- * input, so they are render variants of one family rather than separate panels. See
- * echarts/converters/nodeGraph.ts.
+ * Relations types: nodes plus the links between them, built from the field-based graph
+ * contract. All three ECharts series consume the identical node/link input, so they are
+ * render variants of one family rather than separate panels. See
+ * echarts/converters/graphWide.ts.
  */
 export const relationsSeriesTypes: RelationsSeriesType[] = ['graph', 'sankey', 'chord'];
 /**
@@ -191,3 +191,19 @@ export const PERFORMANCE_DOWNSAMPLING_DEFAULT = true;
 export const animationEnabledPath = 'animation.enabled';
 export const animationName = 'Animation';
 export const ANIMATION_ENABLED_DEFAULT = false;
+
+/**
+ * The relations family's animation default: **on**, and a Default-tier control rather
+ * than an Advanced one.
+ *
+ * The reasoning above is about *density*, and a relations panel is not dense in the way
+ * that argument is about: a mark is a whole field here, so a graph is tens of marks
+ * where a cartesian panel is tens of thousands of points. What the animation buys is
+ * also worth more — arcs and ribbons growing into place on load is how a chord or
+ * sankey reads as one connected flow rather than a static picture.
+ *
+ * The force graph's *jiggle* is a separate thing entirely and stays off: that is
+ * `force.layoutAnimation`, which draws every simulation step and is unaffected by this.
+ * See `RELATIONS_LAYOUT_ANIMATION_DEFAULT`.
+ */
+export const RELATIONS_ANIMATION_ENABLED_DEFAULT = true;

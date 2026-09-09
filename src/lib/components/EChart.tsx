@@ -1,12 +1,14 @@
-import { type AbsoluteTimeRange } from '@grafana/data';
+import { type AbsoluteTimeRange, type FieldConfigSource } from '@grafana/data';
 import { TooltipDisplayMode } from '@grafana/schema';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { collectProximitySeries } from 'lib/echarts/tooltip/proximity';
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { type MutableRefObject, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { type PanelOptions } from 'types';
 import { useBrushTimeZoom } from './hooks/useBrushTimeZoom';
 import { useChartOption } from './hooks/useChartOption';
 import { useChartResize } from './hooks/useChartResize';
+import { useRelationsPersistence } from './hooks/useRelationsPersistence';
 import { EChartsTooltip } from './tooltip/EChartsTooltip';
 import { useEChartsTooltip } from './tooltip/useEChartsTooltip';
 
@@ -16,9 +18,23 @@ interface Props {
   /** True when the panel renders a Grafana DOM legend instead of ECharts' native legend. */
   isGrafanaLegend: boolean;
   onChangeTimeRange: (timeRange: AbsoluteTimeRange) => void;
+  /**
+   * Write-backs for interactions that are edits rather than view state — a dragged
+   * node's position and, when asked for, the panned/zoomed view. Bound here rather
+   * than in `Panel` because they need the live instance, which is this component's
+   * state; `Panel` holds only a ref. See `useRelationsPersistence`.
+   */
+  onFieldConfigChange: (fieldConfig: FieldConfigSource) => void;
+  onOptionsChange: (options: PanelOptions) => void;
   /** Chart-area size allocated by VizLayout. */
   width: number;
   height: number;
+  /**
+   * Filled with the ECharts instance for the panel's siblings — the Grafana DOM
+   * legend is rendered by `VizLayout`, outside this component, and its hover
+   * emphasis has to dispatch onto this chart (see `useLegendHighlight`).
+   */
+  instanceRef?: MutableRefObject<EChartsType | null>;
 }
 
 /**
@@ -31,8 +47,11 @@ export const EChart: React.FC<Props> = ({
   chartModule,
   isGrafanaLegend,
   onChangeTimeRange,
+  onFieldConfigChange,
+  onOptionsChange,
   width,
   height,
+  instanceRef,
 }) => {
   const panelDOMRef = useRef<HTMLDivElement>(null);
   // The chart instance is created on mount (see the layout effect below) and
@@ -76,16 +95,23 @@ export const EChart: React.FC<Props> = ({
     // https://echarts.apache.org/en/api.html#echarts.init
     const instance = init(dom);
     setChart(instance);
+    if (instanceRef) {
+      instanceRef.current = instance;
+    }
 
     return () => {
       instance.dispose();
       setChart(null);
+      if (instanceRef) {
+        instanceRef.current = null;
+      }
     };
-  }, []);
+  }, [instanceRef]);
 
   useChartOption(chart, chartContext, { isGrafanaLegend, tooltipSink, reportTooltipTrigger });
   useChartResize(chart, width, height);
   useBrushTimeZoom(chart, onChangeTimeRange);
+  useRelationsPersistence(chart, { chartContext, onFieldConfigChange, onOptionsChange });
 
   return (
     <>

@@ -1,10 +1,9 @@
 import { type Field, getFieldDisplayName, type GrafanaTheme2 } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
-import { type EChartsFieldConfig } from 'editor/types';
 import { findCategoryField, resolveCategoriesFromFrame } from 'lib/echarts/converters/frames';
 import { getSeriesColor } from 'lib/echarts/style';
 import { isNumberField } from 'lib/grafana/narrowing';
-import { type FieldTypedDataFrame } from 'lib/grafana/types';
+import { type EChartsFrame } from 'lib/grafana/types';
 
 /**
  * The resolved series/category model for a category-axis cartesian chart.
@@ -39,11 +38,7 @@ export interface CategoryCartesianModel {
 }
 
 /** Numeric value fields of a frame paired with their display name and color. */
-function frameValueFields(
-  frame: FieldTypedDataFrame<number, EChartsFieldConfig>,
-  frames: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>,
-  theme: GrafanaTheme2
-) {
+function frameValueFields(frame: EChartsFrame, frames: EChartsFrame[], theme: GrafanaTheme2) {
   return frame.fields.filter(isNumberField).map((field) => ({
     field,
     name: getFieldDisplayName(field, frame, frames),
@@ -105,10 +100,7 @@ function rowIndexByCategory(labels: string[], frameName: string): Map<string, nu
  *
  * See https://grafana.com/developers/dataplane/
  */
-export function framesToCategoryCartesian(
-  frames: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>,
-  theme: GrafanaTheme2
-): CategoryCartesianModel | null {
+export function framesToCategoryCartesian(frames: EChartsFrame[], theme: GrafanaTheme2): CategoryCartesianModel | null {
   const valueFrames = frames.filter((frame) => frame.fields.some(isNumberField));
 
   if (valueFrames.length === 0) {
@@ -167,10 +159,7 @@ export function framesToCategoryCartesian(
  * the model so the axis / tooltip / legend derivations cannot fall out of step
  * with the converter (see {@link CategoryCartesianModel}).
  */
-export function categoryCartesianFields(
-  frames: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>,
-  theme: GrafanaTheme2
-): Field[] {
+export function categoryCartesianFields(frames: EChartsFrame[], theme: GrafanaTheme2): Field[] {
   return framesToCategoryCartesian(frames, theme)?.series.map(({ field }) => field) ?? [];
 }
 
@@ -179,7 +168,7 @@ export function categoryCartesianFields(
  * (every series hidden via the legend strips the numeric fields). Falls back to
  * any frame that still has a string field, else the first frame's row indices.
  */
-export function fallbackCategories(frames: Array<FieldTypedDataFrame<number, EChartsFieldConfig>>): string[] {
+export function fallbackCategories(frames: EChartsFrame[]): string[] {
   const categoryFrame = frames.find((frame) => findCategoryField(frame)) ?? frames[0];
   return categoryFrame ? resolveCategoriesFromFrame(categoryFrame) : [];
 }

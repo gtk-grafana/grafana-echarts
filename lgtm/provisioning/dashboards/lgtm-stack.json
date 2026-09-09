@@ -1,0 +1,192 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Smoke test for the self-instrumenting LGTM stack (pnpm run server:lgtm). Every panel reads a signal the stack produced about itself: Loki holds the five containers' stdout, Prometheus scrapes their /metrics, and Tempo's metrics-generator turns their traces into span metrics and service-graph edges. If all five panels have data, all four signals are wired.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false, "showMiniMap": false },
+        "content": "There is no data generator in this stack — **the stack is the workload.** Grafana running this dashboard is what makes these lines move: each refresh is an HTTP request Prometheus counts, a query Loki logs, and a trace Tempo turns into service-graph edges.\n\nA quiet stack is a flat dashboard. Pan the time picker or open a few dashboards to give it something to measure.",
+        "mode": "markdown"
+      },
+      "title": "",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "lgtm-loki" },
+      "description": "Logs: Alloy tails each container's stdout over the Docker socket and pushes it to Loki. `service_name` is the Compose service name.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "logs/s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 4 },
+      "id": 2,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "seriesType": "line",
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "lgtm-loki" },
+          "editorMode": "code",
+          "expr": "sum by (service_name) (rate({job=\"lgtm/docker\"} [$__auto]))",
+          "legendFormat": "{{service_name}}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Log lines/sec by service — Loki",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+      "description": "Metrics: Prometheus scrapes /metrics on all five containers, including itself. Resident memory is used here because it is the one series every service in the stack exposes.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 4 },
+      "id": 3,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "seriesType": "line",
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "editorMode": "code",
+          "expr": "sum by (service_name) (process_resident_memory_bytes)",
+          "legendFormat": "{{service_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Resident memory by service — Prometheus",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+      "description": "Traces, twice removed: the services export OTLP to Tempo, Tempo's metrics-generator derives service-graph edges from those traces, and remote-writes them to Prometheus as traces_service_graph_request_total{client,server}. label_replace renames the pair to source/target, which is the graph-*-wide contract the relations panel reads — no transformations needed. This is the same query shape as provisioning/dashboards/relations/devcortex-wide.json, against a stack you can run locally.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "decimals": 2,
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 13 },
+      "id": 4,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "relationsCurveness": 0.1,
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsNodeSize": 18,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "editorMode": "code",
+          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Service graph — Tempo metrics-generator via Prometheus",
+      "transformations": [],
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+      "description": "The other metrics-generator output: span metrics. One series per traced service, so it doubles as the check that a service's OTLP export is actually reaching Tempo.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 13 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "seriesType": "bar",
+        "stacking": "normal",
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "editorMode": "code",
+          "expr": "sum by (service) (rate(traces_spanmetrics_calls_total[$__rate_interval]))",
+          "legendFormat": "{{service}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Spans/sec by service — Tempo span metrics",
+      "type": "grafana-echartscartesian-panel"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "lgtm-loki" },
+      "description": "The raw lines behind the first panel. Loki derives `detected_level` itself, and the Loki datasource is provisioned with a derived field on traceID, so a dskit log line links straight into its trace in Tempo.",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 24 },
+      "id": 6,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "lgtm-loki" },
+          "editorMode": "code",
+          "expr": "{job=\"lgtm/docker\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Stack logs — Loki",
+      "type": "logs"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["echarts", "lgtm", "self-instrumented"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "LGTM stack — self-instrumented",
+  "uid": "echarts-lgtm-stack",
+  "version": 1,
+  "weekStart": ""
+}

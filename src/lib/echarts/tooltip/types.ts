@@ -1,6 +1,8 @@
 import { type Field, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type VizTooltipOptions } from '@grafana/schema';
-import { type TooltipOption } from 'echarts/types/dist/shared';
+import { type LinearGradientObject, type TooltipOption } from 'echarts/types/dist/shared';
+import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
+import { type MarkStat } from 'lib/echarts/converters/relationsModel';
 
 /**
  * ECharts tooltip trigger: cartesian time series share an x axis; pie/radar hover per item.
@@ -58,6 +60,63 @@ export interface TooltipModel {
    * hierarchy nodes), which render no footer.
    */
   source?: TooltipSource;
+  /**
+   * Ad-hoc filters the pinned footer should offer, when the hovered item's own
+   * `field.labels` are **not** the right answer.
+   *
+   * Set only by relations, and for two reasons the generic derivation cannot cover.
+   * A **node** carries its identity in `field.name` rather than in labels, and a node
+   * derived from an edge's endpoints has no field at all, so a label walk finds
+   * nothing to offer on the very marks a topology is filtered by. And an **edge**'s
+   * endpoint labels are the contract's canonical `source`/`target`, which are a
+   * topology carrier rather than necessarily a dimension the datasource knows —
+   * `resolveEndpointLabelKeys` and `relationsSourceFilterLabel` map them back.
+   * See `relationsFilterLabels`.
+   *
+   * When set it replaces the label walk rather than adding to it; every other family
+   * leaves it unset and the overlay keeps deriving from {@link TooltipSource}.
+   */
+  filters?: TooltipFilters;
+}
+
+/**
+ * A label/value pair a pinned tooltip offers as an ad-hoc filter. Deliberately not
+ * `@grafana/ui`'s `AdHocFilterModel`, which carries an `onClick` — the ECharts layer
+ * states the pair and the React overlay wires the panel context to it.
+ */
+export interface TooltipAdHocFilter {
+  key: string;
+  value: string;
+}
+
+/**
+ * The three button groups `VizTooltipFooter` can render, stated separately because they
+ * cannot be derived from one list — and because deriving them from one list is exactly the
+ * duplicate-button bug this shape replaces.
+ *
+ * The footer's constraints are fixed by `@grafana/ui` and both are load-bearing:
+ *
+ * - each `adHocFilters` entry renders as **"Filter for '&lt;value&gt;'"**, keyless. Two pairs
+ *   with the same value are therefore two buttons a user cannot tell apart, which is what a
+ *   node offered: `source=gateway` and `target=gateway` both read "Filter for 'gateway'";
+ * - `filterByGroupedLabels` renders **both** halves whenever it is present. There is no way
+ *   to offer a negative without also offering a positive, so a mark whose positive AND is
+ *   meaningless (a node again: `source=x AND target=x` is self-loops) has to supply a
+ *   *different*, meaningful set for the positive rather than reuse the negative's.
+ *
+ * Hence {@link each} names only what has a distinguishable label, and the grouped halves are
+ * independent. See `nodeFilters` / `edgeFilters` for what each mark puts where.
+ */
+export interface TooltipFilters {
+  /**
+   * Offered one button each ("Filter for '&lt;value&gt;'"). Values must be distinct, since
+   * that is all the button shows.
+   */
+  each: TooltipAdHocFilter[];
+  /** Applied together, with `=`, by "Filter on this value". */
+  filterFor: TooltipAdHocFilter[];
+  /** Applied together, with `!=`, by "Filter out this value". */
+  filterOut: TooltipAdHocFilter[];
 }
 
 /**
@@ -196,6 +255,12 @@ export interface HierarchyTooltipContext {
  * https://echarts.apache.org/en/option.html#series-graph.data
  */
 export interface RelationsNodeItem {
+  /**
+   * The node's field name, which is both ECharts' graph key (links resolve against
+   * it) and the mark key the tooltip looks the node's own field up by — see
+   * {@link RelationsMarks}. A node *derived* from an edge's endpoints has no field,
+   * so its id matches nothing and the tooltip falls back to the panel formatter.
+   */
   id: string;
   name: string;
   value?: number;
@@ -213,14 +278,24 @@ export interface RelationsNodeItem {
   stat?: number | null;
   symbolSize?: number;
   itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
+  /** Graph only: the node's position in the series' view coordinate space. */
   x?: number;
   y?: number;
-  /** `subtitle`, surfaced as a tooltip row. */
+  /**
+   * Sankey only: the node's position as a **fraction** of the layout rect (0-1).
+   *
+   * A sankey lays its nodes out in columns and has no coordinate space to pin one in,
+   * so `SankeyView` reads these instead of `x`/`y` — and its own drag writes them
+   * (`dragNode`). Stored in the same `custom.fixedX`/`fixedY` field pair as a graph
+   * position, since a mark has one place to remember where it was put.
+   * https://echarts.apache.org/en/option.html#series-sankey.data.localX
+   */
+  localX?: number;
+  localY?: number;
+  /** `custom.subtitle`, surfaced as a tooltip row. */
   subtitle?: string;
-  /** `secondarystat`, tooltip only; may be a string per the frame spec. */
-  secondary?: number | string;
-  /** Source row in the nodes frame, for footer data links. Unset on derived nodes. */
-  sourceRowIndex?: number;
+  /** The stats past the first, tooltip only — one row each. See {@link MarkStat}. */
+  secondaries?: MarkStat[];
 }
 
 /**
@@ -230,24 +305,87 @@ export interface RelationsNodeItem {
 export interface RelationsLinkItem {
   source: string;
   target: string;
+  /**
+   * The edge's field name, so the tooltip can find the edge's own field — the
+   * endpoints cannot, since two parallel edges share them. `RelationLink.markKey`
+   * stands in for it when several collected marks share that name, which is the one
+   * case where the field name is not a key (see `RelationLink.markKey`).
+   *
+   * Deliberately **not** `id`, which ECharts already reads on a link:
+   * `createGraphFromNodeEdge` uses `retrieve(link.id, source + ' > ' + target)` as
+   * the edge's *name*, so setting it would rename every edge as a side effect of
+   * carrying a lookup key. ECharts preserves unknown data props, so this rides
+   * along untouched instead.
+   */
+  markId?: string;
   value?: number;
-  lineStyle?: { color?: string; width?: number; type?: 'solid' | 'dashed' | 'dotted'; curveness?: number };
-  /** Source row in the edges frame, for footer data links. */
-  sourceRowIndex?: number;
+  /**
+   * The edge's stats past the first (`reduceOptions.calcs[1..]`), tooltip only — the same
+   * slot {@link RelationsNodeItem.secondaries} fills for a node, so one "Calculation"
+   * setting means the same thing on both kinds of mark. See `secondaryStatsOf`.
+   */
+  secondaries?: MarkStat[];
+  lineStyle?: {
+    /**
+     * A colour, or a gradient between the two endpoints' colours. The gradient form
+     * exists because ECharts' `graph` series implements only the `'source'` and
+     * `'target'` keywords — see `makeEdgeGradientResolver`.
+     */
+    color?: string | LinearGradientObject;
+    width?: number;
+    type?: 'solid' | 'dashed' | 'dotted';
+    curveness?: number;
+  };
 }
 
 /**
- * Formatting context the relations tooltip reads. Mirrors
- * {@link HierarchyTooltipContext}: narrower than the series context that supplies
- * it, so the tooltip layer never imports the option layer back.
+ * One mark's own field, resolved once per render so a hover is a map lookup.
+ *
+ * A mark **is** a field under the graph contract, which is what makes this
+ * possible: the hovered node or edge formats with its own unit and decimals and
+ * surfaces its own `config.links`, rather than borrowing whichever field happened
+ * to be first in the frame.
  */
-export interface RelationsTooltipContext {
+export interface RelationsMark {
+  /** This mark's own display processor (unit, decimals, "No value"). */
   formatValue: ValueFormatter;
-  /** The numeric `mainstat` field; the footer resolves its data links. */
-  valueField?: Field;
-  /** The edges frame's `mainstat`, for a hovered link's footer. */
-  linkValueField?: Field;
+  /** This mark's field + row, for the footer's data links and ad-hoc filters. */
+  source: TooltipSource;
 }
+
+/**
+ * Every mark that has a field, keyed by the mark key the ECharts item carries —
+ * `id` for a node ({@link RelationsNodeItem}), `markId` for an edge
+ * ({@link RelationsLinkItem}).
+ *
+ * Keyed rather than indexed on purpose. ECharts renumbers a graph's edges when it
+ * drops one whose endpoint is missing (`createGraphFromNodeEdge` keeps only
+ * `validEdges`), and the sankey variant removes links to break cycles, so a
+ * `dataIndex` into the model would silently point at the wrong mark. A missing key
+ * simply means "no field" — a node derived from an edge's endpoints — which renders
+ * no footer and formats through `formatDerivedMarkValue`.
+ *
+ * Nodes and edges are separate maps because their names live in different frames
+ * and can collide (a node `e1` and an edge `e1` are both legal).
+ */
+export interface RelationsMarks {
+  nodes: ReadonlyMap<string, RelationsMark>;
+  links: ReadonlyMap<string, RelationsMark>;
+  /**
+   * The datasource's own endpoint label keys, carried through from the model so the
+   * footer's ad-hoc filters are written under a key the datasource recognises. Unset means
+   * the contract's `source`/`target`. See `NodeGraphData.endpointLabels`.
+   */
+  endpointLabels?: GraphEndpointKeys;
+}
+
+/**
+ * The relations tooltip needs no context beyond {@link RelationsMarks} — no panel
+ * formatter, unlike every other family. A mark either has a field, and formats
+ * through it, or is a derived node whose value is a link count (see
+ * `formatDerivedMarkValue`). That is why there is no `RelationsTooltipContext` here
+ * to mirror {@link HierarchyTooltipContext}.
+ */
 
 /**
  * Formatting context the stream (single-axis) tooltip reads: the time zone for its

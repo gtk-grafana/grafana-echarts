@@ -43,7 +43,12 @@ Use panel plugins when you want to do things like visualize data returned by dat
 5. Spin up a Grafana instance and run the plugin inside it (using Docker)
 
    ```bash
+   # Grafana + TestData on :3001 — what the e2e suite runs against
    pnpm run server
+
+   # Grafana + Loki + Tempo + Prometheus on :3010, instrumenting themselves,
+   # for developing against real data sources. See lgtm/README.md.
+   pnpm run server:lgtm
    ```
 
 6. Run the E2E tests (using Playwright)

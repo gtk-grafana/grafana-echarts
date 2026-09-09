@@ -763,7 +763,7 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
   },
   {
     "props": {
-      "value": "#5794f2",
+      "value": "#f2495c",
     },
     "type": "strokeStyle",
   },
@@ -1067,7 +1067,7 @@ exports[`multivariate (parallel) canvas renders color byName fixed-color overrid
   },
   {
     "props": {
-      "value": "#5794f2",
+      "value": "#f2495c",
     },
     "type": "strokeStyle",
   },

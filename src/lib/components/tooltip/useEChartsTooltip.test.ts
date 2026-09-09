@@ -11,6 +11,8 @@ interface Dispatched {
   type: string;
   seriesIndex?: number;
   dataIndex?: number;
+  /** `'node'` / `'edge'` for graph-like series; absent elsewhere. */
+  dataType?: string;
 }
 
 /**
@@ -61,6 +63,17 @@ function createFakeChart({ throwOnIndexedShowTip = false }: { throwOnIndexedShow
     emit: (event: string, arg?: unknown) => (chartHandlers[event] ?? []).forEach((h) => h(arg)),
   };
 }
+
+/**
+ * Let the emphasis handling run, which it defers to a microtask so that it lands after
+ * every handler of the same event — including ECharts' own, which is the one it corrects
+ * (see `settleFocus`). Jest's fake timers own the microtask queue along with the clock,
+ * so draining it is a tick of zero.
+ *
+ * Called *inside* the `act` that emits, after all of that event's emissions, since the
+ * pair a move between two marks reports is one hover and settles once.
+ */
+const settle = () => jest.advanceTimersByTime(0);
 
 /** Two flat series whose points sit at y = 10 and y = 110 in fake-chart pixels. */
 const proximitySeries = [
@@ -208,6 +221,245 @@ describe('useEChartsTooltip', () => {
     });
     expect(result.current.state.pinned).toBe(true);
     expect(result.current.state.pinnedItem).toEqual({ seriesIndex: 1, dataIndex: 3 });
+  });
+
+  // A graph-like series (graph / sankey / chord) keeps nodes and edges in two
+  // separate data tables, discriminated by `dataType`. ECharts' `showTip` cannot
+  // address the edge table — `findPointFromSeries` calls `seriesModel.getData()`
+  // with no `dataType` — so replaying a clicked edge resolves the *node* at the
+  // same `dataIndex` and pins an unrelated node's tooltip.
+  describe('re-pinning onto an edge of a graph-like series', () => {
+    const nodeModel: TooltipModel = { header: { label: 'gateway', value: '' }, rows: [{ label: 'Value', value: '7' }] };
+    const edgeModel: TooltipModel = {
+      header: { label: 'us-west → us-east', value: '' },
+      rows: [{ label: 'Value', value: '380' }],
+    };
+
+    /**
+     * Pin on a node, then hover an edge and click it — the reported sequence.
+     * Both items sit at `dataIndex: 2`, which is what makes the bug visible: only
+     * `dataType` tells them apart.
+     *
+     * `dispatched` is emptied after the first pin so assertions see only what the
+     * re-pin dispatched — the node pin legitimately replays a `showTip` at that
+     * same index.
+     */
+    const rePinOntoEdge = () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(nodeModel);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'node' });
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      fake.dispatched.length = 0;
+
+      act(() => {
+        // ECharts keeps hit-testing while the React tooltip is frozen, so the
+        // edge's model still reaches the sink even though it is not displayed.
+        view.result.current.sink(edgeModel);
+        // The outside-click handler unpins on mousedown; the click then re-pins.
+        fireEvent.mouseDown(document.body);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+      });
+      return { fake, view };
+    };
+
+    it('pins the clicked edge, not the node sharing its dataIndex', () => {
+      const { view } = rePinOntoEdge();
+
+      expect(view.result.current.state.pinned).toBe(true);
+      expect(view.result.current.state.model).toEqual(edgeModel);
+      expect(view.result.current.state.pinnedItem).toEqual({ seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+    });
+
+    it('does not replay an edge through showTip, which would resolve the node', () => {
+      const { fake } = rePinOntoEdge();
+
+      // No replay at all for an edge: a typed one is ignored by ECharts and an
+      // untyped one is the exact dispatch that resolved the wrong node.
+      expect(fake.dispatched.filter((d) => d.type === 'showTip')).toEqual([]);
+    });
+
+    it('emphasises the edge rather than the node at the same index', () => {
+      const { fake } = rePinOntoEdge();
+
+      expect(fake.dispatched).toContainEqual({
+        type: 'highlight',
+        seriesIndex: 0,
+        dataIndex: 2,
+        dataType: 'edge',
+      });
+    });
+
+    // The node path is unchanged: `showTip` can address the main data table, so
+    // it still drives the replay that rebuilds content after a re-pin.
+    it('still replays through showTip when the clicked item is a node', () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(nodeModel);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 1, dataType: 'node' });
+      });
+
+      expect(view.result.current.state.pinned).toBe(true);
+      // Untyped on purpose: `showTip` ignores `dataType`, and the main data table
+      // is the node table, so the bare index pair resolves the right item.
+      expect(fake.dispatched).toContainEqual({ type: 'showTip', seriesIndex: 0, dataIndex: 1 });
+    });
+  });
+
+  /**
+   * **Two reported bugs, one owner.** A pinned tooltip freezes its content and position, and
+   * its emphasis is part of what it froze — but the cursor kept taking it away, from both
+   * directions:
+   *
+   * - `mouseout` erased the adjacency fade. `bindMouseEvent` routes every element `mouseout`
+   *   into `handleGlobalMouseOutForHighDown`, which opens with an unconditional
+   *   `allLeaveBlur(api)` and cannot tell an action-driven highlight from a hover one;
+   * - `mouseover` moved it onto whatever the cursor entered, so the panel showed one node's
+   *   tooltip beside another node's neighbourhood.
+   *
+   * See `restorePinnedFocus`.
+   */
+  describe('emphasis while pinned', () => {
+    /** Pin item `dataIndex: 2` of the graph's edge table, then clear the dispatch log. */
+    const pinAnEdge = () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(model);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      fake.dispatched.length = 0;
+      return { fake, view };
+    };
+
+    const highlightsOfPin = (fake: ReturnType<typeof createFakeChart>) =>
+      fake.dispatched.filter((d) => d.type === 'highlight');
+
+    it('re-applies the pinned item’s highlight when the cursor leaves it', () => {
+      const { fake } = pinAnEdge();
+
+      act(() => {
+        fake.emit('mouseout');
+        settle();
+      });
+
+      expect(highlightsOfPin(fake)).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
+    });
+
+    // Leaving the canvas is a `mouseout` of whatever element the cursor was on, so the
+    // emphasis is cleared there too — and the tooltip stays pinned and on screen.
+    it('re-applies it when the cursor leaves the canvas', () => {
+      const { fake, view } = pinAnEdge();
+
+      act(() => {
+        fake.emitZr('globalout');
+        settle();
+      });
+
+      expect(highlightsOfPin(fake)).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
+      expect(view.result.current.state.pinned).toBe(true);
+      expect(view.result.current.state.visible).toBe(true);
+    });
+
+    // Nothing to re-assert once the pin is gone: the next hover owns the emphasis, and
+    // re-lighting a dismissed item would leave a highlight nobody can clear.
+    it('stops re-applying once the tooltip is dismissed', () => {
+      const { fake, view } = pinAnEdge();
+
+      act(() => view.result.current.dismiss());
+      fake.dispatched.length = 0;
+      act(() => {
+        fake.emit('mouseout');
+        settle();
+      });
+
+      expect(highlightsOfPin(fake)).toEqual([]);
+    });
+
+    /**
+     * Hovering **another** mark must not move the fade onto it. Measured before the fix on a
+     * pinned four-node graph: arriving at a non-neighbour from empty space reproduced the
+     * *unpinned* hover state exactly, while the tooltip still named the pinned node.
+     *
+     * The hovered mark is downplayed as well as the pin re-lit: re-lighting alone happens to
+     * strip it (`blurSeries` resets every element's state before un-blurring the focus set) but
+     * only for a series that sets `emphasis.focus`, which not every family does.
+     */
+    it('takes the emphasis back when the cursor enters another mark', () => {
+      const { fake } = pinAnEdge();
+
+      act(() => {
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 7, dataType: 'node' });
+        settle();
+      });
+
+      expect(fake.dispatched).toEqual([
+        { type: 'downplay', seriesIndex: 0, dataIndex: 7, dataType: 'node' },
+        { type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' },
+      ]);
+    });
+
+    // Entering the pinned mark itself is not a theft: downplaying it first would drop the very
+    // emphasis being restored.
+    it('does not downplay the pinned mark when the cursor re-enters it', () => {
+      const { fake } = pinAnEdge();
+
+      act(() => {
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+        settle();
+      });
+
+      expect(fake.dispatched).toEqual([{ type: 'highlight', seriesIndex: 0, dataIndex: 2, dataType: 'edge' }]);
+    });
+
+    /**
+     * A pin with no item behind it — a proximity click that landed on empty grid — has nothing
+     * to re-light, so freezing means stripping what the hover applied rather than restoring
+     * anything.
+     */
+    it('strips the hover emphasis even when the pin carries no item', () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(model);
+        fake.emitZr('click');
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      expect(view.result.current.state.pinnedItem).toBeNull();
+      fake.dispatched.length = 0;
+
+      act(() => {
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 4 });
+        settle();
+      });
+
+      expect(fake.dispatched).toEqual([{ type: 'downplay', seriesIndex: 0, dataIndex: 4, dataType: undefined }]);
+    });
+
+    // Unpinned, the cursor owns the emphasis as it always did.
+    it('leaves hover emphasis alone when nothing is pinned', () => {
+      const fake = createFakeChart();
+      renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      act(() => {
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 4 });
+        settle();
+      });
+
+      expect(fake.dispatched).toEqual([]);
+    });
   });
 
   describe('scroll while pinned', () => {

@@ -9,7 +9,7 @@ import { useChartOption } from './useChartOption';
 
 // The option build is covered end-to-end by `panelOption.test.ts`; mocking it
 // here lets these tests drive the branches this hook owns — the brush arm/clear
-// choice, and the throw on a family that produces no option.
+// choice, and the empty-canvas path when a family derives no option.
 jest.mock('lib/echarts/options/panelOption', () => ({ buildPanelChartOption: jest.fn() }));
 const buildOption = jest.mocked(buildPanelChartOption);
 
@@ -21,13 +21,16 @@ interface SetOptionCall {
 function createFakeChart() {
   const setOptionCalls: SetOptionCall[] = [];
   const dispatched: unknown[] = [];
+  const clear = jest.fn();
   return {
     chart: {
       setOption: (option: ECBasicOption, opts?: { notMerge?: boolean }) => void setOptionCalls.push({ option, opts }),
       dispatchAction: (payload: unknown) => void dispatched.push(payload),
+      clear,
     } as unknown as EChartsType,
     setOptionCalls,
     dispatched,
+    clear,
   };
 }
 
@@ -78,11 +81,28 @@ describe('useChartOption', () => {
     expect(dispatched).toEqual([DISABLE_TIME_BRUSH_ACTION]);
   });
 
-  it('throws when the chart family produces no option', () => {
-    buildOption.mockReturnValue(null as unknown as ECBasicOption);
+  /**
+   * No option means "nothing to draw from this data", which every family falls back to
+   * the no-data view for. Throwing here would swap the panel for an error boundary,
+   * which is reserved for data the family cannot *read* — that throws from inside the
+   * build instead, so the message reaches the user.
+   */
+  it('clears the canvas rather than throwing when the family derives no option', () => {
+    buildOption.mockReturnValue(null);
+    const { chart, setOptionCalls, clear } = createFakeChart();
+
+    expect(() => renderHook(() => useChartOption(chart, ctx, options))).not.toThrow();
+    expect(clear).toHaveBeenCalled();
+    expect(setOptionCalls).toEqual([]);
+  });
+
+  it('lets a read failure propagate, so the panel reports it', () => {
+    buildOption.mockImplementation(() => {
+      throw new Error('cannot read these frames');
+    });
     const { chart } = createFakeChart();
 
-    expect(() => renderHook(() => useChartOption(chart, ctx, options))).toThrow('No echart option!');
+    expect(() => renderHook(() => useChartOption(chart, ctx, options))).toThrow('cannot read these frames');
   });
 
   it('does not build before the instance exists', () => {

@@ -1,13 +1,12 @@
 import { getFieldDisplayName } from '@grafana/data';
 import { STACK_GROUP_ID } from 'editor/cartesian';
-import { type CartesianSingleValueSeriesType, type EChartsFieldConfig, type HeatmapSeriesType } from 'editor/types';
-import { type ChartContext, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
+import { type CartesianSingleValueSeriesType, type HeatmapSeriesType } from 'editor/types';
+import { type CartesianContextWithOverlay, type EChartSingleValueCartesianSeries } from 'lib/echarts/charts/types';
 import { resolveFieldSeriesType, resolveFieldStack } from 'lib/echarts/converters/fieldOverrides';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { buildCartesianSeries } from 'lib/echarts/options/cartesian';
 import { getSeriesDensity, getSeriesPerfOptions } from 'lib/echarts/performance/resolvers';
 import { getSeriesColor } from 'lib/echarts/style';
-import { type FieldTypedDataFrame } from 'lib/grafana/types';
 
 /**
  * Convert Grafana time series DataFrames into ECharts series data.
@@ -19,18 +18,15 @@ import { type FieldTypedDataFrame } from 'lib/grafana/types';
  * once from the whole frame set so a dense chart switches every series onto the
  * fast path consistently.
  */
-export function timeSeriesToEChartsOption(
-  ctx: ChartContext<CartesianSingleValueSeriesType | HeatmapSeriesType>
-): EChartSingleValueCartesianSeries[] | null {
-  const { frames: rawFrames, theme, options, seriesType } = ctx;
+export function timeSeriesToEChartsOption(ctx: CartesianContextWithOverlay): EChartSingleValueCartesianSeries[] | null {
+  const { frames, theme, options, seriesType } = ctx;
 
-  const frames: Array<FieldTypedDataFrame<string | number, EChartsFieldConfig>> = rawFrames;
   const echartsSeries: EChartSingleValueCartesianSeries[] = [];
 
   // Density (total points + densest series) drives the fast-path props; computed
   // once over the whole frame set so every series resolves against the same
   // numbers and a chart never renders half on the fast path.
-  const density = getSeriesDensity(rawFrames);
+  const density = getSeriesDensity(frames);
 
   forEachTimeSeriesField(frames, ({ frame, field, timeField }) => {
     const color = getSeriesColor(field, theme);

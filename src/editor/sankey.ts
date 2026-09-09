@@ -8,7 +8,7 @@ import {
 
 /**
  * Sankey render type of the relations family. A sankey reuses the node/link model
- * verbatim (`frameToNodeGraph`); only its layout options, the cycle-breaking pass
+ * verbatim (`frameToGraphWide`); only its layout options, the cycle-breaking pass
  * (`converters/dag.ts`) and its editor options are sankey-specific. See
  * `getSankeySeries`.
  */

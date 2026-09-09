@@ -1,0 +1,1739 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Prometheus and Loki responses reshaped into the field-based graph contract with ordinary dashboard transformations. Every fixture reproduces a real datasource frame shape: predictable_csv_wave is a metric query (one frame per series, value field named Value), csv_content is an instant query with Format: Table. One joinByField on Time does the widening; filter.byRefId separates two queries in one panel. The PromQL/LogQL is in every panel description.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "# Prometheus & Loki \u2192 relations charts\n\nEvery other relations dashboard in this repo hands the panel row-format CSV. This one\nstarts from **the frame shapes Prometheus and Loki actually return** and reaches the\nfield-based graph contract with ordinary dashboard transformations \u2014 the work a real\nuser has to do, which nothing else here shows.\n\n**The rule:** *N series = N frames.* A `joinByField` on `Time` makes them **one wide\nframe whose field names are the edge ids**, because `joinDataFrames` renames a field\ncalled `Value` to its frame name and keeps its labels.\n\n**The join is about ids here, not about topology.** The reader collects every frame that\nlooks like edges, so a response whose labels are already `source`/`target` needs no join at\nall. These panels mostly do need one, for a different reason: `sum by (client, server)`\nemits `client`/`server`, which the contract does not recognise, so the endpoints have to\ncome from splitting the field **name** \u2014 and the name only becomes the legend format when\nthe join renames it. Without the join those panels draw nothing, because no frame passes\nthe shape test. The two panels that genuinely emit `source`/`target` labels would draw\nunjoined; they keep the join so their edges have ids.\n\n| Fixture here | Is byte-for-byte | Which is |\n| --- | --- | --- |\n| `predictable_csv_wave` | `meta.type: timeseries-multi`, one frame per series, frame name = legend format, value field named `Value` with the label set | a Prometheus/Loki **metric query**, `Format: Time series` |\n| `csv_content` | one frame, `Time` as `time`, label columns as `string`, `Value` as `number` | a Prometheus **instant query**, `Format: Table` |\n\nSo the transformation chain on each panel below is the *same chain* you would write\nagainst a live datasource. **No Prometheus or Loki is provisioned in this repo** \u2014 the\nqueries in every panel description and in the two query panels are reference copy, not\nexecuted. Swap the datasource, paste the query, keep the transformations.\n\n**Two queries in one panel** (edges + nodes, or two edge tiers) are separated with\n`filter.byRefId` on each join. `refIdMatcher` is exact string equality, and the joined\noutput is stamped `refId: joinByField-A-A-\u2026`, so a later `byRefId: \"B\"` cannot\nre-capture it \u2014 both joins survive side by side.\n\n**Which carrier holds the endpoints.** The contract reads exactly two label keys,\n`source` and `target`. A `sum by (client, server)` emits `client` / `server`, which it\ndoes not recognise \u2014 so on most panels here the endpoints come from splitting the\nfield **name** on `-->`, i.e. from the legend format. Only the two panels that\ngenuinely produce `source` / `target` labels \u2014 the `rowsToFields` one and the\n`label_format` one \u2014 resolve from labels, which is also why only those two can express\nan id that is not `left-->right`."
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "Prometheus \u2014 the queries",
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### 1 \u00b7 Service dependency map \u2014 graph (panel below left)\n\nTwo queries. **A** is the edges, **B** the per-service error ratio that colours the nodes.\n\n```promql\nsum by (client, server) (rate(traces_service_graph_request_total[$__rate_interval]))\n```\n`Format: Time series` \u00b7 `Legend: {{client}}-->{{server}}` \u00b7 `Type: Range`\n\n```promql\n  sum by (server) (rate(traces_service_graph_request_failed_total[$__rate_interval]))\n/ sum by (server) (rate(traces_service_graph_request_total[$__rate_interval]))\n```\n`Format: Time series` \u00b7 `Legend: {{server}}` \u00b7 `Type: Range`\n\n```json\n[\n  {\n    \"id\": \"joinByField\",\n    \"filter\": {\n      \"id\": \"byRefId\",\n      \"options\": \"A\"\n    },\n    \"options\": {\n      \"byField\": \"Time\",\n      \"mode\": \"outer\"\n    }\n  },\n  {\n    \"id\": \"joinByField\",\n    \"filter\": {\n      \"id\": \"byRefId\",\n      \"options\": \"B\"\n    },\n    \"options\": {\n      \"byField\": \"Time\",\n      \"mode\": \"outer\"\n    }\n  }\n]\n```\n\n### 2 \u00b7 Kubernetes CPU requests \u2014 sankey (panel below right)\n\nTwo queries, both edges, **one unfiltered join** \u2014 one step, all eight ids. Two separate\njoins would work too: the reader unions every edges frame it finds.\n\n```promql\nsum by (node, namespace) (kube_pod_container_resource_requests{resource=\"cpu\"})\n```\n`Legend: {{node}}-->{{namespace}}`\n\n```promql\nsum by (namespace, workload) (\n  namespace_workload_pod:kube_pod_owner:relabel\n    * on (namespace, pod) group_left()\n      sum by (namespace, pod) (kube_pod_container_resource_requests{resource=\"cpu\"})\n)\n```\n`Legend: {{namespace}}-->{{workload}}`\n\n### 3 \u00b7 Cross-AZ request matrix \u2014 chord\n\n```promql\nsum by (source_zone, destination_zone) (\n  rate(istio_requests_total{reporter=\"destination\"}[$__rate_interval])\n)\n```\n`Legend: {{source_zone}}-->{{destination_zone}}`\n\n### 4 \u00b7 The table route \u2014 graph, instant + `label_join` + `rowsToFields`\n\n```promql\nlabel_join(\n  sum by (client, server) (rate(traces_service_graph_request_total[$__range])),\n  \"id\", \":\", \"client\", \"server\"\n)\n```\n`Format: Table` \u00b7 `Type: Instant`\n\n```json\n[\n  {\n    \"id\": \"organize\",\n    \"options\": {\n      \"excludeByName\": {\n        \"Time\": true\n      },\n      \"indexByName\": {\n        \"id\": 0,\n        \"Value\": 1,\n        \"client\": 2,\n        \"server\": 3\n      },\n      \"renameByName\": {\n        \"client\": \"source\",\n        \"server\": \"target\"\n      }\n    }\n  },\n  {\n    \"id\": \"rowsToFields\",\n    \"options\": {}\n  }\n]\n```"
+      },
+      "transparent": true
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Service dependency map \u2014 graph",
+      "description": "**Prometheus, two queries, two filtered joins.** Edges from the Tempo service-graph metrics; node colour from a per-service error ratio.\n\n```promql\n# A - edges\\nsum by (client, server) (rate(traces_service_graph_request_total[$__rate_interval]))\n```\n```promql\n# B - nodes: error ratio\\n  sum by (server) (rate(traces_service_graph_request_failed_total[$__rate_interval]))\n/ sum by (server) (rate(traces_service_graph_request_total[$__rate_interval]))\n```\nEach query joins under its own `filter.byRefId`, so refId A becomes the edges frame and refId B the nodes frame. Without the joins the panel would draw nothing: these series carry `client`/`server` labels, which the contract does not read, so the endpoints have to come from the field **name** \u2014 and the name is only the legend format once the join has renamed `Value` to it.\n\n`payments-->gateway` closes a **cycle**. A graph draws it; the sankey panels alongside would have to hide such a link to stay acyclic, which is the whole reason to pick this variant for a dependency map.\n\nNodes are percentages against green/orange/red thresholds; one `byRegexp: /-->/` override flips every edge to req/s and back to a palette colour. That colour property is required, not cosmetic \u2014 an edge left on `thresholds` resolves a threshold colour instead of deferring to **Link color**. Pin the `gateway \u2192 catalogue` edge for its Explore link.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percentunit",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.01
+              },
+              {
+                "color": "red",
+                "value": 0.05
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gateway-->catalogue"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Traces: gateway \u2192 catalogue",
+                    "url": "/explore?left=%7B%22datasource%22%3A%22gdev-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22%7B%20span.client%20%3D%20%5C%22gateway%5C%22%20%26%26%20span.server%20%3D%20%5C%22catalogue%5C%22%20%7D%22%7D%5D%7D",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsLayout": "force",
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsRepulsion": 260,
+        "relationsEdgeLength": 120,
+        "relationsNodeSize": 18,
+        "relationsLinkColor": "gradient",
+        "reduceOptions": {
+          "calcs": ["mean", "max"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "1480,1520,1495,1560",
+              "labels": "client=frontend, server=gateway",
+              "name": "frontend-->gateway"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "610,640,625,655",
+              "labels": "client=gateway, server=auth",
+              "name": "gateway-->auth"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "820,865,840,890",
+              "labels": "client=gateway, server=catalogue",
+              "name": "gateway-->catalogue"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "410,395,430,445",
+              "labels": "client=gateway, server=cart",
+              "name": "gateway-->cart"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "180,175,192,205",
+              "labels": "client=gateway, server=checkout",
+              "name": "gateway-->checkout"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "300,312,296,325",
+              "labels": "client=auth, server=postgres",
+              "name": "auth-->postgres"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "760,790,775,815",
+              "labels": "client=catalogue, server=postgres",
+              "name": "catalogue-->postgres"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1220,1180,1265,1310",
+              "labels": "client=cart, server=redis",
+              "name": "cart-->redis"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "165,158,174,188",
+              "labels": "client=checkout, server=payments",
+              "name": "checkout-->payments"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "120,131,126,140",
+              "labels": "client=checkout, server=postgres",
+              "name": "checkout-->postgres"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "44,51,47,58",
+              "labels": "client=payments, server=gateway",
+              "name": "payments-->gateway"
+            }
+          ]
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.001,0.002,0.002,0.003",
+              "labels": "server=frontend",
+              "name": "frontend"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.003,0.004,0.004,0.005",
+              "labels": "server=gateway",
+              "name": "gateway"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.028,0.031,0.030,0.034",
+              "labels": "server=auth",
+              "name": "auth"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.007,0.008,0.009,0.008",
+              "labels": "server=catalogue",
+              "name": "catalogue"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.011,0.012,0.014,0.013",
+              "labels": "server=cart",
+              "name": "cart"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.000,0.000,0.001,0.000",
+              "labels": "server=redis",
+              "name": "redis"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.058,0.061,0.064,0.060",
+              "labels": "server=postgres",
+              "name": "postgres"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.088,0.092,0.090,0.095",
+              "labels": "server=checkout",
+              "name": "checkout"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "0.044,0.047,0.049,0.046",
+              "labels": "server=payments",
+              "name": "payments"
+            }
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          },
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "joinByField",
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          },
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Kubernetes CPU requests \u2014 sankey",
+      "description": "**Prometheus, two edge queries, one unfiltered join.** Both refIds are edges, so there is nothing to keep apart \u2014 and since the reader now collects every edges frame, they no longer *have* to share a frame. One join is still the simplest way to give all eight edges their ids in one step.\n\n```promql\n# A - node -> namespace\\nsum by (node, namespace) (kube_pod_container_resource_requests{resource=\"cpu\"})\n```\n```promql\n# B - namespace -> workload\\nsum by (namespace, workload) (\n  namespace_workload_pod:kube_pod_owner:relabel\n    * on (namespace, pod) group_left()\n      sum by (namespace, pod) (kube_pod_container_resource_requests{resource=\"cpu\"})\n)\n```\nThree tiers, conserved: 15 + 13 cores requested on the two nodes, 6 / 14 / 8 through the namespaces, the same out to the workloads. Because the flow balances, every ribbon width is directly comparable and no node shows a phantom surplus.\n\nThe fixture is a **DAG**, so no link is hidden to remove cycles and the panel shows no corner notice. Feed a sankey a cyclic topology and it will.\n\n**Canvas node values are off on purpose.** With only edge queries there is no nodes frame, so every node is *derived* from its endpoints and its stat is its **degree** \u2014 a link count (`deriveNodesFromLinks`) \u2014 which drawn beside `node-1` would read `3.0 cores` when it actually requests 15. A derived node has no field of its own, so it also borrows the panel's representative formatter and wears the edge unit in the tooltip; that is `todo/relations-data-links.md` gap 4, not something a dashboard can configure away. Add a third query (`sum by (node) (\u2026)`) under its own `filter.byRefId` and the nodes become real fields, the way the service map above colours its nodes.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "suffix:cores",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "justify",
+        "relationsSankeyNodeWidth": 18,
+        "relationsSankeyNodeGap": 10,
+        "relationsSankeyLinkOpacity": 0.45,
+        "relationsShowNodeValues": false,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "4",
+              "labels": "node=node-1, namespace=platform",
+              "name": "node-1-->platform"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "8",
+              "labels": "node=node-1, namespace=ecommerce",
+              "name": "node-1-->ecommerce"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "3",
+              "labels": "node=node-1, namespace=observability",
+              "name": "node-1-->observability"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "2",
+              "labels": "node=node-2, namespace=platform",
+              "name": "node-2-->platform"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "6",
+              "labels": "node=node-2, namespace=ecommerce",
+              "name": "node-2-->ecommerce"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "5",
+              "labels": "node=node-2, namespace=observability",
+              "name": "node-2-->observability"
+            }
+          ]
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "3.5",
+              "labels": "namespace=platform, workload=auth-api",
+              "name": "platform-->auth-api"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "2.5",
+              "labels": "namespace=platform, workload=config-svc",
+              "name": "platform-->config-svc"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "5",
+              "labels": "namespace=ecommerce, workload=storefront",
+              "name": "ecommerce-->storefront"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "4.5",
+              "labels": "namespace=ecommerce, workload=checkout-api",
+              "name": "ecommerce-->checkout-api"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "4.5",
+              "labels": "namespace=ecommerce, workload=search",
+              "name": "ecommerce-->search"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "5.5",
+              "labels": "namespace=observability, workload=prometheus",
+              "name": "observability-->prometheus"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "2.5",
+              "labels": "namespace=observability, workload=loki",
+              "name": "observability-->loki"
+            }
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Cross-AZ request matrix \u2014 chord",
+      "description": "**Prometheus, one query, one unfiltered join.** All nine ordered zone pairs from the Istio destination-side counter.\n\n```promql\nsum by (source_zone, destination_zone) (\n  rate(istio_requests_total{reporter=\"destination\"}[$__rate_interval])\n)\n```\nIntra-AZ traffic dominates (the three self-loops); the cross-AZ ribbons in the 890\u20131450 band are the ones that carry a transfer charge. Chord takes **self-loops and cycles unchanged**, which is exactly why it fits a traffic matrix \u2014 a sankey would have to drop half of it.\n\nFlavoured as an instant query: each series is a single flat value, so `mean` returns the fixture number exactly, the same as `lastNotNull` would.\n\nEdges only, so every node is derived: hovering a zone reports its **degree** in the edges' `req/s`, not its traffic. The ribbons carry the numbers here.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "chord",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsChordPadAngle": 4,
+        "relationsChordLinkOpacity": 0.5,
+        "relationsFocusAdjacency": true,
+        "relationsLinkColor": "source",
+        "reduceOptions": {
+          "calcs": ["mean"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "8200",
+              "labels": "source_zone=eu-west-1a, destination_zone=eu-west-1a",
+              "name": "eu-west-1a-->eu-west-1a"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1450",
+              "labels": "source_zone=eu-west-1a, destination_zone=eu-west-1b",
+              "name": "eu-west-1a-->eu-west-1b"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1120",
+              "labels": "source_zone=eu-west-1a, destination_zone=eu-west-1c",
+              "name": "eu-west-1a-->eu-west-1c"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1310",
+              "labels": "source_zone=eu-west-1b, destination_zone=eu-west-1a",
+              "name": "eu-west-1b-->eu-west-1a"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "7600",
+              "labels": "source_zone=eu-west-1b, destination_zone=eu-west-1b",
+              "name": "eu-west-1b-->eu-west-1b"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "980",
+              "labels": "source_zone=eu-west-1b, destination_zone=eu-west-1c",
+              "name": "eu-west-1b-->eu-west-1c"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1040",
+              "labels": "source_zone=eu-west-1c, destination_zone=eu-west-1a",
+              "name": "eu-west-1c-->eu-west-1a"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "890",
+              "labels": "source_zone=eu-west-1c, destination_zone=eu-west-1b",
+              "name": "eu-west-1c-->eu-west-1b"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "6900",
+              "labels": "source_zone=eu-west-1c, destination_zone=eu-west-1c",
+              "name": "eu-west-1c-->eu-west-1c"
+            }
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The table route \u2014 graph, instant + label_join",
+      "description": "**Prometheus, `Format: Table`, `Type: Instant`.** The other route: build the id in PromQL and pivot with core's **Rows to fields**.\n\n```promql\nlabel_join(\n  sum by (client, server) (rate(traces_service_graph_request_total[$__range])),\n  \"id\", \":\", \"client\", \"server\"\n)\n```\n`organize` runs filter \u2192 order \u2192 rename, so `indexByName`/`excludeByName` key on the **original** column names and `renameByName` runs last. `rowsToFields` then takes the first string column (`id`) as the field name, the first numeric one (`Value`) as its value, and drops everything else \u2014 `source`, `target` \u2014 into `field.labels`.\n\nThe ids deliberately join with `:` and contain **no** `-->`, so this panel proves the label carrier on its own: `endpointsOf` reads `field.labels` first and never reaches the name split. Same topology as the service map above, built a completely different way.\n\nNo `convertFieldType` step: `csv_content` already returns `Value` as a number, exactly as Prometheus does. Add one only when a column really does arrive as a string.\n\nEdges only, so the nodes are derived and hovering one reports its degree \u2014 the service map above has a nodes query and reports a real error ratio instead.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsLayout": "force",
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsRepulsion": 260,
+        "relationsEdgeLength": 120,
+        "relationsNodeSize": 18,
+        "relationsLinkColor": "gradient",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "Time,client,id,server,Value\n1754400000000,frontend,frontend:gateway,gateway,1560\n1754400000000,gateway,gateway:auth,auth,655\n1754400000000,gateway,gateway:catalogue,catalogue,890\n1754400000000,gateway,gateway:cart,cart,445\n1754400000000,gateway,gateway:checkout,checkout,205\n1754400000000,auth,auth:postgres,postgres,325\n1754400000000,catalogue,catalogue:postgres,postgres,815\n1754400000000,cart,cart:redis,redis,1310\n1754400000000,checkout,checkout:payments,payments,188\n1754400000000,checkout,checkout:postgres,postgres,140\n1754400000000,payments,payments:gateway,gateway,58"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "id": 0,
+              "Value": 1,
+              "client": 2,
+              "server": 3
+            },
+            "renameByName": {
+              "client": "source",
+              "server": "target"
+            }
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "title": "Loki \u2014 the queries",
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "LogQL metric queries return the **same** `timeseries-multi` shape as Prometheus, so the\nfirst three panels reuse the recipe above unchanged \u2014 which is the point.\n\n### 5 \u00b7 Service call graph from structured logs \u2014 graph (panel below left)\n\n```logql\nsum by (service, upstream) (\n  count_over_time({cluster=\"prod\", namespace=\"ecommerce\"} | logfmt | upstream != \"\" [$__auto])\n)\n```\n`Legend: {{service}}-->{{upstream}}` \u00b7 `Type: Range`\n\n### 6 \u00b7 Log volume by cluster \u2192 namespace \u2192 level \u2014 sankey (panel below right)\n\nTwo queries, one unfiltered join, both **instant**.\n\n```logql\nsum by (cluster, namespace) (count_over_time({env=\"prod\"} [$__range]))\n```\n`Legend: {{cluster}}-->{{namespace}}`\n\n```logql\nsum by (namespace, level) (count_over_time({env=\"prod\"} | logfmt | level != \"\" [$__range]))\n```\n`Legend: {{namespace}}-->{{level}}`\n\n### 7 \u00b7 Page-transition matrix from ingress access logs \u2014 chord\n\n```logql\nsum by (referer_path, path) (\n  count_over_time({job=\"ingress-nginx\"} | logfmt | referer_path != \"\" | path != \"\" [$__range])\n)\n```\n`Legend: {{referer_path}}-->{{path}}` \u00b7 `Type: Instant`\n\n### 8 \u00b7 Parallel edges via `label_format` \u2014 graph\n\n```logql\nsum by (source, target, protocol) (\n  count_over_time(\n    {job=\"mesh/envoy\"}\n      | json\n      | label_format source=`{{.source_workload}}`, target=`{{.destination_workload}}`\n      | target != \"\"\n    [$__range]\n  )\n)\n```\n`Legend: {{source}}->{{target}} ({{protocol}})` \u00b7 `Type: Instant`\n\n**`label_format` is doing the load-bearing work here.** It renames JSON fields into\nreal labels called `source` and `target`, which is what the contract reads endpoints\nfrom. The legend deliberately uses `->`, *not* the `-->` separator, so the two\nprotocols over one pair stay **distinct field names** \u2014 two parallel edges \u2014 while both\nstill resolve to the same endpoints from their labels. A datasource that cannot emit\nlabels reaches the same place with an `extractFields` transformation."
+      },
+      "transparent": true
+    },
+    {
+      "id": 8,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Service call graph from structured logs \u2014 graph",
+      "description": "**Loki, range query, identical recipe to the Prometheus service map.** A LogQL metric query returns the same `timeseries-multi` shape, so the same single `joinByField` widens it \u2014 that equivalence is the point of this row.\n\n```logql\nsum by (service, upstream) (\n  count_over_time({cluster=\"prod\", namespace=\"ecommerce\"} | logfmt | upstream != \"\" [$__auto])\n)\n```\nAn async order pipeline: `api \u2192 orders-worker \u2192 {inventory, billing}`, with `warehouse \u2192 orders-worker` closing a **retry loop**, plus the read path `api \u2192 search \u2192 catalogue-index`.\n\n`sum` is the reducer, because a `count_over_time` series is a rate per bucket and the interesting number is the total over the window. Laid out `circular` \u2014 a second layout on the dashboard, and the one that makes the retry loop obvious.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsLayout": "circular",
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsNodeSize": 20,
+        "relationsCurveness": 0.15,
+        "relationsLinkColor": "gradient",
+        "reduceOptions": {
+          "calcs": ["sum"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "820,910,865,940",
+              "labels": "service=api, upstream=orders-worker",
+              "name": "api-->orders-worker"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "790,880,835,905",
+              "labels": "service=orders-worker, upstream=inventory",
+              "name": "orders-worker-->inventory"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "410,455,430,470",
+              "labels": "service=orders-worker, upstream=billing",
+              "name": "orders-worker-->billing"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "405,450,428,466",
+              "labels": "service=billing, upstream=ledger",
+              "name": "billing-->ledger"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "300,340,318,352",
+              "labels": "service=inventory, upstream=warehouse",
+              "name": "inventory-->warehouse"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "42,61,50,74",
+              "labels": "service=warehouse, upstream=orders-worker",
+              "name": "warehouse-->orders-worker"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1610,1720,1655,1780",
+              "labels": "service=api, upstream=search",
+              "name": "api-->search"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1590,1700,1640,1762",
+              "labels": "service=search, upstream=catalogue-index",
+              "name": "search-->catalogue-index"
+            }
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Log volume by cluster \u2192 namespace \u2192 level \u2014 sankey",
+      "description": "**Loki, two instant queries, one unfiltered join.** Where the ingest bill goes.\n\n```logql\n# A - cluster -> namespace\\nsum by (cluster, namespace) (count_over_time({env=\"prod\"} [$__range]))\n```\n```logql\n# B - namespace -> level\\nsum by (namespace, level) (count_over_time({env=\"prod\"} | logfmt | level != \"\" [$__range]))\n```\nConserved across three tiers: each namespace's outflow to the levels sums to its inflow from the clusters (ecommerce 73 000, platform 18 000, observability 26 000), so the `info` ribbon width is honestly comparable with the `error` one. A **DAG** again, so nothing is hidden to remove cycles.\n\nInstant-flavoured: single flat values, so `lastNotNull` returns the fixture number. Canvas node values are off for the same reason as the CPU sankey \u2014 edges only, so a node's stat is its degree rather than its log volume.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "justify",
+        "relationsSankeyNodeWidth": 18,
+        "relationsSankeyNodeGap": 10,
+        "relationsSankeyLinkOpacity": 0.45,
+        "relationsShowNodeValues": false,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "41000",
+              "labels": "cluster=prod-eu, namespace=ecommerce",
+              "name": "prod-eu-->ecommerce"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "11000",
+              "labels": "cluster=prod-eu, namespace=platform",
+              "name": "prod-eu-->platform"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "15000",
+              "labels": "cluster=prod-eu, namespace=observability",
+              "name": "prod-eu-->observability"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "32000",
+              "labels": "cluster=prod-us, namespace=ecommerce",
+              "name": "prod-us-->ecommerce"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "7000",
+              "labels": "cluster=prod-us, namespace=platform",
+              "name": "prod-us-->platform"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "11000",
+              "labels": "cluster=prod-us, namespace=observability",
+              "name": "prod-us-->observability"
+            }
+          ]
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "64000",
+              "labels": "namespace=ecommerce, level=info",
+              "name": "ecommerce-->info"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "7200",
+              "labels": "namespace=ecommerce, level=warn",
+              "name": "ecommerce-->warn"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1800",
+              "labels": "namespace=ecommerce, level=error",
+              "name": "ecommerce-->error"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "15600",
+              "labels": "namespace=platform, level=info",
+              "name": "platform-->info"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "2100",
+              "labels": "namespace=platform, level=warn",
+              "name": "platform-->warn"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "300",
+              "labels": "namespace=platform, level=error",
+              "name": "platform-->error"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "24100",
+              "labels": "namespace=observability, level=info",
+              "name": "observability-->info"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1600",
+              "labels": "namespace=observability, level=warn",
+              "name": "observability-->warn"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "300",
+              "labels": "namespace=observability, level=error",
+              "name": "observability-->error"
+            }
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Page-transition matrix from ingress access logs \u2014 chord",
+      "description": "**Loki, one instant query.** Referer \u2192 path over the nginx ingress access log.\n\n```logql\nsum by (referer_path, path) (\n  count_over_time({job=\"ingress-nginx\"} | logfmt | referer_path != \"\" | path != \"\" [$__range])\n)\n```\nForward flow through `/home \u2192 /search \u2192 /product \u2192 /cart \u2192 /checkout`, two back-edges (`/product \u2192 /search`, `/cart \u2192 /product`), a loop close (`/checkout \u2192 /home`) and a **self-loop** on `/home` \u2014 a refresh. That reciprocal structure is what a chord exists for: every pair keeps both directions as separate ribbons.\n\nThe node ids are paths, so the edge id reads `/home-->/search` \u2014 and since the query groups by `referer_path` / `path`, not `source` / `target`, the endpoints really do come from splitting that name. Fine here, because no path contains `-->`; relabel to `source` / `target` the moment one might.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 65
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "chord",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsChordPadAngle": 4,
+        "relationsChordLinkOpacity": 0.5,
+        "relationsFocusAdjacency": true,
+        "relationsLinkColor": "source",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "4200",
+              "labels": "referer_path=/home, path=/search",
+              "name": "/home-->/search"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1800",
+              "labels": "referer_path=/home, path=/product",
+              "name": "/home-->/product"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "950",
+              "labels": "referer_path=/home, path=/home",
+              "name": "/home-->/home"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "3600",
+              "labels": "referer_path=/search, path=/product",
+              "name": "/search-->/product"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1500",
+              "labels": "referer_path=/product, path=/cart",
+              "name": "/product-->/cart"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "1100",
+              "labels": "referer_path=/product, path=/search",
+              "name": "/product-->/search"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "900",
+              "labels": "referer_path=/cart, path=/checkout",
+              "name": "/cart-->/checkout"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "620",
+              "labels": "referer_path=/cart, path=/product",
+              "name": "/cart-->/product"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "540",
+              "labels": "referer_path=/checkout, path=/home",
+              "name": "/checkout-->/home"
+            }
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Parallel edges via label_format \u2014 graph",
+      "description": "**Loki, one instant query, one join, no other transformation.** Two edges over the same node pair, separated only by a third label.\n\n```logql\nsum by (source, target, protocol) (\n  count_over_time(\n    {job=\"mesh/envoy\"}\n      | json\n      | label_format source=`{{.source_workload}}`, target=`{{.destination_workload}}`\n      | target != \"\"\n    [$__range]\n  )\n)\n```\n`label_format` promotes the JSON fields to labels literally called `source` and `target` \u2014 the keys the contract reads endpoints from. The legend then uses `->`, which is **not** the separator (that is exactly `-->`), so `gateway->api (http)` and `gateway->api (grpc)` stay two distinct field names \u2014 two parallel edges \u2014 while both resolve to the same endpoints purely from their labels.\n\nEach grpc edge carries `custom.lineType: dashed` and a curveness offset through an ordinary `byName` override, which is only addressable because an edge is a field. A datasource that cannot emit labels (Infinity, SQL returning `json`, quoted CSV) reaches the same place with an `extractFields` transformation in `json` format.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 65
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gateway->api (grpc)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineType",
+                "value": "dashed"
+              },
+              {
+                "id": "custom.curveness",
+                "value": 0.3
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "api->cart (grpc)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineType",
+                "value": "dashed"
+              },
+              {
+                "id": "custom.curveness",
+                "value": 0.3
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsLayout": "force",
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsRepulsion": 320,
+        "relationsEdgeLength": 160,
+        "relationsNodeSize": 22,
+        "relationsLinkColor": "gradient",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "predictable_csv_wave",
+          "csvWave": [
+            {
+              "timeStep": 300,
+              "valuesCSV": "1450,1480,1505,1462",
+              "labels": "source=gateway, target=api, protocol=http",
+              "name": "gateway->api (http)"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "620,640,610,655",
+              "labels": "source=gateway, target=api, protocol=grpc",
+              "name": "gateway->api (grpc)"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "380,392,405,388",
+              "labels": "source=api, target=cart, protocol=http",
+              "name": "api->cart (http)"
+            },
+            {
+              "timeStep": 300,
+              "valuesCSV": "210,204,222,215",
+              "labels": "source=api, target=cart, protocol=grpc",
+              "name": "api->cart (grpc)"
+            }
+          ]
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "text",
+      "title": "PR rollout by wave \u2014 the frame, and whether it suits this family",
+      "gridPos": {
+        "h": 15,
+        "w": 24,
+        "x": 0,
+        "y": 77
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "A real frame, supplied as-is: **one row per deploy wave**, recording the build each wave\nis running and whether that build contains a given PR. One `csv_content` fixture\nreproduces it byte for byte \u2014 `is_in_build` really does arrive as a `boolean`, and the\nempty `eta_epoch_ms` cells really do arrive as nulls.\n\n| Column | Type | Role here |\n| --- | --- | --- |\n| `wavev2` | `string` | the wave \u2014 **the node id** |\n| `is_in_build` | `boolean` | does this wave have the PR \u2014 **the threshold value** |\n| `build_number` / `pr_build_number` | `number` | what `is_in_build` was derived from |\n| `version`, `wave_idx`, `eta_epoch_ms` | | fall through to `field.labels` |\n| `stackwave` | `string` | a UI marker; dropped |\n\n### Is this a relations use case?\n\n**Graph \u2014 yes.** The waves are a *pipeline*: `dev0 \u2192 dev1 \u2192 ops \u2192 prod0 \u2192 \u2026 \u2192 prod4`.\nThat is a path graph, and colouring its nodes by threshold puts the **rollout frontier**\n\u2014 the exact point where the PR stops being deployed \u2014 on screen as a position, which a\ntable cannot do.\n\n**Sankey \u2014 yes, but for a different question.** Not for the chain: a sankey of a path\ngraph is eight equal ribbons in a row and says nothing. For the *aggregate* \u2014 wave \u2192\nversion \u2014 it shows how fragmented the fleet is and which stale versions the waiting\nwaves are stuck on. It earns its place as the wave count grows past what a table shows\nat a glance.\n\n**Chord \u2014 no.** A chord draws a square matrix of flows **between one set of entities**,\nand its whole value is reciprocity: `a \u2192 b` next to `b \u2192 a`. Waves send nothing to each\nother, so there is no matrix and no reciprocal pair. It would render, and it would be\ndecoration. Left out on purpose.\n\nWorth saying: with eight waves a **table** or a **state-timeline** is a real competitor.\nThe graph wins when order and adjacency matter; the table wins when you want the version\nstrings and the ETAs side by side.\n\n### The frame carries no edges\n\n`wave_idx` gives the order, but no core transformation turns a row *order* into\n`previous \u2192 this` pairs \u2014 there is no lag or offset transform. So the chain arrives as a\nsecond query. That is the right shape anyway: the pipeline is **topology, not\ntelemetry**, and it changes when someone adds a wave, not every scrape. A static CSV, a\nSQL table, Infinity, or a recording rule all work. If the query can emit a `next_wave`\ncolumn (a self-join on `wave_idx + 1`), one query does both.\n\n### The two chains\n\nNodes \u2014 the frame above:\n\n```json\n[\n  {\n    \"id\": \"convertFieldType\",\n    \"options\": {\n      \"fields\": {},\n      \"conversions\": [\n        {\n          \"targetField\": \"is_in_build\",\n          \"destinationType\": \"number\"\n        }\n      ]\n    }\n  },\n  {\n    \"id\": \"organize\",\n    \"options\": {\n      \"excludeByName\": {\n        \"stackwave\": true\n      },\n      \"indexByName\": {\n        \"wavev2\": 0,\n        \"is_in_build\": 1,\n        \"version\": 2,\n        \"build_number\": 3,\n        \"wave_idx\": 4,\n        \"eta_epoch_ms\": 5,\n        \"pr_build_number\": 6\n      },\n      \"renameByName\": {}\n    }\n  },\n  {\n    \"id\": \"rowsToFields\",\n    \"options\": {}\n  }\n]\n```\n\n`convertFieldType` is **not optional here**: the reader only ever looks at `number`\nfields (`numericFields`), so a `boolean` mark is invisible and the panel would draw\nnothing. After it, `organize` puts `wavev2` first among the strings and `is_in_build`\nfirst among the numbers, which is all `rowsToFields` needs.\n\nEdges \u2014 the wave order, pivoted the same way:\n\n```csv\nid,source,target,step\ndev0-->dev1,dev0,dev1,1\ndev1-->ops,dev1,ops,1\nops-->prod0,ops,prod0,1\nprod0-->prod1,prod0,prod1,1\nprod1-->prod2,prod1,prod2,1\nprod2-->prod3,prod2,prod3,1\nprod3-->prod4,prod3,prod4,1\n```\n\nBoth are joined under their own `filter.byRefId`, exactly as the service map at the top\ndoes, so neither swallows the other.\n\n### The threshold\n\n```json\n{\n  \"color\": {\n    \"mode\": \"thresholds\"\n  },\n  \"thresholds\": {\n    \"mode\": \"absolute\",\n    \"steps\": [\n      {\n        \"color\": \"red\",\n        \"value\": null\n      },\n      {\n        \"color\": \"green\",\n        \"value\": 1\n      }\n    ]\n  },\n  \"mappings\": [\n    {\n      \"type\": \"value\",\n      \"options\": {\n        \"0\": {\n          \"text\": \"not in build\",\n          \"index\": 0\n        },\n        \"1\": {\n          \"text\": \"in build\",\n          \"index\": 1\n        }\n      }\n    }\n  ]\n}\n```\n\nThe step is **1**, not the PR's build number \u2014 so it never needs editing. The datasource\nalready evaluated the predicate into `is_in_build`; the dashboard just colours it. A\nliteral `30866803359` step on `build_number` would colour identically **today** and\nbe wrong for the next PR, and Grafana does not interpolate dashboard variables into\nthreshold steps. If you want \"how far behind\" rather than a boolean, add\n`Add field from calculation \u2192 Binary operation \u2192 build_number - pr_build_number` and\nthreshold that at `0`; it is self-maintaining too, at the cost of a value nobody can read.\n\nThe value mapping sets **text only**, no colour, so `thresholds` still decides. That is\nwhy a node reads `not in build` and is red at the same time."
+      },
+      "transparent": true
+    },
+    {
+      "id": 13,
+      "type": "grafana-echartsrelations-panel",
+      "title": "PR rollout by wave \u2014 graph",
+      "description": "**The rollout frontier, as a position.** Eight deploy waves in pipeline order; a node is green once its build contains the PR and red until then, straight off a **threshold** on `is_in_build`.\n\nTwo inputs. **A** is the frame as the query returns it, pivoted to one field per wave by `convertFieldType` \u2192 `organize` \u2192 `rowsToFields`. **B** is the wave order, which the frame does not contain \u2014 `wave_idx` gives the sequence but no core transformation turns a row order into `previous \u2192 this` pairs. Each pivots under its own `filter.byRefId`.\n\nEvery node pins `custom.fixedX` / `custom.fixedY` through an ordinary `byName` override, so the pipeline reads left to right instead of knotting into a force cluster. **Layout is set to `Fixed` explicitly** \u2014 the option's description promises it defaults there \"when every node supplies fixedx/fixedy\", but `relationsLayout` carries a registered `defaultValue` of `force`, so it is never unset and `getGraphLayout`'s all-pinned branch never runs. Measured: pinned nodes with the option left alone still lay out as force.\n\n**Exactly one edge is coloured, and it is the frontier.** `makeEdgeGradientResolver` only builds a per-edge gradient when every node pins a position (this panel does) *and* the two endpoint colours differ \u2014 so `ops --> prod0` paints green-to-red and every same-colour edge falls back to the series keyword. That keyword is `source`, which ECharts does not resolve to the node's colour on the graph variant: it paints a flat blue. Useful by accident here, but do not read the blue as meaning anything.\n\nHover a wave: the value mapping reads `in build` / `not in build`, because a mapping that sets no colour leaves the threshold to decide. The version and ETA ride along in `field.labels`; emit a `displayName` column from the query (`wavev2 || ' \u00b7 ' || version`) to put them on the node itself.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 92
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "not in build",
+                  "index": 0
+                },
+                "1": {
+                  "text": "in build",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": []
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dev0"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 0
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dev1"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 110
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 46
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ops"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 220
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prod0"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 330
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 46
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prod1"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 440
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prod2"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 550
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 46
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prod3"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 660
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "prod4"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 770
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 46
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsLayout": "none",
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsNodeSize": 26,
+        "relationsShowNodeValues": true,
+        "relationsLinkColor": "gradient",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "stackwave,wavev2,is_in_build,version,pr_build_number,build_number,wave_idx,eta_epoch_ms\n,dev0,true,13.2.0-30986922018,30866803359,30986922018,0,\n,dev1,true,13.2.0-30986922018,30866803359,30986922018,1,\n,ops,true,13.2.0-30890958429,30866803359,30890958429,2,\n,prod0,false,13.2.0-30631161035,30866803359,30631161035,3,1786005900000\n,prod1,false,13.2.0-30616302309,30866803359,30616302309,4,1786093200000\n<< Wave for a02,prod2,false,13.2.0-30616302309,30866803359,30616302309,5,1786180500000\n,prod3,false,13.2.0-30616302309,30866803359,30616302309,6,1786267800000\n,prod4,false,13.2.0-30537469096,30866803359,30537469096,7,1786355100000"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,step\ndev0-->dev1,dev0,dev1,1\ndev1-->ops,dev1,ops,1\nops-->prod0,ops,prod0,1\nprod0-->prod1,prod0,prod1,1\nprod1-->prod2,prod1,prod2,1\nprod2-->prod3,prod2,prod3,1\nprod3-->prod4,prod3,prod4,1"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "is_in_build",
+                "destinationType": "number"
+              }
+            ]
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "stackwave": true
+            },
+            "indexByName": {
+              "wavev2": 0,
+              "is_in_build": 1,
+              "version": 2,
+              "build_number": 3,
+              "wave_idx": 4,
+              "eta_epoch_ms": 5,
+              "pr_build_number": 6
+            },
+            "renameByName": {}
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {},
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          },
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Fleet version spread \u2014 sankey",
+      "description": "**The same frame, the aggregate question.** Which version is each wave actually running, and how much of the fleet is behind?\n\nNot the chain \u2014 a sankey of a path graph is eight equal ribbons in a row and says nothing. Here the edges are `wave --> version`, so the version nodes size themselves by how many waves sit on them: `13.2.0-30616302309` is three waves wide, and the red ribbons flowing into it are the ones still waiting for the PR.\n\nWave nodes carry the same `is_in_build` threshold as the graph beside this one, and the default **gradient** link colour carries that red or green along the ribbon \u2014 so the stale versions are the ones with red flowing in. Version nodes are **derived** from the edges, so they have no field and their stat is a degree; the ribbon widths are the numbers worth reading.\n\nThis earns its place as the wave count grows past what a table shows at a glance. At eight waves it is a close call, and the honest alternative is a table.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 92
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "not in build",
+                  "index": 0
+                },
+                "1": {
+                  "text": "in build",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/-->/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": []
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "sankey",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "relationsSankeyOrient": "horizontal",
+        "relationsSankeyNodeAlign": "left",
+        "relationsSankeyNodeWidth": 16,
+        "relationsSankeyNodeGap": 12,
+        "relationsSankeyLinkOpacity": 0.5,
+        "relationsShowNodeValues": false,
+        "relationsLinkColor": "gradient",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "stackwave,wavev2,is_in_build,version,pr_build_number,build_number,wave_idx,eta_epoch_ms\n,dev0,true,13.2.0-30986922018,30866803359,30986922018,0,\n,dev1,true,13.2.0-30986922018,30866803359,30986922018,1,\n,ops,true,13.2.0-30890958429,30866803359,30890958429,2,\n,prod0,false,13.2.0-30631161035,30866803359,30631161035,3,1786005900000\n,prod1,false,13.2.0-30616302309,30866803359,30616302309,4,1786093200000\n<< Wave for a02,prod2,false,13.2.0-30616302309,30866803359,30616302309,5,1786180500000\n,prod3,false,13.2.0-30616302309,30866803359,30616302309,6,1786267800000\n,prod4,false,13.2.0-30537469096,30866803359,30537469096,7,1786355100000"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "id,source,target,waves\ndev0-->13.2.0-30986922018,dev0,13.2.0-30986922018,1\ndev1-->13.2.0-30986922018,dev1,13.2.0-30986922018,1\nops-->13.2.0-30890958429,ops,13.2.0-30890958429,1\nprod0-->13.2.0-30631161035,prod0,13.2.0-30631161035,1\nprod1-->13.2.0-30616302309,prod1,13.2.0-30616302309,1\nprod2-->13.2.0-30616302309,prod2,13.2.0-30616302309,1\nprod3-->13.2.0-30616302309,prod3,13.2.0-30616302309,1\nprod4-->13.2.0-30537469096,prod4,13.2.0-30537469096,1"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "fields": {},
+            "conversions": [
+              {
+                "targetField": "is_in_build",
+                "destinationType": "number"
+              }
+            ]
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "stackwave": true
+            },
+            "indexByName": {
+              "wavev2": 0,
+              "is_in_build": 1,
+              "version": 2,
+              "build_number": 3,
+              "wave_idx": 4,
+              "eta_epoch_ms": 5,
+              "pr_build_number": 6
+            },
+            "renameByName": {}
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "options": {},
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "rowsToFields",
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          },
+          "options": {}
+        }
+      ]
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "prometheus", "loki", "transformations"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations \u2014 Prometheus & Loki sources",
+  "uid": "echarts-relations-observability",
+  "version": 1,
+  "weekStart": ""
+}

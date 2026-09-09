@@ -3,6 +3,7 @@ import { debug, LOG_LEVELS } from 'development';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { partToWholeSeriesTypes } from 'editor/pie';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
+import { isRelationsSeriesType } from 'lib/echarts/charts/narrowing';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
@@ -22,17 +23,22 @@ import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
  * module, builds its option, and layers on the tooltip and (for non-category
  * axes) crosshair axisPointer. Keeping the assembly here isolates the ECharts
  * option shape from the component (per AGENTS.md) and lets tests snapshot the
- * exact option the panel renders. Returns `null` when no chart module matches
- * the series type or the module produces no option.
+ * exact option the panel renders.
+ *
+ * Returns `null` when no chart module matches the series type or the module
+ * derives no chart from the data, so the caller can leave the panel empty. A
+ * response the family cannot read *at all* is a different case: the module throws
+ * with an explanation, because a blank panel would hide a fixable problem (see
+ * `frameToRelationsGraph`).
  */
 export function buildPanelChartOption(
   rawCtx: ChartContext,
   { isGrafanaLegend, tooltipSink }: { isGrafanaLegend: boolean; tooltipSink?: TooltipSink }
-): ECBasicOption {
+): ECBasicOption | null {
   const chartModule = resolveChartModule(rawCtx.seriesType);
   if (!chartModule) {
     debug('Invalid chart module', LOG_LEVELS.error, rawCtx);
-    throw new Error(`Invalid chart module for ${rawCtx.seriesType}`);
+    return null;
   }
 
   // Normalize options by editor mode for every family (before both the series
@@ -49,11 +55,28 @@ export function buildPanelChartOption(
   const sink = tooltipSink ?? NOOP_TOOLTIP_SINK;
 
   // Drop value fields hidden via the legend visibility toggle before building.
-  // The part-to-whole family (pie/funnel) is excluded: it hides slices by
-  // *category* name and reads hidden state internally (see `resolvePieSlices`).
+  //
+  // Two families opt out and hide their own marks instead, for different reasons:
+  //
+  // - **part-to-whole** (pie/funnel slices — see `resolvePieSlices`) because its
+  //   legend rows are frame *rows*, so the override names categories and never
+  //   matches a field. Stripping would be actively wrong, not merely useless: the
+  //   `byNames` matcher is in *exclude* mode, so a list of category names marks
+  //   every real numeric field hidden and the stat column that sizes and colours
+  //   the chart would be deleted.
+  // - **relations** (graph/sankey/chord) because deleting a mark's column destroys
+  //   the information its reader needs. A node's field carries the fact that it was
+  //   hidden; remove the field and `frameToGraphWide` simply *re-derives* the node
+  //   from the edges that still name it, so the node comes back. Hiding a node also
+  //   has to take its incident edges with it, which is a graph question a
+  //   column-level strip cannot express. Both happen in `withoutHiddenMarks`, off
+  //   each mark's own `custom.hideFrom.viz`.
+  //
   // Editor-mode normalization already ran generically above
   // (`applyEditorModeDefaults`), so both branches use the normalized `options`.
-  const ctx: ChartContext = partToWholeSeriesTypes.includes(rawCtx.seriesType)
+  const hidesItsOwnMarks =
+    partToWholeSeriesTypes.includes(rawCtx.seriesType) || isRelationsSeriesType(rawCtx.seriesType);
+  const ctx: ChartContext = hidesItsOwnMarks
     ? { ...rawCtx, tooltipSink: sink, options }
     : { ...rawCtx, tooltipSink: sink, options, frames: stripHiddenValueFields(rawCtx.frames, rawCtx.fieldConfig) };
 
@@ -62,10 +85,13 @@ export function buildPanelChartOption(
   const axisType = panelTypeToAxis(ctx, hasTimeField);
   const { option: tooltipOption, mode: tooltipMode } = buildPanelTooltip(ctx, chartModule, axisType);
 
+  // No option means "nothing to draw from this data" — an empty response, or one
+  // whose shape carries no chart. Every other family already falls back to the
+  // no-data view for that, so this does too rather than throwing.
   const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
   if (!echartOption) {
-    debug('Invalid chart option', LOG_LEVELS.error, ctx);
-    throw new Error(`Invalid chart option resolved for ${ctx.seriesType}`);
+    debug('No chart option resolved', LOG_LEVELS.debug, ctx);
+    return null;
   }
 
   // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.
@@ -86,10 +112,10 @@ export function buildPanelChartOption(
   return {
     ...echartOption,
     tooltip: tooltipOption,
-    // Animation is opt-in and off by default for every family — density
-    // thresholds were tried and could not fire early enough to help. See
+    // Animation is opt-in and off by default for every family except relations —
+    // density thresholds were tried and could not fire early enough to help. See
     // `resolveAnimation`.
-    animation: resolveAnimation(ctx.options),
+    animation: resolveAnimation(ctx.options, ctx.seriesType),
     ...(axisPointer ? { axisPointer } : {}),
     ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };

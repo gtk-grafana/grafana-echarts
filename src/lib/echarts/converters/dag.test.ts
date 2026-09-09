@@ -1,5 +1,5 @@
 import { toSankeyLinks } from 'lib/echarts/converters/dag';
-import { type RelationLink } from 'lib/echarts/converters/nodeGraph';
+import { type RelationLink } from 'lib/echarts/converters/relationsModel';
 
 /** Build a link with a default weight, so cases read as just the topology. */
 const link = (source: string, target: string, value = 1): RelationLink => ({

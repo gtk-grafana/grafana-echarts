@@ -6,13 +6,15 @@ import {
   CHORD_PAD_ANGLE_DEFAULT,
   CHORD_START_ANGLE_DEFAULT,
 } from 'editor/chord';
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/nodeGraph';
+import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
-  ARC_BORDER_WIDTH,
-  makeRelationsColorResolver,
+  getRelationsLabelLayout,
+  getRelationsLabelStyle,
+  getRelationsNodeLabelFormatter,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
+  resolveRelationsFocusAdjacency,
 } from 'lib/echarts/options/graph';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
@@ -67,23 +69,43 @@ export function getChordLabel(ctx: RelationsSeriesContext): ChordSeriesOption['l
   }
   return {
     show: true,
-    formatter: '{b}',
-    color: ctx.theme.colors.text.primary,
-    fontFamily: ctx.theme.typography.fontFamily,
+    // With "Show node values" on, the shared formatter emits the name *and* the
+    // stat, replacing the `'{b}'` correction below (it reads `params.name`, which
+    // is what `'{b}'` resolves to — so the index-labelling bug stays fixed).
+    formatter: getRelationsNodeLabelFormatter(ctx) ?? '{b}',
+    ...getRelationsLabelStyle(ctx),
   };
 }
 
+/** ECharts' own `series-chord.lineStyle.color` default (`ChordSeries.ts`). */
+const CHORD_LINK_COLOR_ECHARTS_DEFAULT = 'source';
+
 /**
- * Ribbon styling. Unlike the sankey variant, **nothing needs pinning here**: ECharts'
- * chord `lineStyle.color` default is already `'source'`, which is exactly the family
- * default, so the key is omitted unless the user picks another mode. `opacity` is
- * omitted at ECharts' 0.2.
+ * Ribbon styling. The key is omitted when it already matches ECharts' own chord default
+ * (`'source'`), which keeps the emitted option minimal. `opacity` is omitted at ECharts'
+ * 0.2.
+ *
+ * **`'gradient'` degrades to `'source'`**, and since gradient is the family's default
+ * mode, this is what a chord nobody configured draws.
+ *
+ * `ChordEdge.applyEdgeFill` does implement the keyword — a `LinearGradient` between the
+ * two arcs' mid-angle points — but a chord ribbon is a wide filled area rather than a
+ * line, so most of it lies off that axis and comes out an unreadable wash at ECharts'
+ * 0.2 ribbon opacity: side by side against `'source'` on the same fixture the ribbons
+ * lose their endpoint tint almost entirely, and on a dense service-graph chord the
+ * reported symptom was simply "no fill on the edges". `'source'` is ECharts' own chord
+ * default and gives every ribbon a legible one.
+ *
+ * The `graph` variant already degrades the same way whenever it cannot orient a gradient
+ * (`GRAPH_LINK_COLOR_FALLBACK`), and for the same reason: the source node's colour is
+ * still endpoint-derived and still flips when the edge is reversed.
  * https://echarts.apache.org/en/option.html#series-chord.lineStyle
  */
 export function getChordLinkStyle(options: PanelOptions): ChordSeriesOption['lineStyle'] | undefined {
   const lineStyle: NonNullable<ChordSeriesOption['lineStyle']> = {};
-  const color = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
-  if (color !== RELATIONS_LINK_COLOR_DEFAULT) {
+  const mode = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
+  const color = mode === 'gradient' ? CHORD_LINK_COLOR_ECHARTS_DEFAULT : mode;
+  if (color !== CHORD_LINK_COLOR_ECHARTS_DEFAULT) {
     lineStyle.color = color;
   }
   if (options.relationsChordLinkOpacity != null && options.relationsChordLinkOpacity !== CHORD_LINK_OPACITY_DEFAULT) {
@@ -95,16 +117,14 @@ export function getChordLinkStyle(options: PanelOptions): ChordSeriesOption['lin
 /**
  * Hover emphasis — the one chord option that is **always emitted**.
  *
- * ECharts defaults a chord to `emphasis.focus: 'adjacency'`, where `graph` and
- * `sankey` default to no focus. Omitting the key would leave adjacency highlighting
- * active while the shared "Highlight adjacency" switch reads off, so the control would
- * be lying about what the chart does. It is pinned to `'none'` when the switch is off
- * instead, which keeps the family consistent and the control honest — at the cost of
- * an out-of-box chord that differs from ECharts' own examples.
+ * ECharts defaults a chord to `emphasis.focus: 'adjacency'`, and so does the family
+ * now, so the two agree out of the box. The key is still written either way: omitting
+ * it would leave adjacency highlighting active when the switch is turned *off*, and the
+ * control would be lying about what the chart does.
  * https://echarts.apache.org/en/option.html#series-chord.emphasis
  */
 export function getChordEmphasis(options: PanelOptions): NonNullable<ChordSeriesOption['emphasis']> {
-  return { focus: options.relationsFocusAdjacency === true ? 'adjacency' : 'none' };
+  return { focus: resolveRelationsFocusAdjacency(options) ? 'adjacency' : 'none' };
 }
 
 /**
@@ -117,29 +137,20 @@ export function getChordEmphasis(options: PanelOptions): NonNullable<ChordSeries
  * widen the arc out of step with its own ribbons. The stat rides as `stat` for the
  * tooltip. See `RelationsNodeItem`.
  */
-function toChordNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): RelationsNodeItem[] {
-  const resolveColor = makeRelationsColorResolver(ctx.theme, ctx.fieldConfig, ctx.valueField);
-
-  return nodes.map((node, index) => {
+function toChordNodeItems(nodes: RelationNode[]): RelationsNodeItem[] {
+  return nodes.map((node) => {
     const item: RelationsNodeItem = { id: node.id, name: node.name };
     if (node.value != null) {
       item.stat = node.value;
     }
-    const color = resolveColor(node, index);
-    if (color != null) {
-      item.itemStyle = { color };
-    }
-    if (node.borderColor != null) {
-      item.itemStyle = { ...item.itemStyle, borderColor: node.borderColor, borderWidth: ARC_BORDER_WIDTH };
+    if (node.color != null) {
+      item.itemStyle = { color: node.color };
     }
     if (node.subtitle != null) {
       item.subtitle = node.subtitle;
     }
-    if (node.secondary != null) {
-      item.secondary = node.secondary;
-    }
-    if (node.sourceRowIndex != null) {
-      item.sourceRowIndex = node.sourceRowIndex;
+    if (node.secondaries != null) {
+      item.secondaries = node.secondaries;
     }
     return item;
   });
@@ -149,7 +160,7 @@ function toChordNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): R
  * Map the model's links to ECharts chord link items.
  *
  * `value` drives ribbon width, as it does for sankey. Per-edge `thickness` and
- * `strokedasharray` are dropped for the same reasons: ribbon size comes from the
+ * `custom.lineType` are dropped for the same reasons: ribbon size comes from the
  * weight, and a filled ribbon has no stroke to dash. A per-edge `color` is kept.
  *
  * Self-loops are **not** dropped and cycles are **not** broken — a chord renders both
@@ -158,15 +169,17 @@ function toChordNodeItems(nodes: RelationNode[], ctx: RelationsSeriesContext): R
  */
 function toChordLinkItems(links: RelationLink[]): RelationsLinkItem[] {
   return links.map((link) => {
-    const item: RelationsLinkItem = { source: link.source, target: link.target };
+    // `markId` carries the edge's field name for the tooltip, or its `markKey` when
+    // several marks share that name; see `toLinkItems`.
+    const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.markKey ?? link.id };
     if (link.value != null) {
       item.value = link.value;
     }
+    if (link.secondaries != null) {
+      item.secondaries = link.secondaries;
+    }
     if (link.color != null) {
       item.lineStyle = { color: link.color };
-    }
-    if (link.sourceRowIndex != null) {
-      item.sourceRowIndex = link.sourceRowIndex;
     }
     return item;
   });
@@ -182,6 +195,10 @@ export function getChordSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
   const { relationsChordStartAngle, relationsChordClockwise, relationsChordPadAngle, relationsChordMinAngle } =
     ctx.options;
   const lineStyle = getChordLinkStyle(ctx.options);
+  // The chord's answer to the pie's `avoidLabelOverlap`: `series.chord` has no such
+  // option, but its labels go through the shared label-layout stage, and a ring of
+  // small arcs is exactly where they pile up. See `getRelationsLabelLayout`.
+  const labelLayout = getRelationsLabelLayout(ctx.options);
 
   // @todo clean this up
   return {
@@ -199,23 +216,14 @@ export function getChordSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
       ? { minAngle: relationsChordMinAngle }
       : {}),
     ...(lineStyle ? { lineStyle } : {}),
+    ...(labelLayout ? { labelLayout } : {}),
     // Always emitted — ECharts' chord default is `'adjacency'`, so omitting would
     // contradict the switch. See `getChordEmphasis`.
     emphasis: getChordEmphasis(ctx.options),
-    // Chord has no `draggable`; `roam` comes from `RoamOptionMixin` and is emitted for
-    // consistency with the other two variants.
-    roam: ctx.options.relationsRoam === true,
     label: getChordLabel(ctx),
     zlevel: ctx.options.zLevel?.series,
-    data: toChordNodeItems(data.nodes, ctx),
+    data: toChordNodeItems(data.nodes),
     links: toChordLinkItems(data.links),
-    tooltip: seriesTooltip(
-      buildRelationsTooltipModel({
-        formatValue: ctx.formatValue,
-        valueField: ctx.valueField,
-        linkValueField: ctx.linkValueField,
-      }),
-      ctx.tooltipSink
-    ),
+    tooltip: seriesTooltip(buildRelationsTooltipModel(ctx.marks, ctx.options), ctx.tooltipSink),
   };
 }
