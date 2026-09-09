@@ -1,5 +1,7 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "description": "Derived nodes on live data: Tempo's service graph is edges-only, so every node in these panels is one the response never declared. converters/deriveNodes.ts declares them as fields above the panel so field overrides can reach them — which requires the panel-registered transformations API (grafana/grafana#129992). This stack's Grafana does NOT have it yet, so this dashboard is the before half of the before/after: the graphs draw correctly, and every per-node override is inert except hiding, which the panel still re-reads by name. Kept live so it flips on its own the day the API lands. The TestData version of the same proof is ECharts Relations — derived nodes, mounted into this stack from the repo's own provisioning.",
   "editable": true,
   "fiscalYearStartMonth": 0,
@@ -9,8 +11,13 @@
   "refresh": "1m",
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "lgtm", "prometheus", "live-data", "derived-nodes"],
-  "templating": { "list": [] },
-  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "utc",
   "title": "ECharts Relations — derived nodes on live service-graph data (LGTM)",
@@ -21,7 +28,12 @@
     {
       "id": 1,
       "type": "text",
-      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "transparent": true,
       "options": {
         "mode": "markdown",
@@ -32,35 +44,61 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Control — the live service graph, nothing configured",
-      "description": "Every node here — `user`, `grafana`, `prometheus`, `alloy`, `grafana-assistant-app` — is derived. The query groups by `source` and `target` and returns one ranged series per edge; no frame in the response names a node.\n\n`prometheus → prometheus` is Prometheus scraping itself, a genuine self-loop. `user` is Tempo's own virtual node for requests that arrived with no client span — unrelated to a derived node, and a good reminder that the two words mean different things here.",
-      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
-      "gridPos": { "h": 12, "w": 12, "x": 0, "y": 14 },
+      "description": "Every node here — `user`, `grafana`, `prometheus`, `alloy`, `grafana-assistant-app` — is derived. The query groups by `client` and `server` — a pair the reader accepts as endpoints directly, so nothing renames it — and returns one ranged series per edge; no frame in the response names a node.\n\n`prometheus → prometheus` is Prometheus scraping itself, a genuine self-loop. `user` is Tempo's own virtual node for requests that arrived with no client span — unrelated to a derived node, and a good reminder that the two words mean different things here.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
       "fieldConfig": {
-        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps", "decimals": 3 },
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 3
+        },
         "overrides": []
       },
       "options": {
         "editorMode": "advanced",
         "seriesType": "graph",
-        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
-        "tooltip": { "mode": "single" },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
         "relationsLayout": "circular",
         "relationsNodeSize": 18,
         "relationsShowNodeLabels": true,
         "relationsEdgeArrows": true,
         "relationsCurveness": 0.12,
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n)",
           "format": "time_series",
           "instant": false,
           "range": true,
-          "legendFormat": "{{source}}-->{{target}}"
+          "legendFormat": "{{client}}-->{{server}}"
         }
       ],
       "transformations": []
@@ -70,23 +108,58 @@
       "type": "grafana-echartsrelations-panel",
       "title": "The same graph, with three overrides on nodes nothing declared",
       "description": "**Identical query and options to the control.** The only difference is `fieldConfig.overrides`, naming three services that appear in no frame Prometheus returned:\n\n- **`grafana`** → dark red, radius 34, renamed **Grafana (this stack)**\n- **`user`** → a `Subtitle` row and a data link into the Tempo docs, both tooltip-only\n- **`grafana-assistant-app`** → `custom.hideFrom.viz`, so the node and the edge into it are gone\n\n**On this host only the third one takes effect.** The nodes are invented inside the panel, downstream of the override engine, so `byName` has nothing to match for colour, radius, `displayName`, subtitle or links — but hiding is re-read by name in the panel (`hiddenNodeIds`), so `grafana-assistant-app` really is gone. Compare with the control: one node's difference, where there should be three overrides' worth.\n\nOn a Grafana with `grafana.panelPluginTransformations` the pre-pass declares each node as a field first and all three land. Verified in that state against a source-built 13.2 (`docs/relations-derived-nodes.md`); the equivalent TestData panel is panel 2 of **ECharts Relations — derived nodes**.",
-      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
-      "gridPos": { "h": 12, "w": 12, "x": 12, "y": 14 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
       "fieldConfig": {
-        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps", "decimals": 3 },
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 3
+        },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "grafana" },
+            "matcher": {
+              "id": "byName",
+              "options": "grafana"
+            },
             "properties": [
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } },
-              { "id": "custom.nodeRadius", "value": 34 },
-              { "id": "displayName", "value": "Grafana (this stack)" }
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "dark-red"
+                }
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 34
+              },
+              {
+                "id": "displayName",
+                "value": "Grafana (this stack)"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "user" },
+            "matcher": {
+              "id": "byName",
+              "options": "user"
+            },
             "properties": [
-              { "id": "custom.subtitle", "value": "Tempo virtual node — no client span" },
+              {
+                "id": "custom.subtitle",
+                "value": "Tempo virtual node — no client span"
+              },
               {
                 "id": "links",
                 "value": [
@@ -100,33 +173,57 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "grafana-assistant-app" },
-            "properties": [{ "id": "custom.hideFrom", "value": { "legend": false, "tooltip": false, "viz": true } }]
+            "matcher": {
+              "id": "byName",
+              "options": "grafana-assistant-app"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
           }
         ]
       },
       "options": {
         "editorMode": "advanced",
         "seriesType": "graph",
-        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
-        "tooltip": { "mode": "single" },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
         "relationsLayout": "circular",
         "relationsNodeSize": 18,
         "relationsShowNodeLabels": true,
         "relationsEdgeArrows": true,
         "relationsCurveness": 0.12,
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n)",
           "format": "time_series",
           "instant": false,
           "range": true,
-          "legendFormat": "{{source}}-->{{target}}"
+          "legendFormat": "{{client}}-->{{server}}"
         }
       ],
       "transformations": []
@@ -136,35 +233,61 @@
       "type": "grafana-echartsrelations-panel",
       "title": "Show node values — a derived node has no stat to show",
       "description": "\"Show node values\" is on and every label is still a single line. There is nothing to reduce: the field the pre-pass creates for an implied node holds `null`, and on this host the node has no field at all.\n\nIt used to print the node's **degree** here — a count of the links naming it, sitting in the slot a request rate goes in, formatted with whichever unit the first edge happened to carry. On a service graph that read as a per-service measurement and was not one.\n\nThe edges keep their real stat: hover any line and the tooltip reads `req/s` off that edge's own field.",
-      "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 26 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
       "fieldConfig": {
-        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps", "decimals": 3 },
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 3
+        },
         "overrides": []
       },
       "options": {
         "editorMode": "advanced",
         "seriesType": "graph",
-        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
-        "tooltip": { "mode": "single" },
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
         "relationsLayout": "circular",
         "relationsNodeSize": 18,
         "relationsShowNodeLabels": true,
         "relationsShowNodeValues": true,
         "relationsEdgeArrows": true,
         "relationsCurveness": 0.12,
-        "reduceOptions": { "calcs": ["lastNotNull"] }
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "lgtm-prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
           "editorMode": "code",
-          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n)",
           "format": "time_series",
           "instant": false,
           "range": true,
-          "legendFormat": "{{source}}-->{{target}}"
+          "legendFormat": "{{client}}-->{{server}}"
         }
       ],
       "transformations": []

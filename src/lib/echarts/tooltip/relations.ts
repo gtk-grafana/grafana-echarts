@@ -307,13 +307,14 @@ function toNodeFilterLabels(data: NodeGraphData): Map<string, NodeFilterLabels> 
  *
  * Three sources, most specific first:
  *
- * 1. the mark's own `custom.sourceFilterLabel` / `custom.targetFilterLabel`. Explicit intent
- *    wins, and it is the last resort for a query that really *destroyed* the original key —
- *    `sum by (source, target) (label_replace(…, "source", "$1", "client", "(.*)"))` renames
- *    the label and then aggregates the original away. It is **field config**, not a panel
- *    option, for the reason everything else per-mark is: one panel can join several queries,
- *    so the answer is per edge — while the Fields tab's default still says "all of them" in
- *    one place. See `addRelationsFilterConfig`;
+ * 1. the mark's own `custom.sourceFilterLabel` / `custom.targetFilterLabel` — **deprecated**,
+ *    override-only, and set by nothing in this repo; see `addRelationsFilterConfig`. It is
+ *    still first because it is explicit intent, and a dashboard that set it must keep
+ *    working while it exists. It was the last resort for a query that really *destroyed* the
+ *    original key — `sum by (source, target) (label_replace(…, "source", "$1", "client",
+ *    "(.*)"))` renames the label and then aggregates the original away — but keeping that
+ *    original in the outer aggregation is both easier and more correct, so 2 has taken over
+ *    every use;
  * 2. `fromData`, what the response said about **this** mark: the edge's own recovered or
  *    declared pair (`RelationLink.filterLabels`), else the response-wide
  *    `RelationsMarks.endpointLabels`. This is what makes the setting unnecessary for
@@ -325,10 +326,12 @@ function toNodeFilterLabels(data: NodeGraphData): Map<string, NodeFilterLabels> 
  *
  * Resolved per mark rather than once per render, twice over: two marks can carry different
  * overrides, and — since the recovery is per edge — two marks of the *same frame* can
- * answer differently with nothing configured at all.
+ * answer differently with nothing configured at all. The second is now the only one that
+ * happens: it is what retired 1, since a multi-level flow's levels relabel from different
+ * originals and one configured pair is wrong for all but one of them.
  *
- * Each half resolves independently, so half an override is honoured on the half it names
- * and the other half still comes off the response.
+ * Each half resolves independently, so half a (deprecated) override is honoured on the half
+ * it names and the other half still comes off the response.
  */
 export function relationsFilterLabels(
   field?: Field,

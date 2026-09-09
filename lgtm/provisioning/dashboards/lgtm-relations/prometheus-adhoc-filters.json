@@ -33,7 +33,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "# Ad-hoc filters, one behaviour per panel\n\nPin a tooltip — **click** a node or a link — and the footer offers **Filter on this value**,\n**Filter out this value**, and a **Filter for …** button per non-endpoint label. They write into\nthe **Ad hoc filters** variable at the top, which Prometheus injects into every query's metric\nselector, so the whole dashboard narrows on the click.\n\nEverything below is about one question: **which label key does an endpoint go out under, and is it\noffered at all?** The contract's own `source`/`target` is a *topology carrier* — it says which mark\nconnects to which, not that the datasource has ever heard of a label called `source`. A filter built\nstraight from the frame is `source=\"elasticsearch\"`, which matches zero series and silently empties the\ndashboard.\n\n| Panel | What it isolates | Code |\n| --- | --- | --- |\n| 2 | the `filterable` gate, and a **derived** node taking the edges' opt-in | `resolveFilters`, `markFilterable` |\n| 3 | the same panel with the gate off — no buttons anywhere | `resolveFilters` |\n| 4 | **direction**: a destination-only node asserts its *target* key | `toNodeFilterLabels` |\n| 5 | why the fallback exists — a node override with nothing to bind to | `markFilterable` |\n| 6 | two levels, **per-edge** key recovery, and a middle node deduping to one key | `aliasEndpointKeys`, `toNodeFilterLabels` |\n| 7 | the last resort, for a query that destroyed its own key | `addRelationsFilterConfig` |\n\nPanels 2–6 configure **nothing**. Only panel 7 sets a key by hand, and only because its query threw\nthe original away. Clear the variable between experiments — a stale `!=` chip looks like a bug in the\npanel.\n\n**The topology is tiny and every role is in it**: `user` only ever calls (a pure origin, and a `virtual_node`), `elasticsearch` and `grafana-assistant-app` are only ever called, `grafana` and `prometheus` sit in the middle, and `prometheus` calls itself. Every edge is produced by these five containers doing their normal work, so **a quiet stack is a thin graph** — open a few dashboards to give Tempo something to measure."
+        "content": "# Ad-hoc filters, one behaviour per panel\n\nPin a tooltip — **click** a node or a link — and the footer offers **Filter on this value**,\n**Filter out this value**, and a **Filter for …** button per non-endpoint label. They write into\nthe **Ad hoc filters** variable at the top, which Prometheus injects into every query's metric\nselector, so the whole dashboard narrows on the click.\n\nEverything below is about one question: **which label key does an endpoint go out under, and is it\noffered at all?** The contract's own `source`/`target` is a *topology carrier* — it says which mark\nconnects to which, not that the datasource has ever heard of a label called `source`. A filter built\nstraight from the frame is `source=\"elasticsearch\"`, which matches zero series and silently empties the\ndashboard.\n\n| Panel | What it isolates | Code |\n| --- | --- | --- |\n| 2 | the `filterable` gate, and a **derived** node taking the edges' opt-in | `resolveFilters`, `markFilterable` |\n| 3 | the same panel with the gate off — no buttons anywhere | `resolveFilters` |\n| 4 | **direction**: a destination-only node asserts its *target* key | `toNodeFilterLabels` |\n| 5 | why the fallback exists — a node override with nothing to bind to | `markFilterable` |\n| 6 | two levels, **per-edge** key recovery, and a middle node deduping to one key | `aliasEndpointKeys`, `toNodeFilterLabels` |\n| 7 | the **deprecated** escape hatch, and the query fix that replaces it | `addRelationsFilterConfig` |\n\nPanels 2–6 configure **nothing**. Only panel 7 sets a key by hand, and only because its query threw\nthe original away. Clear the variable between experiments — a stale `!=` chip looks like a bug in the\npanel.\n\n**The topology is tiny and every role is in it**: `user` only ever calls (a pure origin, and a `virtual_node`), `elasticsearch` and `grafana-assistant-app` are only ever called, `grafana` and `prometheus` sit in the middle, and `prometheus` calls itself. Every edge is produced by these five containers doing their normal work, so **a quiet stack is a thin graph** — open a few dashboards to give Tempo something to measure."
       },
       "transparent": true
     },
@@ -377,8 +377,8 @@
     {
       "id": 7,
       "type": "grafana-echartsrelations-panel",
-      "title": "The last resort — a query that destroyed its own key",
-      "description": "`sum by (source, target) (label_replace(…))` with the originals **dropped** from the outer aggregation. Nothing can recover them, so this is the one case the per-mark setting exists for: **Fields → Ad-hoc filters** sets `client` / `server` as the keys the endpoints go out under.\n\nIt is **field config**, not a panel option, so a panel joining two queries can answer per edge — and it keeps its *defaults* editor, because one response usually does group by one pair and \"every mark\" is worth saying once. Compare panel 6, which needs none of this.",
+      "title": "The deprecated escape hatch — and the one-line query fix that replaces it",
+      "description": "**This is the only thing left that sets `sourceFilterLabel` / `targetFilterLabel`, and it is kept to demonstrate a setting on its way out.** Nothing else in the repo sets it; it is override-only (`hideFromDefaults`), so it no longer appears in the Fields tab — this panel reaches it through an **override** on `/.*/`, which is how you would have to now.\n\n`sum by (source, target) (label_replace(…))` **drops** the originals, so nothing downstream can recover them and the endpoints have to be told they go out as `client` / `server`.\n\n**The fix is to not do that.** Name the originals in the outer aggregation —\n\n```\nsum by (source, target, client, server) (…)\n```\n\nand the panel recovers the pair per edge with nothing configured, exactly as panel 6 does. The rename is 1:1, so naming them in `by` splits no group and costs no cardinality. On the `rowsToFields` route the equivalent is leaving the columns out of `organize`'s **Exclude**.\n\nTwo cases the fix cannot reach, which is why the setting still exists: a query you cannot edit (provisioned, imported, a library panel, a recording rule), and an ambiguous recovery where two labels hold the same value as an endpoint. Neither has turned up in practice — if none does, this goes before release.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -396,13 +396,26 @@
           },
           "unit": "reqps",
           "decimals": 2,
-          "filterable": true,
-          "custom": {
-            "sourceFilterLabel": "client",
-            "targetFilterLabel": "server"
-          }
+          "filterable": true
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*/"
+            },
+            "properties": [
+              {
+                "id": "custom.sourceFilterLabel",
+                "value": "client"
+              },
+              {
+                "id": "custom.targetFilterLabel",
+                "value": "server"
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "seriesType": "graph",

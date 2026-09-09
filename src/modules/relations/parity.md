@@ -287,15 +287,19 @@ Not registered, deliberately:
   [unit: reads each node's endpoint keys off the edges touching it][tip-marks].)
 - **Per-mark ad-hoc filter keys** (`editor/relations/filters.ts`) —
   `custom.sourceFilterLabel` / `.targetFilterLabel`, the label an endpoint is written
-  under when a pinned tooltip filters the dashboard. The one setting here that is about
-  the _query_ rather than the chart, and the one exception to override-only: a response
-  usually does group by one endpoint pair, so the Fields tab's default is the common
-  answer rather than a nonsensical one, while a panel joining two queries can still
-  answer per edge. Replaces the `relationsSourceFilterLabel` **panel** options, which
-  could not. Rarely needed now: the reader recognises the conventional pairs, and
-  **recovers** the original key per edge for a query that relabelled but kept it
-  (`aliasEndpointKeys`), which is the only route a multi-level flow has — its levels
-  relabel from different originals, so no single setting can hold both answers.
+  under when a pinned tooltip filters the dashboard. **Deprecated and slated for
+  removal**: override-only (`hideFromDefaults`) like the rest, and set by nothing in this
+  repo. It replaced the `relationsSourceFilterLabel` **panel** options, which could not
+  answer per edge — and was then retired in turn by the reader, which recognises the
+  conventional pairs and **recovers** a relabelled key per edge for any query that kept
+  its original (`aliasEndpointKeys`), on the pivot route and the `rowsToFields` route
+  alike. Recovery is not just easier but strictly more correct on a multi-level flow,
+  whose levels relabel from different originals: one configured pair is wrong for every
+  level but one, which is exactly what the four panels that used to set this were doing.
+  Two cases it cannot reach keep it alive for now — a query that destroyed its original
+  **and** cannot be edited, and an ambiguous recovery where two labels hold the same
+  value as an endpoint. Kept, hidden, for demonstration
+  (`relations/*adhoc-filters.json` panel 7); removed before release absent a real use.
 
 Two structural limits apply here as they do everywhere else in this plugin (see
 [heatmap/parity.md](../heatmap/parity.md)): standard options **cannot be
