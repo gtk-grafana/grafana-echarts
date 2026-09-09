@@ -70,8 +70,28 @@ function rowToItem(row: TooltipRow, activeSeriesIndex: number | null): VizToolti
   };
 }
 
-/** The filters a hovered item offers, grouped the way the footer renders them. */
+/** No filters offered at all — the hovered field did not opt in. See {@link resolveFilters}. */
+const NO_FILTERS: TooltipFilters = { each: [], filterFor: [], filterOut: [] };
+
+/**
+ * The filters a hovered item offers, grouped the way the footer renders them.
+ *
+ * **Gated on the standard `filterable` field config**, which is core's own gate for the
+ * same buttons: the table's cell menu offers "Filter for value" only when
+ * `field.config.filterable` is set (`DefaultCell`, `render-hooks`). The flag means "this
+ * field can be filtered on at the source" — datasources that support ad-hoc filters set it,
+ * and a user asserts it per field with a **Filterable** override. Without it a "Filter for"
+ * button writes a filter the datasource ignores or, worse, one that matches nothing and
+ * empties the dashboard, so the panel offers nothing rather than a button that cannot work.
+ *
+ * Data links are **not** gated: a link is the field's own config, not a claim about the
+ * query.
+ */
 function resolveFilters(state: EChartsTooltipState, sources: TooltipSource[]): TooltipFilters {
+  const filterable = sources.filter((source) => source.field.config.filterable === true);
+  if (filterable.length === 0) {
+    return NO_FILTERS;
+  }
   // A model that states its own filters replaces the label walk rather than adding to
   // it. Only relations does, and it has to: a node's identity is its `field.name`
   // rather than a label, an edge's endpoint labels are the wide contract's canonical
@@ -82,7 +102,7 @@ function resolveFilters(state: EChartsTooltipState, sources: TooltipSource[]): T
   }
   // Every other family: one pair per label, offered individually and as a whole. The
   // values of a real label set differ, so no two buttons read the same.
-  const pairs = sources.flatMap((source) =>
+  const pairs = filterable.flatMap((source) =>
     Object.entries(source.field.labels ?? {}).map(([key, value]) => ({ key, value }))
   );
   return { each: pairs, filterFor: pairs, filterOut: pairs };

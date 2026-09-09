@@ -644,15 +644,36 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
+    /** The mapping, as a `byName` override lands it on one edge's own field. */
+    const mappedEdges = (custom: Record<string, string>): DataFrame =>
+      toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'db', connection_type: 'database' },
+            values: [3.5],
+            config: { custom },
+          },
+          {
+            name: 'e2',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'db' },
+            values: [7],
+          },
+        ],
+      });
+
     /**
      * The mapping. `sum by (source, target) (label_replace(…, "source", "$1", "client",
      * "(.*)"))` leaves the frame labelled `source` while the metric is still labelled
      * `client`, so the frame's own key filters on nothing — and the aggregation dropped the
-     * original, so only the panel option can recover it.
+     * original, so only the mark's own config can recover it.
      */
-    it('writes the endpoints under the configured datasource labels', () => {
-      const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
-      const model = modelFor([labelledEdges()], mapped);
+    it('writes the endpoints under the mark’s own filter labels', () => {
+      const model = modelFor([mappedEdges({ sourceFilterLabel: 'client', targetFilterLabel: 'server' })]);
 
       expect(
         model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters?.filterFor
@@ -663,14 +684,57 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
+    /**
+     * **Why it is field config and not a panel option.** One panel can join two queries,
+     * so the key that filters one edge need not be the key that filters the next; the
+     * second edge here configures nothing and falls back to the contract's own pair.
+     */
+    it('lets two edges of one panel answer differently', () => {
+      const model = modelFor([mappedEdges({ sourceFilterLabel: 'client', targetFilterLabel: 'server' })]);
+
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e2', value: 7 })).filters?.filterFor).toEqual(
+        [
+          { key: 'source', value: 'gateway' },
+          { key: 'target', value: 'db' },
+        ]
+      );
+    });
+
+    /**
+     * A node maps too, off its **own** field — the node is an endpoint in both directions,
+     * so both keys come from the node the user hovered rather than from any edge.
+     */
     it('maps a node’s endpoints as well', () => {
-      const mapped = options({ relationsSourceFilterLabel: 'client', relationsTargetFilterLabel: 'server' });
+      const nodes = toDataFrame({
+        name: 'nodes',
+        meta: { type: GRAPH_NODES_WIDE },
+        fields: [
+          {
+            name: 'gateway',
+            type: FieldType.number,
+            values: [12],
+            config: { custom: { sourceFilterLabel: 'client', targetFilterLabel: 'server' } },
+          },
+        ],
+      });
 
       expect(
-        modelFor([wideEdges()], mapped)(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut
+        modelFor([nodes, wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway', value: 12 })).filters?.filterOut
       ).toEqual([
         { key: 'client', value: 'gateway' },
         { key: 'server', value: 'gateway' },
+      ]);
+    });
+
+    /**
+     * A node the response only implied has no field, so it has no mapping of its own and
+     * falls back to the pair the response carried — one more thing the derived-node
+     * pre-pass buys, since a declared node *can* be overridden.
+     */
+    it('falls back to the response’s pair for a node with no field', () => {
+      expect(modelFor([wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
+        { key: 'source', value: 'gateway' },
+        { key: 'target', value: 'gateway' },
       ]);
     });
 
@@ -695,16 +759,174 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
+    /**
+     * Half a pair is intent about one half only: the configured key is honoured and the
+     * other still comes off the response, rather than the whole override being dropped.
+     */
+    it('honours half an override on the half it names', () => {
+      const model = modelFor([mappedEdges({ sourceFilterLabel: 'client' })]);
+
+      expect(
+        model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters?.filterFor
+      ).toEqual([
+        { key: 'client', value: 'gateway' },
+        { key: 'target', value: 'db' },
+        { key: 'connection_type', value: 'database' },
+      ]);
+    });
+
+    /**
+     * **The multi-level case, which no single pair can express.** One frame, two levels,
+     * each relabelled to the canonical pair from a *different* original — exactly what the
+     * `or`-joined sankey query pivots to once its outer aggregations keep their originals.
+     */
+    describe('a multi-level flow', () => {
+      const twoLevels = (): DataFrame =>
+        toDataFrame({
+          name: 'edges',
+          meta: { type: GRAPH_EDGES_WIDE },
+          fields: [
+            {
+              name: 'prod-->ns-a',
+              type: FieldType.number,
+              labels: { source: 'prod', target: 'ns-a', cluster: 'prod', namespace: 'ns-a' },
+              values: [4],
+            },
+            {
+              name: 'ns-a-->checkout',
+              type: FieldType.number,
+              labels: { source: 'ns-a', target: 'checkout', namespace: 'ns-a', workload: 'checkout' },
+              values: [1],
+            },
+          ],
+        });
+
+      const node = (id: string) => modelFor([twoLevels()])(nodeParams({ id, name: id })).filters;
+
+      it('filters each level under its own keys', () => {
+        const model = modelFor([twoLevels()]);
+
+        expect(
+          model(linkParams({ source: 'prod', target: 'ns-a', markId: 'prod-->ns-a', value: 4 })).filters?.filterFor
+        ).toEqual([
+          { key: 'cluster', value: 'prod' },
+          { key: 'namespace', value: 'ns-a' },
+        ]);
+        expect(
+          model(linkParams({ source: 'ns-a', target: 'checkout', markId: 'ns-a-->checkout', value: 1 })).filters
+            ?.filterFor
+        ).toEqual([
+          { key: 'namespace', value: 'ns-a' },
+          { key: 'workload', value: 'checkout' },
+        ]);
+      });
+
+      /**
+       * The query carries its topology twice, so `cluster` is not a dimension beside the
+       * endpoints — it *is* the source endpoint. Without excluding it the footer would
+       * offer `prod` once inside the grouped conjunction and again as its own button.
+       */
+      it('offers no separate button for a recovered key', () => {
+        const model = modelFor([twoLevels()]);
+
+        expect(
+          model(linkParams({ source: 'prod', target: 'ns-a', markId: 'prod-->ns-a', value: 4 })).filters?.each
+        ).toEqual([]);
+      });
+
+      /**
+       * **The node half, with no per-node configuration anywhere.** A namespace node is
+       * level 1's target and level 2's source, and both levels say `namespace` — so its two
+       * incident keys dedupe to one.
+       */
+      it('resolves the middle node to one deduped key', () => {
+        expect(node('ns-a')).toEqual({
+          each: [],
+          filterFor: [{ key: 'namespace', value: 'ns-a' }],
+          filterOut: [{ key: 'namespace', value: 'ns-a' }],
+        });
+      });
+
+      it('asserts the root node’s own key', () => {
+        expect(node('prod')?.filterFor).toEqual([{ key: 'cluster', value: 'prod' }]);
+      });
+
+      /**
+       * The **sink**, which is the plain bug fix: it used to assert `source="checkout"`,
+       * a label the datasource has never heard of, so "Filter on this value" emptied the
+       * dashboard. Its negation also covers `namespace`, the far key of the level it sits
+       * on — see `NodeFilterLabels.negate`.
+       */
+      it('asserts a sink node’s own key rather than the source key', () => {
+        expect(node('checkout')).toEqual({
+          each: [],
+          filterFor: [{ key: 'workload', value: 'checkout' }],
+          filterOut: [
+            { key: 'namespace', value: 'checkout' },
+            { key: 'workload', value: 'checkout' },
+          ],
+        });
+      });
+    });
+
+    /**
+     * The node half of "read the datasource's own keys with nothing configured": a
+     * `client`/`server` response resolves a node through its incident edges, so the node
+     * and the edges around it can never disagree about the key.
+     */
+    it('resolves a node’s keys from the edges touching it', () => {
+      const clientServer = toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          { name: 'e1', type: FieldType.number, labels: { client: 'gateway', server: 'db' }, values: [3.5] },
+          { name: 'e2', type: FieldType.number, labels: { client: 'db', server: 'cache' }, values: [1] },
+        ],
+      });
+      const model = modelFor([clientServer]);
+
+      expect(model(nodeParams({ id: 'db', name: 'db' })).filters).toEqual({
+        each: [],
+        // Source first: `db` is `e2`'s client and `e1`'s server, and the assertion takes
+        // the source role when the node plays one.
+        filterFor: [{ key: 'client', value: 'db' }],
+        filterOut: [
+          { key: 'client', value: 'db' },
+          { key: 'server', value: 'db' },
+        ],
+      });
+    });
+
+    /**
+     * A node with **no edges at all** — every link to it hidden by the legend, say — has no
+     * incidence to read, so it keeps the response-wide answer it has always had.
+     */
+    it('falls back to the response’s pair for a node with no incident edge', () => {
+      const model = modelFor([wideNodes(), wideEdges()]);
+
+      expect(model(nodeParams({ id: 'orphan', name: 'orphan' })).filters?.filterOut).toEqual([
+        { key: 'source', value: 'orphan' },
+        { key: 'target', value: 'orphan' },
+      ]);
+    });
+
     // With one key mapped onto the other, a self-loop's two endpoints collapse to one
     // pair — one filter rather than two identical ones.
     it('dedupes two endpoints that resolve to the same filter', () => {
       const selfLoop = toDataFrame({
         name: 'edges',
         meta: { type: GRAPH_EDGES_WIDE },
-        fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'gateway', target: 'gateway' }, values: [1] }],
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'gateway' },
+            values: [1],
+            config: { custom: { sourceFilterLabel: 'svc', targetFilterLabel: 'svc' } },
+          },
+        ],
       });
-      const mapped = options({ relationsSourceFilterLabel: 'svc', relationsTargetFilterLabel: 'svc' });
-      const model = modelFor([selfLoop], mapped);
+      const model = modelFor([selfLoop]);
 
       expect(
         model(linkParams({ source: 'gateway', target: 'gateway', markId: 'e1', value: 1 })).filters?.filterFor

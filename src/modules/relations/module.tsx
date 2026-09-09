@@ -4,12 +4,11 @@ import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } fro
 import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsCustomConfig } from 'lib/grafana/editor/relations/fieldConfig';
-import { addRelationsFilterOptions } from 'lib/grafana/editor/relations/filters';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
@@ -39,10 +38,11 @@ initPluginTranslations('grafana-echarts-app');
 // converted to the contract above the panel, by the transformation registered below.
 const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({
-    standardOptions: STANDARD_COLOR_OPTIONS,
+    standardOptions: STANDARD_FIELD_OPTIONS,
     // Per-mark style, addressable by an ordinary field override because a mark is a
     // field: node radius, subtitle and pinned position; edge width, line type and
-    // curveness; and the real "Hide in area" switches. See `addRelationsCustomConfig`.
+    // curveness; the two ad-hoc filter label keys; and the real "Hide in area"
+    // switches. See `addRelationsCustomConfig`.
     useCustomConfig: addRelationsCustomConfig,
   })
   .setPanelOptions((builder) => {
@@ -84,13 +84,12 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
     // Chord-only ring geometry, all Advanced (gated on `isChordVariant` internally).
     addRelationsChordOptions(builder);
 
-    // Advanced tier: interaction, force tuning, link styling, and the one option
-    // about the *query* rather than the chart — which label an endpoint is filtered
-    // on. See `addRelationsFilterOptions`.
+    // Advanced tier: interaction, force tuning and link styling. Which label an endpoint
+    // is filtered on used to be here too; it is per-mark field config now, since a panel
+    // can join several queries — see `addRelationsFilterConfig`.
     addRelationsInteractionOptions(builder);
     addRelationsForceOptions(builder);
     addRelationsLinkOptions(builder);
-    addRelationsFilterOptions(builder);
 
     // The family has no per-point fast path, so it registers an animation switch
     // directly rather than the cartesian `addPerformanceOptions` bundle — its own

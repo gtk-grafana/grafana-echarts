@@ -369,4 +369,22 @@ export interface EChartsRelationsFieldConfig extends EChartsFieldConfig {
   lineType?: RelationsLineType;
   /** Edge curvature 0–1, overriding the panel-level "Link curveness" for this edge. */
   curveness?: number;
+  /**
+   * Label key this mark's **source** endpoint is filtered on, when a pinned tooltip's
+   * "Filter on" / "Filter out" buttons write an ad-hoc filter into the dashboard.
+   *
+   * Per mark rather than per panel because a panel can join several queries, and the
+   * contract's `source`/`target` are a topology carrier rather than a promise about any
+   * datasource's label set.
+   *
+   * Unset reads the pair off the response — the field's own labels, the frame's
+   * declaration, or the pair recovered by matching the endpoint values back against the
+   * labels for a query that kept its originals (`aliasEndpointKeys`) — and falls back to the
+   * contract's own. A **node** takes its keys from the edges touching it, so setting it
+   * there is only for a node whose own filters must go out under a different key again. See
+   * `relationsFilterLabels`.
+   */
+  sourceFilterLabel?: string;
+  /** As {@link sourceFilterLabel}, for the **target** endpoint. */
+  targetFilterLabel?: string;
 }

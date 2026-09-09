@@ -12,6 +12,7 @@ import {
 } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
 import {
+  aliasEndpointKeys,
   endpointLabelKeysOf,
   endpointLabelsOf,
   endpointsFromName,
@@ -109,6 +110,15 @@ function seriesValueField(frame: DataFrame): Field | undefined {
  * - **several numeric fields** means already one mark per field (see above);
  * - a value field whose **name already splits on the separator** is already an edge id —
  *   the contract's fallback carrier — so the frame is wide with one edge, not long.
+ *
+ * What is left is a series whose endpoints are carried *somewhere*, and there are two
+ * places. The labels are the primary one. The other is the id the wire gave it
+ * ({@link wireId}) — a rendered `legendFormat: "{{cluster}}-->{{namespace}}"`, which lands
+ * in `config.displayNameFromDS` and never in `field.name`, so the separator test above
+ * cannot see it. That made the documented fallback carrier unreachable for every long
+ * response: the frame was declined here, and the reader then found nothing on a value field
+ * called `Value`. Accepting it costs one call and makes the legend format a first-class
+ * carrier for a query whose labels genuinely cannot name a pair.
  */
 export function isLongEdgesFrame(frame: DataFrame): boolean {
   if (frame.meta?.type === GRAPH_EDGES_WIDE || frame.meta?.type === GRAPH_NODES_WIDE) {
@@ -118,10 +128,10 @@ export function isLongEdgesFrame(frame: DataFrame): boolean {
     return false;
   }
   const value = seriesValueField(frame);
-  if (!value || !endpointLabelsOf(value)) {
+  if (!value || endpointsFromName(value.name, value.labels) != null) {
     return false;
   }
-  return endpointsFromName(value.name) == null;
+  return endpointLabelsOf(value) != null || wireEndpoints(frame, value) != null;
 }
 
 /**
@@ -177,6 +187,19 @@ function wireId(frame: DataFrame, value: Field): string | undefined {
 }
 
 /**
+ * The endpoints a series' **wire id** carries, when it is an edge id rather than a name.
+ *
+ * The contract's fallback carrier, reached through {@link wireId} rather than through
+ * `field.name` because a long series' value field is called `Value` — the legend format is
+ * the only name the wire gave it. Split against the series' own labels, so a node id that
+ * itself contains the separator still round-trips (`endpointsFromName`).
+ */
+function wireEndpoints(frame: DataFrame, value: Field): GraphEndpoints | undefined {
+  const id = wireId(frame, value);
+  return id != null ? endpointsFromName(id, value.labels) : undefined;
+}
+
+/**
  * The joined row dimension: every timestamp any series carries, ascending.
  *
  * A union rather than the first frame's column. Prometheus aligns a range query to one
@@ -222,8 +245,17 @@ interface Mark {
   time: Field;
   value: Field;
   endpoints: GraphEndpoints;
-  /** Which label pair the endpoints were read from. See `ENDPOINT_LABEL_PAIRS`. */
-  keys: GraphEndpointKeys;
+  /**
+   * Which label pair the endpoints were read from (see `ENDPOINT_LABEL_PAIRS`), or unset for
+   * a series whose only carrier was its wire id.
+   */
+  keys?: GraphEndpointKeys;
+  /**
+   * The keys the endpoints' *values* are **also** under, recovered by value — the label a
+   * `label_replace` copied from, or the pair a legend-format id was rendered from. See
+   * `aliasEndpointKeys`.
+   */
+  alias?: GraphEndpointKeys;
   /** Every label except the endpoints — the discriminator for parallel edges. */
   rest: Labels;
   /** The id it wants, before contested ones are told apart. */
@@ -235,17 +267,25 @@ function marksOf(series: DataFrame[]): Mark[] {
   for (const frame of series) {
     const time = rowField(frame);
     const value = seriesValueField(frame);
-    const keys = value && endpointLabelKeysOf(value);
-    const endpoints: GraphEndpoints | undefined = value && endpointLabelsOf(value);
-    // All four are guaranteed by `isLongEdgesFrame`; this keeps the reads honest.
-    if (!time || !value || !keys || !endpoints) {
+    const keys = value ? endpointLabelKeysOf(value) : undefined;
+    // Labels first, then the wire id — the reader's own precedence, and the order
+    // `isLongEdgesFrame` accepted the frame under.
+    const endpoints: GraphEndpoints | undefined =
+      (value && endpointLabelsOf(value)) ?? (value && wireEndpoints(frame, value)) ?? undefined;
+    // All three are guaranteed by `isLongEdgesFrame`; this keeps the reads honest.
+    if (!time || !value || !endpoints) {
       continue;
     }
     marks.push({
       time,
       value,
       endpoints,
-      keys,
+      ...(keys ? { keys } : {}),
+      // What the datasource *also* called these endpoints. The pivot rewrites every field
+      // to the canonical pair, so this is recorded here — but only the frame-wide half
+      // (`commonEndpointKeys`) survives; the per-edge answer the reader recovers for itself,
+      // off the originals that stay in `rest` below.
+      ...pickAlias(aliasEndpointKeys(value, endpoints, keys)),
       // The pair this series actually used, so a `client`/`server` response does not put
       // its whole topology into the parallel-edge discriminator.
       rest: withoutEndpoints(value.labels, keys),
@@ -253,6 +293,11 @@ function marksOf(series: DataFrame[]): Mark[] {
     });
   }
   return marks;
+}
+
+/** `exactOptionalPropertyTypes` is on, so an absent alias is an absent key. */
+function pickAlias(alias: GraphEndpointKeys | undefined): { alias?: GraphEndpointKeys } {
+  return alias ? { alias } : {};
 }
 
 /**
@@ -263,15 +308,24 @@ function marksOf(series: DataFrame[]): Mark[] {
  * `source`/`target`) has no single answer, so it records none and the panel falls back to
  * the contract's keys — the same place it was before. Recording one of two would be worse
  * than recording neither: the tooltip would write a key that is right for half the edges.
+ *
+ * Falls through to the **recovered** pair (`aliasEndpointKeys`) for a response that already
+ * relabelled to the canonical keys but kept its originals — `sum by (source, target,
+ * client, server)`. Same agreement rule, and for the same reason: a multi-level flow whose
+ * levels recover *different* pairs records none here and is answered per edge by the
+ * reader, off the originals `rest` carries through the pivot.
  */
 function commonEndpointKeys(marks: Mark[]): GraphEndpointKeys | undefined {
-  const [first] = marks;
-  if (!first || isCanonicalEndpointKeys(first.keys)) {
+  return commonPair(marks.map((mark) => mark.keys)) ?? commonPair(marks.map((mark) => mark.alias));
+}
+
+/** One pair, when every mark agrees on it and it is worth declaring. */
+function commonPair(pairs: Array<GraphEndpointKeys | undefined>): GraphEndpointKeys | undefined {
+  const [first] = pairs;
+  if (!first || isCanonicalEndpointKeys(first)) {
     return undefined;
   }
-  return marks.every((mark) => mark.keys.source === first.keys.source && mark.keys.target === first.keys.target)
-    ? first.keys
-    : undefined;
+  return pairs.every((pair) => pair?.source === first.source && pair?.target === first.target) ? first : undefined;
 }
 
 /**

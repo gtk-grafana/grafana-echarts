@@ -6,7 +6,7 @@ import { type EChartsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { STANDARD_COLOR_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addParallelLayoutOptions } from 'lib/grafana/editor/parallel/layout';
 import { addParallelLineOpacityOptions } from 'lib/grafana/editor/parallel/line-opacity';
@@ -27,7 +27,7 @@ import { multivariateSuggestionsSupplier } from './suggestions';
 // seriesType.
 export const plugin = new PanelPlugin<PanelOptions, EChartsFieldConfig>(makeLazyPanel('multivariate'))
   .useFieldConfig({
-    standardOptions: STANDARD_COLOR_OPTIONS,
+    standardOptions: STANDARD_FIELD_OPTIONS,
     // Register `custom.hideFrom` so the legend visibility toggle's `byName`
     // override is applied by Grafana. Each radar polygon is a numeric field, so
     // the chart strips fields flagged `hideFrom.viz` (see

@@ -1,7 +1,8 @@
 import { type Field, fieldReducers, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
+import { type EChartsRelationsFieldConfig } from 'editor/types';
 import {
-  ENDPOINT_LABEL_PAIRS,
+  ENDPOINT_LABEL_KEYS,
   type GraphEndpointKeys,
   normalizeRelationsCalcs,
   SOURCE_LABEL,
@@ -10,6 +11,7 @@ import {
 import { type MarkStat, type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import {
+  type NodeFilterLabels,
   type RelationsAdjacentEdge,
   type RelationsLinkItem,
   type RelationsMark,
@@ -95,7 +97,14 @@ function isNodeItem(value: unknown): value is RelationsNodeItem {
 }
 
 /** A mark that has a field of its own; a derived node has neither and is skipped. */
-type FieldedMark = { id: string; markKey?: string; field?: Field; sourceRowIndex?: number };
+type FieldedMark = {
+  id: string;
+  markKey?: string;
+  field?: Field;
+  sourceRowIndex?: number;
+  /** Edges only — see {@link RelationsMark.filterLabels}. */
+  filterLabels?: GraphEndpointKeys;
+};
 
 /**
  * Keyed by `markKey ?? id`, which is the same expression the three render variants put on
@@ -111,13 +120,14 @@ type FieldedMark = { id: string; markKey?: string; field?: Field; sourceRowIndex
  */
 function toMarkMap(marks: FieldedMark[], theme: GrafanaTheme2, timeZone?: string): Map<string, RelationsMark> {
   const byKey = new Map<string, RelationsMark>();
-  for (const { id, markKey, field, sourceRowIndex } of marks) {
+  for (const { id, markKey, field, sourceRowIndex, filterLabels } of marks) {
     if (field != null) {
       byKey.set(markKey ?? id, {
         formatValue: getValueFormatter(field, theme, timeZone),
         // A wide frame reduces to a single row, so the row is the mark's own `0`;
         // the fallback only matters for a fixture that omitted it.
         source: { field, rowIndex: sourceRowIndex ?? 0 },
+        ...(filterLabels ? { filterLabels } : {}),
       });
     }
   }
@@ -218,12 +228,76 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
     nodes: toMarkMap(data.nodes, theme, timeZone),
     links,
     adjacency: toAdjacency(data, links),
+    nodeFilterLabels: toNodeFilterLabels(data),
     ...(data.endpointLabels ? { endpointLabels: data.endpointLabels } : {}),
   };
 }
 
 /**
- * The two label keys a mark's endpoints are offered under as ad-hoc filters.
+ * The keys each node is an endpoint under, from the edges touching it — see
+ * {@link RelationsMarks.nodeFilterLabels}.
+ *
+ * The same walk over `data.links` {@link toAdjacency} does, and for the same reason: an edge
+ * is the only mark that carries an endpoint *pair*, so anything a node needs to know about
+ * its own endpoints has to be collected from its incidence. Each edge's pair is resolved
+ * exactly as the edge's own tooltip resolves it, so a node and the edges around it can never
+ * disagree about which label the topology lives under.
+ *
+ * Deduped per role, keeping first-appearance order: a namespace node whose two incident
+ * edges both say `namespace` is one key, not two, and the first is still the one
+ * "Filter on this value" asserts.
+ */
+function toNodeFilterLabels(data: NodeGraphData): Map<string, NodeFilterLabels> {
+  /** The four roles a node can hold a key in: its own two, and the far end of each. */
+  interface Roles {
+    sources: string[];
+    targets: string[];
+    /** Target keys of the pairs it is a *source* of — its missing target role. */
+    farTargets: string[];
+    /** Source keys of the pairs it is a *target* of — its missing source role. */
+    farSources: string[];
+  }
+  const roles = new Map<string, Roles>();
+  const entry = (id: string): Roles => {
+    const existing = roles.get(id);
+    if (existing) {
+      return existing;
+    }
+    const created: Roles = { sources: [], targets: [], farTargets: [], farSources: [] };
+    roles.set(id, created);
+    return created;
+  };
+  const push = (keys: string[], key: string): void => {
+    if (!keys.includes(key)) {
+      keys.push(key);
+    }
+  };
+
+  for (const link of data.links) {
+    const keys = relationsFilterLabels(link.field, link.filterLabels ?? data.endpointLabels);
+    const source = entry(link.source);
+    push(source.sources, keys.source);
+    push(source.farTargets, keys.target);
+    const target = entry(link.target);
+    push(target.targets, keys.target);
+    push(target.farSources, keys.source);
+  }
+
+  const byNode = new Map<string, NodeFilterLabels>();
+  for (const [id, { sources, targets, farTargets, farSources }] of roles) {
+    // A role the node does not play is filled from the far end of the pairs it is on — see
+    // `NodeFilterLabels.negate` for why the negation cannot just skip it.
+    const negate = [...(sources.length > 0 ? sources : farSources)];
+    for (const key of targets.length > 0 ? targets : farTargets) {
+      push(negate, key);
+    }
+    byNode.set(id, { sources, targets, negate });
+  }
+  return byNode;
+}
+
+/**
+ * The two label keys **this mark's** endpoints are offered under as ad-hoc filters.
  *
  * The contract's own `source` / `target` is what the *frame* carries, and it is a **topology
  * carrier** rather than necessarily a dimension the datasource has ever heard of. A "Filter
@@ -232,35 +306,65 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
  *
  * Three sources, most specific first:
  *
- * 1. the panel's own `relationsSourceFilterLabel` / `relationsTargetFilterLabel`. Explicit
- *    intent wins, and it is the only answer for a query that *destroyed* the original key —
+ * 1. the mark's own `custom.sourceFilterLabel` / `custom.targetFilterLabel`. Explicit intent
+ *    wins, and it is the last resort for a query that really *destroyed* the original key —
  *    `sum by (source, target) (label_replace(…, "source", "$1", "client", "(.*)"))` renames
- *    the label and then aggregates the original away, so no response can recover it;
- * 2. `endpointLabels`, the pair the response itself carried — either still on the edge
- *    fields, or declared by the pivot that rewrote them (`GRAPH_META_CUSTOM`). This is
- *    what makes the setting unnecessary for the query that *doesn't* destroy the key:
- *    `sum by (client, server)` now draws, and filters, with nothing configured;
+ *    the label and then aggregates the original away. It is **field config**, not a panel
+ *    option, for the reason everything else per-mark is: one panel can join several queries,
+ *    so the answer is per edge — while the Fields tab's default still says "all of them" in
+ *    one place. See `addRelationsFilterConfig`;
+ * 2. `fromData`, what the response said about **this** mark: the edge's own recovered or
+ *    declared pair (`RelationLink.filterLabels`), else the response-wide
+ *    `RelationsMarks.endpointLabels`. This is what makes the setting unnecessary for
+ *    almost every query — `sum by (client, server)` draws and filters with nothing
+ *    configured, and `sum by (source, target, cluster, namespace)` recovers `cluster` /
+ *    `namespace` per edge, which is the only route a multi-level flow has;
  * 3. the contract's canonical pair, which is also the right answer for a response that
  *    really did group by `source`/`target`.
+ *
+ * Resolved per mark rather than once per render, twice over: two marks can carry different
+ * overrides, and — since the recovery is per edge — two marks of the *same frame* can
+ * answer differently with nothing configured at all.
+ *
+ * Each half resolves independently, so half an override is honoured on the half it names
+ * and the other half still comes off the response.
  */
 export function relationsFilterLabels(
-  options?: Pick<PanelOptions, 'relationsSourceFilterLabel' | 'relationsTargetFilterLabel'>,
+  field?: Field,
   fromData?: GraphEndpointKeys
 ): {
   source: string;
   target: string;
 } {
   return {
-    source: options?.relationsSourceFilterLabel || fromData?.source || SOURCE_LABEL,
-    target: options?.relationsTargetFilterLabel || fromData?.target || TARGET_LABEL,
+    source: customFilterLabel(field, 'sourceFilterLabel') ?? fromData?.source ?? SOURCE_LABEL,
+    target: customFilterLabel(field, 'targetFilterLabel') ?? fromData?.target ?? TARGET_LABEL,
   };
+}
+
+/**
+ * One of the mark's two filter-label keys, read defensively: `FieldConfig['custom']` is
+ * `any`, and these keys are plugin-declared rather than guaranteed by any type — the same
+ * narrowing `customOf` does in the reader. An empty string is "unset", which is what
+ * clearing the text input leaves behind.
+ */
+function customFilterLabel(
+  field: Field | undefined,
+  key: keyof Pick<EChartsRelationsFieldConfig, 'sourceFilterLabel' | 'targetFilterLabel'>
+): string | undefined {
+  const custom: unknown = field?.config.custom;
+  if (typeof custom !== 'object' || custom === null || !(key in custom)) {
+    return undefined;
+  }
+  const value: unknown = Reflect.get(custom, key);
+  return typeof value === 'string' && value !== '' ? value : undefined;
 }
 
 /** Keep the first entry per key, preserving order — the endpoints are added first. */
 function dedupeFilters(filters: TooltipAdHocFilter[]): TooltipAdHocFilter[] {
   const seen = new Set<string>();
   return filters.filter((filter) => {
-    const id = `${filter.key} ${filter.value}`;
+    const id = `${filter.key}\u0000${filter.value}`;
     if (seen.has(id) || filter.value === '') {
       return false;
     }
@@ -276,18 +380,18 @@ function dedupeFilters(filters: TooltipAdHocFilter[]): TooltipAdHocFilter[] {
  * already, they pass through under their own names, and their values differ from the
  * endpoints' so each gets a button a user can tell apart. The endpoints are excluded here
  * and added deliberately by the two callers, which want them in different groups.
+ *
+ * `keys` is the pair this mark actually filters under, and excluding it is what keeps the
+ * recovery from double-counting. A query that keeps its originals — `sum by (source, target,
+ * cluster, namespace)` — carries its topology twice, so `cluster` is not a dimension beside
+ * the endpoints, it *is* the source endpoint: without this it would appear once inside the
+ * grouped conjunction and again as its own "Filter for 'prod'" button.
  */
-function extraLabelFilters(field: Field | undefined): TooltipAdHocFilter[] {
+function extraLabelFilters(field: Field | undefined, keys: GraphEndpointKeys): TooltipAdHocFilter[] {
   return Object.entries(field?.labels ?? {})
-    .filter(([key]) => !ENDPOINT_LABEL_KEYS.has(key))
+    .filter(([key]) => !ENDPOINT_LABEL_KEYS.has(key) && key !== keys.source && key !== keys.target)
     .map(([key, value]) => ({ key, value }));
 }
-
-/**
- * Every key any recognised pair uses as an endpoint, so a mark's *other* labels can be told
- * apart from its topology whichever pair the response carried.
- */
-const ENDPOINT_LABEL_KEYS = new Set(ENDPOINT_LABEL_PAIRS.flatMap((pair) => [pair.source, pair.target]));
 
 /**
  * The filters a hovered **edge** offers.
@@ -298,15 +402,17 @@ const ENDPOINT_LABEL_KEYS = new Set(ENDPOINT_LABEL_PAIRS.flatMap((pair) => [pair
  * well — which is what produced four buttons for a two-label mark — adds nothing the node's
  * own tooltip does not already offer, and reads as three ways to do one thing.
  *
- * Endpoints come off the *item* rather than off the field, so an edge whose mark has no
- * field — an N-raw-frames response on a host that cannot run the pivot — still offers them.
+ * Endpoints come off the *item* rather than off the field, which keeps this independent of
+ * how the response arrived. Whether the buttons are shown at all is the field's call, though:
+ * the footer gates every one of them on the standard `filterable` config, so a mark with no
+ * field of its own offers nothing. See `resolveFilters` in `lib/components/tooltip`.
  */
 function edgeFilters(
   item: RelationsLinkItem,
   mark: RelationsMark | undefined,
-  keys: { source: string; target: string }
+  keys: GraphEndpointKeys
 ): TooltipFilters {
-  const extra = dedupeFilters(extraLabelFilters(mark?.source.field));
+  const extra = dedupeFilters(extraLabelFilters(mark?.source.field, keys));
   const whole = dedupeFilters([
     { key: keys.source, value: item.source },
     { key: keys.target, value: item.target },
@@ -320,19 +426,37 @@ function edgeFilters(
  *
  * Nodes had none at all, which is the half of the report that is a plain gap rather than a
  * mapping question. A node's identity is its `field.name` under the wide contract — not a
- * label — so the generic "walk `field.labels`" derivation finds nothing, and a node *derived*
- * from an edge's endpoints has no field to walk. Both are the marks a topology is most
- * obviously filtered by.
+ * label — so the generic "walk `field.labels`" derivation finds nothing on the very mark a
+ * topology is most obviously filtered by. Stating the pairs here is what fills that gap;
+ * whether they are offered is still the field's `filterable` call.
  *
  * **The two halves are deliberately asymmetric**, because a node is an endpoint in both
  * directions and ad-hoc filters can only be ANDed:
  *
- * - "Filter out this value" negates **both** keys, which is exactly "everything that does not
- *   touch this node" — the useful reading, and the one a user means by hiding a node;
- * - "Filter on this value" asserts the **source** key alone, i.e. this node's outgoing edges.
- *   Asserting both would be `source=x AND target=x` — self-loops, which is nobody's question.
- *   There is no ad-hoc filter for "either endpoint", so the panel offers the direction it can
- *   express rather than a button that returns an empty dashboard.
+ * - "Filter out this value" negates **every distinct key** the node is an endpoint under —
+ *   plus, for a role it does not currently play, the far key of the pairs it sits on, since
+ *   a `topk` re-ranks the moment the filter applies and the node would otherwise reappear at
+ *   the other end. That is "everything that does not touch this node", the reading a user
+ *   means by hiding a node. Several negations ANDed are a valid intersection, so more than
+ *   one key is safe here;
+ * - "Filter on this value" asserts **one**: the first key the node is a source under, else
+ *   the first it is a target under. Asserting two would AND two labels into an empty
+ *   dashboard — for a single-level response literally `source=x AND target=x`, i.e.
+ *   self-loops. There is no ad-hoc filter for "either endpoint", so the panel offers the
+ *   direction it can express rather than a button that returns nothing.
+ *
+ * The keys come from the **edges touching the node** ({@link toNodeFilterLabels}), which is
+ * the only thing that can answer for a mark whose identity is a `field.name`. Three things
+ * fall out. A single-level response negates exactly what it always did: every edge says
+ * `source`/`target`, so every node negates both, whichever roles it happens to play. A
+ * **sink** — a node with only inbound edges — used to assert `source=<leaf>`, which matches
+ * nothing; it now asserts its own key. And a **multi-level** flow needs no configuration: a
+ * namespace node is level 1's target and level 2's source and both say `namespace`, so it
+ * negates one deduped `namespace` and asserts the same.
+ *
+ * The node's **own** `custom.sourceFilterLabel` still wins over its incidence, per role: it
+ * is explicit intent, and a node that has to be told its key is exactly the case the
+ * override exists for.
  *
  * `each` carries only the node's non-endpoint labels: the two endpoint directions cannot go
  * there, since `VizTooltipFooter` labels those buttons by value alone and both would read
@@ -341,13 +465,25 @@ function edgeFilters(
 function nodeFilters(
   item: RelationsNodeItem,
   mark: RelationsMark | undefined,
-  keys: { source: string; target: string }
+  keys: GraphEndpointKeys,
+  incidence: NodeFilterLabels | undefined
 ): TooltipFilters {
-  const extra = dedupeFilters(extraLabelFilters(mark?.source.field));
+  const field = mark?.source.field;
+  const extra = dedupeFilters(extraLabelFilters(field, keys));
+  // An override on the node itself is explicit intent about *this* mark and outranks what
+  // the edges around it say — and it is all-or-nothing for the same reason
+  // `declaredEndpointKeys` is: `keys` has already resolved each half, so a half-configured
+  // node keeps the behaviour it had before the incidence map existed.
+  const configured =
+    customFilterLabel(field, 'sourceFilterLabel') != null || customFilterLabel(field, 'targetFilterLabel') != null;
+  const fromEdges = !configured && incidence != null && incidence.negate.length > 0 ? incidence : undefined;
+  const assert = fromEdges ? (fromEdges.sources[0] ?? fromEdges.targets[0] ?? keys.source) : keys.source;
+  const negate = fromEdges ? fromEdges.negate : [keys.source, keys.target];
+
   return {
     each: extra,
-    filterFor: dedupeFilters([{ key: keys.source, value: item.id }, ...extra]),
-    filterOut: dedupeFilters([{ key: keys.source, value: item.id }, { key: keys.target, value: item.id }, ...extra]),
+    filterFor: dedupeFilters([{ key: assert, value: item.id }, ...extra]),
+    filterOut: dedupeFilters(negate.map((key) => ({ key, value: item.id })).concat(extra)),
   };
 }
 
@@ -371,10 +507,14 @@ function nodeFilters(
  * Values format with the **hovered mark's own** field, and the footer resolves that
  * field's data links; see {@link getRelationsTooltipMarks}. A node derived from an
  * edge's endpoints has no field, so it formats through {@link formatDerivedMarkValue}
- * and shows no footer — `todo/relations-data-links.md` gap 4, which the contract does
- * not close. Its **filters** it does get, though: they come off the item's own
- * endpoints rather than off a field. See {@link nodeFilters}. And having no field, it
- * has no stat either, so its rows are its edges.
+ * and shows no footer at all — no data links (`todo/relations-data-links.md` gap 4, which
+ * the contract does not close) and no filters either, since there is no field to carry
+ * the `filterable` opt-in. The derived-node pre-pass is what gives it both
+ * (`docs/relations-derived-nodes.md`). Having no field it has no stat either, so its rows
+ * are its edges.
+ *
+ * The endpoint keys the filters are written under come off the hovered mark as well —
+ * see {@link relationsFilterLabels}.
  */
 export function buildRelationsTooltipModel(
   marks?: RelationsMarks,
@@ -386,7 +526,6 @@ export function buildRelationsTooltipModel(
   // calc that reduces to nothing on one mark cannot shift the labels below it on the next.
   const [calc] = normalizeRelationsCalcs(options?.reduceOptions);
   const statLabel = reducerLabel(calc);
-  const filterKeys = relationsFilterLabels(options, marks?.endpointLabels);
 
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;
@@ -413,7 +552,13 @@ export function buildRelationsTooltipModel(
         header: { label: `${data.source} → ${data.target}`, value: '' },
         rows,
         source: mark?.source,
-        filters: edgeFilters(data, mark, filterKeys),
+        filters: edgeFilters(
+          data,
+          mark,
+          // The edge's *own* recovered pair first: two edges of one frame can filter under
+          // different keys, which is what a multi-level flow is. See `relationsFilterLabels`.
+          relationsFilterLabels(mark?.source.field, mark?.filterLabels ?? marks?.endpointLabels)
+        ),
       };
     }
 
@@ -456,7 +601,16 @@ export function buildRelationsTooltipModel(
       // Only for something that really is a node item: the formatter also fields the
       // odd hover that carries no recognisable item at all, and a filter on nothing
       // would be a button that adds `source=""`.
-      ...(node != null ? { filters: nodeFilters(node, mark, filterKeys) } : {}),
+      ...(node != null
+        ? {
+            filters: nodeFilters(
+              node,
+              mark,
+              relationsFilterLabels(mark?.source.field, marks?.endpointLabels),
+              marks?.nodeFilterLabels?.get(node.id)
+            ),
+          }
+        : {}),
     };
   };
 }

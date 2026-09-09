@@ -146,6 +146,23 @@ export interface RelationLink {
    * area whose shape comes from the layout, not a curved stroke.
    */
   curveness?: number;
+  /**
+   * The label keys **this edge's** endpoints filter under, as the response answered it: its
+   * frame's {@link NodeGraphData.endpointLabels} declaration, its own non-canonical label
+   * pair, or the pair recovered from its values (`aliasEndpointKeys`).
+   *
+   * Per edge because a multi-level flow has no single answer. A `cluster → namespace →
+   * workload` sankey is one query whose two `or`-joined operands relabel from *different*
+   * sources, so level 1 filters under `{cluster, namespace}` and level 2 under
+   * `{namespace, workload}` — and both are the same frame after the pivot, which is why
+   * neither the frame's declaration nor the panel-wide pair can express it.
+   *
+   * Not the *whole* answer: the mark's own `custom.sourceFilterLabel` beats this and is read
+   * straight off {@link field} by the tooltip, which is what lets one code path serve nodes
+   * and edges alike. Unset means the response said nothing beyond the contract's own pair.
+   * See `relationsFilterLabels`.
+   */
+  filterLabels?: GraphEndpointKeys;
   /** `config.custom.hideFrom.viz`. See {@link RelationNode.hidden}. */
   hidden?: boolean;
   /**
