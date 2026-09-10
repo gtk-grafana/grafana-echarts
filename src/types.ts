@@ -663,30 +663,6 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsTimeSlider?: boolean;
 
   /**
-   * Wall-clock milliseconds between playback steps while the time slider is playing
-   * (Advanced, slider only). **Not** an aggregation window: at each stop the panel reads
-   * the one sample at that timestamp. Unset uses
-   * `RELATIONS_TIME_STEP_DURATION_DEFAULT` (1000), as does any value at or below zero,
-   * which would otherwise spin the timer. See `useTimelinePlayback`.
-   */
-  relationsTimeStepDuration?: number;
-
-  /**
-   * How far each playback step moves the time slider, as a **percentage of the timeline**
-   * (Advanced, slider only): 1 walks it stop by stop, 100 jumps end to end. Unset uses
-   * `RELATIONS_TIME_STEP_SIZE_DEFAULT` (1), as does any value outside 1–100.
-   *
-   * A percentage rather than a count of stops because the count is the response's to
-   * decide, not the user's — the same panel carries five stops over an hour and three
-   * hundred over a week. Floors at one stop (`stopsPerStep`), so on any timeline of a
-   * hundred stops or fewer the default is exactly the original one-stop walk.
-   *
-   * Governs **playback only**. Dragging the slider still lands on any stop, so a coarse
-   * step buys a faster play-through without coarsening manual control.
-   */
-  relationsTimeStepSize?: number;
-
-  /**
    * Relations link color mode (Advanced; ECharts `series.*.lineStyle.color`
    * keywords): inherit the `source` node's color, the `target`'s, or a `gradient`
    * between them. An explicit per-edge `color` field always wins. Unset uses

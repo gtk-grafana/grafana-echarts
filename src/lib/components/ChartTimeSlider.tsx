@@ -3,9 +3,6 @@ import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
 import { type TimeZone } from '@grafana/schema';
 import { IconButton, Slider, useStyles2 } from '@grafana/ui';
 import React from 'react';
-import { stopsPerStep } from 'lib/echarts/options/timeline';
-import { TOOLTIP_KEEP_PINNED_ATTR } from './tooltip/constants';
-import { useTimelinePlayback, resolveTimelineIndex } from './hooks/useTimelinePlayback';
 
 interface Props {
   /**
@@ -18,10 +15,6 @@ interface Props {
   onSelect: (at: number) => void;
   /** The panel's time zone, so the readout matches its axes and its tooltips. */
   timeZone: TimeZone;
-  /** Wall-clock milliseconds per step while playing. */
-  stepDuration: number;
-  /** How far a step moves, as a percentage of the timeline. See `stopsPerStep`. */
-  stepSize: number;
 }
 
 /**
@@ -30,6 +23,34 @@ interface Props {
  * so the two boxes cannot be left to a flex solver.
  */
 export const TIME_SLIDER_HEIGHT = 32;
+
+/**
+ * The stop nearest a timestamp, as an index into `timeline` — and the **last** stop when
+ * nothing is selected yet.
+ *
+ * "Nearest" rather than "exact" because the timeline is replaced under the selection: the
+ * dashboard refreshes on its own interval, and the new response can drop the timestamp
+ * that was picked (a rolling window walks off the oldest sample) or land on a shifted
+ * step grid entirely. A selection kept as a *timestamp* survives that, where an index
+ * would silently come to mean a different instant.
+ *
+ * The last stop is the default because it is what `lastNotNull` — the family's default
+ * reducer — already draws, so switching the slider on does not change the picture.
+ *
+ * `timeline` must be ascending and non-empty; `graphWideTimeline` guarantees both.
+ */
+export function resolveTimelineIndex(timeline: number[], selected: number | null | undefined): number {
+  if (selected == null) {
+    return timeline.length - 1;
+  }
+  let nearest = 0;
+  for (let index = 1; index < timeline.length; index++) {
+    if (Math.abs(timeline[index] - selected) < Math.abs(timeline[nearest] - selected)) {
+      nearest = index;
+    }
+  }
+  return nearest;
+}
 
 /**
  * Step the panel through the timestamps its data carries, instead of reducing them away.
@@ -41,55 +62,42 @@ export const TIME_SLIDER_HEIGHT = 32;
  * see `resolveTimelineIndex`. Positions snap to the stops the data actually has, so
  * every one of them has something to draw.
  *
+ * Every step is the user's: there is no playback. The panel moves when it is dragged,
+ * arrow-keyed or stepped, and never on a timer.
+ *
  * **Unlike `ChartNotices` and `ChartZoomControls` this is not an overlay.** Those are
  * absolutely positioned precisely so they do not shrink the plot; a slider laid over the
  * chart would sit on top of the marks it is there to change. It takes layout instead,
  * and `Panel` gives the chart the remaining height.
  */
-export const ChartTimeSlider: React.FC<Props> = ({
-  timeline,
-  selected,
-  onSelect,
-  timeZone,
-  stepDuration,
-  stepSize,
-}) => {
+export const ChartTimeSlider: React.FC<Props> = ({ timeline, selected, onSelect, timeZone }) => {
   const styles = useStyles2(getStyles);
-  // Before the early return: the timeline can go `null` on a refresh, and the hook is
-  // what stops playback when it does.
-  // The percentage is resolved against *this* timeline's length here, where the length
-  // is known; the hook counts stops. An empty timeline never reaches the hook's timer.
-  const { playing, toggle, stop } = useTimelinePlayback(
-    timeline,
-    selected,
-    stepDuration,
-    stopsPerStep(timeline?.length ?? 0, stepSize),
-    onSelect
-  );
 
   if (timeline == null || timeline.length === 0) {
     return null;
   }
 
   const index = resolveTimelineIndex(timeline, selected);
+  /**
+   * Wraps at both ends rather than stopping there, so neither button is ever dead.
+   *
+   * The end of the timeline is where a reader most often wants to start over, and a `›`
+   * that goes inert there sends them across the panel to `‹` to walk back — the one
+   * gesture the buttons exist to save. Wrapping keeps a whole pass under one cursor.
+   * Symmetric on `‹` for the same reason, so neither button means something different
+   * from the other depending on where the handle happens to sit.
+   */
+  const step = (delta: number) => onSelect(timeline[(index + delta + timeline.length) % timeline.length]);
 
   return (
-    // `TOOLTIP_KEEP_PINNED_ATTR`: operating the slider is an outside click, and without
-    // this it would dismiss the pinned tooltip the user set in order to watch a value
-    // change while playback runs. See `usePinnedDismiss`.
-    <div className={styles.wrapper} data-testid="chart-time-slider" {...{ [TOOLTIP_KEEP_PINNED_ATTR]: '' }}>
+    <div className={styles.wrapper} data-testid="chart-time-slider">
       {/*
         Labelled rather than tooltipped, unlike `ChartZoomControls`: a magnifier with a
-        plus in it needs a word, a play triangle does not — and `IconButton`'s tooltip
-        mounts a floating-ui popover inside the viz area for a control that is already
-        unambiguous.
+        plus in it needs a word, an arrow between two timestamps does not — and
+        `IconButton`'s tooltip mounts a floating-ui popover inside the viz area for a
+        control that is already unambiguous.
       */}
-      <IconButton
-        name={playing ? 'pause' : 'play'}
-        size="sm"
-        aria-label={playing ? 'Pause' : 'Play'}
-        onClick={toggle}
-      />
+      <IconButton name="angle-left" size="sm" aria-label="Previous step" onClick={() => step(-1)} />
       <div className={styles.slider}>
         {/*
           Positions are stop *indices*, not timestamps: the stops are whatever the
@@ -103,16 +111,12 @@ export const ChartTimeSlider: React.FC<Props> = ({
           max={timeline.length - 1}
           step={1}
           value={index}
-          onChange={(position) => {
-            // Taking hold of the slider takes over from playback: otherwise the next tick
-            // moves the handle out from under the user a moment after they let go.
-            stop();
-            onSelect(timeline[position] ?? timeline[timeline.length - 1]);
-          }}
+          onChange={(position) => onSelect(timeline[position] ?? timeline[timeline.length - 1])}
           showInput={false}
           ariaLabelForHandle="Selected time"
         />
       </div>
+      <IconButton name="angle-right" size="sm" aria-label="Next step" onClick={() => step(1)} />
       <span className={styles.readout}>{dateTimeFormat(timeline[index], { timeZone })}</span>
     </div>
   );
@@ -134,7 +138,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     // below its content in the flex row.
     minWidth: 0,
     // The handle is a circle centred on the track's end, so half of it hangs past the
-    // last position and would otherwise sit on top of the readout at the newest stop.
+    // last position and would otherwise sit on top of the next button at the newest stop.
     paddingRight: theme.spacing(1),
   }),
   readout: css({

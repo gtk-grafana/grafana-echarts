@@ -28,7 +28,7 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Route A — service dependency map, no transformations",
-      "description": "Nine ranged series, an empty Transform tab, and the whole service graph. Every frame carries `source` / `target` labels on its `Value` field, so each one passes the edge test alone and the reader collects them all.\n\nThe legend format is set to `{{client}}-->{{server}}` even though nothing here reads it: on Grafana 13.2+ the plugin's pivot promotes exactly that rendered legend to `field.name`, so writing it now means this panel gains per-edge ids on upgrade with no dashboard change. Today it only labels the tooltip series.\n\n`prometheus → prometheus` is Prometheus scraping itself — a genuine self-loop, which a graph draws and a sankey cannot. `user` is Tempo's virtual node: requests with no client span.\n\n**The time slider is on here**, over a live ranged response — the shape the deterministic `provisioning/dashboards/relations/timeline.json` stands in for. Nine series, each with its own timestamps, so the stops are the union of all nine and the selected instant is resolved against each frame's own row dimension. Scrub, or press play (1s per step); the default position is the newest stop, which is what `Last *` was already showing, so the picture only changes once you move it.\n\n**Edges move, nodes do not.** `longToWide` is edges-only, so every node here is derived from an endpoint and carries no stat of its own — there is nothing on a node for a timestamp to change.",
+      "description": "Nine ranged series, an empty Transform tab, and the whole service graph. Every frame carries `source` / `target` labels on its `Value` field, so each one passes the edge test alone and the reader collects them all.\n\nThe legend format is set to `{{client}}-->{{server}}` even though nothing here reads it: on Grafana 13.2+ the plugin's pivot promotes exactly that rendered legend to `field.name`, so writing it now means this panel gains per-edge ids on upgrade with no dashboard change. Today it only labels the tooltip series.\n\n`prometheus → prometheus` is Prometheus scraping itself — a genuine self-loop, which a graph draws and a sankey cannot. `user` is Tempo's virtual node: requests with no client span.\n\n**The time slider is on here**, over a live ranged response — the shape the deterministic `provisioning/dashboards/relations/timeline.json` stands in for. Nine series, each with its own timestamps, so the stops are the union of all nine and the selected instant is resolved against each frame's own row dimension. Scrub or step through it; the default position is the newest stop, which is what `Last *` was already showing, so the picture only changes once you move it.\n\n**Edges move, nodes do not.** `longToWide` is edges-only, so every node here is derived from an endpoint and carries no stat of its own — there is nothing on a node for a timestamp to change.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -68,7 +68,6 @@
         "relationsCurveness": 0.12,
         "relationsFocusAdjacency": true,
         "relationsTimeSlider": true,
-        "relationsTimeStepDuration": 1000,
         "reduceOptions": {
           "calcs": ["lastNotNull"]
         }

@@ -8,17 +8,15 @@ import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
-import { resolveRelationsTimeStepDuration, resolveRelationsTimeStepSize } from 'lib/echarts/options/timeline';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
 import { ChartNotices } from './ChartNotices';
-import { ChartTimeSlider, TIME_SLIDER_HEIGHT } from './ChartTimeSlider';
+import { ChartTimeSlider, resolveTimelineIndex, TIME_SLIDER_HEIGHT } from './ChartTimeSlider';
 import { ChartZoomControls } from './ChartZoomControls';
 import { EChart } from './EChart';
 import { useLegend } from './hooks/useLegend';
 import { useLegendHighlight } from './hooks/useLegendHighlight';
-import { resolveTimelineIndex } from './hooks/useTimelinePlayback';
 
 interface Props extends PanelProps<PanelOptions> {
   /** The nested plugin's chart family, used to resolve an `'Auto'` series type. */
@@ -65,9 +63,9 @@ export const Panel: React.FC<Props> = ({
   );
 
   // Everything but the time selection. Split out so the timeline below can be resolved
-  // without depending on the selection it is used to clamp — a context that carried
-  // both would rebuild the timeline array on every scrub, and a fresh array identity on
-  // every step would restart the playback timer once per tick.
+  // without depending on the selection it is used to clamp: the selection is only
+  // meaningful against the timeline, so a context that carried both would be circular —
+  // and would rebuild the whole stop list on every scrub.
   const baseContext: ChartContext = useMemo(
     () => ({
       frames: data.series,
@@ -166,14 +164,7 @@ export const Panel: React.FC<Props> = ({
                 height={chartHeight}
               />
             </div>
-            <ChartTimeSlider
-              timeline={timeline}
-              selected={selectedTime}
-              onSelect={setPickedTime}
-              timeZone={timeZone}
-              stepDuration={resolveRelationsTimeStepDuration(options)}
-              stepSize={resolveRelationsTimeStepSize(options)}
-            />
+            <ChartTimeSlider timeline={timeline} selected={selectedTime} onSelect={setPickedTime} timeZone={timeZone} />
           </div>
         );
       }}

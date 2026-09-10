@@ -2,7 +2,6 @@ import { act, fireEvent, renderHook } from '@testing-library/react';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type RefObject } from 'react';
-import { TOOLTIP_KEEP_PINNED_ATTR } from './constants';
 import { useEChartsTooltip } from './useEChartsTooltip';
 
 const model: TooltipModel = { header: { label: '', value: 'x' }, rows: [{ label: 'A', value: '1' }] };
@@ -372,6 +371,41 @@ describe('useEChartsTooltip', () => {
       expect(view.result.current.state.visible).toBe(true);
     });
 
+    /**
+     * **Dismissing has to end the fade, not just stop re-applying it.**
+     *
+     * The pin's highlight is re-asserted from `pinnedItem` by `settleFocus`, and on the
+     * ZRender-click pin path it never went through `focusPoint` at all — ECharts reports no
+     * element for a canvas click, so `lastHitRef` stays empty and `focusPoint(null)` has
+     * nothing to downplay. Measured on a live four-node graph before the fix: dismissing a
+     * pinned edge left its two endpoints lit and every other mark faded, permanently — a
+     * later hover only *moves* a blur, so nothing ever cleared it.
+     */
+    it('downplays the pinned item so its adjacency fade ends with the pin', () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      // The ZRender canvas click pins first and reports no element; the chart click then
+      // contributes the item. This is the path that leaves `focusPoint` unused.
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(model);
+        fake.emitZr('click');
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      fake.dispatched.length = 0;
+
+      act(() => view.result.current.dismiss());
+
+      expect(fake.dispatched).toContainEqual({
+        type: 'downplay',
+        seriesIndex: 0,
+        dataIndex: 2,
+        dataType: 'edge',
+      });
+    });
+
     // Nothing to re-assert once the pin is gone: the next hover owns the emphasis, and
     // re-lighting a dismissed item would leave a highlight nobody can clear.
     it('stops re-applying once the tooltip is dismissed', () => {
@@ -460,256 +494,6 @@ describe('useEChartsTooltip', () => {
       });
 
       expect(fake.dispatched).toEqual([]);
-    });
-  });
-
-  /**
-   * The time slider moves the data under a stationary cursor, so none of the pointer
-   * paths above ever fires. `refresh` is what puts the hover back — see
-   * `EChartsTooltipController.refresh` and its caller in `EChart`.
-   */
-  describe('refresh after a scrub', () => {
-    /** Hover an element, so there is something to re-assert. */
-    const hover = (
-      fake: ReturnType<typeof createFakeChart>,
-      result: { current: { sink: (m: TooltipModel) => void } }
-    ) =>
-      act(() => {
-        fake.emitZr('mousemove', { offsetX: 5, offsetY: 8 });
-        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
-        result.current.sink(model);
-        settle();
-      });
-
-    it('does nothing when nothing is hovered or pinned', () => {
-      const fake = createFakeChart();
-      const { result } = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-
-      act(() => result.current.refresh());
-
-      expect(fake.dispatched).toEqual([]);
-    });
-
-    /**
-     * The rebuild recreated every element, so the emphasis died with them. Re-dispatched
-     * with `dataType`, without which a focused edge would come back as the node sharing
-     * its index.
-     */
-    it('re-emphasises the hovered mark, edge or node', () => {
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      hover(fake, view.result);
-      fake.dispatched.length = 0;
-
-      act(() => view.result.current.refresh());
-
-      expect(fake.dispatched).toContainEqual({
-        type: 'highlight',
-        seriesIndex: 0,
-        dataIndex: 2,
-        dataType: 'edge',
-      });
-    });
-
-    /**
-     * The numbers come back by **replaying the pointer where it already is** — a real
-     * `mousemove`, so ECharts hit-tests and runs its formatter exactly as a twitch of the
-     * mouse would. Neither `showTip` form works here: by index it cannot address a graph
-     * edge, and by pixel it hit-tests a coordinate that a sankey's ribbon may have moved
-     * out from under. Dispatched at the live cursor, in window coordinates.
-     */
-    it('replays a real pointer move at the cursor rather than dispatching showTip', () => {
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      hover(fake, view.result);
-      fake.dispatched.length = 0;
-      const moves: MouseEvent[] = [];
-      containerEl.addEventListener('mousemove', (event) => moves.push(event as MouseEvent));
-
-      act(() => view.result.current.refresh());
-
-      expect(fake.dispatched.filter((action) => action.type === 'showTip')).toEqual([]);
-      expect(moves).toHaveLength(1);
-      expect({ x: moves[0].clientX, y: moves[0].clientY }).toEqual({ x: 105, y: 58 });
-    });
-
-    /**
-     * On the **canvas**, not on the container: ZRender binds its DOM listeners to the
-     * viewport root it creates *inside* the element passed to `init`, and a DOM event does
-     * not travel downwards, so one dispatched on the container is never seen. It bubbles
-     * back up, which is why the assertion above can listen on the container.
-     */
-    it('dispatches on the canvas so it reaches ZRender', () => {
-      const canvas = document.createElement('canvas');
-      containerEl.appendChild(canvas);
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      hover(fake, view.result);
-      const targets: string[] = [];
-      containerEl.addEventListener('mousemove', (event) => targets.push((event.target as Element).tagName));
-
-      act(() => view.result.current.refresh());
-
-      expect(targets).toEqual(['CANVAS']);
-      canvas.remove();
-    });
-
-    /**
-     * A pin is asked from **its own position**, not from the cursor. Pinning a mark and
-     * then pressing play moves the pointer to the play button, so asking at the cursor
-     * would resolve somewhere else and the guard below would (correctly) refuse the
-     * answer — freezing every pin at the moment it became useful. The cursor here sits at
-     * offset (5, 8) → window (105, 58); the pin was set at (60, 70) → window (160, 120).
-     */
-    it('replays from the pinned position rather than from the cursor', () => {
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      act(() => {
-        fake.emitZr('mousemove', { offsetX: 60, offsetY: 70 });
-        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
-        view.result.current.sink(model);
-        settle();
-      });
-      act(() => {
-        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
-        settle();
-      });
-      // The pointer wanders off to the play button.
-      act(() => fake.emitZr('mousemove', { offsetX: 5, offsetY: 8 }));
-
-      const moves: MouseEvent[] = [];
-      containerEl.addEventListener('mousemove', (event) => moves.push(event as MouseEvent));
-      act(() => view.result.current.refresh());
-
-      expect({ x: moves[0].clientX, y: moves[0].clientY }).toEqual({ x: 160, y: 120 });
-    });
-
-    /**
-     * The whole point: a pinned tooltip keeps its place and its pinned-ness, and only
-     * its numbers move. Freezing those too is what left a pin reading one timestamp
-     * forever while playback ran underneath it.
-     */
-    it('replaces a pinned model without disturbing the pin', () => {
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      hover(fake, view.result);
-      act(() => {
-        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
-        settle();
-      });
-      const pinnedAt = view.result.current.state.position;
-      expect(view.result.current.state.pinned).toBe(true);
-
-      const stepped: TooltipModel = { header: { label: '', value: 'x' }, rows: [{ label: 'A', value: '999' }] };
-      act(() => {
-        // The replayed pointer runs ECharts' formatter, which reaches the sink; the sink
-        // records it even while pinned, and that is what `refresh` then adopts.
-        containerEl.addEventListener('mousemove', () => view.result.current.sink(stepped), { once: true });
-        view.result.current.refresh();
-      });
-
-      expect(view.result.current.state.model).toEqual(stepped);
-      expect(view.result.current.state.pinned).toBe(true);
-      expect(view.result.current.state.position).toEqual(pinnedAt);
-    });
-
-    /**
-     * A pin that the cursor has wandered away from keeps its own numbers. Adopting
-     * whatever the replayed hover resolved to would quietly re-point a pinned tooltip at
-     * a different mark — worse than a stale reading, and much harder to notice.
-     */
-    it('leaves a pinned model alone when the cursor is no longer on the pinned mark', () => {
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      hover(fake, view.result);
-      act(() => {
-        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
-        settle();
-      });
-
-      const elsewhere: TooltipModel = { header: { label: '', value: 'y' }, rows: [{ label: 'B', value: '7' }] };
-      act(() => {
-        containerEl.addEventListener(
-          'mousemove',
-          () => {
-            // The replayed hover lands on a different mark, as it would once the pointer
-            // has moved off the pinned one.
-            fake.emit('mouseover', { seriesIndex: 0, dataIndex: 9, dataType: 'node' });
-            view.result.current.sink(elsewhere);
-          },
-          { once: true }
-        );
-        view.result.current.refresh();
-      });
-
-      expect(view.result.current.state.model).not.toEqual(elsewhere);
-    });
-
-    /**
-     * A sankey's ribbon geometry *is* its value, so a stop that resizes it can move it out
-     * from under a stationary pointer and the hover resolves to nothing. Holding the last
-     * reading is what a real twitch of the mouse would show there too.
-     */
-    it('keeps the previous model when the replayed hover resolves to nothing', () => {
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      hover(fake, view.result);
-
-      act(() => view.result.current.refresh());
-
-      expect(view.result.current.state.model).toEqual(model);
-    });
-  });
-
-  /**
-   * A pinned tooltip is dismissed by a click outside it — except on panel chrome that is
-   * meant to be operated *while reading it*. The time slider is the case: pinning a mark
-   * to watch its value change, and then losing the pin to the click that starts it
-   * changing, is no feature at all. See `TOOLTIP_KEEP_PINNED_ATTR`.
-   */
-  describe('clicks on chrome marked keep-pinned', () => {
-    const pin = (
-      fake: ReturnType<typeof createFakeChart>,
-      view: { result: { current: { sink: (m: TooltipModel) => void } } }
-    ) =>
-      act(() => {
-        fake.emitZr('mousemove', { offsetX: 5, offsetY: 8 });
-        (view.result.current as { sink: (m: TooltipModel) => void }).sink(model);
-        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
-        settle();
-      });
-
-    it('keeps the pin when the click lands on marked chrome', () => {
-      const strip = document.createElement('div');
-      strip.setAttribute(TOOLTIP_KEEP_PINNED_ATTR, '');
-      const button = document.createElement('button');
-      strip.appendChild(button);
-      document.body.appendChild(strip);
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      pin(fake, view);
-      expect(view.result.current.state.pinned).toBe(true);
-
-      // Nested, so `closest` is what has to find the marker — the play button is a child
-      // of the strip, not the marked element itself.
-      act(() => fireEvent.mouseDown(button));
-
-      expect(view.result.current.state.pinned).toBe(true);
-      strip.remove();
-    });
-
-    // The rule is still an exception: an ordinary outside click dismisses as before.
-    it('still dismisses on an unmarked outside click', () => {
-      const outside = document.createElement('div');
-      document.body.appendChild(outside);
-      const fake = createFakeChart();
-      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
-      pin(fake, view);
-
-      act(() => fireEvent.mouseDown(outside));
-
-      expect(view.result.current.state.pinned).toBe(false);
-      outside.remove();
     });
   });
 

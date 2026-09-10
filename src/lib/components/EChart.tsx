@@ -3,7 +3,7 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { collectProximitySeries } from 'lib/echarts/tooltip/proximity';
-import React, { type MutableRefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { type MutableRefObject, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
 import { useBrushTimeZoom } from './hooks/useBrushTimeZoom';
 import { useChartOption } from './hooks/useChartOption';
@@ -77,7 +77,6 @@ export const EChart: React.FC<Props> = ({
     reportTrigger: reportTooltipTrigger,
     state: tooltipState,
     dismiss: dismissTooltip,
-    refresh: refreshTooltip,
   } = useEChartsTooltip(chart, panelDOMRef, { series: proximitySeries });
 
   useLayoutEffect(() => {
@@ -110,27 +109,6 @@ export const EChart: React.FC<Props> = ({
   }, [instanceRef]);
 
   useChartOption(chart, chartContext, { isGrafanaLegend, tooltipSink, reportTooltipTrigger });
-
-  /**
-   * Put the hover back after a **scrub**, which is the one rebuild the cursor cannot
-   * recover from on its own.
-   *
-   * Every other reason the option changes is something the user did with the pointer or
-   * the editor, and the next mouse move repairs the tooltip and the adjacency fade for
-   * free. Stepping the time slider moves the data under a stationary cursor — during
-   * playback, once a second, with nobody touching anything — so without this the panel
-   * shows one timestamp's numbers over another timestamp's chart until the mouse is
-   * jiggled, and a pinned tooltip keeps its first reading forever.
-   *
-   * Declared after `useChartOption` so its effect runs after the rebuild: React fires
-   * effects in declaration order, and there is nothing to re-assert against until the
-   * new elements exist. Keyed on the selection alone, so an ordinary data refresh is
-   * still left to the cursor. See `EChartsTooltipController.refresh`.
-   */
-  const { selectedTime } = chartContext;
-  useEffect(() => {
-    refreshTooltip();
-  }, [selectedTime, refreshTooltip]);
 
   useChartResize(chart, width, height);
   useBrushTimeZoom(chart, onChangeTimeRange);

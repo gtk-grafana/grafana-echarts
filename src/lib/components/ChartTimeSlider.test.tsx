@@ -1,7 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { ChartTimeSlider } from './ChartTimeSlider';
-import { TOOLTIP_KEEP_PINNED_ATTR } from './tooltip/constants';
+import { ChartTimeSlider, resolveTimelineIndex } from './ChartTimeSlider';
 
 /**
  * The time slider, tested through its roles rather than its markup, like
@@ -21,41 +20,57 @@ const timeline = [T0, T0 + STEP, T0 + 2 * STEP];
 const renderSlider = (overrides: Partial<React.ComponentProps<typeof ChartTimeSlider>> = {}) => {
   const onSelect = jest.fn();
   render(
-    <ChartTimeSlider
-      timeline={timeline}
-      selected={T0 + STEP}
-      onSelect={onSelect}
-      timeZone="utc"
-      stepDuration={1000}
-      stepSize={1}
-      {...overrides}
-    />
+    <ChartTimeSlider timeline={timeline} selected={T0 + STEP} onSelect={onSelect} timeZone="utc" {...overrides} />
   );
   return onSelect;
 };
+
+describe('resolveTimelineIndex', () => {
+  it('finds an exact stop', () => {
+    expect(resolveTimelineIndex(timeline, T0 + STEP)).toBe(1);
+  });
+
+  /**
+   * Nothing selected reads as the **newest** stop, which is what the family's default
+   * `lastNotNull` reducer already draws — so switching the slider on does not change the
+   * picture.
+   */
+  it('defaults to the newest stop', () => {
+    expect(resolveTimelineIndex(timeline, null)).toBe(2);
+    expect(resolveTimelineIndex(timeline, undefined)).toBe(2);
+  });
+
+  /**
+   * The reason the selection is a timestamp rather than an index: the dashboard refreshes
+   * on its own interval and replaces the timeline underneath it. A rolling window drops
+   * the oldest stop and shifts every index by one; the nearest *timestamp* is still the
+   * same instant.
+   */
+  it('falls back to the nearest stop when the selection is gone', () => {
+    const shifted = [T0 + STEP, T0 + 2 * STEP, T0 + 3 * STEP];
+
+    expect(resolveTimelineIndex(shifted, T0)).toBe(0);
+    expect(resolveTimelineIndex(shifted, T0 + 2 * STEP + 10)).toBe(1);
+    expect(resolveTimelineIndex(shifted, T0 + 9 * STEP)).toBe(2);
+  });
+});
 
 describe('ChartTimeSlider', () => {
   // The family decides whether this render has a timeline (`getTimeline`), so no timeline
   // means no strip — which is every family but relations, and every instant response.
   it('renders nothing when the render has no timeline', () => {
     const { container } = render(
-      <ChartTimeSlider
-        timeline={null}
-        selected={null}
-        onSelect={jest.fn()}
-        timeZone="utc"
-        stepDuration={1000}
-        stepSize={1}
-      />
+      <ChartTimeSlider timeline={null} selected={null} onSelect={jest.fn()} timeZone="utc" />
     );
 
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders a play button, a slider and the selected timestamp', () => {
+  it('renders step buttons, a slider and the selected timestamp', () => {
     renderSlider();
 
-    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Previous step' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next step' })).toBeInTheDocument();
     expect(screen.getByRole('slider', { name: 'Selected time' })).toBeInTheDocument();
     expect(screen.getByText('2023-11-14 22:18:20')).toBeInTheDocument();
   });
@@ -68,17 +83,6 @@ describe('ChartTimeSlider', () => {
     renderSlider({ selected: T0, timeZone: 'America/New_York' });
 
     expect(screen.getByText('2023-11-14 17:13:20')).toBeInTheDocument();
-  });
-
-  // Play toggles to pause and back, which is the only state this component owns.
-  it('toggles between play and pause', () => {
-    renderSlider();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
-    expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
-    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
   });
 
   /**
@@ -94,31 +98,44 @@ describe('ChartTimeSlider', () => {
     expect(onSelect).toHaveBeenCalledWith(T0 + 2 * STEP);
   });
 
-  /**
-   * Operating the slider is a click outside the tooltip, and the dismiss handler would
-   * take a pinned tooltip down with it — losing the pin to the very gesture that starts
-   * the values moving. See `TOOLTIP_KEEP_PINNED_ATTR` and `usePinnedDismiss`.
-   */
-  it('marks the strip as chrome that does not dismiss a pinned tooltip', () => {
-    renderSlider();
+  // The buttons are the same selection the slider makes, one stop either way.
+  it('steps to the neighbouring stop', () => {
+    const onSelect = renderSlider();
 
-    expect(screen.getByTestId('chart-time-slider')).toHaveAttribute(TOOLTIP_KEEP_PINNED_ATTR);
+    fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
+    expect(onSelect).toHaveBeenCalledWith(T0 + 2 * STEP);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Previous step' }));
+    expect(onSelect).toHaveBeenCalledWith(T0);
   });
 
   /**
-   * Grabbing the slider takes over from playback. The alternative is a handle that jumps
-   * back out from under the user on the next tick, which reads as the control being
-   * broken rather than busy.
+   * Wrapping rather than clamping, and in both directions. The end of the timeline is
+   * where a reader most often wants to start over, and a `›` that went inert there would
+   * send them across the panel to `‹` — the one gesture the buttons exist to save.
    */
-  it('stops playing when the slider is moved by hand', () => {
-    renderSlider();
+  it('wraps forward from the newest stop to the oldest', () => {
+    const onSelect = renderSlider({ selected: T0 + 2 * STEP });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
-    expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
 
-    fireEvent.keyDown(screen.getByRole('slider', { name: 'Selected time' }), { key: 'ArrowRight', keyCode: 39 });
+    expect(onSelect).toHaveBeenCalledWith(T0);
+  });
 
-    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+  it('wraps back from the oldest stop to the newest', () => {
+    const onSelect = renderSlider({ selected: T0 });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Previous step' }));
+
+    expect(onSelect).toHaveBeenCalledWith(T0 + 2 * STEP);
+  });
+
+  // Neither button is ever dead, which is the whole point of wrapping.
+  it('leaves both step buttons enabled at either end', () => {
+    renderSlider({ selected: T0 });
+
+    expect(screen.getByRole('button', { name: 'Previous step' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Next step' })).toBeEnabled();
   });
 
   /**

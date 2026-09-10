@@ -1,12 +1,7 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { hasGraphTimeline } from 'lib/echarts/converters/graphWide';
-import {
-  RELATIONS_TIME_SLIDER_DEFAULT,
-  RELATIONS_TIME_STEP_DURATION_DEFAULT,
-  RELATIONS_TIME_STEP_SIZE_DEFAULT,
-} from 'lib/echarts/options/timeline';
-import { addAdvancedNumberInput, addAdvancedSliderInput } from 'lib/grafana/editor/common/advanced-options';
+import { RELATIONS_TIME_SLIDER_DEFAULT } from 'lib/echarts/options/timeline';
 import { type PanelOptions } from 'types';
 
 /**
@@ -46,45 +41,5 @@ export function addRelationsTimelineOptions(builder: PanelOptionsEditorBuilder<P
      * leaving the user with a hidden reducer picker and no control to undo it.
      */
     showIf: (options, data) => options.relationsTimeSlider === true || hasGraphTimeline(data),
-  });
-
-  /**
-   * Milliseconds of **wall clock** per step while playing — not the width of a window
-   * the step aggregates over. There is no window: a stop reads the one sample at its
-   * timestamp, and the stops are the timestamps the data actually carries, so the step
-   * count is data-driven rather than a duration the user divides the range by.
-   */
-  addAdvancedNumberInput(builder, {
-    path: 'relationsTimeStepDuration',
-    name: t('relations.timeline.name-step-duration', 'Playback step'),
-    description: t(
-      'relations.timeline.description-step-duration',
-      'Milliseconds between steps while the time slider is playing'
-    ),
-    defaultValue: RELATIONS_TIME_STEP_DURATION_DEFAULT,
-    settings: { min: 50, step: 50, integer: true },
-    showIf: (options) => options.relationsTimeSlider === true,
-  });
-
-  /**
-   * How **far** each step moves, as the sibling of how long it lasts. A percentage of the
-   * timeline rather than a count of stops: the count belongs to the response, and the same
-   * panel carries five stops over an hour and three hundred over a week, so a count would
-   * mean something different on each. See `RELATIONS_TIME_STEP_SIZE_DEFAULT`.
-   *
-   * A slider rather than a number input because the value is a proportion with a real
-   * floor and ceiling — the useful gesture is "coarser" rather than an exact figure, and
-   * the control enforces the bounds a typed number would have to be validated against.
-   */
-  addAdvancedSliderInput(builder, {
-    path: 'relationsTimeStepSize',
-    name: t('relations.timeline.name-step-size', 'Playback step size'),
-    description: t(
-      'relations.timeline.description-step-size',
-      'How far each step moves, as a percentage of the timeline. Playback only — dragging still lands on any timestamp'
-    ),
-    defaultValue: RELATIONS_TIME_STEP_SIZE_DEFAULT,
-    settings: { min: 1, max: 100, step: 1, ariaLabelForHandle: 'Playback step size' },
-    showIf: (options) => options.relationsTimeSlider === true,
   });
 }

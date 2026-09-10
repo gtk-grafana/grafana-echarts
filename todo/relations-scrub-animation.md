@@ -3,8 +3,8 @@
 ## Problem
 
 Stepping the relations [time slider](../src/lib/components/ChartTimeSlider.tsx) — dragging
-it or letting playback run — redraws the chart correctly on all three render variants, but
-only **chord** morphs between the two states. **Sankey** and **graph** cut straight to the
+it, arrow-keying it or clicking a step button — redraws the chart correctly on all three
+render variants, but only **chord** morphs between the two states. **Sankey** and **graph** cut straight to the
 new frame.
 
 That is the wrong way round for legibility: the sankey is the variant whose _geometry_ is
@@ -50,28 +50,19 @@ ink every 50ms across one step and counting distinct values (a tween shows ~10, 
    every step reads as the panel reloading, not as a value changing, and it would discard
    pan/zoom with it.
 
-## The same missing diff also cost clicks, and still costs pinned values
+## One symptom of the same rebuild is fixed
 
-Two further symptoms traced back to `SankeyView` rebuilding its elements, both found by
-measurement rather than by reading:
+Because `SankeyView` rebuilds its elements, their **labels** were new objects on every pass
+too — so `LabelManager._animateLabels` took its `if (!oldLayout)` branch and faded each edge
+value in from zero, timed by `animationDuration` rather than by the update duration. Measured
+stepping the slider: `0.001 → 1` over ~120 frames, on every step, while the node names held
+at 1. A `graph` never showed it, for the same reason it has no shape tween to lose — it
+updates in place.
 
-1. **A click that straddled a step was discarded** — ZRender decides a click happened by
-   comparing the element _objects_ `mousedown` and `mouseup` resolved to
-   (`Handler`: `if (this._downEl !== this._upEl …) return`), and a step replaces them. So
-   a mark could not be pinned on a sankey while playback ran, while `graph` and `chord` —
-   which diff and update in place — were fine. **Fixed** in `useTimelinePlayback` by
-   holding the step while a pointer press is in flight; it is not a sankey-specific fix,
-   and it protects any series with the same trait.
-2. **A pinned tooltip's numbers stop following playback on `sankey` and `chord`.** Still
-   open. The pin is refreshed by replaying the pointer at the pinned position, and on
-   those two variants the geometry _is_ the value, so a stop that resizes a ribbon or an
-   arc slides the mark out from under that pixel and the hover resolves elsewhere — at
-   which point `refresh` correctly declines to adopt an answer about a different mark. A
-   `graph` layout does not move between stops and updates every time.
-
-   Fixing (2) needs the pinned mark's _current_ geometry rather than the pixel it was
-   pinned at. There is no public route to it: `showTip` by index resolves against the
-   series' primary data table, so it reaches a sankey **node** but never an **edge**.
+That one **is** fixable panel-side, and is fixed: `registerEdgeLabelFadeIn` sets zrender's
+`disableLabelAnimation` on every edge-label host before the label stage reads it. It is not a
+workaround for the cut below — the shapes still cut — only for a label fade that made every
+step read as a reload.
 
 ## What would actually fix it
 

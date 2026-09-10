@@ -5,7 +5,7 @@ import { revealEdgeLabelsFor } from 'lib/echarts/features/edgeLabelLayout';
 import { findHoveredPoint } from 'lib/echarts/tooltip/proximity';
 import { type EChartsTooltipTrigger, type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/types';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import { TOOLTIP_KEEP_PINNED_ATTR, TOOLTIP_MARKER_ATTR } from './constants';
+import { TOOLTIP_MARKER_ATTR } from './constants';
 import { type EChartsTooltipController, type EChartsTooltipOptions, type EChartsTooltipState } from './types';
 
 /**
@@ -147,10 +147,7 @@ function useRafState<T>(initial: T) {
 /**
  * While pinned, dismiss on a click outside the tooltip, on Escape, or when the
  * chart scrolls away underneath it. Clicks inside the tooltip (data links,
- * ad-hoc filter buttons) are ignored so the pinned tooltip stays interactive —
- * as are clicks on panel chrome marked {@link TOOLTIP_KEEP_PINNED_ATTR}, which
- * is the time slider: pinning a mark in order to watch its value change, and
- * then losing the pin to the click that starts it changing, is no feature at all.
+ * ad-hoc filter buttons) are ignored so the pinned tooltip stays interactive.
  */
 function usePinnedDismiss(pinned: boolean, dismiss: () => void, containerRef: RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -159,7 +156,7 @@ function usePinnedDismiss(pinned: boolean, dismiss: () => void, containerRef: Re
     }
     const onDocMouseDown = (event: MouseEvent) => {
       const target = event.target;
-      if (target instanceof Element && target.closest(`[${TOOLTIP_MARKER_ATTR}], [${TOOLTIP_KEEP_PINNED_ATTR}]`)) {
+      if (target instanceof Element && target.closest(`[${TOOLTIP_MARKER_ATTR}]`)) {
         return;
       }
       dismiss();
@@ -347,17 +344,45 @@ export function useEChartsTooltip(
 
   const dismiss = useCallback(() => {
     cancelHide();
+    // Read before `focusPoint` clears it, so the pin's own downplay below can tell whether
+    // this already covered it.
+    const focused = lastHitRef.current;
     // Drop the emphasis and forget the replayed point, so the next move over the
     // same datapoint re-shows the tooltip instead of being deduped away.
     focusPoint(null);
-    // Nothing is focused now, so a hidden edge value revealed by the pin goes back — the
-    // hover handlers own this the rest of the time, but a dismiss can arrive (Escape, an
-    // outside click) with no chart event behind it.
+    const { pinnedItem } = latestRef.current;
     if (chart != null && !chart.isDisposed()) {
+      /**
+       * The **pin's own** emphasis, which `focusPoint` above does not always own.
+       *
+       * A pin made by the ZRender canvas click never went through it: ECharts reports no
+       * element for that click, so `pinWith` finds nothing to focus and `lastHitRef` stays
+       * empty — from then on the highlight is re-asserted straight from `pinnedItem` by
+       * `settleFocus`. `focusPoint(null)` then downplays nothing, and the adjacency fade the
+       * pin put on the chart **outlives the pin**: every other mark stays greyed, and no
+       * later hover clears it, because a hover only ever *moves* a blur that a `downplay`
+       * has to end. Measured on a four-node graph — dismissing a pinned edge left its two
+       * endpoints lit and the rest faded, permanently.
+       *
+       * Skipped when `focusPoint` just downplayed this very mark, which is the *other* pin
+       * path — a click ECharts did resolve to an element, where `pinWith` focused it. One
+       * downplay is enough there, and a second would only be noise on the action log.
+       */
+      if (pinnedItem?.seriesIndex != null && !isSameTarget(pinnedItem, focused)) {
+        chart.dispatchAction({
+          type: 'downplay',
+          seriesIndex: pinnedItem.seriesIndex,
+          dataIndex: pinnedItem.dataIndex,
+          dataType: pinnedItem.dataType,
+        });
+      }
+      // Nothing is focused now, so a hidden edge value revealed by the pin goes back — the
+      // hover handlers own this the rest of the time, but a dismiss can arrive (Escape, an
+      // outside click) with no chart event behind it.
       revealEdgeLabelsFor(chart.getZr(), null);
     }
     update({ pinned: false, pinnedItem: null, visible: false, model: null });
-  }, [cancelHide, chart, focusPoint, update]);
+  }, [cancelHide, chart, focusPoint, latestRef, update]);
 
   useEffect(() => {
     if (!chart) {
@@ -751,92 +776,7 @@ export function useEChartsTooltip(
     };
   }, [chart, containerRef, cancelHide, focusPoint, latestRef, update]);
 
-  /**
-   * Re-assert the hovered or pinned mark against a freshly rebuilt option — see
-   * {@link EChartsTooltipController.refresh}.
-   *
-   * Two things go stale on a rebuild, and neither recovers on its own while the cursor
-   * is still:
-   *
-   * - **The emphasis.** `notMerge` recreates every element, and an element's highlight
-   *   state dies with it, so an adjacency fade the pin or the cursor put there is simply
-   *   gone. Re-dispatched by index, which `highlight` resolves per `dataType` — so a
-   *   focused *edge* comes back as an edge rather than as the node sharing its index.
-   * - **The numbers.** ECharts runs `tooltip.formatter` on hover, and there has been no
-   *   hover.
-   *
-   * The numbers are recovered by **replaying the pointer where it already is** — a real
-   * `mousemove` on the chart's own container, which is the element ZRender binds to — so
-   * ECharts hit-tests and runs its formatter exactly as a twitch of the mouse would, and
-   * every downstream path (this hook's sink, its hover tracking, ECharts' own state) sees
-   * one ordinary hover.
-   *
-   * The two rejected alternatives are both `showTip`, and each fails on a different half
-   * of this family. Addressed **by index** it cannot reach a graph edge at all:
-   * `findPointFromSeries` resolves against the series' primary data table, which is the
-   * node table — the same limitation {@link replayTip} documents. Addressed **by pixel**
-   * it hit-tests the *stale* coordinate, which is fine for a graph, whose layout does not
-   * move between stops, and wrong for a sankey, whose ribbon geometry *is* the value: the
-   * ribbon slides out from under the pinned pixel and the hit test comes back empty.
-   * Replaying the pointer has neither problem, because it asks the same question the
-   * cursor asks — with one honest consequence: on a **sankey** the ribbon geometry *is*
-   * the value, so a stop that resizes the ribbon can move it out from under a stationary
-   * pointer, and the hover legitimately resolves to nothing. The tooltip then holds its
-   * last reading rather than updating, which is exactly what a real twitch of the mouse
-   * would show too. A `graph` layout does not move between stops and updates every time.
-   *
-   * **A pin is asked from its own position, and keeps its content unless the answer is
-   * about the mark it names.** Position and pinned-ness are never touched, so the tooltip
-   * stays where the user put it; only `model` is replaced, and only when the replayed
-   * hover resolved to the very mark the pin names. That guard is what stops a pinned
-   * tooltip quietly re-pointing at a different mark — worse than a stale reading, and
-   * much harder to notice — and it is also what makes the sankey case degrade safely.
-   */
-  const refresh = useCallback(() => {
-    const dom = containerRef.current;
-    if (chart == null || chart.isDisposed() || dom == null) {
-      return;
-    }
-    const current = latestRef.current;
-    const target = current.pinned ? current.pinnedItem : hoveredRef.current;
-    // Where to ask from: the **pin's** own position while pinned, the live cursor
-    // otherwise. Asking at the cursor would freeze every pin the moment it was useful —
-    // pinning a mark and then pressing play moves the pointer to the play button, so the
-    // hover would resolve somewhere else and the guard below would (correctly) refuse to
-    // adopt it. The pin already owns the emphasis regardless of where the cursor is (see
-    // `settleFocus`), so asking from where it sits is the same rule applied to content.
-    const at = current.pinned ? current.position : livePositionRef.current;
-    if (target?.seriesIndex == null || at == null) {
-      return;
-    }
-
-    // Cleared first because it caches "already emphasised" against elements the rebuild
-    // has just thrown away, and would otherwise dedupe the re-dispatch to nothing.
-    lastHitRef.current = null;
-    chart.dispatchAction({
-      type: 'highlight',
-      seriesIndex: target.seriesIndex,
-      dataIndex: target.dataIndex,
-      dataType: target.dataType,
-    });
-
-    // Dispatched on the **canvas**, not on the container. ZRender binds its DOM listeners
-    // to the viewport root it creates *inside* the element passed to `init`, and a DOM
-    // event does not travel downwards — one dispatched on the container is simply never
-    // seen. Bubbling carries it back up, so anything else listening still gets it.
-    //
-    // Synchronous, like any dispatched DOM event: by the next line ZRender has hit-tested,
-    // ECharts has run the formatter, and the sink has recorded the result — which for an
-    // unpinned tooltip has already rendered it.
-    const viewport = dom.querySelector('canvas') ?? dom;
-    viewport.dispatchEvent(new MouseEvent('mousemove', { clientX: at.x, clientY: at.y, bubbles: true }));
-
-    if (current.pinned && isSameTarget(current.pinnedItem, hoveredRef.current) && liveModelRef.current != null) {
-      update({ model: liveModelRef.current });
-    }
-  }, [chart, containerRef, latestRef, update]);
-
   usePinnedDismiss(state.pinned, dismiss, containerRef);
 
-  return { state, sink, reportTrigger, dismiss, refresh };
+  return { state, sink, reportTrigger, dismiss };
 }

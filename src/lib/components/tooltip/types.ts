@@ -56,15 +56,4 @@ export interface EChartsTooltipController {
   reportTrigger: (trigger: EChartsTooltipTrigger) => void;
   /** Dismiss a pinned tooltip (used by the overlay's close affordances). */
   dismiss: () => void;
-  /**
-   * Re-assert what the user is looking at against a freshly rebuilt option.
-   *
-   * Every other path into this controller is driven by the cursor, which is the right
-   * owner while the *data* is what stands still. The time slider inverts that: the data
-   * moves under a stationary pointer, so nothing fires, and the panel is left showing
-   * one timestamp's numbers over another timestamp's chart until the user jiggles the
-   * mouse. Call this after an option rebuild that changed the values but not the
-   * topology. See `EChart`.
-   */
-  refresh: () => void;
 }

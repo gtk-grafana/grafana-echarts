@@ -21,7 +21,7 @@
   "panels": [
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "**The ragged multi-frame shape, with the slider on.**\n\nThree `csv_content` queries, one edge each, and — deliberately — **three different time columns**. `api-->db` starts one step late and `api-->cache` samples every other step, which is what a real response looks like when a series has a gap or a scrape is missed.\n\nThat raggedness is why the selection is a **timestamp** and not a slider index: row 2 is a different instant in each of these frames, so the timestamp is resolved to a row *per frame* (`graphWideTimeline` unions the stops; `rowAt` resolves each frame's own).\n\nDrag the slider, or press play. Three things to look for:\n\n- the edge weights change (they are drawn on the links — \"Show edge values\" is on);\n- at the **first** stop `api-->db` has no sample at all, so it draws weightless rather than vanishing — the topology does not move while you scrub;\n- the \"Calculation\" picker is gone from the Value options: at one selected row every reducer agrees, so there is nothing left to reduce — and a mark's tooltip labels its main row `Value` rather than `Last *`, for the same reason.\n\nPlayback steps every 1500ms (\"Playback step\", Advanced) and loops at the end.\n\n**The data link on `gateway-->api` is the fix you cannot see anywhere else.** Hover that edge and read the footer: `${__value.numeric}` interpolates the value at the **selected row**, so it now agrees with the tooltip. Under the reducer it could only ever point at row 0 — the oldest sample — because there is no one row a mean came from.",
+      "description": "**The ragged multi-frame shape, with the slider on.**\n\nThree `csv_content` queries, one edge each, and — deliberately — **three different time columns**. `api-->db` starts one step late and `api-->cache` samples every other step, which is what a real response looks like when a series has a gap or a scrape is missed.\n\nThat raggedness is why the selection is a **timestamp** and not a slider index: row 2 is a different instant in each of these frames, so the timestamp is resolved to a row *per frame* (`graphWideTimeline` unions the stops; `rowAt` resolves each frame's own).\n\nDrag the slider, arrow-key it or click a step button. Three things to look for:\n\n- the edge weights change (they are drawn on the links — \"Show edge values\" is on);\n- at the **first** stop `api-->db` has no sample at all, so it draws weightless rather than vanishing — the topology does not move while you scrub;\n- the \"Calculation\" picker is gone from the Value options: at one selected row every reducer agrees, so there is nothing left to reduce — and a mark's tooltip labels its main row `Value` rather than `Last *`, for the same reason.\n\n**The data link on `gateway-->api` is the fix you cannot see anywhere else.** Hover that edge and read the footer: `${__value.numeric}` interpolates the value at the **selected row**, so it now agrees with the tooltip. Under the reducer it could only ever point at row 0 — the oldest sample — because there is no one row a mean came from.",
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
         "overrides": [
@@ -51,7 +51,6 @@
         "seriesType": "graph",
         "relationsLayout": "circular",
         "relationsTimeSlider": true,
-        "relationsTimeStepDuration": 1500,
         "relationsShowEdgeValues": true
       },
       "targets": [
@@ -133,7 +132,6 @@
         "tooltip": { "mode": "single", "sort": "none" },
         "seriesType": "sankey",
         "relationsTimeSlider": true,
-        "relationsTimeStepDuration": 1500,
         "relationsShowEdgeValues": true
       },
       "targets": [
@@ -178,7 +176,7 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "**The one variant that morphs between stops.**\n\nThe same wide ranged frame as the sankey, drawn as a chord — and this is where a step *animates* rather than cutting. The difference is ECharts', not the panel's: `ChordView.render` diffs the new data against the old and updates each arc in place, so the arcs and ribbons tween. `SankeyView.render` sets every shape imperatively (`curve.setShape`) and has no diff at all, so a sankey redraws correctly but instantly. A `graph` tweens its node symbols, but a link's thickness comes from `custom.lineWidth` rather than from its weight, so on this data there is nothing there to move.\n\nUse this panel to see what a scrub *is*; use the sankey to see the weights, which are easier to read as ribbons.\n\n**\"Playback step size\" is set to 50% here** (Advanced), so playback crosses the five stops in two jumps instead of five — the other panels leave it at the 1% default, which floors at one stop. It is a percentage rather than a count because the count belongs to the response: this timeline has five stops, a week of Prometheus has three hundred.",
+      "description": "**The one variant that morphs between stops.**\n\nThe same wide ranged frame as the sankey, drawn as a chord — and this is where a step *animates* rather than cutting. The difference is ECharts', not the panel's: `ChordView.render` diffs the new data against the old and updates each arc in place, so the arcs and ribbons tween. `SankeyView.render` sets every shape imperatively (`curve.setShape`) and has no diff at all, so a sankey redraws correctly but instantly. A `graph` tweens its node symbols, but a link's thickness comes from `custom.lineWidth` rather than from its weight, so on this data there is nothing there to move.\n\nUse this panel to see what a scrub *is*; use the sankey to see the weights, which are easier to read as ribbons.",
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
         "overrides": []
@@ -190,9 +188,7 @@
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
         "tooltip": { "mode": "single", "sort": "none" },
         "seriesType": "chord",
-        "relationsTimeSlider": true,
-        "relationsTimeStepDuration": 1500,
-        "relationsTimeStepSize": 50
+        "relationsTimeSlider": true
       },
       "targets": [
         {
