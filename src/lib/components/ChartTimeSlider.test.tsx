@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { ChartTimeSlider } from './ChartTimeSlider';
+import { TOOLTIP_KEEP_PINNED_ATTR } from './tooltip/constants';
 
 /**
  * The time slider, tested through its roles rather than its markup, like
@@ -91,6 +92,17 @@ describe('ChartTimeSlider', () => {
     fireEvent.keyDown(screen.getByRole('slider', { name: 'Selected time' }), { key: 'ArrowRight', keyCode: 39 });
 
     expect(onSelect).toHaveBeenCalledWith(T0 + 2 * STEP);
+  });
+
+  /**
+   * Operating the slider is a click outside the tooltip, and the dismiss handler would
+   * take a pinned tooltip down with it — losing the pin to the very gesture that starts
+   * the values moving. See `TOOLTIP_KEEP_PINNED_ATTR` and `usePinnedDismiss`.
+   */
+  it('marks the strip as chrome that does not dismiss a pinned tooltip', () => {
+    renderSlider();
+
+    expect(screen.getByTestId('chart-time-slider')).toHaveAttribute(TOOLTIP_KEEP_PINNED_ATTR);
   });
 
   /**

@@ -4,6 +4,7 @@ import { type TimeZone } from '@grafana/schema';
 import { IconButton, Slider, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { stopsPerStep } from 'lib/echarts/options/timeline';
+import { TOOLTIP_KEEP_PINNED_ATTR } from './tooltip/constants';
 import { useTimelinePlayback, resolveTimelineIndex } from './hooks/useTimelinePlayback';
 
 interface Props {
@@ -73,7 +74,10 @@ export const ChartTimeSlider: React.FC<Props> = ({
   const index = resolveTimelineIndex(timeline, selected);
 
   return (
-    <div className={styles.wrapper} data-testid="chart-time-slider">
+    // `TOOLTIP_KEEP_PINNED_ATTR`: operating the slider is an outside click, and without
+    // this it would dismiss the pinned tooltip the user set in order to watch a value
+    // change while playback runs. See `usePinnedDismiss`.
+    <div className={styles.wrapper} data-testid="chart-time-slider" {...{ [TOOLTIP_KEEP_PINNED_ATTR]: '' }}>
       {/*
         Labelled rather than tooltipped, unlike `ChartZoomControls`: a magnifier with a
         plus in it needs a word, a play triangle does not — and `IconButton`'s tooltip

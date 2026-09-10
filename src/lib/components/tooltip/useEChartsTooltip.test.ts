@@ -2,6 +2,7 @@ import { act, fireEvent, renderHook } from '@testing-library/react';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type RefObject } from 'react';
+import { TOOLTIP_KEEP_PINNED_ATTR } from './constants';
 import { useEChartsTooltip } from './useEChartsTooltip';
 
 const model: TooltipModel = { header: { label: '', value: 'x' }, rows: [{ label: 'A', value: '1' }] };
@@ -554,6 +555,36 @@ describe('useEChartsTooltip', () => {
     });
 
     /**
+     * A pin is asked from **its own position**, not from the cursor. Pinning a mark and
+     * then pressing play moves the pointer to the play button, so asking at the cursor
+     * would resolve somewhere else and the guard below would (correctly) refuse the
+     * answer — freezing every pin at the moment it became useful. The cursor here sits at
+     * offset (5, 8) → window (105, 58); the pin was set at (60, 70) → window (160, 120).
+     */
+    it('replays from the pinned position rather than from the cursor', () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+      act(() => {
+        fake.emitZr('mousemove', { offsetX: 60, offsetY: 70 });
+        fake.emit('mouseover', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+        view.result.current.sink(model);
+        settle();
+      });
+      act(() => {
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+        settle();
+      });
+      // The pointer wanders off to the play button.
+      act(() => fake.emitZr('mousemove', { offsetX: 5, offsetY: 8 }));
+
+      const moves: MouseEvent[] = [];
+      containerEl.addEventListener('mousemove', (event) => moves.push(event as MouseEvent));
+      act(() => view.result.current.refresh());
+
+      expect({ x: moves[0].clientX, y: moves[0].clientY }).toEqual({ x: 160, y: 120 });
+    });
+
+    /**
      * The whole point: a pinned tooltip keeps its place and its pinned-ness, and only
      * its numbers move. Freezing those too is what left a pin reading one timestamp
      * forever while playback ran underneath it.
@@ -627,6 +658,58 @@ describe('useEChartsTooltip', () => {
       act(() => view.result.current.refresh());
 
       expect(view.result.current.state.model).toEqual(model);
+    });
+  });
+
+  /**
+   * A pinned tooltip is dismissed by a click outside it — except on panel chrome that is
+   * meant to be operated *while reading it*. The time slider is the case: pinning a mark
+   * to watch its value change, and then losing the pin to the click that starts it
+   * changing, is no feature at all. See `TOOLTIP_KEEP_PINNED_ATTR`.
+   */
+  describe('clicks on chrome marked keep-pinned', () => {
+    const pin = (
+      fake: ReturnType<typeof createFakeChart>,
+      view: { result: { current: { sink: (m: TooltipModel) => void } } }
+    ) =>
+      act(() => {
+        fake.emitZr('mousemove', { offsetX: 5, offsetY: 8 });
+        (view.result.current as { sink: (m: TooltipModel) => void }).sink(model);
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+        settle();
+      });
+
+    it('keeps the pin when the click lands on marked chrome', () => {
+      const strip = document.createElement('div');
+      strip.setAttribute(TOOLTIP_KEEP_PINNED_ATTR, '');
+      const button = document.createElement('button');
+      strip.appendChild(button);
+      document.body.appendChild(strip);
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+      pin(fake, view);
+      expect(view.result.current.state.pinned).toBe(true);
+
+      // Nested, so `closest` is what has to find the marker — the play button is a child
+      // of the strip, not the marked element itself.
+      act(() => fireEvent.mouseDown(button));
+
+      expect(view.result.current.state.pinned).toBe(true);
+      strip.remove();
+    });
+
+    // The rule is still an exception: an ordinary outside click dismisses as before.
+    it('still dismisses on an unmarked outside click', () => {
+      const outside = document.createElement('div');
+      document.body.appendChild(outside);
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+      pin(fake, view);
+
+      act(() => fireEvent.mouseDown(outside));
+
+      expect(view.result.current.state.pinned).toBe(false);
+      outside.remove();
     });
   });
 

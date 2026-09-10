@@ -5,7 +5,7 @@ import { revealEdgeLabelsFor } from 'lib/echarts/features/edgeLabelLayout';
 import { findHoveredPoint } from 'lib/echarts/tooltip/proximity';
 import { type EChartsTooltipTrigger, type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/types';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import { TOOLTIP_MARKER_ATTR } from './constants';
+import { TOOLTIP_KEEP_PINNED_ATTR, TOOLTIP_MARKER_ATTR } from './constants';
 import { type EChartsTooltipController, type EChartsTooltipOptions, type EChartsTooltipState } from './types';
 
 /**
@@ -147,7 +147,10 @@ function useRafState<T>(initial: T) {
 /**
  * While pinned, dismiss on a click outside the tooltip, on Escape, or when the
  * chart scrolls away underneath it. Clicks inside the tooltip (data links,
- * ad-hoc filter buttons) are ignored so the pinned tooltip stays interactive.
+ * ad-hoc filter buttons) are ignored so the pinned tooltip stays interactive —
+ * as are clicks on panel chrome marked {@link TOOLTIP_KEEP_PINNED_ATTR}, which
+ * is the time slider: pinning a mark in order to watch its value change, and
+ * then losing the pin to the click that starts it changing, is no feature at all.
  */
 function usePinnedDismiss(pinned: boolean, dismiss: () => void, containerRef: RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -156,7 +159,7 @@ function usePinnedDismiss(pinned: boolean, dismiss: () => void, containerRef: Re
     }
     const onDocMouseDown = (event: MouseEvent) => {
       const target = event.target;
-      if (target instanceof Element && target.closest(`[${TOOLTIP_MARKER_ATTR}]`)) {
+      if (target instanceof Element && target.closest(`[${TOOLTIP_MARKER_ATTR}], [${TOOLTIP_KEEP_PINNED_ATTR}]`)) {
         return;
       }
       dismiss();
@@ -782,12 +785,12 @@ export function useEChartsTooltip(
    * last reading rather than updating, which is exactly what a real twitch of the mouse
    * would show too. A `graph` layout does not move between stops and updates every time.
    *
-   * **A pin keeps its frozen content unless the pointer is still on the pinned mark.**
-   * Position and pinned-ness are never touched, so the tooltip stays where the user put
-   * it; only `model` is replaced, and only when the hover that just ran resolved to the
-   * very mark the pin names. Pin a node, move the mouse away, and the numbers hold — the
-   * alternative is a pinned tooltip that quietly starts reporting whatever the cursor is
-   * now near, which is worse than a stale reading and much harder to notice.
+   * **A pin is asked from its own position, and keeps its content unless the answer is
+   * about the mark it names.** Position and pinned-ness are never touched, so the tooltip
+   * stays where the user put it; only `model` is replaced, and only when the replayed
+   * hover resolved to the very mark the pin names. That guard is what stops a pinned
+   * tooltip quietly re-pointing at a different mark — worse than a stale reading, and
+   * much harder to notice — and it is also what makes the sankey case degrade safely.
    */
   const refresh = useCallback(() => {
     const dom = containerRef.current;
@@ -796,7 +799,13 @@ export function useEChartsTooltip(
     }
     const current = latestRef.current;
     const target = current.pinned ? current.pinnedItem : hoveredRef.current;
-    const at = livePositionRef.current;
+    // Where to ask from: the **pin's** own position while pinned, the live cursor
+    // otherwise. Asking at the cursor would freeze every pin the moment it was useful —
+    // pinning a mark and then pressing play moves the pointer to the play button, so the
+    // hover would resolve somewhere else and the guard below would (correctly) refuse to
+    // adopt it. The pin already owns the emphasis regardless of where the cursor is (see
+    // `settleFocus`), so asking from where it sits is the same rule applied to content.
+    const at = current.pinned ? current.position : livePositionRef.current;
     if (target?.seriesIndex == null || at == null) {
       return;
     }
