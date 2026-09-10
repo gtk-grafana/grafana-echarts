@@ -371,6 +371,41 @@ describe('useEChartsTooltip', () => {
       expect(view.result.current.state.visible).toBe(true);
     });
 
+    /**
+     * **Dismissing has to end the fade, not just stop re-applying it.**
+     *
+     * The pin's highlight is re-asserted from `pinnedItem` by `settleFocus`, and on the
+     * ZRender-click pin path it never went through `focusPoint` at all — ECharts reports no
+     * element for a canvas click, so `lastHitRef` stays empty and `focusPoint(null)` has
+     * nothing to downplay. Measured on a live four-node graph before the fix: dismissing a
+     * pinned edge left its two endpoints lit and every other mark faded, permanently — a
+     * later hover only *moves* a blur, so nothing ever cleared it.
+     */
+    it('downplays the pinned item so its adjacency fade ends with the pin', () => {
+      const fake = createFakeChart();
+      const view = renderHook(() => useEChartsTooltip(fake.chart, containerRef));
+
+      // The ZRender canvas click pins first and reports no element; the chart click then
+      // contributes the item. This is the path that leaves `focusPoint` unused.
+      act(() => {
+        view.result.current.reportTrigger('item');
+        view.result.current.sink(model);
+        fake.emitZr('click');
+        fake.emit('click', { seriesIndex: 0, dataIndex: 2, dataType: 'edge' });
+      });
+      expect(view.result.current.state.pinned).toBe(true);
+      fake.dispatched.length = 0;
+
+      act(() => view.result.current.dismiss());
+
+      expect(fake.dispatched).toContainEqual({
+        type: 'downplay',
+        seriesIndex: 0,
+        dataIndex: 2,
+        dataType: 'edge',
+      });
+    });
+
     // Nothing to re-assert once the pin is gone: the next hover owns the emphasis, and
     // re-lighting a dismissed item would leave a highlight nobody can clear.
     it('stops re-applying once the tooltip is dismissed', () => {

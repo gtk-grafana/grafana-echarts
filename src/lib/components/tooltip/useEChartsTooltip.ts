@@ -344,17 +344,45 @@ export function useEChartsTooltip(
 
   const dismiss = useCallback(() => {
     cancelHide();
+    // Read before `focusPoint` clears it, so the pin's own downplay below can tell whether
+    // this already covered it.
+    const focused = lastHitRef.current;
     // Drop the emphasis and forget the replayed point, so the next move over the
     // same datapoint re-shows the tooltip instead of being deduped away.
     focusPoint(null);
-    // Nothing is focused now, so a hidden edge value revealed by the pin goes back — the
-    // hover handlers own this the rest of the time, but a dismiss can arrive (Escape, an
-    // outside click) with no chart event behind it.
+    const { pinnedItem } = latestRef.current;
     if (chart != null && !chart.isDisposed()) {
+      /**
+       * The **pin's own** emphasis, which `focusPoint` above does not always own.
+       *
+       * A pin made by the ZRender canvas click never went through it: ECharts reports no
+       * element for that click, so `pinWith` finds nothing to focus and `lastHitRef` stays
+       * empty — from then on the highlight is re-asserted straight from `pinnedItem` by
+       * `settleFocus`. `focusPoint(null)` then downplays nothing, and the adjacency fade the
+       * pin put on the chart **outlives the pin**: every other mark stays greyed, and no
+       * later hover clears it, because a hover only ever *moves* a blur that a `downplay`
+       * has to end. Measured on a four-node graph — dismissing a pinned edge left its two
+       * endpoints lit and the rest faded, permanently.
+       *
+       * Skipped when `focusPoint` just downplayed this very mark, which is the *other* pin
+       * path — a click ECharts did resolve to an element, where `pinWith` focused it. One
+       * downplay is enough there, and a second would only be noise on the action log.
+       */
+      if (pinnedItem?.seriesIndex != null && !isSameTarget(pinnedItem, focused)) {
+        chart.dispatchAction({
+          type: 'downplay',
+          seriesIndex: pinnedItem.seriesIndex,
+          dataIndex: pinnedItem.dataIndex,
+          dataType: pinnedItem.dataType,
+        });
+      }
+      // Nothing is focused now, so a hidden edge value revealed by the pin goes back — the
+      // hover handlers own this the rest of the time, but a dismiss can arrive (Escape, an
+      // outside click) with no chart event behind it.
       revealEdgeLabelsFor(chart.getZr(), null);
     }
     update({ pinned: false, pinnedItem: null, visible: false, model: null });
-  }, [cancelHide, chart, focusPoint, update]);
+  }, [cancelHide, chart, focusPoint, latestRef, update]);
 
   useEffect(() => {
     if (!chart) {

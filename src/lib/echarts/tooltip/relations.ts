@@ -10,6 +10,7 @@ import {
 } from 'lib/echarts/converters/graphWide';
 import { type MarkStat, type NodeGraphData } from 'lib/echarts/converters/relationsModel';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
+import { resolveRelationsTimeSlider } from 'lib/echarts/options/timeline';
 import {
   type NodeFilterLabels,
   type RelationsAdjacentEdge,
@@ -62,6 +63,17 @@ const SECONDARY_ROW_LABEL = 'Secondary';
 function reducerLabel(calc: string): string {
   return fieldReducers.getIfExists(calc)?.name ?? calc;
 }
+
+/**
+ * The main stat's label when **no reducer produced it** — the time slider's reading, where
+ * the value is the one sample at the selected timestamp.
+ *
+ * `Last *` under a slider would name a calculation the panel did not run and the user
+ * cannot see a control for: the switch hides the picker precisely because at one row there
+ * is nothing to reduce. `Value` is what core's tooltips call an unnamed measurement, and it
+ * is what the instant-data advisory already promises ("marks are read as they are").
+ */
+const VALUE_ROW_LABEL = 'Value';
 
 /**
  * A mark's stats past the first, one row each, shared by the node and edge branches so one
@@ -530,7 +542,8 @@ function nodeFilters(
  *
  * Each stat row is labelled with the **reducer** that produced it rather than with
  * `Value` / `Secondary` — see {@link reducerLabel}, and `reduceOptions` for where the
- * two come from.
+ * two come from. Under the time slider no reducer ran, and the main row is labelled
+ * `Value` instead — see {@link VALUE_ROW_LABEL}.
  *
  * Values format with the **hovered mark's own** field, and the footer resolves that
  * field's data links; see {@link getRelationsTooltipMarks}. A node derived from an
@@ -553,8 +566,13 @@ export function buildRelationsTooltipModel(
   // every mark, and this is the same normalization the reader reduced them with. The rows
   // after it name themselves — each carries the reducer that produced it (`MarkStat`), so a
   // calc that reduces to nothing on one mark cannot shift the labels below it on the next.
+  //
+  // Under the time slider no reducer ran, so none is named — see {@link VALUE_ROW_LABEL}.
+  // Keyed on the switch rather than on whether a stop is selected, so the label does not
+  // flicker between `Value` and `Last *` as a refresh takes the timeline away: the switch
+  // is also what hides the picker, and the two must agree.
   const [calc] = normalizeRelationsCalcs(options?.reduceOptions);
-  const statLabel = reducerLabel(calc);
+  const statLabel = options != null && resolveRelationsTimeSlider(options) ? VALUE_ROW_LABEL : reducerLabel(calc);
 
   return (params) => {
     const param = Array.isArray(params) ? params[0] : params;

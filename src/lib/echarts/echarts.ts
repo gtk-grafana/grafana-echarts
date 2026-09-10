@@ -65,7 +65,11 @@ import { use as registerEChartsModules } from 'echarts/core';
 // https://echarts.apache.org/en/option.html#series-line.labelLayout
 import { LabelLayout, LegacyGridContainLabel } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
-import { registerEdgeLabelLayout } from './features/edgeLabelLayout';
+import { registerEdgeLabelFadeIn, registerEdgeLabelLayout } from './features/edgeLabelLayout';
+
+// Before `use`, unlike `registerEdgeLabelLayout` below: this one has to set its flag before
+// `LabelLayout`'s stage reads it, and hooks run in registration order.
+registerEdgeLabelFadeIn();
 
 registerEChartsModules([
   // Series renderers

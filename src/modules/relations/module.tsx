@@ -16,6 +16,7 @@ import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { addRelationsStatOptions } from 'lib/grafana/editor/relations/stats';
+import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { setSystemTransformations } from 'lib/grafana/panelDataTransformations';
 import { type PanelOptions } from 'types';
 import { relationsDataTransformations } from './dataTransformations';
@@ -69,6 +70,12 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
     // value-reducing family answers — see `addRelationsStatOptions` for why only the
     // calculation picker is registered.
     addRelationsStatOptions(builder);
+
+    // The other answer to the same question: read every mark at one timestamp instead of
+    // reducing its rows away. Registered right after the picker it replaces — the switch
+    // shares its "Value options" category and hides it while on. See
+    // `addRelationsTimelineOptions`.
+    addRelationsTimelineOptions(builder);
 
     // Default tier: layout and node presentation — the controls a user coming from
     // core Grafana's Node graph panel expects. Each graph-only control gates on

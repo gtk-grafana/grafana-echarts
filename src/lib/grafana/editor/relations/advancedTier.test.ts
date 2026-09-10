@@ -11,6 +11,7 @@ import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
+import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { type PanelOptions } from 'types';
 
 /**
@@ -59,6 +60,7 @@ standardEditorsRegistry.setInit(() =>
  */
 const registeredOptions = () => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
+  addRelationsTimelineOptions(builder);
   addRelationsLayoutOptions(builder);
   addRelationsNodeOptions(builder);
   addRelationsSankeyOptions(builder);

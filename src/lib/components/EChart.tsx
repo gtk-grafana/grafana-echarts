@@ -109,6 +109,7 @@ export const EChart: React.FC<Props> = ({
   }, [instanceRef]);
 
   useChartOption(chart, chartContext, { isGrafanaLegend, tooltipSink, reportTooltipTrigger });
+
   useChartResize(chart, width, height);
   useBrushTimeZoom(chart, onChangeTimeRange);
   useRelationsPersistence(chart, { chartContext, onFieldConfigChange, onOptionsChange });

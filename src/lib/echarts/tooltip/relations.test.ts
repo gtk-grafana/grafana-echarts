@@ -542,6 +542,42 @@ describe('buildRelationsTooltipModel', () => {
       expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Last *');
     });
 
+    /**
+     * Under the time slider the value was **read**, not reduced — so no reducer is named.
+     * `Last *` there would label a calculation the panel did not run and whose picker the
+     * switch has hidden, which is the wart this closes. `Value` is what core's tooltips
+     * call an unnamed measurement.
+     */
+    it('labels the main row Value under the time slider, on nodes and edges alike', () => {
+      const model = modelFor([wideNodes(), wideEdges()], options({ relationsTimeSlider: true }));
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Value');
+      expect(model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).rows[0].label).toBe(
+        'Value'
+      );
+    });
+
+    /**
+     * Keyed on the **switch**, not on whether a stop is selected. The switch is also what
+     * hides the reducer picker, and the two have to agree: a refresh that takes the
+     * timeline away must not flip the label back to a reducer whose control is still gone.
+     */
+    it('keeps the Value label with the slider on but a stored calculation', () => {
+      const model = modelFor(
+        [wideNodes(), wideEdges()],
+        options({ relationsTimeSlider: true, reduceOptions: { calcs: ['mean', 'min'] } })
+      );
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Value');
+    });
+
+    // The switch off is the reducing reading, and there the reducer is named as before.
+    it('names the reducer again once the slider is off', () => {
+      const model = modelFor([wideNodes(), wideEdges()], options({ relationsTimeSlider: false }));
+
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Last *');
+    });
+
     // A stat with no reducer behind it did not come from a reduction at all: it is the
     // `secondarystat` label the row-form conversion carries, where an instant response has no
     // second value to reduce. See `secondaryStatsOf`.

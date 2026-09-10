@@ -326,6 +326,65 @@ describe('relations labels', () => {
    * 2px target that a synthesized hover has to *aim* at. The cursor half is measured in a
    * browser, where the aim is real. See `revealEdgeLabelsFor`.
    */
+  /**
+   * The fade `LabelManager` puts on a label it has no remembered layout for — right on a
+   * first render, wrong on every rebuild after it. A `graph` never hits it (it diffs and
+   * updates its elements in place), but `SankeyView.render` rebuilds every shape, so its
+   * edge values were fading back in from zero on each pass; measured stepping the time
+   * slider, ramping `0.001 → 1` over ~120 frames per step. See `registerEdgeLabelFadeIn`.
+   *
+   * Asserted on the flag rather than on the pixels: the fade is frames of an animation, and
+   * the canvas harness paints a settled chart. `disableLabelAnimation` is the whole
+   * mechanism — `_animateLabels` returns on it before it reaches either branch.
+   */
+  describe('fading in', () => {
+    /** The element a label hangs off, with the flag that decides whether it animates. */
+    interface Host {
+      disableLabelAnimation?: boolean;
+    }
+    interface Table {
+      count(): number;
+      getItemGraphicEl(dataIndex: number): Host | undefined;
+    }
+
+    /** A series' node and edge tables, which is where the label hosts live. */
+    const tablesOf = (chart: unknown): { data: Table; edgeData: Table } =>
+      (chart as { getModel(): { getSeriesByIndex(index: number): { getGraph(): { data: Table; edgeData: Table } } } })
+        .getModel()
+        .getSeriesByIndex(0)
+        .getGraph();
+
+    const hostsOf = (table: Table): Host[] =>
+      Array.from({ length: table.count() }, (_, index) => table.getItemGraphicEl(index)).filter(
+        (host): host is Host => host != null
+      );
+
+    it.each(['graph', 'sankey'] as const)('edge values on a %s never fade in', async (variant) => {
+      const { container } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        variant,
+        options: { relationsShowEdgeValues: true },
+      });
+      const hosts = hostsOf(tablesOf(getChart(container).chart).edgeData);
+
+      expect(hosts.length).toBeGreaterThan(0);
+      expect(hosts.every((host) => host.disableLabelAnimation === true)).toBe(true);
+    });
+
+    // Node names are left alone: they do not hit the branch, and the fade on a genuine
+    // first render is the one case it is for.
+    it('node labels keep their animation', async () => {
+      const { container } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsShowEdgeValues: true },
+      });
+      const hosts = hostsOf(tablesOf(getChart(container).chart).data);
+
+      expect(hosts.length).toBeGreaterThan(0);
+      expect(hosts.some((host) => host.disableLabelAnimation === true)).toBe(false);
+    });
+  });
+
   describe('revealing a hidden edge value', () => {
     /** Render, then report the hidden value and a reader of what is drawn from now on. */
     const withOneHidden = async () => {

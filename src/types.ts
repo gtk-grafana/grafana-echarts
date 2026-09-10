@@ -645,6 +645,24 @@ export interface PanelOptions extends OptionsWithLegend, StandardOptionConfig, O
   relationsLabelWidth?: number;
 
   /**
+   * Read every mark at **one timestamp** instead of reducing its rows to a stat
+   * (Default tier; no ECharts key — it changes what the converter reads). Draws an
+   * in-panel slider under the chart and hides the "Calculation" picker, which has
+   * nothing to reduce once a row is selected. Off by default; see
+   * `RELATIONS_TIME_SLIDER_DEFAULT`, `graphWideTimeline` and `ChartTimeSlider`.
+   *
+   * Inert on an instant response — there is no row dimension to step through — so the
+   * control is **hidden** there unless it is already on (`hasGraphTimeline`), and a panel
+   * that has it on against instant data says so through a notice rather than drawing a
+   * one-position slider.
+   *
+   * The *selection itself* is transient panel state, never a saved option: scrubbing a
+   * dashboard someone is only reading must not mark it dirty. With it on, a mark's
+   * tooltip labels the main row `Value` rather than naming a reducer that did not run.
+   */
+  relationsTimeSlider?: boolean;
+
+  /**
    * Relations link color mode (Advanced; ECharts `series.*.lineStyle.color`
    * keywords): inherit the `source` node's color, the `target`'s, or a `gradient`
    * between them. An explicit per-edge `color` field always wins. Unset uses
