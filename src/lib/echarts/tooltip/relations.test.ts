@@ -652,8 +652,9 @@ describe('buildRelationsTooltipModel', () => {
      * **The reported bug.** A destination-only service — `warpstream-agent-write` on the
      * live service graph — is never a `source`, so asserting the source key wrote
      * `client="warpstream-agent-write"` and matched no series at all. No key mapping could
-     * fix it: the key was right, the *direction* was wrong. Which keys a node may claim is
-     * a property of the topology, so it comes off the link set (`toNodeRoles`).
+     * fix it: the key was right, the *direction* was wrong. Which key a node may claim is a
+     * property of the topology, so it comes off the edges touching it
+     * (`toNodeFilterLabels`).
      */
     it('asserts the target key for a destination-only node', () => {
       const model = modelFor([hubNodes(), hubEdges()]);
@@ -661,8 +662,13 @@ describe('buildRelationsTooltipModel', () => {
       const filters = model(nodeParams({ id: 'api', name: 'API', value: 7 })).filters;
 
       expect(filters?.filterFor).toEqual([{ key: 'target', value: 'api' }]);
-      // And negates only that direction: `source!=api` is a chip that filters nothing.
-      expect(filters?.filterOut).toEqual([{ key: 'target', value: 'api' }]);
+      // The negation still covers the role it does not play, filled from the far end of the
+      // pair it sits on: a `topk` re-ranks under the filter and it would reappear as a
+      // source. See `NodeFilterLabels.negate`.
+      expect(filters?.filterOut).toEqual([
+        { key: 'source', value: 'api' },
+        { key: 'target', value: 'api' },
+      ]);
     });
 
     it('asserts the source key for an origin-only node', () => {
@@ -671,7 +677,10 @@ describe('buildRelationsTooltipModel', () => {
       const filters = model(nodeParams({ id: 'web', name: 'web' })).filters;
 
       expect(filters?.filterFor).toEqual([{ key: 'source', value: 'web' }]);
-      expect(filters?.filterOut).toEqual([{ key: 'source', value: 'web' }]);
+      expect(filters?.filterOut).toEqual([
+        { key: 'source', value: 'web' },
+        { key: 'target', value: 'web' },
+      ]);
     });
 
     /**
@@ -687,30 +696,7 @@ describe('buildRelationsTooltipModel', () => {
       const node = model(nodeParams({ id: 'gateway', name: 'gateway' }));
 
       expect(node.source).toBeUndefined();
-      // Source-only in this fixture — both edges leave it — so one direction.
-      expect(node.filters?.filterOut).toEqual([{ key: 'source', value: 'gateway' }]);
-    });
-
-    /**
-     * A self-loop makes the node both an origin and a destination by itself, so the
-     * dedupe — not the roles — is what collapses the pair when both keys map to one.
-     */
-    it('claims both directions for a node with only a self-loop', () => {
-      const selfOnly = toDataFrame({
-        name: 'edges',
-        meta: { type: GRAPH_EDGES_WIDE },
-        fields: [
-          {
-            name: 'e1',
-            type: FieldType.number,
-            labels: { source: 'gateway', target: 'gateway' },
-            values: [1],
-            config: { filterable: true },
-          },
-        ],
-      });
-
-      expect(modelFor([selfOnly])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
+      expect(node.filters?.filterOut).toEqual([
         { key: 'source', value: 'gateway' },
         { key: 'target', value: 'gateway' },
       ]);
@@ -823,7 +809,10 @@ describe('buildRelationsTooltipModel', () => {
 
       expect(
         modelFor([nodes, wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway', value: 12 })).filters?.filterOut
-      ).toEqual([{ key: 'client', value: 'gateway' }]);
+      ).toEqual([
+        { key: 'client', value: 'gateway' },
+        { key: 'server', value: 'gateway' },
+      ]);
     });
 
     /**
@@ -834,6 +823,7 @@ describe('buildRelationsTooltipModel', () => {
     it('falls back to the response’s pair for a node with no field', () => {
       expect(modelFor([wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
         { key: 'source', value: 'gateway' },
+        { key: 'target', value: 'gateway' },
       ]);
     });
 
@@ -863,6 +853,196 @@ describe('buildRelationsTooltipModel', () => {
       ).toEqual([
         { key: 'client', value: 'gateway' },
         { key: 'server', value: 'db' },
+      ]);
+    });
+
+    /**
+     * Half a pair is intent about one half only: the configured key is honoured and the
+     * other still comes off the response, rather than the whole override being dropped.
+     */
+    it('honours half an override on the half it names', () => {
+      const model = modelFor([mappedEdges({ sourceFilterLabel: 'client' })]);
+
+      expect(
+        model(linkParams({ source: 'gateway', target: 'db', markId: 'e1', value: 3.5 })).filters?.filterFor
+      ).toEqual([
+        { key: 'client', value: 'gateway' },
+        { key: 'target', value: 'db' },
+        { key: 'connection_type', value: 'database' },
+      ]);
+    });
+
+    /**
+     * **The multi-level case, which no single pair can express.** One frame, two levels,
+     * each relabelled to the canonical pair from a *different* original — exactly what the
+     * `or`-joined sankey query pivots to once its outer aggregations keep their originals.
+     */
+    describe('a multi-level flow', () => {
+      const twoLevels = (): DataFrame =>
+        toDataFrame({
+          name: 'edges',
+          meta: { type: GRAPH_EDGES_WIDE },
+          fields: [
+            {
+              name: 'prod-->ns-a',
+              type: FieldType.number,
+              labels: { source: 'prod', target: 'ns-a', cluster: 'prod', namespace: 'ns-a' },
+              values: [4],
+              config: { filterable: true },
+            },
+            {
+              name: 'ns-a-->checkout',
+              type: FieldType.number,
+              labels: { source: 'ns-a', target: 'checkout', namespace: 'ns-a', workload: 'checkout' },
+              values: [1],
+              config: { filterable: true },
+            },
+          ],
+        });
+
+      const node = (id: string) => modelFor([twoLevels()])(nodeParams({ id, name: id })).filters;
+
+      it('filters each level under its own keys', () => {
+        const model = modelFor([twoLevels()]);
+
+        expect(
+          model(linkParams({ source: 'prod', target: 'ns-a', markId: 'prod-->ns-a', value: 4 })).filters?.filterFor
+        ).toEqual([
+          { key: 'cluster', value: 'prod' },
+          { key: 'namespace', value: 'ns-a' },
+        ]);
+        expect(
+          model(linkParams({ source: 'ns-a', target: 'checkout', markId: 'ns-a-->checkout', value: 1 })).filters
+            ?.filterFor
+        ).toEqual([
+          { key: 'namespace', value: 'ns-a' },
+          { key: 'workload', value: 'checkout' },
+        ]);
+      });
+
+      /**
+       * The query carries its topology twice, so `cluster` is not a dimension beside the
+       * endpoints — it *is* the source endpoint. Without excluding it the footer would
+       * offer `prod` once inside the grouped conjunction and again as its own button.
+       */
+      it('offers no separate button for a recovered key', () => {
+        const model = modelFor([twoLevels()]);
+
+        expect(
+          model(linkParams({ source: 'prod', target: 'ns-a', markId: 'prod-->ns-a', value: 4 })).filters?.each
+        ).toEqual([]);
+      });
+
+      /**
+       * **The node half, with no per-node configuration anywhere.** A namespace node is
+       * level 1's target and level 2's source, and both levels say `namespace` — so its two
+       * incident keys dedupe to one.
+       */
+      it('resolves the middle node to one deduped key', () => {
+        expect(node('ns-a')).toEqual({
+          each: [],
+          filterFor: [{ key: 'namespace', value: 'ns-a' }],
+          filterOut: [{ key: 'namespace', value: 'ns-a' }],
+        });
+      });
+
+      it('asserts the root node’s own key', () => {
+        expect(node('prod')?.filterFor).toEqual([{ key: 'cluster', value: 'prod' }]);
+      });
+
+      /**
+       * The **sink**, which is the plain bug fix: it used to assert `source="checkout"`,
+       * a label the datasource has never heard of, so "Filter on this value" emptied the
+       * dashboard. Its negation also covers `namespace`, the far key of the level it sits
+       * on — see `NodeFilterLabels.negate`.
+       */
+      it('asserts a sink node’s own key rather than the source key', () => {
+        expect(node('checkout')).toEqual({
+          each: [],
+          filterFor: [{ key: 'workload', value: 'checkout' }],
+          filterOut: [
+            { key: 'namespace', value: 'checkout' },
+            { key: 'workload', value: 'checkout' },
+          ],
+        });
+      });
+    });
+
+    /**
+     * The node half of "read the datasource's own keys with nothing configured": a
+     * `client`/`server` response resolves a node through its incident edges, so the node
+     * and the edges around it can never disagree about the key.
+     */
+    it('resolves a node’s keys from the edges touching it', () => {
+      const clientServer = toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { client: 'gateway', server: 'db' },
+            values: [3.5],
+            config: { filterable: true },
+          },
+          {
+            name: 'e2',
+            type: FieldType.number,
+            labels: { client: 'db', server: 'cache' },
+            values: [1],
+            config: { filterable: true },
+          },
+        ],
+      });
+      const model = modelFor([clientServer]);
+
+      expect(model(nodeParams({ id: 'db', name: 'db' })).filters).toEqual({
+        each: [],
+        // Source first: `db` is `e2`'s client and `e1`'s server, and the assertion takes
+        // the source role when the node plays one.
+        filterFor: [{ key: 'client', value: 'db' }],
+        filterOut: [
+          { key: 'client', value: 'db' },
+          { key: 'server', value: 'db' },
+        ],
+      });
+    });
+
+    /**
+     * A node with **no edges at all** — every link to it hidden by the legend, say — has no
+     * incidence to read, so it keeps the response-wide answer it has always had.
+     */
+    it('falls back to the response’s pair for a node with no incident edge', () => {
+      const model = modelFor([wideNodes(), wideEdges()]);
+
+      expect(model(nodeParams({ id: 'orphan', name: 'orphan' })).filters?.filterOut).toEqual([
+        { key: 'source', value: 'orphan' },
+        { key: 'target', value: 'orphan' },
+      ]);
+    });
+
+    /**
+     * A self-loop makes the node both an origin and a destination by itself, so both keys
+     * come off roles it really plays rather than off the far-end fill.
+     */
+    it('claims both directions for a node with only a self-loop', () => {
+      const selfOnly = toDataFrame({
+        name: 'edges',
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'gateway', target: 'gateway' },
+            values: [1],
+            config: { filterable: true },
+          },
+        ],
+      });
+
+      expect(modelFor([selfOnly])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
+        { key: 'source', value: 'gateway' },
+        { key: 'target', value: 'gateway' },
       ]);
     });
 
@@ -921,6 +1101,22 @@ describe('getRelationsTooltipMarks', () => {
     expect(marks.links.get('e1')?.source.field.config.unit).toBe('percent');
   });
 
+  it('collects an adjacency list for the statless nodes only', () => {
+    const withStats = frameToRelationsGraph([wideNodes(), wideEdges()], theme)!;
+    const derived = frameToRelationsGraph([wideEdges()], theme)!;
+
+    // Both nodes carry a stat, so neither needs its edges listed and no edge is formatted.
+    expect([...getRelationsTooltipMarks(withStats, theme, 'utc').adjacency!.keys()]).toEqual([]);
+    // Neither does, so both get one — the two parallel edges, from each end.
+    expect([...getRelationsTooltipMarks(derived, theme, 'utc').adjacency!.keys()]).toEqual(['gateway', 'db']);
+  });
+
+  it('holds no entry for a mark with no field, so the lookup misses cleanly', () => {
+    const data = frameToRelationsGraph([wideEdges()], theme);
+
+    expect(getRelationsTooltipMarks(data!, theme, 'utc').nodes.size).toBe(0);
+  });
+
   /**
    * The two derivations the filter footer reads, asserted directly rather than through a
    * hover: which endpoint keys a node may claim, and whether anything opted in at all.
@@ -944,14 +1140,17 @@ describe('getRelationsTooltipMarks', () => {
         ],
       });
 
-    it('reads each node’s endpoint roles off the link set', () => {
+    // The roles a node really plays, and the key each is under. `a` is only ever a source
+    // and `c` only ever a target, so one list of theirs is empty — and `negate` fills it
+    // from the far end of the pair they sit on. See `NodeFilterLabels`.
+    it('reads each node’s endpoint keys off the edges touching it', () => {
       const marks = getRelationsTooltipMarks(frameToRelationsGraph([chain()], theme)!, theme, 'utc');
 
-      expect([...marks.nodeRoles!]).toEqual([
-        ['a', { source: true, target: false }],
-        ['b', { source: true, target: true }],
-        ['c', { source: false, target: true }],
-        ['d', { source: true, target: true }],
+      expect([...marks.nodeFilterLabels!]).toEqual([
+        ['a', { sources: ['source'], targets: [], negate: ['source', 'target'] }],
+        ['b', { sources: ['source'], targets: ['target'], negate: ['source', 'target'] }],
+        ['c', { sources: [], targets: ['target'], negate: ['source', 'target'] }],
+        ['d', { sources: ['source'], targets: ['target'], negate: ['source', 'target'] }],
       ]);
     });
 
@@ -973,21 +1172,5 @@ describe('getRelationsTooltipMarks', () => {
         false
       );
     });
-  });
-
-  it('collects an adjacency list for the statless nodes only', () => {
-    const withStats = frameToRelationsGraph([wideNodes(), wideEdges()], theme)!;
-    const derived = frameToRelationsGraph([wideEdges()], theme)!;
-
-    // Both nodes carry a stat, so neither needs its edges listed and no edge is formatted.
-    expect([...getRelationsTooltipMarks(withStats, theme, 'utc').adjacency!.keys()]).toEqual([]);
-    // Neither does, so both get one — the two parallel edges, from each end.
-    expect([...getRelationsTooltipMarks(derived, theme, 'utc').adjacency!.keys()]).toEqual(['gateway', 'db']);
-  });
-
-  it('holds no entry for a mark with no field, so the lookup misses cleanly', () => {
-    const data = frameToRelationsGraph([wideEdges()], theme);
-
-    expect(getRelationsTooltipMarks(data!, theme, 'utc').nodes.size).toBe(0);
   });
 });

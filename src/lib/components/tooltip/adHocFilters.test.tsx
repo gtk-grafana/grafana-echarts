@@ -118,7 +118,8 @@ describe('pinned tooltip ad-hoc filters', () => {
    * **The second regression.** `c` is a pure destination — `warpstream-agent-write` on the
    * live service graph — so `source="c"` matches no series at all, and no filter-label
    * mapping can fix it: the key was right and the direction was wrong. The direction is a
-   * property of the topology, so it is read off the link set (`toNodeRoles`).
+   * property of the topology, so it is read off the edges touching the node
+   * (`toNodeFilterLabels`).
    */
   it('asserts the target key for a destination-only node', async () => {
     const { chart: pending, onAddAdHocFilter } = renderGraph(chainEdges(), filterablePanel);
@@ -130,10 +131,13 @@ describe('pinned tooltip ad-hoc filters', () => {
     expect(onAddAdHocFilter).toHaveBeenCalledTimes(1);
     expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'target', value: 'c', operator: '=' });
 
-    // And negates only that direction: `source!=c` would be a chip that filters nothing.
+    // The negation still covers the role it does not play, filled from the far end of the
+    // pair it sits on: a `topk` re-ranks the moment the filter applies, and `c` would
+    // otherwise reappear as a source. See `NodeFilterLabels.negate`.
     onAddAdHocFilter.mockClear();
     fireEvent.click(filterOut());
-    expect(onAddAdHocFilter).toHaveBeenCalledTimes(1);
+    expect(onAddAdHocFilter).toHaveBeenCalledTimes(2);
+    expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'source', value: 'c', operator: '!=' });
     expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'target', value: 'c', operator: '!=' });
   });
 

@@ -119,18 +119,73 @@ Both frames survive: A becomes the edges frame, B the nodes frame.
 So: no SQL Expressions, no `id` column, no `CONCAT`, no instant-only restriction — and,
 with the canonical label keys, zero reshaping.
 
-**With non-canonical label keys the legend format is what carries the endpoints.** The
-contract reads exactly two label keys, `source` and `target` (`endpointsOf`). A
-`sum by (client, server)` emits `client` / `server`, which it does **not** recognise, so
-the endpoints have to come from splitting the field name on `-->` — i.e. from the legend
-format. Without one there is no separator to split on and the response is not a graph at
-all. (With `source` / `target` the labels carry the endpoints and the legend format is
-about identity only, as above.)
+**Conventional label keys need no relabelling.** The reader accepts four pairs, canonical
+first: `source`/`target`, `client`/`server`, `src`/`dst`, `from`/`to`
+(`ENDPOINT_LABEL_PAIRS`). So `sum by (client, server)` draws with no `label_replace`, and —
+because the pair it read is the pair it filters under — a pinned tooltip's **Filter on this
+value** writes `client="…"`, a label the datasource actually has.
 
-Relabel to `source` / `target` (`label_replace` in PromQL, `label_format` in LogQL) when
-you want the labels to carry the endpoints instead. That is the only way to express an
-id that is not `left-->right` — including two **parallel edges** over one pair, which
-need distinct field names but identical endpoints.
+**For any other pair, relabel and keep the original.** `label_replace` (PromQL) or
+`label_format` (LogQL) copies a value into `source` / `target`; keeping the original in the
+outer `sum by` is what lets the panel recover which label the endpoint really lives under:
+
+```promql
+sum by (source, target, client_k8s_cluster_name, server_k8s_cluster_name) (
+  label_replace(
+    label_replace(…, "source", "$1", "client_k8s_cluster_name", "(.*)"),
+    "target", "$1", "server_k8s_cluster_name", "(.*)"
+  )
+)
+```
+
+The extra two labels cost nothing — the values are already there, `label_replace` copied
+rather than moved them — and without them the panel's ad-hoc filters go out under `source` /
+`target`, which no metric carries. The alternative is the per-mark **Source/target filter
+label** override in the Fields tab, which is the last resort for a query that genuinely
+cannot keep its originals.
+
+The legend format is the other carrier: with no recognisable label pair, `{{client}}-->{{server}}`
+puts the endpoints in the id, which the plugin's pivot splits back out. Relabelling is still
+the only way to express an id that is not `left-->right` — including two **parallel edges**
+over one pair, which need distinct field names but identical endpoints.
+
+#### Multi-level flows
+
+A `cluster → namespace → workload` sankey is **one** query whose levels are `or`-joined, each
+relabelled to the canonical pair from a different original — and each keeping that original:
+
+```promql
+sum by (source, target, cluster, namespace) (
+  label_replace(
+    label_replace(topk($topk, sum by (cluster, namespace) (…)), "source", "$1", "cluster", "(.*)"),
+    "target", "$1", "namespace", "(.*)"
+  )
+)
+  or
+sum by (source, target, namespace, workload) (
+  label_replace(
+    label_replace(topk($topk, sum by (namespace, workload) (…)), "source", "$1", "namespace", "(.*)"),
+    "target", "$1", "workload", "(.*)"
+  )
+)
+```
+
+`Format: Time series`, `Legend: __auto`, no transformations, no overrides.
+
+Two things follow from keeping the originals, and neither is configurable in any other way:
+
+- **the filters are right per level.** A level-1 ribbon writes `cluster="prod"` and
+  `namespace="ns-a"`; a level-2 ribbon writes `namespace="ns-a"` and `workload="checkout"`.
+  There is no single pair for the panel, so no panel-wide setting could have expressed this;
+- **nodes follow from their edges.** The middle `namespace` node is level 1's target and
+  level 2's source, and both say `namespace`, so it offers one `namespace` filter. A leaf
+  `workload` node asserts `workload` rather than `source`, which used to match nothing.
+
+Widening the outer aggregations also removes an `or` hazard the narrow form has: two operands
+grouped by _exactly_ `source`/`target` share a label set, so `or` drops a right-hand series
+whose pair already appears on the left. Different label sets, no dropped series.
+
+Worked example: `provisioning/dashboards/relations/devcortex-wide.json`, panels 4 and 9.
 
 The same applies to the Loki queries in [Use case 2](#use-case-2--loki): set
 `{{service}}-->{{upstream}}` as the legend.

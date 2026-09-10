@@ -134,6 +134,45 @@ record of what the datasource calls the dimension. That matters to any consumer 
 query back out: an ad-hoc filter, a drilldown link, a generated PromQL selector. A filter on
 `source="web-api"` matches nothing on a metric that has never carried the label.
 
+#### Recovery by value
+
+Steps 1–3 answer **where the endpoints are**. There is a fourth question they cannot answer,
+and it only has one carrier: which key the datasource holds those values under, when the
+response reached the panel with the canonical pair already in place and the original still
+beside it.
+
+`label_replace` **copies** a value rather than moving it, so an operand that simply stops
+aggregating the original away carries both:
+
+```promql
+sum by (source, target, cluster, namespace) (
+  label_replace(label_replace(…, "source", "$1", "cluster", "(.*)"), "target", "$1", "namespace", "(.*)")
+)
+```
+
+A consumer may then recover the keys by **matching the endpoint values back against the
+labels**, per field: whichever key holds this edge's source value is the source key. The
+recovery is exact — it is the same string comparison the copy created — and, crucially, it is
+**per edge**, which is the one thing steps 1–3 are not. A multi-level flow is one query whose
+`or`-joined operands relabel from _different_ originals, so its level-1 edges recover
+`cluster`/`namespace` and its level-2 edges `namespace`/`workload`, from one frame, with no
+declaration that could hold two answers.
+
+It is conservative by construction, because a wrong key writes a filter that matches nothing:
+
+- **both ends or neither.** One matched end is a coincidence — `{source: "api", target:
+"db", job: "api"}` recovers nothing, and the canonical pair stands;
+- **ambiguity recovers nothing.** Two labels holding the source's value cannot be told apart;
+- **the pair the endpoints were read from is skipped**, since it is the answer already.
+  Other recognised endpoint keys are _not_ skipped: `server` is half of `client`/`server` and
+  is also an ordinary leaf label in a `namespace → service` flow;
+- a **self-loop** has one value at both ends, so it takes the first two keys holding it, and
+  declines on any other count.
+
+A **node** has no pair of its own — its identity is a `field.name` — so its keys come from the
+edges touching it. That falls out correctly for a multi-level flow with nothing configured: a
+namespace node is level 1's target and level 2's source, and both say `namespace`.
+
 ### The separator
 
 An edge's endpoints may be encoded in its name, for producers that cannot emit labels — a
@@ -144,9 +183,22 @@ CSV header, a hand-written fixture, a `legendFormat`.
 
 - **Labels win.** A field carrying both endpoint labels and a separator in its name resolves
   from the labels.
-- **First separator wins.** `a-->b-->c` is the edge from `a` to `b-->c`.
-- A node id that itself contains `-->` is therefore not representable in a name. Put the
-  endpoints in labels.
+- **First separator wins**, with nothing to check the split against. `a-->b-->c` is the edge
+  from `a` to `b-->c`.
+- **Unless the labels settle it.** Where the field carries labels, a consumer may split at
+  the point where _both_ halves are values the field holds — so `a-->b-->c` beside
+  `{src_group: "a-->b", dst_group: "c"}` is the edge from `a-->b` to `c`. Only a split
+  matching both halves counts; one matching half is no evidence, since every split of
+  `a-->b-->c` has some half that matches something.
+- A node id that itself contains `-->` is therefore not representable in a name **alone**.
+  Put the endpoints in labels, or carry a label the halves can be checked against.
+
+**The name is not always `field.name`.** A datasource renders a `legendFormat` into
+`field.config.displayNameFromDS`, never into the field name — a long Prometheus series is
+called `Value` whatever its legend says. A converter pivoting long series to this contract
+should therefore read the separator out of the rendered legend as well, which is what makes
+`legendFormat: "{{cluster}}-->{{namespace}}"` a usable carrier for a query whose labels cannot
+name a conventional pair.
 
 Exactly one separator form is accepted because `->` is a substring of `-->`: a reader
 accepting both has to match longest-first, and a shortest-first scan silently mis-splits the

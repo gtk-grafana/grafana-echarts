@@ -277,21 +277,29 @@ Not registered, deliberately:
   a panel option or means nothing. These are the columns the row form carried as data —
   the same keys `converters/legacyToWide.ts` writes — now editable without touching the
   query.
-- **Ad-hoc filter direction** — a node offers only the endpoint keys it is actually drawn
-  in (`toNodeRoles`): a pure destination asserts the **target** key, since it is never a
-  source and `client="warpstream-agent-write"` matches no series. Asserting the source key
-  for every node made the buttons useless on exactly the nodes a service graph has most of,
-  and no key mapping could fix it — the key was right, the direction was wrong.
+- **Ad-hoc filter direction** — a node asserts only a direction it is actually drawn in,
+  under the key the edges touching it use (`toNodeFilterLabels`): a pure destination
+  asserts its **target** key, since it is never a source and
+  `client="warpstream-agent-write"` matches no series. Asserting the source key for every
+  node made the buttons useless on exactly the nodes a service graph has most of, and no
+  key mapping could fix it — the key was right, the direction was wrong.
   ([e2e: asserts the target key for a destination-only node][filters-test],
-  [unit: reads each node's endpoint roles off the link set][tip-marks].)
+  [unit: reads each node's endpoint keys off the edges touching it][tip-marks].)
 - **Per-mark ad-hoc filter keys** (`editor/relations/filters.ts`) —
   `custom.sourceFilterLabel` / `.targetFilterLabel`, the label an endpoint is written
-  under when a pinned tooltip filters the dashboard. The one setting here that is about
-  the _query_ rather than the chart, and the one exception to override-only: a response
-  usually does group by one endpoint pair, so the Fields tab's default is the common
-  answer rather than a nonsensical one, while a panel joining two queries can still
-  answer per edge. Replaces the `relationsSourceFilterLabel` **panel** options, which
-  could not.
+  under when a pinned tooltip filters the dashboard. **Deprecated and slated for
+  removal**: override-only (`hideFromDefaults`) like the rest, and set by nothing in this
+  repo. It replaced the `relationsSourceFilterLabel` **panel** options, which could not
+  answer per edge — and was then retired in turn by the reader, which recognises the
+  conventional pairs and **recovers** a relabelled key per edge for any query that kept
+  its original (`aliasEndpointKeys`), on the pivot route and the `rowsToFields` route
+  alike. Recovery is not just easier but strictly more correct on a multi-level flow,
+  whose levels relabel from different originals: one configured pair is wrong for every
+  level but one, which is exactly what the four panels that used to set this were doing.
+  Two cases it cannot reach keep it alive for now — a query that destroyed its original
+  **and** cannot be edited, and an ambiguous recovery where two labels hold the same
+  value as an endpoint. Kept, hidden, for demonstration
+  (`relations/*adhoc-filters.json` panel 7); removed before release absent a real use.
 
 Two structural limits apply here as they do everywhere else in this plugin (see
 [heatmap/parity.md](../heatmap/parity.md)): standard options **cannot be

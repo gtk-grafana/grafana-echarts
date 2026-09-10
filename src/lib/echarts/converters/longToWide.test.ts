@@ -211,6 +211,110 @@ describe('longToWide — conventional endpoint labels', () => {
   });
 });
 
+/**
+ * The **wire id** as an endpoint carrier: a rendered `legendFormat` lands in
+ * `config.displayNameFromDS`, never in `field.name`, so the contract's documented fallback
+ * carrier was unreachable for every long response until this claimed it.
+ */
+describe('longToWide — the legend format as a carrier', () => {
+  const legend = (id: string, labels: Labels = {}): DataFrame =>
+    series(labels, [1, 2], { config: { displayNameFromDS: id } });
+
+  it('claims a series whose legend format is an edge id, with no endpoint labels at all', () => {
+    const frame = legend('a-->b', { cluster: 'a', namespace: 'b' });
+
+    expect(isLongEdgesFrame(frame)).toBe(true);
+    expect(isLongGraphFrames([frame])).toBe(true);
+  });
+
+  it('pivots it under the canonical keys, so the reader needs no new carrier', () => {
+    const [wide] = longToWide([legend('a-->b', { cluster: 'a', namespace: 'b' })]);
+
+    expect(wide.fields.map((field) => field.name)).toEqual(['Time', 'a-->b']);
+    expect(wide.fields[1].labels).toEqual({ cluster: 'a', namespace: 'b', source: 'a', target: 'b' });
+  });
+
+  /**
+   * And the keys come with it. The id says *which* values are the endpoints; matching them
+   * back against the labels says which keys hold them, which is the pair an ad-hoc filter
+   * has to be written under.
+   */
+  it('records the pair the id was rendered from', () => {
+    const [wide] = longToWide([legend('a-->b', { cluster: 'a', namespace: 'b' })]);
+
+    expect(wide.meta?.custom?.graph).toEqual({ sourceKey: 'cluster', targetKey: 'namespace' });
+  });
+
+  it('still declines a series that carries neither labels nor an id', () => {
+    expect(isLongEdgesFrame(legend('just a name', { job: 'api' }))).toBe(false);
+    expect(isLongEdgesFrame(series({ job: 'api' }, [1]))).toBe(false);
+  });
+
+  // A TestData `alias` lands on the frame rather than on the field, and is the same carrier.
+  it('reads a frame name as the id too', () => {
+    const [wide] = longToWide([series({ cluster: 'a', namespace: 'b' }, [1], { name: 'a-->b' })]);
+
+    expect(wide.fields.map((field) => field.name)).toEqual(['Time', 'a-->b']);
+  });
+
+  // The endpoints are `a-->b` and `c`, not `a` and `b-->c`: the labels say so.
+  it('splits a multi-separator id where the labels agree', () => {
+    const [wide] = longToWide([legend('a-->b-->c', { src_group: 'a-->b', dst_group: 'c' })]);
+
+    expect(wide.fields[1].labels).toEqual({ src_group: 'a-->b', dst_group: 'c', source: 'a-->b', target: 'c' });
+  });
+});
+
+/**
+ * The pivot rewrites every field to the canonical pair, so a query that kept its originals
+ * beside them has to have the recovery recorded here or lose it. Only the frame-wide half —
+ * a response whose levels recover different pairs records none, and the reader answers per
+ * edge off the originals the pivot carries through.
+ */
+describe('longToWide — recovered endpoint labels', () => {
+  it('declares a pair recovered from a response that kept its originals', () => {
+    const [wide] = longToWide([
+      series({ source: 'prod', target: 'ns-a', cluster: 'prod', namespace: 'ns-a' }, [1]),
+      series({ source: 'prod', target: 'ns-b', cluster: 'prod', namespace: 'ns-b' }, [2]),
+    ]);
+
+    expect(wide.meta?.custom?.graph).toEqual({ sourceKey: 'cluster', targetKey: 'namespace' });
+  });
+
+  it('declares nothing when two levels recover different pairs', () => {
+    const [wide] = longToWide([
+      series({ source: 'prod', target: 'ns-a', cluster: 'prod', namespace: 'ns-a' }, [1]),
+      series({ source: 'ns-a', target: 'checkout', namespace: 'ns-a', workload: 'checkout' }, [2]),
+    ]);
+
+    expect(wide.meta?.custom?.graph).toBeUndefined();
+  });
+
+  // What the reader then does with it: the originals ride through on the fields, so each
+  // level answers for itself.
+  it('carries the originals through so the reader can answer per edge', () => {
+    const data = frameToRelationsGraph(
+      longToWide([
+        series({ source: 'prod', target: 'ns-a', cluster: 'prod', namespace: 'ns-a' }, [1]),
+        series({ source: 'ns-a', target: 'checkout', namespace: 'ns-a', workload: 'checkout' }, [2]),
+      ]),
+      createTheme()
+    );
+
+    expect(data?.links.map((link) => link.filterLabels)).toEqual([
+      { source: 'cluster', target: 'namespace' },
+      { source: 'namespace', target: 'workload' },
+    ]);
+  });
+
+  // A read pair is not a recovery and outranks one.
+  it('prefers the pair the series were labelled with', () => {
+    const [wide] = longToWide([series({ client: 'a', server: 'b', cluster: 'a', namespace: 'b' }, [1])]);
+
+    expect(wide.meta?.custom?.graph).toEqual({ sourceKey: 'client', targetKey: 'server' });
+  });
+});
+
 describe('longToWide — the row dimension', () => {
   it('keeps a ranged query rows, so calcs[0] has something to reduce', () => {
     const [wide] = longToWide(edges());

@@ -373,13 +373,23 @@ export interface EChartsRelationsFieldConfig extends EChartsFieldConfig {
    * Label key this mark's **source** endpoint is filtered on, when a pinned tooltip's
    * "Filter on" / "Filter out" buttons write an ad-hoc filter into the dashboard.
    *
-   * Per mark rather than per panel because a panel can join several queries, and the
-   * contract's `source`/`target` are a topology carrier rather than a promise about any
-   * datasource's label set. Unset reads the pair off the response, then falls back to the
-   * contract's own. Set it on a **node** too where a node's own filters must be written
-   * under a different key. See `relationsFilterLabels`.
+   * @deprecated Kept for demonstration and slated for removal — see
+   * `addRelationsFilterConfig` for the routes that replaced it and the two cases left.
+   * Override-only, and set by nothing in this repo. **Keep the original label in the
+   * query instead**: the panel recovers it per edge, which is also the only thing that can
+   * be right on a multi-level flow.
+   *
+   * Unset reads the pair off the response — the field's own labels, the frame's
+   * declaration, or the pair recovered by matching the endpoint values back against the
+   * labels for a query that kept its originals (`aliasEndpointKeys`) — and falls back to the
+   * contract's own. A **node** takes its keys from the edges touching it, so it never needed
+   * setting per node. See `relationsFilterLabels`.
    */
   sourceFilterLabel?: string;
-  /** As {@link sourceFilterLabel}, for the **target** endpoint. */
+  /**
+   * As {@link sourceFilterLabel}, for the **target** endpoint.
+   *
+   * @deprecated See {@link sourceFilterLabel}.
+   */
   targetFilterLabel?: string;
 }

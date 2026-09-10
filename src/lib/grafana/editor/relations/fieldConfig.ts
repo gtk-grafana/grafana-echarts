@@ -19,9 +19,11 @@ import { addRelationsFilterConfig } from 'lib/grafana/editor/relations/filters';
  * options that say "all marks" properly (`addRelationsNodeOptions`,
  * `addRelationsLinkOptions`). A default would either duplicate those or be nonsense.
  *
- * The two ad-hoc filter labels are the exception and keep their defaults editor: one
- * response usually does group by one endpoint pair, so "every mark" is the common answer
- * there rather than a nonsensical one. See `addRelationsFilterConfig`.
+ * The two ad-hoc filter labels are override-only for a different reason: they are
+ * **deprecated**. They used to keep a defaults editor on the argument that one response
+ * groups by one endpoint pair — but a response that needs its pair stated by hand needs its
+ * query fixed instead, so offering it to "every mark" advertised the wrong fix. See
+ * `addRelationsFilterConfig`.
  *
  * Node and edge controls sit in separate categories because a field override cannot
  * know which frame its field came from — both sets are offered for any mark, and the

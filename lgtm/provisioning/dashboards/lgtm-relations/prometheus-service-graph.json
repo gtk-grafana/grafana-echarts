@@ -21,14 +21,14 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "# Prometheus → relations charts\n\nTempo's metrics-generator publishes `traces_service_graph_request_total{client, server}` and remote-writes it into **`lgtm-prometheus`** (`lgtm/config/tempo.yaml`). Those two labels are a real source/target pair, which is what makes this stack useful to this panel family — the same metric a Grafana Cloud or Mimir user already has.\n\nThe panel reads endpoints from two carriers, in this order: the `source` / `target` **labels** on a field, then a `-->` in the field **name**. `client` / `server` is neither, so every query below renames the pair with `label_replace`. Two routes follow from that:\n\n### Route A — a ranged query and an empty Transform tab\n\n```promql\nsum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])),\n      \"source\", \"$1\", \"client\", \"(.*)\"),\n    \"target\", \"$1\", \"server\", \"(.*)\"))\n```\n\n`Format: Time series` returns **one frame per series**, each `[Time, Value]` with the grouping labels on `Value`. Every one of those frames passes the reader's edge test on its own, and the reader collects *all* of them — so nine series draw nine edges with no transformation anywhere. The row dimension survives too, which is why **Calculation** is a real choice here: `Last` is the current rate, `Mean` is the average over the window.\n\nWhat it does **not** give you is identity: every value field is called `Value`, so all nine marks share one id. `byName: 'Value'` matches all of them at once, and a per-edge unit, colour or data link is unreachable. (On Grafana 13.2+ the plugin pivots this shape into named fields itself, above the panel — this host is 13.1.0, so it does not.)\n\n### Route B — an instant table, `label_join`, `organize`, `rowsToFields`\n\n```promql\nlabel_join(\n  label_replace(\n    label_replace(\n      sum by (client, server) (rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])),\n      \"src\", \"$1\", \"client\", \"(.*)\"),\n    \"dst\", \"$1\", \"server\", \"(.*)\"),\n  \"edge\", \"-->\", \"src\", \"dst\")\n```\n\n`Format: Table` + `Type: Instant` is one row per series; `rowsToFields` turns each row into a field named by its first **string** column. Two details are load-bearing, and both are visible in the bottom-right panel:\n\n- **`organize` must put `edge` first.** Prometheus sorts label columns alphabetically, so the first string column is `client` — a bare `rowsToFields` would name every mark after its *client* and produce duplicate fields with no endpoints at all.\n- **the query names the pair `src` / `dst`, and `organize` renames it** to `source` / `target`. Not the other way round: a query that emits `source` and `target` *columns* is claimed as the legacy row format by the conversion the plugin registers above the panel on 13.2+, which then widens it before this chain runs — and the panel shows **No data** with nothing logged. Renaming inside the Transform tab happens strictly after that pre-pass, so it is safe on every host.\n\nThe payoff is a field per edge, named `grafana-->prometheus`, which the `/-->/ ` overrides in the panels below actually address."
+        "content": "# Prometheus → relations charts\n\nTempo's metrics-generator publishes `traces_service_graph_request_total{client, server}` and remote-writes it into **`lgtm-prometheus`** (`lgtm/config/tempo.yaml`). Those two labels are a real source/target pair, which is what makes this stack useful to this panel family — the same metric a Grafana Cloud or Mimir user already has.\n\nThe panel reads endpoints from two carriers, in this order: an endpoint **label pair** on a field, then a `-->` in the field **name**. The accepted pairs are `source`/`target`, **`client`/`server`**, `src`/`dst` and `from`/`to` (`ENDPOINT_LABEL_PAIRS`) — so Tempo's own `client`/`server` is read directly and **none of the queries below rename anything**. They used to: every one wrapped its aggregation in `sum by (source, target) (label_replace(label_replace(…)))` purely to reach a name the reader would accept. Two routes still follow, but the difference between them is now only the field *name*:\n\n### Route A — a ranged query and an empty Transform tab\n\n```promql\nsum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n)\n```\n\n`Format: Time series` returns **one frame per series**, each `[Time, Value]` with the grouping labels on `Value`. Every one of those frames passes the reader's edge test on its own, and the reader collects *all* of them — so nine series draw nine edges with no transformation anywhere. The row dimension survives too, which is why **Calculation** is a real choice here: `Last` is the current rate, `Mean` is the average over the window.\n\nWhat it does **not** give you is identity: every value field is called `Value`, so all nine marks share one id. `byName: 'Value'` matches all of them at once, and a per-edge unit, colour or data link is unreachable. (On Grafana 13.2+ the plugin pivots this shape into named fields itself, above the panel — this host is 13.1.0, so it does not.)\n\n### Route B — an instant table, `label_join`, `organize`, `rowsToFields`\n\n```promql\nlabel_join(\n  sum by (client, server) (rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])),\n  \"edge\", \"-->\", \"client\", \"server\")\n```\n\n`Format: Table` + `Type: Instant` is one row per series; `rowsToFields` turns each row into a field named by its first **string** column. Two details are load-bearing, and both are visible in the bottom-right panel:\n\n- **`organize` must put `edge` first.** Prometheus sorts label columns alphabetically, so the first string column is `client` — a bare `rowsToFields` would name every mark after its *client* and produce duplicate fields with no endpoints at all.\n- **the query names the pair `src` / `dst`, and `organize` renames it** to `source` / `target`. Not the other way round: a query that emits `source` and `target` *columns* is claimed as the legacy row format by the conversion the plugin registers above the panel on 13.2+, which then widens it before this chain runs — and the panel shows **No data** with nothing logged. Renaming inside the Transform tab happens strictly after that pre-pass, so it is safe on every host.\n\nThe payoff is a field per edge, named `grafana-->prometheus`, which the `/-->/ ` overrides in the panels below actually address."
       }
     },
     {
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Route A — service dependency map, no transformations",
-      "description": "Nine ranged series, an empty Transform tab, and the whole service graph. Every frame carries `source` / `target` labels on its `Value` field, so each one passes the edge test alone and the reader collects them all.\n\nThe legend format is set to `{{source}}-->{{target}}` even though nothing here reads it: on Grafana 13.2+ the plugin's pivot promotes exactly that rendered legend to `field.name`, so writing it now means this panel gains per-edge ids on upgrade with no dashboard change. Today it only labels the tooltip series.\n\n`prometheus → prometheus` is Prometheus scraping itself — a genuine self-loop, which a graph draws and a sankey cannot. `user` is Tempo's virtual node: requests with no client span.",
+      "description": "Nine ranged series, an empty Transform tab, and the whole service graph. Every frame carries `source` / `target` labels on its `Value` field, so each one passes the edge test alone and the reader collects them all.\n\nThe legend format is set to `{{client}}-->{{server}}` even though nothing here reads it: on Grafana 13.2+ the plugin's pivot promotes exactly that rendered legend to `field.name`, so writing it now means this panel gains per-edge ids on upgrade with no dashboard change. Today it only labels the tooltip series.\n\n`prometheus → prometheus` is Prometheus scraping itself — a genuine self-loop, which a graph draws and a sankey cannot. `user` is Tempo's virtual node: requests with no client span.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -79,11 +79,11 @@
             "uid": "lgtm-prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n)",
           "format": "time_series",
           "instant": false,
           "range": true,
-          "legendFormat": "{{source}}-->{{target}}"
+          "legendFormat": "{{client}}-->{{server}}"
         }
       ],
       "transformations": []
@@ -197,7 +197,7 @@
             "uid": "lgtm-prometheus"
           },
           "editorMode": "code",
-          "expr": "label_join(\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n      ),\n      \"src\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"dst\", \"$1\", \"server\", \"(.*)\"\n  ),\n  \"edge\", \"-->\", \"src\", \"dst\"\n)",
+          "expr": "label_join(\n  sum by (client, server) (\n    rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n  ),\n  \"edge\", \"-->\", \"client\", \"server\"\n)",
           "format": "table",
           "instant": true,
           "range": false,
@@ -209,20 +209,15 @@
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true,
-              "client": true,
-              "server": true
+              "Time": true
             },
             "indexByName": {
               "edge": 0,
-              "src": 1,
-              "dst": 2,
+              "client": 1,
+              "server": 2,
               "Value": 3
             },
-            "renameByName": {
-              "src": "source",
-              "dst": "target"
-            }
+            "renameByName": {}
           }
         },
         {
@@ -329,7 +324,7 @@
             "uid": "lgtm-prometheus"
           },
           "editorMode": "code",
-          "expr": "label_join(\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n      ),\n      \"src\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"dst\", \"$1\", \"server\", \"(.*)\"\n  ),\n  \"edge\", \"-->\", \"src\", \"dst\"\n)",
+          "expr": "label_join(\n  sum by (client, server) (\n    rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n  ),\n  \"edge\", \"-->\", \"client\", \"server\"\n)",
           "format": "table",
           "instant": true,
           "range": false,
@@ -358,19 +353,15 @@
           },
           "options": {
             "excludeByName": {
-              "Time": true,
-              "client": true,
-              "server": true
+              "Time": true
             },
             "indexByName": {
               "edge": 0,
-              "src": 1,
-              "dst": 2,
+              "client": 1,
+              "server": 2,
               "Value #A": 3
             },
             "renameByName": {
-              "src": "source",
-              "dst": "target",
               "Value #A": "Value"
             }
           }
@@ -532,11 +523,11 @@
             "uid": "lgtm-prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      sum by (client, server) (\n        rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n      ),\n      \"source\", \"$1\", \"client\", \"(.*)\"\n    ),\n    \"target\", \"$1\", \"server\", \"(.*)\"\n  )\n)",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n)",
           "format": "time_series",
           "instant": false,
           "range": true,
-          "legendFormat": "{{source}}-->{{target}}"
+          "legendFormat": "{{client}}-->{{server}}"
         }
       ],
       "transformations": []
