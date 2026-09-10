@@ -219,10 +219,9 @@ export const relationsChartModule: ChartModule = {
   /**
    * The timestamps the panel's slider can step through, or `null` for no slider.
    *
-   * Both halves have to hold: the option is on, **and** the response has a row
-   * dimension with more than one stop. One stop is an instant response with a clock on
-   * it — there is nowhere to scrub to, and a one-position slider is worse than none.
-   * The advisory above covers the case where the option is on and this returns `null`.
+   * Both halves have to hold: the option is on, **and** the response has more than one
+   * stop. One stop is an instant response with a clock on it, with nowhere to scrub to. The
+   * advisory above covers the option being on while this returns `null`.
    */
   getTimeline(ctx: RelationsChartContext): number[] | null {
     if (!resolveRelationsTimeSlider(ctx.options)) {

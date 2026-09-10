@@ -151,13 +151,12 @@ without a seed `forceHelper` starts every node at `Math.random()` and the same f
 a different graph on every refresh. `force.layoutAnimation` is off for a related reason:
 painting each simulation step makes a timed refresh look like the nodes are jiggling.
 
-**The switch hides itself on data it cannot serve.** `showIf` is handed the panel's frames,
-so "Time slider" only appears where there is more than one timestamp to step through
-(`hasGraphTimeline`) — otherwise every instant panel in a dashboard would offer a switch
-whose only effect is to hide the reducer picker and post an advisory. It stays visible once
-_already on_, so a refresh that returns one row cannot strand a panel with a hidden picker
-and no control to undo it. With it on, a mark's tooltip labels the main row `Value` instead
-of naming a reducer that did not run.
+**The switch hides itself on data it cannot serve.** "Time slider" only appears where there
+is more than one timestamp to step through (`hasGraphTimeline`) — otherwise every instant
+panel would offer a switch whose only effect is to hide the reducer picker and post an
+advisory. It stays visible once _already on_, so a refresh returning one row cannot strand a
+panel with a hidden picker and no control to undo it. With it on, a mark's tooltip labels the
+main row `Value` instead of naming a reducer that did not run.
 
 **A scrub morphs on chord and cuts on sankey and graph**, which is ECharts' doing rather
 than the panel's: `ChordView.render` diffs the new data against the old and updates each
@@ -166,17 +165,15 @@ diff at all, and a `graph` tweens only symbol size and position — neither of w
 value-driven here, so nothing on it moves. Three candidate fixes were measured and none
 works; see [todo/relations-scrub-animation.md](../../../todo/relations-scrub-animation.md).
 
-**The step buttons wrap; the slider does not.** `‹` and `›` move one stop and roll over at
-either end, so neither is ever dead: the end of the timeline is where a reader most often
-wants another pass, and a `›` that went inert there would send them across the panel to `‹`
-to walk back — the one gesture the buttons exist to save.
+**The step buttons wrap.** `‹` and `›` move one stop and roll over at either end, so neither
+is ever dead: the end of the timeline is where a reader most often wants another pass, and a
+`›` that went inert there would send them across the panel to `‹` — the one gesture the
+buttons exist to save.
 
 **Edge values never fade in.** `LabelManager` fades a label it has no remembered layout for,
-which is right on a first render and wrong on every rebuild after it — and whether a rebuild
-hits it is decided by the same missing diff as above. A `graph` updates its label elements in
-place and never fades; `SankeyView` rebuilds them, so its edge values were dissolving back in
-on every step, timed by `animationDuration` (the _initial_-render duration) rather than by the
-update one. Suppressed for edge labels on every render, not just under the slider, by
+which the same missing diff as above decides: a `graph` updates its label elements in place,
+while `SankeyView` rebuilds them, so its edge values dissolve back in on every step — timed by
+`animationDuration`, the _initial_-render duration. Suppressed on every render by
 `registerEdgeLabelFadeIn`. Node names keep theirs, since a first render is the case it is for.
 
 **`series.labelLayout` needs a registered feature.** `hideOverlap` reads like a plain

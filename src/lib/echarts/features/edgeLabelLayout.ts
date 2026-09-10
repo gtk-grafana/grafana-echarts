@@ -79,35 +79,24 @@ import { registerUpdateLifecycle } from 'echarts/core';
 /**
  * Stop an edge's value **fading in** every time the chart is rebuilt.
  *
- * `LabelManager._animateLabels` fades a label from nothing whenever it has no remembered
- * previous layout for it (`if (!oldLayout)`), which is right on a first render and wrong on
- * every one after it. Whether a rebuild hits that branch is decided by whether the series
- * kept its label elements: a `graph` diffs its data and updates them in place, so the store
- * survives and nothing fades — but `SankeyView.render` builds every node rect and link curve
- * from scratch, so the labels are new objects each pass and every value fades back in from
- * zero. Measured on the sankey stepping the time slider: the four edge values ramped
- * `0.001 → 1` over ~120 frames on **every** step, while the node names beside them held at 1.
+ * `LabelManager._animateLabels` fades a label it has no remembered layout for
+ * (`if (!oldLayout)`), which is right on a first render and wrong on every one after it.
+ * Whether a rebuild hits that branch turns on whether the series kept its label elements: a
+ * `graph` updates them in place and never fades, while `SankeyView.render` builds every
+ * shape from scratch, so its edge values ramp `0.001 → 1` over ~120 frames on each pass. The
+ * fade goes through `initProps`, so it is timed by `animationDuration` — the *initial*-render
+ * duration — and a step that redraws instantly is followed by a second of labels dissolving.
  *
- * It is not even the update animation. The fade goes through `initProps`, so it is timed by
- * `animationDuration` — the *initial-render* duration — which is why a step that redraws
- * instantly is followed by a second of labels dissolving into place.
+ * Edge labels only. Node names keep theirs, since a first render is the case it is for.
  *
- * Suppressed for edge labels only, and for every render rather than for the slider that
- * exposed it: a value that re-fades whenever anything rebuilds the chart reads as the panel
- * reloading. Node labels are left alone — they do not hit the branch, and their fade on a
- * genuine first render is the one case it is for.
+ * `disableLabelAnimation` is zrender's own opt-out, read off the label's **host**, and covers
+ * the position tween as well as the fade. No loss either way: a sankey has no tween to keep
+ * (see `todo/relations-scrub-animation.md`), and a graph's edge label is positioned by its
+ * host on every redraw, which is the premise the rest of this module rests on.
  *
- * `disableLabelAnimation` is zrender's own opt-out, read off the label's **host**, and it
- * covers the position tween as well as the fade. That is no loss here: a sankey has no tween
- * to keep (`SankeyView` writes every shape imperatively, with no diff — see
- * `todo/relations-scrub-animation.md`), and a graph's edge label is positioned by its host in
- * the host's own coordinates on every redraw, which is the premise the rest of this module
- * rests on.
- *
- * **Registered before the label-layout feature**, unlike {@link registerEdgeLabelLayout}
- * below: hooks on a lifecycle run in registration order, and this one has to be set before
- * `processLabelsOverall` reads it rather than a pass later — on a sankey there is no later
- * pass to speak of, since the host carrying the flag is thrown away with everything else.
+ * **Registered before the label-layout feature**, unlike {@link registerEdgeLabelLayout}:
+ * hooks run in registration order, and the flag has to be set before `processLabelsOverall`
+ * reads it — on a sankey there is no later pass, since the host is thrown away with the rest.
  */
 export function registerEdgeLabelFadeIn(): void {
   registerUpdateLifecycle('series:layoutlabels', (ecModel) => {

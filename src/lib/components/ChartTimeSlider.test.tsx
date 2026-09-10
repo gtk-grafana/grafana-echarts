@@ -4,13 +4,12 @@ import { ChartTimeSlider, resolveTimelineIndex } from './ChartTimeSlider';
 
 /**
  * The time slider, tested through its roles rather than its markup, like
- * `ChartZoomControls.test.tsx` — and with plain `fireEvent`, since
- * `@testing-library/user-event` is not a dependency here.
+ * `ChartZoomControls.test.tsx`.
  *
- * What this component decides is *which timestamp a position means*: the stops are the
- * ones the data carries and are not evenly spaced, so the slider runs over indices and
- * hands back the timestamp at that index. That the selected timestamp then changes what
- * is drawn is asserted on the built option in `relations-timeline.integration.test.tsx`.
+ * What this component decides is *which timestamp a position means*: the stops are not evenly
+ * spaced, so the slider runs over indices and hands back the timestamp at that index. That
+ * the selection then changes what is drawn is asserted in
+ * `relations-timeline.integration.test.tsx`.
  */
 
 const T0 = 1700000000000;

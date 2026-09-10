@@ -69,9 +69,8 @@ function reducerLabel(calc: string): string {
  * the value is the one sample at the selected timestamp.
  *
  * `Last *` under a slider would name a calculation the panel did not run and the user
- * cannot see a control for: the switch hides the picker precisely because at one row there
- * is nothing to reduce. `Value` is what core's tooltips call an unnamed measurement, and it
- * is what the instant-data advisory already promises ("marks are read as they are").
+ * cannot see a control for — the switch hides the picker precisely because at one row there
+ * is nothing to reduce. `Value` is what core's tooltips call an unnamed measurement.
  */
 const VALUE_ROW_LABEL = 'Value';
 
@@ -543,7 +542,7 @@ function nodeFilters(
  * Each stat row is labelled with the **reducer** that produced it rather than with
  * `Value` / `Secondary` — see {@link reducerLabel}, and `reduceOptions` for where the
  * two come from. Under the time slider no reducer ran, and the main row is labelled
- * `Value` instead — see {@link VALUE_ROW_LABEL}.
+ * `Value` — see {@link VALUE_ROW_LABEL}.
  *
  * Values format with the **hovered mark's own** field, and the footer resolves that
  * field's data links; see {@link getRelationsTooltipMarks}. A node derived from an

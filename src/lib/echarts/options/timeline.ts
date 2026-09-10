@@ -4,16 +4,14 @@ import { type PanelOptions } from 'types';
  * The time slider's option: read every mark at **one timestamp** instead of reducing its
  * rows to a stat.
  *
- * A leaf module rather than another resolver in `options/graph.ts`, where the rest of the
- * family's live. Three unrelated layers ask this same question — the editor (which control
- * to show), the chart module (whether to offer a timeline) and the **tooltip** (whether to
- * name a reducer in the stat row) — and `options/graph.ts` already imports the tooltip
- * builder, so keeping it there would have made the tooltip's read a cycle.
+ * A leaf module rather than another resolver in `options/graph.ts`: the editor, the chart
+ * module and the **tooltip** all ask this, and `options/graph.ts` imports the tooltip
+ * builder, so keeping it there would make the tooltip's read a cycle.
  */
 
 /**
- * The time slider is **off** by default: reducing the row dimension to one stat is what
- * the family has always done, and it is the only reading an instant response has.
+ * **Off** by default: reducing the row dimension to one stat is the family's other reading,
+ * and the only one an instant response has.
  */
 export const RELATIONS_TIME_SLIDER_DEFAULT = false;
 
