@@ -208,6 +208,77 @@ describe('useTimelinePlayback', () => {
     expect(onSelect).toHaveBeenLastCalledWith(T0 + 2 * STEP);
   });
 
+  /**
+   * A step must not land inside a click. ZRender decides a click happened by comparing
+   * the element *objects* `mousedown` and `mouseup` resolved to, and a step replaces the
+   * series' elements — so on a `sankey`, whose view rebuilds every element rather than
+   * diffing them, a click that straddled a step was silently discarded and the mark could
+   * not be pinned while playback ran.
+   */
+  describe('holding a step for a click', () => {
+    const press = () => document.dispatchEvent(new Event('pointerdown'));
+    const release = () => document.dispatchEvent(new Event('pointerup'));
+    /** Well inside the one-second grace, so a tick lands while the press is still held. */
+    const QUICK = 200;
+
+    it('does not step while the pointer is down', () => {
+      const { onSelect, view } = setup(timeline, T0, QUICK);
+
+      act(() => view.result.current.toggle());
+      act(() => press());
+      act(() => jest.advanceTimersByTime(600));
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('steps again once the pointer comes up', () => {
+      const { onSelect, view } = setup(timeline, T0, QUICK);
+
+      act(() => view.result.current.toggle());
+      act(() => press());
+      act(() => jest.advanceTimersByTime(600));
+      expect(onSelect).not.toHaveBeenCalled();
+
+      act(() => release());
+      act(() => jest.advanceTimersByTime(QUICK));
+
+      expect(onSelect).toHaveBeenCalledTimes(1);
+    });
+
+    /**
+     * The hold expires rather than waiting for a `pointerup` that may never come — a drag
+     * out of the window delivers none, and playback must not stall on one. A drag is also
+     * simply not a click, so there is nothing left to protect.
+     */
+    it('gives up holding once the press outlasts a click', () => {
+      const { onSelect, view } = setup(timeline, T0, QUICK);
+
+      act(() => view.result.current.toggle());
+      act(() => press());
+      act(() => jest.advanceTimersByTime(600));
+      expect(onSelect).not.toHaveBeenCalled();
+
+      // Still held, but past the grace: stepping resumes without a `pointerup`.
+      act(() => jest.advanceTimersByTime(600));
+
+      expect(onSelect).toHaveBeenCalled();
+      release();
+    });
+
+    // `pointercancel` is what a browser sends when it takes the gesture over (a scroll,
+    // a context menu), and it has to release the hold exactly as an up would.
+    it('releases the hold on pointercancel', () => {
+      const { onSelect, view } = setup(timeline, T0, QUICK);
+
+      act(() => view.result.current.toggle());
+      act(() => press());
+      act(() => document.dispatchEvent(new Event('pointercancel')));
+      act(() => jest.advanceTimersByTime(QUICK));
+
+      expect(onSelect).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('stops stepping when paused', () => {
     const { onSelect, view } = setup();
 

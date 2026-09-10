@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
+ * How long a press is allowed to hold a step back. A click is well under this; a drag —
+ * panning the graph, dragging the slider handle — is longer and must not stall playback,
+ * so the hold expires rather than waiting for a `pointerup` that a drag out of the window
+ * may never deliver.
+ */
+const PRESS_GRACE_MS = 1000;
+
+/**
  * The stop nearest a timestamp, as an index into `timeline` — and the **last** stop when
  * nothing is selected yet.
  *
@@ -82,6 +90,38 @@ export function useTimelinePlayback(
    */
   const playing = requested && timeline != null && timeline.length > 1;
 
+  /**
+   * When the pointer went down, or `null` while it is up — so a step can wait for a click
+   * to finish rather than landing in the middle of one.
+   *
+   * **A rebuild between `mousedown` and `mouseup` swallows the click.** ZRender decides
+   * whether a click happened by comparing the *element objects* the two halves resolved
+   * to (`Handler`: `if (this._downEl !== this._upEl … ) return`), and a step replaces the
+   * series' elements. Whether that matters is per series: `graph` and `chord` diff their
+   * data and update the elements in place, so identity survives and the click lands, but
+   * `SankeyView.render` rebuilds every node rect and link curve from scratch — the same
+   * missing diff that stops a sankey tweening between stops — so on a sankey every click
+   * that straddled a step was silently discarded, and a mark could not be pinned while
+   * playback ran. Measured: press, let a step land, release → pinned on graph and chord,
+   * not on sankey.
+   *
+   * Listened for on the document in the capture phase, because the press lands on the
+   * canvas and this hook has no handle on it.
+   */
+  const pressedAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    const down = () => (pressedAtRef.current = Date.now());
+    const up = () => (pressedAtRef.current = null);
+    document.addEventListener('pointerdown', down, true);
+    document.addEventListener('pointerup', up, true);
+    document.addEventListener('pointercancel', up, true);
+    return () => {
+      document.removeEventListener('pointerdown', down, true);
+      document.removeEventListener('pointerup', up, true);
+      document.removeEventListener('pointercancel', up, true);
+    };
+  }, []);
+
   const latest = useRef({ timeline, selected, stepStops, onSelect });
   // Written in an effect rather than during render, so a render React throws away
   // cannot leave the timer reading state that was never committed. Effects run before
@@ -95,6 +135,13 @@ export function useTimelinePlayback(
       return;
     }
     const timer = setInterval(() => {
+      // Hold the step while a click is in flight — see `pressedAtRef`. Skipping the beat
+      // rather than deferring it: one missed tick is imperceptible, and the alternative
+      // is a queue of steps firing at once when the button comes up.
+      const pressedAt = pressedAtRef.current;
+      if (pressedAt != null && Date.now() - pressedAt < PRESS_GRACE_MS) {
+        return;
+      }
       const { timeline: stops, selected: at, stepStops: step, onSelect: select } = latest.current;
       if (stops == null || stops.length === 0) {
         return;
