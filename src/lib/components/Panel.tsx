@@ -8,7 +8,7 @@ import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
-import { resolveRelationsTimeStepDuration } from 'lib/echarts/options/timeline';
+import { resolveRelationsTimeStepDuration, resolveRelationsTimeStepSize } from 'lib/echarts/options/timeline';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
 import React, { useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
@@ -172,6 +172,7 @@ export const Panel: React.FC<Props> = ({
               onSelect={setPickedTime}
               timeZone={timeZone}
               stepDuration={resolveRelationsTimeStepDuration(options)}
+              stepSize={resolveRelationsTimeStepSize(options)}
             />
           </div>
         );

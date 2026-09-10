@@ -2,6 +2,7 @@ import {
   type NumberFieldConfigSettings,
   type PanelOptionsEditorBuilder,
   type SelectFieldConfigSettings,
+  type SliderFieldConfigSettings,
   type StringFieldConfigSettings,
 } from '@grafana/data';
 import { advancedOptionsCategoryName } from 'editor/constants';
@@ -68,6 +69,11 @@ interface AdvancedSelectSpec<TOption> extends AdvancedSpecBase<TOption> {
   settings: SelectFieldConfigSettings<TOption>;
 }
 
+/** `settings` is required: a slider with no bounds has nothing to slide between. */
+interface AdvancedSliderSpec extends AdvancedSpecBase<number> {
+  settings: SliderFieldConfigSettings;
+}
+
 type AdvancedBooleanSpec = AdvancedSpecBase<boolean>;
 type AdvancedColorSpec = AdvancedSpecBase<string>;
 
@@ -81,6 +87,21 @@ export function addAdvancedNumberInput(
   { showIf, ...rest }: AdvancedNumberSpec
 ): void {
   builder.addNumberInput({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
+}
+
+/**
+ * Advanced-gated slider (a bounded number the user drags rather than types).
+ *
+ * Chosen over `addAdvancedNumberInput` when the value is a **proportion** — a percentage
+ * with a real floor and ceiling, where the useful gesture is "a bit more" rather than an
+ * exact figure, and where a typed number would need validating against bounds the control
+ * can simply enforce.
+ */
+export function addAdvancedSliderInput(
+  builder: PanelOptionsEditorBuilder<PanelOptions>,
+  { showIf, ...rest }: AdvancedSliderSpec
+): void {
+  builder.addSliderInput({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
 }
 
 /** Advanced-gated select (single choice from a fixed option list). */

@@ -26,6 +26,7 @@ const renderSlider = (overrides: Partial<React.ComponentProps<typeof ChartTimeSl
       onSelect={onSelect}
       timeZone="utc"
       stepDuration={1000}
+      stepSize={1}
       {...overrides}
     />
   );
@@ -37,7 +38,14 @@ describe('ChartTimeSlider', () => {
   // means no strip — which is every family but relations, and every instant response.
   it('renders nothing when the render has no timeline', () => {
     const { container } = render(
-      <ChartTimeSlider timeline={null} selected={null} onSelect={jest.fn()} timeZone="utc" stepDuration={1000} />
+      <ChartTimeSlider
+        timeline={null}
+        selected={null}
+        onSelect={jest.fn()}
+        timeZone="utc"
+        stepDuration={1000}
+        stepSize={1}
+      />
     );
 
     expect(container).toBeEmptyDOMElement();

@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import { stopsPerStep } from 'lib/echarts/options/timeline';
 import { resolveTimelineIndex, useTimelinePlayback } from './useTimelinePlayback';
 
 /**
@@ -40,15 +41,52 @@ describe('resolveTimelineIndex', () => {
   });
 });
 
+/**
+ * The percentage the user sets, resolved against the length of the timeline they have.
+ * A count of stops would mean something different on a five-stop hour and a
+ * three-hundred-stop week; a percentage means the same thing on both.
+ */
+describe('stopsPerStep', () => {
+  it('scales with the length of the timeline', () => {
+    expect(stopsPerStep(300, 10)).toBe(30);
+    expect(stopsPerStep(20, 50)).toBe(10);
+    expect(stopsPerStep(20, 100)).toBe(20);
+  });
+
+  /**
+   * The floor is what makes the 1% default a no-op wherever it can be: 1% of anything up
+   * to a hundred stops rounds below one, and a step of zero would leave playback running
+   * without ever advancing.
+   */
+  it('never rounds down to a standing start', () => {
+    expect(stopsPerStep(5, 1)).toBe(1);
+    expect(stopsPerStep(100, 1)).toBe(1);
+    expect(stopsPerStep(0, 50)).toBe(1);
+  });
+
+  // Rounded rather than truncated, so the setting is symmetric: half of ten is five.
+  it('rounds to the nearest stop', () => {
+    expect(stopsPerStep(10, 50)).toBe(5);
+    expect(stopsPerStep(101, 1)).toBe(1);
+    expect(stopsPerStep(150, 1)).toBe(2);
+  });
+});
+
 describe('useTimelinePlayback', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
 
-  const setup = (stops: number[] | null = timeline, selected: number | null = T0, stepDuration = 1000) => {
+  const setup = (
+    stops: number[] | null = timeline,
+    selected: number | null = T0,
+    stepDuration = 1000,
+    stepStops = 1
+  ) => {
     const onSelect = jest.fn();
-    const view = renderHook(({ at }: { at: number | null }) => useTimelinePlayback(stops, at, stepDuration, onSelect), {
-      initialProps: { at: selected },
-    });
+    const view = renderHook(
+      ({ at }: { at: number | null }) => useTimelinePlayback(stops, at, stepDuration, stepStops, onSelect),
+      { initialProps: { at: selected } }
+    );
     return { onSelect, view };
   };
 
@@ -117,6 +155,57 @@ describe('useTimelinePlayback', () => {
     act(() => jest.advanceTimersByTime(1000));
 
     expect(onSelect).toHaveBeenCalledTimes(2);
+  });
+
+  /**
+   * A coarse step covers several stops at once, which is the whole point on a dense
+   * response: three hundred stops at one a second is five minutes of watching.
+   */
+  it('advances by the configured number of stops', () => {
+    const wide = [T0, T0 + STEP, T0 + 2 * STEP, T0 + 3 * STEP, T0 + 4 * STEP];
+    const { onSelect, view } = setup(wide, T0, 1000, 2);
+
+    act(() => view.result.current.toggle());
+    act(() => jest.advanceTimersByTime(1000));
+
+    expect(onSelect).toHaveBeenLastCalledWith(T0 + 2 * STEP);
+  });
+
+  /**
+   * A step that would overshoot lands on the **last** stop rather than wrapping past it.
+   * The newest sample is the one a reader most expects to see, and a step size the length
+   * does not divide by would otherwise skip it on every pass.
+   */
+  it('lands on the final stop before looping, even from an overshooting step', () => {
+    const wide = [T0, T0 + STEP, T0 + 2 * STEP, T0 + 3 * STEP];
+    const { onSelect, view } = setup(wide, T0 + 2 * STEP, 1000, 3);
+
+    act(() => view.result.current.toggle());
+    act(() => jest.advanceTimersByTime(1000));
+
+    expect(onSelect).toHaveBeenLastCalledWith(T0 + 3 * STEP);
+  });
+
+  // And only from the last stop does it wrap — so the cycle repeats itself exactly
+  // rather than drifting onto different stops each time round, as modulo would.
+  it('wraps to the first stop only once it is on the last', () => {
+    const wide = [T0, T0 + STEP, T0 + 2 * STEP, T0 + 3 * STEP];
+    const { onSelect, view } = setup(wide, T0 + 3 * STEP, 1000, 3);
+
+    act(() => view.result.current.toggle());
+    act(() => jest.advanceTimersByTime(1000));
+
+    expect(onSelect).toHaveBeenLastCalledWith(T0);
+  });
+
+  // A step wider than the whole timeline is 100% — end to end, then back to the start.
+  it('treats a step wider than the timeline as end to end', () => {
+    const { onSelect, view } = setup(timeline, T0, 1000, 99);
+
+    act(() => view.result.current.toggle());
+    act(() => jest.advanceTimersByTime(1000));
+
+    expect(onSelect).toHaveBeenLastCalledWith(T0 + 2 * STEP);
   });
 
   it('stops stepping when paused', () => {

@@ -3,6 +3,7 @@ import { dateTimeFormat, type GrafanaTheme2 } from '@grafana/data';
 import { type TimeZone } from '@grafana/schema';
 import { IconButton, Slider, useStyles2 } from '@grafana/ui';
 import React from 'react';
+import { stopsPerStep } from 'lib/echarts/options/timeline';
 import { useTimelinePlayback, resolveTimelineIndex } from './hooks/useTimelinePlayback';
 
 interface Props {
@@ -18,6 +19,8 @@ interface Props {
   timeZone: TimeZone;
   /** Wall-clock milliseconds per step while playing. */
   stepDuration: number;
+  /** How far a step moves, as a percentage of the timeline. See `stopsPerStep`. */
+  stepSize: number;
 }
 
 /**
@@ -42,11 +45,26 @@ export const TIME_SLIDER_HEIGHT = 32;
  * chart would sit on top of the marks it is there to change. It takes layout instead,
  * and `Panel` gives the chart the remaining height.
  */
-export const ChartTimeSlider: React.FC<Props> = ({ timeline, selected, onSelect, timeZone, stepDuration }) => {
+export const ChartTimeSlider: React.FC<Props> = ({
+  timeline,
+  selected,
+  onSelect,
+  timeZone,
+  stepDuration,
+  stepSize,
+}) => {
   const styles = useStyles2(getStyles);
   // Before the early return: the timeline can go `null` on a refresh, and the hook is
   // what stops playback when it does.
-  const { playing, toggle, stop } = useTimelinePlayback(timeline, selected, stepDuration, onSelect);
+  // The percentage is resolved against *this* timeline's length here, where the length
+  // is known; the hook counts stops. An empty timeline never reaches the hook's timer.
+  const { playing, toggle, stop } = useTimelinePlayback(
+    timeline,
+    selected,
+    stepDuration,
+    stopsPerStep(timeline?.length ?? 0, stepSize),
+    onSelect
+  );
 
   if (timeline == null || timeline.length === 0) {
     return null;

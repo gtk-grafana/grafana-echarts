@@ -748,7 +748,86 @@ export function useEChartsTooltip(
     };
   }, [chart, containerRef, cancelHide, focusPoint, latestRef, update]);
 
+  /**
+   * Re-assert the hovered or pinned mark against a freshly rebuilt option — see
+   * {@link EChartsTooltipController.refresh}.
+   *
+   * Two things go stale on a rebuild, and neither recovers on its own while the cursor
+   * is still:
+   *
+   * - **The emphasis.** `notMerge` recreates every element, and an element's highlight
+   *   state dies with it, so an adjacency fade the pin or the cursor put there is simply
+   *   gone. Re-dispatched by index, which `highlight` resolves per `dataType` — so a
+   *   focused *edge* comes back as an edge rather than as the node sharing its index.
+   * - **The numbers.** ECharts runs `tooltip.formatter` on hover, and there has been no
+   *   hover.
+   *
+   * The numbers are recovered by **replaying the pointer where it already is** — a real
+   * `mousemove` on the chart's own container, which is the element ZRender binds to — so
+   * ECharts hit-tests and runs its formatter exactly as a twitch of the mouse would, and
+   * every downstream path (this hook's sink, its hover tracking, ECharts' own state) sees
+   * one ordinary hover.
+   *
+   * The two rejected alternatives are both `showTip`, and each fails on a different half
+   * of this family. Addressed **by index** it cannot reach a graph edge at all:
+   * `findPointFromSeries` resolves against the series' primary data table, which is the
+   * node table — the same limitation {@link replayTip} documents. Addressed **by pixel**
+   * it hit-tests the *stale* coordinate, which is fine for a graph, whose layout does not
+   * move between stops, and wrong for a sankey, whose ribbon geometry *is* the value: the
+   * ribbon slides out from under the pinned pixel and the hit test comes back empty.
+   * Replaying the pointer has neither problem, because it asks the same question the
+   * cursor asks — with one honest consequence: on a **sankey** the ribbon geometry *is*
+   * the value, so a stop that resizes the ribbon can move it out from under a stationary
+   * pointer, and the hover legitimately resolves to nothing. The tooltip then holds its
+   * last reading rather than updating, which is exactly what a real twitch of the mouse
+   * would show too. A `graph` layout does not move between stops and updates every time.
+   *
+   * **A pin keeps its frozen content unless the pointer is still on the pinned mark.**
+   * Position and pinned-ness are never touched, so the tooltip stays where the user put
+   * it; only `model` is replaced, and only when the hover that just ran resolved to the
+   * very mark the pin names. Pin a node, move the mouse away, and the numbers hold — the
+   * alternative is a pinned tooltip that quietly starts reporting whatever the cursor is
+   * now near, which is worse than a stale reading and much harder to notice.
+   */
+  const refresh = useCallback(() => {
+    const dom = containerRef.current;
+    if (chart == null || chart.isDisposed() || dom == null) {
+      return;
+    }
+    const current = latestRef.current;
+    const target = current.pinned ? current.pinnedItem : hoveredRef.current;
+    const at = livePositionRef.current;
+    if (target?.seriesIndex == null || at == null) {
+      return;
+    }
+
+    // Cleared first because it caches "already emphasised" against elements the rebuild
+    // has just thrown away, and would otherwise dedupe the re-dispatch to nothing.
+    lastHitRef.current = null;
+    chart.dispatchAction({
+      type: 'highlight',
+      seriesIndex: target.seriesIndex,
+      dataIndex: target.dataIndex,
+      dataType: target.dataType,
+    });
+
+    // Dispatched on the **canvas**, not on the container. ZRender binds its DOM listeners
+    // to the viewport root it creates *inside* the element passed to `init`, and a DOM
+    // event does not travel downwards — one dispatched on the container is simply never
+    // seen. Bubbling carries it back up, so anything else listening still gets it.
+    //
+    // Synchronous, like any dispatched DOM event: by the next line ZRender has hit-tested,
+    // ECharts has run the formatter, and the sink has recorded the result — which for an
+    // unpinned tooltip has already rendered it.
+    const viewport = dom.querySelector('canvas') ?? dom;
+    viewport.dispatchEvent(new MouseEvent('mousemove', { clientX: at.x, clientY: at.y, bubbles: true }));
+
+    if (current.pinned && isSameTarget(current.pinnedItem, hoveredRef.current) && liveModelRef.current != null) {
+      update({ model: liveModelRef.current });
+    }
+  }, [chart, containerRef, latestRef, update]);
+
   usePinnedDismiss(state.pinned, dismiss, containerRef);
 
-  return { state, sink, reportTrigger, dismiss };
+  return { state, sink, reportTrigger, dismiss, refresh };
 }

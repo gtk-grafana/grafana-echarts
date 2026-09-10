@@ -60,12 +60,16 @@ export interface TimelinePlayback {
  * time window is watched as a cycle, and a play button that has to be pressed again
  * after each pass is a worse default than one the user pauses when they have seen it.
  *
+ * `stepStops` is how many stops a step covers — `stopsPerStep` resolves the user's
+ * percentage against this timeline's length. See {@link nextIndex} for where it lands.
+ *
  * A selection the user makes by hand stops it — see {@link TimelinePlayback.stop}.
  */
 export function useTimelinePlayback(
   timeline: number[] | null,
   selected: number | null,
   stepDuration: number,
+  stepStops: number,
   onSelect: (at: number) => void
 ): TimelinePlayback {
   const [requested, setRequested] = useState(false);
@@ -78,12 +82,12 @@ export function useTimelinePlayback(
    */
   const playing = requested && timeline != null && timeline.length > 1;
 
-  const latest = useRef({ timeline, selected, onSelect });
+  const latest = useRef({ timeline, selected, stepStops, onSelect });
   // Written in an effect rather than during render, so a render React throws away
   // cannot leave the timer reading state that was never committed. Effects run before
   // any interval can fire, so the tick below always sees the current values.
   useEffect(() => {
-    latest.current = { timeline, selected, onSelect };
+    latest.current = { timeline, selected, stepStops, onSelect };
   });
 
   useEffect(() => {
@@ -91,15 +95,33 @@ export function useTimelinePlayback(
       return;
     }
     const timer = setInterval(() => {
-      const { timeline: stops, selected: at, onSelect: select } = latest.current;
+      const { timeline: stops, selected: at, stepStops: step, onSelect: select } = latest.current;
       if (stops == null || stops.length === 0) {
         return;
       }
-      select(stops[(resolveTimelineIndex(stops, at) + 1) % stops.length]);
+      select(stops[nextIndex(resolveTimelineIndex(stops, at), step, stops.length)]);
     }, stepDuration);
     // Cleared on unmount as well as on pause: the panel can be removed mid-playback.
     return () => clearInterval(timer);
   }, [playing, stepDuration]);
 
   return { playing, toggle: () => setRequested(!playing), stop: () => setRequested(false) };
+}
+
+/**
+ * Where a step of `step` stops lands from `index`, over a timeline of `length`.
+ *
+ * Both ends are always visited, which plain modulo arithmetic does not give: a step that
+ * would overshoot lands on the **last** stop first, and only wraps to the first from
+ * there. Without that, a step size the length does not divide by would skip the final
+ * state on every pass — and the newest sample is the one a reader most expects to see —
+ * while `(index + step) % length` would also drift the whole cycle onto different stops
+ * each time round, so the same playback never repeats itself.
+ */
+function nextIndex(index: number, step: number, length: number): number {
+  const next = index + step;
+  if (next < length) {
+    return next;
+  }
+  return index < length - 1 ? length - 1 : 0;
 }

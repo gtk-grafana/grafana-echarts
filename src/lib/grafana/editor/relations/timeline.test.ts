@@ -22,7 +22,9 @@ import { relationsOptions } from 'test/relations';
 // See `advancedTier.test.ts`: the standard editor registry is filled by core app code a
 // plugin cannot import, so `builder.addX` throws under jest unless the ids are stubbed.
 const noEditor = (): null => null;
-standardEditorsRegistry.setInit(() => ['boolean', 'number'].map((id) => ({ id, name: id, editor: noEditor })));
+standardEditorsRegistry.setInit(() =>
+  ['boolean', 'number', 'slider'].map((id) => ({ id, name: id, editor: noEditor }))
+);
 
 const T0 = 1700000000000;
 const STEP = 300000;
@@ -95,5 +97,30 @@ describe('the Playback step input', () => {
   // predicate, so the switch being on is necessary but not sufficient.
   it('is hidden in Default editor mode even with the slider on', () => {
     expect(isShown('relationsTimeStepDuration', relationsOptions({ relationsTimeSlider: true }))).toBe(false);
+  });
+});
+
+/** Its sibling — how far a step moves, where the duration is how long it lasts. */
+describe('the Playback step size slider', () => {
+  const sizeShown = (options: Partial<PanelOptions>) =>
+    isShown('relationsTimeStepSize', relationsOptions({ editorMode: 'advanced', ...options }));
+
+  it('follows the slider switch, like the step duration', () => {
+    expect(sizeShown({})).toBe(false);
+    expect(sizeShown({ relationsTimeSlider: true })).toBe(true);
+  });
+
+  it('is hidden in Default editor mode', () => {
+    expect(isShown('relationsTimeStepSize', relationsOptions({ relationsTimeSlider: true }))).toBe(false);
+  });
+
+  // The bounds are the control's job, not a validator's — see `addAdvancedSliderInput`.
+  it('is a 1-100 percentage slider', () => {
+    const builder = new PanelOptionsEditorBuilder<PanelOptions>();
+    addRelationsTimelineOptions(builder);
+    const item = builder.getItems().find((registered) => registered.path === 'relationsTimeStepSize');
+
+    expect(item?.editor).toBeDefined();
+    expect(item?.settings).toMatchObject({ min: 1, max: 100, step: 1 });
   });
 });

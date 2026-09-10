@@ -152,9 +152,10 @@ export const ADVANCED_RELATIONS_DEFAULTS: Partial<PanelOptions> = {
   relationsLabelOverflow: undefined,
   relationsLabelWidth: undefined,
   relationsLinkColor: undefined,
-  // Only the duration: the slider *switch* is Default-tier and stays visible, so
-  // resetting it would clear a value the user can still see.
+  // The two playback knobs, but not the slider *switch*: that is Default-tier and stays
+  // visible, so resetting it would clear a value the user can still see.
   relationsTimeStepDuration: undefined,
+  relationsTimeStepSize: undefined,
   // The switch resets, and the state it stored goes with it — `getRelationsViewState`
   // reads nothing without the switch, so a Default-mode panel is never left holding a
   // pan the user cannot see the control for.
