@@ -10,14 +10,13 @@ import { labelTexts, renderRelations } from 'test/relationsCanvas';
 import { TIME_SLIDER_HEIGHT } from './ChartTimeSlider';
 
 /**
- * The time slider end to end through the family module: which timestamps it offers, what
- * the built option carries at one of them, and what it says when there is nothing to
- * step through.
+ * The time slider end to end through the family module: which timestamps it offers, what the
+ * built option carries at one of them, and what it says when there is nothing to step
+ * through.
  *
- * Asserted on the **built option** rather than on a picture, because every claim here is
- * a difference between two renders of the same frames — "the graph at 22:18 is not the
- * graph at 22:23" is a comparison, and a stored baseline cannot state one. The picture
- * that is worth reviewing (the strip taking layout off the plot) is the canvas sibling.
+ * Asserted on the **built option** rather than on a picture, because every claim here is a
+ * difference between two renders of the same frames, and a stored baseline cannot state a
+ * comparison. The picture worth reviewing is the canvas sibling.
  */
 
 const T0 = 1700000000000;

@@ -374,12 +374,10 @@ describe('useEChartsTooltip', () => {
     /**
      * **Dismissing has to end the fade, not just stop re-applying it.**
      *
-     * The pin's highlight is re-asserted from `pinnedItem` by `settleFocus`, and on the
-     * ZRender-click pin path it never went through `focusPoint` at all — ECharts reports no
-     * element for a canvas click, so `lastHitRef` stays empty and `focusPoint(null)` has
-     * nothing to downplay. Measured on a live four-node graph before the fix: dismissing a
-     * pinned edge left its two endpoints lit and every other mark faded, permanently — a
-     * later hover only *moves* a blur, so nothing ever cleared it.
+     * On the ZRender-click pin path the highlight never goes through `focusPoint` — ECharts
+     * reports no element for a canvas click, so `lastHitRef` stays empty and `focusPoint(null)`
+     * has nothing to downplay. Without the pin's own downplay its adjacency fade is permanent:
+     * a later hover only *moves* a blur, so nothing else ends one.
      */
     it('downplays the pinned item so its adjacency fade ends with the pin', () => {
       const fake = createFakeChart();

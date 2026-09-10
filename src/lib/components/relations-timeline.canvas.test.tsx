@@ -13,19 +13,16 @@ import { height, waitForFinished, width } from 'test/panel';
 import { renderRelations } from 'test/relationsCanvas';
 
 // The one picture the time slider is worth committing: the graph read at a **selected**
-// timestamp rather than at the reduced one, drawn in the box the strip left it.
+// timestamp, drawn in the box the strip left it.
 //
 // Both facts are visible in the same baseline. The plot is 32px shorter than every other
-// relations baseline (`TIME_SLIDER_HEIGHT` — the strip takes layout rather than
-// overlaying, unlike `ChartNotices` and `ChartZoomControls`), and the edge labels read
-// `1`/`10` — the earliest row — where the default reducer, `lastNotNull`, would print
-// `3`/`30`. Those two claims are also stated as comparisons in
-// `relations-timeline.integration.test.tsx`, which is where a *relation* between two
-// renders belongs; this is what it looks like.
+// relations baseline (`TIME_SLIDER_HEIGHT` — the strip takes layout rather than overlaying),
+// and the edge labels read `1`/`10` — the earliest row — where `lastNotNull` would print
+// `3`/`30`. Both are also stated as comparisons in
+// `relations-timeline.integration.test.tsx`; this is what they look like.
 //
-// Edge values are on deliberately: a graph link's thickness comes from
-// `custom.lineWidth`, not from its weight, so without the labels the two timestamps
-// would paint identical lines and the baseline would prove nothing.
+// Edge values are on deliberately: a graph link's thickness comes from `custom.lineWidth`,
+// not from its weight, so without the labels the two timestamps would paint identical lines.
 
 const T0 = 1700000000000;
 const STEP = 300000;

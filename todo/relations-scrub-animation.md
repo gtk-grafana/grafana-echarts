@@ -2,16 +2,14 @@
 
 ## Problem
 
-Stepping the relations [time slider](../src/lib/components/ChartTimeSlider.tsx) — dragging
-it, arrow-keying it or clicking a step button — redraws the chart correctly on all three
-render variants, but only **chord** morphs between the two states. **Sankey** and **graph** cut straight to the
-new frame.
+Stepping the relations [time slider](../src/lib/components/ChartTimeSlider.tsx) redraws
+correctly on all three render variants, but only **chord** morphs between states. **Sankey**
+and **graph** cut straight to the new frame.
 
-That is the wrong way round for legibility: the sankey is the variant whose _geometry_ is
-the value (ribbon thickness is the weight), so it is the one where a tween would carry the
-most information. A graph's links do not encode their weight in the first place, so there
-is visibly nothing to animate there — the honest answer for `graph` is "nothing moves
-because nothing is value-driven", not "the animation is broken".
+That is the wrong way round: the sankey's _geometry_ is the value (ribbon thickness is the
+weight), so it is where a tween would carry the most information. A graph's links do not
+encode their weight at all, so for `graph` the honest answer is "nothing moves because
+nothing is value-driven", not "the animation is broken".
 
 ## Cause: `SankeyView` has no update animation at all
 
@@ -27,42 +25,31 @@ Upstream, in ECharts 6.1.0, and not reachable from a panel option.
 (`createGridClipShape`), gated on `!this._data`. Once `_data` is set, every later render
 sets shapes imperatively.
 
-## Three fixes that do not work, each ruled out by measurement
+## Three fixes that do not work
 
-Measured on `provisioning/dashboards/relations/timeline.json` at :4001, by sampling canvas
-ink every 50ms across one step and counting distinct values (a tween shows ~10, a cut shows
-2). Chord read 10 in every configuration below; sankey read 2 in every one.
+Ruled out by sampling canvas ink every 50ms across one step and counting distinct values (a
+tween shows ~10, a cut shows 2). Chord read 10 in every configuration below, sankey 2.
 
-1. **`setOption` without `notMerge`.** The obvious suspect — `useChartOption` pushes
-   `{ notMerge: true }`, which reads like it should discard the previous series model and
-   leave nothing to animate from. It does not: ECharts matches views by series id, so the
-   `SankeyView` (and its `_data`) survives a `notMerge` and chord already tweened across
-   one. Merging only on a scrub changed neither variant's numbers. Reverted.
-2. **`series.sankey.universalTransition: { enabled: true }`.** Inert, and then still inert
-   after registering the `UniversalTransition` feature in
-   [`lib/echarts/echarts.ts`](../src/lib/echarts/echarts.ts) — the same
-   unregistered-feature trap `LabelLayout` sets, so it was worth eliminating. Universal
-   transition morphs between _different_ series (one chart becoming another); it is not a
-   within-series update path. Reverted.
-3. **Forcing the first-render wipe per step** (`chart.clear()` before `setOption`, or
-   minting a new series id so the view is recreated) would replay `createGridClipShape`.
-   Not measured, because it is the wrong effect even if it works: a left-to-right wipe
-   every step reads as the panel reloading, not as a value changing, and it would discard
-   pan/zoom with it.
+1. **`setOption` without `notMerge`.** ECharts matches views by series id, so `SankeyView`
+   and its `_data` survive a `notMerge` — and chord already tweened across one. Merging only
+   on a scrub changed neither variant's numbers.
+2. **`series.sankey.universalTransition: { enabled: true }`.** Inert, and still inert after
+   registering the `UniversalTransition` feature — universal transition morphs between
+   _different_ series, not within one.
+3. **Forcing the first-render wipe per step** (`chart.clear()`, or a new series id so the
+   view is recreated) would replay `createGridClipShape`. The wrong effect even if it works:
+   a left-to-right wipe every step reads as the panel reloading, and discards pan/zoom.
 
 ## One symptom of the same rebuild is fixed
 
-Because `SankeyView` rebuilds its elements, their **labels** were new objects on every pass
-too — so `LabelManager._animateLabels` took its `if (!oldLayout)` branch and faded each edge
-value in from zero, timed by `animationDuration` rather than by the update duration. Measured
-stepping the slider: `0.001 → 1` over ~120 frames, on every step, while the node names held
-at 1. A `graph` never showed it, for the same reason it has no shape tween to lose — it
-updates in place.
+The same rebuild made each edge **label** a new object every pass, so
+`LabelManager._animateLabels` took its `if (!oldLayout)` branch and faded every edge value in
+from zero — `0.001 → 1` over ~120 frames per step, timed by `animationDuration` rather than
+the update duration. A `graph` never showed it, for the same reason it has no shape tween to
+lose.
 
-That one **is** fixable panel-side, and is fixed: `registerEdgeLabelFadeIn` sets zrender's
-`disableLabelAnimation` on every edge-label host before the label stage reads it. It is not a
-workaround for the cut below — the shapes still cut — only for a label fade that made every
-step read as a reload.
+That one is fixable panel-side: `registerEdgeLabelFadeIn` sets zrender's
+`disableLabelAnimation` on every edge-label host. The shapes still cut.
 
 ## What would actually fix it
 
@@ -71,7 +58,6 @@ and link curves through `graphic.updateProps` instead of `setShape`, which is wh
 `ChordView` already does. Worth an ECharts issue; there is no panel-side workaround that is
 better than the cut.
 
-Until then this is documented rather than worked around:
-`provisioning/dashboards/relations/timeline.json` carries a chord panel beside the sankey
-so the difference is visible and attributed, and `src/modules/relations/parity.md` says
-which variant morphs.
+Until then it is documented rather than worked around:
+`provisioning/dashboards/relations/timeline.json` carries a chord panel beside the sankey so
+the difference is visible, and `src/modules/relations/parity.md` says which variant morphs.

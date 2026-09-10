@@ -63,11 +63,10 @@ export interface ChartContext<T = SeriesType, C = EChartsFieldConfig, V = EChart
   timeRange: TimeRange;
   options: PanelOptions;
   /**
-   * The one timestamp the marks are read at, instead of reducing their rows away —
-   * the relations time slider's selection (`ChartTimeSlider`). `null`/absent is the
-   * reducing reading, which is every family's behaviour and the only one an instant
-   * response can have. Panel-local transient state, deliberately not a panel option:
-   * scrubbing must not mark the dashboard dirty.
+   * The one timestamp the marks are read at, instead of reducing their rows away — the
+   * relations time slider's selection (`ChartTimeSlider`). `null`/absent is the reducing
+   * reading, which is every other family and every instant response. Panel-local transient
+   * state, deliberately not a panel option: scrubbing must not mark the dashboard dirty.
    */
   selectedTime?: number | null;
   seriesType: T;
@@ -322,13 +321,12 @@ export interface ChartModule {
   getZoomAction?(ctx: ChartContext): ChartZoomAction | undefined;
 
   /**
-   * The timestamps this render can be stepped through, or `null` to draw no time
-   * slider — see `ChartTimeSlider`.
+   * The timestamps this render can be stepped through, or `null` to draw no time slider —
+   * see `ChartTimeSlider`.
    *
-   * Only relations implements it, and only when its slider option is on and the data
-   * actually has a row dimension with more than one stop (`graphWideTimeline`). Keeping
-   * it a module capability is what keeps `Panel` family-agnostic, the same way
-   * `getNotices` and `getZoomAction` do.
+   * Only relations implements it, and only with its slider option on against data that has
+   * more than one stop (`graphWideTimeline`). A module capability, so `Panel` stays
+   * family-agnostic — the same shape as `getNotices` and `getZoomAction`.
    */
   getTimeline?(ctx: ChartContext): number[] | null;
 

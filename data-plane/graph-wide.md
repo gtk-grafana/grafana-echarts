@@ -283,32 +283,6 @@ where there is a row dimension to reduce differently.
 Reducing "all values" is not part of this kind: it would make one mark per row, and a mark
 is a field.
 
-### Reading a single row
-
-Reduction is not the only reading of the row dimension. A consumer may instead select **one
-row** — one timestamp — and read every mark's value there, which is the graph as it was at
-that instant rather than a summary of the window. The two readings are alternatives, not
-layers: a consumer offers one or the other.
-
-Three consequences follow, and a consumer that reads a row has to honour all three:
-
-- **The row is resolved per frame, from a timestamp.** A row _index_ is only shared where
-  one frame carries every mark. The _Multi_ row-dimension variant gives each frame its own
-  row dimension, and they need not agree — a series with a gap is shorter than its
-  siblings — so index 4 is a different instant in each. Selecting by timestamp is what
-  makes the reading well defined across the variants.
-- **A mark with no sample at that timestamp reads `null`** — the same value an all-null
-  field reduces to, so nothing further is needed to handle it. An absent scrape is not a
-  zero, and it is not the previous value either: this kind carries no carry-forward rule.
-- **The two stats degenerate.** Every reducer agrees over one value, so a secondary stat
-  read this way would restate the main one under a different name. The stat slots past the
-  first are empty at a selected row; the `secondarystat` label is not affected, since it is
-  a carried value rather than a reducer's output.
-
-This is also the only reading under which a mark's **source row** is exact. Under reduction
-there is no one row a mean came from, so a data link interpolating a row-scoped variable can
-only be pointed at row 0 and will disagree with the reduced stat on ranged data.
-
 ## Frame role resolution
 
 In precedence order:

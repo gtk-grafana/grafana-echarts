@@ -62,10 +62,9 @@ export const Panel: React.FC<Props> = ({
     [data.series, theme, timeZone]
   );
 
-  // Everything but the time selection. Split out so the timeline below can be resolved
-  // without depending on the selection it is used to clamp: the selection is only
-  // meaningful against the timeline, so a context that carried both would be circular —
-  // and would rebuild the whole stop list on every scrub.
+  // Everything but the time selection. Split out because the selection is only meaningful
+  // against the timeline below, so a context carrying both would be circular — and would
+  // rebuild the whole stop list on every scrub.
   const baseContext: ChartContext = useMemo(
     () => ({
       frames: data.series,
@@ -86,15 +85,12 @@ export const Panel: React.FC<Props> = ({
   const timeline = useMemo(() => chartModule.getTimeline?.(baseContext) ?? null, [chartModule, baseContext]);
 
   /**
-   * The selected timestamp: **transient panel state**, never a saved option. Scrubbing a
-   * dashboard somebody is only reading must not mark it as having unsaved changes — the
-   * line `useRelationsPersistence` draws between an edit (a dragged node) and a view.
+   * The selected timestamp: **transient panel state**, never a saved option — scrubbing a
+   * dashboard somebody is only reading must not mark it dirty. That is the line
+   * `useRelationsPersistence` draws between an edit and a view.
    *
-   * Held as a timestamp rather than a slider index, and clamped against the current
-   * timeline on every render, because the dashboard refreshes underneath it: a rolling
-   * window drops the oldest stop and adds a new one, and an index would quietly come to
-   * mean a different instant. `null` resolves to the newest stop, which is what the
-   * default `lastNotNull` reducer already draws.
+   * A timestamp rather than an index, re-clamped every render, because the dashboard
+   * refreshes underneath it; see `resolveTimelineIndex`.
    */
   const [pickedTime, setPickedTime] = useState<number | null>(null);
   const selectedTime = timeline != null ? timeline[resolveTimelineIndex(timeline, pickedTime)] : null;
@@ -134,10 +130,10 @@ export const Panel: React.FC<Props> = ({
   return (
     <VizLayout width={width} height={height} legend={legendItems.length > 0 ? renderLegend() : null}>
       {(vizWidth: number, vizHeight: number) => {
-        // The time slider is the one piece of panel chrome that takes layout rather than
-        // overlaying the plot, so the chart gets what is left. An explicit pixel height
-        // rather than `flex: 1`: `EChart` writes its height as an inline style and pushes
-        // the same number into ECharts, which cannot read a solved flex box.
+        // The slider is the one piece of chrome that takes layout rather than overlaying the
+        // plot, so the chart gets what is left. An explicit pixel height rather than
+        // `flex: 1`: `EChart` pushes the same number into ECharts, which cannot read a
+        // solved flex box.
         const chartHeight = vizHeight - (timeline != null ? TIME_SLIDER_HEIGHT : 0);
         return (
           <div style={{ width: vizWidth, height: vizHeight, display: 'flex', flexDirection: 'column' }}>
