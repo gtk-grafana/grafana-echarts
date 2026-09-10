@@ -5,7 +5,7 @@ import { FieldColorModeId, FieldConfigProperty, type StandardOptionConfig } from
  * All five modules customize only Color the same way — classic palette default,
  * with by-value and by-series color supported and thresholds mode not preferred
  * — so the block lives here once and is spread into each module's
- * `standardOptions` under `FieldConfigProperty.Color` (see `STANDARD_COLOR_OPTIONS`).
+ * `standardOptions` under `FieldConfigProperty.Color` (see `STANDARD_FIELD_OPTIONS`).
  */
 export const STANDARD_COLOR_OPTION: StandardOptionConfig = {
   settings: {

@@ -6,6 +6,7 @@ import {
   FieldType,
   formattedValueToString,
   type GrafanaTheme2,
+  type Labels,
   type ReduceDataOptions,
   reduceField,
   ReducerID,
@@ -151,6 +152,18 @@ export const ENDPOINT_LABEL_PAIRS: readonly GraphEndpointKeys[] = [
 ];
 
 /**
+ * Every key any recognised pair uses as an endpoint, so a mark's *other* labels can be told
+ * apart from its topology whichever pair the response carried.
+ *
+ * Lives beside the pairs rather than in its one consumer — the tooltip footer, deciding
+ * which of a mark's labels are dimensions rather than topology — because the answer is a
+ * property of the pair list and drifts the moment a pair is added.
+ */
+export const ENDPOINT_LABEL_KEYS: ReadonlySet<string> = new Set(
+  ENDPOINT_LABEL_PAIRS.flatMap((pair) => [pair.source, pair.target])
+);
+
+/**
  * `frame.meta.custom.graph`, the contract's own block — see *Frame meta* in
  * ../../../../data-plane/graph-wide.md, which reserves `{ sourceKey?, targetKey? }` for
  * "non-default endpoint label keys, e.g. Tempo's `client` / `server`".
@@ -253,22 +266,93 @@ export function endpointLabelsOf(field: Field, declared?: GraphEndpointKeys): Gr
 /**
  * Endpoints from an id — the fallback carrier, for sources that cannot emit labels.
  *
- * **First separator wins**: `a-->b-->c` is `a` and `b-->c`. Exported so a converter can
- * ask "is this name already an edge id?" with the same test the reader applies.
+ * **First separator wins** by default: `a-->b-->c` is `a` and `b-->c`. Exported so a
+ * converter can ask "is this name already an edge id?" with the same test the reader
+ * applies.
+ *
+ * `labels` resolves that ambiguity properly when the mark has any: a name with several
+ * separators is split at the point where **both** halves are values the mark actually
+ * carries, so a node id containing the separator round-trips. Only a split that matches
+ * both halves wins — one matching half is no more evidence than none, since every split of
+ * `a-->b-->c` has some half that matches something. Falls back to first-wins, which is what
+ * a mark with no labels (the carrier's whole reason to exist) always gets.
  */
-export function endpointsFromName(name: string): GraphEndpoints | undefined {
-  const at = name.indexOf(EDGE_SEPARATOR);
-  if (at <= 0) {
+export function endpointsFromName(name: string, labels?: Labels): GraphEndpoints | undefined {
+  const splits: GraphEndpoints[] = [];
+  for (let at = name.indexOf(EDGE_SEPARATOR); at > 0; at = name.indexOf(EDGE_SEPARATOR, at + 1)) {
+    const source = name.slice(0, at);
+    const target = name.slice(at + EDGE_SEPARATOR.length);
+    if (source && target) {
+      splits.push({ source, target });
+    }
+  }
+  if (splits.length === 0) {
     return undefined;
   }
-  const left = name.slice(0, at);
-  const right = name.slice(at + EDGE_SEPARATOR.length);
-  return left && right ? { source: left, target: right } : undefined;
+  const values = new Set(Object.values(labels ?? {}));
+  return splits.find(({ source, target }) => values.has(source) && values.has(target)) ?? splits[0];
 }
 
 /** Endpoints from a field, labels first. */
 function endpointsOf(field: Field, declared?: GraphEndpointKeys): GraphEndpoints | undefined {
-  return endpointLabelsOf(field, declared) ?? endpointsFromName(field.name);
+  return endpointLabelsOf(field, declared) ?? endpointsFromName(field.name, field.labels);
+}
+
+/**
+ * The keys a field's endpoint **values** are also carried under, when they are not the pair
+ * the endpoints were read from — the label `label_replace` *copied* from.
+ *
+ * This is what makes a multi-level flow filterable with nothing configured. A sankey's two
+ * levels are one query whose operands are `or`-joined, each relabelled to the contract's
+ * canonical pair:
+ *
+ *     sum by (source, target, cluster, namespace) (label_replace(label_replace(…)))
+ *       or
+ *     sum by (source, target, namespace, workload) (label_replace(label_replace(…)))
+ *
+ * `label_replace` copies rather than moves, so an operand that simply stops aggregating the
+ * original away carries both — and the *keys* are then recoverable exactly, per edge, as
+ * "whichever labels hold this edge's endpoint values". Two levels resolve to two different
+ * pairs with no per-level override and no query restructuring. Neither
+ * {@link resolveEndpointLabelKeys} nor the per-mark `custom.sourceFilterLabel` can do that:
+ * both are one answer for many marks, and with two levels there is no single answer.
+ *
+ * Deliberately conservative, because a wrong key filters a dashboard down to nothing:
+ *
+ * - **both ends or neither.** One matched end is a coincidence, not a pair —
+ *   `{source: 'api', target: 'db', job: 'api'}` matches `job` for the source and nothing for
+ *   the target, so the canonical pair stands;
+ * - **ambiguity records nothing.** Two labels holding the source's value cannot be told
+ *   apart, and recording one of two would be wrong for half the response. Declining leaves
+ *   the status quo, which is a failure mode the dashboard already survives;
+ * - **the pair the endpoints were *read* from is skipped**, since re-reporting it says
+ *   nothing. Other recognised endpoint keys are *not* skipped: `server` is half of the
+ *   `client`/`server` pair and is also a perfectly ordinary label to relabel a leaf from
+ *   (`… → server` in a cluster → namespace → service flow), and excluding it would decline
+ *   the exact case this exists for.
+ *
+ * A **self-loop** has one value for both ends, so the two matches come off one list: the
+ * first is the source and the next is the target. Two matches exactly, or it declines —
+ * with three there is no reason to prefer any two of them.
+ */
+export function aliasEndpointKeys(
+  field: Field,
+  endpoints: GraphEndpoints,
+  read?: GraphEndpointKeys
+): GraphEndpointKeys | undefined {
+  const candidates = Object.entries(field.labels ?? {}).filter(([key]) => key !== read?.source && key !== read?.target);
+  const matching = (value: string): string[] => candidates.filter(([, held]) => held === value).map(([key]) => key);
+
+  if (endpoints.source === endpoints.target) {
+    const both = matching(endpoints.source);
+    return both.length === 2 ? { source: both[0], target: both[1] } : undefined;
+  }
+  const sources = matching(endpoints.source);
+  const targets = matching(endpoints.target);
+  if (sources.length !== 1 || targets.length !== 1) {
+    return undefined;
+  }
+  return { source: sources[0], target: targets[0] };
 }
 
 /**
@@ -500,11 +584,11 @@ function reduceValue(field: Field, calc: string): number | null {
 }
 
 /** A mark's value under the reading in force — see {@link MarkRead}. */
-function markValue(field: Field, read: MarkRead): number | null {
-  if (read.kind === 'reduce') {
-    return reduceValue(field, read.calc);
+function markValue(field: Field, markRead: MarkRead): number | null {
+  if (markRead.kind === 'reduce') {
+    return reduceValue(field, markRead.calc);
   }
-  return read.row == null ? null : numberAt(field, read.row);
+  return markRead.row == null ? null : numberAt(field, markRead.row);
 }
 
 /**
@@ -514,8 +598,8 @@ function markValue(field: Field, read: MarkRead): number | null {
  * there is no one row a mean came from. Under `at` it is the selected row, and 0 again
  * when the frame has no sample there, so an interpolated link still resolves.
  */
-function sourceRowOf(read: MarkRead): number {
-  return read.kind === 'at' ? (read.row ?? 0) : 0;
+function sourceRowOf(markRead: MarkRead): number {
+  return markRead.kind === 'at' ? (markRead.row ?? 0) : 0;
 }
 
 /** The row dimension of a frame, which a ranged response always has and an instant one does not. */
@@ -682,11 +766,11 @@ function stringFrom(value: unknown): string | undefined {
  * with no calculation behind it — and only when no reducer produced anything: an instant
  * response has no second value to reduce, so that label *is* the secondary stat there.
  */
-function secondaryStatsOf(field: Field, read: MarkRead): MarkStat[] {
+function secondaryStatsOf(field: Field, markRead: MarkRead): MarkStat[] {
   const stats: MarkStat[] = [];
   // None of its own at a selected row: every reducer agrees over one value, so the extra
   // calcs would render as duplicate tooltip rows. The legacy label below still applies.
-  for (const calc of read.kind === 'reduce' ? read.secondary : []) {
+  for (const calc of markRead.kind === 'reduce' ? markRead.secondary : []) {
     const value = reduceValue(field, calc);
     if (value != null) {
       stats.push({ calc, value: field.display ? formattedValueToString(field.display(value)) : String(value) });
@@ -699,19 +783,52 @@ function secondaryStatsOf(field: Field, read: MarkRead): MarkStat[] {
   return legacy != null ? [{ value: legacy }] : [];
 }
 
-function readLinks(frame: DataFrame, read: MarkRead): RelationLink[] {
+/**
+ * The keys **this edge's** endpoints filter under, as far as the response can say. Three
+ * carriers, most authoritative first, and every one of them is per edge:
+ *
+ * - the frame's {@link GRAPH_META_CUSTOM} declaration, the only carrier that survives a
+ *   pivot — but frame-wide, so a response mixing pairs records none (`commonEndpointKeys`);
+ * - the field's own non-canonical pair, for a response that reached the panel unconverted;
+ * - the alias recovered from the field's values ({@link aliasEndpointKeys}), which is the
+ *   only one of the three that can answer differently for two edges of one frame.
+ *
+ * Undefined means "nothing but the contract's own pair", which the tooltip already treats
+ * as the fallback — so an edge that answers nothing costs nothing.
+ */
+function edgeFilterLabels(
+  field: Field,
+  endpoints: GraphEndpoints,
+  read: GraphEndpointKeys | undefined,
+  declared: GraphEndpointKeys | undefined
+): { keys: GraphEndpointKeys; recovered: boolean } | undefined {
+  if (declared && !isCanonicalEndpointKeys(declared)) {
+    return { keys: declared, recovered: false };
+  }
+  const own = endpointLabelKeysOf(field);
+  if (own && !isCanonicalEndpointKeys(own)) {
+    return { keys: own, recovered: false };
+  }
+  const alias = aliasEndpointKeys(field, endpoints, read);
+  return alias ? { keys: alias, recovered: true } : undefined;
+}
+
+function readLinks(frame: DataFrame, markRead: MarkRead, recovered: Set<RelationLink>): RelationLink[] {
   const links: RelationLink[] = [];
   // The frame's own answer to "which labels are the endpoints", tried ahead of the
   // conventional pairs. See `GRAPH_META_CUSTOM`.
   const declared = declaredEndpointKeys(frame);
 
   for (const field of numericFields(frame)) {
+    // The pair the endpoints were *read* from, which the recovery has to skip: reporting
+    // back the key it read the value out of would say nothing.
+    const read = endpointLabelKeysOf(field, declared);
     const endpoints = endpointsOf(field, declared);
     if (!endpoints) {
       continue;
     }
 
-    const value = markValue(field, read);
+    const value = markValue(field, markRead);
     const custom = customOf(field);
     const link: RelationLink = {
       id: field.name,
@@ -730,9 +847,17 @@ function readLinks(frame: DataFrame, read: MarkRead): RelationLink[] {
       // and row 0 of a 57-row series is an hour ago. Not fixable there: "the row the
       // reducer picked" is well defined for first/last/min/max and meaningless for
       // mean/sum. Under `at` there *is* one row and the two agree.
-      sourceRowIndex: sourceRowOf(read),
+      sourceRowIndex: sourceRowOf(markRead),
       field,
     };
+
+    const filterLabels = edgeFilterLabels(field, endpoints, read, declared);
+    if (filterLabels != null) {
+      link.filterLabels = filterLabels.keys;
+      if (filterLabels.recovered) {
+        recovered.add(link);
+      }
+    }
 
     const color = edgeColorOf(field, value);
     if (color != null) {
@@ -754,7 +879,7 @@ function readLinks(frame: DataFrame, read: MarkRead): RelationLink[] {
     // so picking a second calculation on a panel whose marks are edges — an edges-only
     // response, which is the common shape — produced no second value anywhere and the
     // option read as broken. See `secondaryStatsOf`.
-    const secondaries = secondaryStatsOf(field, read);
+    const secondaries = secondaryStatsOf(field, markRead);
     if (secondaries.length > 0) {
       link.secondaries = secondaries;
     }
@@ -805,8 +930,12 @@ function assignMarkKeys(links: RelationLink[]): void {
     const base = bases[index];
     // The mark's *own* endpoint keys: an unconverted `client`/`server` response reaches the
     // reader with those still in place, and they are the endpoints, not a discriminator.
+    // A recovered pair is dropped for the same reason — a query that kept `cluster` and
+    // `namespace` beside the canonical pair is carrying its topology twice, not carrying a
+    // label that tells two parallel edges apart.
     const endpointKeys = link.field ? endpointLabelKeysOf(link.field) : undefined;
-    const key = uniqueId(taken, base, withoutEndpoints(link.field?.labels, endpointKeys), contested.has(base));
+    const rest = withoutEndpoints(withoutEndpoints(link.field?.labels, endpointKeys), link.filterLabels);
+    const key = uniqueId(taken, base, rest, contested.has(base));
     taken.add(key);
     link.markKey = key;
   });
@@ -817,11 +946,11 @@ function assignMarkKeys(links: RelationLink[]): void {
   });
 }
 
-function readNodes(frame: DataFrame, read: MarkRead): RelationNode[] {
+function readNodes(frame: DataFrame, markRead: MarkRead): RelationNode[] {
   const nodes: RelationNode[] = [];
 
   for (const field of numericFields(frame)) {
-    const value = markValue(field, read);
+    const value = markValue(field, markRead);
     const custom = customOf(field);
     const node: RelationNode = {
       id: field.name,
@@ -829,7 +958,7 @@ function readNodes(frame: DataFrame, read: MarkRead): RelationNode[] {
       // `getFieldDisplayName`, which appends the label set.
       name: field.config.displayName ?? field.name,
       value,
-      sourceRowIndex: sourceRowOf(read),
+      sourceRowIndex: sourceRowOf(markRead),
       field,
     };
 
@@ -853,7 +982,7 @@ function readNodes(frame: DataFrame, read: MarkRead): RelationNode[] {
     if (fixedY != null) {
       node.fixedY = fixedY;
     }
-    const secondaries = secondaryStatsOf(field, read);
+    const secondaries = secondaryStatsOf(field, markRead);
     if (secondaries.length > 0) {
       node.secondaries = secondaries;
     }
@@ -985,6 +1114,37 @@ function noteCollectedFrames(perFrame: RelationLink[][]): void {
 }
 
 /**
+ * Report the endpoint keys the reader **recovered** rather than read.
+ *
+ * The recovery is invisible otherwise — nothing renders differently and the buttons only
+ * appear on a pinned tooltip — so a panel whose filters resolve to a key the user did not
+ * configure has to be inspectable rather than guessed at. One line per distinct pair, since
+ * a multi-level flow's whole point is that there is more than one.
+ *
+ * Info rather than warn: recovering the key *is* the intended path for these queries.
+ */
+function noteRecoveredKeys(links: RelationLink[], recovered: ReadonlySet<RelationLink>): void {
+  if (recovered.size === 0) {
+    return;
+  }
+  const pairs = new Map<string, number>();
+  for (const link of links) {
+    if (!recovered.has(link) || !link.filterLabels) {
+      continue;
+    }
+    const pair = `${link.filterLabels.source} / ${link.filterLabels.target}`;
+    pairs.set(pair, (pairs.get(pair) ?? 0) + 1);
+  }
+  debug(
+    `Note: relations recovered the datasource's endpoint label keys by value for ${recovered.size} of ` +
+      `${links.length} edge(s): ${[...pairs].map(([pair, count]) => `${pair} (${count})`).join(', ')}. ` +
+      'Ad-hoc filters are written under those rather than under the contract’s source/target.',
+    LOG_LEVELS.info,
+    { pairs: [...pairs.keys()], recovered: recovered.size, edges: links.length }
+  );
+}
+
+/**
  * Convert `graph-*-wide` frames into the shared node/link model.
  *
  * At least one edges frame is required; nodes frames are optional and only add metadata.
@@ -1021,12 +1181,16 @@ export function frameToGraphWide(
   const readFor = (frame: DataFrame): MarkRead =>
     at == null ? { kind: 'reduce', calc, secondary: secondaryCalcs } : { kind: 'at', row: rowAt(frame, at) };
   // Per frame first, so the diagnostic can say what the old reading would have drawn.
-  const perFrame = roles.edgesFrames.map((frame) => readLinks(frame, readFor(frame)));
+  // Which edges had their filter keys *recovered* rather than read, for the diagnostic —
+  // tracked here rather than on the link, which is the render model and not a log.
+  const recovered = new Set<RelationLink>();
+  const perFrame = roles.edgesFrames.map((frame) => readLinks(frame, readFor(frame), recovered));
   const links = perFrame.flat();
   if (links.length === 0) {
     return null;
   }
   noteCollectedFrames(perFrame);
+  noteRecoveredKeys(links, recovered);
   assignMarkKeys(links);
 
   const derived = deriveNodesFromLinks(links);

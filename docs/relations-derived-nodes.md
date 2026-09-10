@@ -29,15 +29,15 @@ A derived node has no field. It is invented by the reader (`deriveNodesFromLinks
 `src/lib/echarts/converters/graphWide.ts`), inside the panel, which is _downstream_ of
 `applyFieldOverrides` — so there was never anything for an override to land on:
 
-| Capability                                           | Declared node           | Derived node, before         |
-| ---------------------------------------------------- | ----------------------- | ---------------------------- |
-| Colour (all eight modes, `byName` override)          | Yes                     | Classic palette by position  |
-| Unit / decimals / mappings / thresholds              | Yes, per mark           | None — no config to read     |
-| `custom.nodeRadius` / `subtitle` / `fixedX`/`fixedY` | Yes                     | None                         |
-| Data links (tooltip footer)                          | Yes                     | No footer at all             |
-| Ad-hoc filters (needs standard `filterable`)         | Yes                     | None — no field to set it on |
-| Hide from viz                                        | Via the override engine | By **name** matching only    |
-| Appears in the override picker                       | Yes                     | No                           |
+| Capability                                           | Declared node           | Derived node, before        |
+| ---------------------------------------------------- | ----------------------- | --------------------------- |
+| Colour (all eight modes, `byName` override)          | Yes                     | Classic palette by position |
+| Unit / decimals / mappings / thresholds              | Yes, per mark           | None — no config to read    |
+| `custom.nodeRadius` / `subtitle` / `fixedX`/`fixedY` | Yes                     | None                        |
+| Data links (tooltip footer)                          | Yes                     | No footer at all            |
+| Ad-hoc filters (needs standard `filterable`)         | Yes, its own opt-in     | Yes, on the edges' opt-in   |
+| Hide from viz                                        | Via the override engine | By **name** matching only   |
+| Appears in the override picker                       | Yes                     | No                          |
 
 The second symptom was the node's **value**. With no field to reduce, the only number
 derivable was the node's degree — its link count — and it went in the value slot, where
@@ -115,6 +115,15 @@ tooltip is a Single-mode tooltip and core only scrolls a Multi-mode one.
 
 It is a fallback, not an addition: a node that has a stat reports the stat. See
 `adjacencyRows` in `src/lib/echarts/tooltip/relations.ts`.
+
+The tooltip's ad-hoc filters are the one capability that does **not** degrade here, and
+deliberately so. A node's filters are written under the _endpoint label keys_, which are the
+**edges'** dimensions, so the field that can honestly say whether `source="gateway"` filters
+anything is an edge field — the node has none. A derived node therefore takes its
+`filterable` opt-in from the edges that named it (`markFilterable`), while a node the
+pre-pass declared answers with its own field first. Gating it on the node's own field
+instead left a service-graph panel offering filters on every link and none at all on its
+nodes.
 
 ## What is still open
 

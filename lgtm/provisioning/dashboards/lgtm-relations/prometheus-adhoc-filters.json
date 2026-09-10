@@ -1,0 +1,488 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Ad-hoc filter behaviour of the relations tooltip footer against the LGTM stack's own service graph, which Tempo's metrics-generator publishes with real client/server labels. Sibling of echarts-relations-adhoc-filters on the dev Grafana; same six panels, a topology small enough to hold in your head. Grafana and Prometheus sit in the middle, user is a pure origin, elasticsearch and grafana-assistant-app are pure destinations, and prometheus calls itself.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [
+    {
+      "title": "The rest of the LGTM relations dashboards",
+      "type": "dashboards",
+      "tags": ["lgtm"],
+      "icon": "external link",
+      "url": "",
+      "targetBlank": false,
+      "asDropdown": true,
+      "includeVars": false,
+      "keepTime": true
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "h": 15,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "# Ad-hoc filters, one behaviour per panel\n\nPin a tooltip — **click** a node or a link — and the footer offers **Filter on this value**,\n**Filter out this value**, and a **Filter for …** button per non-endpoint label. They write into\nthe **Ad hoc filters** variable at the top, which Prometheus injects into every query's metric\nselector, so the whole dashboard narrows on the click.\n\nEverything below is about one question: **which label key does an endpoint go out under, and is it\noffered at all?** The contract's own `source`/`target` is a *topology carrier* — it says which mark\nconnects to which, not that the datasource has ever heard of a label called `source`. A filter built\nstraight from the frame is `source=\"elasticsearch\"`, which matches zero series and silently empties the\ndashboard.\n\n| Panel | What it isolates | Code |\n| --- | --- | --- |\n| 2 | the `filterable` gate, and a **derived** node taking the edges' opt-in | `resolveFilters`, `markFilterable` |\n| 3 | the same panel with the gate off — no buttons anywhere | `resolveFilters` |\n| 4 | **direction**: a destination-only node asserts its *target* key | `toNodeFilterLabels` |\n| 5 | why the fallback exists — a node override with nothing to bind to | `markFilterable` |\n| 6 | two levels, **per-edge** key recovery, and a middle node deduping to one key | `aliasEndpointKeys`, `toNodeFilterLabels` |\n| 7 | the **deprecated** escape hatch, and the query fix that replaces it | `addRelationsFilterConfig` |\n\nPanels 2–6 configure **nothing**. Only panel 7 sets a key by hand, and only because its query threw\nthe original away. Clear the variable between experiments — a stale `!=` chip looks like a bug in the\npanel.\n\n**The topology is tiny and every role is in it**: `user` only ever calls (a pure origin, and a `virtual_node`), `elasticsearch` and `grafana-assistant-app` are only ever called, `grafana` and `prometheus` sit in the middle, and `prometheus` calls itself. Every edge is produced by these five containers doing their normal work, so **a quiet stack is a thin graph** — open a few dashboards to give Tempo something to measure."
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The gate is on — and every node here is derived",
+      "description": "`sum by (client, server)` — the pair the reader recognises, so nothing is configured here at all and the filters still go out under the datasource's own keys (`ENDPOINT_LABEL_PAIRS`). Standard **Filterable** is set once in the Fields tab, which is why any button appears at all (`resolveFilters`).\n\nThe response is **edges only**, so no node has a field of its own: each is a mark the response only implied. Pin one anyway and it offers filters, taken from the edges that named it (`markFilterable` → `RelationsMarks.endpointsFilterable`). Pin an edge for the grouped pair, and `connection_type` for a button of its own.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2,
+          "filterable": true
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "force",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 16,
+        "relationsCurveness": 0.1,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n)",
+          "exemplar": false,
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The same panel with Filterable off — no buttons at all",
+      "description": "Identical query, identical marks; **Filterable** cleared in the Fields tab. The footer offers no filter button on any mark, node or edge — a filter written under a key the datasource cannot answer either does nothing or empties the dashboard, so the panel offers nothing instead.\n\nData links are **not** gated the same way: a link is the field's own config, not a claim about the query. This panel has none to show, but `per-mark-tooltip-links.json` does.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "force",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 16,
+        "relationsCurveness": 0.1,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n)",
+          "exemplar": false,
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Direction — a destination-only node asserts its target key",
+      "description": "The bug this fixes: which key can carry a node's name is a property of the **topology**, not of the node. Pin **elasticsearch** — it is never a client — and \"Filter on this value\" asserts the *target* key, not `client=\"elasticsearch\"`, which would match no series at all. No key mapping could have fixed that: the key was right and the direction was wrong.\n\nPin **grafana**, which is at both ends of something, and it asserts the source key instead — `client=x AND server=x` is self-loops, and there is no ad-hoc filter for \"either endpoint\".\n\n\"Filter out this value\" negates **both** keys on either node. That is deliberate and asymmetric: a `topk` re-ranks the moment the filter applies, so negating one direction alone lets the node reappear at the other end (`NodeFilterLabels.negate`).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2,
+          "filterable": true
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "force",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 16,
+        "relationsCurveness": 0.1,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n)",
+          "exemplar": false,
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Why the fallback exists — a node override with nothing to bind to",
+      "description": "Same query, with a `byName` override clearing **Filterable** on the `elasticsearch` node — and it makes **no difference**: pin that node and both buttons are still there. This is not a bug in the override, it is the reason `markFilterable` has a fallback at all.\n\nA node override needs the node to *be* a field, which is what the derived-node pre-pass provides — and that needs the `panelPluginTransformations` feature. **This Grafana is 13.1 and does not have it**, so every node here is a mark the response only implied, with no field for an override to land on and none to carry `filterable`. So the node takes the **edges'** answer instead, which is the honest authority: a node's filters are written under the endpoint keys, and those are the edges' dimensions.\n\nGating on the node's own absent field is what left a service-graph panel offering filters on every link and none at all on its nodes. To turn a node off *here* you turn the whole panel off — panel 3. The dev-Grafana sibling (`echarts-relations-adhoc-filters`) runs a build that has the feature, and there the same override does bind.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2,
+          "filterable": true
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "elasticsearch"
+            },
+            "properties": [
+              {
+                "id": "filterable",
+                "value": false
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "force",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 16,
+        "relationsCurveness": 0.1,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])\n)",
+          "exemplar": false,
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Two levels in one frame, each filtering under its own keys",
+      "description": "An `or`-joined two-level flow. Both halves relabel to the contract's `source`/`target` — but from **different** originals, so no single setting could ever hold both answers. Each half's outer aggregation keeps the label it relabelled from, and the panel recovers the pair **per edge** by matching the endpoint values back against the labels (`aliasEndpointKeys`).\n\n- pin a level-1 edge → `stack` / `client`;\n- pin a level-2 edge → `client` / `server`;\n- pin **grafana**, a node on the boundary → **one** `client` filter, not two. It is level 1's target and level 2's source and both say the same key, so a node's keys come from the edges touching it and dedupe (`toNodeFilterLabels`).\n\nNothing is configured on this panel. The recovered key also gets **no** separate \"Filter for\" button: the query carries its topology twice, so that label is not a dimension beside the endpoints — it *is* the endpoint.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2,
+          "filterable": true
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 14,
+        "relationsCurveness": 0.1,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (source, target, stack, client) (\n  label_replace(\n    label_replace(\n      rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range]),\n    \"source\", \"$1\", \"stack\", \"(.*)\"),\n  \"target\", \"$1\", \"client\", \"(.*)\")\n)\nor\nsum by (source, target, client, server) (\n  label_replace(\n    label_replace(\n      rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range]),\n    \"source\", \"$1\", \"client\", \"(.*)\"),\n  \"target\", \"$1\", \"server\", \"(.*)\")\n)",
+          "exemplar": false,
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": []
+    },
+    {
+      "id": 7,
+      "type": "grafana-echartsrelations-panel",
+      "title": "The deprecated escape hatch — and the one-line query fix that replaces it",
+      "description": "**This is the only thing left that sets `sourceFilterLabel` / `targetFilterLabel`, and it is kept to demonstrate a setting on its way out.** Nothing else in the repo sets it; it is override-only (`hideFromDefaults`), so it no longer appears in the Fields tab — this panel reaches it through an **override** on `/.*/`, which is how you would have to now.\n\n`sum by (source, target) (label_replace(…))` **drops** the originals, so nothing downstream can recover them and the endpoints have to be told they go out as `client` / `server`.\n\n**The fix is to not do that.** Name the originals in the outer aggregation —\n\n```\nsum by (source, target, client, server) (…)\n```\n\nand the panel recovers the pair per edge with nothing configured, exactly as panel 6 does. The rename is 1:1, so naming them in `by` splits no group and costs no cardinality. On the `rowsToFields` route the equivalent is leaving the columns out of `organize`'s **Exclude**.\n\nTwo cases the fix cannot reach, which is why the setting still exists: a query you cannot edit (provisioned, imported, a library panel, a recording rule), and an ambiguous recovery where two labels hold the same value as an endpoint. Neither has turned up in practice — if none does, this goes before release.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps",
+          "decimals": 2,
+          "filterable": true
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/.*/"
+            },
+            "properties": [
+              {
+                "id": "custom.sourceFilterLabel",
+                "value": "client"
+              },
+              {
+                "id": "custom.targetFilterLabel",
+                "value": "server"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsEdgeArrows": true,
+        "relationsNodeSize": 14,
+        "relationsCurveness": 0.1,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (source, target) (\n  label_replace(\n    label_replace(\n      rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range]),\n    \"source\", \"$1\", \"client\", \"(.*)\"),\n  \"target\", \"$1\", \"server\", \"(.*)\")\n)",
+          "exemplar": false,
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "__auto"
+        }
+      ],
+      "transformations": []
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "lgtm", "prometheus", "ad-hoc-filters"],
+  "templating": {
+    "list": [
+      {
+        "name": "filters",
+        "label": "Ad hoc filters",
+        "type": "adhoc",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "lgtm-prometheus"
+        },
+        "filters": [],
+        "hide": 0
+      }
+    ]
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — ad-hoc filters (LGTM)",
+  "uid": "echarts-lgtm-relations-adhoc-filters",
+  "version": 1,
+  "weekStart": ""
+}

@@ -74,9 +74,10 @@ export interface TooltipModel {
    *
    * When set it replaces the label walk rather than adding to it; every other family
    * leaves it unset and the overlay keeps deriving from {@link TooltipSource}. Either
-   * way the footer offers nothing unless the hovered field is `filterable` — the gate is
-   * in the overlay, not here, so a family states what it *would* offer and one rule
-   * decides whether it is offered.
+   * way the footer offers nothing unless the mark is `filterable`: the label walk is gated
+   * in the overlay, and a family that states its own filters has applied the same gate per
+   * mark before it gets here — which relations has to, since one of its marks has no field
+   * for the overlay to ask. See `markFilterable`.
    */
   filters?: TooltipFilters;
 }
@@ -375,6 +376,13 @@ export interface RelationsMark {
   formatValue: ValueFormatter;
   /** This mark's field + row, for the footer's data links and ad-hoc filters. */
   source: TooltipSource;
+  /**
+   * What the **response** said this mark's endpoints filter under, when it said anything
+   * beyond the contract's own pair. Edges only: a node's keys come from the edges touching
+   * it ({@link RelationsMarks.nodeFilterLabels}), because a node is not an endpoint pair.
+   * See `RelationLink.filterLabels`.
+   */
+  filterLabels?: GraphEndpointKeys;
 }
 
 /**
@@ -406,11 +414,64 @@ export interface RelationsMarks {
    */
   adjacency?: ReadonlyMap<string, RelationsAdjacentEdge[]>;
   /**
+   * The keys each node's endpoints filter under, derived from the edges touching it and
+   * keyed by node id.
+   *
+   * A node has no endpoint pair of its own — its identity is a `field.name`, and the pair is
+   * a property of an *edge* — so the only thing that can say which label a node filters
+   * under is an edge that names it. That is also exactly right for a multi-level flow: a
+   * namespace node is level 1's target and level 2's source, and both levels say
+   * `namespace`, so the node resolves to one key with no configuration and no per-node
+   * override.
+   *
+   * Split by role because the two halves of the footer want different things: "Filter on"
+   * asserts exactly one key and must take it from a role the node really plays, while
+   * "Filter out" negates a set and must cover the role it does *not*. See `nodeFilters`.
+   * Every list is deduped, in link order.
+   */
+  nodeFilterLabels?: ReadonlyMap<string, NodeFilterLabels>;
+  /**
    * The datasource's own endpoint label keys, carried through from the model so the
    * footer's ad-hoc filters are written under a key the datasource recognises. Unset means
    * the contract's `source`/`target`. See `NodeGraphData.endpointLabels`.
    */
   endpointLabels?: GraphEndpointKeys;
+  /**
+   * Whether any **edge** field opts into ad-hoc filtering (standard `filterable`) — the
+   * opt-in for a mark that has no field of its own to carry one.
+   *
+   * A node the response only implied is the mark that needs it, and it is not a loophole:
+   * a node's filters are written under the *endpoint label keys*, which are the **edges'**
+   * dimensions (`endpointLabels` is resolved from the edges frames too). So the field that
+   * can honestly say whether `source="gateway"` means anything is an edge field, not the
+   * node's — the node has none, and where the derived-node pre-pass gives it one, that
+   * field answers first. Any rather than every: the keys are resolved response-wide, so
+   * one filterable edge means the response's endpoint dimensions are filterable.
+   */
+  endpointsFilterable?: boolean;
+}
+
+/** The distinct keys a node is an endpoint under, by role. See {@link RelationsMarks.nodeFilterLabels}. */
+export interface NodeFilterLabels {
+  /**
+   * Keys the node appears as a *source* under — the roles it really plays, so
+   * "Filter on this value" cannot assert a key the node has never held.
+   */
+  sources: string[];
+  /** Keys the node appears as a *target* under. */
+  targets: string[];
+  /**
+   * Every key "Filter out this value" negates: the roles above, **plus** the opposite key of
+   * the pairs it sits on for a role it does not play.
+   *
+   * That fill is what keeps "hide this node" honest. A node that is only a source in *this*
+   * response is not only a source in the data — a `topk` re-ranks the moment the filter
+   * applies — so negating its source key alone lets it reappear at the other end. For a
+   * single-level response the fill is the contract's own opposite key and the set is the
+   * `{source, target}` the panel has always negated; for a multi-level flow it is the
+   * neighbouring level's key, which is a no-op unless two levels share a name.
+   */
+  negate: string[];
 }
 
 /**
