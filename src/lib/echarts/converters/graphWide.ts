@@ -2,9 +2,9 @@ import {
   type DataFrame,
   type DataFrameType,
   type Field,
-  FieldColorModeId,
   FieldType,
   formattedValueToString,
+  getFieldColorMode,
   type GrafanaTheme2,
   type Labels,
   type ReduceDataOptions,
@@ -695,22 +695,59 @@ function colorOf(field: Field, value: number | null): string | undefined {
 }
 
 /**
- * The palette modes, which colour a field by its position among its siblings.
- *
- * For a **node** that is exactly right — it reproduces the per-node palette the family
- * has always drawn. For an **edge** it is not a colour choice at all: an edge's natural
- * colour comes from the nodes it joins (`relationsLinkColor`, gradient by default), so
- * a palette mode is treated as "nothing configured" and no per-edge colour is emitted.
- * Any other mode — fixed, by-value, thresholds, shades — is a real choice and wins.
+ * The prefix every palette mode's id carries, checked ahead of the registry so a palette
+ * added upstream after this build is still recognised as one. See {@link isPaletteColorMode}.
  */
-const PALETTE_MODES: ReadonlySet<string> = new Set([
-  FieldColorModeId.PaletteClassic,
-  FieldColorModeId.PaletteClassicByName,
-]);
+const PALETTE_MODE_PREFIX = 'palette-';
 
+/**
+ * Is this colour mode a **palette** — a colour picked by the field's position among its
+ * siblings, or by a hash of its name?
+ *
+ * This is the gate on per-edge colour, and a palette is the one class of mode an edge
+ * does not read. For a **node** a palette is exactly right: it reproduces the per-node
+ * colouring the family has always drawn. For an **edge** it is not a colour choice at
+ * all — a series index says nothing about which two nodes the edge joins — so a palette
+ * counts as "nothing configured" and the edge falls through to `relationsLinkColor`.
+ * Every other mode is read: a literal colour (`fixed`, `shades`, `gradient`) is a
+ * decision about this mark, and a by-value scheme (`thresholds`, `continuous-*`) grades
+ * the edge by its own weight, which is a thing only the edge can say. Both therefore
+ * beat the endpoint colouring, and under a by-value scheme "Link color" has nothing left
+ * to decide — which is what its description now says, since no `showIf` can see
+ * `fieldConfig` to hide it.
+ *
+ * Two tests, because neither is sufficient alone:
+ *
+ * - the **registry** classifies a known id — `isByValue` marks the value-derived modes
+ *   and `getColors` marks the scheme-backed ones, so the pair `isByValue !== true` and
+ *   `getColors != null` is exactly the index/name palettes (`palette-classic`,
+ *   `-by-name`, `-colorblind`, `-saturated`, 13.3's `palette-categorical-next*`).
+ *   `getColors` alone would not do: it is a *method* on `FieldColorSchemeMode`, so the
+ *   `continuous-*` modes carry one too.
+ * - the **prefix** catches an id this build has never heard of, which the registry
+ *   cannot: `getFieldColorMode` answers an unknown id with the `thresholds` mode, so a
+ *   palette shipped upstream after this build would otherwise be read as by-value and
+ *   would colour every edge — the exact bug this replaced, which was a two-entry list of
+ *   `palette-classic` and `palette-classic-by-name` that left `palette-colorblind` and
+ *   the categorical palettes silently turning "Link color" off for the whole panel.
+ */
+function isPaletteColorMode(mode: string | undefined): boolean {
+  if (mode == null) {
+    return true;
+  }
+  if (mode.startsWith(PALETTE_MODE_PREFIX)) {
+    return true;
+  }
+  const colorMode = getFieldColorMode(mode);
+  return colorMode.isByValue !== true && colorMode.getColors != null;
+}
+
+/**
+ * An edge's **own** colour, or `undefined` to leave it to `relationsLinkColor`. See
+ * {@link isPaletteColorMode}, and `resolveLinkColor` for where the fall-through lands.
+ */
 function edgeColorOf(field: Field, value: number | null): string | undefined {
-  const mode = field.config.color?.mode;
-  return mode == null || PALETTE_MODES.has(mode) ? undefined : colorOf(field, value);
+  return isPaletteColorMode(field.config.color?.mode) ? undefined : colorOf(field, value);
 }
 
 /**

@@ -84,7 +84,7 @@ Optional field configuration, all of it standard:
 | `field.config`                                   | Is the edge's                                                      |
 | ------------------------------------------------ | ------------------------------------------------------------------ |
 | `displayName`                                    | Label                                                              |
-| `color`                                          | Colour, in any of the eight standard modes                         |
+| `color`                                          | Colour, in every mode but the palettes — see below                 |
 | `unit` / `decimals` / `mappings` / `min` / `max` | Value formatting                                                   |
 | `thresholds`                                     | Value formatting, and colour when `color.mode` is threshold-driven |
 | `links`                                          | Data links                                                         |
@@ -95,6 +95,14 @@ Optional field configuration, all of it standard:
 
 The `custom.*` keys are declared by the consuming panel, so a wide edges frame drawn by a
 panel that does not declare them keeps everything above them and ignores the rest.
+
+An edge reads `color` in every mode **except the palettes** (`palette-*`), which pick a
+colour by the field's position among its siblings or by a hash of its name — neither of
+which says anything about the two nodes the edge joins. A palette therefore counts as
+"nothing configured" for an edge and leaves it to the consumer's own link colouring; a
+literal colour (`fixed`, `shades`, `gradient`) and a by-value scheme (`thresholds`,
+`continuous-*`) are both read, the first as a decision about this mark and the second as
+the edge's own weight graded. A node reads all of them, palettes included.
 
 Remainder data:
 

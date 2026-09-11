@@ -32,7 +32,7 @@ export const RELATIONS_NODE_SIZE_DEFAULT = 20;
  *
  * An edge joins two marks, so its natural colour is theirs, and a gradient is the one
  * mode that reads the direction off the edge itself without an arrowhead. An edge whose
- * own field carries a real colour choice overrides this per edge — see `edgeColorOf`.
+ * own field carries a non-palette colour overrides this per edge — see `isPaletteColorMode`.
  */
 export const RELATIONS_LINK_COLOR_DEFAULT = 'gradient';
 /**
@@ -684,8 +684,8 @@ type EdgeGradientResolver = (link: RelationLink) => LinearGradientObject | undef
  * The node colours here are the rendered ones, overrides included, so an edge meets its
  * endpoints exactly. Order of precedence, highest first:
  *
- * 1. the edge's **own** field colour (`link.color`, set only when that field carries a
- *    real colour choice — see `edgeColorOf`);
+ * 1. the edge's **own** field colour (`link.color`, set unless that field's mode is a
+ *    palette — see `isPaletteColorMode`);
  * 2. the source-to-target gradient, when it can be oriented (`resolveGradient`);
  * 3. the endpoint colour the mode names, degrading `'gradient'` to the source's.
  */
