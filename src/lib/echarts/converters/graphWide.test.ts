@@ -809,17 +809,20 @@ describe('frameToGraphWide — edge colour', () => {
   it.each([FieldColorModeId.Thresholds, FieldColorModeId.ContinuousGrYlRd])(
     'lets a by-value scheme (%s) colour the edge by its own weight',
     (mode) => {
-      const frame = edgeWith({ mode }, {
-        thresholds: {
-          mode: ThresholdsMode.Absolute,
-          steps: [
-            { color: 'green', value: -Infinity },
-            { color: 'red', value: 0.5 },
-          ],
-        },
-        min: 0,
-        max: 1,
-      });
+      const frame = edgeWith(
+        { mode },
+        {
+          thresholds: {
+            mode: ThresholdsMode.Absolute,
+            steps: [
+              { color: 'green', value: -Infinity },
+              { color: 'red', value: 0.5 },
+            ],
+          },
+          min: 0,
+          max: 1,
+        }
+      );
 
       expect(frameToGraphWide([frame], theme)!.links[0].color).toBeDefined();
     }

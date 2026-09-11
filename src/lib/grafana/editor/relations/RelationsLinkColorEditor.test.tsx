@@ -67,7 +67,7 @@ describe('RelationsLinkColorEditor', () => {
     expect(screen.getByRole('combobox')).toHaveValue('Gradient');
 
     renderEditor('gradient', { seriesType: 'graph', relationsLayout: 'circular' });
-    expect(screen.getAllByRole('combobox')[1]).toHaveValue('Gradient (draws as Source here)');
+    expect(screen.getAllByRole('combobox')[1]).toHaveValue('Gradient (draws as "Source")');
   });
 
   it('reports the picked mode at the option path', () => {
@@ -82,18 +82,33 @@ describe('RelationsLinkColorEditor', () => {
   });
 
   /**
-   * The caveat is reachable but not standing: an `info-circle` carrying it as its
-   * accessible name, rather than the always-rendered `description` an option's help text
-   * would be. Focusable, so it is not mouse-only.
+   * The caveat is reachable, not standing, and **not doubled**.
+   *
+   * One copy only: `Icon`'s `title` would be prepended into the SVG as a real `<title>`
+   * element by `react-inlinesvg`, which browsers draw as a native tooltip of their own —
+   * so the caveat showed up twice on hover, floating and native. An `aria-label` on the
+   * wrapper is the same duplication for a screen reader. Both read as perfectly reasonable
+   * a11y additions, which is why they are pinned against.
+   *
+   * The *native* half cannot be reproduced here — `.config` mocks `react-inlinesvg` to a
+   * bare `<svg>` and drops every prop, so an injected `<title>` never happens under jest.
+   * What is asserted instead is the property that rules it out: the copy exists exactly
+   * once in the document, and nothing carries it as a `title` attribute.
    */
-  it('carries the precedence caveat on an info icon instead of in standing help text', () => {
+  it('carries the caveat once, on hover, with nothing standing or native', () => {
     renderEditor('source', { seriesType: 'graph' });
 
-    const help = screen.getByRole('img', { name: LINK_COLOR_PRECEDENCE_HELP });
-    expect(help).toHaveAttribute('tabindex', '0');
-    expect(help.querySelector('[data-testid="info-circle"]')).toBeInTheDocument();
-    // Nowhere in the standing text: the accessible name and the tooltip are the only
-    // copies of it, which is the whole point of moving it off `description`.
+    // The glyph is decorative — `aria-hidden`, no accessible name — so the trigger is
+    // reached through it. The mock names the svg for the file it would have fetched.
+    const trigger = screen.getByTestId('info-circle').parentElement!;
+    expect(document.querySelectorAll('[title]')).toHaveLength(0);
     expect(screen.queryByText(LINK_COLOR_PRECEDENCE_HELP)).not.toBeInTheDocument();
+    expect(trigger).toHaveAttribute('tabindex', '0');
+
+    fireEvent.mouseEnter(trigger);
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent(LINK_COLOR_PRECEDENCE_HELP);
+    // Once in the whole document: the tooltip, and nowhere else.
+    expect(screen.getAllByText(LINK_COLOR_PRECEDENCE_HELP)).toHaveLength(1);
   });
 });

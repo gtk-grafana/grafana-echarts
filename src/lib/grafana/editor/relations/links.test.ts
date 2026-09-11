@@ -27,6 +27,9 @@ const linkColorOption = () => {
 
 const labelsFor = (panelOptions: PanelOptions) => linkColorChoices(panelOptions).map(({ label }) => label);
 
+/** The relabelled entry, spelled out here because it is user-facing copy. */
+const DEGRADED = 'Gradient (draws as "Source")';
+
 describe('addRelationsLinkOptions — Link color', () => {
   /**
    * The path is what a saved dashboard is keyed on and the default is what every variant's
@@ -89,10 +92,8 @@ describe('linkColorChoices', () => {
    * blend. Kept in the list because `gradient` is the persisted default.
    */
   it('says what a chord really draws, whatever the layout says', () => {
-    expect(labelsFor(options({ seriesType: 'chord' }))[2]).toBe('Gradient (draws as Source here)');
-    expect(labelsFor(options({ seriesType: 'chord', relationsLayout: 'none' }))[2]).toBe(
-      'Gradient (draws as Source here)'
-    );
+    expect(labelsFor(options({ seriesType: 'chord' }))[2]).toBe(DEGRADED);
+    expect(labelsFor(options({ seriesType: 'chord', relationsLayout: 'none' }))[2]).toBe(DEGRADED);
   });
 
   /**
@@ -103,8 +104,8 @@ describe('linkColorChoices', () => {
    * hides a blend that does happen.
    */
   it.each([
-    ['force', 'Gradient (draws as Source here)'],
-    ['circular', 'Gradient (draws as Source here)'],
+    ['force', DEGRADED],
+    ['circular', DEGRADED],
     ['none', 'Gradient'],
     [undefined, 'Gradient'],
   ])('labels Gradient by what the %s layout can orient', (relationsLayout, label) => {

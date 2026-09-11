@@ -26,7 +26,7 @@ import { type PanelOptions } from 'types';
  * under a by-value scheme while the rest of the panel follows this option.
  */
 export const LINK_COLOR_PRECEDENCE_HELP =
-  'Ignored where the link’s own field colors it: a single/fixed color, or a by-value scheme such as thresholds';
+  'Ignored where the link’s own field colors it: a single/fixed color, or a by-value scheme such as thresholds. Gradient is only supported with Sankey';
 
 /** The two endpoint keywords, offered by every variant. */
 const endpointColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
@@ -50,7 +50,7 @@ const linkColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
  */
 const degradedLinkColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
   ...endpointColorOptions,
-  { value: 'gradient', label: 'Gradient (draws as Source here)' },
+  { value: 'gradient', label: 'Gradient (draws as "Source")' },
 ];
 
 /**
@@ -103,9 +103,12 @@ export function linkColorChoices(options: Partial<PanelOptions> = {}): Array<Com
  * - the **caveat is an icon**, not standing help text. See
  *   {@link LINK_COLOR_PRECEDENCE_HELP}.
  */
-export const RelationsLinkColorEditor: React.FC<
-  StandardEditorProps<RelationsLinkColor, unknown, PanelOptions>
-> = ({ value, onChange, context, id }) => {
+export const RelationsLinkColorEditor: React.FC<StandardEditorProps<RelationsLinkColor, unknown, PanelOptions>> = ({
+  value,
+  onChange,
+  context,
+  id,
+}) => {
   const styles = useStyles2(getStyles);
   const choices = linkColorChoices(context.options);
 
@@ -119,14 +122,8 @@ export const RelationsLinkColorEditor: React.FC<
           onChange={(selected) => onChange(selected.value)}
         />
       </div>
-      {/*
-        The glyph is wrapped rather than annotated directly: `Icon` renders through
-        `react-inlinesvg`, which owns the `<svg>` and drops anything it is handed, so the
-        accessible name and the tab stop have to live on an element of our own. Focusable
-        so the caveat is not mouse-only.
-      */}
       <Tooltip content={LINK_COLOR_PRECEDENCE_HELP} placement="top" interactive>
-        <span className={styles.help} tabIndex={0} role="img" aria-label={LINK_COLOR_PRECEDENCE_HELP}>
+        <span className={styles.help}>
           <Icon name="info-circle" size="sm" />
         </span>
       </Tooltip>
