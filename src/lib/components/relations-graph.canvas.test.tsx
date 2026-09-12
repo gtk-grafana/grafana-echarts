@@ -1,4 +1,5 @@
-import { FieldType, toDataFrame } from '@grafana/data';
+import { FieldColorModeId, FieldType, type Labels, ThresholdsMode, toDataFrame } from '@grafana/data';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
 import { normalizeCanvasEvents } from 'test/canvas';
 import { height, width } from 'test/panel';
 import { edgesFrame, nodesFrame, pinnedNodesFrame } from 'test/relations';
@@ -201,6 +202,73 @@ describe('relations graph', () => {
       const { defaultEvents, seriesEvents } = await renderRelations({
         frames: [coloredPinned, edgesFrame],
         options: { relationsLayout: undefined, relationsLinkColor: 'gradient' },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
+  describe('thresholds', () => {
+    /**
+     * Green under 40, orange from 40, red from 70 — steps every mark in the fixture
+     * crosses, so the picture holds all three bands on nodes *and* on edges.
+     */
+    const steps = {
+      mode: ThresholdsMode.Absolute,
+      steps: [
+        { value: -Infinity, color: 'green' },
+        { value: 40, color: 'orange' },
+        { value: 70, color: 'red' },
+      ],
+    };
+
+    /** One graded mark. Written per field, as `Panel.canvas.test.tsx` writes its own. */
+    const graded = (name: string, value: number, labels?: Labels) => ({
+      name,
+      type: FieldType.number,
+      values: [value],
+      ...(labels ? { labels } : {}),
+      config: { color: { mode: FieldColorModeId.Thresholds }, thresholds: steps },
+    });
+
+    /**
+     * Wide fixtures rather than the shared row-form ones: a threshold scheme is *per
+     * field* config, and the row form has no column to carry it — `legacyToWide` mints
+     * the mark fields itself. This is the shape a datasource reaches the panel in anyway.
+     */
+    const gradedNodes = toDataFrame({
+      name: 'nodes',
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [graded('gateway', 10), graded('api', 50), graded('web', 90), graded('db', 30)],
+    });
+    const gradedEdges = toDataFrame({
+      name: 'edges',
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [
+        graded('gateway-->api', 80),
+        graded('gateway-->web', 45),
+        graded('api-->db', 20),
+        graded('web-->db', 75),
+      ],
+    });
+
+    /**
+     * **A by-value scheme colours the edges too**, which is the half that was broken: the
+     * rule used to be a two-entry deny-list of the classic palettes, so every other mode
+     * — thresholds included — gave each edge its own colour *and* silently turned "Link
+     * color" off. The rule is now "every mode but a palette", and this is what that draws:
+     * four symbols in three bands, and four lines graded by their own weight rather than
+     * by an endpoint.
+     *
+     * `relationsLinkColor: 'target'` is set to make the precedence visible in the
+     * baseline. If it were winning, both lines into `db` would be `db`'s green; they are
+     * their own orange and red instead. The comparison is stated as a claim in
+     * `relations-thresholds.integration.test.tsx`; this is the picture of it.
+     */
+    it('a by-value scheme on every mark (nodes in three bands, each line graded by its own weight)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [gradedNodes, gradedEdges],
+        options: { relationsLinkColor: 'target', relationsShowEdgeValues: true },
       });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
