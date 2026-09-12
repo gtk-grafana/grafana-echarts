@@ -341,7 +341,10 @@ describe('buildRelationsTooltipModel', () => {
       // `Last *` is `RELATIONS_CALC_DEFAULT`'s display name — the row says which reducer
       // produced it, and a stat with no reducer behind it is the `secondarystat` label the
       // row-form conversion carried, which keeps the generic name.
-      expect(node.rows.map((row) => [row.label, row.value])).toEqual([
+      //
+      // Sliced: everything the node says about *itself* comes first, and the edges touching
+      // it follow (asserted in "a node's edges" below).
+      expect(node.rows.slice(0, 3).map((row) => [row.label, row.value])).toEqual([
         ['Last *', '12.0 ms'],
         ['Subtitle', 'eu-west'],
         ['Secondary', '3 errors'],
@@ -369,7 +372,7 @@ describe('buildRelationsTooltipModel', () => {
         })
       );
 
-      expect(node.rows.map((row) => [row.label, row.value])).toEqual([
+      expect(node.rows.slice(0, 3).map((row) => [row.label, row.value])).toEqual([
         ['Max', '12.0 ms'],
         ['Min', '1.0 ms'],
         ['Mean', '5.0 ms'],
@@ -418,8 +421,11 @@ describe('buildRelationsTooltipModel', () => {
    * all — the normal case, not a corner one: an edges-only response derives every one of its
    * nodes (`docs/relations-derived-nodes.md`). It has no measurement to report, but it does
    * know its edges, and those are numbers the response really returned.
+   *
+   * Listed for **every** node now, not just that one: a node's own measurement leads and its
+   * edges follow, since the two are different facts and neither displaces the other.
    */
-  describe('a statless node’s edges', () => {
+  describe('a node’s edges', () => {
     /**
      * Direction is an arrow rather than a repeat of the hovered node's name, the other
      * endpoint reads with its **display name** (`API`, not `api`), and each row formats
@@ -456,14 +462,19 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
-    // The list is the fallback for a node with nothing to say, not an addition to a node
-    // that has a measurement of its own.
-    it('reports the stat, not the edges, for a node that has one', () => {
+    /**
+     * **The reported ask.** A node that measures something used to report *only* that and
+     * lose its edge list; a node that measured nothing reported only the edges. Both are
+     * reported now, in that order — the node's own value first, which is what a core plot
+     * leads with, then what it is connected to.
+     */
+    it('leads with the stat and still lists the edges, for a node that has one', () => {
       const model = modelFor([hubNodes(), hubEdges()]);
 
-      expect(model(nodeParams({ id: 'api', name: 'API', value: 7 })).rows.map((row) => [row.label, row.value])).toEqual(
-        [['Last *', '7 ms']]
-      );
+      const rows = model(nodeParams({ id: 'api', name: 'API', value: 7 })).rows;
+
+      expect(rows[0]).toEqual(expect.objectContaining({ label: 'Last *', value: '7 ms' }));
+      expect(rows.slice(1).map((row) => [row.label, row.value])).toEqual([['gateway →', '1.2 s']]);
     });
 
     /**
@@ -515,7 +526,7 @@ describe('buildRelationsTooltipModel', () => {
         nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondaries: [{ calc: 'min', value: '5.0 ms' }] })
       );
 
-      expect(node.rows.map((row) => row.label)).toEqual(['Mean', 'Min']);
+      expect(node.rows.slice(0, 2).map((row) => row.label)).toEqual(['Mean', 'Min']);
     });
 
     it('names each edge row after the reducer that produced it', () => {
@@ -588,7 +599,7 @@ describe('buildRelationsTooltipModel', () => {
         nodeParams({ id: 'gateway', name: 'Gateway', value: 12, secondaries: [{ value: '3 errors' }] })
       );
 
-      expect(node.rows.map((row) => row.label)).toEqual(['Mean', 'Secondary']);
+      expect(node.rows.slice(0, 2).map((row) => row.label)).toEqual(['Mean', 'Secondary']);
     });
 
     // A reducer the registry does not know still names its row, rather than falling back
@@ -1137,13 +1148,17 @@ describe('getRelationsTooltipMarks', () => {
     expect(marks.links.get('e1')?.source.field.config.unit).toBe('percent');
   });
 
-  it('collects an adjacency list for the statless nodes only', () => {
+  /**
+   * Every node, whether or not it measures anything of its own: a node's value and the edges
+   * touching it are different facts, and the tooltip now reports both (value first). The map
+   * used to hold the statless nodes alone, which is where the list started.
+   */
+  it('collects an adjacency list for every node', () => {
     const withStats = frameToRelationsGraph([wideNodes(), wideEdges()], theme)!;
     const derived = frameToRelationsGraph([wideEdges()], theme)!;
 
-    // Both nodes carry a stat, so neither needs its edges listed and no edge is formatted.
-    expect([...getRelationsTooltipMarks(withStats, theme, 'utc').adjacency!.keys()]).toEqual([]);
-    // Neither does, so both get one — the two parallel edges, from each end.
+    expect([...getRelationsTooltipMarks(withStats, theme, 'utc').adjacency!.keys()]).toEqual(['gateway', 'db']);
+    // Derived from the endpoints, and keyed the same way — the two parallel edges, from each end.
     expect([...getRelationsTooltipMarks(derived, theme, 'utc').adjacency!.keys()]).toEqual(['gateway', 'db']);
   });
 

@@ -156,7 +156,7 @@ function toMarkMap(marks: FieldedMark[], theme: GrafanaTheme2, timeZone?: string
 const MAX_ADJACENT_EDGE_ROWS = 10;
 
 /**
- * The edges touching each node with no stat of its own, keyed by node id.
+ * The edges touching each node, keyed by node id.
  *
  * Built from the *visible* model — `getVisibleNodeGraph` has already dropped hidden marks
  * and their orphaned links — and in the model's own link order, which is the response's
@@ -164,18 +164,18 @@ const MAX_ADJACENT_EDGE_ROWS = 10;
  * unit under the wide contract, so ranking a `3.5 s` edge against a `25%` one compares two
  * different measurements and the "biggest" edge would be an artefact of the units.
  *
- * Only statless nodes get an entry. That is the case the list exists for, and it keeps the
- * work proportional to those nodes rather than formatting every edge twice per render.
+ * **Every** node gets an entry, not only the statless ones this started for. A node's own
+ * measurement and the edges touching it are different facts, and a node that has both has
+ * nothing to gain from the second being withheld — it leads with its own value and the
+ * edges follow (`buildRelationsTooltipModel`). The walk is the same either way: one pass
+ * over the links, formatting each weight once. What it adds is the row objects, two per
+ * link, which is the order of the model itself.
  */
 function toAdjacency(
   data: NodeGraphData,
   links: ReadonlyMap<string, RelationsMark>
 ): Map<string, RelationsAdjacentEdge[]> {
   const byNode = new Map<string, RelationsAdjacentEdge[]>();
-  const statless = new Set(data.nodes.filter((node) => node.value == null).map((node) => node.id));
-  if (statless.size === 0) {
-    return byNode;
-  }
   // The endpoints are ids; a declared node's `displayName` makes its name a different
   // string, and the row should read the same as the node's own header.
   const names = new Map(data.nodes.map((node) => [node.id, node.name]));
@@ -192,9 +192,6 @@ function toAdjacency(
       ends.push({ id: link.target, other: link.source, outgoing: false });
     }
     for (const { id, other, outgoing } of ends) {
-      if (!statless.has(id)) {
-        continue;
-      }
       const rows = byNode.get(id) ?? [];
       rows.push({ node: names.get(other) ?? other, outgoing, value });
       byNode.set(id, rows);
@@ -204,7 +201,7 @@ function toAdjacency(
 }
 
 /**
- * A statless node's edges, one row each: `→ other` for an edge leaving the node,
+ * A node's edges, one row each: `→ other` for an edge leaving the node,
  * `other →` for one arriving.
  *
  * The arrow carries the direction because the node's own name is already the header, so
@@ -637,11 +634,17 @@ export function buildRelationsTooltipModel(
       rows.push({ label: 'Subtitle', value: node.subtitle });
     }
     rows.push(...secondaryRows(node?.secondaries));
-    // No stat of its own, so report what the node *does* know: the edges touching it, with
-    // each edge's own weight. A derived node carries `null` by design, so without this its
-    // tooltip was its name and nothing else — see `RelationsAdjacentEdge`. Last, so a node
-    // that has a subtitle or a `secondarystat` still leads with those.
-    if (stat == null && node != null) {
+    // The edges touching the node, with each edge's own weight — **last**, and for every
+    // node rather than only the statless ones.
+    //
+    // The list started as the answer to a derived node's empty tooltip: a node the response
+    // only implied carries `null` by design (`converters/deriveNodes.ts`), so without it the
+    // tooltip was a name and nothing else. Withholding it from a node that *does* measure
+    // something was the wrong half of that: the two are different facts, and a node hover on
+    // a topology is a fair place to ask "and what is it connected to". So the node's own
+    // measurement leads, the subtitle and the extra reducers follow, and the edges come
+    // after — nothing the node says about itself is displaced by them.
+    if (node != null) {
       rows.push(...adjacencyRows(marks?.adjacency?.get(node.id) ?? []));
     }
 

@@ -1,0 +1,435 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "Thresholds re-grading on every time-slider stop, on nodes and edges at once. Two ranged PromQL queries against lgtm-prometheus \u2014 the service graph's client/server rates for the edges, the same rate summed per server for the nodes \u2014 with one filtered `labelsToFields` to give each node a field name the wide contract can use as an id. The absolute and percentage panels are the same data under two threshold modes.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "gridPos": {
+        "h": 27,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## Thresholds that move with the time slider\n\nThe time slider reads every mark **at one selected timestamp** instead of reducing its rows away, and a by-value colour scheme re-grades every mark at that timestamp. This is the one dashboard in the stack where **both** kinds of mark carry a value that moves, so scrubbing recolours the whole picture rather than half of it \u2014 `prometheus-service-graph.json` says it plainly in its own Route A description: *\"Edges move, nodes do not\"*, because every node there is derived from an endpoint and has no stat for a timestamp to change.\n\n### The route: two ranged queries, one transformation\n\n| refId | query | what the reader sees |\n| --- | --- | --- |\n| **A** | `sum by (client, server) (rate(traces_service_graph_request_total[$__rate_interval]))`, **Format: Time series**, Transform tab empty | N `timeseries-multi` frames, each a `Value` field carrying `client` / `server` labels \u2014 one **edge** per frame, endpoints read straight off the labels |\n| **B** | the same rate, `sum by (server)`, then **Labels to fields** filtered to refId B | N frames of `[Time, <service>]` \u2014 one **node** per frame, named after the service |\n\n**Why B needs the transformation at all.** A node id *is* a field name under the wide contract, and every raw Prometheus value field is called `Value` \u2014 so with the Transform tab empty all four nodes collide on one id and the reader draws a single node called `Value`. **Labels to fields** in `Columns` mode with a **Value field name** of `server` renames each value field to that series' label value and clears the labels with it, which is exactly the shape the reader's nodes test looks for: a numeric field whose *name* is an endpoint the edges refer to. The transformation carries a **frame filter** (`byRefId: B`) so the edges pass through it untouched \u2014 an unmatched frame is re-inserted, not dropped.\n\n**Why not `legendFormat` + join.** Measured, not assumed: against real Prometheus each series arrives with `field.config.displayNameFromDS` set from the legend format and **`frame.name` unset**, and `joinDataFrames` renames a `Value` field only from `frame.name`. So a **Join by field** on `Time` widens the response into one frame that still has N fields called `Value` \u2014 no ids gained. That route does work against TestData, which sets `frame.name`, which is exactly why this one exists. The legend formats above are set anyway: on Grafana 13.2+ the plugin's own pivot promotes the rendered legend to `field.name`, so this dashboard gains ids on upgrade with no edit.\n\n**Why the nodes query is ranged and not instant.** An instant query is one row stamped with its **evaluation instant** \u2014 `now` \u2014 which lands nowhere near the ranged query's step grid. A frame the response declares `numeric-*` is therefore read *whole* at every stop rather than nulled (`isTimelessFrame`), which is the right reading and the fix for \"thresholds stop working under the slider\" \u2014 but it also means an instant node never changes as you scrub. Ranged on both sides is what makes the nodes move.\n\n### Reading the panels\n\n- **Absolute steps** (left): green below `0.1 reqps`, orange from `0.1`, red from `0.5`. Tuned against this stack on a quiet afternoon, where `user \u2192 grafana` and the `grafana` node are the marks that cross `0.5` and most of the rest sit green. Realistic, and only a few marks change band.\n- **Memory vs request rate** (bottom, full width): the node value is `process_resident_memory_bytes` \u2014 not a sum of the edges, not even the same quantity. A node is a *stock*, an edge is a *flow*. Each mark keeps its own unit (`bytes` on the nodes, `reqps` on the edges via a `byName: Value` override) and its own threshold set, which is what \"one mark is one field\" is for.\n- **Percentage steps** (right): the same data with `thresholds.mode: percentage` **and Standard options \u2192 Field min/max on**, so each mark's steps are read against **its own** min/max over the range. Every mark that moves at all changes band as you scrub, including the ones the absolute panel leaves flat green. Use this one when the stack is quiet \u2014 and see the panel's own description for why the `fieldMinMax` switch is load-bearing rather than decorative.\n\n### Things worth knowing while you scrub\n\n- **The colour is the threshold, not \"Link color\".** Under a by-value scheme an edge takes its own value's colour, so the Advanced \u2192 *Link color* setting (Source / Target / Gradient) has nothing left to decide here; its tooltip says so. Switch the scheme to a palette and the endpoint colouring comes back.\n- **A quiet stack is a flat dashboard.** Every number here is produced by the five containers doing their normal work, so open a few dashboards or pan the time picker to give Tempo's metrics-generator something to measure.\n- The slider's stops are the **union** of all eleven frames' timestamps, and the selected instant is resolved against each frame's own row dimension \u2014 a series with a gap reads `null` there and draws weightless rather than vanishing.\n- **One node stays palette-coloured, and that is the point.** `user` is Tempo's virtual node \u2014 requests with no client span \u2014 so it is a client and never a server, and `sum by (server)` returns no series for it. It is a *derived* node: the reader mints it from the edges' endpoints, it has no field and no stat, and a by-value scheme has nothing to grade, so it keeps the classic-palette colour every statless node gets. Hover it: no `Value` row, just the edges touching it.\n- `prometheus \u2192 prometheus` is Prometheus scraping itself, a genuine self-loop.\n"
+      },
+      "transparent": true
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Absolute thresholds \u2014 0.1 / 0.5 reqps, nodes and edges",
+      "description": "Absolute thresholds on live rates: green below `0.1 reqps`, orange from `0.1`, red from `0.5`, on **nodes and edges alike** \u2014 one step set, because a node's inbound rate and the edges feeding it are the same measurement at two scales.\n\nScrub the slider and watch the marks that cross: measured on this stack, `user \u2192 grafana` (the edge) and `grafana` (the node) are the two that reach red, and both fall back to orange at the quiet stops. Everything under `0.1` stays green all the way along, which is the honest picture of a mostly idle stack \u2014 the sibling panel is the one that always moves.\n\nNode values and edge values are both drawn, so the number a colour comes from is on the chart rather than only in the tooltip. The node tooltip reads `Value` rather than a reducer's name, because at one selected row there is nothing to reduce \u2014 and lists the edges touching the node underneath it.\n\n`user` is the exception in the picture: a client-only virtual node has no `sum by (server)` series, so it is derived from the edges, has no stat, and keeps its palette colour instead of a band.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "reqps",
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 22,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": true,
+        "relationsShowEdgeValues": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "relationsFocusAdjacency": true,
+        "relationsTimeSlider": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\", server=~\"$server\"}[$__rate_interval])\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{client}}-->{{server}}"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\", server=~\"$server\"}[$__rate_interval])\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{server}}"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          },
+          "options": {
+            "mode": "columns",
+            "valueLabel": "server"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Percentage thresholds \u2014 each mark against its own range",
+      "description": "The same two queries with **percentage** thresholds \u2014 `mode: percentage`, orange from 50%, red from 80% \u2014 plus the one setting that makes them mean what they sound like: **Standard options \u2192 Field min/max**.\n\nThat switch is the whole panel. A percentage step is a percentage *of a range*, and with Field min/max off the range is the **response's**: `applyFieldOverrides` fills `field.state.range` from `findNumericFieldMinMax` across every frame in the panel (`calculateRange`), so one spiky edge sets the denominator for all eleven marks and everything else collapses into the green band. Measured here first \u2014 this panel was flat green while its absolute sibling had nodes and edges in all three colours. With it on, `getMinMaxAndDelta` runs per field and each mark is graded against **its own** min/max over the range.\n\nSo this is the panel to read on a quiet stack: a mark sitting at `0.067 reqps` all afternoon still sweeps its own band as it moves, and every mark that moves at all changes colour as you scrub. The trade is that red here means \"high for itself\" rather than \"high\", which is why the absolute panel sits beside it rather than replacing it.\n\nEither way the bands are fixed while you scrub: the range comes from the field's whole ranged series, not from the selected row.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "reqps",
+          "decimals": 3,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "fieldMinMax": true
+        },
+        "overrides": []
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 22,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": true,
+        "relationsShowEdgeValues": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "relationsFocusAdjacency": true,
+        "relationsTimeSlider": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\", server=~\"$server\"}[$__rate_interval])\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{client}}-->{{server}}"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\", server=~\"$server\"}[$__rate_interval])\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{server}}"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          },
+          "options": {
+            "mode": "columns",
+            "valueLabel": "server"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "A node value that is not the sum of anything \u2014 memory vs request rate",
+      "description": "**The node value is not the sum of its edges here \u2014 it is not even the same quantity.** Edges carry request rate; nodes carry `process_resident_memory_bytes`, the service's own resident memory. A node is a *stock* and an edge is a *flow*, which is the general shape outside this stack too: account balance against transfers, inventory against shipments, headcount against reporting lines.\n\nThis is what the wide contract's \"one mark is one field\" buys. Each mark keeps **its own unit**: the nodes read `bytes` from the panel defaults, the edges read `reqps` from a `byName: Value` override \u2014 every raw Prometheus value field is called `Value`, so one override reaches all of them at once. Two threshold sets for the same reason: `150 MB` / `280 MB` on the nodes, `0.1` / `0.5 reqps` on the edges. A single set would be grading megabytes against requests per second.\n\nIt is also why a \"node value reducer\" panel option would be the wrong tool. Summing these edges could not produce this number in any unit, in either direction, and an invented value has no field to carry the unit, the thresholds or the override that make this panel readable.\n\nOnly three of the graph's services export process metrics, so `user`, `zipkin` and `grafana-assistant-app` have no memory series and stay **derived** \u2014 no field, no stat, nothing for a scheme to grade. They keep the classic-palette colour every statless node gets, and on this palette that can be red or orange: **a palette red here is not a threshold red.** Hover to tell them apart \u2014 a graded node reports a `Value` row, a derived one reports only the edges touching it. Scoping both queries to the three would tidy that up and cost the graph most of its topology (`alloy` is only ever reached by `user`), which is the wrong trade for a panel about units.\n\nMemory drifts rather than spikes, so scrub this one for the node/edge unit split rather than for fast colour changes \u2014 panel 2 is the one that swings.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lgtm-prometheus"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "bytes",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 150000000
+              },
+              {
+                "color": "red",
+                "value": 280000000
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.1
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.5
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "relationsLayout": "circular",
+        "relationsNodeSize": 22,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": true,
+        "relationsShowEdgeValues": true,
+        "relationsEdgeArrows": true,
+        "relationsCurveness": 0.12,
+        "relationsFocusAdjacency": true,
+        "relationsTimeSlider": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\", server=~\"$server\"}[$__rate_interval])\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{client}}-->{{server}}"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lgtm-prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum by (service_name) (\n  process_resident_memory_bytes{service_name=~\"grafana|prometheus|alloy\"}\n)",
+          "format": "time_series",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "filter": {
+            "id": "byRefId",
+            "options": "C"
+          },
+          "options": {
+            "mode": "columns",
+            "valueLabel": "service_name"
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "lgtm", "prometheus", "live-data"],
+  "templating": {
+    "list": [
+      {
+        "name": "server",
+        "label": "Server",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "lgtm-prometheus"
+        },
+        "definition": "label_values(traces_service_graph_request_total, server)",
+        "query": {
+          "query": "label_values(traces_service_graph_request_total, server)",
+          "refId": "server"
+        },
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "options": [],
+        "sort": 1,
+        "hide": 0
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations \u2014 time slider thresholds, nodes and edges (LGTM)",
+  "uid": "echarts-lgtm-relations-thresholds",
+  "version": 1,
+  "weekStart": ""
+}

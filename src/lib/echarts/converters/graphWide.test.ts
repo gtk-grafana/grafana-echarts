@@ -1,6 +1,7 @@
 import {
   createTheme,
   type DataFrame,
+  DataFrameType,
   type Field,
   FieldColorModeId,
   type FieldConfig,
@@ -1445,6 +1446,98 @@ describe('reading a mark at a timestamp', () => {
       ['b', 'c', 1],
     ]);
     expect(data.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  /**
+   * A graded node, as a service graph carries one: a per-node error ratio with a threshold
+   * scheme on it.
+   */
+  const graded = (values: Array<number | null>, meta: DataFrame['meta'], times?: number[]): DataFrame =>
+    withDisplay(
+      toDataFrame({
+        meta,
+        fields: [
+          ...(times ? [{ name: 'Time', type: FieldType.time, values: times }] : []),
+          {
+            name: 'b',
+            type: FieldType.number,
+            values,
+            config: {
+              color: { mode: FieldColorModeId.Thresholds },
+              thresholds: {
+                mode: ThresholdsMode.Absolute,
+                steps: [
+                  { color: 'green', value: -Infinity },
+                  { color: 'red', value: 0.5 },
+                ],
+              },
+            },
+          },
+        ],
+      })
+    );
+
+  /**
+   * **The reported bug.** A mixed response — a ranged edges query beside an **instant**
+   * nodes query, which is how a service graph carries per-node error ratios — lost every
+   * node the moment the time slider was switched on.
+   *
+   * The measured shape is what makes it subtle: a Prometheus instant query answers
+   * `numeric-multi` and **still ships a `Time` column**, one row stamped with the
+   * evaluation instant (`now`). That stamp lands nowhere near the step grid the ranged
+   * query returns, so `rowAt` matched no row and every node read `null` — and a `null` node
+   * is not only a missing tooltip row. It costs the node its **colour**: a by-value scheme
+   * has no value to grade, so `colorOf` returns nothing and `fillPaletteColors` hands the
+   * node a palette slot, which is what "thresholds stop working under the slider" was.
+   *
+   * So the declared kind decides and the frame keeps reducing, while the ranged edges beside
+   * it still move with the slider — asserted together, since reading one frame at a
+   * timestamp and another whole is the point. See `isTimelessFrame`.
+   */
+  it('reads an instant frame whole, though it carries an off-grid Time column', () => {
+    const nodes = graded([0.9], { type: DataFrameType.NumericMulti }, [T0 + 7]);
+
+    const data = frameToGraphWide([pivoted(), nodes], theme, undefined, T0 + STEP)!;
+
+    expect(data.nodes.find((node) => node.id === 'b')).toEqual(
+      expect.objectContaining({ value: 0.9, color: theme.visualization.getColorByName('red') })
+    );
+    expect(data.links.map((link) => link.value)).toEqual([2, 20]);
+  });
+
+  /** The same for a frame with no time column at all — the pivoted instant response. */
+  it('reads a frame with no row dimension whole', () => {
+    const data = frameToGraphWide([pivoted(), graded([0.9], { type: GRAPH_NODES_WIDE })], theme, undefined, T0)!;
+
+    expect(data.nodes.find((node) => node.id === 'b')?.value).toBe(0.9);
+  });
+
+  /**
+   * The distinction shape alone cannot make, and the reason the kind is what is read: a raw
+   * **ragged** response is N frames of one sample each, and a frame that simply has no
+   * sample at the selected stop still reads `null`. Backfilling it would invent data — see
+   * "reads null where a frame has no sample at the timestamp" below, which this is the nodes
+   * half of.
+   */
+  it('still nulls a one-row ranged frame that has no sample at the stop', () => {
+    const nodes = graded([0.9], { type: DataFrameType.TimeSeriesMulti }, [T0 + 2 * STEP]);
+
+    const data = frameToGraphWide([pivoted(), nodes], theme, undefined, T0)!;
+
+    expect(data.nodes.find((node) => node.id === 'b')?.value).toBeNull();
+  });
+
+  /**
+   * And it contributes no **stop**: an instant frame's evaluation instant is not somewhere
+   * to scrub to. Left in, it would add a stop off the ranged grid where every edge reads
+   * null and the graph goes weightless — and two instant queries stamped a moment apart
+   * would raise a slider on a response with no timeline at all.
+   */
+  it('keeps a timeless frame out of the timeline', () => {
+    const instant = graded([0.9], { type: DataFrameType.NumericMulti }, [T0 + 7]);
+
+    expect(graphWideTimeline([pivoted(), instant])).toEqual([T0, T0 + STEP, T0 + 2 * STEP]);
+    expect(hasGraphTimeline([instant])).toBe(false);
   });
 
   /**

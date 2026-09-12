@@ -1,6 +1,6 @@
 import {
   type DataFrame,
-  type DataFrameType,
+  DataFrameType,
   type Field,
   FieldType,
   formattedValueToString,
@@ -572,7 +572,11 @@ export function hasNoNodeStats(frames: DataFrame[] | undefined): boolean {
  * grid. See {@link graphWideTimeline}.
  */
 type MarkRead =
-  /** `calcs[0]` is the main stat and the rest are extra tooltip rows, as everywhere else. */
+  /**
+   * `calcs[0]` is the main stat and the rest are extra tooltip rows, as everywhere else.
+   * Also the reading a frame with **no row dimension** keeps under the slider, having no row
+   * to select by time — see `readFor`.
+   */
   | { kind: 'reduce'; calcs: readonly string[] }
   /** `null` when this frame has no sample at the selected timestamp — every mark reads null. */
   | { kind: 'at'; row: number | null };
@@ -602,9 +606,50 @@ function sourceRowOf(markRead: MarkRead): number {
   return markRead.kind === 'at' ? (markRead.row ?? 0) : 0;
 }
 
-/** The row dimension of a frame, which a ranged response always has and an instant one does not. */
+/** The row dimension of a frame — the time column a ranged response carries. */
 function rowDimension(frame: DataFrame): Field | undefined {
   return frame.fields.find((field) => field.type === FieldType.time);
+}
+
+/**
+ * The data-plane kinds that declare **no row dimension**: numbers, one per series, with no
+ * time axis. https://grafana.com/developers/dataplane/numeric
+ */
+const NUMERIC_FRAME_TYPES: ReadonlySet<string> = new Set([
+  DataFrameType.NumericWide,
+  DataFrameType.NumericMulti,
+  DataFrameType.NumericLong,
+]);
+
+/**
+ * Does this frame have **nothing to select by time** — one reading, true for the whole
+ * range?
+ *
+ * Not the same question as "has a time field", and that is the trap. A Prometheus *instant*
+ * query answers `numeric-multi` and still ships a `Time` column: one row, stamped with the
+ * **evaluation instant**. That instant is `now`, so it lands nowhere near the step grid a
+ * ranged query returns — which made a mixed response (ranged edges beside an instant nodes
+ * query, exactly how a service graph carries per-node error ratios) lose every node the
+ * moment the time slider was switched on. `rowAt` matched no row, every node read `null`,
+ * and a `null` node is not just a missing tooltip row: a by-value scheme has no value to
+ * grade, so `colorOf` returns nothing and `fillPaletteColors` hands the node a palette slot
+ * instead — the reported symptom was "thresholds stop working under the slider".
+ *
+ * So the *declared kind* decides, not the columns. A numeric frame's time column is a
+ * timestamp **about** the reading rather than an axis through it, and the reading is the
+ * same at every stop.
+ *
+ * Shape alone cannot answer this. "One row" is the tempting test and it is wrong: a raw
+ * ragged response is N frames of one sample each, and there a missing sample at the selected
+ * stop really is `null` — no carry-forward, which is what keeps a scrubbed edge honest. The
+ * kind is what separates "one sample of a series" from "one number for the range".
+ *
+ * A frame whose datasource declares nothing keeps the old reading, so nothing regresses on
+ * a response this cannot classify.
+ */
+function isTimelessFrame(frame: DataFrame): boolean {
+  const type = frame.meta?.type;
+  return rowDimension(frame) == null || (type != null && NUMERIC_FRAME_TYPES.has(type));
 }
 
 /**
@@ -637,7 +682,13 @@ function collectStops(frames: DataFrame[], limit = Infinity): Set<number> {
     return stops;
   }
   for (const frame of [...roles.edgesFrames, ...roles.nodesFrames]) {
-    const time = rowDimension(frame);
+    // A timeless frame contributes nothing to scrub *through*, however its datasource
+    // stamped it. An instant Prometheus query ships one row stamped `now`, which would
+    // otherwise become a stop of its own — one sitting off the ranged frames' step grid,
+    // where every edge reads null and the graph goes weightless. Two instant queries with
+    // different evaluation instants would even raise a slider on a response that has no
+    // timeline at all, which is the opposite of what this function promises above.
+    const time = isTimelessFrame(frame) ? undefined : rowDimension(frame);
     for (let row = 0; row < (time?.values.length ?? 0); row++) {
       const at = numberAt(time, row);
       if (at != null) {
@@ -1204,8 +1255,13 @@ export function frameToGraphWide(
   // reduces over its **own** rows, however ragged: reducers skip nulls, so a raw series and
   // the same series null-padded onto a shared row grid give the same number. Under `at` the
   // timestamp is resolved against each frame's own row dimension, for the same reason.
+  //
+  // **A timeless frame keeps reducing**, whatever `at` says — it has no row to select by
+  // time, so its marks read the same at every stop. See {@link isTimelessFrame}, which is
+  // also where the bug this closes is written down. Reducing is exact rather than a guess:
+  // such a frame carries no rows or one, and every reducer agrees on a single row.
   const readFor = (frame: DataFrame): MarkRead =>
-    at == null ? { kind: 'reduce', calcs } : { kind: 'at', row: rowAt(frame, at) };
+    at == null || isTimelessFrame(frame) ? { kind: 'reduce', calcs } : { kind: 'at', row: rowAt(frame, at) };
   // Per frame first, so the diagnostic can say what the old reading would have drawn.
   // Which edges had their filter keys *recovered* rather than read, for the diagnostic —
   // tracked here rather than on the link, which is the render model and not a log.
