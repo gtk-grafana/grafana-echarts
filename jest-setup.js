@@ -131,3 +131,23 @@ window.CanvasRenderingContext2D.prototype.measureText = function measureText(...
   metrics.width = measuredWidth(String(args[0] ?? ''), this.font);
   return metrics;
 };
+
+// The same mock records a `quadraticCurveTo` onto the event stream but — alone among the
+// path-building calls (`moveTo`, `lineTo`, `bezierCurveTo`, `arc`, `arcTo`, `ellipse`,
+// `rect`, `closePath`) — not onto the path it hands to the next `stroke`/`fill`/`clip`.
+// The *assertions* never noticed, because they read the event stream; the **picture**
+// does. `jest-canvas-mock-compare`'s viewer replays `stroke.props.path`, so a curve
+// reached it as a bare `[beginPath, moveTo]` and drew nothing at all: a relations graph
+// with any curveness rendered its nodes and its arrowheads with no lines between them.
+// Push the recorded event onto the path as every sibling call does. `Path2D` borrows
+// these methods off this prototype at construction, so it is repaired by the same patch.
+// https://github.com/hustcc/jest-canvas-mock/blob/master/src/classes/CanvasRenderingContext2D.js
+const recordQuadraticCurveTo = window.CanvasRenderingContext2D.prototype.quadraticCurveTo;
+window.CanvasRenderingContext2D.prototype.quadraticCurveTo = function quadraticCurveTo(...args) {
+  const recorded = this._events.length;
+  recordQuadraticCurveTo.apply(this, args);
+  // A non-finite argument makes the original return without recording anything at all.
+  if (this._events.length > recorded) {
+    this._path.push(this._events[this._events.length - 1]);
+  }
+};

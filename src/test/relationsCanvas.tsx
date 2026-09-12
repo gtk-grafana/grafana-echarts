@@ -1,5 +1,6 @@
 import { type DataFrame, type FieldConfigSource } from '@grafana/data';
 import { render } from '@testing-library/react';
+import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { deriveNodes } from 'lib/echarts/converters/deriveNodes';
 import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
@@ -57,12 +58,12 @@ export const canvasOptions = (extra: Partial<PanelOptions> = {}): Partial<PanelO
   ...extra,
 });
 
-interface RenderRelationsInput {
+interface RenderRelationsInput<FieldConfig> {
   frames: DataFrame[];
   /** Defaults to `graph`. Sankey and chord self-layout, so both drop `relationsLayout`. */
   variant?: RelationsVariant;
   options?: Partial<PanelOptions>;
-  fieldConfig?: FieldConfigSource;
+  fieldConfig?: FieldConfigSource<FieldConfig>;
   /**
    * The pipeline prefix to run the fixture through. Only the derived-node cases pass
    * one: they compare a render against the same render with the *other* prefix, which
@@ -86,7 +87,7 @@ export const renderRelations = async ({
   options = {},
   fieldConfig,
   prefix = asPipelineWould,
-}: RenderRelationsInput) => {
+}: RenderRelationsInput<EChartsRelationsFieldConfig>) => {
   const merged = canvasOptions(options);
   const { container } = render(
     getComponent(
