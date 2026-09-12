@@ -91,6 +91,7 @@ describe('relations overrides', () => {
 
     // Per-edge `custom.curveness` beats the panel-level "Link curveness": `e1` bows hard
     // while the other three stay on the panel value.
+    // @todo not working, no edges rendered in output
     it('a byName curveness override (gateway to api bowed hard, the rest nearly straight)', async () => {
       const fieldConfig: FieldConfigSource = {
         defaults: {},

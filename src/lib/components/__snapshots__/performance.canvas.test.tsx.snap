@@ -27,9 +27,9 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -44,9 +44,9 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -138,21 +138,21 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
-      "y": 129.5,
+      "x": 152.960007,
+      "y": 124,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.666656,
+      "x": 276.480011,
       "y": 8,
     },
     "type": "lineTo",
@@ -166,21 +166,21 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
-            "y": 129.5,
+            "x": 152.960007,
+            "y": 124,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.666656,
+            "x": 276.480011,
             "y": 8,
           },
           "type": "lineTo",
@@ -199,8 +199,8 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
-      "f": 251,
+      "e": 29.440001,
+      "f": 240,
     },
     "type": "setTransform",
   },
@@ -363,8 +363,8 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 145.333328,
-      "f": 129.5,
+      "e": 152.960007,
+      "f": 124,
     },
     "type": "setTransform",
   },
@@ -455,7 +455,7 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 272.666656,
+      "e": 276.480011,
       "f": 8,
     },
     "type": "setTransform",
@@ -570,9 +570,9 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -587,9 +587,9 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -681,21 +681,21 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
-      "y": 129.5,
+      "x": 152.960007,
+      "y": 124,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.666656,
+      "x": 276.480011,
       "y": 8,
     },
     "type": "lineTo",
@@ -709,21 +709,21 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
-            "y": 129.5,
+            "x": 152.960007,
+            "y": 124,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.666656,
+            "x": 276.480011,
             "y": 8,
           },
           "type": "lineTo",
@@ -742,8 +742,8 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
-      "f": 251,
+      "e": 29.440001,
+      "f": 240,
     },
     "type": "setTransform",
   },
@@ -906,8 +906,8 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 145.333328,
-      "f": 129.5,
+      "e": 152.960007,
+      "f": 124,
     },
     "type": "setTransform",
   },
@@ -998,7 +998,7 @@ exports[`Panel canvas performance fast path draws point markers at the symbol th
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 272.666656,
+      "e": 276.480011,
       "f": 8,
     },
     "type": "setTransform",
@@ -1118,9 +1118,9 @@ exports[`Panel canvas performance fast path drops point markers one point past t
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -1135,9 +1135,9 @@ exports[`Panel canvas performance fast path drops point markers one point past t
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -1229,22 +1229,22 @@ exports[`Panel canvas performance fast path drops point markers one point past t
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
-      "y": 170,
+      "x": 152.960007,
+      "y": 162.666672,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.666656,
-      "y": 89,
+      "x": 276.480011,
+      "y": 85.333336,
     },
     "type": "lineTo",
   },
@@ -1264,22 +1264,22 @@ exports[`Panel canvas performance fast path drops point markers one point past t
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
-            "y": 170,
+            "x": 152.960007,
+            "y": 162.666672,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.666656,
-            "y": 89,
+            "x": 276.480011,
+            "y": 85.333336,
           },
           "type": "lineTo",
         },
@@ -1327,9 +1327,9 @@ exports[`Panel canvas performance fast path drops point markers one point past t
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -1344,9 +1344,9 @@ exports[`Panel canvas performance fast path drops point markers one point past t
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -1438,22 +1438,22 @@ exports[`Panel canvas performance fast path drops point markers one point past t
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
-      "y": 170,
+      "x": 152.960007,
+      "y": 162.666672,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.666656,
-      "y": 89,
+      "x": 276.480011,
+      "y": 85.333336,
     },
     "type": "lineTo",
   },
@@ -1473,22 +1473,22 @@ exports[`Panel canvas performance fast path drops point markers one point past t
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
-            "y": 170,
+            "x": 152.960007,
+            "y": 162.666672,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.666656,
-            "y": 89,
+            "x": 276.480011,
+            "y": 85.333336,
           },
           "type": "lineTo",
         },
@@ -1541,9 +1541,9 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -1558,9 +1558,9 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -1652,15 +1652,15 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
-      "y": 129.5,
+      "x": 152.960007,
+      "y": 124,
     },
     "type": "lineTo",
   },
@@ -1673,15 +1673,15 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
-            "y": 129.5,
+            "x": 152.960007,
+            "y": 124,
           },
           "type": "lineTo",
         },
@@ -1714,9 +1714,9 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -1731,9 +1731,9 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -1825,14 +1825,14 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
   },
   {
     "props": {
-      "x": 18,
-      "y": 129.5,
+      "x": 29.440001,
+      "y": 124,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
+      "x": 152.960007,
       "y": 8,
     },
     "type": "lineTo",
@@ -1846,14 +1846,14 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
         },
         {
           "props": {
-            "x": 18,
-            "y": 129.5,
+            "x": 29.440001,
+            "y": 124,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
+            "x": 152.960007,
             "y": 8,
           },
           "type": "lineTo",
@@ -1895,9 +1895,9 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -1912,9 +1912,9 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -2006,15 +2006,15 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
-      "y": 129.5,
+      "x": 152.960007,
+      "y": 124,
     },
     "type": "lineTo",
   },
@@ -2027,15 +2027,15 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
-            "y": 129.5,
+            "x": 152.960007,
+            "y": 124,
           },
           "type": "lineTo",
         },
@@ -2068,9 +2068,9 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -2085,9 +2085,9 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -2179,14 +2179,14 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
   },
   {
     "props": {
-      "x": 18,
-      "y": 129.5,
+      "x": 29.440001,
+      "y": 124,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
+      "x": 152.960007,
       "y": 8,
     },
     "type": "lineTo",
@@ -2200,14 +2200,14 @@ exports[`Panel canvas performance fast path drops point markers when the chart t
         },
         {
           "props": {
-            "x": 18,
-            "y": 129.5,
+            "x": 29.440001,
+            "y": 124,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
+            "x": 152.960007,
             "y": 8,
           },
           "type": "lineTo",
@@ -2254,9 +2254,9 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -2271,9 +2271,9 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -2365,22 +2365,22 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
-      "y": 170,
+      "x": 152.960007,
+      "y": 162.666672,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.666656,
-      "y": 89,
+      "x": 276.480011,
+      "y": 85.333336,
     },
     "type": "lineTo",
   },
@@ -2400,22 +2400,22 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
-            "y": 170,
+            "x": 152.960007,
+            "y": 162.666672,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.666656,
-            "y": 89,
+            "x": 276.480011,
+            "y": 85.333336,
           },
           "type": "lineTo",
         },
@@ -2440,8 +2440,8 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
-      "f": 251,
+      "e": 29.440001,
+      "f": 240,
     },
     "type": "setTransform",
   },
@@ -2604,8 +2604,8 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 145.333328,
-      "f": 170,
+      "e": 152.960007,
+      "f": 162.666672,
     },
     "type": "setTransform",
   },
@@ -2696,8 +2696,8 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 272.666656,
-      "f": 89,
+      "e": 276.480011,
+      "f": 85.333336,
     },
     "type": "setTransform",
   },
@@ -2903,9 +2903,9 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -2920,9 +2920,9 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -3014,22 +3014,22 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
   {
     "props": {
-      "x": 145.333328,
-      "y": 170,
+      "x": 152.960007,
+      "y": 162.666672,
     },
     "type": "lineTo",
   },
   {
     "props": {
-      "x": 272.666656,
-      "y": 89,
+      "x": 276.480011,
+      "y": 85.333336,
     },
     "type": "lineTo",
   },
@@ -3049,22 +3049,22 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
         {
           "props": {
-            "x": 145.333328,
-            "y": 170,
+            "x": 152.960007,
+            "y": 162.666672,
           },
           "type": "lineTo",
         },
         {
           "props": {
-            "x": 272.666656,
-            "y": 89,
+            "x": 276.480011,
+            "y": 85.333336,
           },
           "type": "lineTo",
         },
@@ -3089,8 +3089,8 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
-      "f": 251,
+      "e": 29.440001,
+      "f": 240,
     },
     "type": "setTransform",
   },
@@ -3253,8 +3253,8 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 145.333328,
-      "f": 170,
+      "e": 152.960007,
+      "f": 162.666672,
     },
     "type": "setTransform",
   },
@@ -3345,8 +3345,8 @@ exports[`Panel canvas performance fast path keeps point markers past the thresho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 272.666656,
-      "f": 89,
+      "e": 276.480011,
+      "f": 85.333336,
     },
     "type": "setTransform",
   },
@@ -3557,9 +3557,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -3574,9 +3574,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -3668,8 +3668,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
@@ -3682,8 +3682,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
@@ -3716,9 +3716,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -3733,9 +3733,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -3827,8 +3827,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "x": 18,
-      "y": 129.5,
+      "x": 29.440001,
+      "y": 124,
     },
     "type": "moveTo",
   },
@@ -3841,8 +3841,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "x": 18,
-            "y": 129.5,
+            "x": 29.440001,
+            "y": 124,
           },
           "type": "moveTo",
         },
@@ -3875,9 +3875,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -3892,9 +3892,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -3986,7 +3986,7 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "x": 18,
+      "x": 29.440001,
       "y": 8,
     },
     "type": "moveTo",
@@ -4000,7 +4000,7 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "x": 18,
+            "x": 29.440001,
             "y": 8,
           },
           "type": "moveTo",
@@ -4019,8 +4019,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
-      "f": 251,
+      "e": 29.440001,
+      "f": 240,
     },
     "type": "setTransform",
   },
@@ -4183,8 +4183,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
-      "f": 129.5,
+      "e": 29.440001,
+      "f": 124,
     },
     "type": "setTransform",
   },
@@ -4281,7 +4281,7 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
+      "e": 29.440001,
       "f": 8,
     },
     "type": "setTransform",
@@ -4402,9 +4402,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -4419,9 +4419,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -4513,8 +4513,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "x": 18,
-      "y": 251,
+      "x": 29.440001,
+      "y": 240,
     },
     "type": "moveTo",
   },
@@ -4527,8 +4527,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "x": 18,
-            "y": 251,
+            "x": 29.440001,
+            "y": 240,
           },
           "type": "moveTo",
         },
@@ -4561,9 +4561,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -4578,9 +4578,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -4672,8 +4672,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "x": 18,
-      "y": 129.5,
+      "x": 29.440001,
+      "y": 124,
     },
     "type": "moveTo",
   },
@@ -4686,8 +4686,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "x": 18,
-            "y": 129.5,
+            "x": 29.440001,
+            "y": 124,
           },
           "type": "moveTo",
         },
@@ -4720,9 +4720,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "height": 245,
-      "width": 384,
-      "x": 17,
+      "height": 234,
+      "width": 374,
+      "x": 28,
       "y": 7,
     },
     "type": "rect",
@@ -4737,9 +4737,9 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "height": 245,
-            "width": 384,
-            "x": 17,
+            "height": 234,
+            "width": 374,
+            "x": 28,
             "y": 7,
           },
           "type": "rect",
@@ -4831,7 +4831,7 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
   },
   {
     "props": {
-      "x": 18,
+      "x": 29.440001,
       "y": 8,
     },
     "type": "moveTo",
@@ -4845,7 +4845,7 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
         },
         {
           "props": {
-            "x": 18,
+            "x": 29.440001,
             "y": 8,
           },
           "type": "moveTo",
@@ -4864,8 +4864,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
-      "f": 251,
+      "e": 29.440001,
+      "f": 240,
     },
     "type": "setTransform",
   },
@@ -5028,8 +5028,8 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
-      "f": 129.5,
+      "e": 29.440001,
+      "f": 124,
     },
     "type": "setTransform",
   },
@@ -5126,7 +5126,7 @@ exports[`Panel canvas performance fast path keeps point markers when several sho
       "b": 0,
       "c": 0,
       "d": 3,
-      "e": 18,
+      "e": 29.440001,
       "f": 8,
     },
     "type": "setTransform",

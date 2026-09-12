@@ -106,8 +106,13 @@ describe('relations interaction', () => {
       expect(moved).toEqual(
         still.map(({ text, x, y }) => ({ text, x: expect.closeTo(x + pan.dx, 6), y: expect.closeTo(y + pan.dy, 6) }))
       );
-      // Guard against agreeing on an empty graph, or on one drawn with no edge values.
-      expect(moved.map(({ text }) => text)).toEqual(expect.arrayContaining(['100', '50', '90', '40']));
+      // Guard against agreeing on an empty graph, or on one drawn with no edge values. The
+      // fourth weight (`90`, on api → db) is not in the list because it is never drawn: at
+      // real label widths it lands under a node name and yields to it, which is what
+      // `relations-labels` pins.
+      expect(moved.map(({ text }) => text)).toEqual(
+        expect.arrayContaining(['Gateway', 'API', 'Web', 'DB', '100', '50', '40'])
+      );
     });
 
     // The zoom buttons re-run the label layout stage on their own (`updateLabelLayout`),
@@ -121,7 +126,9 @@ describe('relations interaction', () => {
       expect(moved).toEqual(
         still.map(({ text, x, y }) => ({ text, x: expect.closeTo(x + pan.dx, 6), y: expect.closeTo(y + pan.dy, 6) }))
       );
-      expect(moved.map(({ text }) => text)).toEqual(expect.arrayContaining(['100', '50', '90', '40']));
+      expect(moved.map(({ text }) => text)).toEqual(
+        expect.arrayContaining(['Gateway', 'API', 'Web', 'DB', '100', '50', '40'])
+      );
     });
   });
 });

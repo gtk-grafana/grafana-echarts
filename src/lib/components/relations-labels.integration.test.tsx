@@ -26,14 +26,15 @@ import { asPipelineWould, canvasOptions, labelTexts, renderRelations, uniqueLabe
  * states worse than the assertion does. The four cases that used to be snapshotted
  * (truncation, wrapping, and the two collision cases) committed 29,424 baseline lines
  * between them to assert, in the wrap case, only "no ellipsis anywhere", and in the two
- * collision cases a difference of one label out of 24. The label list beside the option
+ * collision cases nothing beyond which labels survived. The label list beside the option
  * that produced it is both smaller and a stronger assertion.
  *
- * **The scale is the harness's, not the product's.** `jest-canvas-mock`'s `TextMetrics`
- * reports `width = text.length` — one pixel per character — so at the real 120px default
- * label width a 30-character name measures 30 and nothing ever truncates or collides.
- * The mechanism is identical either way; only the numbers differ, so the fixtures and the
- * widths beside them pick values that reach it. Real geometry is measured in a browser.
+ * **The scale is the product's.** Every option below is left at its default, because the
+ * harness measures text like a browser does: `jest-setup.js` re-answers `measureText`
+ * with per-character em fractions rather than `jest-canvas-mock`'s one pixel per
+ * character, so a long name reaches `RELATIONS_LABEL_WIDTH_DEFAULT` (120px) in about the
+ * same twenty characters it would on screen and the collisions are the ones a reader
+ * would see. Exact pixels still belong in a browser; which labels survive does not.
  */
 
 /** Twelve crowded nodes rendered as a graph, with overlap hiding as the case chooses. */
@@ -47,33 +48,32 @@ describe('relations labels', () => {
   describe('overflow', () => {
     /**
      * Long names are ellipsised at the label width rather than allowed to run into the
-     * next node. On by default — see `RELATIONS_LABEL_OVERFLOW_DEFAULT`. Overlap hiding
-     * is switched off so the claim is about truncation alone.
+     * next node. Both on by default — see `RELATIONS_LABEL_OVERFLOW_DEFAULT` and
+     * `RELATIONS_LABEL_WIDTH_DEFAULT`, so neither is set here. Overlap hiding is switched
+     * off so the claim is about truncation alone.
      */
     it('a long name is cut at the label width and ends in an ellipsis', async () => {
-      const { seriesEvents } = await renderCrowdedGraph({
-        // 14 "px" = 14 characters under the harness metric.
-        relationsLabelWidth: 14,
-        relationsHideOverlappingLabels: false,
-      });
+      const { seriesEvents } = await renderCrowdedGraph({ relationsHideOverlappingLabels: false });
 
       const drawn = uniqueLabelTexts(seriesEvents);
       expect(drawn).toHaveLength(crowdedIds.length);
-      expect(drawn.every((text) => text.endsWith('...') && text.length <= 14)).toBe(true);
+      // Every name is 58 characters; about twenty of them fit in 120px, plus the ellipsis —
+      // and not the same twenty each time, because the glyphs are measured individually.
+      expect(drawn.every((text) => text.endsWith('...') && text.length < 30)).toBe(true);
       expect(drawn).toMatchInlineSnapshot(`
         [
-          "api-servic...",
-          "audit-serv...",
-          "auth-servi...",
-          "billing-se...",
-          "cache-serv...",
-          "db-service...",
-          "gateway-se...",
-          "notify-ser...",
-          "queue-serv...",
-          "report-ser...",
-          "search-ser...",
-          "web-servic...",
+          "api-service-primary-...",
+          "audit-service-primar...",
+          "auth-service-primar...",
+          "billing-service-prima...",
+          "cache-service-prima...",
+          "db-service-primary-...",
+          "gateway-service-pri...",
+          "notify-service-prima...",
+          "queue-service-prim...",
+          "report-service-prima...",
+          "search-service-prim...",
+          "web-service-primary...",
         ]
       `);
     });
@@ -83,7 +83,6 @@ describe('relations labels', () => {
     it('break mode wraps a long name over several lines instead of cutting it', async () => {
       const { seriesEvents } = await renderCrowdedGraph({
         relationsLabelOverflow: 'break',
-        relationsLabelWidth: 14,
         relationsHideOverlappingLabels: false,
       });
 
@@ -93,42 +92,30 @@ describe('relations labels', () => {
       expect(drawn.length).toBeGreaterThan(crowdedIds.length);
       expect(drawn).toMatchInlineSnapshot(`
         [
-          "-1-with-a-name",
-          "-going",
-          "-primary-eu-we",
-          "-that-keeps-go",
-          "-with-a-name-t",
-          "1-with-a-name-",
-          "ame-that-keeps",
-          "api-service-pr",
-          "audit-service-",
-          "auth-service-p",
-          "billing-servic",
-          "cache-service-",
-          "db-service-pri",
-          "e-primary-eu-w",
-          "e-that-keeps-g",
-          "est-1-with-a-n",
+          "-eu-west-1-with-a-na",
+          "-that-keeps-going",
+          "-west-1-with-a-name-t",
+          "api-service-primary-eu",
+          "ary-eu-west-1-with-a-",
+          "audit-service-primary-",
+          "auth-service-primary-",
+          "billing-service-primary",
+          "cache-service-primary",
+          "db-service-primary-eu",
+          "e-that-keeps-going",
+          "eu-west-1-with-a-nam",
           "g",
-          "gateway-servic",
-          "going",
-          "hat-keeps-goin",
-          "imary-eu-west-",
-          "ing",
-          "mary-eu-west-1",
-          "me-that-keeps-",
-          "ng",
-          "notify-service",
-          "oing",
-          "primary-eu-wes",
-          "queue-service-",
-          "report-service",
-          "rimary-eu-west",
-          "search-service",
-          "st-1-with-a-na",
-          "t-1-with-a-nam",
-          "that-keeps-goi",
-          "web-service-pr",
+          "gateway-service-prim",
+          "hat-keeps-going",
+          "me-that-keeps-going",
+          "name-that-keeps-goin",
+          "notify-service-primary-",
+          "queue-service-primary",
+          "report-service-primary",
+          "search-service-primar",
+          "u-west-1-with-a-name",
+          "web-service-primary-e",
+          "y-eu-west-1-with-a-na",
         ]
       `);
     });
@@ -157,13 +144,9 @@ describe('relations labels', () => {
       expect(kept).toMatchInlineSnapshot(`
         [
           "api-service-primary-eu-west-1-with-a-name-that-keeps-going",
-          "audit-service-primary-eu-west-1-with-a-name-that-keeps-going",
           "auth-service-primary-eu-west-1-with-a-name-that-keeps-going",
           "billing-service-primary-eu-west-1-with-a-name-that-keeps-going",
-          "cache-service-primary-eu-west-1-with-a-name-that-keeps-going",
           "gateway-service-primary-eu-west-1-with-a-name-that-keeps-going",
-          "queue-service-primary-eu-west-1-with-a-name-that-keeps-going",
-          "report-service-primary-eu-west-1-with-a-name-that-keeps-going",
           "search-service-primary-eu-west-1-with-a-name-that-keeps-going",
           "web-service-primary-eu-west-1-with-a-name-that-keeps-going",
         ]
@@ -178,9 +161,9 @@ describe('relations labels', () => {
      *
      * Twelve nodes, four carrying real flow and eight reduced to slivers — the exact
      * shape the option exists for, since the slivers collapse into a narrow wedge and
-     * their labels stack on one another. **One label is dropped here, and many more
-     * would be in a browser**, because a chord label is a quarter of its real width
-     * under the harness metric.
+     * their labels stack on one another. Half of them lose their labels: a chord label is
+     * measured at its full width now that the harness answers `measureText` like a browser,
+     * so the slivers' names have nowhere to go.
      */
     it('a chord ring of collapsed arcs drops the labels that stack up', async () => {
       const frames = [ringNodesFrame, ringEdgesFrame];
@@ -204,11 +187,6 @@ describe('relations labels', () => {
           "d-service-primary-eu-west-1",
           "e-service-primary-eu-west-1",
           "f-service-primary-eu-west-1",
-          "g-service-primary-eu-west-1",
-          "h-service-primary-eu-west-1",
-          "i-service-primary-eu-west-1",
-          "j-service-primary-eu-west-1",
-          "k-service-primary-eu-west-1",
         ]
       `);
     });
@@ -220,11 +198,10 @@ describe('relations labels', () => {
    *
    * Cause was `labelLayout.hideOverlap` being applied to edge labels as well as node
    * ones. A graph's edge labels are measured before the link geometry has settled, so the
-   * first pass hid nearly all of them and each later pass let one more through — exactly
-   * 1, 2, 3, then all 4 over four renders of this fixture. They are arbitrated by the
-   * family instead — measured on the settled geometry, and yielding to the node labels
-   * rather than outranking them. See `getRelationsLabelLayout` and
-   * `registerEdgeLabelLayout`.
+   * first pass hid nearly all of them and each later pass let one more through, up to
+   * whatever the settled geometry allowed. They are arbitrated by the family instead —
+   * measured on the settled geometry, and yielding to the node labels rather than
+   * outranking them. See `getRelationsLabelLayout` and `registerEdgeLabelLayout`.
    *
    * Counted per pass (draw calls accumulate across the harness's passes, hence the slice)
    * with overlap hiding left **on**, since that is the default and the condition for the
@@ -251,8 +228,12 @@ describe('relations labels', () => {
       const weights = ['100', '50', '90', '40'];
       const thisPass = perPass(container, (texts) => texts.filter((text) => weights.includes(text)));
 
+      // Three of the four: `90` (api → db) lands under a node name at real label widths
+      // and yields to it, which is the arbitration the `overlap` cases above pin. What
+      // this case is about is that the *same* ones come back every pass — the bug let one
+      // more through each time.
       const first = thisPass();
-      expect(first).toEqual(expect.arrayContaining(weights));
+      expect(first).toEqual(['100', '50', '40']);
 
       for (let pass = 0; pass < 3; pass++) {
         rerender(element());

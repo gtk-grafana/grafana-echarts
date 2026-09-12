@@ -158,12 +158,12 @@ export const pinnedNodesFrame = toDataFrame({
 
 /**
  * Twelve nodes whose titles are long enough that neighbouring label boxes genuinely
- * intersect under the harness metric, plus a chain of edges through them.
+ * intersect at the default 120px label width, plus a chain of edges through them.
  *
- * `jest-canvas-mock`'s `TextMetrics` reports `width = text.length` — one pixel per
- * character — so at the real 120px default label width a 30-character name measures 30
- * and nothing ever truncates or collides. The mechanism is identical either way; only
- * the scale differs, so the fixture and the widths beside it pick numbers that reach it.
+ * 58 characters is deliberate: `jest-setup.js` measures text with per-character em
+ * fractions, so a name this long overruns the label box by about three times over —
+ * enough that truncation and collision are reached at the product's own defaults rather
+ * than at numbers picked to suit the harness.
  */
 export const crowdedIds = [
   'gateway',

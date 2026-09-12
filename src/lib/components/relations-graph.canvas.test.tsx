@@ -264,6 +264,10 @@ describe('relations graph', () => {
      * baseline. If it were winning, both lines into `db` would be `db`'s green; they are
      * their own orange and red instead. The comparison is stated as a claim in
      * `relations-thresholds.integration.test.tsx`; this is the picture of it.
+     *
+     * Three weights are drawn for the four lines: `api --> db`'s `20` lands under a node
+     * name and yields to it, the arbitration `relations-labels.integration.test.tsx`
+     * pins. The colours are the claim here, not the labels.
      */
     it('a by-value scheme on every mark (nodes in three bands, each line graded by its own weight)', async () => {
       const { defaultEvents, seriesEvents } = await renderRelations({

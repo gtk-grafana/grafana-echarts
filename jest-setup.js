@@ -75,3 +75,59 @@ require('jest-canvas-mock');
 // https://github.com/grafana/jest-canvas-mock-compare
 const { matchers } = require('jest-canvas-mock-compare');
 expect.extend(matchers);
+
+// jest-canvas-mock answers every `measureText` with `width = text.length` — one pixel per
+// character, whatever the font. zrender measures *everything* through that call, including
+// its line height: `getLineHeight()` is the width of `'国'`, so in jsdom a line is 1px tall
+// and every multi-line label (a relations node drawn as `name\nvalue`) stacks its lines on
+// top of each other instead of 12px apart. Label widths are off by ~6x in the same way, so
+// `overflow: 'truncate'`, `hideOverlap`, sankey/chord label gutters and any geometry laid
+// out around a text box all behave unlike the browser.
+//
+// Re-measure with the ratio table zrender itself uses when it renders without a canvas
+// (server-side): per-character fractions of the em, measured from a real browser's
+// sans-serif, with 1em for anything outside ASCII — which puts `'国'` (and so the line
+// height) back at the font size. Deterministic, font-size aware, and close enough to a
+// browser that a canvas baseline reads like the picture the panel actually paints.
+// https://github.com/ecomfe/zrender/blob/master/src/core/platform.ts (DEFAULT_TEXT_WIDTH_MAP)
+const ZRENDER_WIDTH_MAP =
+  "007LLmW'55;N0500LLLLLLLLLL00NNNLzWW\\\\WQb\\0FWLg\\bWb\\WQ\\WrWWQ000CL5LLFLL0LL**F*gLLLL5F0LF\\FFF5.5N";
+const ZRENDER_WIDTH_MAP_OFFSET = 20;
+const ZRENDER_WIDTH_MAP_SCALE = 100;
+const DEFAULT_FONT_SIZE = 12;
+
+// char -> width as a fraction of the em, for the printable ASCII range the table covers.
+const CHAR_EM_WIDTHS = Object.fromEntries(
+  Array.from(ZRENDER_WIDTH_MAP, (char, index) => [
+    String.fromCharCode(index + 32),
+    (char.charCodeAt(0) - ZRENDER_WIDTH_MAP_OFFSET) / ZRENDER_WIDTH_MAP_SCALE,
+  ])
+);
+
+const fontSizeOf = (font) => {
+  const match = /((?:\d+)?\.?\d*)px/.exec(font || '');
+  return (match && Number(match[1])) || DEFAULT_FONT_SIZE;
+};
+
+const measuredWidth = (text, font) => {
+  const fontSize = fontSizeOf(font);
+  // Same shortcut zrender takes: a monospace face is one em per character.
+  if ((font || '').indexOf('mono') >= 0) {
+    return fontSize * text.length;
+  }
+  let width = 0;
+  for (const char of text) {
+    const em = CHAR_EM_WIDTHS[char];
+    width += em == null ? fontSize : em * fontSize;
+  }
+  return width;
+};
+
+// Only `width` is corrected; the rest of `TextMetrics` (ascents, baselines) stays 0 as
+// jest-canvas-mock leaves it, because nothing in the chart stack reads it.
+const recordMeasureText = window.CanvasRenderingContext2D.prototype.measureText;
+window.CanvasRenderingContext2D.prototype.measureText = function measureText(...args) {
+  const metrics = recordMeasureText.apply(this, args);
+  metrics.width = measuredWidth(String(args[0] ?? ''), this.font);
+  return metrics;
+};
