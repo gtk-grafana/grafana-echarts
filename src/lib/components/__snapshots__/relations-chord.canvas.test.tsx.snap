@@ -11084,6 +11084,2805 @@ exports[`relations chord labels node labels off (arcs and chords, no text) 1`] =
 ]
 `;
 
+exports[`relations chord ring minimum arc angle 30 (a sliver widened to a readable wedge) 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 39,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.463723,
+      "radius": 91,
+      "startAngle": 4.712389,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 218.635363,
+      "cpx2": 227.296606,
+      "cpy1": 110.049731,
+      "cpy2": 129.569526,
+      "x": 290.988686,
+      "y": 128.565085,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 7.278023,
+      "radius": 91,
+      "startAngle": 6.267416,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 214.868646,
+      "cpx2": 200,
+      "cpy1": 152.895707,
+      "cpy2": 102.7,
+      "x": 200,
+      "y": 39,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 39,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.463723,
+            "radius": 91,
+            "startAngle": 4.712389,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 218.635363,
+            "cpx2": 227.296606,
+            "cpy1": 110.049731,
+            "cpy2": 129.569526,
+            "x": 290.988686,
+            "y": 128.565085,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 7.278023,
+            "radius": 91,
+            "startAngle": 6.267416,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 214.868646,
+            "cpx2": 200,
+            "cpy1": 152.895707,
+            "cpy2": 102.7,
+            "x": 200,
+            "y": 39,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 262.117878,
+      "y": 63.499104,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.215056,
+      "radius": 91,
+      "startAngle": 5.463723,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.236668,
+      "cpx2": 187.102299,
+      "cpy1": 128.141522,
+      "cpy2": 154.061158,
+      "x": 157.007663,
+      "y": 210.203858,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.073464,
+      "radius": 91,
+      "startAngle": 2.062857,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 172.763332,
+      "cpx2": 218.635363,
+      "cpy1": 131.858478,
+      "cpy2": 110.049731,
+      "x": 262.117878,
+      "y": 63.499104,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 262.117878,
+            "y": 63.499104,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.215056,
+            "radius": 91,
+            "startAngle": 5.463723,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.236668,
+            "cpx2": 187.102299,
+            "cpy1": 128.141522,
+            "cpy2": 154.061158,
+            "x": 157.007663,
+            "y": 210.203858,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.073464,
+            "radius": 91,
+            "startAngle": 2.062857,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 172.763332,
+            "cpx2": 218.635363,
+            "cpy1": 131.858478,
+            "cpy2": 110.049731,
+            "x": 262.117878,
+            "y": 63.499104,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 249.562152,
+      "y": 206.319022,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.005444,
+      "radius": 91,
+      "startAngle": 0.994838,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 188.504212,
+      "cpx2": 172.763332,
+      "cpy1": 154.761601,
+      "cpy2": 131.858478,
+      "x": 109.211108,
+      "y": 136.194928,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.08407,
+      "radius": 91,
+      "startAngle": 3.073464,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 183.953463,
+      "cpx2": 214.868646,
+      "cpy1": 107.913836,
+      "cpy2": 152.895707,
+      "x": 249.562152,
+      "y": 206.319022,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 249.562152,
+            "y": 206.319022,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.005444,
+            "radius": 91,
+            "startAngle": 0.994838,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 188.504212,
+            "cpx2": 172.763332,
+            "cpy1": 154.761601,
+            "cpy2": 131.858478,
+            "x": 109.211108,
+            "y": 136.194928,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.08407,
+            "radius": 91,
+            "startAngle": 3.073464,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 183.953463,
+            "cpx2": 214.868646,
+            "cpy1": 107.913836,
+            "cpy2": 152.895707,
+            "x": 249.562152,
+            "y": 206.319022,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 161.680707,
+      "y": 212.538669,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.010497,
+      "radius": 91,
+      "startAngle": 2.005444,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 188.379238,
+      "cpx2": 185.131354,
+      "cpy1": 154.703196,
+      "cpy2": 107.104293,
+      "x": 150.437848,
+      "y": 53.680978,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.141483,
+      "radius": 91,
+      "startAngle": 4.13643,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 185.247236,
+      "cpx2": 188.504212,
+      "cpy1": 107.029454,
+      "cpy2": 154.761601,
+      "x": 161.680707,
+      "y": 212.538669,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 161.680707,
+            "y": 212.538669,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.010497,
+            "radius": 91,
+            "startAngle": 2.005444,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 188.379238,
+            "cpx2": 185.131354,
+            "cpy1": 154.703196,
+            "cpy2": 107.104293,
+            "x": 150.437848,
+            "y": 53.680978,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.141483,
+            "radius": 91,
+            "startAngle": 4.13643,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 185.247236,
+            "cpx2": 188.504212,
+            "cpy1": 107.029454,
+            "cpy2": 154.761601,
+            "x": 161.680707,
+            "y": 212.538669,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 31.126343,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.762916,
+      "radius": 5,
+      "startAngle": 3.141593,
+      "x": 205,
+      "y": 31.126343,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.16453,
+      "radius": 104,
+      "startAngle": 4.762916,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 7.785853,
+      "radius": 5,
+      "startAngle": 6.16453,
+      "x": 298.303902,
+      "y": 118.280663,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 290.788892,
+      "y": 123.805072,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 4.712389,
+      "radius": 91,
+      "startAngle": 6.215056,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 31.126343,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.762916,
+            "radius": 5,
+            "startAngle": 3.141593,
+            "x": 205,
+            "y": 31.126343,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.16453,
+            "radius": 104,
+            "startAngle": 4.762916,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 7.785853,
+            "radius": 5,
+            "startAngle": 6.16453,
+            "x": 298.303902,
+            "y": 118.280663,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 290.788892,
+            "y": 123.805072,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 4.712389,
+            "radius": 91,
+            "startAngle": 6.215056,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 298.861364,
+      "y": 128.440931,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.317943,
+      "radius": 5,
+      "startAngle": 4.69662,
+      "x": 298.940206,
+      "y": 133.440309,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 1.959971,
+      "radius": 104,
+      "startAngle": 0.034758,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.581294,
+      "radius": 5,
+      "startAngle": 1.959971,
+      "x": 162.436952,
+      "y": 221.597038,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 161.264128,
+      "y": 212.343987,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": -0.015769,
+      "radius": 91,
+      "startAngle": 2.010497,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 298.861364,
+            "y": 128.440931,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.317943,
+            "radius": 5,
+            "startAngle": 4.69662,
+            "x": 298.940206,
+            "y": 133.440309,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 1.959971,
+            "radius": 104,
+            "startAngle": 0.034758,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.581294,
+            "radius": 5,
+            "startAngle": 1.959971,
+            "x": 162.436952,
+            "y": 221.597038,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 161.264128,
+            "y": 212.343987,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": -0.015769,
+            "radius": 91,
+            "startAngle": 2.010497,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 153.287806,
+      "y": 217.143393,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.113384,
+      "radius": 5,
+      "startAngle": 0.492061,
+      "x": 148.881001,
+      "y": 214.781177,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.033544,
+      "radius": 104,
+      "startAngle": 2.113384,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.654867,
+      "radius": 5,
+      "startAngle": 4.033544,
+      "x": 137.838438,
+      "y": 52.948458,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 146.511542,
+      "y": 56.379454,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 2.062857,
+      "radius": 91,
+      "startAngle": 4.08407,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 153.287806,
+            "y": 217.143393,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.113384,
+            "radius": 5,
+            "startAngle": 0.492061,
+            "x": 148.881001,
+            "y": 214.781177,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.033544,
+            "radius": 104,
+            "startAngle": 2.113384,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.654867,
+            "radius": 5,
+            "startAngle": 4.033544,
+            "x": 137.838438,
+            "y": 52.948458,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 146.511542,
+            "y": 56.379454,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 2.062857,
+            "radius": 91,
+            "startAngle": 4.08407,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 146.149547,
+      "y": 47.077574,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.186957,
+      "radius": 5,
+      "startAngle": 2.565634,
+      "x": 150.3429,
+      "y": 44.354379,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.609503,
+      "radius": 104,
+      "startAngle": 4.186957,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.230825,
+      "radius": 5,
+      "startAngle": 4.609503,
+      "x": 189.832205,
+      "y": 31.523526,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 195.237428,
+      "y": 39.124712,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 4.13643,
+      "radius": 91,
+      "startAngle": 4.660029,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 146.149547,
+            "y": 47.077574,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.186957,
+            "radius": 5,
+            "startAngle": 2.565634,
+            "x": 150.3429,
+            "y": 44.354379,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.609503,
+            "radius": 104,
+            "startAngle": 4.186957,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.230825,
+            "radius": 5,
+            "startAngle": 4.609503,
+            "x": 189.832205,
+            "y": 31.523526,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 195.237428,
+            "y": 39.124712,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 4.13643,
+            "radius": 91,
+            "startAngle": 4.660029,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 274.404931,
+      "f": 50.34508,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "gateway",
+      "x": 0,
+      "y": -6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 259.134504,
+      "f": 221.564788,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "api",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 91.252866,
+      "f": 137.420299,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "web",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 166.317148,
+      "f": 26.33484,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "trickle",
+      "x": 0,
+      "y": -6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 39,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.463723,
+      "radius": 91,
+      "startAngle": 4.712389,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 218.635363,
+      "cpx2": 227.296606,
+      "cpy1": 110.049731,
+      "cpy2": 129.569526,
+      "x": 290.988686,
+      "y": 128.565085,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 7.278023,
+      "radius": 91,
+      "startAngle": 6.267416,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 214.868646,
+      "cpx2": 200,
+      "cpy1": 152.895707,
+      "cpy2": 102.7,
+      "x": 200,
+      "y": 39,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 39,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.463723,
+            "radius": 91,
+            "startAngle": 4.712389,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 218.635363,
+            "cpx2": 227.296606,
+            "cpy1": 110.049731,
+            "cpy2": 129.569526,
+            "x": 290.988686,
+            "y": 128.565085,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 7.278023,
+            "radius": 91,
+            "startAngle": 6.267416,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 214.868646,
+            "cpx2": 200,
+            "cpy1": 152.895707,
+            "cpy2": 102.7,
+            "x": 200,
+            "y": 39,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 262.117878,
+      "y": 63.499104,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.215056,
+      "radius": 91,
+      "startAngle": 5.463723,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 227.236668,
+      "cpx2": 187.102299,
+      "cpy1": 128.141522,
+      "cpy2": 154.061158,
+      "x": 157.007663,
+      "y": 210.203858,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.073464,
+      "radius": 91,
+      "startAngle": 2.062857,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 172.763332,
+      "cpx2": 218.635363,
+      "cpy1": 131.858478,
+      "cpy2": 110.049731,
+      "x": 262.117878,
+      "y": 63.499104,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 262.117878,
+            "y": 63.499104,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.215056,
+            "radius": 91,
+            "startAngle": 5.463723,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 227.236668,
+            "cpx2": 187.102299,
+            "cpy1": 128.141522,
+            "cpy2": 154.061158,
+            "x": 157.007663,
+            "y": 210.203858,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.073464,
+            "radius": 91,
+            "startAngle": 2.062857,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 172.763332,
+            "cpx2": 218.635363,
+            "cpy1": 131.858478,
+            "cpy2": 110.049731,
+            "x": 262.117878,
+            "y": 63.499104,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 249.562152,
+      "y": 206.319022,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.005444,
+      "radius": 91,
+      "startAngle": 0.994838,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 188.504212,
+      "cpx2": 172.763332,
+      "cpy1": 154.761601,
+      "cpy2": 131.858478,
+      "x": 109.211108,
+      "y": 136.194928,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.08407,
+      "radius": 91,
+      "startAngle": 3.073464,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 183.953463,
+      "cpx2": 214.868646,
+      "cpy1": 107.913836,
+      "cpy2": 152.895707,
+      "x": 249.562152,
+      "y": 206.319022,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 249.562152,
+            "y": 206.319022,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.005444,
+            "radius": 91,
+            "startAngle": 0.994838,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 188.504212,
+            "cpx2": 172.763332,
+            "cpy1": 154.761601,
+            "cpy2": 131.858478,
+            "x": 109.211108,
+            "y": 136.194928,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.08407,
+            "radius": 91,
+            "startAngle": 3.073464,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 183.953463,
+            "cpx2": 214.868646,
+            "cpy1": 107.913836,
+            "cpy2": 152.895707,
+            "x": 249.562152,
+            "y": 206.319022,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 161.680707,
+      "y": 212.538669,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.010497,
+      "radius": 91,
+      "startAngle": 2.005444,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 188.379238,
+      "cpx2": 185.131354,
+      "cpy1": 154.703196,
+      "cpy2": 107.104293,
+      "x": 150.437848,
+      "y": 53.680978,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.141483,
+      "radius": 91,
+      "startAngle": 4.13643,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "cpx1": 185.247236,
+      "cpx2": 188.504212,
+      "cpy1": 107.029454,
+      "cpy2": 154.761601,
+      "x": 161.680707,
+      "y": 212.538669,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 161.680707,
+            "y": 212.538669,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.010497,
+            "radius": 91,
+            "startAngle": 2.005444,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 188.379238,
+            "cpx2": 185.131354,
+            "cpy1": 154.703196,
+            "cpy2": 107.104293,
+            "x": 150.437848,
+            "y": 53.680978,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.141483,
+            "radius": 91,
+            "startAngle": 4.13643,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "cpx1": 185.247236,
+            "cpx2": 188.504212,
+            "cpy1": 107.029454,
+            "cpy2": 154.761601,
+            "x": 161.680707,
+            "y": 212.538669,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 200,
+      "y": 31.126343,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.762916,
+      "radius": 5,
+      "startAngle": 3.141593,
+      "x": 205,
+      "y": 31.126343,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.16453,
+      "radius": 104,
+      "startAngle": 4.762916,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 7.785853,
+      "radius": 5,
+      "startAngle": 6.16453,
+      "x": 298.303902,
+      "y": 118.280663,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 290.788892,
+      "y": 123.805072,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 4.712389,
+      "radius": 91,
+      "startAngle": 6.215056,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 200,
+            "y": 31.126343,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.762916,
+            "radius": 5,
+            "startAngle": 3.141593,
+            "x": 205,
+            "y": 31.126343,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.16453,
+            "radius": 104,
+            "startAngle": 4.762916,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 7.785853,
+            "radius": 5,
+            "startAngle": 6.16453,
+            "x": 298.303902,
+            "y": 118.280663,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 290.788892,
+            "y": 123.805072,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 4.712389,
+            "radius": 91,
+            "startAngle": 6.215056,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 298.861364,
+      "y": 128.440931,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.317943,
+      "radius": 5,
+      "startAngle": 4.69662,
+      "x": 298.940206,
+      "y": 133.440309,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 1.959971,
+      "radius": 104,
+      "startAngle": 0.034758,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 3.581294,
+      "radius": 5,
+      "startAngle": 1.959971,
+      "x": 162.436952,
+      "y": 221.597038,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 161.264128,
+      "y": 212.343987,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": -0.015769,
+      "radius": 91,
+      "startAngle": 2.010497,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 298.861364,
+            "y": 128.440931,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.317943,
+            "radius": 5,
+            "startAngle": 4.69662,
+            "x": 298.940206,
+            "y": 133.440309,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 1.959971,
+            "radius": 104,
+            "startAngle": 0.034758,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 3.581294,
+            "radius": 5,
+            "startAngle": 1.959971,
+            "x": 162.436952,
+            "y": 221.597038,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 161.264128,
+            "y": 212.343987,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": -0.015769,
+            "radius": 91,
+            "startAngle": 2.010497,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 153.287806,
+      "y": 217.143393,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 2.113384,
+      "radius": 5,
+      "startAngle": 0.492061,
+      "x": 148.881001,
+      "y": 214.781177,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.033544,
+      "radius": 104,
+      "startAngle": 2.113384,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 5.654867,
+      "radius": 5,
+      "startAngle": 4.033544,
+      "x": 137.838438,
+      "y": 52.948458,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 146.511542,
+      "y": 56.379454,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 2.062857,
+      "radius": 91,
+      "startAngle": 4.08407,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 153.287806,
+            "y": 217.143393,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 2.113384,
+            "radius": 5,
+            "startAngle": 0.492061,
+            "x": 148.881001,
+            "y": 214.781177,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.033544,
+            "radius": 104,
+            "startAngle": 2.113384,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 5.654867,
+            "radius": 5,
+            "startAngle": 4.033544,
+            "x": 137.838438,
+            "y": 52.948458,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 146.511542,
+            "y": 56.379454,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 2.062857,
+            "radius": 91,
+            "startAngle": 4.08407,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 146.149547,
+      "y": 47.077574,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.186957,
+      "radius": 5,
+      "startAngle": 2.565634,
+      "x": 150.3429,
+      "y": 44.354379,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 4.609503,
+      "radius": 104,
+      "startAngle": 4.186957,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.230825,
+      "radius": 5,
+      "startAngle": 4.609503,
+      "x": 189.832205,
+      "y": 31.523526,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "x": 195.237428,
+      "y": 39.124712,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "anticlockwise": true,
+      "endAngle": 4.13643,
+      "radius": 91,
+      "startAngle": 4.660029,
+      "x": 200,
+      "y": 130,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 146.149547,
+            "y": 47.077574,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.186957,
+            "radius": 5,
+            "startAngle": 2.565634,
+            "x": 150.3429,
+            "y": 44.354379,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 4.609503,
+            "radius": 104,
+            "startAngle": 4.186957,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.230825,
+            "radius": 5,
+            "startAngle": 4.609503,
+            "x": 189.832205,
+            "y": 31.523526,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {
+            "x": 195.237428,
+            "y": 39.124712,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "anticlockwise": true,
+            "endAngle": 4.13643,
+            "radius": 91,
+            "startAngle": 4.660029,
+            "x": 200,
+            "y": 130,
+          },
+          "type": "arc",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 274.404931,
+      "f": 50.34508,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "gateway",
+      "x": 0,
+      "y": -6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 259.134504,
+      "f": 221.564788,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "api",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 91.252866,
+      "f": 137.420299,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "web",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 166.317148,
+      "f": 26.33484,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "right",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "trickle",
+      "x": 0,
+      "y": -6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
 exports[`relations chord ring pad angle 12 (wide gaps between arcs) 1`] = `
 [
   {

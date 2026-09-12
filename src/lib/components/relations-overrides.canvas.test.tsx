@@ -69,6 +69,26 @@ describe('relations overrides', () => {
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
+
+    /**
+     * "Hide in area" on a **node** rather than an edge. A node is a field too, so the
+     * same matcher reaches it — and taking the node out has to take the two links that
+     * touched it with it, or the picture would keep two lines running to nothing.
+     */
+    it('a byName hideFrom override on a node (web gone, and both links that touched it)', async () => {
+      const fieldConfig: FieldConfigSource = {
+        defaults: {},
+        overrides: [
+          {
+            matcher: { id: 'byName', options: 'web' },
+            properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
+          },
+        ],
+      };
+      const { defaultEvents, seriesEvents } = await renderRelations({ frames: [nodesFrame, edgesFrame], fieldConfig });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
   });
 
   describe('edges', () => {

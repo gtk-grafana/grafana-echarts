@@ -61,6 +61,35 @@ describe('relations graph', () => {
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
+    /**
+     * The panel-level size, which every node without a `noderadius` of its own takes.
+     * Doubled from `RELATIONS_NODE_SIZE_DEFAULT` (20), which the `base` picture holds —
+     * the pair is what says the slider reaches the symbol at all.
+     */
+    it('node size 40 (every symbol twice the default diameter)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsNodeSize: 40 },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    /**
+     * "Show node values" puts the node's stat on a second line under its name, formatted
+     * through the node's own field. Two lines, one line-height apart — which is the thing
+     * a picture states better than an assertion, and which read as one overlapping line
+     * until `jest-setup.js` gave the harness browser-like text metrics.
+     */
+    it('node values on (each name over its own stat)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsShowNodeValues: true },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
     it('node labels off (symbols and links, no text)', async () => {
       const { defaultEvents, seriesEvents } = await renderRelations({
         frames: [nodesFrame, edgesFrame],
@@ -80,6 +109,55 @@ describe('relations graph', () => {
         ],
       });
       const { defaultEvents, seriesEvents } = await renderRelations({ frames: [coloredNodes, edgesFrame] });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
+  /**
+   * Label overflow, which is the only thing in the family that reads a *measured* text
+   * width — so it is also the first thing to drift when text measurement changes (see
+   * `jest-setup.js`). Both cases are pictures because the claim is where the text sits,
+   * not what it says; the strings themselves are asserted in
+   * `relations-labels.integration.test.tsx`.
+   */
+  describe('labels', () => {
+    /** Four nodes whose titles are three times what fits in the default 120px box. */
+    const longNodes = toDataFrame({
+      name: 'nodes',
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['gateway', 'api', 'web', 'db'] },
+        {
+          name: 'title',
+          type: FieldType.string,
+          values: [
+            'edge-gateway-ingress-eu-west-1',
+            'checkout-api-service-primary',
+            'storefront-web-frontend-v2',
+            'orders-postgres-primary-db',
+          ],
+        },
+        { name: 'mainstat', type: FieldType.number, values: [120, 80, 60, 200] },
+      ],
+    });
+
+    // Half the default width, so each name is cut roughly twice as early.
+    it('label width 60 (names cut at half the default box)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [longNodes, edgesFrame],
+        options: { relationsLabelWidth: 60 },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // `break` wraps instead of truncating: one `fillText` per line, stacked downward from
+    // the same anchor, with no ellipsis anywhere.
+    it('break overflow (each name wrapped over several lines, none cut)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [longNodes, edgesFrame],
+        options: { relationsLabelOverflow: 'break' },
+      });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
