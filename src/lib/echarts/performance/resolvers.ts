@@ -3,7 +3,6 @@ import {
   ANIMATION_ENABLED_DEFAULT,
   PERFORMANCE_DOWNSAMPLING_DEFAULT,
   PERFORMANCE_SHOW_POINTS_DEFAULT,
-  RELATIONS_ANIMATION_ENABLED_DEFAULT,
 } from 'editor/constants';
 import {
   type CartesianSingleValueSeriesType,
@@ -17,6 +16,7 @@ import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_TOTAL_POINTS } from 'lib/echar
 import { type PerfSeriesOptions, type SeriesDensity } from 'lib/echarts/performance/types';
 import { type PanelOptions } from 'types';
 
+import { RELATIONS_ANIMATION_ENABLED_DEFAULT } from 'editor/relations/constants';
 /**
  * Resolvers that turn a chart's density plus any Advanced overrides into ECharts'
  * big-data levers. The thresholds they compare against live in `./constants.ts`;

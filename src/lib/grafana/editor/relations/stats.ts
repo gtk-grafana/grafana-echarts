@@ -1,10 +1,11 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { RELATIONS_CALC_DEFAULT } from 'lib/echarts/converters/graphWide';
-import { resolveRelationsTimeSlider } from 'lib/echarts/options/timeline';
+
+import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
 import { RelationsStatsPicker } from 'lib/grafana/editor/relations/RelationsStatsPicker';
 import { type PanelOptions } from 'types';
 
+import { RELATIONS_CALC_DEFAULT } from 'editor/relations/constants';
 /**
  * The mark reducers, applying to **nodes and edges alike** — a mark is a mark — which is
  * what the description promises and what `readNodes` / `readLinks` deliver.

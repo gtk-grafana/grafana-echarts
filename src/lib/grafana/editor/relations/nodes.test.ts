@@ -5,10 +5,11 @@ import {
   standardEditorsRegistry,
   toDataFrame,
 } from '@grafana/data';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+
 import { type PanelOptions } from 'types';
 import { addRelationsNodeOptions } from './nodes';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 /**
  * `standardEditorsRegistry` is filled by Grafana core app code a plugin cannot import
  * (`public/app/core/components/OptionsUI/registry.tsx`), so under jest it is empty and

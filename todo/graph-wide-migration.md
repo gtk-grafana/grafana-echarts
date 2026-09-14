@@ -538,7 +538,7 @@ catastrophe (hiding one node erasing every link). Exactly one consumer could not
 duplicate ids — `getRelationsTooltipMarks`, whose link map would be last-write-wins, the
 same class of bug phase 5 existed to kill — so the reader mints a `markKey` for that lookup
 alone. It is never rendered and never matched against. Implementation:
-`src/lib/echarts/converters/graphWide.ts`, `findEdgesFrames` and `assignMarkKeys`.
+`src/lib/echarts/relations/converters/graphWide.ts`, `findEdgesFrames` and `assignMarkKeys`.
 
 ## Deviations from the original plan
 

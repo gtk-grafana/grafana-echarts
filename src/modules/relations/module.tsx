@@ -1,10 +1,10 @@
 import { PanelPlugin } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
-import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } from 'editor/constants';
-import { type EChartsRelationsFieldConfig } from 'editor/types';
+import { seriesTypePath } from 'editor/constants';
+
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { RELATIONS_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
@@ -22,6 +22,9 @@ import { type PanelOptions } from 'types';
 import { relationsDataTransformations } from './dataTransformations';
 import { relationsSuggestionsSupplier } from './suggestions';
 
+import { relationsCategoryName, relationsSeriesTypeOptions } from 'editor/relations/constants';
+import { RELATIONS_FIELD_OPTIONS } from 'lib/grafana/editor/relations/standardOptions';
+import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 // Needs to be called at each top-level module to prevent panels from breaking when
 // calling grafana/i18n methods (like t()). `addRelationsStatOptions` calls `t()` while
 // the options supplier runs, and the plugin bundles its own `@grafana/i18n` (it is not
@@ -35,7 +38,7 @@ initPluginTranslations('grafana-echarts-app');
 // graph contract — one node is one field, one edge is one field. Three render variants —
 // `graph`, `sankey` and `chord` — over one converter, since all three ECharts series
 // consume the identical node/link input. See data-plane/graph-wide.md and
-// lib/echarts/converters/graphWide.ts. Grafana's row-based node-graph frames are
+// lib/echarts/relations/converters/graphWide.ts. Grafana's row-based node-graph frames are
 // converted to the contract above the panel, by the transformation registered below.
 const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({

@@ -80,8 +80,8 @@ So these are layout variants over one converter, not three converters.
 
 - **`sankey`** — **shipped.** Weighted, directed, acyclic flows. Link `value` comes
   from the converter's `mainstat` → `thickness` → `1` chain; nodes/links reuse the
-  same frames. Options in `src/lib/echarts/options/sankey.ts`, cycle policy in
-  `src/lib/echarts/converters/dag.ts`.
+  same frames. Options in `src/lib/echarts/relations/options/sankey.ts`, cycle policy in
+  `src/lib/echarts/relations/converters/dag.ts`.
 
   > **Cycles crash the panel in production.** `sankeyLayout.ts` runs Kahn's
   > algorithm and then `throw new Error('Sankey is a DAG, the original data has
@@ -105,7 +105,7 @@ cycle!')`. That throw is **not** behind a `__DEV__` guard, so a production build
   circular relationship view reads better than a force layout. Pins
   `coordinateSystem: 'none'` and has **no** DAG restriction, so it takes cyclic service
   graphs — and self-loops — directly, with no converter work at all. Options in
-  `src/lib/echarts/options/chord.ts`.
+  `src/lib/echarts/relations/options/chord.ts`.
 
   > Its option surface being the least documented of the three was the real risk, and it
   > bit. **`series.chord` has no `nodeWidth`/`nodeGap`** — sankey keys, assumed here by
@@ -157,8 +157,8 @@ different Grafana format, and treemap/sunburst already ship in the hierarchy fam
 ## Implementation sketch
 
 > **Built as sketched**, with the file list below accurate to what shipped. Two
-> additions the sketch did not anticipate: `src/editor/sankey.ts` and
-> `src/editor/chord.ts` hold each variant's option paths, defaults and `showIf`
+> additions the sketch did not anticipate: `src/editor/relations/sankey.ts` and
+> `src/editor/relations/chord.ts` hold each variant's option paths, defaults and `showIf`
 > predicates (mirroring `editor/funnel.ts`), and the sankey path needed
 > `options/sankey.ts` to own the cycle-breaking call so no caller can build a
 > throwing series.
@@ -183,14 +183,14 @@ and with Grafana's legacy "Graph" panel name.
   `converters/legacyToWide.ts` (the row-to-wide adapter) in the later `graph-*-wide`
   migration — see [graph-wide-migration.md](./graph-wide-migration.md); `nodeGraph.ts`
   itself no longer exists.
-- Cycle policy `src/lib/echarts/converters/dag.ts`, used only by the sankey path —
+- Cycle policy `src/lib/echarts/relations/converters/dag.ts`, used only by the sankey path —
   kept separate because it is graph theory, not frame reading.
 - Options `src/lib/echarts/options/{graph,sankey,chord}.ts`: map the shared model →
   the respective `*SeriesOption` (`data` + `links`), plus layout defaults and an
   `applyRelationsEditorModeDefaults` (required by
   [../docs/options-modes.md](../docs/options-modes.md) for any family that gates
   options behind Advanced).
-- Chart module `src/lib/echarts/charts/relations.ts`: implement `ChartModule`
+- Chart module `src/lib/echarts/relations/chartModule.ts`: implement `ChartModule`
   (`buildOption` dispatching on `ctx.seriesType`, `buildLegendItems`,
   `getTooltipValueFormatter`, `getTooltipFieldResolver`, `singleTooltipOnly: true`);
   add the compose options to `src/lib/echarts/charts/types.ts`.

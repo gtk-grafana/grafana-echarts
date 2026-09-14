@@ -1,6 +1,6 @@
 import { PanelOptionsEditorBuilder, standardEditorsRegistry } from '@grafana/data';
 import { advancedOptionsCategoryName } from 'editor/constants';
-import { RELATIONS_LINK_COLOR_DEFAULT } from 'lib/echarts/options/graph';
+
 import {
   blendsGradient,
   linkColorChoices,
@@ -9,6 +9,7 @@ import {
 import { type PanelOptions } from 'types';
 import { addRelationsLinkOptions } from './links';
 
+import { RELATIONS_LINK_COLOR_DEFAULT } from 'editor/relations/constants';
 /** See `nodes.test.ts` for why `standardEditorsRegistry` has to be stubbed. */
 const noEditor = (): null => null;
 standardEditorsRegistry.setInit(() =>

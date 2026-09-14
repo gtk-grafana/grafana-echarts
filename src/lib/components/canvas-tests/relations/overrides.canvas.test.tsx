@@ -1,10 +1,11 @@
 import { type FieldConfigSource } from '@grafana/data';
-import { type EChartsRelationsFieldConfig } from 'editor/types';
+
 import { normalizeCanvasEvents } from 'test/canvas';
 import { height, width } from 'test/panel';
 import { edgesFrame, nodesFrame } from 'test/relations';
 import { renderRelations } from 'test/relationsCanvas';
 
+import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 // Canvas snapshots for field overrides on the relations family. A mark is a *field*
 // under the wide contract — one node is one field, one edge is one field — so an
 // ordinary `byName` override addresses exactly one node or one link, which is the whole

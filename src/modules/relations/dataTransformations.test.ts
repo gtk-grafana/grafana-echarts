@@ -1,11 +1,12 @@
 import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 
-import { deriveNodesOperator } from 'lib/echarts/converters/deriveNodes';
-import { GRAPH_EDGES_WIDE } from 'lib/echarts/converters/graphWide';
-import { legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
-import { longToWideOperator } from 'lib/echarts/converters/longToWide';
+import { deriveNodesOperator } from 'lib/echarts/relations/converters/deriveNodes';
+
+import { legacyToWideOperator } from 'lib/echarts/relations/converters/legacyToWide';
+import { longToWideOperator } from 'lib/echarts/relations/converters/longToWide';
 import { relationsDataTransformations } from './dataTransformations';
 
+import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/contract';
 const rowEdges = (): DataFrame =>
   toDataFrame({
     fields: [

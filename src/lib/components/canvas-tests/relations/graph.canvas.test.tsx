@@ -1,10 +1,11 @@
 import { FieldColorModeId, FieldType, type Labels, ThresholdsMode, toDataFrame } from '@grafana/data';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+
 import { normalizeCanvasEvents } from 'test/canvas';
 import { height, width } from 'test/panel';
 import { edgesFrame, nodesFrame, pinnedNodesFrame } from 'test/relations';
 import { renderRelations } from 'test/relationsCanvas';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 // Canvas snapshots for the relations family's `graph` variant. Every test here is a
 // snapshot test — the baseline *is* the assertion, reviewed as an image. Claims that
 // are about a relation between two renders rather than about one picture live in the

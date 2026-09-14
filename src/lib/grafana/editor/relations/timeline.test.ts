@@ -5,11 +5,12 @@ import {
   standardEditorsRegistry,
   toDataFrame,
 } from '@grafana/data';
-import { GRAPH_EDGES_WIDE } from 'lib/echarts/converters/graphWide';
+
 import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { type PanelOptions } from 'types';
 import { relationsOptions } from 'test/relations';
 
+import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/contract';
 /**
  * The "Time slider" switch's **visibility**, which is a data question rather than an
  * option one — `showIf` is handed the panel's frames, the same way "Show node values"

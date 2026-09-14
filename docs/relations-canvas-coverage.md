@@ -5,7 +5,7 @@ panel option or field-config property, because the question a reviewer actually 
 "if I break this option, does something fail?".
 
 Audited 2026-09-12 against `src/lib/grafana/editor/relations/*` (every option the pane
-offers) and `src/editor/types.ts` (`EChartsRelationsFieldConfig`).
+offers) and `src/editor/relations/types.ts` (`EChartsRelationsFieldConfig`).
 
 ## How to read it
 

@@ -12,7 +12,7 @@
 
 `lines` draws **polylines between explicit coordinate pairs**. It is grouped with
 `graph`/`sankey`/`chord` in ECharts' own docs and sits in this plugin's `SeriesType`
-union (`src/editor/types.ts`), which makes it look like a fourth relations variant.
+union (`src/editor/types.ts`, narrowed in `src/editor/relations/types.ts`), which makes it look like a fourth relations variant.
 It is not: the other three read `option.data`/`nodes` plus `option.edges`/`links` and
 resolve endpoints **by node id**, while `lines` wants literal geometry.
 

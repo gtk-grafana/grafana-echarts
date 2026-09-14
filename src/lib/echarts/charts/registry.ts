@@ -1,5 +1,5 @@
 import { cartesianTimeSeriesTypes, multiValueSeriesTypes } from 'editor/cartesian';
-import { heatmapSeriesTypes, hierarchySeriesTypes, relationsSeriesTypes } from 'editor/constants';
+import { heatmapSeriesTypes, hierarchySeriesTypes } from 'editor/constants';
 import { partToWholeSeriesTypes } from 'editor/pie';
 import { multivariateSeriesTypes } from 'editor/radar';
 import { streamSeriesTypes } from 'editor/stream';
@@ -17,10 +17,11 @@ import { heatmapChartModule } from './heatmap';
 import { hierarchyChartModule } from './hierarchy';
 import { multivariateChartModule, radarChartModule } from './multivariate';
 import { partToWholeChartModule, pieChartModule } from './pie';
-import { relationsChartModule } from './relations';
+import { relationsChartModule } from 'lib/echarts/relations/chartModule';
 import { streamChartModule } from './stream';
 import { type ChartModule } from './types';
 
+import { relationsSeriesTypes } from 'editor/relations/constants';
 const partToWholeModule = partToWholeChartModule;
 
 /** All series types with a registered chart module. */

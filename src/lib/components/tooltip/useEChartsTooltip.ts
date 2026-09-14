@@ -1,13 +1,14 @@
 import { debug, LOG_LEVELS } from 'development';
 import { type ECElementEvent } from 'echarts/core';
 import { type EChartsType } from 'lib/echarts/echarts';
-import { revealEdgeLabelsFor } from 'lib/echarts/features/edgeLabelLayout';
+
 import { findHoveredPoint } from 'lib/echarts/tooltip/proximity';
 import { type EChartsTooltipTrigger, type TooltipModel, type TooltipSink } from 'lib/echarts/tooltip/types';
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { TOOLTIP_MARKER_ATTR } from './constants';
 import { type EChartsTooltipController, type EChartsTooltipOptions, type EChartsTooltipState } from './types';
 
+import { revealEdgeLabelsFor } from 'lib/echarts/relations/edgeLabels/reveal';
 /**
  * A chart item addressed for highlight/pin: the series, the row within it, and —
  * for graph-like series (graph / sankey / chord) — which of the series' two data

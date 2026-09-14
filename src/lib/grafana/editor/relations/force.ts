@@ -1,13 +1,14 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { isGraphVariant } from 'editor/sankey';
+
+import { addAdvancedBooleanSwitch, addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
+import { type PanelOptions } from 'types';
+
 import {
   RELATIONS_EDGE_LENGTH_DEFAULT,
   RELATIONS_LAYOUT_ANIMATION_DEFAULT,
   RELATIONS_REPULSION_DEFAULT,
-} from 'lib/echarts/options/graph';
-import { addAdvancedBooleanSwitch, addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
-import { type PanelOptions } from 'types';
-
+} from 'editor/relations/constants';
+import { isGraphVariant } from 'editor/relations/variants';
 /**
  * Force-layout tuning (Advanced). All four are inert under the circular/fixed layouts
  * and so are hidden there.

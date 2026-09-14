@@ -1,12 +1,13 @@
 import { createTheme, type DataFrame, dateTime, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { LegendDisplayMode, SortOrder, TooltipDisplayMode } from '@grafana/schema';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
-import { type RelationsSeriesContext } from 'lib/echarts/options/graph';
-import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
+import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
+
 import { type EChartsFrame } from 'lib/grafana/types';
 import { type PanelOptions } from 'types';
 
+import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
+import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
 /**
  * Shared fixtures for the relations family's unit and canvas suites.
  *

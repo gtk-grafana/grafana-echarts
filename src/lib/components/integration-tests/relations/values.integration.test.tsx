@@ -1,7 +1,8 @@
 import { DataFrameType, FieldType, ReducerID, toDataFrame } from '@grafana/data';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+
 import { renderRelations, uniqueLabelTexts } from 'test/relationsCanvas';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 /**
  * What a relations label actually *says*: the reducer that turned a series into one
  * number, and the unit and decimals that formatted it.

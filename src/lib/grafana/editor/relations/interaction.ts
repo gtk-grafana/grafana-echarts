@@ -1,11 +1,10 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import { isChordVariant } from 'editor/chord';
-import { relationsCategoryName } from 'editor/constants';
-import { isGraphVariant, isSankeyVariant } from 'editor/sankey';
-import { RELATIONS_FOCUS_ADJACENCY_DEFAULT } from 'lib/echarts/options/graph';
+
 import { addAdvancedBooleanSwitch } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
+import { RELATIONS_FOCUS_ADJACENCY_DEFAULT, relationsCategoryName } from 'editor/relations/constants';
+import { isChordVariant, isGraphVariant, isSankeyVariant } from 'editor/relations/variants';
 /**
  * Interaction options: view zoom, view pan, node dragging, and adjacency
  * highlighting.

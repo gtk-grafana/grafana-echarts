@@ -1,10 +1,10 @@
 import { type PanelOptionsEditorBuilder, type SelectableValue } from '@grafana/data';
-import { relationsCategoryName } from 'editor/constants';
-import { isGraphVariant } from 'editor/sankey';
-import { type RelationsGraphLayout } from 'editor/types';
-import { RELATIONS_LAYOUT_DEFAULT } from 'lib/echarts/options/graph';
+
 import { type PanelOptions } from 'types';
 
+import { RELATIONS_LAYOUT_DEFAULT, relationsCategoryName } from 'editor/relations/constants';
+import { isGraphVariant } from 'editor/relations/variants';
+import { type RelationsGraphLayout } from 'editor/relations/types';
 /**
  * Graph layout (ECharts `series.graph.layout`), Default tier — the closest
  * equivalent to core Grafana's Node graph "Layout" option.

@@ -1,12 +1,8 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
-import {
-  animationEnabledPath,
-  animationName,
-  relationsCategoryName,
-  RELATIONS_ANIMATION_ENABLED_DEFAULT,
-} from 'editor/constants';
+import { animationEnabledPath, animationName } from 'editor/constants';
 import { type PanelOptions } from 'types';
 
+import { RELATIONS_ANIMATION_ENABLED_DEFAULT, relationsCategoryName } from 'editor/relations/constants';
 /**
  * The relations family's "Animation" switch: same shared `animation.enabled` flag every
  * other family writes, but **Default-tier and on**, where the others register it as an

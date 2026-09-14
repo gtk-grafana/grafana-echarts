@@ -1,12 +1,12 @@
 import { PanelOptionsEditorBuilder, standardEditorsRegistry } from '@grafana/data';
-import { relationsCategoryName } from 'editor/constants';
-import { isChordVariant } from 'editor/chord';
-import { isGraphVariant, isSankeyVariant } from 'editor/sankey';
+
 import { type SeriesTypeOption } from 'editor/types';
-import { RELATIONS_LAYOUT_DEFAULT } from 'lib/echarts/options/graph';
+
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { type PanelOptions } from 'types';
 
+import { RELATIONS_LAYOUT_DEFAULT, relationsCategoryName } from 'editor/relations/constants';
+import { isChordVariant, isGraphVariant, isSankeyVariant } from 'editor/relations/variants';
 /**
  * The "Layout" control, and the variant predicate every graph-only control in this
  * family is gated on.

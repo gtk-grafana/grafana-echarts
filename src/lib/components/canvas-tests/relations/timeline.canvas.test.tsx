@@ -1,6 +1,6 @@
 import { DataFrameType, FieldColorModeId, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
 import { act, fireEvent, screen } from '@testing-library/react';
-import { GRAPH_EDGES_WIDE } from 'lib/echarts/converters/graphWide';
+
 import {
   clearMockedCanvasEvents,
   DEFAULT_LAYER_SELECTOR,
@@ -12,6 +12,7 @@ import {
 import { height, waitForFinished, width } from 'test/panel';
 import { renderRelations } from 'test/relationsCanvas';
 
+import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/contract';
 // The one picture the time slider is worth committing: the graph read at a **selected**
 // timestamp, drawn in the box the strip left it.
 //

@@ -1,8 +1,9 @@
 import { type FieldConfigEditorBuilder, type SelectableValue } from '@grafana/data';
 import { commonOptionsBuilder } from '@grafana/ui';
-import { type EChartsRelationsFieldConfig, type RelationsLineType } from 'editor/types';
+
 import { addRelationsFilterConfig } from 'lib/grafana/editor/relations/filters';
 
+import { type EChartsRelationsFieldConfig, type RelationsLineType } from 'editor/relations/types';
 /**
  * Per-mark custom field config for the relations family.
  *
