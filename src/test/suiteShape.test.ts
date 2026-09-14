@@ -9,9 +9,9 @@ import { parseTests } from 'test/testSource';
  * assertion, and that must be its purpose. Everything else belongs in an
  * `*.integration.test.*` sibling.
  *
- * The two kinds have opposite economics. A canvas test commits ~2,500 lines of recorded
- * draw calls that are reviewed as an image, must be regenerated deliberately, and are
- * covered by the "don't update the canvas snapshots" rule in AGENTS.md. An integration
+ * The two kinds have opposite economics. A canvas test commits a few hundred lines of
+ * recorded draw calls that are reviewed as an image, must be regenerated deliberately,
+ * and are covered by the "don't update the canvas snapshots" rule in AGENTS.md. An integration
  * test commits nothing and is reviewed as code. Mixed in one file they are
  * indistinguishable, which is how `relations.canvas.test.tsx` accreted 16 of the second
  * kind — a third of the file — without anyone deciding to.

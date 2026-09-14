@@ -165,10 +165,11 @@ scheme as a `byType: number` override, which reaches nodes and edges alike.
 
 ## What a case costs
 
-167 baselines currently hold 266k lines (4.0 MB) — 4.6x the whole TypeScript source, of
-which the relations family is 122k lines (46%). One relations baseline averages **~1,900
-lines** on the four-node fixtures and ~1,500 on the three-node colour one, so a picture is
-never the cheap option: prefer a drawn-primitive assertion in an
+167 baselines hold 27.9k lines (2.1 MB), of which the relations family is 12.6k lines
+(45%). One relations baseline averages **~215 lines** on the four-node fixtures and ~165
+on the three-node colour one — one line per recorded draw call since the compact
+serializer landed, down from 9.8. A picture is still not the cheap option: prefer a
+drawn-primitive assertion in an
 `*.integration.test.tsx` sibling whenever the claim is a string or a number, and keep the
 baseline for geometry. `src/test/suiteShape.test.ts` enforces the split — every test in a
 `*.canvas.test.*` file must assert `toMatchCanvasSnapshot`.
@@ -184,36 +185,36 @@ baseline that pins nothing looks exactly like a baseline that pins something.
 Execution order, commits and verification for the two below live in
 [todo/relations-test-refactor.md](../todo/relations-test-refactor.md).
 
-### Cutting snapshot size — not implemented
+### Cutting snapshot size
 
-Three levers, measured on the current 266k lines. They compose:
+Three levers, measured on the 266k lines this was audited at. They compose:
 
-1. **Assert one render pass, not two — ~50% (133k lines).** Every baseline records the
-   harness's two paints; for the relations `base` picture the two halves are identical
-   event-for-event (366 events, first half == second half). This is already written up
-   with three options in [todo/canvas-snapshot-double-render.md](../todo/canvas-snapshot-double-render.md),
+1. **Assert one render pass, not two — ~50%.** Every baseline records the harness's two
+   paints; for the relations `base` picture the two halves are identical event-for-event
+   (366 events, first half == second half). Written up with three options in
+   [todo/canvas-snapshot-double-render.md](../todo/canvas-snapshot-double-render.md),
    where it matters for correctness too: the themeRiver baseline pins a pre-settle layout.
-   Doing it for size gets the correctness fix for free.
-2. **Drop `props.path` from the asserted events — 29% (78k lines).** Every `stroke`,
-   `fill` and `clip` event embeds the whole path it is about, which is a verbatim copy of
-   the `moveTo` / `lineTo` / `quadraticCurveTo` / `arc` events already recorded
-   immediately before it. Nothing is lost by stripping it from the _snapshot_ — but the
-   compare viewer draws from `props.path`, so it has to stay in the payload the matcher
-   writes to `.jest-canvas-mock-compare/`. That is a `normalizeCanvasEvents` change, not
-   a matcher change.
-3. **One line per event instead of seven — ~85% of what is left.** The format averages
-   7.0 lines per recorded event: five of them are `{`, `"props": {`, `}`, `"type": …`,
-   `},`. A custom jest serializer emitting `fillText "Gateway" @ 0,6` (or a compact
-   tuple) would keep every asserted number, make a diff readable as a diff, and shrink
-   the files by roughly the same factor again.
+   Doing it for size gets the correctness fix for free. **Not implemented.**
+2. **Drop `props.path` from the asserted events — 29% of bytes.** Every `stroke`, `fill`
+   and `clip` event embeds the whole path it is about, which is a verbatim copy of the
+   `moveTo` / `lineTo` / `quadraticCurveTo` / `arc` events already recorded immediately
+   before it. Nothing is lost by stripping it from the _snapshot_ — but the compare
+   viewer draws shapes from `props.path`, and the matcher snapshots and payloads the
+   same array, so this needs a change in `jest-canvas-mock-compare` rather than in
+   `normalizeCanvasEvents`. **Blocked upstream.**
+3. **One line per event instead of 9.8 — ~90%. Landed.** `src/test/canvasSerializer.ts`
+   stores one JSON object per line: 265,626 lines (4.0 MB) → 27,924 (2.1 MB). The format
+   has to stay valid JSON, because the matcher parses the stored baseline back to build
+   the compare viewer's "expected" side; `src/test/canvasSerializer.test.ts` parses every
+   committed baseline to keep that true.
 
-Levers 1 + 2 alone take the tree from 266k to ~93k lines with no change to what is
-asserted. All three land it near 16k. Each rewrites every baseline, so each wants to be
-its own commit — per `AGENTS.md`, never a side effect of feature work.
+Lever 1 would take what is left to ~14k lines, lever 2 to ~1.4 MB. Each rewrites every
+baseline, so each wants to be its own commit — per `AGENTS.md`, never a side effect of
+feature work.
 
-A fourth, cheaper option for the biggest offenders: `graph.canvas` (46k lines over 18
-baselines), `part-to-whole` (39k over 27), `Panel` (30k over 27) and the new
-`color.canvas` (23k over 15). Some of those pin a
+A fourth, cheaper option for the biggest offenders: `graph.canvas` (4.9k lines over 18
+baselines), `part-to-whole` (4.5k over 27), `axis` (3.4k over 22) and `Panel` (3.1k over
+27). Some of those pin a
 variation whose whole claim is one number — an opacity, a width — and convert to
 drawn-primitive assertions without losing anything a reviewer looks at.
 

@@ -76,6 +76,12 @@ require('jest-canvas-mock');
 const { matchers } = require('jest-canvas-mock-compare');
 expect.extend(matchers);
 
+// Store recorded draw calls one JSON object per line instead of pretty-format's 9.8 lines
+// per call. See src/test/canvasSerializer.ts for the format and why it has to stay valid
+// JSON. https://jestjs.io/docs/expect#expectaddsnapshotserializerserializer
+const { canvasEventSerializer } = require('./src/test/canvasSerializer');
+expect.addSnapshotSerializer(canvasEventSerializer);
+
 // jest-canvas-mock answers every `measureText` with `width = text.length` — one pixel per
 // character, whatever the font. zrender measures *everything* through that call, including
 // its line height: `getLineHeight()` is the width of `'国'`, so in jsdom a line is 1px tall
