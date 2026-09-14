@@ -2,10 +2,28 @@
 
 Execution plan for the two proposals in
 [docs/relations-canvas-coverage.md](../docs/relations-canvas-coverage.md) — cut snapshot
-size, and move the canvas suites into a per-family directory. Nothing here is
-implemented.
+size, and move the canvas suites into a per-family directory.
 
-**Where it starts** (measured 2026-09-12, after the colour suite landed):
+**Status.** Phases 0-3 landed, one commit each. Phase 4 is blocked upstream and its
+spike is done — [canvas-snapshot-props-path.md](canvas-snapshot-props-path.md) carries
+the evidence. Phase 5 is a set of per-case coverage decisions and is untouched.
+
+| Phase |                             |                                                         |
+| ----- | --------------------------- | ------------------------------------------------------- |
+| 0     | guardrails                  | landed — `scripts/canvas-inventory.mjs`, `test:ci --ci` |
+| 1     | move the suites             | landed — byte-identical inventory                       |
+| 2     | compact serializer          | landed — 265,626 lines → 27,924                         |
+| 3     | one render pass             | landed — 27,924 → 14,524 (1.06 MB)                      |
+| 4     | drop `props.path`           | blocked upstream, spike done (-30% bytes)               |
+| 5     | retire one-number baselines | open, per-case                                          |
+
+Where Phase 3's diagnosis differed from the plan below: the second paint is not the
+mocked `ResizeObserver` but `useChartResize`, which calls `chart.resize(…)` on mount with
+the size ECharts had already measured. `resize` repaints unconditionally, so option B
+("size the container explicitly") could not have removed it; the landed fix is option A,
+generalised over every capture helper.
+
+**Where it started** (measured 2026-09-12, after the colour suite landed):
 
 |                 |                                                                   |
 | --------------- | ----------------------------------------------------------------- |
@@ -142,8 +160,7 @@ identical event-for-event (366 events, first half == second half), so half of ev
 baseline is duplicate — and where the halves _diverge_ (themeRiver) the baseline pins a
 pre-settle layout, which is a live fragility, not just bulk.
 
-Options are already written up in
-[canvas-snapshot-double-render.md](canvas-snapshot-double-render.md): (A) wait for the
+Options: (A) wait for the
 resize-driven re-render, then clear the recorded events so only the settled pass is
 asserted; (B) size the container explicitly so only one pass ever runs; (C) assert only
 the last pass by filtering at the `save`/`setTransform` boundary.
@@ -170,7 +187,9 @@ viewer draws shapes from `stroke.props.path` — which is exactly why
 rendered as nothing at all. Stripping it in `normalizeCanvasEvents` would shrink the
 baselines and blank every filled or stroked shape in the viewer.
 
-So this phase is an upstream change in `grafana/jest-canvas-mock-compare`, one of:
+So this phase is an upstream change in `grafana/jest-canvas-mock-compare` — written up
+with the spike's evidence in
+[canvas-snapshot-props-path.md](canvas-snapshot-props-path.md) — one of:
 
 - strip `props.path` inside the matcher for the snapshot only, keeping it in the payload;
   or
@@ -198,18 +217,20 @@ never mixed with a format phase.
 
 ## Expected trajectory
 
-| After   | Lines           | Size    | Note                                   |
-| ------- | --------------- | ------- | -------------------------------------- |
-| today   | 265,626         | 4.0 MB  |                                        |
-| Phase 1 | 265,626         | 4.0 MB  | renames only, byte-identical inventory |
-| Phase 2 | ~38,400         | ~1.6 MB | estimate: 38,027 events, one line each |
-| Phase 3 | ~19,300         | ~0.8 MB | one pass instead of two                |
-| Phase 4 | ~19,300         | ~0.6 MB | bytes only; needs the upstream change  |
-| Phase 5 | fewer baselines |         | per-case coverage decisions            |
+Estimated when this was written, and what it actually came to:
 
-Roughly 4.0 MB → 0.6-0.8 MB with no loss in what is asserted, and the two correctness
-bugs the bulk was hiding (pre-settle layouts, invisible curves in review) resolved on the
-way.
+| After   | Lines estimated | Lines actual | Size actual | Note                                   |
+| ------- | --------------- | ------------ | ----------- | -------------------------------------- |
+| start   | 265,626         | 265,626      | 4.0 MB      |                                        |
+| Phase 1 | 265,626         | 265,626      | 4.0 MB      | renames only, byte-identical inventory |
+| Phase 2 | ~38,400         | 27,924       | 2.09 MB     | 27,081 events, one line each           |
+| Phase 3 | ~19,300         | 14,524       | 1.06 MB     | one pass instead of two                |
+| Phase 4 | ~19,300         | —            | ~0.73 MB    | bytes only; needs the upstream change  |
+| Phase 5 | fewer baselines | —            |             | per-case coverage decisions            |
+
+4.0 MB → 1.06 MB with no loss in what is asserted, and both correctness bugs the bulk was
+hiding resolved or evidenced: the pre-settle themeRiver layout is gone from the baselines,
+and the invisible-curves-in-review gap has its upstream write-up.
 
 ## Order, and why
 
