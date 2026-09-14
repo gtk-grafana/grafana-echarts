@@ -1,6 +1,6 @@
-import { type PanelOptionsEditorBuilder, type SelectableValue } from '@grafana/data';
+import { type PanelOptionsEditorBuilder } from '@grafana/data';
+import { advancedOptionsCategoryName } from 'editor/constants';
 import { isGraphVariant, isSankeyVariant } from 'editor/sankey';
-import { type RelationsLinkColor } from 'editor/types';
 import {
   RELATIONS_EDGE_ARROWS_DEFAULT,
   RELATIONS_LINK_COLOR_DEFAULT,
@@ -9,28 +9,25 @@ import {
 import {
   addAdvancedBooleanSwitch,
   addAdvancedNumberInput,
-  addAdvancedSelect,
+  showIfAdvanced,
 } from 'lib/grafana/editor/common/advanced-options';
+import { RelationsLinkColorEditor } from 'lib/grafana/editor/relations/RelationsLinkColorEditor';
 import { type PanelOptions } from 'types';
 
 /**
- * Link (edge) styling options, all Advanced. An explicit per-edge `color` field
- * from the data always wins over the color mode chosen here.
+ * Link (edge) styling options, all Advanced. A colour on the edge's own field always
+ * wins over the mode chosen here — see `isPaletteColorMode` for which modes count, and
+ * `RelationsLinkColorEditor` for where the control says so.
  *
- * "Link color" is shared by all three render variants. Edge arrows and curveness are
- * graph-only: `SankeySeriesOption` has no `edgeSymbol` at all (a ribbon carries its
- * direction by shape), and sankey curveness is a separate option because its ECharts
- * default differs — see `addRelationsSankeyOptions`. "Show edge values" covers graph
- * and sankey but not chord.
+ * "Link color" is shared by all three render variants, and is the one control here with
+ * its own editor component: its choices depend on the variant and the layout. Edge arrows
+ * and curveness are graph-only — `SankeySeriesOption` has no `edgeSymbol` at all (a ribbon
+ * carries its direction by shape), and sankey curveness is a separate option because its
+ * ECharts default differs (see `addRelationsSankeyOptions`). "Show edge values" covers
+ * graph and sankey but not chord.
  * https://echarts.apache.org/en/option.html#series-graph.lineStyle
  * https://echarts.apache.org/en/option.html#series-graph.edgeSymbol
  */
-const linkColorOptions: Array<SelectableValue<RelationsLinkColor>> = [
-  { value: 'source', label: 'Source' },
-  { value: 'target', label: 'Target' },
-  { value: 'gradient', label: 'Gradient' },
-];
-
 export function addRelationsLinkOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   // On by default: an edge is directed by contract, and on a force layout the
   // arrowhead is the only thing that says which way — the source-to-target gradient
@@ -61,14 +58,18 @@ export function addRelationsLinkOptions(builder: PanelOptionsEditorBuilder<Panel
     settings: { min: 0, max: 1, step: 0.05 },
   });
 
-  // Gradient by default on every variant. On graph it degrades to the source node's
-  // colour when the node positions are not known ahead of layout, since a bbox-relative
-  // gradient cannot be oriented then — see `makeEdgeGradientResolver`.
-  addAdvancedSelect(builder, {
+  // Gradient by default on every variant. Registered by hand rather than through
+  // `addAdvancedSelect` because the control is a component — the Advanced category and
+  // the editor-mode gate are the only things those helpers add, and both are restated
+  // here. See `RelationsLinkColorEditor`.
+  builder.addCustomEditor({
+    id: 'relationsLinkColor',
     path: 'relationsLinkColor',
     name: 'Link color',
-    description: 'Which node a link inherits its color from. A per-edge color field overrides this',
+    description: 'Which node a link inherits its color from',
+    category: [advancedOptionsCategoryName],
+    editor: RelationsLinkColorEditor,
     defaultValue: RELATIONS_LINK_COLOR_DEFAULT,
-    settings: { options: linkColorOptions },
+    showIf: showIfAdvanced(),
   });
 }

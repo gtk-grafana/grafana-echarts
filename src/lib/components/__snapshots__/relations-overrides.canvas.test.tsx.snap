@@ -90,10 +90,10 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
   },
   {
     "props": {
-      "cpx": 202.492448,
-      "cpy": 75.655122,
-      "x": 131.44579,
-      "y": 194.870407,
+      "cpx": 201.033695,
+      "cpy": -144.486865,
+      "x": 128.528284,
+      "y": 193.755123,
     },
     "type": "quadraticCurveTo",
   },
@@ -111,18 +111,27 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
           },
           "type": "moveTo",
         },
+        {
+          "props": {
+            "cpx": 201.033695,
+            "cpy": -144.486865,
+            "x": 128.528284,
+            "y": 193.755123,
+          },
+          "type": "quadraticCurveTo",
+        },
       ],
     },
     "type": "stroke",
   },
   {
     "props": {
-      "a": -0.859023,
-      "b": -0.511937,
-      "c": 0.511937,
-      "d": -0.859023,
-      "e": 131.44579,
-      "f": 194.870407,
+      "a": -0.977788,
+      "b": -0.209598,
+      "c": 0.209598,
+      "d": -0.977788,
+      "e": 128.528284,
+      "f": 193.755123,
     },
     "type": "setTransform",
   },
@@ -276,6 +285,15 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
             "y": 203.539105,
           },
           "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx": 203.535568,
+            "cpy": 133.535568,
+            "x": 133.532032,
+            "y": 63.532032,
+          },
+          "type": "quadraticCurveTo",
         },
       ],
     },
@@ -443,6 +461,15 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
           },
           "type": "moveTo",
         },
+        {
+          "props": {
+            "cpx": 196.464432,
+            "cpy": 133.535568,
+            "x": 266.467968,
+            "y": 63.532032,
+          },
+          "type": "quadraticCurveTo",
+        },
       ],
     },
     "type": "stroke",
@@ -608,6 +635,15 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
             "y": 56.460895,
           },
           "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx": 195.185666,
+            "cpy": 77.078326,
+            "x": 263.910438,
+            "y": 59.160389,
+          },
+          "type": "quadraticCurveTo",
         },
       ],
     },
@@ -1106,7 +1142,7 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
       "maxWidth": null,
       "text": "Gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -1144,7 +1180,7 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
       "maxWidth": null,
       "text": "API",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -1182,7 +1218,7 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
       "maxWidth": null,
       "text": "Web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -1220,7 +1256,7 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
       "maxWidth": null,
       "text": "DB",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -1316,10 +1352,10 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
   },
   {
     "props": {
-      "cpx": 202.492448,
-      "cpy": 75.655122,
-      "x": 131.44579,
-      "y": 194.870407,
+      "cpx": 201.033695,
+      "cpy": -144.486865,
+      "x": 128.528284,
+      "y": 193.755123,
     },
     "type": "quadraticCurveTo",
   },
@@ -1337,18 +1373,27 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
           },
           "type": "moveTo",
         },
+        {
+          "props": {
+            "cpx": 201.033695,
+            "cpy": -144.486865,
+            "x": 128.528284,
+            "y": 193.755123,
+          },
+          "type": "quadraticCurveTo",
+        },
       ],
     },
     "type": "stroke",
   },
   {
     "props": {
-      "a": -0.859023,
-      "b": -0.511937,
-      "c": 0.511937,
-      "d": -0.859023,
-      "e": 131.44579,
-      "f": 194.870407,
+      "a": -0.977788,
+      "b": -0.209598,
+      "c": 0.209598,
+      "d": -0.977788,
+      "e": 128.528284,
+      "f": 193.755123,
     },
     "type": "setTransform",
   },
@@ -1502,6 +1547,15 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
             "y": 203.539105,
           },
           "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx": 203.535568,
+            "cpy": 133.535568,
+            "x": 133.532032,
+            "y": 63.532032,
+          },
+          "type": "quadraticCurveTo",
         },
       ],
     },
@@ -1669,6 +1723,15 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
           },
           "type": "moveTo",
         },
+        {
+          "props": {
+            "cpx": 196.464432,
+            "cpy": 133.535568,
+            "x": 266.467968,
+            "y": 63.532032,
+          },
+          "type": "quadraticCurveTo",
+        },
       ],
     },
     "type": "stroke",
@@ -1834,6 +1897,15 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
             "y": 56.460895,
           },
           "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx": 195.185666,
+            "cpy": 77.078326,
+            "x": 263.910438,
+            "y": 59.160389,
+          },
+          "type": "quadraticCurveTo",
         },
       ],
     },
@@ -2332,7 +2404,7 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
       "maxWidth": null,
       "text": "Gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -2370,7 +2442,7 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
       "maxWidth": null,
       "text": "API",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -2408,7 +2480,7 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
       "maxWidth": null,
       "text": "Web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -2446,7 +2518,7 @@ exports[`relations overrides edges a byName curveness override (gateway to api b
       "maxWidth": null,
       "text": "DB",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -3412,7 +3484,7 @@ exports[`relations overrides edges a byName hideFrom override (gateway to api mi
       "maxWidth": null,
       "text": "Gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -3450,7 +3522,7 @@ exports[`relations overrides edges a byName hideFrom override (gateway to api mi
       "maxWidth": null,
       "text": "API",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -3488,7 +3560,7 @@ exports[`relations overrides edges a byName hideFrom override (gateway to api mi
       "maxWidth": null,
       "text": "Web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -3526,7 +3598,7 @@ exports[`relations overrides edges a byName hideFrom override (gateway to api mi
       "maxWidth": null,
       "text": "DB",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -4487,7 +4559,7 @@ exports[`relations overrides edges a byName hideFrom override (gateway to api mi
       "maxWidth": null,
       "text": "Gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -4525,7 +4597,7 @@ exports[`relations overrides edges a byName hideFrom override (gateway to api mi
       "maxWidth": null,
       "text": "API",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -4563,7 +4635,7 @@ exports[`relations overrides edges a byName hideFrom override (gateway to api mi
       "maxWidth": null,
       "text": "Web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -4601,7 +4673,7 @@ exports[`relations overrides edges a byName hideFrom override (gateway to api mi
       "maxWidth": null,
       "text": "DB",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -5738,7 +5810,7 @@ exports[`relations overrides nodes a byName color override (DB drawn red, the ot
       "maxWidth": null,
       "text": "Gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -5776,7 +5848,7 @@ exports[`relations overrides nodes a byName color override (DB drawn red, the ot
       "maxWidth": null,
       "text": "API",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -5814,7 +5886,7 @@ exports[`relations overrides nodes a byName color override (DB drawn red, the ot
       "maxWidth": null,
       "text": "Web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -5852,7 +5924,7 @@ exports[`relations overrides nodes a byName color override (DB drawn red, the ot
       "maxWidth": null,
       "text": "DB",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -6984,7 +7056,7 @@ exports[`relations overrides nodes a byName color override (DB drawn red, the ot
       "maxWidth": null,
       "text": "Gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -7022,7 +7094,7 @@ exports[`relations overrides nodes a byName color override (DB drawn red, the ot
       "maxWidth": null,
       "text": "API",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -7060,7 +7132,7 @@ exports[`relations overrides nodes a byName color override (DB drawn red, the ot
       "maxWidth": null,
       "text": "Web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -7098,7 +7170,1606 @@ exports[`relations overrides nodes a byName color override (DB drawn red, the ot
       "maxWidth": null,
       "text": "DB",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`relations overrides nodes a byName hideFrom override on a node (web gone, and both links that touched it) 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.5,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 0.5,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 252,
+      "y": 220.066642,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 104.660254,
+      "y": 135,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 252,
+            "y": 220.066642,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 104.660254,
+            "y": 135,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 0.5,
+      "b": -0.866025,
+      "c": 0.866025,
+      "d": 0.5,
+      "e": 104.660254,
+      "f": 135,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 6.666667,
+      "y": 10,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 7.5,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": -6.666667,
+      "y": 10,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 0,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 6.666667,
+            "y": 10,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 7.5,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": -6.666667,
+            "y": 10,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 0,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 96,
+      "y": 130,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 243.339746,
+      "y": 44.933358,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 96,
+            "y": 130,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 243.339746,
+            "y": 44.933358,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 0.5,
+      "b": 0.866025,
+      "c": -0.866025,
+      "d": 0.5,
+      "e": 243.339746,
+      "f": 44.933358,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 6.666667,
+      "y": 10,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 7.5,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": -6.666667,
+      "y": 10,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 0,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 6.666667,
+            "y": 10,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 7.5,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": -6.666667,
+            "y": 10,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 0,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 10,
+      "b": 0,
+      "c": 0,
+      "d": 10,
+      "e": 252,
+      "f": 220.066642,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 10,
+      "b": 0,
+      "c": 0,
+      "d": 10,
+      "e": 96,
+      "f": 130,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 10,
+      "b": 0,
+      "c": 0,
+      "d": 10,
+      "e": 252,
+      "f": 39.933358,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 252,
+      "f": 235.066642,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Gateway",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 96,
+      "f": 145,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "API",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 252,
+      "f": 54.933358,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "DB",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.5,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {
+      "value": 0.5,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 252,
+      "y": 220.066642,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 104.660254,
+      "y": 135,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 252,
+            "y": 220.066642,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 104.660254,
+            "y": 135,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 0.5,
+      "b": -0.866025,
+      "c": 0.866025,
+      "d": 0.5,
+      "e": 104.660254,
+      "f": 135,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 6.666667,
+      "y": 10,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 7.5,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": -6.666667,
+      "y": 10,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 0,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 6.666667,
+            "y": 10,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 7.5,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": -6.666667,
+            "y": 10,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 0,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 0,
+      "f": 0,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "strokeStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 96,
+      "y": 130,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 243.339746,
+      "y": 44.933358,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 96,
+            "y": 130,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 243.339746,
+            "y": 44.933358,
+          },
+          "type": "lineTo",
+        },
+      ],
+    },
+    "type": "stroke",
+  },
+  {
+    "props": {
+      "a": 0.5,
+      "b": 0.866025,
+      "c": -0.866025,
+      "d": 0.5,
+      "e": 243.339746,
+      "f": 44.933358,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "x": 6.666667,
+      "y": 10,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 7.5,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": -6.666667,
+      "y": 10,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "x": 0,
+      "y": 0,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "x": 6.666667,
+            "y": 10,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 7.5,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": -6.666667,
+            "y": 10,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "x": 0,
+            "y": 0,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 10,
+      "b": 0,
+      "c": 0,
+      "d": 10,
+      "e": 252,
+      "f": 220.066642,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 10,
+      "b": 0,
+      "c": 0,
+      "d": 10,
+      "e": 96,
+      "f": 130,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 10,
+      "b": 0,
+      "c": 0,
+      "d": 10,
+      "e": 252,
+      "f": 39.933358,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x": 1,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "anticlockwise": false,
+      "endAngle": 6.283185,
+      "radius": 1,
+      "startAngle": 0,
+      "x": 0,
+      "y": 0,
+    },
+    "type": "arc",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 1,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "anticlockwise": false,
+            "endAngle": 6.283185,
+            "radius": 1,
+            "startAngle": 0,
+            "x": 0,
+            "y": 0,
+          },
+          "type": "arc",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 252,
+      "f": 235.066642,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Gateway",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 96,
+      "f": 145,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "API",
+      "x": 0,
+      "y": 6,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 252,
+      "f": 54.933358,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "center",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "DB",
+      "x": 0,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -8235,7 +9906,7 @@ exports[`relations overrides nodes a byName override on a node only the edges im
       "maxWidth": null,
       "text": "gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -8273,7 +9944,7 @@ exports[`relations overrides nodes a byName override on a node only the edges im
       "maxWidth": null,
       "text": "api",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -8311,7 +9982,7 @@ exports[`relations overrides nodes a byName override on a node only the edges im
       "maxWidth": null,
       "text": "web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -8349,7 +10020,7 @@ exports[`relations overrides nodes a byName override on a node only the edges im
       "maxWidth": null,
       "text": "Database",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -9481,7 +11152,7 @@ exports[`relations overrides nodes a byName override on a node only the edges im
       "maxWidth": null,
       "text": "gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -9519,7 +11190,7 @@ exports[`relations overrides nodes a byName override on a node only the edges im
       "maxWidth": null,
       "text": "api",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -9557,7 +11228,7 @@ exports[`relations overrides nodes a byName override on a node only the edges im
       "maxWidth": null,
       "text": "web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -9595,7 +11266,7 @@ exports[`relations overrides nodes a byName override on a node only the edges im
       "maxWidth": null,
       "text": "Database",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },

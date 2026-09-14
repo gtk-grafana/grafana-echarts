@@ -81,6 +81,12 @@ export const testFieldConfigRegistry = new FieldConfigOptionsRegistry(() => [
   customItem('lineWidth', 'Line width'),
   customItem('lineType', 'Line type'),
   customItem('curveness', 'Curveness'),
+  // A relations label prints the *formatted* stat, through the same display processor the
+  // tooltip formats with, so these two are the only standard properties besides `color`
+  // that a canvas can show. Registered for the reason `displayName` is: no other fixture
+  // sets either as a default or an override, so no other family's render moves.
+  item('unit', 'Unit'),
+  item('decimals', 'Decimals'),
   // The tooltip footer's two: the standard flag that decides whether any filter button is
   // offered at all (`resolveFilters`), and the per-mark endpoint keys they are written
   // under. Both are unset in every fixture, so registering them changes no render.

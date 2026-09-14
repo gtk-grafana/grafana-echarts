@@ -131,9 +131,12 @@ export interface RelationLink {
    */
   secondaries?: MarkStat[];
   /**
-   * Set **only** when the edge's field carries a real colour choice, so that an
-   * unconfigured edge falls through to the series-level endpoint colouring
-   * (`relationsLinkColor`). See `colorOf` and `getGraphLinkStyle`.
+   * Set for every colour mode **except the palettes**, which pick a colour by series
+   * index or by a hash of the name and so say nothing about the two nodes an edge joins.
+   * A literal colour (`fixed`, `shades`, `gradient`) is a choice about this mark, and a
+   * by-value scheme (`thresholds`, `continuous-*`) grades the edge by its own weight; a
+   * palette leaves the edge to the endpoint colouring (`relationsLinkColor`). See
+   * `isPaletteColorMode` and `resolveLinkColor`.
    */
   color?: string;
   /** `config.custom.lineWidth` — ECharts `lineStyle.width`. */

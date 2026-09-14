@@ -4,7 +4,7 @@ import { relationsCategoryName, relationsSeriesTypeOptions, seriesTypePath } fro
 import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
-import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { RELATIONS_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
 import { addCommonLegendAndTooltip } from 'lib/grafana/editor/common/legend-and-tooltip';
 import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
@@ -39,7 +39,9 @@ initPluginTranslations('grafana-echarts-app');
 // converted to the contract above the panel, by the transformation registered below.
 const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({
-    standardOptions: STANDARD_FIELD_OPTIONS,
+    // The shared block minus "Color series by", which has nothing to act on here.
+    // See `RELATIONS_FIELD_OPTIONS`.
+    standardOptions: RELATIONS_FIELD_OPTIONS,
     // Per-mark style, addressable by an ordinary field override because a mark is a
     // field: node radius, subtitle and pinned position; edge width, line type and
     // curveness; the two ad-hoc filter label keys; and the real "Hide in area"

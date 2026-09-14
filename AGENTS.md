@@ -23,6 +23,11 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Always use eCharts types instead of creating local definitions of the eCharts API. See https://echarts.apache.org/handbook/en/basics/import/#creating-an-option-type-in-typescript
 - Assume data frames are square (all fields have the same number of values) and the frame length matches the value length.
 - Don't update the jest snapshots in `*.canvas.test.*` tests!
+- One kind of test per file, by name. `*.canvas.test.*`: **only** jest-canvas-mock
+  baselines — every test asserts `toMatchCanvasSnapshot` and nothing else belongs there
+  (`src/test/suiteShape.test.ts` fails the build otherwise). `*.integration.test.*`:
+  renders that assert drawn primitives or compare two renders, no baseline. `*.test.ts`:
+  unit tests, no infix. Splitting a claim out of a canvas suite is never scope creep.
 - Stay on task & document out of scope context in the /todo directory
 
 ## Development environment
@@ -30,6 +35,11 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
     In a new worktree, the agent will need to pnpm i && pnpm run build to generate the dist directory.
     To generate non conflicting docker image, run `GRAFANA_PORT=4001 pnpm run server` and pick a different port number in the 4xxx range to avoid conflicting with the user images running on 3xxx
     Run .canvas tests with env variable `GEN_CANVAS_OUTPUT_ON_PASS=1` which will return a link to the `jest-canvas-mock-compare-viewer` tool which can be used to verify snapshots
+
+## Canvas test coverage
+
+    Which relations options a rendered test pins, plus the snapshot-size and directory
+    proposals from auditing them: [docs/relations-canvas-coverage.md](docs/relations-canvas-coverage.md)
 
 ## Reviewing canvas snapshot changes
 

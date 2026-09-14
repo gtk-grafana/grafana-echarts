@@ -128,5 +128,54 @@ describe('relations sankey', () => {
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
+
+    /**
+     * Node alignment decides which column a node with *slack* lands in: `justify` (the
+     * default) pushes a terminal node to the last column, `left` keeps it in its
+     * earliest possible one.
+     *
+     * **Not `nodesFrame`**, deliberately. Its four nodes form a diamond in which every
+     * node's earliest column is already its justified one, so the two settings draw
+     * byte-identical pictures and a baseline taken on it would pin nothing. `cache` here
+     * is the node with slack — a leaf hanging off `gateway` while the chain runs two more
+     * columns — and the render is compared against the same frames at the default to say
+     * so, the way `relations-overrides` does for the derived-node override.
+     */
+    it('node align left (a leaf kept in its earliest column, not pushed to the last)', async () => {
+      const slackEdges = toDataFrame({
+        name: 'edges',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['e1', 'e2', 'e3'] },
+          { name: 'source', type: FieldType.string, values: ['gateway', 'api', 'gateway'] },
+          { name: 'target', type: FieldType.string, values: ['api', 'db', 'cache'] },
+          { name: 'mainstat', type: FieldType.number, values: [100, 90, 30] },
+        ],
+      });
+      const { defaultEvents, seriesEvents } = await renderSankey({
+        frames: [slackEdges],
+        options: { relationsSankeyNodeAlign: 'left' },
+      });
+
+      const justified = await renderSankey({ frames: [slackEdges] });
+      expect(normalizeCanvasEvents(seriesEvents)).not.toEqual(normalizeCanvasEvents(justified.seriesEvents));
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    /**
+     * A ribbon is drawn as a pair of bezier edges whose control points are placed by
+     * this value; at 0 the two columns are joined by straight sides instead. Pinned
+     * because it is one of the two options in the family that moves a *curve* — the
+     * other is the graph's own curveness — and a curve is what an assertion states
+     * worst and a baseline best.
+     */
+    it('ribbon curveness 0 (straight-sided ribbons between the columns)', async () => {
+      const { defaultEvents, seriesEvents } = await renderSankey({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsSankeyCurveness: 0 },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
   });
 });

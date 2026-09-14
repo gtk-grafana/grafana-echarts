@@ -1,10 +1,10 @@
 import {
   type DataFrame,
-  type DataFrameType,
+  DataFrameType,
   type Field,
-  FieldColorModeId,
   FieldType,
   formattedValueToString,
+  getFieldColorMode,
   type GrafanaTheme2,
   type Labels,
   type ReduceDataOptions,
@@ -572,7 +572,11 @@ export function hasNoNodeStats(frames: DataFrame[] | undefined): boolean {
  * grid. See {@link graphWideTimeline}.
  */
 type MarkRead =
-  /** `calcs[0]` is the main stat and the rest are extra tooltip rows, as everywhere else. */
+  /**
+   * `calcs[0]` is the main stat and the rest are extra tooltip rows, as everywhere else.
+   * Also the reading a frame with **no row dimension** keeps under the slider, having no row
+   * to select by time — see `readFor`.
+   */
   | { kind: 'reduce'; calcs: readonly string[] }
   /** `null` when this frame has no sample at the selected timestamp — every mark reads null. */
   | { kind: 'at'; row: number | null };
@@ -602,9 +606,50 @@ function sourceRowOf(markRead: MarkRead): number {
   return markRead.kind === 'at' ? (markRead.row ?? 0) : 0;
 }
 
-/** The row dimension of a frame, which a ranged response always has and an instant one does not. */
+/** The row dimension of a frame — the time column a ranged response carries. */
 function rowDimension(frame: DataFrame): Field | undefined {
   return frame.fields.find((field) => field.type === FieldType.time);
+}
+
+/**
+ * The data-plane kinds that declare **no row dimension**: numbers, one per series, with no
+ * time axis. https://grafana.com/developers/dataplane/numeric
+ */
+const NUMERIC_FRAME_TYPES: ReadonlySet<string> = new Set([
+  DataFrameType.NumericWide,
+  DataFrameType.NumericMulti,
+  DataFrameType.NumericLong,
+]);
+
+/**
+ * Does this frame have **nothing to select by time** — one reading, true for the whole
+ * range?
+ *
+ * Not the same question as "has a time field", and that is the trap. A Prometheus *instant*
+ * query answers `numeric-multi` and still ships a `Time` column: one row, stamped with the
+ * **evaluation instant**. That instant is `now`, so it lands nowhere near the step grid a
+ * ranged query returns — which made a mixed response (ranged edges beside an instant nodes
+ * query, exactly how a service graph carries per-node error ratios) lose every node the
+ * moment the time slider was switched on. `rowAt` matched no row, every node read `null`,
+ * and a `null` node is not just a missing tooltip row: a by-value scheme has no value to
+ * grade, so `colorOf` returns nothing and `fillPaletteColors` hands the node a palette slot
+ * instead — the reported symptom was "thresholds stop working under the slider".
+ *
+ * So the *declared kind* decides, not the columns. A numeric frame's time column is a
+ * timestamp **about** the reading rather than an axis through it, and the reading is the
+ * same at every stop.
+ *
+ * Shape alone cannot answer this. "One row" is the tempting test and it is wrong: a raw
+ * ragged response is N frames of one sample each, and there a missing sample at the selected
+ * stop really is `null` — no carry-forward, which is what keeps a scrubbed edge honest. The
+ * kind is what separates "one sample of a series" from "one number for the range".
+ *
+ * A frame whose datasource declares nothing keeps the old reading, so nothing regresses on
+ * a response this cannot classify.
+ */
+function isTimelessFrame(frame: DataFrame): boolean {
+  const type = frame.meta?.type;
+  return rowDimension(frame) == null || (type != null && NUMERIC_FRAME_TYPES.has(type));
 }
 
 /**
@@ -637,7 +682,13 @@ function collectStops(frames: DataFrame[], limit = Infinity): Set<number> {
     return stops;
   }
   for (const frame of [...roles.edgesFrames, ...roles.nodesFrames]) {
-    const time = rowDimension(frame);
+    // A timeless frame contributes nothing to scrub *through*, however its datasource
+    // stamped it. An instant Prometheus query ships one row stamped `now`, which would
+    // otherwise become a stop of its own — one sitting off the ranged frames' step grid,
+    // where every edge reads null and the graph goes weightless. Two instant queries with
+    // different evaluation instants would even raise a slider on a response that has no
+    // timeline at all, which is the opposite of what this function promises above.
+    const time = isTimelessFrame(frame) ? undefined : rowDimension(frame);
     for (let row = 0; row < (time?.values.length ?? 0); row++) {
       const at = numberAt(time, row);
       if (at != null) {
@@ -695,22 +746,59 @@ function colorOf(field: Field, value: number | null): string | undefined {
 }
 
 /**
- * The palette modes, which colour a field by its position among its siblings.
- *
- * For a **node** that is exactly right — it reproduces the per-node palette the family
- * has always drawn. For an **edge** it is not a colour choice at all: an edge's natural
- * colour comes from the nodes it joins (`relationsLinkColor`, gradient by default), so
- * a palette mode is treated as "nothing configured" and no per-edge colour is emitted.
- * Any other mode — fixed, by-value, thresholds, shades — is a real choice and wins.
+ * The prefix every palette mode's id carries, checked ahead of the registry so a palette
+ * added upstream after this build is still recognised as one. See {@link isPaletteColorMode}.
  */
-const PALETTE_MODES: ReadonlySet<string> = new Set([
-  FieldColorModeId.PaletteClassic,
-  FieldColorModeId.PaletteClassicByName,
-]);
+const PALETTE_MODE_PREFIX = 'palette-';
 
+/**
+ * Is this colour mode a **palette** — a colour picked by the field's position among its
+ * siblings, or by a hash of its name?
+ *
+ * This is the gate on per-edge colour, and a palette is the one class of mode an edge
+ * does not read. For a **node** a palette is exactly right: it reproduces the per-node
+ * colouring the family has always drawn. For an **edge** it is not a colour choice at
+ * all — a series index says nothing about which two nodes the edge joins — so a palette
+ * counts as "nothing configured" and the edge falls through to `relationsLinkColor`.
+ * Every other mode is read: a literal colour (`fixed`, `shades`, `gradient`) is a
+ * decision about this mark, and a by-value scheme (`thresholds`, `continuous-*`) grades
+ * the edge by its own weight, which is a thing only the edge can say. Both therefore
+ * beat the endpoint colouring, and under a by-value scheme "Link color" has nothing left
+ * to decide — which is what its description now says, since no `showIf` can see
+ * `fieldConfig` to hide it.
+ *
+ * Two tests, because neither is sufficient alone:
+ *
+ * - the **registry** classifies a known id — `isByValue` marks the value-derived modes
+ *   and `getColors` marks the scheme-backed ones, so the pair `isByValue !== true` and
+ *   `getColors != null` is exactly the index/name palettes (`palette-classic`,
+ *   `-by-name`, `-colorblind`, `-saturated`, 13.3's `palette-categorical-next*`).
+ *   `getColors` alone would not do: it is a *method* on `FieldColorSchemeMode`, so the
+ *   `continuous-*` modes carry one too.
+ * - the **prefix** catches an id this build has never heard of, which the registry
+ *   cannot: `getFieldColorMode` answers an unknown id with the `thresholds` mode, so a
+ *   palette shipped upstream after this build would otherwise be read as by-value and
+ *   would colour every edge — the exact bug this replaced, which was a two-entry list of
+ *   `palette-classic` and `palette-classic-by-name` that left `palette-colorblind` and
+ *   the categorical palettes silently turning "Link color" off for the whole panel.
+ */
+function isPaletteColorMode(mode: string | undefined): boolean {
+  if (mode == null) {
+    return true;
+  }
+  if (mode.startsWith(PALETTE_MODE_PREFIX)) {
+    return true;
+  }
+  const colorMode = getFieldColorMode(mode);
+  return colorMode.isByValue !== true && colorMode.getColors != null;
+}
+
+/**
+ * An edge's **own** colour, or `undefined` to leave it to `relationsLinkColor`. See
+ * {@link isPaletteColorMode}, and `resolveLinkColor` for where the fall-through lands.
+ */
 function edgeColorOf(field: Field, value: number | null): string | undefined {
-  const mode = field.config.color?.mode;
-  return mode == null || PALETTE_MODES.has(mode) ? undefined : colorOf(field, value);
+  return isPaletteColorMode(field.config.color?.mode) ? undefined : colorOf(field, value);
 }
 
 /**
@@ -1167,8 +1255,13 @@ export function frameToGraphWide(
   // reduces over its **own** rows, however ragged: reducers skip nulls, so a raw series and
   // the same series null-padded onto a shared row grid give the same number. Under `at` the
   // timestamp is resolved against each frame's own row dimension, for the same reason.
+  //
+  // **A timeless frame keeps reducing**, whatever `at` says — it has no row to select by
+  // time, so its marks read the same at every stop. See {@link isTimelessFrame}, which is
+  // also where the bug this closes is written down. Reducing is exact rather than a guess:
+  // such a frame carries no rows or one, and every reducer agrees on a single row.
   const readFor = (frame: DataFrame): MarkRead =>
-    at == null ? { kind: 'reduce', calcs } : { kind: 'at', row: rowAt(frame, at) };
+    at == null || isTimelessFrame(frame) ? { kind: 'reduce', calcs } : { kind: 'at', row: rowAt(frame, at) };
   // Per frame first, so the diagnostic can say what the old reading would have drawn.
   // Which edges had their filter keys *recovered* rather than read, for the diagnostic —
   // tracked here rather than on the link, which is the render model and not a log.

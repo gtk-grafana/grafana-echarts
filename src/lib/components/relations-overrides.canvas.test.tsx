@@ -1,4 +1,5 @@
 import { type FieldConfigSource } from '@grafana/data';
+import { type EChartsRelationsFieldConfig } from 'editor/types';
 import { normalizeCanvasEvents } from 'test/canvas';
 import { height, width } from 'test/panel';
 import { edgesFrame, nodesFrame } from 'test/relations';
@@ -68,6 +69,26 @@ describe('relations overrides', () => {
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
+
+    /**
+     * "Hide in area" on a **node** rather than an edge. A node is a field too, so the
+     * same matcher reaches it — and taking the node out has to take the two links that
+     * touched it with it, or the picture would keep two lines running to nothing.
+     */
+    it('a byName hideFrom override on a node (web gone, and both links that touched it)', async () => {
+      const fieldConfig: FieldConfigSource = {
+        defaults: {},
+        overrides: [
+          {
+            matcher: { id: 'byName', options: 'web' },
+            properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
+          },
+        ],
+      };
+      const { defaultEvents, seriesEvents } = await renderRelations({ frames: [nodesFrame, edgesFrame], fieldConfig });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
   });
 
   describe('edges', () => {
@@ -90,14 +111,23 @@ describe('relations overrides', () => {
     });
 
     // Per-edge `custom.curveness` beats the panel-level "Link curveness": `e1` bows hard
-    // while the other three stay on the panel value.
+    // (its control point sits 343px off the chord, lifting the apex to y=27 in a 300px
+    // box) while the other three stay on the panel's 0.1, which is ~10px of bow.
+    //
+    // **Two of those three are dead straight, not nearly.** ECharts' circular layout puts
+    // a link's control point at `centre * 3c + midpoint * (1 - 3c)` (`circularLayoutHelper`
+    // — it bows links *around the ring*, not perpendicular to themselves), and
+    // `gateway --> web` and `api --> db` are diameters of this four-node ring: their
+    // midpoint *is* the centre, so the control point lands on it however high the
+    // curveness goes. Only `web --> db` shows the panel value. A browser draws the same
+    // three lines; the baseline is not hiding an edge.
     it('a byName curveness override (gateway to api bowed hard, the rest nearly straight)', async () => {
-      const fieldConfig: FieldConfigSource = {
+      const fieldConfig: FieldConfigSource<Partial<EChartsRelationsFieldConfig>> = {
         defaults: {},
         overrides: [
           {
             matcher: { id: 'byName', options: 'e1' },
-            properties: [{ id: 'custom.curveness', value: 0.6 }],
+            properties: [{ id: 'custom.curveness', value: 1.6 }],
           },
         ],
       };

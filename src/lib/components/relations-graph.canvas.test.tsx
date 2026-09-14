@@ -1,4 +1,5 @@
-import { FieldType, toDataFrame } from '@grafana/data';
+import { FieldColorModeId, FieldType, type Labels, ThresholdsMode, toDataFrame } from '@grafana/data';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
 import { normalizeCanvasEvents } from 'test/canvas';
 import { height, width } from 'test/panel';
 import { edgesFrame, nodesFrame, pinnedNodesFrame } from 'test/relations';
@@ -60,6 +61,35 @@ describe('relations graph', () => {
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
+    /**
+     * The panel-level size, which every node without a `noderadius` of its own takes.
+     * Doubled from `RELATIONS_NODE_SIZE_DEFAULT` (20), which the `base` picture holds —
+     * the pair is what says the slider reaches the symbol at all.
+     */
+    it('node size 40 (every symbol twice the default diameter)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsNodeSize: 40 },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    /**
+     * "Show node values" puts the node's stat on a second line under its name, formatted
+     * through the node's own field. Two lines, one line-height apart — which is the thing
+     * a picture states better than an assertion, and which read as one overlapping line
+     * until `jest-setup.js` gave the harness browser-like text metrics.
+     */
+    it('node values on (each name over its own stat)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsShowNodeValues: true },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
     it('node labels off (symbols and links, no text)', async () => {
       const { defaultEvents, seriesEvents } = await renderRelations({
         frames: [nodesFrame, edgesFrame],
@@ -79,6 +109,55 @@ describe('relations graph', () => {
         ],
       });
       const { defaultEvents, seriesEvents } = await renderRelations({ frames: [coloredNodes, edgesFrame] });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
+  /**
+   * Label overflow, which is the only thing in the family that reads a *measured* text
+   * width — so it is also the first thing to drift when text measurement changes (see
+   * `jest-setup.js`). Both cases are pictures because the claim is where the text sits,
+   * not what it says; the strings themselves are asserted in
+   * `relations-labels.integration.test.tsx`.
+   */
+  describe('labels', () => {
+    /** Four nodes whose titles are three times what fits in the default 120px box. */
+    const longNodes = toDataFrame({
+      name: 'nodes',
+      fields: [
+        { name: 'id', type: FieldType.string, values: ['gateway', 'api', 'web', 'db'] },
+        {
+          name: 'title',
+          type: FieldType.string,
+          values: [
+            'edge-gateway-ingress-eu-west-1',
+            'checkout-api-service-primary',
+            'storefront-web-frontend-v2',
+            'orders-postgres-primary-db',
+          ],
+        },
+        { name: 'mainstat', type: FieldType.number, values: [120, 80, 60, 200] },
+      ],
+    });
+
+    // Half the default width, so each name is cut roughly twice as early.
+    it('label width 60 (names cut at half the default box)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [longNodes, edgesFrame],
+        options: { relationsLabelWidth: 60 },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    // `break` wraps instead of truncating: one `fillText` per line, stacked downward from
+    // the same anchor, with no ellipsis anywhere.
+    it('break overflow (each name wrapped over several lines, none cut)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [longNodes, edgesFrame],
+        options: { relationsLabelOverflow: 'break' },
+      });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
@@ -201,6 +280,77 @@ describe('relations graph', () => {
       const { defaultEvents, seriesEvents } = await renderRelations({
         frames: [coloredPinned, edgesFrame],
         options: { relationsLayout: undefined, relationsLinkColor: 'gradient' },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
+  describe('thresholds', () => {
+    /**
+     * Green under 40, orange from 40, red from 70 — steps every mark in the fixture
+     * crosses, so the picture holds all three bands on nodes *and* on edges.
+     */
+    const steps = {
+      mode: ThresholdsMode.Absolute,
+      steps: [
+        { value: -Infinity, color: 'green' },
+        { value: 40, color: 'orange' },
+        { value: 70, color: 'red' },
+      ],
+    };
+
+    /** One graded mark. Written per field, as `Panel.canvas.test.tsx` writes its own. */
+    const graded = (name: string, value: number, labels?: Labels) => ({
+      name,
+      type: FieldType.number,
+      values: [value],
+      ...(labels ? { labels } : {}),
+      config: { color: { mode: FieldColorModeId.Thresholds }, thresholds: steps },
+    });
+
+    /**
+     * Wide fixtures rather than the shared row-form ones: a threshold scheme is *per
+     * field* config, and the row form has no column to carry it — `legacyToWide` mints
+     * the mark fields itself. This is the shape a datasource reaches the panel in anyway.
+     */
+    const gradedNodes = toDataFrame({
+      name: 'nodes',
+      meta: { type: GRAPH_NODES_WIDE },
+      fields: [graded('gateway', 10), graded('api', 50), graded('web', 90), graded('db', 30)],
+    });
+    const gradedEdges = toDataFrame({
+      name: 'edges',
+      meta: { type: GRAPH_EDGES_WIDE },
+      fields: [
+        graded('gateway-->api', 80),
+        graded('gateway-->web', 45),
+        graded('api-->db', 20),
+        graded('web-->db', 75),
+      ],
+    });
+
+    /**
+     * **A by-value scheme colours the edges too**, which is the half that was broken: the
+     * rule used to be a two-entry deny-list of the classic palettes, so every other mode
+     * — thresholds included — gave each edge its own colour *and* silently turned "Link
+     * color" off. The rule is now "every mode but a palette", and this is what that draws:
+     * four symbols in three bands, and four lines graded by their own weight rather than
+     * by an endpoint.
+     *
+     * `relationsLinkColor: 'target'` is set to make the precedence visible in the
+     * baseline. If it were winning, both lines into `db` would be `db`'s green; they are
+     * their own orange and red instead. The comparison is stated as a claim in
+     * `relations-thresholds.integration.test.tsx`; this is the picture of it.
+     *
+     * Three weights are drawn for the four lines: `api --> db`'s `20` lands under a node
+     * name and yields to it, the arbitration `relations-labels.integration.test.tsx`
+     * pins. The colours are the claim here, not the labels.
+     */
+    it('a by-value scheme on every mark (nodes in three bands, each line graded by its own weight)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [gradedNodes, gradedEdges],
+        options: { relationsLinkColor: 'target', relationsShowEdgeValues: true },
       });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });

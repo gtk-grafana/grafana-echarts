@@ -5685,6 +5685,1657 @@ exports[`relations sankey base the same nodes and links as flow ribbons (four ba
 ]
 `;
 
+exports[`relations sankey geometry node align left (a leaf kept in its earliest column, not pushed to the last) 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 20,
+      "f": 13,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 20,
+      "y": 8,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 80,
+      "cpx2": 80,
+      "cpy1": 8,
+      "cpy2": 0,
+      "x": 140,
+      "y": 0,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 140,
+      "y": 173.846154,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 80,
+      "cpx2": 80,
+      "cpy1": 173.846154,
+      "cpy2": 181.846154,
+      "x": 20,
+      "y": 181.846154,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 20,
+            "y": 8,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 80,
+            "cpx2": 80,
+            "cpy1": 8,
+            "cpy2": 0,
+            "x": 140,
+            "y": 0,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 140,
+            "y": 173.846154,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 80,
+            "cpx2": 80,
+            "cpy1": 173.846154,
+            "cpy2": 181.846154,
+            "x": 20,
+            "y": 181.846154,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 220,
+      "cpx2": 220,
+      "cpy1": 0,
+      "cpy2": 33.491125,
+      "x": 280,
+      "y": 33.491125,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 280,
+      "y": 189.952664,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 220,
+      "cpx2": 220,
+      "cpy1": 189.952664,
+      "cpy2": 156.461538,
+      "x": 160,
+      "y": 156.461538,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 220,
+            "cpx2": 220,
+            "cpy1": 0,
+            "cpy2": 33.491125,
+            "x": 280,
+            "y": 33.491125,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 280,
+            "y": 189.952664,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 220,
+            "cpx2": 220,
+            "cpy1": 189.952664,
+            "cpy2": 156.461538,
+            "x": 160,
+            "y": 156.461538,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 181.846154,
+      "y1": 181.846154,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 20,
+      "y": 181.846154,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 80,
+      "cpx2": 80,
+      "cpy1": 181.846154,
+      "cpy2": 181.846154,
+      "x": 140,
+      "y": 181.846154,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 140,
+      "y": 234,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 80,
+      "cpx2": 80,
+      "cpy1": 234,
+      "cpy2": 234,
+      "x": 20,
+      "y": 234,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 20,
+            "y": 181.846154,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 80,
+            "cpx2": 80,
+            "cpy1": 181.846154,
+            "cpy2": 181.846154,
+            "x": 140,
+            "y": 181.846154,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 140,
+            "y": 234,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 80,
+            "cpx2": 80,
+            "cpy1": 234,
+            "cpy2": 234,
+            "x": 20,
+            "y": 234,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 226,
+      "width": 20,
+      "x": 0,
+      "y": 8,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 226,
+            "width": 20,
+            "x": 0,
+            "y": 8,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 173.846154,
+      "width": 20,
+      "x": 140,
+      "y": 0,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 173.846154,
+            "width": 20,
+            "x": 140,
+            "y": 0,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 156.461538,
+      "width": 20,
+      "x": 280,
+      "y": 33.491125,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 156.461538,
+            "width": 20,
+            "x": 280,
+            "y": 33.491125,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 52.153846,
+      "width": 20,
+      "x": 140,
+      "y": 181.846154,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 52.153846,
+            "width": 20,
+            "x": 140,
+            "y": 181.846154,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 45,
+      "f": 134,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "gateway",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 185,
+      "f": 99.923077,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "api",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 325,
+      "f": 124.721894,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "db",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 185,
+      "f": 220.923077,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "cache",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 20,
+      "f": 13,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 20,
+      "y": 8,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 80,
+      "cpx2": 80,
+      "cpy1": 8,
+      "cpy2": 0,
+      "x": 140,
+      "y": 0,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 140,
+      "y": 173.846154,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 80,
+      "cpx2": 80,
+      "cpy1": 173.846154,
+      "cpy2": 181.846154,
+      "x": 20,
+      "y": 181.846154,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 20,
+            "y": 8,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 80,
+            "cpx2": 80,
+            "cpy1": 8,
+            "cpy2": 0,
+            "x": 140,
+            "y": 0,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 140,
+            "y": 173.846154,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 80,
+            "cpx2": 80,
+            "cpy1": 173.846154,
+            "cpy2": 181.846154,
+            "x": 20,
+            "y": 181.846154,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 220,
+      "cpx2": 220,
+      "cpy1": 0,
+      "cpy2": 33.491125,
+      "x": 280,
+      "y": 33.491125,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 280,
+      "y": 189.952664,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 220,
+      "cpx2": 220,
+      "cpy1": 189.952664,
+      "cpy2": 156.461538,
+      "x": 160,
+      "y": 156.461538,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 220,
+            "cpx2": 220,
+            "cpy1": 0,
+            "cpy2": 33.491125,
+            "x": 280,
+            "y": 33.491125,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 280,
+            "y": 189.952664,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 220,
+            "cpx2": 220,
+            "cpy1": 189.952664,
+            "cpy2": 156.461538,
+            "x": 160,
+            "y": 156.461538,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 181.846154,
+      "y1": 181.846154,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 20,
+      "y": 181.846154,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 80,
+      "cpx2": 80,
+      "cpy1": 181.846154,
+      "cpy2": 181.846154,
+      "x": 140,
+      "y": 181.846154,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 140,
+      "y": 234,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 80,
+      "cpx2": 80,
+      "cpy1": 234,
+      "cpy2": 234,
+      "x": 20,
+      "y": 234,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 20,
+            "y": 181.846154,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 80,
+            "cpx2": 80,
+            "cpy1": 181.846154,
+            "cpy2": 181.846154,
+            "x": 140,
+            "y": 181.846154,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 140,
+            "y": 234,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 80,
+            "cpx2": 80,
+            "cpy1": 234,
+            "cpy2": 234,
+            "x": 20,
+            "y": 234,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 226,
+      "width": 20,
+      "x": 0,
+      "y": 8,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 226,
+            "width": 20,
+            "x": 0,
+            "y": 8,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 173.846154,
+      "width": 20,
+      "x": 140,
+      "y": 0,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 173.846154,
+            "width": 20,
+            "x": 140,
+            "y": 0,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 156.461538,
+      "width": 20,
+      "x": 280,
+      "y": 33.491125,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 156.461538,
+            "width": 20,
+            "x": 280,
+            "y": 33.491125,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 52.153846,
+      "width": 20,
+      "x": 140,
+      "y": 181.846154,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 52.153846,
+            "width": 20,
+            "x": 140,
+            "y": 181.846154,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 45,
+      "f": 134,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "gateway",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 185,
+      "f": 99.923077,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "api",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 325,
+      "f": 124.721894,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "db",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 185,
+      "f": 220.923077,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "cache",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
 exports[`relations sankey geometry node width 32 and gap 20 (wider bars, further apart) 1`] = `
 [
   {
@@ -7543,6 +9194,1901 @@ exports[`relations sankey geometry node width 32 and gap 20 (wider bars, further
       "d": 1,
       "e": 325,
       "f": 124.785036,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "DB",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+]
+`;
+
+exports[`relations sankey geometry ribbon curveness 0 (straight-sided ribbons between the columns) 1`] = `
+[
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 20,
+      "f": 13,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 20,
+      "y": 1.372584,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 20,
+      "cpx2": 140,
+      "cpy1": 1.372584,
+      "cpy2": 0,
+      "x": 140,
+      "y": 0,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 140,
+      "y": 150.666667,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 140,
+      "cpx2": 20,
+      "cpy1": 150.666667,
+      "cpy2": 152.039251,
+      "x": 20,
+      "y": 152.039251,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 20,
+            "y": 1.372584,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 20,
+            "cpx2": 140,
+            "cpy1": 1.372584,
+            "cpy2": 0,
+            "x": 140,
+            "y": 0,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 140,
+            "y": 150.666667,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 140,
+            "cpx2": 20,
+            "cpy1": 150.666667,
+            "cpy2": 152.039251,
+            "x": 20,
+            "y": 152.039251,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 20,
+      "y": 152.039251,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 20,
+      "cpx2": 140,
+      "cpy1": 152.039251,
+      "cpy2": 158.666667,
+      "x": 140,
+      "y": 158.666667,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 140,
+      "y": 234,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 140,
+      "cpx2": 20,
+      "cpy1": 234,
+      "cpy2": 227.372584,
+      "x": 20,
+      "y": 227.372584,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 20,
+            "y": 152.039251,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 20,
+            "cpx2": 140,
+            "cpy1": 152.039251,
+            "cpy2": 158.666667,
+            "x": 140,
+            "y": 158.666667,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 140,
+            "y": 234,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 140,
+            "cpx2": 20,
+            "cpy1": 234,
+            "cpy2": 227.372584,
+            "x": 20,
+            "y": 227.372584,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 160,
+      "cpx2": 280,
+      "cpy1": 0,
+      "cpy2": 15.944748,
+      "x": 280,
+      "y": 15.944748,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 280,
+      "y": 151.544748,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 280,
+      "cpx2": 160,
+      "cpy1": 151.544748,
+      "cpy2": 135.6,
+      "x": 160,
+      "y": 135.6,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 160,
+            "cpx2": 280,
+            "cpy1": 0,
+            "cpy2": 15.944748,
+            "x": 280,
+            "y": 15.944748,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 280,
+            "y": 151.544748,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 280,
+            "cpx2": 160,
+            "cpy1": 151.544748,
+            "cpy2": 135.6,
+            "x": 160,
+            "y": 135.6,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 158.666667,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 160,
+      "cpx2": 280,
+      "cpy1": 158.666667,
+      "cpy2": 151.544748,
+      "x": 280,
+      "y": 151.544748,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 280,
+      "y": 211.811415,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 280,
+      "cpx2": 160,
+      "cpy1": 211.811415,
+      "cpy2": 218.933333,
+      "x": 160,
+      "y": 218.933333,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 158.666667,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 160,
+            "cpx2": 280,
+            "cpy1": 158.666667,
+            "cpy2": 151.544748,
+            "x": 280,
+            "y": 151.544748,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 280,
+            "y": 211.811415,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 280,
+            "cpx2": 160,
+            "cpy1": 211.811415,
+            "cpy2": 218.933333,
+            "x": 160,
+            "y": 218.933333,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 226,
+      "width": 20,
+      "x": 0,
+      "y": 1.372584,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 226,
+            "width": 20,
+            "x": 0,
+            "y": 1.372584,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 150.666667,
+      "width": 20,
+      "x": 140,
+      "y": 0,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 150.666667,
+            "width": 20,
+            "x": 140,
+            "y": 0,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 75.333333,
+      "width": 20,
+      "x": 140,
+      "y": 158.666667,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 75.333333,
+            "width": 20,
+            "x": 140,
+            "y": 158.666667,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 195.866667,
+      "width": 20,
+      "x": 280,
+      "y": 15.944748,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 195.866667,
+            "width": 20,
+            "x": 280,
+            "y": 15.944748,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 45,
+      "f": 127.372584,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Gateway",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 185,
+      "f": 88.333333,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "API",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 185,
+      "f": 209.333333,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Web",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 325,
+      "f": 126.878082,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "DB",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {},
+    "type": "restore",
+  },
+  {
+    "props": {},
+    "type": "save",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 20,
+      "f": 13,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": 0.2,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 10,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#F2CC0C",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 20,
+      "y": 1.372584,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 20,
+      "cpx2": 140,
+      "cpy1": 1.372584,
+      "cpy2": 0,
+      "x": 140,
+      "y": 0,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 140,
+      "y": 150.666667,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 140,
+      "cpx2": 20,
+      "cpy1": 150.666667,
+      "cpy2": 152.039251,
+      "x": 20,
+      "y": 152.039251,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 20,
+            "y": 1.372584,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 20,
+            "cpx2": 140,
+            "cpy1": 1.372584,
+            "cpy2": 0,
+            "x": 140,
+            "y": 0,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 140,
+            "y": 150.666667,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 140,
+            "cpx2": 20,
+            "cpy1": 150.666667,
+            "cpy2": 152.039251,
+            "x": 20,
+            "y": 152.039251,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 20,
+      "x1": 140,
+      "y0": 152.039251,
+      "y1": 152.039251,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#73BF69",
+          ],
+          [
+            1,
+            "#5794F2",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 20,
+      "y": 152.039251,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 20,
+      "cpx2": 140,
+      "cpy1": 152.039251,
+      "cpy2": 158.666667,
+      "x": 140,
+      "y": 158.666667,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 140,
+      "y": 234,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 140,
+      "cpx2": 20,
+      "cpy1": 234,
+      "cpy2": 227.372584,
+      "x": 20,
+      "y": 227.372584,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 20,
+            "y": 152.039251,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 20,
+            "cpx2": 140,
+            "cpy1": 152.039251,
+            "cpy2": 158.666667,
+            "x": 140,
+            "y": 158.666667,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 140,
+            "y": 234,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 140,
+            "cpx2": 20,
+            "cpy1": 234,
+            "cpy2": 227.372584,
+            "x": 20,
+            "y": 227.372584,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 0,
+      "y1": 0,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#F2CC0C",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 0,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 160,
+      "cpx2": 280,
+      "cpy1": 0,
+      "cpy2": 15.944748,
+      "x": 280,
+      "y": 15.944748,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 280,
+      "y": 151.544748,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 280,
+      "cpx2": 160,
+      "cpy1": 151.544748,
+      "cpy2": 135.6,
+      "x": 160,
+      "y": 135.6,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 0,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 160,
+            "cpx2": 280,
+            "cpy1": 0,
+            "cpy2": 15.944748,
+            "x": 280,
+            "y": 15.944748,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 280,
+            "y": 151.544748,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 280,
+            "cpx2": 160,
+            "cpy1": 151.544748,
+            "cpy2": 135.6,
+            "x": 160,
+            "y": 135.6,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "x0": 160,
+      "x1": 280,
+      "y0": 151.544748,
+      "y1": 151.544748,
+    },
+    "type": "createLinearGradient",
+  },
+  {
+    "props": {
+      "value": {
+        "addColorStop": [
+          [
+            0,
+            "#5794F2",
+          ],
+          [
+            1,
+            "#FF9830",
+          ],
+        ],
+      },
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "x": 160,
+      "y": 158.666667,
+    },
+    "type": "moveTo",
+  },
+  {
+    "props": {
+      "cpx1": 160,
+      "cpx2": 280,
+      "cpy1": 158.666667,
+      "cpy2": 151.544748,
+      "x": 280,
+      "y": 151.544748,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {
+      "x": 280,
+      "y": 211.811415,
+    },
+    "type": "lineTo",
+  },
+  {
+    "props": {
+      "cpx1": 280,
+      "cpx2": 160,
+      "cpy1": 211.811415,
+      "cpy2": 218.933333,
+      "x": 160,
+      "y": 218.933333,
+    },
+    "type": "bezierCurveTo",
+  },
+  {
+    "props": {},
+    "type": "closePath",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "x": 160,
+            "y": 158.666667,
+          },
+          "type": "moveTo",
+        },
+        {
+          "props": {
+            "cpx1": 160,
+            "cpx2": 280,
+            "cpy1": 158.666667,
+            "cpy2": 151.544748,
+            "x": 280,
+            "y": 151.544748,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {
+            "x": 280,
+            "y": 211.811415,
+          },
+          "type": "lineTo",
+        },
+        {
+          "props": {
+            "cpx1": 280,
+            "cpx2": 160,
+            "cpy1": 211.811415,
+            "cpy2": 218.933333,
+            "x": 160,
+            "y": 218.933333,
+          },
+          "type": "bezierCurveTo",
+        },
+        {
+          "props": {},
+          "type": "closePath",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "#73bf69",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 226,
+      "width": 20,
+      "x": 0,
+      "y": 1.372584,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 226,
+            "width": 20,
+            "x": 0,
+            "y": 1.372584,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#f2cc0c",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 150.666667,
+      "width": 20,
+      "x": 140,
+      "y": 0,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 150.666667,
+            "width": 20,
+            "x": 140,
+            "y": 0,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#5794f2",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 75.333333,
+      "width": 20,
+      "x": 140,
+      "y": 158.666667,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 75.333333,
+            "width": 20,
+            "x": 140,
+            "y": 158.666667,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "value": "#ff9830",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {},
+    "type": "beginPath",
+  },
+  {
+    "props": {
+      "height": 195.866667,
+      "width": 20,
+      "x": 280,
+      "y": 15.944748,
+    },
+    "type": "rect",
+  },
+  {
+    "props": {
+      "fillRule": "nonzero",
+      "path": [
+        {
+          "props": {},
+          "type": "beginPath",
+        },
+        {
+          "props": {
+            "height": 195.866667,
+            "width": 20,
+            "x": 280,
+            "y": 15.944748,
+          },
+          "type": "rect",
+        },
+      ],
+    },
+    "type": "fill",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 45,
+      "f": 127.372584,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "source-over",
+    },
+    "type": "globalCompositeOperation",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetX",
+  },
+  {
+    "props": {
+      "value": 0,
+    },
+    "type": "shadowOffsetY",
+  },
+  {
+    "props": {
+      "value": "#000000",
+    },
+    "type": "shadowColor",
+  },
+  {
+    "props": {
+      "value": "#ccccdc",
+    },
+    "type": "fillStyle",
+  },
+  {
+    "props": {
+      "value": 1,
+    },
+    "type": "globalAlpha",
+  },
+  {
+    "props": {
+      "value": "butt",
+    },
+    "type": "lineCap",
+  },
+  {
+    "props": {
+      "value": "miter",
+    },
+    "type": "lineJoin",
+  },
+  {
+    "props": {
+      "value": 2,
+    },
+    "type": "miterLimit",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Gateway",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 185,
+      "f": 88.333333,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "API",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 185,
+      "f": 209.333333,
+    },
+    "type": "setTransform",
+  },
+  {
+    "props": {
+      "value": "12px 'Inter', 'Helvetica', 'Arial', sans-serif",
+    },
+    "type": "font",
+  },
+  {
+    "props": {
+      "value": "left",
+    },
+    "type": "textAlign",
+  },
+  {
+    "props": {
+      "value": "middle",
+    },
+    "type": "textBaseline",
+  },
+  {
+    "props": {
+      "maxWidth": null,
+      "text": "Web",
+      "x": 0,
+      "y": 0,
+    },
+    "type": "fillText",
+  },
+  {
+    "props": {
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 325,
+      "f": 126.878082,
     },
     "type": "setTransform",
   },
@@ -14194,9 +17740,9 @@ exports[`relations sankey orientation long names on a vertical flow (each trunca
   {
     "props": {
       "maxWidth": null,
-      "text": "edge-gateway-ingress-eu-west-1",
+      "text": "edge-gateway-ingre...",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -14232,9 +17778,9 @@ exports[`relations sankey orientation long names on a vertical flow (each trunca
   {
     "props": {
       "maxWidth": null,
-      "text": "checkout-api-service-primary",
+      "text": "checkout-api-servic...",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -14270,9 +17816,9 @@ exports[`relations sankey orientation long names on a vertical flow (each trunca
   {
     "props": {
       "maxWidth": null,
-      "text": "storefront-web-frontend-v2",
+      "text": "storefront-web-front...",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -14308,9 +17854,9 @@ exports[`relations sankey orientation long names on a vertical flow (each trunca
   {
     "props": {
       "maxWidth": null,
-      "text": "orders-postgres-primary-db",
+      "text": "orders-postgres-pri...",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -15139,9 +18685,9 @@ exports[`relations sankey orientation long names on a vertical flow (each trunca
   {
     "props": {
       "maxWidth": null,
-      "text": "edge-gateway-ingress-eu-west-1",
+      "text": "edge-gateway-ingre...",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -15177,9 +18723,9 @@ exports[`relations sankey orientation long names on a vertical flow (each trunca
   {
     "props": {
       "maxWidth": null,
-      "text": "checkout-api-service-primary",
+      "text": "checkout-api-servic...",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -15215,9 +18761,9 @@ exports[`relations sankey orientation long names on a vertical flow (each trunca
   {
     "props": {
       "maxWidth": null,
-      "text": "storefront-web-frontend-v2",
+      "text": "storefront-web-front...",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -15253,9 +18799,9 @@ exports[`relations sankey orientation long names on a vertical flow (each trunca
   {
     "props": {
       "maxWidth": null,
-      "text": "orders-postgres-primary-db",
+      "text": "orders-postgres-pri...",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -16091,7 +19637,7 @@ exports[`relations sankey orientation vertical flow (bars in rows, each label be
       "maxWidth": null,
       "text": "Gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -16129,7 +19675,7 @@ exports[`relations sankey orientation vertical flow (bars in rows, each label be
       "maxWidth": null,
       "text": "API",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -16167,7 +19713,7 @@ exports[`relations sankey orientation vertical flow (bars in rows, each label be
       "maxWidth": null,
       "text": "Web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -16205,7 +19751,7 @@ exports[`relations sankey orientation vertical flow (bars in rows, each label be
       "maxWidth": null,
       "text": "DB",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -17036,7 +20582,7 @@ exports[`relations sankey orientation vertical flow (bars in rows, each label be
       "maxWidth": null,
       "text": "Gateway",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -17074,7 +20620,7 @@ exports[`relations sankey orientation vertical flow (bars in rows, each label be
       "maxWidth": null,
       "text": "API",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -17112,7 +20658,7 @@ exports[`relations sankey orientation vertical flow (bars in rows, each label be
       "maxWidth": null,
       "text": "Web",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },
@@ -17150,7 +20696,7 @@ exports[`relations sankey orientation vertical flow (bars in rows, each label be
       "maxWidth": null,
       "text": "DB",
       "x": 0,
-      "y": 0.5,
+      "y": 6,
     },
     "type": "fillText",
   },

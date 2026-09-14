@@ -1,13 +1,16 @@
 import {
   createTheme,
   type DataFrame,
+  DataFrameType,
   type Field,
   FieldColorModeId,
+  type FieldConfig,
   type FieldConfigSource,
   FieldType,
   getDisplayProcessor,
   type Labels,
   type ReduceDataOptions,
+  ThresholdsMode,
   toDataFrame,
 } from '@grafana/data';
 
@@ -645,25 +648,31 @@ describe('frameToGraphWide — nodes', () => {
 });
 
 describe('frameToGraphWide — edge colour', () => {
-  it('takes the colour the display processor resolved, per mark', () => {
-    const frame = withDisplay(
+  /** One edge, carrying whatever colour config the case is about. */
+  const edgeWith = (color: FieldConfig['color'], config: FieldConfig = {}): DataFrame =>
+    withDisplay(
       toDataFrame({
         fields: [
           {
             name: 'e1',
             type: FieldType.number,
             labels: { source: 'a', target: 'b' },
-            config: { color: { mode: FieldColorModeId.Fixed, fixedColor: 'dark-red' } },
+            config: { ...config, color },
             values: [1],
           },
         ],
       })
     );
 
-    // This is the payoff of the pivot: whatever `applyFieldOverrides` resolved onto the
-    // field — a byName override, a fixed colour, a by-value scheme — arrives already
-    // resolved, so no separate resolver is involved.
-    expect(frameToGraphWide([frame], theme)!.links[0].color).toBe(theme.visualization.getColorByName('dark-red'));
+  it('takes the colour the display processor resolved, per mark', () => {
+    // The payoff of the pivot: whatever colour the field ended up with — a literal one
+    // (`fixed` here, `shades`/`gradient` below), a by-value band, panel-wide or from a
+    // byName override — arrives off the field already theme-resolved, so no separate
+    // resolver is involved. Only the palettes are filtered, and only for an edge.
+    const color = frameToGraphWide([edgeWith({ mode: FieldColorModeId.Fixed, fixedColor: 'dark-red' })], theme)!
+      .links[0].color;
+
+    expect(color).toBe(theme.visualization.getColorByName('dark-red'));
   });
 
   it('falls back to the configured fixed colour when overrides have not run', () => {
@@ -724,22 +733,15 @@ describe('frameToGraphWide — edge colour', () => {
     ]);
   });
 
-  it('honours a real colour choice on an edge', () => {
-    const frame = withDisplay(
-      toDataFrame({
-        fields: [
-          {
-            name: 'e1',
-            type: FieldType.number,
-            labels: { source: 'a', target: 'b' },
-            config: { color: { mode: FieldColorModeId.Fixed, fixedColor: 'dark-red' } },
-            values: [1],
-          },
-        ],
-      })
-    );
+  it('honours the other two literal-colour modes on an edge', () => {
+    const shades = frameToGraphWide([edgeWith({ mode: FieldColorModeId.Shades, fixedColor: 'dark-red' })], theme)!;
+    const gradient = frameToGraphWide(
+      [edgeWith({ mode: FieldColorModeId.Gradient, fixedColor: 'dark-red', gradientColorTo: 'dark-blue' })],
+      theme
+    )!;
 
-    expect(frameToGraphWide([frame], theme)!.links[0].color).toBe(theme.visualization.getColorByName('dark-red'));
+    expect(shades.links[0].color).toBeDefined();
+    expect(gradient.links[0].color).toBeDefined();
   });
 
   /**
@@ -774,6 +776,101 @@ describe('frameToGraphWide — edge colour', () => {
     // Its neighbour keeps the palette default, which for an *edge* means no per-edge
     // colour at all so the series-level endpoint mode still governs it.
     expect(e1.color).toBeUndefined();
+  });
+
+  /**
+   * **The reported bug.** The rule used to be a two-entry deny-list of `palette-classic`
+   * and `palette-classic-by-name`, so every other palette — `palette-colorblind`, and
+   * 13.3's `palette-categorical-next*` — gave each edge a colour of its own and turned
+   * "Link color" off for the whole panel. A palette is a colour by series index or by a
+   * hash of the name, which says nothing about which two nodes an edge joins, so all of
+   * them fall through to the endpoint colouring.
+   *
+   * `palette-invented-upstream` is not a real mode and is the point: `getFieldColorMode`
+   * answers an id it does not know with the `thresholds` mode, so the registry alone
+   * would read a palette shipped after this build as by-value and reopen the bug. The
+   * `palette-` prefix is what closes it.
+   */
+  it.each([
+    FieldColorModeId.PaletteClassicByName,
+    FieldColorModeId.PaletteColorblind,
+    'palette-categorical-next',
+    'palette-invented-upstream',
+  ])('leaves an edge to Link color under the %s palette', (mode) => {
+    expect(frameToGraphWide([edgeWith({ mode })], theme)!.links[0].color).toBeUndefined();
+  });
+
+  /**
+   * The other half of the rule, and the one deliberately **not** changed with it: a
+   * by-value scheme grades the edge by its own weight, which is a thing only the edge can
+   * say — no endpoint colour carries it — so it keeps beating `relationsLinkColor`. The
+   * consequence is that "Link color" has nothing to decide under such a scheme, which is
+   * what its description says, since no `showIf` can see `fieldConfig` to hide it.
+   */
+  it.each([FieldColorModeId.Thresholds, FieldColorModeId.ContinuousGrYlRd])(
+    'lets a by-value scheme (%s) colour the edge by its own weight',
+    (mode) => {
+      const frame = edgeWith(
+        { mode },
+        {
+          thresholds: {
+            mode: ThresholdsMode.Absolute,
+            steps: [
+              { color: 'green', value: -Infinity },
+              { color: 'red', value: 0.5 },
+            ],
+          },
+          min: 0,
+          max: 1,
+        }
+      );
+
+      expect(frameToGraphWide([frame], theme)!.links[0].color).toBeDefined();
+    }
+  );
+
+  /** Thresholds, resolved: the edge's own value picks the band, not an endpoint's. */
+  it('grades an edge by its own value, not its source node', () => {
+    const thresholds = {
+      color: { mode: FieldColorModeId.Thresholds },
+      thresholds: {
+        mode: ThresholdsMode.Absolute,
+        steps: [
+          { color: 'green', value: -Infinity },
+          { color: 'red', value: 0.5 },
+        ],
+      },
+    };
+    const edges = withDisplay(
+      toDataFrame({
+        meta: { type: GRAPH_EDGES_WIDE },
+        fields: [
+          {
+            name: 'e1',
+            type: FieldType.number,
+            labels: { source: 'a', target: 'b' },
+            config: thresholds,
+            values: [0.9],
+          },
+          {
+            name: 'e2',
+            type: FieldType.number,
+            labels: { source: 'a', target: 'c' },
+            config: thresholds,
+            values: [0.1],
+          },
+        ],
+      })
+    );
+
+    const data = frameToGraphWide([edges], theme)!;
+
+    // Same source node, opposite bands — which is exactly what an endpoint colour cannot
+    // express, and why a by-value scheme still wins.
+    expect(data.links.map((link) => link.color)).toEqual([
+      theme.visualization.getColorByName('red'),
+      theme.visualization.getColorByName('green'),
+    ]);
   });
 });
 
@@ -1349,6 +1446,98 @@ describe('reading a mark at a timestamp', () => {
       ['b', 'c', 1],
     ]);
     expect(data.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  /**
+   * A graded node, as a service graph carries one: a per-node error ratio with a threshold
+   * scheme on it.
+   */
+  const graded = (values: Array<number | null>, meta: DataFrame['meta'], times?: number[]): DataFrame =>
+    withDisplay(
+      toDataFrame({
+        meta,
+        fields: [
+          ...(times ? [{ name: 'Time', type: FieldType.time, values: times }] : []),
+          {
+            name: 'b',
+            type: FieldType.number,
+            values,
+            config: {
+              color: { mode: FieldColorModeId.Thresholds },
+              thresholds: {
+                mode: ThresholdsMode.Absolute,
+                steps: [
+                  { color: 'green', value: -Infinity },
+                  { color: 'red', value: 0.5 },
+                ],
+              },
+            },
+          },
+        ],
+      })
+    );
+
+  /**
+   * **The reported bug.** A mixed response — a ranged edges query beside an **instant**
+   * nodes query, which is how a service graph carries per-node error ratios — lost every
+   * node the moment the time slider was switched on.
+   *
+   * The measured shape is what makes it subtle: a Prometheus instant query answers
+   * `numeric-multi` and **still ships a `Time` column**, one row stamped with the
+   * evaluation instant (`now`). That stamp lands nowhere near the step grid the ranged
+   * query returns, so `rowAt` matched no row and every node read `null` — and a `null` node
+   * is not only a missing tooltip row. It costs the node its **colour**: a by-value scheme
+   * has no value to grade, so `colorOf` returns nothing and `fillPaletteColors` hands the
+   * node a palette slot, which is what "thresholds stop working under the slider" was.
+   *
+   * So the declared kind decides and the frame keeps reducing, while the ranged edges beside
+   * it still move with the slider — asserted together, since reading one frame at a
+   * timestamp and another whole is the point. See `isTimelessFrame`.
+   */
+  it('reads an instant frame whole, though it carries an off-grid Time column', () => {
+    const nodes = graded([0.9], { type: DataFrameType.NumericMulti }, [T0 + 7]);
+
+    const data = frameToGraphWide([pivoted(), nodes], theme, undefined, T0 + STEP)!;
+
+    expect(data.nodes.find((node) => node.id === 'b')).toEqual(
+      expect.objectContaining({ value: 0.9, color: theme.visualization.getColorByName('red') })
+    );
+    expect(data.links.map((link) => link.value)).toEqual([2, 20]);
+  });
+
+  /** The same for a frame with no time column at all — the pivoted instant response. */
+  it('reads a frame with no row dimension whole', () => {
+    const data = frameToGraphWide([pivoted(), graded([0.9], { type: GRAPH_NODES_WIDE })], theme, undefined, T0)!;
+
+    expect(data.nodes.find((node) => node.id === 'b')?.value).toBe(0.9);
+  });
+
+  /**
+   * The distinction shape alone cannot make, and the reason the kind is what is read: a raw
+   * **ragged** response is N frames of one sample each, and a frame that simply has no
+   * sample at the selected stop still reads `null`. Backfilling it would invent data — see
+   * "reads null where a frame has no sample at the timestamp" below, which this is the nodes
+   * half of.
+   */
+  it('still nulls a one-row ranged frame that has no sample at the stop', () => {
+    const nodes = graded([0.9], { type: DataFrameType.TimeSeriesMulti }, [T0 + 2 * STEP]);
+
+    const data = frameToGraphWide([pivoted(), nodes], theme, undefined, T0)!;
+
+    expect(data.nodes.find((node) => node.id === 'b')?.value).toBeNull();
+  });
+
+  /**
+   * And it contributes no **stop**: an instant frame's evaluation instant is not somewhere
+   * to scrub to. Left in, it would add a stop off the ranged grid where every edge reads
+   * null and the graph goes weightless — and two instant queries stamped a moment apart
+   * would raise a slider on a response with no timeline at all.
+   */
+  it('keeps a timeless frame out of the timeline', () => {
+    const instant = graded([0.9], { type: DataFrameType.NumericMulti }, [T0 + 7]);
+
+    expect(graphWideTimeline([pivoted(), instant])).toEqual([T0, T0 + STEP, T0 + 2 * STEP]);
+    expect(hasGraphTimeline([instant])).toBe(false);
   });
 
   /**
