@@ -1,4 +1,3 @@
-import { type RelationsSeriesContext } from 'lib/echarts/relations/options/graph';
 import {
   getSankeyDroppedNoticeText,
   getSankeyEmphasis,
@@ -18,6 +17,7 @@ import {
 } from 'test/relations';
 import { type PanelOptions } from 'types';
 
+import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
 const baseOptions = relationsOptions;
 
 const ctx = (options: PanelOptions = baseOptions()): RelationsSeriesContext =>

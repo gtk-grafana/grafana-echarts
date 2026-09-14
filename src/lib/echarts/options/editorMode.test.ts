@@ -1,17 +1,22 @@
 import { partToWholeSeriesTypes } from 'editor/pie';
 import { type SeriesType } from 'editor/types';
 import { ADVANCED_CARTESIAN_DEFAULTS } from 'lib/echarts/options/cartesian';
-import { ADVANCED_CHORD_DEFAULTS } from 'lib/echarts/relations/options/chord';
+
 import { applyAdvancedDefaults, applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
-import { ADVANCED_RELATIONS_DEFAULTS } from 'lib/echarts/relations/options/graph';
+
 import { ADVANCED_PARALLEL_DEFAULTS } from 'lib/echarts/options/parallel';
 import { ADVANCED_PIE_DEFAULTS } from 'lib/echarts/options/pie';
 import { ADVANCED_RADAR_DEFAULTS } from 'lib/echarts/options/radar';
-import { ADVANCED_SANKEY_DEFAULTS } from 'lib/echarts/relations/options/sankey';
+
 import { ADVANCED_STREAM_DEFAULTS } from 'lib/echarts/options/stream';
 import { relationsOptions } from 'test/relations';
 import { type PanelOptions } from 'types';
 
+import {
+  ADVANCED_CHORD_DEFAULTS,
+  ADVANCED_RELATIONS_DEFAULTS,
+  ADVANCED_SANKEY_DEFAULTS,
+} from 'lib/echarts/relations/options/advancedDefaults';
 /**
  * The Advanced-tier reset, tested over the **whole dispatch** rather than one family at
  * a time.

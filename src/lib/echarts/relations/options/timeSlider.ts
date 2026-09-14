@@ -5,9 +5,11 @@ import { type PanelOptions } from 'types';
  * The time slider's option: read every mark at **one timestamp** instead of reducing its
  * rows to a stat.
  *
- * A leaf module rather than another resolver in `options/graph.ts`: the editor, the chart
- * module and the **tooltip** all ask this, and `options/graph.ts` imports the tooltip
- * builder, so keeping it there would make the tooltip's read a cycle.
+ * **Keep this a leaf.** The editor, the chart module and the **tooltip** all ask this, and
+ * the tooltip builder is imported by `options/labels.ts`, so folding the resolver into any
+ * module on that side would make the tooltip's read a cycle — one that resolves to
+ * `undefined` silently rather than throwing. Its default lives in
+ * `editor/relations/constants.ts`, so this module imports nothing from the family.
  */
 
 /**

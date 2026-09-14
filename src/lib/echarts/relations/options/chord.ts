@@ -1,13 +1,7 @@
 import { type ChordSeriesOption } from 'echarts';
 
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/relations/converters/model';
-import {
-  getRelationsLabelLayout,
-  getRelationsLabelStyle,
-  getRelationsNodeLabelFormatter,
-  type RelationsSeriesContext,
-  resolveRelationsFocusAdjacency,
-} from 'lib/echarts/relations/options/graph';
+
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/tooltip';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
@@ -21,6 +15,13 @@ import {
   CHORD_START_ANGLE_DEFAULT,
 } from 'editor/relations/chord';
 import { RELATIONS_LINK_COLOR_DEFAULT, RELATIONS_SHOW_NODE_LABELS_DEFAULT } from 'editor/relations/constants';
+import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
+import { resolveRelationsFocusAdjacency } from 'lib/echarts/relations/options/emphasis';
+import {
+  getRelationsLabelLayout,
+  getRelationsLabelStyle,
+  getRelationsNodeLabelFormatter,
+} from 'lib/echarts/relations/options/labels';
 /**
  * Chord render variant of the relations family: the same `{ nodes, links }` model,
  * laid out as a ring of node arcs joined by weighted ribbons.
@@ -33,19 +34,6 @@ import { RELATIONS_LINK_COLOR_DEFAULT, RELATIONS_SHOW_NODE_LABELS_DEFAULT } from
  *
  * https://echarts.apache.org/en/option.html#series-chord
  */
-
-/**
- * Chord-specific Advanced-gated options at their defaults, merged into the relations
- * family's reset in `applyEditorModeDefaults` so Default editor mode clears them.
- * See `docs/options-modes.md`.
- */
-export const ADVANCED_CHORD_DEFAULTS: Partial<PanelOptions> = {
-  relationsChordStartAngle: undefined,
-  relationsChordClockwise: undefined,
-  relationsChordPadAngle: undefined,
-  relationsChordMinAngle: undefined,
-  relationsChordLinkOpacity: undefined,
-};
 
 /**
  * Node label config. On by default.

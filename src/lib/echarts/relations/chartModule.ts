@@ -5,12 +5,7 @@ import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { getChordSeries } from 'lib/echarts/relations/options/chord';
-import {
-  getGraphSeries,
-  relationsDefaultOptions,
-  resolveRelationsZoom,
-  type RelationsSeriesContext,
-} from 'lib/echarts/relations/options/graph';
+import { getGraphSeries, relationsDefaultOptions } from 'lib/echarts/relations/options/graph';
 import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/relations/options/sankey';
@@ -28,6 +23,8 @@ import {
 } from 'lib/echarts/charts/types';
 
 import { graphWideTimeline } from 'lib/echarts/relations/converters/timeStops';
+import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
+import { resolveRelationsZoom } from 'lib/echarts/relations/options/view';
 /**
  * Ids of every node hidden from the visualization.
  *

@@ -1,8 +1,6 @@
 import { PanelOptionsEditorBuilder, standardEditorsRegistry } from '@grafana/data';
 import { advancedOptionsCategoryName } from 'editor/constants';
-import { ADVANCED_CHORD_DEFAULTS } from 'lib/echarts/relations/options/chord';
-import { ADVANCED_RELATIONS_DEFAULTS } from 'lib/echarts/relations/options/graph';
-import { ADVANCED_SANKEY_DEFAULTS } from 'lib/echarts/relations/options/sankey';
+
 import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
@@ -14,6 +12,11 @@ import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { type PanelOptions } from 'types';
 
+import {
+  ADVANCED_CHORD_DEFAULTS,
+  ADVANCED_RELATIONS_DEFAULTS,
+  ADVANCED_SANKEY_DEFAULTS,
+} from 'lib/echarts/relations/options/advancedDefaults';
 /**
  * **The Advanced tier and its reset must name the same options.**
  *

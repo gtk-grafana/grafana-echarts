@@ -3,16 +3,7 @@ import { type SankeySeriesOption } from 'echarts';
 import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient } from 'editor/types';
 import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/relations/converters/model';
-import {
-  getRelationsEdgeLabel,
-  getRelationsLabelLayout,
-  getRelationsLabelStyle,
-  getRelationsNodeLabelFormatter,
-  getRelationsViewState,
-  type RelationsSeriesContext,
-  resolveRelationsFocusAdjacency,
-  resolveRelationsRoam,
-} from 'lib/echarts/relations/options/graph';
+
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/tooltip';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
@@ -28,6 +19,15 @@ import {
   SANKEY_NODE_WIDTH_DEFAULT,
   SANKEY_ORIENT_DEFAULT,
 } from 'editor/relations/sankey';
+import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
+import { resolveRelationsFocusAdjacency } from 'lib/echarts/relations/options/emphasis';
+import {
+  getRelationsEdgeLabel,
+  getRelationsLabelLayout,
+  getRelationsLabelStyle,
+  getRelationsNodeLabelFormatter,
+} from 'lib/echarts/relations/options/labels';
+import { getRelationsViewState, resolveRelationsRoam } from 'lib/echarts/relations/options/view';
 /**
  * Sankey render variant of the relations family: the same `{ nodes, links }` model
  * the `graph` variant uses, laid out as weighted flow ribbons between node columns.
@@ -43,20 +43,6 @@ import {
  *
  * https://echarts.apache.org/en/option.html#series-sankey
  */
-
-/**
- * Sankey-specific Advanced-gated options at their defaults, merged into
- * `ADVANCED_RELATIONS_DEFAULTS` so Default editor mode resets them like every other
- * family's Advanced tier. `orient` and `nodeAlign` are absent deliberately: they are
- * Default-tier controls, not Advanced-gated. See `docs/options-modes.md`.
- */
-export const ADVANCED_SANKEY_DEFAULTS: Partial<PanelOptions> = {
-  relationsSankeyNodeWidth: undefined,
-  relationsSankeyNodeGap: undefined,
-  relationsSankeyCurveness: undefined,
-  relationsSankeyLinkOpacity: undefined,
-  relationsSankeyLayoutIterations: undefined,
-};
 
 /**
  * Flow direction. Omitted at the horizontal default.

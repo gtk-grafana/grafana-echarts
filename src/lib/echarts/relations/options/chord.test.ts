@@ -4,7 +4,7 @@ import {
   getChordLinkStyle,
   getChordSeries,
 } from 'lib/echarts/relations/options/chord';
-import { type RelationsSeriesContext } from 'lib/echarts/relations/options/graph';
+
 import {
   linkItems,
   nodeGraph,
@@ -15,6 +15,7 @@ import {
 } from 'test/relations';
 import { type PanelOptions } from 'types';
 
+import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
 const theme = relationsTheme;
 
 const baseOptions = relationsOptions;
