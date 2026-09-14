@@ -1,10 +1,5 @@
 import { type SelectableValue } from '@grafana/data';
-import {
-  type RelationsSankeyNodeAlign,
-  type RelationsSankeyOrient,
-  type SeriesType,
-  type SeriesTypeOption,
-} from 'editor/types';
+import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient, type SeriesType } from 'editor/types';
 
 /**
  * Sankey render type of the relations family. A sankey reuses the node/link model
@@ -13,26 +8,6 @@ import {
  * `getSankeySeries`.
  */
 export const sankeySeriesTypes: SeriesType[] = ['sankey'];
-
-/**
- * Whether the stored relations `seriesType` selects the sankey variant. Passed as
- * an option's `showIf` to reveal sankey-only controls. Typed on the minimal
- * `seriesType` shape so it satisfies the builders' `(options: PanelOptions) =>
- * boolean` predicate. Mirrors `isFunnelVariant`.
- */
-export const isSankeyVariant = (options: { seriesType?: SeriesTypeOption }): boolean => options.seriesType === 'sankey';
-
-/**
- * Whether the stored relations `seriesType` selects the graph variant. Graph is the
- * family default, so an unset / `'Auto'` value counts as graph (mirrors
- * `resolveAutoSeriesType('relations') === 'graph'`).
- *
- * Written as an explicit membership test rather than `!isSankeyVariant` — the
- * inverse of "is sankey" would also match `chord` once that variant lands, silently
- * showing graph-only controls (layout, force tuning, edge arrows) on a chord panel.
- */
-export const isGraphVariant = (options: { seriesType?: SeriesTypeOption }): boolean =>
-  options.seriesType == null || options.seriesType === 'Auto' || options.seriesType === 'graph';
 
 /**
  * Editor category grouping the sankey layout options (orientation, node alignment).

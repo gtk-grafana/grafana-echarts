@@ -1,4 +1,8 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
+
+import { addAdvancedBooleanSwitch, addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
+import { type PanelOptions } from 'types';
+
 import {
   CHORD_CLOCKWISE_DEFAULT,
   CHORD_LINK_OPACITY_DEFAULT,
@@ -10,11 +14,8 @@ import {
   chordMinAnglePath,
   chordPadAnglePath,
   chordStartAnglePath,
-  isChordVariant,
-} from 'editor/chord';
-import { addAdvancedBooleanSwitch, addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
-import { type PanelOptions } from 'types';
-
+} from 'editor/relations/chord';
+import { isChordVariant } from 'editor/relations/variants';
 /**
  * Chord ring options, all Advanced. Every control gates on `isChordVariant`, so they
  * vanish for the graph and sankey variants.

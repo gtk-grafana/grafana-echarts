@@ -1,18 +1,10 @@
 import { type ChordSeriesOption } from 'echarts';
-import {
-  CHORD_CLOCKWISE_DEFAULT,
-  CHORD_LINK_OPACITY_DEFAULT,
-  CHORD_MIN_ANGLE_DEFAULT,
-  CHORD_PAD_ANGLE_DEFAULT,
-  CHORD_START_ANGLE_DEFAULT,
-} from 'editor/chord';
+
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
 import {
   getRelationsLabelLayout,
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
-  RELATIONS_LINK_COLOR_DEFAULT,
-  RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
   resolveRelationsFocusAdjacency,
 } from 'lib/echarts/options/graph';
@@ -21,6 +13,14 @@ import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
+import {
+  CHORD_CLOCKWISE_DEFAULT,
+  CHORD_LINK_OPACITY_DEFAULT,
+  CHORD_MIN_ANGLE_DEFAULT,
+  CHORD_PAD_ANGLE_DEFAULT,
+  CHORD_START_ANGLE_DEFAULT,
+} from 'editor/relations/chord';
+import { RELATIONS_LINK_COLOR_DEFAULT, RELATIONS_SHOW_NODE_LABELS_DEFAULT } from 'editor/relations/constants';
 /**
  * Chord render variant of the relations family: the same `{ nodes, links }` model,
  * laid out as a ring of node arcs joined by weighted ribbons.

@@ -1,8 +1,11 @@
 import { type PanelOptionsEditorBuilder, type SelectableValue } from '@grafana/data';
-import { relationsCategoryName } from 'editor/constants';
-import { isGraphVariant } from 'editor/sankey';
+
 import { type RelationsLabelOverflow } from 'editor/types';
 import { hasNoNodeStats } from 'lib/echarts/converters/graphWide';
+
+import { addAdvancedNumberInput, addAdvancedSelect, composeShowIf } from 'lib/grafana/editor/common/advanced-options';
+import { type PanelOptions } from 'types';
+
 import {
   RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT,
   RELATIONS_LABEL_OVERFLOW_DEFAULT,
@@ -10,10 +13,9 @@ import {
   RELATIONS_NODE_SIZE_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   RELATIONS_SHOW_NODE_VALUES_DEFAULT,
-} from 'lib/echarts/options/graph';
-import { addAdvancedNumberInput, addAdvancedSelect, composeShowIf } from 'lib/grafana/editor/common/advanced-options';
-import { type PanelOptions } from 'types';
-
+  relationsCategoryName,
+} from 'editor/relations/constants';
+import { isGraphVariant } from 'editor/relations/variants';
 /**
  * Node presentation options: whether node names and stats are drawn, how a label that
  * does not fit is handled, and the fallback node size. All mirror what a user coming

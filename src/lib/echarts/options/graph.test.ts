@@ -15,18 +15,18 @@ import {
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
   getRelationsViewState,
-  RELATIONS_NODE_SIZE_DEFAULT,
+  type RelationsSeriesContext,
   resolveFixedPositions,
   resolveGraphDraggable,
   resolveRelationsRoam,
   resolveRelationsZoom,
-  type RelationsSeriesContext,
 } from 'lib/echarts/options/graph';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { nodeGraph, relationsContext, relationsOptions, relationsTheme } from 'test/relations';
 import { type TooltipSource } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
+import { RELATIONS_NODE_SIZE_DEFAULT } from 'editor/relations/constants';
 const theme = relationsTheme;
 
 /**

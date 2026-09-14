@@ -1,13 +1,5 @@
 import { type SankeySeriesOption } from 'echarts';
-import {
-  SANKEY_CURVENESS_DEFAULT,
-  SANKEY_LAYOUT_ITERATIONS_DEFAULT,
-  SANKEY_LINK_OPACITY_DEFAULT,
-  SANKEY_NODE_ALIGN_DEFAULT,
-  SANKEY_NODE_GAP_DEFAULT,
-  SANKEY_NODE_WIDTH_DEFAULT,
-  SANKEY_ORIENT_DEFAULT,
-} from 'editor/sankey';
+
 import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient } from 'editor/types';
 import { toSankeyLinks } from 'lib/echarts/converters/dag';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
@@ -17,8 +9,6 @@ import {
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
   getRelationsViewState,
-  RELATIONS_LINK_COLOR_DEFAULT,
-  RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   type RelationsSeriesContext,
   resolveRelationsFocusAdjacency,
   resolveRelationsRoam,
@@ -28,6 +18,16 @@ import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
+import { RELATIONS_LINK_COLOR_DEFAULT, RELATIONS_SHOW_NODE_LABELS_DEFAULT } from 'editor/relations/constants';
+import {
+  SANKEY_CURVENESS_DEFAULT,
+  SANKEY_LAYOUT_ITERATIONS_DEFAULT,
+  SANKEY_LINK_OPACITY_DEFAULT,
+  SANKEY_NODE_ALIGN_DEFAULT,
+  SANKEY_NODE_GAP_DEFAULT,
+  SANKEY_NODE_WIDTH_DEFAULT,
+  SANKEY_ORIENT_DEFAULT,
+} from 'editor/relations/sankey';
 /**
  * Sankey render variant of the relations family: the same `{ nodes, links }` model
  * the `graph` variant uses, laid out as weighted flow ribbons between node columns.

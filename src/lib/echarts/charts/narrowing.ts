@@ -4,7 +4,6 @@ import {
   categoricalOnlySeriesType,
   heatmapSeriesTypes,
   hierarchySeriesTypes,
-  relationsSeriesTypes,
   supportsTimeAxisSeriesTypes,
 } from 'editor/constants';
 import { multivariateSeriesTypes } from 'editor/radar';
@@ -24,6 +23,7 @@ import {
   type TimeAxisSupportsSeriesType,
 } from 'editor/types';
 
+import { relationsSeriesTypes } from 'editor/relations/constants';
 // Categorical charts like pie and radar cannot render a cartesian axis
 export function isCategoricalOnlySeriesType(type: SeriesType): type is CategoricalOnlySeriesType {
   return categoricalOnlySeriesType.some((t) => t === type);

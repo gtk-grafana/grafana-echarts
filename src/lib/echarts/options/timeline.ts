@@ -1,3 +1,4 @@
+import { RELATIONS_TIME_SLIDER_DEFAULT } from 'editor/relations/constants';
 import { type PanelOptions } from 'types';
 
 /**
@@ -8,12 +9,6 @@ import { type PanelOptions } from 'types';
  * module and the **tooltip** all ask this, and `options/graph.ts` imports the tooltip
  * builder, so keeping it there would make the tooltip's read a cycle.
  */
-
-/**
- * **Off** by default: reducing the row dimension to one stat is the family's other reading,
- * and the only one an instant response has.
- */
-export const RELATIONS_TIME_SLIDER_DEFAULT = false;
 
 /**
  * Whether the panel offers a timestamp to read the marks at instead of a reducer — see

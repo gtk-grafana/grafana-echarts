@@ -1,4 +1,4 @@
-import { type SeriesType, type SeriesTypeOption } from 'editor/types';
+import { type SeriesType } from 'editor/types';
 
 /**
  * Chord render type of the relations family. A chord reuses the node/link model
@@ -13,13 +13,6 @@ import { type SeriesType, type SeriesTypeOption } from 'editor/types';
  * (see `CHORD_PAD_ANGLE_DEFAULT`).
  */
 export const chordSeriesTypes: SeriesType[] = ['chord'];
-
-/**
- * Whether the stored relations `seriesType` selects the chord variant. Passed as an
- * option's `showIf` to reveal chord-only controls. Typed on the minimal `seriesType`
- * shape so it satisfies the builders' `(options: PanelOptions) => boolean` predicate.
- */
-export const isChordVariant = (options: { seriesType?: SeriesTypeOption }): boolean => options.seriesType === 'chord';
 
 /**
  * Editor category grouping the chord layout options. Like the funnel's and sankey's,

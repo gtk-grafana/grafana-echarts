@@ -5,7 +5,22 @@ import {
   type LabelLayoutOptionCallback,
   type LinearGradientObject,
 } from 'echarts/types/dist/shared';
-import { type RelationsLabelOverflow } from 'editor/types';
+import {
+  RELATIONS_EDGE_ARROWS_DEFAULT,
+  RELATIONS_EDGE_LENGTH_DEFAULT,
+  RELATIONS_FOCUS_ADJACENCY_DEFAULT,
+  RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT,
+  RELATIONS_LABEL_OVERFLOW_DEFAULT,
+  RELATIONS_LABEL_WIDTH_DEFAULT,
+  RELATIONS_LAYOUT_ANIMATION_DEFAULT,
+  RELATIONS_LAYOUT_DEFAULT,
+  RELATIONS_LINK_COLOR_DEFAULT,
+  RELATIONS_NODE_SIZE_DEFAULT,
+  RELATIONS_REPULSION_DEFAULT,
+  RELATIONS_SHOW_EDGE_VALUES_DEFAULT,
+  RELATIONS_SHOW_NODE_LABELS_DEFAULT,
+  RELATIONS_SHOW_NODE_VALUES_DEFAULT,
+} from 'editor/relations/constants';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData, type RelationLink } from 'lib/echarts/converters/relationsModel';
 import { createBaseOptions } from 'lib/echarts/options/base';
@@ -25,16 +40,6 @@ export const relationsDefaultOptions: ECBasicOption = {
   ...createBaseOptions(),
 };
 
-/** Default node diameter in px, used when a node has no `custom.nodeRadius`. */
-export const RELATIONS_NODE_SIZE_DEFAULT = 20;
-/**
- * Default link colour mode: a gradient from the source node's colour to the target's.
- *
- * An edge joins two marks, so its natural colour is theirs, and a gradient is the one
- * mode that reads the direction off the edge itself without an arrowhead. An edge whose
- * own field carries a non-palette colour overrides this per edge — see `isPaletteColorMode`.
- */
-export const RELATIONS_LINK_COLOR_DEFAULT = 'gradient';
 /**
  * What the `graph` variant degrades a gradient to when it cannot orient one: the source
  * node's own colour, resolved here rather than by ECharts. Still endpoint-derived and
@@ -43,71 +48,6 @@ export const RELATIONS_LINK_COLOR_DEFAULT = 'gradient';
  * keyword cannot be handed to ECharts at all.
  */
 const GRAPH_LINK_COLOR_FALLBACK = 'source';
-/** Default graph layout when the data does not pin positions. */
-export const RELATIONS_LAYOUT_DEFAULT = 'force';
-/** Node labels on by default — an unlabelled topology is hard to read. */
-export const RELATIONS_SHOW_NODE_LABELS_DEFAULT = true;
-/** Node values off by default: a second label line on every node is a lot of ink. */
-export const RELATIONS_SHOW_NODE_VALUES_DEFAULT = false;
-/** Edge values off by default: one number per link buries a graph of any size. */
-export const RELATIONS_SHOW_EDGE_VALUES_DEFAULT = false;
-/**
- * Arrowheads on by default.
- *
- * An edge is directed by contract (`source`/`target`), and on a force layout the
- * arrowhead is the *only* thing that says which way — the source-to-target gradient
- * cannot be oriented without knowing the node positions. See `makeEdgeGradientResolver`.
- */
-export const RELATIONS_EDGE_ARROWS_DEFAULT = true;
-/**
- * Adjacency highlighting on by default, and out of the Advanced tier.
- *
- * Reading one node's neighbourhood out of a dense topology is the main thing a
- * relations panel is hovered for, and it is also ECharts' own chord default. Note the
- * chord variant emits the key either way — see `getChordEmphasis`.
- */
-export const RELATIONS_FOCUS_ADJACENCY_DEFAULT = true;
-/**
- * Overlapping node labels are dropped by default (ECharts `labelLayout.hideOverlap`).
- *
- * The first thing that goes wrong on a graph past a handful of nodes is that the labels
- * pile up into an unreadable smear, and a label that is 40% covered is worse than no
- * label — the node keeps its symbol, its colour and its tooltip either way. This is the
- * chord variant's answer to the pie's `avoidLabelOverlap` as well: `series.chord` has no
- * such option, but its labels go through the same label-layout stage.
- *
- * Reaches **edge values too**, but not through the same stage: a graph edge's label is
- * arbitrated by the family, because the stage measures it before the link geometry has
- * settled and would let it outrank a node's name. See `getRelationsLabelLayout` and
- * `registerEdgeLabelLayout`.
- * https://echarts.apache.org/en/option.html#series-graph.labelLayout
- */
-export const RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT = true;
-/** Long node names are ellipsised rather than allowed to run into a neighbour. */
-export const RELATIONS_LABEL_OVERFLOW_DEFAULT: RelationsLabelOverflow = 'truncate';
-/** Width in px at which `relationsLabelOverflow` bites. */
-export const RELATIONS_LABEL_WIDTH_DEFAULT = 120;
-/**
- * Force repulsion, **far** above ECharts' own `[0, 50]`.
- *
- * ECharts' default is tuned for the tens-of-nodes demo graphs in its gallery; on a
- * service topology it packs the nodes into a knot in the middle of the panel with every
- * label on top of every other. 400 spreads them to where the labels have room.
- * https://echarts.apache.org/en/option.html#series-graph.force.repulsion
- */
-export const RELATIONS_REPULSION_DEFAULT = 400;
-/** Target link length in px; likewise well above ECharts' 30. */
-export const RELATIONS_EDGE_LENGTH_DEFAULT = 200;
-/**
- * The force simulation's steps are **not** drawn by default, unlike ECharts.
- *
- * `layoutAnimation` renders every iteration, so the graph visibly settles from its seed
- * — which on a dashboard refreshing every 30s reads as the nodes jiggling for no reason,
- * since the topology did not change. Off, the same iterations run in one synchronous
- * pass and only the settled layout is painted.
- * https://echarts.apache.org/en/option.html#series-graph.force.layoutAnimation
- */
-export const RELATIONS_LAYOUT_ANIMATION_DEFAULT = false;
 /**
  * The force simulation's **seed** layout, pinned so a render is reproducible.
  *

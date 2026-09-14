@@ -1,6 +1,9 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
+
+import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
+import { type PanelOptions } from 'types';
+
 import {
-  isSankeyVariant,
   SANKEY_CURVENESS_DEFAULT,
   SANKEY_LAYOUT_ITERATIONS_DEFAULT,
   SANKEY_LINK_OPACITY_DEFAULT,
@@ -18,10 +21,8 @@ import {
   sankeyNodeWidthPath,
   sankeyOrientOptions,
   sankeyOrientPath,
-} from 'editor/sankey';
-import { addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
-import { type PanelOptions } from 'types';
-
+} from 'editor/relations/sankey';
+import { isSankeyVariant } from 'editor/relations/variants';
 /**
  * Sankey layout options. Every control gates on `isSankeyVariant`, so they vanish
  * when the panel renders the `graph` variant instead.

@@ -1,11 +1,6 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { advancedOptionsCategoryName } from 'editor/constants';
-import { isGraphVariant, isSankeyVariant } from 'editor/sankey';
-import {
-  RELATIONS_EDGE_ARROWS_DEFAULT,
-  RELATIONS_LINK_COLOR_DEFAULT,
-  RELATIONS_SHOW_EDGE_VALUES_DEFAULT,
-} from 'lib/echarts/options/graph';
+
 import {
   addAdvancedBooleanSwitch,
   addAdvancedNumberInput,
@@ -14,6 +9,12 @@ import {
 import { RelationsLinkColorEditor } from 'lib/grafana/editor/relations/RelationsLinkColorEditor';
 import { type PanelOptions } from 'types';
 
+import {
+  RELATIONS_EDGE_ARROWS_DEFAULT,
+  RELATIONS_LINK_COLOR_DEFAULT,
+  RELATIONS_SHOW_EDGE_VALUES_DEFAULT,
+} from 'editor/relations/constants';
+import { isGraphVariant, isSankeyVariant } from 'editor/relations/variants';
 /**
  * Link (edge) styling options, all Advanced. A colour on the edge's own field always
  * wins over the mode chosen here — see `isPaletteColorMode` for which modes count, and

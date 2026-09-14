@@ -9,10 +9,10 @@ import {
   type Labels,
   type ReduceDataOptions,
   reduceField,
-  ReducerID,
 } from '@grafana/data';
 import { type GraphFieldConfig } from '@grafana/schema';
 import { debug, LOG_LEVELS } from 'development';
+import { RELATIONS_CALC_DEFAULT } from 'editor/relations/constants';
 import { type EChartsRelationsFieldConfig } from 'editor/types';
 import {
   type MarkStat,
@@ -82,9 +82,6 @@ export const GRAPH_TYPE_VERSION: [number, number] = [0, 1];
 export const SOURCE_LABEL = 'source';
 export const TARGET_LABEL = 'target';
 const SECONDARYSTAT_LABEL = 'secondarystat';
-
-/** Reducer used when the panel has no `reduceOptions.calcs`. */
-export const RELATIONS_CALC_DEFAULT = ReducerID.lastNotNull;
 
 const numericFields = (frame: DataFrame): Field[] => frame.fields.filter((field) => field.type === FieldType.number);
 

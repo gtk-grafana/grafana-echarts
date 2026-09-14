@@ -157,8 +157,8 @@ different Grafana format, and treemap/sunburst already ship in the hierarchy fam
 ## Implementation sketch
 
 > **Built as sketched**, with the file list below accurate to what shipped. Two
-> additions the sketch did not anticipate: `src/editor/sankey.ts` and
-> `src/editor/chord.ts` hold each variant's option paths, defaults and `showIf`
+> additions the sketch did not anticipate: `src/editor/relations/sankey.ts` and
+> `src/editor/relations/chord.ts` hold each variant's option paths, defaults and `showIf`
 > predicates (mirroring `editor/funnel.ts`), and the sankey path needed
 > `options/sankey.ts` to own the cycle-breaking call so no caller can build a
 > throwing series.

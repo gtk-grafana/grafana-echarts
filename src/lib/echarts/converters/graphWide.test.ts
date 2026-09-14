@@ -21,17 +21,17 @@ import {
   frameToGraphWide,
   GRAPH_EDGES_WIDE,
   GRAPH_NODES_WIDE,
+  graphWideTimeline,
+  hasGraphTimeline,
   hasNoNodeStats,
   isEdgesWideFrame,
   isGraphWideFrames,
-  graphWideTimeline,
-  hasGraphTimeline,
   normalizeRelationsCalcs,
-  RELATIONS_CALC_DEFAULT,
 } from 'lib/echarts/converters/graphWide';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 
+import { RELATIONS_CALC_DEFAULT } from 'editor/relations/constants';
 // `debug` is gated on `NODE_ENV`/`CI`/localStorage, so asserting on the console directly
 // would pass locally and go quiet in CI. Mocking the module tests the *decision* to warn —
 // and keeps the collision warning out of every other suite's output.
