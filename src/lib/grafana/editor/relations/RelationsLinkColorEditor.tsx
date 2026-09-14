@@ -2,13 +2,12 @@ import { css } from '@emotion/css';
 import { type GrafanaTheme2, type StandardEditorProps } from '@grafana/data';
 import { Combobox, type ComboboxOption, Icon, Stack, Tooltip, useStyles2 } from '@grafana/ui';
 
-import { type RelationsLinkColor } from 'editor/types';
-
 import React from 'react';
 import { type PanelOptions } from 'types';
 
 import { RELATIONS_LINK_COLOR_DEFAULT } from 'editor/relations/constants';
 import { isChordVariant, isSankeyVariant } from 'editor/relations/variants';
+import { type RelationsLinkColor } from 'editor/relations/types';
 /**
  * The precedence the control cannot show, carried by an info icon rather than by the
  * option's `description`.

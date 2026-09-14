@@ -1,7 +1,7 @@
 import { PanelPlugin } from '@grafana/data';
 import { initPluginTranslations } from '@grafana/i18n';
 import { seriesTypePath } from 'editor/constants';
-import { type EChartsRelationsFieldConfig } from 'editor/types';
+
 import { makeLazyPanel } from 'lib/components/LazyPanel';
 import { addEditorModeOption } from 'lib/grafana/editor/common/editor-mode';
 
@@ -24,6 +24,7 @@ import { relationsSuggestionsSupplier } from './suggestions';
 
 import { relationsCategoryName, relationsSeriesTypeOptions } from 'editor/relations/constants';
 import { RELATIONS_FIELD_OPTIONS } from 'lib/grafana/editor/relations/standardOptions';
+import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 // Needs to be called at each top-level module to prevent panels from breaking when
 // calling grafana/i18n methods (like t()). `addRelationsStatOptions` calls `t()` while
 // the options supplier runs, and the plugin bundles its own `@grafana/i18n` (it is not

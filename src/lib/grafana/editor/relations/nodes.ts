@@ -1,7 +1,5 @@
 import { type PanelOptionsEditorBuilder, type SelectableValue } from '@grafana/data';
 
-import { type RelationsLabelOverflow } from 'editor/types';
-
 import { addAdvancedNumberInput, addAdvancedSelect, composeShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
@@ -16,6 +14,7 @@ import {
 } from 'editor/relations/constants';
 import { isGraphVariant } from 'editor/relations/variants';
 import { hasNoNodeStats } from 'lib/echarts/relations/converters/frameRoles';
+import { type RelationsLabelOverflow } from 'editor/relations/types';
 /**
  * Node presentation options: whether node names and stats are drawn, how a label that
  * does not fit is handled, and the fallback node size. All mirror what a user coming

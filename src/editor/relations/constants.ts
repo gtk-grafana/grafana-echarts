@@ -1,6 +1,6 @@
 import { ReducerID, type SelectableValue } from '@grafana/data';
-import { type RelationsLabelOverflow, type RelationsSeriesType } from 'editor/types';
 
+import { type RelationsLabelOverflow, type RelationsSeriesType } from 'editor/relations/types';
 /**
  * The relations family's editor constants: its render-variant list, its editor
  * category, and every option default that is **family-wide** rather than tied to one

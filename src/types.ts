@@ -26,6 +26,8 @@ import {
   type FunnelAlign,
   type FunnelLabelPosition,
   type FunnelOrient,
+  type ParallelLayout,
+  type PerformanceMode,
   type PieChartType,
   type PieEmphasisFocus,
   type PieLabel,
@@ -33,27 +35,26 @@ import {
   type PieLabelPosition,
   type PieLegendValue,
   type PieRoseType,
-  type PerformanceMode,
   type PieSelectedMode,
-  type ParallelLayout,
   type RadarShape,
-  type RelationsGraphLayout,
-  type RelationsLabelOverflow,
-  type RelationsLinkColor,
-  type RelationsSankeyNodeAlign,
-  type RelationsSankeyOrient,
   type SeriesTypeOption,
   type StreamChartType,
   type StreamEmphasisFocus,
   type StreamLayerSource,
 } from 'editor/types';
-
 import {
   type HeatmapColorScalePlacement,
   type HeatmapColorScheme,
   type HeatmapLayout,
 } from 'lib/echarts/options/types';
 
+import {
+  type RelationsGraphLayout,
+  type RelationsLabelOverflow,
+  type RelationsLinkColor,
+  type RelationsSankeyNodeAlign,
+  type RelationsSankeyOrient,
+} from 'editor/relations/types';
 export type { EChartsFieldConfig } from 'editor/types';
 export type { HeatmapColorScalePlacement } from 'lib/echarts/options/types';
 

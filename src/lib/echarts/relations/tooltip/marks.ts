@@ -1,5 +1,5 @@
 import { type Field, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
-import { type EChartsRelationsFieldConfig } from 'editor/types';
+
 import { SOURCE_LABEL, TARGET_LABEL, type GraphEndpointKeys } from 'lib/echarts/relations/converters/contract';
 import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import {
@@ -13,6 +13,7 @@ import {
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import { type TooltipRow } from 'lib/echarts/tooltip/types';
 
+import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 /**
  * Building the family's mark model for one render: the per-mark lookup an ECharts hover is
  * resolved through, each mark's own display processor and data links, its adjacency, and

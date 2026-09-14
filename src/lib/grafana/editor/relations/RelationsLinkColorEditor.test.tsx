@@ -1,10 +1,11 @@
 import { type StandardEditorProps } from '@grafana/data';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { type RelationsLinkColor } from 'editor/types';
+
 import React from 'react';
 import { type PanelOptions } from 'types';
 import { LINK_COLOR_PRECEDENCE_HELP, RelationsLinkColorEditor } from './RelationsLinkColorEditor';
 
+import { type RelationsLinkColor } from 'editor/relations/types';
 /**
  * `Select` renders its menu through `ScrollContainer`, which observes its own scroll
  * edges — and jsdom has no `IntersectionObserver`. Stubbed rather than mocking the widget

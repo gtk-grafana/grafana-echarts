@@ -1,6 +1,6 @@
 import { type DataFrame, type FieldConfigSource } from '@grafana/data';
 import { render } from '@testing-library/react';
-import { type EChartsRelationsFieldConfig } from 'editor/types';
+
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { deriveNodes } from 'lib/echarts/relations/converters/deriveNodes';
 import { legacyToWide } from 'lib/echarts/relations/converters/legacyToWide';
@@ -8,6 +8,7 @@ import { SERIES_ZLEVEL } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents } from 'test/panel';
 import { type PanelOptions } from 'types';
 
+import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 /**
  * Render harness shared by the relations canvas and integration suites.
  *

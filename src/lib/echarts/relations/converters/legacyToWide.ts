@@ -9,7 +9,7 @@ import {
   type Labels,
 } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
-import type { EChartsRelationsFieldConfig } from 'editor/types';
+import type { EChartsRelationsFieldConfig } from 'editor/relations/types';
 
 import {
   edgeId,

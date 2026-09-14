@@ -1,6 +1,6 @@
 import { type SelectableValue } from '@grafana/data';
-import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient, type SeriesType } from 'editor/types';
-
+import { type SeriesType } from 'editor/types';
+import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient } from 'editor/relations/types';
 /**
  * Sankey render type of the relations family. A sankey reuses the node/link model
  * verbatim (`frameToGraphWide`); only its layout options, the cycle-breaking pass

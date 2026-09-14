@@ -1,7 +1,8 @@
 import { type GraphFieldConfig } from '@grafana/schema';
-import { type EChartsRelationsFieldConfig } from 'editor/types';
+
 import { type ConfigTypedField } from 'lib/grafana/types';
 
+import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 /**
  * Narrowing reads for the arbitrary shapes a `fieldConfig` hands back. `custom` is
  * `any` on the Grafana type, so every read of a per-mark setting goes through one of
