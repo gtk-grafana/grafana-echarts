@@ -1,9 +1,9 @@
 import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import { legacyToWide } from 'lib/echarts/relations/converters/legacyToWide';
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 // The reader warns when collected marks share a `field.name`, which the raw multi-frame
 // fixture does deliberately. The decision to warn is tested in `graphWide.test.ts`.
 jest.mock('development', () => ({

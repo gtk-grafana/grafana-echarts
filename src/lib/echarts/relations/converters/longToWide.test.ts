@@ -10,7 +10,7 @@ import {
 import { lastValueFrom, of } from 'rxjs';
 
 import { debug, LOG_LEVELS } from 'development';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
+
 import {
   isLongEdgesFrame,
   isLongGraphFrames,
@@ -19,6 +19,7 @@ import {
 } from 'lib/echarts/relations/converters/longToWide';
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 // `debug` is gated on `NODE_ENV`/`CI`/localStorage, so asserting on the console directly
 // would pass locally and go quiet in CI. Mocking the module tests the *decision* to warn.
 jest.mock('development', () => ({

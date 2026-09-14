@@ -1,11 +1,12 @@
 import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
+
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 import { buildRelationsTooltipModel, getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/tooltip';
 import { type RelationsLinkItem, type RelationsNodeItem, type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 // The reader warns when collected marks share a `field.name`, which the fixtures below do
 // deliberately. Mocked so the decision is testable in `graphWide.test.ts` and silent here.
 jest.mock('development', () => ({

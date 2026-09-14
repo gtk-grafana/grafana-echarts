@@ -1,13 +1,7 @@
 import { type Field, fieldReducers, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { type EChartsRelationsFieldConfig } from 'editor/types';
-import {
-  ENDPOINT_LABEL_KEYS,
-  type GraphEndpointKeys,
-  normalizeRelationsCalcs,
-  SOURCE_LABEL,
-  TARGET_LABEL,
-} from 'lib/echarts/relations/converters/graphWide';
+
 import { type MarkStat, type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
 import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
@@ -25,6 +19,13 @@ import {
 } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
+import {
+  ENDPOINT_LABEL_KEYS,
+  type GraphEndpointKeys,
+  SOURCE_LABEL,
+  TARGET_LABEL,
+} from 'lib/echarts/relations/converters/contract';
+import { normalizeRelationsCalcs } from 'lib/echarts/relations/converters/markRead';
 /**
  * How a mark with **no field of its own** formats: plainly, with no unit.
  *

@@ -1,8 +1,9 @@
 import { type DataFrame, type GrafanaTheme2, type ReduceDataOptions } from '@grafana/data';
-import { frameToGraphWide, isGraphWideFrames } from 'lib/echarts/relations/converters/graphWide';
+import { frameToGraphWide } from 'lib/echarts/relations/converters/graphWide';
 import { isLegacyGraphFrames } from 'lib/echarts/relations/converters/legacyToWide';
 import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 
+import { isGraphWideFrames } from 'lib/echarts/relations/converters/frameRoles';
 /**
  * Single entry point for the relations family's data.
  *

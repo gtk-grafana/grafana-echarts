@@ -1,7 +1,7 @@
 import { type FieldConfigSource } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
 import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
-import { graphWideTimeline } from 'lib/echarts/relations/converters/graphWide';
+
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { getChordSeries } from 'lib/echarts/relations/options/chord';
@@ -27,6 +27,7 @@ import {
   type RelationsChartContext,
 } from 'lib/echarts/charts/types';
 
+import { graphWideTimeline } from 'lib/echarts/relations/converters/timeStops';
 /**
  * Ids of every node hidden from the visualization.
  *

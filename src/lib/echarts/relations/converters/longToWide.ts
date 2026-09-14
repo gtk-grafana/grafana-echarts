@@ -11,18 +11,7 @@ import {
   TIME_SERIES_TIME_FIELD_NAME,
 } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
-import {
-  aliasEndpointKeys,
-  endpointLabelKeysOf,
-  endpointLabelsOf,
-  endpointsFromName,
-  GRAPH_EDGES_WIDE,
-  GRAPH_NODES_WIDE,
-  type GraphEndpointKeys,
-  type GraphEndpoints,
-  isCanonicalEndpointKeys,
-  isEdgesWideFrame,
-} from 'lib/echarts/relations/converters/graphWide';
+
 import {
   contestedIds,
   edgeId,
@@ -36,6 +25,18 @@ import {
 import { type RelationsFamilyField } from 'lib/grafana/fields/relationsFields';
 import { map } from 'rxjs';
 
+import {
+  aliasEndpointKeys,
+  endpointLabelKeysOf,
+  endpointLabelsOf,
+  endpointsFromName,
+  GRAPH_EDGES_WIDE,
+  GRAPH_NODES_WIDE,
+  type GraphEndpointKeys,
+  type GraphEndpoints,
+  isCanonicalEndpointKeys,
+} from 'lib/echarts/relations/converters/contract';
+import { isEdgesWideFrame } from 'lib/echarts/relations/converters/frameRoles';
 /**
  * Convert a **long** graph response — one series per frame, endpoints in `field.labels` —
  * into the single wide edges frame the panel reads.

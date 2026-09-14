@@ -1,6 +1,6 @@
 import { type Field } from '@grafana/data';
-import { type GraphEndpointKeys } from 'lib/echarts/relations/converters/graphWide';
 
+import { type GraphEndpointKeys } from 'lib/echarts/relations/converters/contract';
 /**
  * Chart-agnostic node/link model shared by the relations family's render variants
  * (`graph`, `sankey` and `chord` all read `option.data || option.nodes` plus

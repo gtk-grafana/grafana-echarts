@@ -1,10 +1,10 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { hasGraphTimeline } from 'lib/echarts/relations/converters/graphWide';
 
 import { type PanelOptions } from 'types';
 
 import { RELATIONS_TIME_SLIDER_DEFAULT } from 'editor/relations/constants';
+import { hasGraphTimeline } from 'lib/echarts/relations/converters/timeStops';
 /**
  * The time slider: read every mark at **one timestamp** instead of reducing its rows away.
  *

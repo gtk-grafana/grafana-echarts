@@ -10,7 +10,7 @@ import {
 } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
 import type { EChartsRelationsFieldConfig } from 'editor/types';
-import { isGraphWideFrames } from 'lib/echarts/relations/converters/graphWide';
+
 import {
   edgeId,
   edgeLabels,
@@ -27,6 +27,7 @@ import { type ConfigTypedField } from 'lib/grafana/types'; // (`.config/bundler/
 // taken from the host.
 import { map } from 'rxjs';
 
+import { isGraphWideFrames } from 'lib/echarts/relations/converters/frameRoles';
 /**
  * Convert Grafana's legacy row-based node-graph frames (`graph-*-long`) into the
  * field-based wide contract (`graph-*-wide`) — one node per field, one edge per

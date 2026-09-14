@@ -2,7 +2,7 @@ import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { lastValueFrom, of } from 'rxjs';
 
 import { debug, LOG_LEVELS } from 'development';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
+
 import {
   isLegacyEdgesFrame,
   isLegacyGraphFrames,
@@ -11,6 +11,7 @@ import {
   legacyToWideOperator,
 } from 'lib/echarts/relations/converters/legacyToWide';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 // Gated on `NODE_ENV`/`CI`/localStorage, so the console itself is not assertable across
 // environments; the mock tests the decision to log. See `development.ts`.
 jest.mock('development', () => ({

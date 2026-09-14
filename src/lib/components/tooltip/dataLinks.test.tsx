@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { type EChartsType } from 'echarts';
 import { type SeriesType } from 'editor/types';
 import { type ChartFamily } from 'lib/echarts/charts/autoSeriesType';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
+
 import {
   clickAt,
   dispatch,
@@ -15,6 +15,7 @@ import {
 } from 'test/tooltipPointer';
 import { type PanelOptions } from 'types';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 /**
  * End-to-end cover for the pinned tooltip's data-link footer, driven through
  * zrender's real pointer pipeline so ECharts' own hit-testing and element

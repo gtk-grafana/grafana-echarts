@@ -3,16 +3,13 @@
 // taken from the host.
 import { type CustomTransformOperator, type DataFrame, type Field, FieldType } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
-import {
-  endpointNames,
-  GRAPH_META_CUSTOM,
-  GRAPH_META_DERIVED_NODES,
-  resolveGraphWideRoles,
-} from 'lib/echarts/relations/converters/graphWide';
+
 import { nodesWideFrame } from 'lib/echarts/relations/converters/toGraphWide';
 import { type RelationsFamilyField } from 'lib/grafana/fields/relationsFields';
 import { map } from 'rxjs';
 
+import { GRAPH_META_CUSTOM, GRAPH_META_DERIVED_NODES } from 'lib/echarts/relations/converters/contract';
+import { endpointNames, resolveGraphWideRoles } from 'lib/echarts/relations/converters/frameRoles';
 /**
  * Give the nodes an edges-only response only *implies* a **field**, before field overrides
  * are applied.

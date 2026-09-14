@@ -9,15 +9,12 @@ import {
 } from '@grafana/data';
 import { lastValueFrom, of } from 'rxjs';
 
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE, isDerivedNodesFrame } from 'lib/echarts/relations/converters/contract';
 import { deriveNodes, deriveNodesOperator } from 'lib/echarts/relations/converters/deriveNodes';
+import { resolveGraphWideRoles } from 'lib/echarts/relations/converters/frameRoles';
+import { frameToGraphWide } from 'lib/echarts/relations/converters/graphWide';
 import { applyTestFieldConfig } from 'test/fieldConfig';
-import {
-  frameToGraphWide,
-  GRAPH_EDGES_WIDE,
-  GRAPH_NODES_WIDE,
-  isDerivedNodesFrame,
-  resolveGraphWideRoles,
-} from './graphWide';
+
 import { longToWide } from './longToWide';
 
 const theme = createTheme();

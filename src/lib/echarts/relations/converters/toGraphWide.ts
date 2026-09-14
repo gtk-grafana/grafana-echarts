@@ -6,6 +6,9 @@ import {
   type Labels,
   type QueryResultMeta,
 } from '@grafana/data';
+
+import { type RelationsFamilyField, type RelationsFamilyFrame } from 'lib/grafana/fields/relationsFields';
+
 import {
   CANONICAL_ENDPOINT_KEYS,
   EDGE_SEPARATOR,
@@ -18,9 +21,7 @@ import {
   isCanonicalEndpointKeys,
   SOURCE_LABEL,
   TARGET_LABEL,
-} from 'lib/echarts/relations/converters/graphWide';
-import { type RelationsFamilyField, type RelationsFamilyFrame } from 'lib/grafana/fields/relationsFields';
-
+} from 'lib/echarts/relations/converters/contract';
 /**
  * The construction half of the graph-wide contract, shared by every converter into it.
  *

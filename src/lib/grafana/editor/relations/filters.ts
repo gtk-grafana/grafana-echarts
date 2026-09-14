@@ -1,7 +1,7 @@
 import { type FieldConfigEditorBuilder } from '@grafana/data';
 import { type EChartsRelationsFieldConfig } from 'editor/types';
-import { SOURCE_LABEL, TARGET_LABEL } from 'lib/echarts/relations/converters/graphWide';
 
+import { SOURCE_LABEL, TARGET_LABEL } from 'lib/echarts/relations/converters/contract';
 /**
  * Which label a mark's endpoint is filtered on, when a pinned tooltip's "Filter on" /
  * "Filter out" buttons write an ad-hoc filter into the dashboard.
