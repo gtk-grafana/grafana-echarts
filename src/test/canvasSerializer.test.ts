@@ -8,14 +8,14 @@ import {
 } from 'test/canvasSerializer';
 
 /**
- * The compact canvas snapshot format, and the one property it cannot lose.
+ * The compact canvas snapshot format, and the one property it cannot lose: the stored
+ * baseline has to parse as JSON.
  *
- * `toMatchCanvasSnapshot` reads the stored baseline back through its own
- * `parseSnapshotJson` — `JSON.parse` with trailing-comma tolerance — to build the
- * "expected" half of the compare viewer's visual diff. A format that is *nearly* JSON
- * costs the reviewer that half silently: the matcher logs `failed to parse expected
- * snapshot JSON` and returns, and the viewer shows one render with nothing to compare it
- * to. So every committed baseline is parsed here, not just a hand-written sample.
+ * `toMatchCanvasSnapshot` reads it back through its own `parseSnapshotJson` to build the
+ * "expected" half of the compare viewer's visual diff, and a format that is *nearly* JSON
+ * costs the reviewer that half silently — the matcher logs a warning and returns, leaving
+ * one render with nothing to compare it to. So every committed baseline is parsed here,
+ * not just a hand-written sample.
  */
 
 /** `parseSnapshotJson`, reimplemented from the matcher so the check runs on real input. */
@@ -50,7 +50,7 @@ describe('canvas event serializer', () => {
     expect(format(EVENTS, { plugins: [canvasEventSerializer] })).toBe(serializeCanvasEvents(EVENTS));
   });
 
-  /** The predicate decides which snapshots in the repo change format, so it has to be narrow. */
+  /** The predicate decides which snapshots use this format, so it has to be narrow. */
   it.each([
     ['a draw call list', [{ type: 'save', props: {} }], true],
     ['a nested path array', [{ type: 'stroke', props: { path: [{ type: 'moveTo', props: { x: 1, y: 2 } }] } }], true],
@@ -66,8 +66,8 @@ describe('canvas event serializer', () => {
 
 /**
  * Not `*.canvas.test.*`, deliberately: this asserts a property of every baseline rather
- * than pinning a picture, and `src/test/suiteShape.test.ts` requires a canvas suite to
- * hold nothing but `toMatchCanvasSnapshot` calls.
+ * than pinning a picture, and `suiteShape.test.ts` requires a canvas suite to hold
+ * nothing but `toMatchCanvasSnapshot` calls.
  */
 describe('committed baselines', () => {
   /** `exports[`<key>`] = `<body>`;`, with jest's backtick escaping undone. */
@@ -90,9 +90,8 @@ describe('committed baselines', () => {
     '%s survives the compare viewer’s JSON parse',
     (_key, body) => {
       const parsed = parseSnapshotJson(body) as SnapshotCanvasEvent[];
-      // Round-trips, so the parse is lossless rather than merely successful. A layer that
-      // drew nothing is `[]` either way — the serializer leaves those to the default
-      // printer — so only a non-empty baseline goes back through it.
+      // Round-tripped, so the parse is lossless rather than merely successful. A layer
+      // that drew nothing is `[]`, which the serializer leaves to the default printer.
       expect(parsed.length ? serializeCanvasEvents(parsed) : '[]').toBe(body.trim());
     }
   );

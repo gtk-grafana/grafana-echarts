@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 // Canvas baseline inventory: one line per committed snapshot, `<sha256 of body>  <key>`.
 //
-// The snapshot refactor (todo/relations-test-refactor.md) moves, reformats and re-records
-// 167 baselines totalling a quarter of a million lines. A raw `git diff` cannot answer the
-// only question each phase needs answered — "which baselines changed *content*, and which
-// merely moved?" — so hash the body of every block instead and diff the inventories:
+// Answers the question a `git diff` over a quarter of a million lines of `.snap` cannot:
+// which baselines changed *content*, and which merely moved? Diff two inventories —
 //
 //   node scripts/canvas-inventory.mjs > /tmp/before.txt   # on the base commit
 //   node scripts/canvas-inventory.mjs > /tmp/after.txt
 //   diff /tmp/before.txt /tmp/after.txt
 //
-// A rename-only phase must produce a byte-identical inventory. A reformat phase must
-// produce a *complete* one — the same keys, every hash different — which is the proof
-// that nothing was dropped while everything was rewritten.
+// — and a pure rename shows no change at all, while a reformat shows the same keys with
+// every hash different, which is the proof that nothing was dropped.
 //
-// Sorted by key so the output is stable regardless of file layout or glob order.
+// Sorted by key, so the output is stable regardless of file layout or glob order.
 import { createHash } from 'node:crypto';
 import { globSync, readFileSync } from 'node:fs';
 

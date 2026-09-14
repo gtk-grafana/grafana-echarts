@@ -4,20 +4,15 @@ import { type NewPlugin } from 'pretty-format';
 /**
  * A compact snapshot format for recorded canvas draw calls: one JSON object per line.
  *
- * `pretty-format`'s default object printing spends **9.8 lines per recorded draw call**,
- * seven of which are pure punctuation (`{`, `"props": {`, `}`, `"type": …`, `},`). Across
- * the 167 committed baselines that is 265k lines — 4.6x the whole TypeScript source — for
- * 27k events. One line per event keeps every asserted number and makes a canvas diff
- * readable as a diff: a label that moved is a one-line change rather than a seven-line
- * block whose braces happen to line up.
+ * `pretty-format` spends ~10 lines on each draw call, most of it punctuation. One line
+ * per event keeps every asserted number and makes a canvas diff readable as a diff: a
+ * label that moved is a one-line change.
  *
  * **The format must be valid JSON.** `toMatchCanvasSnapshot` feeds the stored snapshot
- * back through its own `parseSnapshotJson` (a `JSON.parse` with trailing-comma tolerance)
- * to build the compare viewer's "expected" side. A prose format (`fillText "Gateway" @
- * 0,6`) would be shorter still, and would silently cost the viewer half of every visual
- * diff — it logs `failed to parse expected snapshot JSON` and returns.
- *
- * So: one JSON object per line, inside a JSON array.
+ * back through its own `parseSnapshotJson` to build the "expected" half of the compare
+ * viewer's visual diff. A prose format (`fillText "Gateway" @ 0,6`) would be shorter and
+ * would cost the reviewer that half silently — the matcher logs `failed to parse expected
+ * snapshot JSON` and returns. So: one JSON object per line, inside a JSON array.
  *
  * ```
  * [
@@ -26,11 +21,10 @@ import { type NewPlugin } from 'pretty-format';
  * ]
  * ```
  *
- * Key order is `type` then `props`, straight from `JSON.stringify`, because every event
- * comes from one factory (`createCanvasEvent(type, transform, props)`) and every `props`
- * from a literal at the mocked method's call site — so insertion order is fixed by the
- * mock's source, not by the drawing. The old format's alphabetical sort was hiding that
- * rather than guaranteeing it.
+ * Key order comes straight from `JSON.stringify`: every event is built by one factory
+ * (`createCanvasEvent(type, transform, props)`) and every `props` by a literal at the
+ * mocked method's call site, so insertion order is fixed by the mock's source rather than
+ * by the drawing.
  *
  * https://github.com/grafana/jest-canvas-mock-compare (matcher and viewer)
  * https://github.com/hustcc/jest-canvas-mock/blob/master/src/mock/createCanvasEvent.ts
@@ -52,9 +46,9 @@ const isCanvasEvent = (value: unknown): value is SnapshotCanvasEvent => {
 };
 
 /**
- * The value `toMatchCanvasSnapshot` is given: a non-empty array of draw calls. Empty
- * arrays are left to the default printer, since `[]` is the same either way and the
- * emptier the predicate the more other snapshots it could capture by accident.
+ * The value `toMatchCanvasSnapshot` is given: a non-empty array of draw calls. `[]` is
+ * left to the default printer — it prints the same either way, and the emptier the
+ * predicate the more unrelated snapshots it could claim by accident.
  */
 export const isCanvasEventList = (value: unknown): value is SnapshotCanvasEvent[] =>
   Array.isArray(value) && value.length > 0 && value.every(isCanvasEvent);
@@ -65,9 +59,9 @@ export const serializeCanvasEvents = (events: readonly SnapshotCanvasEvent[]): s
 
 /**
  * Registered globally in `jest-setup.js`, so it reaches the stored `.snap` format for
- * every canvas suite. Written for the top-level array the matcher is called with; a
- * canvas event list nested inside a larger snapshotted object would be compacted too,
- * with the parent's indentation ignored. Nothing does that today.
+ * every canvas suite. Written for the top-level array the matcher is called with: a list
+ * nested inside a larger snapshotted object would be compacted too, ignoring the
+ * parent's indentation. Nothing does that today.
  */
 export const canvasEventSerializer: NewPlugin = {
   test: isCanvasEventList,

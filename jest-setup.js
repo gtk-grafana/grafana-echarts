@@ -76,9 +76,9 @@ require('jest-canvas-mock');
 const { matchers } = require('jest-canvas-mock-compare');
 expect.extend(matchers);
 
-// Store recorded draw calls one JSON object per line instead of pretty-format's 9.8 lines
-// per call. See src/test/canvasSerializer.ts for the format and why it has to stay valid
-// JSON. https://jestjs.io/docs/expect#expectaddsnapshotserializerserializer
+// Store recorded draw calls one JSON object per line. See src/test/canvasSerializer.ts
+// for the format and why it has to stay valid JSON.
+// https://jestjs.io/docs/expect#expectaddsnapshotserializerserializer
 const { canvasEventSerializer } = require('./src/test/canvasSerializer');
 expect.addSnapshotSerializer(canvasEventSerializer);
 

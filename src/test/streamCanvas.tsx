@@ -10,10 +10,9 @@ import { type PanelOptions } from 'types';
  *
  * Series are placed on `SERIES_ZLEVEL`, so only the series-layer draw calls are read
  * (the axis paints on the default layer); see `Panel.canvas.test.tsx` for the
- * layered-capture rationale. Events are read after a forced single repaint, which
- * `getSeriesCanvasEvents` does for every family: the themeRiver view sets a clip path it
- * removes on a timer when animation is enabled, and its pre-settle layout used to be
- * pinned in the baseline alongside the settled one.
+ * layered-capture rationale. `getSeriesCanvasEvents` records a single forced repaint,
+ * which matters here: the themeRiver view sets a clip path it removes on a timer when
+ * animation is enabled, so an accumulated capture pins a pre-settle layout too.
  *
  * Rendered in Advanced editor mode so the advanced options these suites exercise
  * (boundary gap, ribbon style, emphasis, label placement) are respected as-is. In
@@ -43,10 +42,9 @@ export const renderStream = async (
 /**
  * Filled paths in the last recorded repaint — one per rendered ribbon.
  *
- * The capture helper already reduces a render to a single paint, so the slice is a
- * guard rather than a correction: jest-canvas-mock accumulates draw calls and never
- * resets on `clearRect`, so anything that repaints after the capture (a hover, a
- * rerender the case drives itself) would otherwise be counted twice.
+ * The capture helper reduces a render to a single paint, so the slice is a guard: since
+ * jest-canvas-mock accumulates draw calls and never resets on `clearRect`, anything a
+ * case repaints itself (a hover, a rerender) would otherwise be counted twice.
  */
 export const fillCount = (events: Array<{ type: string }>) => {
   const lastPaint = events.map((event) => event.type).lastIndexOf('clearRect');

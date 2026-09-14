@@ -166,64 +166,21 @@ scheme as a `byType: number` override, which reaches nodes and edges alike.
 ## What a case costs
 
 167 baselines hold 14.5k lines (1.06 MB), of which the relations family is 6.6k lines
-(45%). One relations baseline averages **~110 lines** on the four-node fixtures and ~85
-on the three-node colour one — one line per recorded draw call, and one render pass
-rather than two. A picture is still not the cheap option: prefer a drawn-primitive
-assertion in an
-`*.integration.test.tsx` sibling whenever the claim is a string or a number, and keep the
-baseline for geometry. `src/test/suiteShape.test.ts` enforces the split — every test in a
-`*.canvas.test.*` file must assert `toMatchCanvasSnapshot`.
+(45%). One relations baseline averages **~110 lines** on the four-node fixtures and ~85 on
+the three-node colour one. A picture is not the cheap option: prefer a drawn-primitive
+assertion in an `*.integration.test.tsx` sibling whenever the claim is a string or a
+number, and keep the baseline for geometry. `src/test/suiteShape.test.ts` enforces the
+split — every test in a `*.canvas.test.*` file must assert `toMatchCanvasSnapshot`.
 
-Two of the new cases compare their render against the same frames at the default
+Two cases compare their render against the same frames at the default
 (`expect(…).not.toEqual(…)`), because their fixture is easy to get wrong: `sankey`'s
 `nodeAlign` draws a byte-identical picture on `nodesFrame` (whose four nodes have no
 slack), and `chord`'s `minAngle` does the same on any fixture without a sliver. A
 baseline that pins nothing looks exactly like a baseline that pins something.
 
-## Snapshot size and layout
+## Where the suites live
 
-Execution order, commits and verification for the two below live in
-[todo/relations-test-refactor.md](../todo/relations-test-refactor.md).
-
-### Cutting snapshot size
-
-Three levers, measured on the 266k lines this was audited at. They compose:
-
-1. **Assert one render pass, not two — ~50%. Landed.** Every baseline used to record two
-   paints: `useChartOption` draws, then `useChartResize` pushes the box `VizLayout`
-   allocated into `chart.resize(…)`, which re-lays-out and repaints unconditionally. The
-   capture helpers in `src/test/panel.tsx` now drop what accumulated and record one
-   forced repaint, which was a correctness fix as well as a size one — the themeRiver
-   baselines had a pre-settle layout pinned alongside the settled one, and every replayed
-   image drew each label twice.
-2. **Drop `props.path` from the asserted events — 29% of bytes.** Every `stroke`, `fill`
-   and `clip` event embeds the whole path it is about, which is a verbatim copy of the
-   `moveTo` / `lineTo` / `quadraticCurveTo` / `arc` events already recorded immediately
-   before it. Nothing is lost by stripping it from the _snapshot_ — but the compare
-   viewer draws shapes from `props.path`, and the matcher snapshots and payloads the
-   same array, so this needs a change in `jest-canvas-mock-compare` rather than in
-   `normalizeCanvasEvents`. **Blocked upstream.**
-3. **One line per event instead of 9.8 — ~90%. Landed.** `src/test/canvasSerializer.ts`
-   stores one JSON object per line. The format has to stay valid JSON, because the matcher
-   parses the stored baseline back to build the compare viewer's "expected" side;
-   `src/test/canvasSerializer.test.ts` parses every committed baseline to keep that true.
-
-Levers 3 and 1 together took the tree from 265,626 lines (4.0 MB) to 14,524 (1.06 MB).
-Lever 2 would take it to ~0.75 MB without removing a line. Each rewrites every baseline,
-so each wants to be its own commit — per `AGENTS.md`, never a side effect of feature
-work.
-
-A fourth, cheaper option for the biggest offenders: `graph.canvas` (2.5k lines over 18
-baselines), `part-to-whole` (2.3k over 27), `axis` (1.7k over 22) and `Panel` (1.6k over
-27). Some of those pin a
-variation whose whole claim is one number — an opacity, a width — and convert to
-drawn-primitive assertions without losing anything a reviewer looks at.
-
-### The suite directories — landed for relations
-
-`src/lib/components/` used to mix 15 canvas suites, their integration siblings, and the
-components themselves. The relations family now sits in two directories, kept distinct
-because one kind commits pictures and the other does not:
+Two directories, kept distinct because one kind commits pictures and the other does not:
 
 ```
 src/lib/components/
@@ -243,39 +200,53 @@ src/lib/components/
       values.integration.test.tsx
 ```
 
-The remaining families are the same operation, one commit each, and can follow whenever:
+`git log --stat` on a family stops scrolling past every other family's baselines, a
+reviewer can point a diff tool at one directory, and the integration siblings — which
+commit nothing and are read as code — stop sitting next to the `.snap` files.
 
-```
-  canvas-tests/
-    cartesian/       axis, categorical-cartesian, performance, Panel
-    part-to-whole/   part-to-whole, part-to-whole-funnel
-    multivariate/    multivariate
-    stream/          stream
-```
-
-What it buys: `git log --stat` on a family stops scrolling past every other family's
-baselines; a reviewer can point a diff tool at one directory;
-`jest src/lib/components/canvas-tests/relations` is the family's whole picture set; and
-the integration siblings — which commit nothing and are read as code — stop sitting next
-to 46k-line `.snap` files.
-
-What the move cost, for whoever does the next family:
+The other families still sit beside the components and are the same operation, one commit
+each: `cartesian/` (axis, categorical-cartesian, performance, Panel), `part-to-whole/`,
+`multivariate/`, `stream/`. What to watch for:
 
 - **`git mv` the `.snap` files with the tests**, in the same commit, or every baseline is
-  written from scratch and the diff is 242k lines of noise instead of a rename. Jest
-  resolves `__snapshots__` relative to the test file, so the pairing is mechanical.
-- The suite names inside each `.snap` are keyed off `describe`/`it`, not the path, so
-  **renaming the files changed no baseline content** — verified with
-  `scripts/canvas-inventory.mjs`, whose output is byte-identical across the move. Rename
-  the files, not the suites.
-- `suiteShape.test.ts` globs `src/**/*.canvas.test.*` and kept working unchanged.
-- Every canvas suite already imports through the `src`-rooted aliases (`test/canvas`,
-  `lib/echarts/…`) — jest resolves them via `modulePaths: ['<rootDir>/src']` — so no
-  canvas import changed. One integration sibling did: `timeline.integration` imported
-  `./ChartTimeSlider` relatively and now imports `lib/components/ChartTimeSlider`. Check
-  for that before moving a family.
+  written from scratch and the diff is noise instead of a rename. Jest resolves
+  `__snapshots__` relative to the test file, so the pairing is mechanical.
+- Baselines are keyed off `describe`/`it`, not the path, so renaming files changes no
+  baseline content. `scripts/canvas-inventory.mjs` is how that gets verified — a pure
+  rename leaves its output byte-identical.
+- Suites import through the `src`-rooted aliases (`test/canvas`, `lib/echarts/…`), which
+  jest resolves via `modulePaths: ['<rootDir>/src']`, so imports survive the move. Check
+  for relative sibling imports first; `timeline.integration` had one.
 - `src/modules/*/parity.md` link definitions name test paths and
   `src/test/parityCitations.test.ts` resolves each one, so a stale path fails the build.
   That is the one place the move cannot be silent, and the reason it is safe.
-- `scripts/canvas-shots.mjs` and the AGENTS.md review flow key off the payload directory,
-  not the test path, so neither changed.
+- `suiteShape.test.ts` globs `src/**/*.canvas.test.*`, and `scripts/canvas-shots.mjs` and
+  the AGENTS.md review flow key off the payload directory rather than the test path, so
+  none of them need touching.
+
+## Cutting snapshot size further
+
+Two levers are already applied, and each rewrote every baseline — so per `AGENTS.md`, do
+any of what is below as its own commit, never as a side effect of feature work.
+
+- `src/test/canvasSerializer.ts` stores one JSON object per line instead of
+  `pretty-format`'s ~10. The format has to stay valid JSON, because the matcher parses the
+  stored baseline back to build the compare viewer's "expected" side;
+  `src/test/canvasSerializer.test.ts` parses every committed baseline to keep that true.
+- The capture helpers in `src/test/panel.tsx` record one render pass rather than every
+  paint a mount accumulates.
+
+What is left:
+
+- **Drop `props.path` from the asserted events — 30% of bytes, no lines.** Every `stroke`,
+  `fill` and `clip` event embeds the path it draws, a verbatim copy of the `moveTo` /
+  `lineTo` / `quadraticCurveTo` / `arc` events recorded immediately before it. The
+  assertion loses nothing by dropping it, but the compare viewer draws shapes from
+  `props.path` and the matcher snapshots and payloads the same array, so it needs a change
+  in `jest-canvas-mock-compare` — see
+  [todo/canvas-snapshot-props-path.md](../todo/canvas-snapshot-props-path.md).
+- **Retire the baselines whose whole claim is one number** — an opacity, a width. The
+  biggest suites are `graph.canvas` (2.5k lines over 18 baselines), `part-to-whole` (2.3k
+  over 27), `axis` (1.7k over 22) and `Panel` (1.6k over 27); each such case converts to a
+  drawn-primitive assertion without losing anything a reviewer looks at. A coverage
+  decision per case, not a mechanical change.

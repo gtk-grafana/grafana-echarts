@@ -108,18 +108,13 @@ export const renderRelations = async ({
 
 /**
  * The text of every label actually painted, so a label test can assert what was drawn
- * rather than only pin it. One entry per draw call in the single captured pass, so a
- * label drawn twice in one paint (zrender draws a wrapped name line by line) still
- * appears twice.
+ * rather than only pin it. One entry per draw call, so a wrapped name — which zrender
+ * draws line by line — contributes one entry per line.
  */
 export const labelTexts = (events: CanvasRenderingContext2DEvent[]): string[] =>
   events.filter((event) => event.type === 'fillText').map((event) => String(event.props.text));
 
-/**
- * The distinct labels painted, sorted — what an inline snapshot of "which labels
- * survived" is written against, since a wrapped or repeated name says nothing about
- * survival.
- */
+/** The distinct labels painted, sorted — what "which labels survived" is asserted on. */
 export const uniqueLabelTexts = (events: CanvasRenderingContext2DEvent[]): string[] =>
   [...new Set(labelTexts(events))].sort();
 

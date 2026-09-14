@@ -38,8 +38,8 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 
 ## Canvas test coverage
 
-    Which relations options a rendered test pins, plus the snapshot-size and directory
-    proposals from auditing them: [docs/relations-canvas-coverage.md](docs/relations-canvas-coverage.md)
+    Which relations options a rendered test pins, where the suites live, and what a
+    baseline costs: [docs/relations-canvas-coverage.md](docs/relations-canvas-coverage.md)
 
 ## Reviewing canvas snapshot changes
 

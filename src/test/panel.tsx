@@ -144,24 +144,18 @@ export const waitForFinished = async (chart: EChartsType | undefined) => {
 /**
  * Discard everything drawn so far and record exactly one clean repaint.
  *
- * **A panel paints at least twice on mount.** `useChartOption` draws, then
- * `useChartResize` pushes the box `VizLayout` allocated into `chart.resize(…)` — with
- * the numbers ECharts already measured off the container, but `resize` re-lays-out and
- * repaints unconditionally. Charts with a deferred view add more: the parallel
- * coordinates view draws its polylines under a grid clip path and drops it on a
- * `setTimeout` (ParallelView `createGridClipShape`), and themeRiver does the same when
- * animation is on.
+ * A panel paints at least twice on mount: `useChartOption` draws, then `useChartResize`
+ * pushes the box `VizLayout` allocated into `chart.resize(…)`, which re-lays-out and
+ * repaints unconditionally. Charts with a deferred view add more — the parallel
+ * coordinates view draws under a grid clip path and drops it on a `setTimeout`
+ * (ParallelView `createGridClipShape`), and themeRiver does the same with animation on.
+ * jest-canvas-mock accumulates draw calls and never resets on `clearRect`, so a capture
+ * at the `finished` event holds every one of those paints end to end — two copies of the
+ * same picture, or a pre-settle layout alongside the settled one where they disagree.
  *
- * jest-canvas-mock *accumulates* draw calls and never resets on `clearRect`, so a
- * capture at the `finished` event held every one of those paints end to end. Every
- * baseline was therefore two copies of the same picture (and, where the passes
- * disagreed, one pre-settle layout pinned alongside the settled one), while replayed
- * images showed each label drawn twice a few pixels apart.
- *
- * So: drain the deferred repaints, drop what has accumulated, then force one full
- * repaint at the size the chart is already at — `resize` re-renders everything, and
- * passing the instance's own dimensions rather than re-measuring the DOM means the
- * geometry cannot shift — and flush it synchronously so the capture is that one paint.
+ * So: drain the deferred repaints, drop what has accumulated, then force one full repaint
+ * at the size the chart already reports — passing the instance's own dimensions rather
+ * than re-measuring the DOM means the geometry cannot shift — and flush it synchronously.
  *
  * https://echarts.apache.org/en/api.html#echartsInstance.resize
  */
