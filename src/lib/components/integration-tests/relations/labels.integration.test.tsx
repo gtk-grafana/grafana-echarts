@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
-import { revealEdgeLabelsFor } from 'lib/echarts/relations/edgeLabels/edgeLabelLayout';
+
 import { getChart, readCanvasLayer, SERIES_LAYER_SELECTOR } from 'test/canvas';
 import { getComponent, waitForFinished } from 'test/panel';
 import {
@@ -17,6 +17,7 @@ import {
 } from 'test/relations';
 import { asPipelineWould, canvasOptions, labelTexts, renderRelations, uniqueLabelTexts } from 'test/relationsCanvas';
 
+import { revealEdgeLabelsFor } from 'lib/echarts/relations/edgeLabels/reveal';
 /**
  * Label arbitration for the relations family: what text is drawn, and which label wins
  * when two want the same pixels.

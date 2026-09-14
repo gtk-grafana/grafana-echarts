@@ -29,6 +29,15 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
   renders that assert drawn primitives or compare two renders, no baseline. `*.test.ts`:
   unit tests, no infix. Splitting a claim out of a canvas suite is never scope creep.
 - Stay on task & document out of scope context in the /todo directory
+- **Family as filename until a kind holds three or more of them, then a family
+  directory.** A chart family is normally a filename inside a kind directory
+  (`options/pie.ts`, `charts/pie.ts`). Once one family owns three or more files in the
+  same kind, it gets a directory instead — that is why
+  `lib/grafana/editor/relations/`, `lib/components/canvas-tests/relations/` and
+  `lib/echarts/relations/` exist while `src/editor/pie.ts` does not. Relations is the
+  only family over the threshold today; `stream` and `part-to-whole` are the next
+  candidates. A family directory nests **inside** the Grafana/ECharts split, never
+  across it. No barrel `index.ts` files anywhere — imports name the concrete module.
 
 ## Development environment
 
