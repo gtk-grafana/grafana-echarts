@@ -15,9 +15,10 @@ import {
 } from 'lib/echarts/relations/options/layout';
 import { getGraphLinkStyle, makeEdgeGradientResolver, nodeColorsById } from 'lib/echarts/relations/options/linkColor';
 import { getRelationsViewState, resolveRelationsRoam } from 'lib/echarts/relations/options/view';
-import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/tooltip';
+
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 
+import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/model';
 /**
  * The `graph` render variant: an arbitrary topology drawn as nodes and links.
  *

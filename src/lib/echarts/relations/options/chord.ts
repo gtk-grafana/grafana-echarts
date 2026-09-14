@@ -3,8 +3,7 @@ import { type ChordSeriesOption } from 'echarts';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/relations/converters/model';
 
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
-import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/tooltip';
-import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
+
 import { type PanelOptions } from 'types';
 
 import {
@@ -22,6 +21,8 @@ import {
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
 } from 'lib/echarts/relations/options/labels';
+import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/model';
+import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
 /**
  * Chord render variant of the relations family: the same `{ nodes, links }` model,
  * laid out as a ring of node arcs joined by weighted ribbons.

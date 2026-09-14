@@ -1,0 +1,260 @@
+import { type ValueFormatter } from '@grafana/data';
+import { type LinearGradientObject } from 'echarts/types/dist/shared';
+import { type GraphEndpointKeys } from 'lib/echarts/relations/converters/contract';
+import { type MarkStat } from 'lib/echarts/relations/converters/model';
+import { type TooltipSource } from 'lib/echarts/tooltip/types';
+
+/**
+ * The relations family's **mark model**: what a hovered node or edge is, as the React
+ * tooltip overlay sees it.
+ *
+ * These declarations used to sit in the shared `lib/echarts/tooltip/types.ts`, which made
+ * that module import the family's converters for `MarkStat` and its endpoint keys — the
+ * one inbound edge into this family that was not a seam. They have no consumer outside
+ * relations. The generic `TooltipModel` / `TooltipRow` / `TooltipFilters` stay shared: the
+ * family sets them and the overlay reads them, neither owns the other.
+ *
+ * Types only, so `marks.ts` (which builds these), `filters.ts` and `model.ts` can all
+ * depend on it without any of them depending on each other.
+ */
+
+/**
+ * The relations family's **mark model** for the tooltip: what a hovered node or edge is,
+ * and the per-render lookup that resolves one from an ECharts hover.
+ *
+ * These types used to sit in the shared `lib/echarts/tooltip/types.ts`, which made that
+ * module import the family's converters for `MarkStat` and its endpoint keys — the one
+ * inbound edge into this family that was not a seam. They have no consumer outside
+ * relations. The generic `TooltipModel` / `TooltipRow` / `TooltipFilters` stay shared:
+ * the family sets them and the React overlay reads them, neither owns the other.
+ */
+
+/**
+ * A relations (`graph`) node data item. ECharts preserves unknown data props, so
+ * the extra fields ride along for the tooltip to read back off `params.data`.
+ * https://echarts.apache.org/en/option.html#series-graph.data
+ */
+export interface RelationsNodeItem {
+  /**
+   * The node's field name, which is both ECharts' graph key (links resolve against
+   * it) and the mark key the tooltip looks the node's own field up by — see
+   * {@link RelationsMarks}. A node *derived* from an edge's endpoints has no field,
+   * so its id matches nothing and the tooltip falls back to the panel formatter.
+   */
+  id: string;
+  name: string;
+  value?: number;
+  /**
+   * The node's `mainstat`, when it is carried *outside* `value`.
+   *
+   * The sankey variant does not set `value`: ECharts derives a sankey node's height
+   * from its flow, but `computeNodeValues` takes
+   * `Math.max(inSum, outSum, nodeRawValue)` — so a declared `value` acts as a floor
+   * and a `mainstat` unrelated to the flow (a latency, an error rate) would inflate
+   * the node out of step with its own ribbons. The stat rides here instead, for the
+   * tooltip only. `graph` keeps using `value`, which it reads for tooltips and
+   * `visualMap` but never for geometry.
+   */
+  stat?: number | null;
+  symbolSize?: number;
+  itemStyle?: { color?: string; borderColor?: string; borderWidth?: number };
+  /** Graph only: the node's position in the series' view coordinate space. */
+  x?: number;
+  y?: number;
+  /**
+   * Sankey only: the node's position as a **fraction** of the layout rect (0-1).
+   *
+   * A sankey lays its nodes out in columns and has no coordinate space to pin one in,
+   * so `SankeyView` reads these instead of `x`/`y` — and its own drag writes them
+   * (`dragNode`). Stored in the same `custom.fixedX`/`fixedY` field pair as a graph
+   * position, since a mark has one place to remember where it was put.
+   * https://echarts.apache.org/en/option.html#series-sankey.data.localX
+   */
+  localX?: number;
+  localY?: number;
+  /** `custom.subtitle`, surfaced as a tooltip row. */
+  subtitle?: string;
+  /** The stats past the first, tooltip only — one row each. See {@link MarkStat}. */
+  secondaries?: MarkStat[];
+}
+
+/**
+ * A relations (`graph`) link data item.
+ * https://echarts.apache.org/en/option.html#series-graph.links
+ */
+export interface RelationsLinkItem {
+  source: string;
+  target: string;
+  /**
+   * The edge's field name, so the tooltip can find the edge's own field — the
+   * endpoints cannot, since two parallel edges share them. `RelationLink.markKey`
+   * stands in for it when several collected marks share that name, which is the one
+   * case where the field name is not a key (see `RelationLink.markKey`).
+   *
+   * Deliberately **not** `id`, which ECharts already reads on a link:
+   * `createGraphFromNodeEdge` uses `retrieve(link.id, source + ' > ' + target)` as
+   * the edge's *name*, so setting it would rename every edge as a side effect of
+   * carrying a lookup key. ECharts preserves unknown data props, so this rides
+   * along untouched instead.
+   */
+  markId?: string;
+  value?: number;
+  /**
+   * The edge's stats past the first (`reduceOptions.calcs[1..]`), tooltip only — the same
+   * slot {@link RelationsNodeItem.secondaries} fills for a node, so one "Calculation"
+   * setting means the same thing on both kinds of mark. See `secondaryStatsOf`.
+   */
+  secondaries?: MarkStat[];
+  lineStyle?: {
+    /**
+     * A colour, or a gradient between the two endpoints' colours. The gradient form
+     * exists because ECharts' `graph` series implements only the `'source'` and
+     * `'target'` keywords — see `makeEdgeGradientResolver`.
+     */
+    color?: string | LinearGradientObject;
+    width?: number;
+    type?: 'solid' | 'dashed' | 'dotted';
+    curveness?: number;
+  };
+}
+
+/**
+ * One edge touching a node, as that node's own tooltip lists it.
+ *
+ * Built only for the nodes with no stat of their own. A node derived from an edge's
+ * endpoints carries `null` deliberately — a link count is not a measurement, see
+ * `docs/relations-derived-nodes.md` — so its tooltip was a header and nothing else, which
+ * reads as a mark the panel knows nothing about. Its edges are the one thing it *does* know,
+ * and they are numbers the response actually measured, so they are what the tooltip reports.
+ *
+ * The weight arrives as a display string, formatted through the **edge's** own display
+ * processor rather than through the node's: the node has none, and each edge is a field with
+ * its own unit under the wide contract. Same reasoning as {@link MarkStat}.
+ */
+export interface RelationsAdjacentEdge {
+  /** The other endpoint's display name (`RelationNode.name`), not its id. */
+  node: string;
+  /** True when the hovered node is this edge's `source` — the edge leaves it. */
+  outgoing: boolean;
+  /** The edge's weight, formatted through the edge's own field. */
+  value: string;
+}
+
+/**
+ * One mark's own field, resolved once per render so a hover is a map lookup.
+ *
+ * A mark **is** a field under the graph contract, which is what makes this
+ * possible: the hovered node or edge formats with its own unit and decimals and
+ * surfaces its own `config.links`, rather than borrowing whichever field happened
+ * to be first in the frame.
+ */
+export interface RelationsMark {
+  /** This mark's own display processor (unit, decimals, "No value"). */
+  formatValue: ValueFormatter;
+  /** This mark's field + row, for the footer's data links and ad-hoc filters. */
+  source: TooltipSource;
+  /**
+   * What the **response** said this mark's endpoints filter under, when it said anything
+   * beyond the contract's own pair. Edges only: a node's keys come from the edges touching
+   * it ({@link RelationsMarks.nodeFilterLabels}), because a node is not an endpoint pair.
+   * See `RelationLink.filterLabels`.
+   */
+  filterLabels?: GraphEndpointKeys;
+}
+
+/**
+ * Every mark that has a field, keyed by the mark key the ECharts item carries —
+ * `id` for a node ({@link RelationsNodeItem}), `markId` for an edge
+ * ({@link RelationsLinkItem}).
+ *
+ * Keyed rather than indexed on purpose. ECharts renumbers a graph's edges when it
+ * drops one whose endpoint is missing (`createGraphFromNodeEdge` keeps only
+ * `validEdges`), and the sankey variant removes links to break cycles, so a
+ * `dataIndex` into the model would silently point at the wrong mark. A missing key
+ * simply means "no field" — a node derived from an edge's endpoints — which renders
+ * no footer and formats through `formatDerivedMarkValue`.
+ *
+ * Nodes and edges are separate maps because their names live in different frames
+ * and can collide (a node `e1` and an edge `e1` are both legal).
+ */
+export interface RelationsMarks {
+  nodes: ReadonlyMap<string, RelationsMark>;
+  links: ReadonlyMap<string, RelationsMark>;
+  /**
+   * The edges touching each **statless** node, keyed by node id, in the model's own link
+   * order.
+   *
+   * Present only for the nodes that need it — a node with a stat reports the stat, and
+   * listing every node's edges would format every edge twice on every render. An id missing
+   * from this map therefore means "has a value of its own, or has no edges at all", not
+   * "unknown node". See {@link RelationsAdjacentEdge}.
+   */
+  adjacency?: ReadonlyMap<string, RelationsAdjacentEdge[]>;
+  /**
+   * The keys each node's endpoints filter under, derived from the edges touching it and
+   * keyed by node id.
+   *
+   * A node has no endpoint pair of its own — its identity is a `field.name`, and the pair is
+   * a property of an *edge* — so the only thing that can say which label a node filters
+   * under is an edge that names it. That is also exactly right for a multi-level flow: a
+   * namespace node is level 1's target and level 2's source, and both levels say
+   * `namespace`, so the node resolves to one key with no configuration and no per-node
+   * override.
+   *
+   * Split by role because the two halves of the footer want different things: "Filter on"
+   * asserts exactly one key and must take it from a role the node really plays, while
+   * "Filter out" negates a set and must cover the role it does *not*. See `nodeFilters`.
+   * Every list is deduped, in link order.
+   */
+  nodeFilterLabels?: ReadonlyMap<string, NodeFilterLabels>;
+  /**
+   * The datasource's own endpoint label keys, carried through from the model so the
+   * footer's ad-hoc filters are written under a key the datasource recognises. Unset means
+   * the contract's `source`/`target`. See `NodeGraphData.endpointLabels`.
+   */
+  endpointLabels?: GraphEndpointKeys;
+  /**
+   * Whether any **edge** field opts into ad-hoc filtering (standard `filterable`) — the
+   * opt-in for a mark that has no field of its own to carry one.
+   *
+   * A node the response only implied is the mark that needs it, and it is not a loophole:
+   * a node's filters are written under the *endpoint label keys*, which are the **edges'**
+   * dimensions (`endpointLabels` is resolved from the edges frames too). So the field that
+   * can honestly say whether `source="gateway"` means anything is an edge field, not the
+   * node's — the node has none, and where the derived-node pre-pass gives it one, that
+   * field answers first. Any rather than every: the keys are resolved response-wide, so
+   * one filterable edge means the response's endpoint dimensions are filterable.
+   */
+  endpointsFilterable?: boolean;
+}
+
+/** The distinct keys a node is an endpoint under, by role. See {@link RelationsMarks.nodeFilterLabels}. */
+export interface NodeFilterLabels {
+  /**
+   * Keys the node appears as a *source* under — the roles it really plays, so
+   * "Filter on this value" cannot assert a key the node has never held.
+   */
+  sources: string[];
+  /** Keys the node appears as a *target* under. */
+  targets: string[];
+  /**
+   * Every key "Filter out this value" negates: the roles above, **plus** the opposite key of
+   * the pairs it sits on for a role it does not play.
+   *
+   * That fill is what keeps "hide this node" honest. A node that is only a source in *this*
+   * response is not only a source in the data — a `topk` re-ranks the moment the filter
+   * applies — so negating its source key alone lets it reappear at the other end. For a
+   * single-level response the fill is the contract's own opposite key and the set is the
+   * `{source, target}` the panel has always negated; for a multi-level flow it is the
+   * neighbouring level's key, which is a no-op unless two levels share a name.
+   */
+  negate: string[];
+}
+
+/**
+ * The relations tooltip needs no context beyond {@link RelationsMarks} — no panel
+ * formatter, unlike every other family. A mark either has a field, and formats
+ * through it, or is a derived node whose value is a link count (see
+ * `formatDerivedMarkValue`). That is why there is no `RelationsTooltipContext` here
+ * to mirror {@link HierarchyTooltipContext}.
+ */

@@ -114,7 +114,7 @@ is listed once. The list stops at ten rows with a `+N more` count, because the r
 tooltip is a Single-mode tooltip and core only scrolls a Multi-mode one.
 
 It is a fallback, not an addition: a node that has a stat reports the stat. See
-`adjacencyRows` in `src/lib/echarts/relations/tooltip/tooltip.ts`.
+`adjacencyRows` in `src/lib/echarts/relations/tooltip/marks.ts`.
 
 The tooltip's ad-hoc filters are the one capability that does **not** degrade here, and
 deliberately so. A node's filters are written under the _endpoint label keys_, which are the

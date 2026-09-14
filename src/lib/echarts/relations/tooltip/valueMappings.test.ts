@@ -3,13 +3,14 @@ import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
 
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 
-import { buildRelationsTooltipModel, getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/tooltip';
-import { type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 import { relationsSeriesContext, relationsOptions } from 'test/relations';
 
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 import { getRelationsNodeLabelFormatter } from 'lib/echarts/relations/options/labels';
+import { getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/marks';
+import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/model';
+import { type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
 /**
  * **Value mappings on a relations mark.**
  *

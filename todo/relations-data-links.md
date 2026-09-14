@@ -8,7 +8,7 @@
 > and one edge one **field**, so `config.links` on a mark's own field is a link on that
 > mark and nothing else — and the panel now resolves the footer from the hovered mark's
 > own field rather than from one field per series (`getRelationsTooltipMarks`,
-> `lib/echarts/relations/tooltip/tooltip.ts`). Demonstrated on core panels in
+> `lib/echarts/relations/tooltip/marks.ts`). Demonstrated on core panels in
 > `provisioning/dashboards/relations/graph-wide.json` and on the relations panel itself in
 > `provisioning/dashboards/relations/per-mark-tooltip-links.json`: a `byName` override
 > puts a runbook link on node `db` and a trace link on edge `api-db`, and every other mark

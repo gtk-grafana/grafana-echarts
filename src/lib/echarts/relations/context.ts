@@ -1,6 +1,6 @@
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type RelationsMarks } from 'lib/echarts/tooltip/types';
 
+import { type RelationsMarks } from 'lib/echarts/relations/tooltip/types';
 /**
  * The render context the family's option builders take: the chart context plus the
  * per-mark lookup the tooltip and the node labels read.

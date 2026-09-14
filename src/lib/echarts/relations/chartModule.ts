@@ -9,7 +9,7 @@ import { getGraphSeries, relationsDefaultOptions } from 'lib/echarts/relations/o
 import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/relations/options/sankey';
-import { getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/tooltip';
+
 import { getHiddenSeriesNames, getMarkPositionOverride } from 'lib/grafana/fields/seriesConfig';
 import {
   type ChartModule,
@@ -25,6 +25,7 @@ import {
 import { graphWideTimeline } from 'lib/echarts/relations/converters/timeStops';
 import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
 import { resolveRelationsZoom } from 'lib/echarts/relations/options/view';
+import { getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/marks';
 /**
  * Ids of every node hidden from the visualization.
  *

@@ -3,8 +3,8 @@ import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
 import { type NodeGraphData, type RelationLink } from 'lib/echarts/relations/converters/model';
 import { type GraphPoint } from 'lib/echarts/relations/options/layout';
 import { type EdgeGradientResolver, resolveLinkColor } from 'lib/echarts/relations/options/linkColor';
-import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 
+import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
 /**
  * Turning the family's model into the two `data` arrays a `series.graph` takes: one item
  * per node and one per link, each carrying the per-mark style, the mark id the tooltip and

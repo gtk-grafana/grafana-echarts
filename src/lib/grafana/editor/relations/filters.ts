@@ -60,7 +60,7 @@ import { SOURCE_LABEL, TARGET_LABEL } from 'lib/echarts/relations/converters/con
  * fixing instead, and offering it in the Fields tab advertises the wrong fix.
  *
  * The buttons themselves only appear when the mark's standard **Filterable** config is
- * set; see `markFilterable` in `lib/echarts/relations/tooltip/tooltip.ts`.
+ * set; see `markFilterable` in `lib/echarts/relations/tooltip/filters.ts`.
  */
 /**
  * Their own section rather than "Node" or "Edge": both kinds of mark read them — an edge

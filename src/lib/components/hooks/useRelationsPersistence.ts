@@ -2,11 +2,12 @@ import { type FieldConfigSource } from '@grafana/data';
 import { type ECElementEvent } from 'echarts/core';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
-import { type RelationsNodeItem } from 'lib/echarts/tooltip/types';
+
 import { type MarkPosition, setMarkPositionsConfig } from 'lib/grafana/fields/seriesConfig';
 import { useEffect, useRef } from 'react';
 import { type PanelOptions } from 'types';
 
+import { type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
 /**
  * Write two relations interactions back into the panel's saved configuration: where a
  * node was dragged to, and where the view was panned and zoomed to.

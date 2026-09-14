@@ -9,10 +9,11 @@ import {
   RELATIONS_SHOW_NODE_VALUES_DEFAULT,
 } from 'editor/relations/constants';
 import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
-import { formatDerivedMarkValue } from 'lib/echarts/relations/tooltip/tooltip';
+
 import { formatEChartsValue } from 'lib/echarts/style';
 import { type PanelOptions } from 'types';
 
+import { formatDerivedMarkValue } from 'lib/echarts/relations/tooltip/marks';
 /**
  * Every label the graph draws — node names, node values, edge values — and the
  * label-layout arbitration that decides which of them survive an overlap.

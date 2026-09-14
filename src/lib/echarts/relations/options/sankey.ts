@@ -5,8 +5,7 @@ import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
 import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/relations/converters/model';
 
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
-import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/tooltip';
-import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
+
 import { type PanelOptions } from 'types';
 
 import { RELATIONS_LINK_COLOR_DEFAULT, RELATIONS_SHOW_NODE_LABELS_DEFAULT } from 'editor/relations/constants';
@@ -28,6 +27,8 @@ import {
   getRelationsNodeLabelFormatter,
 } from 'lib/echarts/relations/options/labels';
 import { getRelationsViewState, resolveRelationsRoam } from 'lib/echarts/relations/options/view';
+import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/model';
+import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
 /**
  * Sankey render variant of the relations family: the same `{ nodes, links }` model
  * the `graph` variant uses, laid out as weighted flow ribbons between node columns.
