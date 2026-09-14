@@ -1,4 +1,4 @@
-import { type PanelOptions } from 'types';
+import { type RelationsPanelOptions } from 'editor/relations/options';
 
 /**
  * Every Advanced-gated relations option at its default, per render variant.
@@ -26,7 +26,7 @@ import { type PanelOptions } from 'types';
  * deliberately **absent**: all three are Default-tier controls now, so resetting them
  * here would clear a value the user can still see.
  */
-export const ADVANCED_RELATIONS_DEFAULTS: Partial<PanelOptions> = {
+export const ADVANCED_RELATIONS_DEFAULTS: Partial<RelationsPanelOptions> = {
   relationsRoam: undefined,
   relationsZoom: undefined,
   relationsPan: undefined,
@@ -53,7 +53,7 @@ export const ADVANCED_RELATIONS_DEFAULTS: Partial<PanelOptions> = {
  * family's Advanced tier. `orient` and `nodeAlign` are absent deliberately: they are
  * Default-tier controls, not Advanced-gated. See `docs/options-modes.md`.
  */
-export const ADVANCED_SANKEY_DEFAULTS: Partial<PanelOptions> = {
+export const ADVANCED_SANKEY_DEFAULTS: Partial<RelationsPanelOptions> = {
   relationsSankeyNodeWidth: undefined,
   relationsSankeyNodeGap: undefined,
   relationsSankeyCurveness: undefined,
@@ -66,7 +66,7 @@ export const ADVANCED_SANKEY_DEFAULTS: Partial<PanelOptions> = {
  * family's reset in `applyEditorModeDefaults` so Default editor mode clears them.
  * See `docs/options-modes.md`.
  */
-export const ADVANCED_CHORD_DEFAULTS: Partial<PanelOptions> = {
+export const ADVANCED_CHORD_DEFAULTS: Partial<RelationsPanelOptions> = {
   relationsChordStartAngle: undefined,
   relationsChordClockwise: undefined,
   relationsChordPadAngle: undefined,
