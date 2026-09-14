@@ -10,7 +10,7 @@ coverage. Everything either side of it is tested:
 | Which transformations a response needs                                                             | `modules/relations/dataTransformations.test.ts` (7 cases, one per shape)                        |
 | Whether the host exposes the API, and the no-op when it does not                                   | `lib/grafana/panelDataTransformations.test.ts`                                                  |
 | What the panel does with frames nobody converted                                                   | `converters/relationsGraph.test.ts` — _reports row-format frames rather than rendering nothing_ |
-| That the derived-node pass changes no pixels, and that the override it enables is inert without it | `lib/components/relations-derived-nodes.integration.test.tsx`                                   |
+| That the derived-node pass changes no pixels, and that the override it enables is inert without it | `lib/components/integration-tests/relations/derived-nodes.integration.test.tsx`                 |
 
 What is untested is the single expression that connects them:
 

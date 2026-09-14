@@ -13,7 +13,7 @@ import { labelTexts, renderRelations } from 'test/relationsCanvas';
  * renders (or about the absence of a draw call), and a stored picture would pin the
  * simulation's arithmetic across ECharts versions for no benefit. The layouts that *do*
  * carry a reviewable picture — Fixed with server coordinates, and the gradient it makes
- * orientable — are snapshotted in `relations-graph.canvas.test.tsx`.
+ * orientable — are snapshotted in `canvas-tests/relations/graph.canvas.test.tsx`.
  */
 describe('relations layout', () => {
   /**
@@ -104,7 +104,7 @@ describe('relations layout', () => {
      * degradation applies — so the "gradient" baseline was byte-identical to the base
      * render *and* to the `source`-mode one, and would have gone on passing if gradients
      * had stopped working entirely. The picture is in
-     * `relations-graph.canvas.test.tsx`; the mechanism is here.
+     * `canvas-tests/relations/graph.canvas.test.tsx`; the mechanism is here.
      */
     it('a gradient link colour is emitted only where the layout knows the positions', async () => {
       const gradientCalls = async (relationsLayout: 'none' | 'circular') => {

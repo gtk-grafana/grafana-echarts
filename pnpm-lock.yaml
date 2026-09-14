@@ -149,6 +149,9 @@ importers:
       prettier:
         specifier: 3.9.6
         version: 3.9.6
+      pretty-format:
+        specifier: 30.4.1
+        version: 30.4.1
       replace-in-file-webpack-plugin:
         specifier: 1.0.6
         version: 1.0.6

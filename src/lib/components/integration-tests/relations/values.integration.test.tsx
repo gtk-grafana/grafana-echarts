@@ -11,7 +11,7 @@ import { renderRelations, uniqueLabelTexts } from 'test/relationsCanvas';
  * — and neither moves anything. **No baselines here, by construction**, the way
  * `relations-labels` states it: every claim below is the list of strings the panel
  * painted, which a 2,500-line picture would state worse while burying it. The geometry
- * these values are drawn *at* is pinned in `relations-graph.canvas.test.tsx`
+ * these values are drawn *at* is pinned in `canvas-tests/relations/graph.canvas.test.tsx`
  * ("node values on"), and read off the `fillText` calls either way.
  *
  * Every case turns "Show node values" and "Show edge values" on, because a label is the

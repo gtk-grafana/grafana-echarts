@@ -13,7 +13,7 @@ import { renderRelations } from 'test/relationsCanvas';
 //
 // Every test here is a snapshot test. The control that says why the derived-node
 // pre-pass has to run *above* the panel — the same override, inert without it — is
-// `relations-derived-nodes.integration.test.tsx`, which needs two renders and no
+// `integration-tests/relations/derived-nodes.integration.test.tsx`, which needs two renders and no
 // baseline.
 
 /** Colour, size and label, all three on a node the response never declared. */

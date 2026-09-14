@@ -9,7 +9,7 @@ import { ChartTimeSlider, resolveTimelineIndex } from './ChartTimeSlider';
  * What this component decides is *which timestamp a position means*: the stops are not evenly
  * spaced, so the slider runs over indices and hands back the timestamp at that index. That
  * the selection then changes what is drawn is asserted in
- * `relations-timeline.integration.test.tsx`.
+ * `integration-tests/relations/timeline.integration.test.tsx`.
  */
 
 const T0 = 1700000000000;

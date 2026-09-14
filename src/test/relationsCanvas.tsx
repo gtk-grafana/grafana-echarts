@@ -18,7 +18,7 @@ import { type PanelOptions } from 'types';
  * **Most layouts are pinned deliberately.** `layout: 'circular'` (deterministic ring
  * placement) or `none` with `fixedx`/`fixedy` from the data keeps a snapshot readable
  * as "these nodes, these links" rather than as an artefact of the simulation. The force
- * layout is reproducible too — `relations-layout.integration.test.tsx` is the test for
+ * layout is reproducible too — `integration-tests/relations/layout.integration.test.tsx` is the test for
  * that — but its coordinates carry no meaning, so it is not snapshotted.
  *
  * Rendered in Advanced editor mode so the advanced options these suites exercise (edge
@@ -108,16 +108,13 @@ export const renderRelations = async ({
 
 /**
  * The text of every label actually painted, so a label test can assert what was drawn
- * rather than only pin it. Draw calls accumulate across the harness's two render passes
- * (see todo/canvas-snapshot-double-render.md), so the same label appears twice.
+ * rather than only pin it. One entry per draw call, so a wrapped name — which zrender
+ * draws line by line — contributes one entry per line.
  */
 export const labelTexts = (events: CanvasRenderingContext2DEvent[]): string[] =>
   events.filter((event) => event.type === 'fillText').map((event) => String(event.props.text));
 
-/**
- * The distinct labels painted, sorted — the double render collapses away, so this is
- * what an inline snapshot of "which labels survived" is written against.
- */
+/** The distinct labels painted, sorted — what "which labels survived" is asserted on. */
 export const uniqueLabelTexts = (events: CanvasRenderingContext2DEvent[]): string[] =>
   [...new Set(labelTexts(events))].sort();
 

@@ -7,7 +7,7 @@ import { getChart, readCanvasLayer, SERIES_LAYER_SELECTOR } from 'test/canvas';
 import { waitForFinished } from 'test/panel';
 import { linkItems, relationsContext, relationsOptions } from 'test/relations';
 import { labelTexts, renderRelations } from 'test/relationsCanvas';
-import { TIME_SLIDER_HEIGHT } from './ChartTimeSlider';
+import { TIME_SLIDER_HEIGHT } from 'lib/components/ChartTimeSlider';
 
 /**
  * The time slider end to end through the family module: which timestamps it offers, what the

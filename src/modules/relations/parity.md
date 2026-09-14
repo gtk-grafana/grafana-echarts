@@ -441,7 +441,7 @@ frames can legitimately show a different number of links.
   and `none` instead; force _option mapping_ is covered by unit tests in
   `lib/echarts/options/graph.test.ts`, and its one testable render property —
   reproducibility — by [integration: two renders of the same frames draw identical
-  calls][int-layout]. See [relations-graph.canvas.test.tsx][canvas-graph]. The sankey
+  calls][int-layout]. See [graph.canvas.test.tsx][canvas-graph]. The sankey
   variant needs no such pinning — it self-layouts deterministically from the weights, so
   its snapshots include the default layout.
 - **Gradient link colour needs the Fixed layout.** zrender resolves a non-global gradient
@@ -518,16 +518,16 @@ place a node but do not size it. Node _size_ is per-item only on `graph`, via
 
 <!-- Regression test targets -->
 
-[canvas-graph]: ../../lib/components/relations-graph.canvas.test.tsx
-[canvas-sankey]: ../../lib/components/relations-sankey.canvas.test.tsx
-[canvas-chord]: ../../lib/components/relations-chord.canvas.test.tsx
-[canvas-overrides]: ../../lib/components/relations-overrides.canvas.test.tsx
-[int-labels]: ../../lib/components/relations-labels.integration.test.tsx
-[int-layout]: ../../lib/components/relations-layout.integration.test.tsx
-[int-interaction]: ../../lib/components/relations-interaction.integration.test.tsx
-[int-derived]: ../../lib/components/relations-derived-nodes.integration.test.tsx
-[int-timeline]: ../../lib/components/relations-timeline.integration.test.tsx
-[canvas-timeline]: ../../lib/components/relations-timeline.canvas.test.tsx
+[canvas-graph]: ../../lib/components/canvas-tests/relations/graph.canvas.test.tsx
+[canvas-sankey]: ../../lib/components/canvas-tests/relations/sankey.canvas.test.tsx
+[canvas-chord]: ../../lib/components/canvas-tests/relations/chord.canvas.test.tsx
+[canvas-overrides]: ../../lib/components/canvas-tests/relations/overrides.canvas.test.tsx
+[int-labels]: ../../lib/components/integration-tests/relations/labels.integration.test.tsx
+[int-layout]: ../../lib/components/integration-tests/relations/layout.integration.test.tsx
+[int-interaction]: ../../lib/components/integration-tests/relations/interaction.integration.test.tsx
+[int-derived]: ../../lib/components/integration-tests/relations/derived-nodes.integration.test.tsx
+[int-timeline]: ../../lib/components/integration-tests/relations/timeline.integration.test.tsx
+[canvas-timeline]: ../../lib/components/canvas-tests/relations/timeline.canvas.test.tsx
 [ed-timeline]: ../../lib/grafana/editor/relations/timeline.test.ts
 [graph-opts]: ../../lib/echarts/options/graph.test.ts
 [sankey-opts]: ../../lib/echarts/options/sankey.test.ts

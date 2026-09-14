@@ -254,9 +254,8 @@ describe('relations labels', () => {
         options: { relationsShowEdgeValues: true },
       });
 
-      // One value per render pass, and the harness renders twice.
-      expect(drawnOverlappingValues(seriesEvents)).toHaveLength(2);
-      expect(new Set(drawnOverlappingValues(seriesEvents)).size).toBe(1);
+      // One of the two weights is drawn; the other is hidden rather than piled on it.
+      expect(drawnOverlappingValues(seriesEvents)).toHaveLength(1);
       // The nodes keep their names: an edge value never takes a label down with it.
       expect(labelTexts(seriesEvents)).toEqual(expect.arrayContaining(['a', 'b']));
     });

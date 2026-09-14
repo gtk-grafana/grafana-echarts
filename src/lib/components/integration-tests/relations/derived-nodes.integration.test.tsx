@@ -18,7 +18,7 @@ import { renderRelations } from 'test/relationsCanvas';
  * the last one was previously snapshotted and its baseline was byte-identical to the
  * plain edges-only render, so 2,494 lines said nothing that `toEqual` does not say in
  * one. The picture that *is* worth reviewing, the override landing on a derived node, is
- * `relations overrides > nodes` in `relations-overrides.canvas.test.tsx`; this file is
+ * `relations overrides > nodes` in `canvas-tests/relations/overrides.canvas.test.tsx`; this file is
  * its matched control.
  */
 

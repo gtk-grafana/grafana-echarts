@@ -11,7 +11,7 @@ import { ChartZoomControls } from './ChartZoomControls';
  *
  * That the dispatched action actually scales the view — the non-obvious half, since
  * `roam` is `false` and ECharts' own zoom is `roam` — is asserted on the pixels in
- * `relations-interaction.integration.test.tsx`.
+ * `integration-tests/relations/interaction.integration.test.tsx`.
  */
 
 const action: ChartZoomAction = { type: 'graphRoam', seriesIndex: 0 };
