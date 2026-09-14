@@ -16,7 +16,7 @@ import {
   type RelationsFamilyField,
   type RelationsFamilyFrame,
   type RelationsFamilyValue,
-} from 'lib/grafana/fields/fieldTypes';
+} from 'lib/grafana/fields/relationsFields';
 import { type ConfigTypedField } from 'lib/grafana/types'; // (`.config/bundler/externals.ts`), so `rxjs/operators` would be bundled instead of
 // taken from the host.
 import { map } from 'rxjs';

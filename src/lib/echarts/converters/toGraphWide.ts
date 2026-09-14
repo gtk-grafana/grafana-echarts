@@ -19,7 +19,7 @@ import {
   SOURCE_LABEL,
   TARGET_LABEL,
 } from 'lib/echarts/converters/graphWide';
-import { type RelationsFamilyField, type RelationsFamilyFrame } from 'lib/grafana/fields/fieldTypes';
+import { type RelationsFamilyField, type RelationsFamilyFrame } from 'lib/grafana/fields/relationsFields';
 
 /**
  * The construction half of the graph-wide contract, shared by every converter into it.

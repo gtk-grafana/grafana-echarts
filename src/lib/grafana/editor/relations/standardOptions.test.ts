@@ -1,10 +1,13 @@
 import { FieldColorModeId, FieldConfigProperty } from '@grafana/data';
-import { RELATIONS_FIELD_OPTIONS, STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
-
+import { STANDARD_FIELD_OPTIONS } from 'lib/grafana/editor/common/fieldConfig';
+import { RELATIONS_FIELD_OPTIONS } from 'lib/grafana/editor/relations/standardOptions';
 /**
  * Two colour blocks that differ in one key, which is exactly why this is pinned: they
  * read as duplication worth merging, and merging them puts an inert control back in the
  * relations editor (or takes a working one off five other families).
+ *
+ * Lives with the relations block rather than the shared one: four of the five claims are
+ * about `RELATIONS_FIELD_OPTIONS`, and the fifth exists only as its contrast.
  */
 describe('standard Color option', () => {
   const colorSettings = (options: typeof STANDARD_FIELD_OPTIONS) =>

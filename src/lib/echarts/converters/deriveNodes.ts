@@ -10,7 +10,7 @@ import {
   resolveGraphWideRoles,
 } from 'lib/echarts/converters/graphWide';
 import { nodesWideFrame } from 'lib/echarts/converters/toGraphWide';
-import { type RelationsFamilyField } from 'lib/grafana/fields/fieldTypes';
+import { type RelationsFamilyField } from 'lib/grafana/fields/relationsFields';
 import { map } from 'rxjs';
 
 /**
