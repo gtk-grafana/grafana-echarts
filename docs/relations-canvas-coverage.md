@@ -23,8 +23,10 @@ Two columns, because both halves break independently:
 - **Changed** — is a _non-default_ value pinned? This is the half that catches "the
   option stopped being read".
 
-Suites are named without their `relations-` prefix and `.test.tsx` suffix:
-`graph.canvas` is `src/lib/components/relations-graph.canvas.test.tsx`.
+Suites are named without their `.test.tsx` suffix and their directory:
+`graph.canvas` is `src/lib/components/canvas-tests/relations/graph.canvas.test.tsx`, and
+`labels.integration` is
+`src/lib/components/integration-tests/relations/labels.integration.test.tsx`.
 
 Three settings the harness pins for every canvas test, so no baseline can cover their
 alternatives (see `test/relationsCanvas.tsx`): `relationsLayout: 'circular'`,
@@ -106,7 +108,7 @@ ignored it — so adding a case for a new property means adding it there first.
 ## Colour schemes
 
 One representative per **class** of scheme, on all three variants
-(`color.canvas` = `src/lib/components/relations-color.canvas.test.tsx`, 15 baselines on a
+(`color.canvas` = `canvas-tests/relations/color.canvas.test.tsx`, 15 baselines on a
 3-node fixture). What breaks is a class losing its route, not one continuous ramp
 differing from another: every mark is coloured by its own display processor, so the
 schemes arrive already resolved.
@@ -177,9 +179,12 @@ Two of the new cases compare their render against the same frames at the default
 slack), and `chord`'s `minAngle` does the same on any fixture without a sliver. A
 baseline that pins nothing looks exactly like a baseline that pins something.
 
-## Proposals — not implemented
+## Snapshot size and layout
 
-### Cutting snapshot size
+Execution order, commits and verification for the two below live in
+[todo/relations-test-refactor.md](../todo/relations-test-refactor.md).
+
+### Cutting snapshot size — not implemented
 
 Three levers, measured on the current 266k lines. They compose:
 
@@ -206,16 +211,17 @@ Levers 1 + 2 alone take the tree from 266k to ~93k lines with no change to what 
 asserted. All three land it near 16k. Each rewrites every baseline, so each wants to be
 its own commit — per `AGENTS.md`, never a side effect of feature work.
 
-A fourth, cheaper option for the biggest offenders: `relations-graph` (46k lines over 18
+A fourth, cheaper option for the biggest offenders: `graph.canvas` (46k lines over 18
 baselines), `part-to-whole` (39k over 27), `Panel` (30k over 27) and the new
-`relations-color` (23k over 15). Some of those pin a
+`color.canvas` (23k over 15). Some of those pin a
 variation whose whole claim is one number — an opacity, a width — and convert to
 drawn-primitive assertions without losing anything a reviewer looks at.
 
-### Moving the canvas suites into a directory
+### The suite directories — landed for relations
 
-`src/lib/components/` currently mixes 15 canvas suites, their integration siblings, and
-the components themselves. Proposed:
+`src/lib/components/` used to mix 15 canvas suites, their integration siblings, and the
+components themselves. The relations family now sits in two directories, kept distinct
+because one kind commits pictures and the other does not:
 
 ```
 src/lib/components/
@@ -227,30 +233,47 @@ src/lib/components/
       overrides.canvas.test.tsx
       color.canvas.test.tsx
       timeline.canvas.test.tsx
-    cartesian/   axis, categorical-cartesian, performance, Panel
+  integration-tests/
+    relations/
+      labels.integration.test.tsx    derived-nodes.integration.test.tsx
+      layout.integration.test.tsx    timeline.integration.test.tsx
+      interaction.integration.test.tsx
+      values.integration.test.tsx
+```
+
+The remaining families are the same operation, one commit each, and can follow whenever:
+
+```
+  canvas-tests/
+    cartesian/       axis, categorical-cartesian, performance, Panel
     part-to-whole/   part-to-whole, part-to-whole-funnel
-    multivariate/   multivariate
-    stream/   stream
+    multivariate/    multivariate
+    stream/          stream
 ```
 
 What it buys: `git log --stat` on a family stops scrolling past every other family's
-baselines; a reviewer can point a diff tool at one directory; `jest src/lib/components/canvas-tests/relations`
-is the family's whole picture set; and the integration siblings — which commit nothing and
-are read as code — stop sitting next to 46k-line `.snap` files.
+baselines; a reviewer can point a diff tool at one directory;
+`jest src/lib/components/canvas-tests/relations` is the family's whole picture set; and
+the integration siblings — which commit nothing and are read as code — stop sitting next
+to 46k-line `.snap` files.
 
-Cost and cautions:
+What the move cost, for whoever does the next family:
 
 - **`git mv` the `.snap` files with the tests**, in the same commit, or every baseline is
   written from scratch and the diff is 242k lines of noise instead of a rename. Jest
   resolves `__snapshots__` relative to the test file, so the pairing is mechanical.
 - The suite names inside each `.snap` are keyed off `describe`/`it`, not the path, so
-  **renaming the files changes no baseline content** as long as the `describe` strings stay
-  put. Rename the files, not the suites.
-- `suiteShape.test.ts` globs `src/**/*.canvas.test.*` and keeps working unchanged.
+  **renaming the files changed no baseline content** — verified with
+  `scripts/canvas-inventory.mjs`, whose output is byte-identical across the move. Rename
+  the files, not the suites.
+- `suiteShape.test.ts` globs `src/**/*.canvas.test.*` and kept working unchanged.
 - Every canvas suite already imports through the `src`-rooted aliases (`test/canvas`,
-  `lib/echarts/…`) — jest resolves them via `modulePaths: ['<rootDir>/src']` — and not one
-  of the 15 uses a relative `../` import, so no import changes with the move.
+  `lib/echarts/…`) — jest resolves them via `modulePaths: ['<rootDir>/src']` — so no
+  canvas import changed. One integration sibling did: `timeline.integration` imported
+  `./ChartTimeSlider` relatively and now imports `lib/components/ChartTimeSlider`. Check
+  for that before moving a family.
+- `src/modules/*/parity.md` link definitions name test paths and
+  `src/test/parityCitations.test.ts` resolves each one, so a stale path fails the build.
+  That is the one place the move cannot be silent, and the reason it is safe.
 - `scripts/canvas-shots.mjs` and the AGENTS.md review flow key off the payload directory,
-  not the test path, so neither changes.
-
-Doing the two together — reformat, then move — costs one baseline rewrite instead of two.
+  not the test path, so neither changed.

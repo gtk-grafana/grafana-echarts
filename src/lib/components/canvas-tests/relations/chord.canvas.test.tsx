@@ -9,7 +9,7 @@ import { renderRelations } from 'test/relationsCanvas';
 // cycles and self-loops directly.
 //
 // Every test here is a snapshot test; the label-arbitration claims that compare two
-// renders live in `relations-labels.integration.test.tsx`.
+// renders live in `integration-tests/relations/labels.integration.test.tsx`.
 
 const renderChord = (input: Omit<Parameters<typeof renderRelations>[0], 'variant'>) =>
   renderRelations({ ...input, variant: 'chord' });

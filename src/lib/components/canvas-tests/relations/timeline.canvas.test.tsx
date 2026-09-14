@@ -19,7 +19,7 @@ import { renderRelations } from 'test/relationsCanvas';
 // relations baseline (`TIME_SLIDER_HEIGHT` — the strip takes layout rather than overlaying),
 // and the edge labels read `1`/`10` — the earliest row — where `lastNotNull` would print
 // `3`/`30`. Both are also stated as comparisons in
-// `relations-timeline.integration.test.tsx`; this is what they look like.
+// `integration-tests/relations/timeline.integration.test.tsx`; this is what they look like.
 //
 // Edge values are on deliberately: a graph link's thickness comes from `custom.lineWidth`,
 // not from its weight, so without the labels the two timestamps would paint identical lines.

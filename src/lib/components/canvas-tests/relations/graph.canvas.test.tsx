@@ -119,7 +119,7 @@ describe('relations graph', () => {
    * width — so it is also the first thing to drift when text measurement changes (see
    * `jest-setup.js`). Both cases are pictures because the claim is where the text sits,
    * not what it says; the strings themselves are asserted in
-   * `relations-labels.integration.test.tsx`.
+   * `integration-tests/relations/labels.integration.test.tsx`.
    */
   describe('labels', () => {
     /** Four nodes whose titles are three times what fits in the default 120px box. */
@@ -195,7 +195,7 @@ describe('relations graph', () => {
     // Overlap hiding off, because an edge label sits at the link's midpoint and would
     // otherwise be arbitrated against the node labels — the weights are what this pins.
     // Which value survives a collision, and when, is
-    // `relations-labels.integration.test.tsx`.
+    // `integration-tests/relations/labels.integration.test.tsx`.
     it("edge values on (a weight drawn at each link's midpoint)", async () => {
       const { defaultEvents, seriesEvents } = await renderRelations({
         frames: [nodesFrame, edgesFrame],
@@ -264,7 +264,7 @@ describe('relations graph', () => {
      * one graph baseline taken under `layout: 'none'` with explicit node colours: the
      * blend has to be visible in the picture to be worth reviewing as one. That the
      * degradation is real — no gradient under circular — is asserted in
-     * `relations-layout.integration.test.tsx`, where it costs no baseline.
+     * `integration-tests/relations/layout.integration.test.tsx`, where it costs no baseline.
      */
     it('gradient link color on a fixed layout (each line blends its source colour into its target)', async () => {
       const coloredPinned = toDataFrame({
@@ -344,7 +344,7 @@ describe('relations graph', () => {
      * `relations-thresholds.integration.test.tsx`; this is the picture of it.
      *
      * Three weights are drawn for the four lines: `api --> db`'s `20` lands under a node
-     * name and yields to it, the arbitration `relations-labels.integration.test.tsx`
+     * name and yields to it, the arbitration `integration-tests/relations/labels.integration.test.tsx`
      * pins. The colours are the claim here, not the labels.
      */
     it('a by-value scheme on every mark (nodes in three bands, each line graded by its own weight)', async () => {
