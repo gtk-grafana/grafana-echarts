@@ -8,10 +8,13 @@ import { hasGraphTimeline } from 'lib/echarts/relations/converters/timeStops';
 /**
  * The time slider: read every mark at **one timestamp** instead of reducing its rows away.
  *
- * Registered in "Value options" beside the picker it replaces, because the two are
+ * Registered in "Value" **before** the picker it replaces, because the two are
  * alternative answers to one question — `reduceOptions.calcs[0]` gives the number that
  * stands for a mark's whole timeline, this gives the graph as it was at 14:32 — so the
  * picker is hidden while the slider is on (`addRelationsStatOptions`).
+ *
+ * The order is the fix for the two reading as unrelated: this switch is the prior
+ * question, and the picker is what it reveals rather than a second, competing control.
  *
  * The slider itself is drawn in the panel body: it is a *selection*, not a setting, and
  * writing it into the options would mark the dashboard dirty on every step. See
@@ -23,9 +26,9 @@ export function addRelationsTimelineOptions(builder: PanelOptionsEditorBuilder<P
     name: t('relations.timeline.name-time-slider', 'Time slider'),
     description: t(
       'relations.timeline.description-time-slider',
-      'Read each mark at one timestamp instead of calculating over the range. Needs ranged data'
+      'Read each mark at one timestamp instead of calculating over the range. Replaces Calculation. Needs ranged data'
     ),
-    category: [t('stat.add-standard-data-reduce-options.category-value-options', 'Value options')],
+    category: [t('relations.category-value', 'Value')],
     defaultValue: RELATIONS_TIME_SLIDER_DEFAULT,
     /**
      * Hidden unless the response has somewhere to scrub to, like "Show node values" gating

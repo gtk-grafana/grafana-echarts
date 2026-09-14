@@ -1,13 +1,12 @@
 import { PanelOptionsEditorBuilder, standardEditorsRegistry } from '@grafana/data';
-import { advancedOptionsCategoryName } from 'editor/constants';
 
-import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
+import { addAnimationOption } from 'lib/grafana/editor/common/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
+import { addRelationsLabelOptions } from 'lib/grafana/editor/relations/labels';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
-import { addRelationsNodeOptions } from 'lib/grafana/editor/relations/nodes';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { type PanelOptions } from 'types';
@@ -15,6 +14,7 @@ import { type PanelOptions } from 'types';
 import {
   ADVANCED_CHORD_DEFAULTS,
   ADVANCED_RELATIONS_DEFAULTS,
+  ADVANCED_RELATIONS_SHARED_DEFAULTS,
   ADVANCED_SANKEY_DEFAULTS,
 } from 'lib/echarts/relations/options/advancedDefaults';
 /**
@@ -34,11 +34,14 @@ import {
  * have no tier at all and are absent from both lists.) This test is what makes the next
  * mismatch fail loudly instead.
  *
- * The tier membership is read from the **category** rather than from probing each
- * `showIf`: every Advanced control goes through `addAdvanced*`, which fixes the category
- * to "Advanced" and composes `isAdvancedEditorMode` into the gate, so the category is
- * the same fact stated once instead of a predicate that has to be interrogated with a
- * guessed-at options object.
+ * **Tier membership is probed from each `showIf`, not read off a category.** It used to
+ * be the category: every Advanced control went through `addAdvanced*`, which pinned the
+ * category to "Advanced", so the category was the same fact stated once. The family
+ * groups by purpose now — Labels, Layout, Interaction, Edges, Sankey, Chord — and an
+ * Advanced control sits in the section it belongs to, so the category no longer says
+ * anything about the tier. The gate is the only remaining statement of it, so the gate
+ * is what this interrogates: an option is Advanced iff there is some panel configuration
+ * where it shows in Advanced mode and hides in Default mode.
  */
 
 /**
@@ -64,14 +67,14 @@ standardEditorsRegistry.setInit(() =>
 const registeredOptions = () => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
   addRelationsTimelineOptions(builder);
+  addRelationsLabelOptions(builder);
   addRelationsLayoutOptions(builder);
-  addRelationsNodeOptions(builder);
+  addRelationsForceOptions(builder);
+  addAnimationOption(builder);
+  addRelationsInteractionOptions(builder);
+  addRelationsLinkOptions(builder);
   addRelationsSankeyOptions(builder);
   addRelationsChordOptions(builder);
-  addRelationsInteractionOptions(builder);
-  addRelationsForceOptions(builder);
-  addRelationsLinkOptions(builder);
-  addRelationsAnimationOption(builder);
   return builder.getItems();
 };
 
@@ -80,59 +83,88 @@ const RELATIONS_TIER: Partial<PanelOptions> = {
   ...ADVANCED_RELATIONS_DEFAULTS,
   ...ADVANCED_SANKEY_DEFAULTS,
   ...ADVANCED_CHORD_DEFAULTS,
+  ...ADVANCED_RELATIONS_SHARED_DEFAULTS,
 };
 
 /**
- * Tier keys with no control of their own, documented one by one.
+ * Panel configurations to probe each gate against.
  *
- * `relationsRoam` is the superseded single "Zoom and pan" switch. Its control is gone —
- * it is two switches now — but a dashboard saved before the split still carries the
- * value, and `resolveRelationsRoam` / `resolveRelationsZoom` still read it as a
- * fallback. So it must still be reset in Default mode, and it will never appear in the
- * editor again.
+ * A single fixture is not enough: the gates AND a variant (and sometimes a layout)
+ * condition into the Advanced check, so a chord option reads as hidden on a graph
+ * fixture whatever the mode. An option counts as Advanced if **any** of these
+ * configurations reveals it in Advanced mode and hides it in Default mode, which is the
+ * definition that does not depend on guessing the right fixture per option.
  */
-const NO_CONTROL: Array<keyof PanelOptions> = ['relationsRoam'];
+const PROBES: Array<Partial<PanelOptions>> = [
+  { seriesType: 'graph', relationsLayout: 'force' },
+  { seriesType: 'graph', relationsLayout: 'circular' },
+  { seriesType: 'graph', relationsLayout: 'none' },
+  { seriesType: 'sankey' },
+  { seriesType: 'chord' },
+];
+
+/**
+ * The reset is keyed by top-level option key while an editor item carries a full path,
+ * so `animation.enabled` has to be compared as `animation`. Only the shared animation
+ * flag is nested today; every relations-owned option is a flat key.
+ */
+const resetKeyOf = (path: string) => path.split('.')[0];
+
+const isAdvanced = (item: { showIf?: (options: PanelOptions, data?: undefined) => boolean | undefined }) => {
+  if (item.showIf == null) {
+    return false;
+  }
+  return PROBES.some(
+    (probe) =>
+      item.showIf!({ ...probe, editorMode: 'advanced' } as PanelOptions, undefined) === true &&
+      item.showIf!({ ...probe, editorMode: 'default' } as PanelOptions, undefined) !== true
+  );
+};
 
 describe('relations Advanced tier', () => {
-  const advancedPaths = () =>
+  const advancedKeys = () =>
     registeredOptions()
-      .filter((item) => item.category?.[0] === advancedOptionsCategoryName)
-      .map((item) => item.path)
+      .filter(isAdvanced)
+      .map((item) => resetKeyOf(item.path))
       .sort();
 
-  const tierKeys = () =>
-    (Object.keys(RELATIONS_TIER) as Array<keyof PanelOptions>).filter((key) => !NO_CONTROL.includes(key)).sort();
+  const tierKeys = () => (Object.keys(RELATIONS_TIER) as Array<keyof PanelOptions>).sort();
 
   it('registers Advanced controls at all', () => {
-    expect(advancedPaths().length).toBeGreaterThan(10);
+    expect(advancedKeys().length).toBeGreaterThan(10);
   });
 
   // Both directions in one assertion, so a failure names the drifted key rather than
   // only its count.
   it('resets exactly the options it hides', () => {
-    expect(advancedPaths()).toEqual(tierKeys());
-  });
-
-  // The allow-list is a list of exceptions, and an exception that has stopped being one
-  // is worse than no allow-list: it would silently excuse a real omission.
-  it.each(NO_CONTROL)('keeps %s in the tier although it has no control', (key) => {
-    expect(RELATIONS_TIER).toHaveProperty(key);
-    expect(advancedPaths()).not.toContain(key);
+    expect(advancedKeys()).toEqual(tierKeys());
   });
 
   /**
    * A Default-tier control must **not** be reset — it is visible in both modes, so
-   * clearing it would read as the editor forgetting what the user typed. The sankey's
-   * own layout category is the case that matters: it sits outside "Advanced" precisely
-   * so it survives.
+   * clearing it would read as the editor forgetting what the user typed.
+   *
+   * There is no allow-list any more. It existed for one entry, `relationsRoam` — the
+   * superseded single "Zoom and pan" switch, which had no control of its own but was
+   * still read as a fallback, so it had to be in the reset while being absent from the
+   * pane. The option is deleted now (`resolveRelationsPan`), so every key in the reset
+   * has a control and the exception is gone.
    */
   it('leaves every Default-tier control out of the reset', () => {
     const defaultTier = registeredOptions()
-      .filter((item) => item.category?.[0] !== advancedOptionsCategoryName)
-      .map((item) => item.path);
+      .filter((item) => !isAdvanced(item))
+      .map((item) => resetKeyOf(item.path));
 
-    expect(defaultTier.filter((path) => path in RELATIONS_TIER)).toEqual([]);
+    expect(defaultTier.filter((key) => key in RELATIONS_TIER)).toEqual([]);
     // Guard against the assertion passing because nothing is Default-tier.
-    expect(defaultTier).toEqual(expect.arrayContaining(['relationsLayout', 'relationsSankeyOrient']));
+    expect(defaultTier).toEqual(
+      expect.arrayContaining(['relationsLayout', 'relationsSankeyOrient', 'relationsZoom', 'relationsLabelOverflow'])
+    );
+  });
+
+  // The deleted legacy key must not reappear in either list.
+  it('has no legacy roam key left in the tier', () => {
+    expect(RELATIONS_TIER).not.toHaveProperty('relationsRoam');
+    expect(registeredOptions().map((item) => item.path)).not.toContain('relationsRoam');
   });
 });

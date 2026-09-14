@@ -45,14 +45,23 @@ describe('getSankeyOrient', () => {
   });
 });
 
+/**
+ * **The one sankey key that is always emitted.** The family default is `left` and
+ * ECharts' is `justify`, so the omit-at-the-default trick every other key here uses
+ * would hand ECharts no key and get `justify` — the one value the family is deliberately
+ * not choosing. `left` makes a node's column mean its depth in the flow, which is what a
+ * reader takes a sankey's horizontal axis to mean; under `justify` a leaf two steps in is
+ * drawn beside leaves five steps in.
+ */
 describe('getSankeyNodeAlign', () => {
-  it('omits the key at the justify default', () => {
-    expect(getSankeyNodeAlign(baseOptions())).toBeUndefined();
-    expect(getSankeyNodeAlign(baseOptions({ relationsSankeyNodeAlign: 'justify' }))).toBeUndefined();
+  it('emits the left default rather than omitting it', () => {
+    expect(getSankeyNodeAlign(baseOptions())).toBe('left');
+    expect(getSankeyNodeAlign(baseOptions({ relationsSankeyNodeAlign: 'left' }))).toBe('left');
   });
 
-  it('returns an explicit alignment', () => {
-    expect(getSankeyNodeAlign(baseOptions({ relationsSankeyNodeAlign: 'left' }))).toBe('left');
+  it('returns an explicit alignment, including ECharts own default', () => {
+    expect(getSankeyNodeAlign(baseOptions({ relationsSankeyNodeAlign: 'right' }))).toBe('right');
+    expect(getSankeyNodeAlign(baseOptions({ relationsSankeyNodeAlign: 'justify' }))).toBe('justify');
   });
 });
 
@@ -180,12 +189,13 @@ describe('getSankeySeries', () => {
     );
 
     expect(series).not.toHaveProperty('orient');
-    expect(series).not.toHaveProperty('nodeAlign');
     expect(series).not.toHaveProperty('nodeWidth');
     expect(series).not.toHaveProperty('nodeGap');
     expect(series).not.toHaveProperty('layoutIterations');
     // `emphasis` is not in this list: adjacency focus is on by default now, so the key
-    // is emitted — see `getSankeyEmphasis`.
+    // is emitted — see `getSankeyEmphasis`. Neither is `nodeAlign`, whose family default
+    // differs from ECharts' and so is always emitted — see `getSankeyNodeAlign`.
+    expect(series).toHaveProperty('nodeAlign', 'left');
     expect(series).not.toHaveProperty('edgeLabel');
   });
 

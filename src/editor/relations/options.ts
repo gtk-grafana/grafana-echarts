@@ -49,20 +49,6 @@ export interface RelationsPanelOptions {
   relationsNodeSize?: number;
 
   /**
-   * Relations zoom & pan, the **superseded** single switch (Advanced; ECharts
-   * `series.graph.roam`). Split into {@link relationsZoom} and {@link relationsPan}
-   * because the two answer different questions — "may the view scale" and "may the
-   * view be dragged" — and because zoom is driven by the panel's own buttons now
-   * rather than by the scroll wheel, which a dashboard cannot scroll past.
-   *
-   * Still read, so a dashboard saved with the old switch keeps both behaviours:
-   * `resolveRelationsZoom` / `resolveRelationsPan` fall back to it. Never written.
-   *
-   * @deprecated Use `relationsZoom` / `relationsPan`.
-   */
-  relationsRoam?: boolean;
-
-  /**
    * Relations zoom (Advanced). Shows the panel's zoom in / out / reset buttons and
    * lets them scale the view; **not** ECharts' scroll-to-zoom, which is deliberately
    * never enabled — a wheel event over a panel belongs to the dashboard's scroll.

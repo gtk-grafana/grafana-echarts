@@ -3,19 +3,29 @@ import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { addAdvancedBooleanSwitch } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
-import { RELATIONS_FOCUS_ADJACENCY_DEFAULT, relationsCategoryName } from 'editor/relations/constants';
+import { RELATIONS_FOCUS_ADJACENCY_DEFAULT, relationsInteractionCategoryName } from 'editor/relations/constants';
 import { isChordVariant, isGraphVariant, isSankeyVariant } from 'editor/relations/variants';
 /**
- * Interaction options: view zoom, view pan, node dragging, and adjacency
- * highlighting.
+ * The "Interaction" section: what the reader may do to the view once it is drawn.
  *
- * "Highlight adjacency" is Default-tier and on; the other three are Advanced and off,
- * keeping the panel static like the other families — including on the sankey variant,
- * whose ECharts default is `draggable: true` (pinned back off in `getSankeySeries`).
+ * **Zoom, pan and Remember view are Default-tier**, where they used to be Advanced. That
+ * was the wrong tier for a reason specific to this family: a relations panel's problem is
+ * not that it has too much detail to take in, it is that a topology of any size does not
+ * fit in a panel at all. Zoom and pan are how the rest of the data is reachable, so
+ * requiring Advanced mode to turn them on hid the controls that make a large graph usable
+ * behind a switch whose label suggests expert tuning.
+ *
+ * "Draggable nodes" stays Advanced: it is only offered on two of the four layouts, and it
+ * writes a field override as a side effect. "Highlight adjacency" is Default and on.
  * https://echarts.apache.org/en/option.html#series-graph.roam
  * https://echarts.apache.org/en/option.html#series-graph.draggable
  * https://echarts.apache.org/en/option.html#series-graph.emphasis
  */
+const interactionCategory = [relationsInteractionCategoryName];
+
+/** Every variant but chord, which has no view coordinate system at all. */
+const hasView = (options: PanelOptions) => !isChordVariant(options);
+
 export function addRelationsInteractionOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   /**
    * Zoom and pan were one switch ("Zoom and pan", `relationsRoam`) and are two now,
@@ -26,28 +36,55 @@ export function addRelationsInteractionOptions(builder: PanelOptionsEditorBuilde
    *
    * So zoom does not use ECharts' roam zoom at all. It draws buttons in the panel
    * corner (`ChartZoomControls`) and dispatches the roam *action*, which leaves the
-   * wheel alone. `relationsRoam` is still read by both, so a dashboard saved with the
-   * old switch keeps behaving the same. See `resolveRelationsRoam`.
+   * wheel alone. See `resolveRelationsRoam`.
+   *
+   * The superseded single switch (`relationsRoam`) is **gone**, not migrated: its
+   * fallback made a panel carrying only the old key render with zoom and pan on while
+   * both of these switches displayed off, which is a worse failure than losing the
+   * setting. The plugin is unreleased, so no dashboard outside this repo can carry it.
    *
    * Chord is excluded from both: `series.chord` has no `roam` and no view coordinate
    * system, so neither the option nor the action reaches it.
    */
-  addAdvancedBooleanSwitch(builder, {
+  builder.addBooleanSwitch({
     path: 'relationsZoom',
     name: 'Zoom',
     description: 'Show zoom in / out / reset buttons in the panel corner',
-    showIf: (options) => !isChordVariant(options),
+    category: interactionCategory,
+    showIf: hasView,
   });
 
-  addAdvancedBooleanSwitch(builder, {
+  builder.addBooleanSwitch({
     path: 'relationsPan',
     name: 'Pan',
     description: 'Allow drag-to-pan within the panel',
-    showIf: (options) => !isChordVariant(options),
+    category: interactionCategory,
+    showIf: hasView,
   });
 
   /**
-   * Dragging, and where the node stays.
+   * Whether the panned/zoomed view is part of the panel's saved configuration.
+   *
+   * Opt-in, and off by default, because of what writing it costs rather than what it
+   * costs to draw: `onOptionsChange` marks the dashboard as having unsaved changes, so
+   * a reader who merely drags the graph aside to see behind it would be prompted to
+   * save on the way out. On, the view is a setting like any other. Chord is excluded
+   * for the same reason it has no zoom buttons: it has no view to save.
+   *
+   * Default-tier alongside Zoom and Pan — it is the answer to "why did my pan not
+   * stick", which is the immediate next question once those two are reachable.
+   */
+  builder.addBooleanSwitch({
+    path: 'relationsRememberView',
+    name: 'Remember view',
+    description: 'Save the panned and zoomed view into the panel, so it survives a reload',
+    category: interactionCategory,
+    showIf: hasView,
+  });
+
+  /**
+   * Dragging, and where the node stays. **Advanced**, unlike the three above: it is
+   * offered on only two of the layouts, and a drag writes a field override.
    *
    * Offered on the **sankey** variant and on a graph under `Fixed` — the two layouts where a
    * dragged position is a position. There the drag is an edit, and the panel writes it back
@@ -68,23 +105,8 @@ export function addRelationsInteractionOptions(builder: PanelOptionsEditorBuilde
     path: 'relationsDraggable',
     name: 'Draggable nodes',
     description: 'Let nodes be dragged. The new position is saved as a field override',
+    category: interactionCategory,
     showIf: (options) => isSankeyVariant(options) || (isGraphVariant(options) && options.relationsLayout === 'none'),
-  });
-
-  /**
-   * Whether the panned/zoomed view is part of the panel's saved configuration.
-   *
-   * Opt-in, and off by default, because of what writing it costs rather than what it
-   * costs to draw: `onOptionsChange` marks the dashboard as having unsaved changes, so
-   * a reader who merely drags the graph aside to see behind it would be prompted to
-   * save on the way out. On, the view is a setting like any other. Chord is excluded
-   * for the same reason it has no zoom buttons: it has no view to save.
-   */
-  addAdvancedBooleanSwitch(builder, {
-    path: 'relationsRememberView',
-    name: 'Remember view',
-    description: 'Save the panned and zoomed view into the panel, so it survives a reload',
-    showIf: (options) => !isChordVariant(options),
   });
 
   // Default-tier and on: reading one node's neighbourhood out of a dense topology is
@@ -94,7 +116,7 @@ export function addRelationsInteractionOptions(builder: PanelOptionsEditorBuilde
     path: 'relationsFocusAdjacency',
     name: 'Highlight adjacency',
     description: 'On hover, fade everything except the node and its neighbours',
-    category: [relationsCategoryName],
+    category: interactionCategory,
     defaultValue: RELATIONS_FOCUS_ADJACENCY_DEFAULT,
   });
 }

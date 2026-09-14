@@ -29,14 +29,32 @@ export const SANKEY_ORIENT_DEFAULT: RelationsSankeyOrient = 'horizontal';
 
 /** Panel option path for the sankey column alignment. Maps to ECharts `series.sankey.nodeAlign`. */
 export const sankeyNodeAlignPath = 'relationsSankeyNodeAlign';
-/** Sankey node-alignment options (Justify / Left / Right). */
+/**
+ * Sankey node-alignment options, **Left first and Justify last** — ordered by how much
+ * the choice rearranges the data rather than by ECharts' own ordering.
+ *
+ * `left` reads as the plain answer: every node sits in the earliest column its inputs
+ * allow, so a node's column *is* its depth in the flow and two sankeys of the same data
+ * are comparable. `justify` instead pushes every node with no outgoing links to the far
+ * edge, which stretches terminal nodes away from the step that produced them — useful,
+ * but a rearrangement, so it comes last.
+ */
 export const sankeyNodeAlignOptions: Array<SelectableValue<RelationsSankeyNodeAlign>> = [
-  { value: 'justify', label: 'Justify', description: 'Push nodes with no outgoing links to the far edge' },
   { value: 'left', label: 'Left', description: 'Pin each node to the earliest column it can occupy' },
   { value: 'right', label: 'Right', description: 'Pin each node to the latest column it can occupy' },
+  { value: 'justify', label: 'Justify', description: 'Push nodes with no outgoing links to the far edge' },
 ];
-/** Default sankey node alignment: justify (matches ECharts). Omitted at this default. */
-export const SANKEY_NODE_ALIGN_DEFAULT: RelationsSankeyNodeAlign = 'justify';
+/**
+ * Default sankey node alignment: **left**, departing from ECharts' `justify`.
+ *
+ * A column then means the node's depth in the flow, which is what a reader takes a
+ * sankey's horizontal axis to mean. Under `justify` a leaf two steps in is drawn in the
+ * last column beside leaves five steps in, so the axis stops carrying depth at all.
+ *
+ * Emitted explicitly rather than omitted, since it is no longer the ECharts default —
+ * see `getSankeySeries`.
+ */
+export const SANKEY_NODE_ALIGN_DEFAULT: RelationsSankeyNodeAlign = 'left';
 
 /**
  * Panel option paths for the sankey node box geometry (ECharts

@@ -31,6 +31,12 @@ import { RELATIONS_CALC_DEFAULT } from 'editor/relations/constants';
  * other answer to the same question: at one selected row there is nothing left to
  * reduce, every reducer agrees, and leaving the picker up would read as a control that
  * does nothing. The stored `calcs` survive the toggle, so switching back restores them.
+ * The slider is registered *before* this picker for that reason — it is the prior
+ * question ("reduce the range, or read one instant?"), and the picker is what it reveals.
+ *
+ * The section is "Value", not core's "Value options": the family now has a "Labels"
+ * section beside it, and the two read as a pair. Nothing else in Grafana keys off the
+ * borrowed `stat.*` category string.
  */
 export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   builder.addCustomEditor({
@@ -41,7 +47,7 @@ export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<Panel
       'relations.stats.description-calculation',
       'How each node and edge reduces its values. The first sizes and colours the mark; the rest are extra tooltip rows'
     ),
-    category: [t('stat.add-standard-data-reduce-options.category-value-options', 'Value options')],
+    category: [t('relations.category-value', 'Value')],
     editor: RelationsStatsPicker,
     defaultValue: [RELATIONS_CALC_DEFAULT],
     settings: { allowMultiple: true },

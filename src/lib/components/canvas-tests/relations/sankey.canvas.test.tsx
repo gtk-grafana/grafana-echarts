@@ -1,7 +1,7 @@
 import { FieldType, toDataFrame } from '@grafana/data';
 import { normalizeCanvasEvents } from 'test/canvas';
 import { height, width } from 'test/panel';
-import { cyclicEdgesFrame, edgesFrame, nodesFrame } from 'test/relations';
+import { cyclicEdgesFrame, edgesFrame, nodesFrame, slackEdgesFrame } from 'test/relations';
 import { renderRelations } from 'test/relationsCanvas';
 
 // Canvas snapshots for the relations family's `sankey` variant — the same converter
@@ -130,34 +130,27 @@ describe('relations sankey', () => {
     });
 
     /**
-     * Node alignment decides which column a node with *slack* lands in: `justify` (the
-     * default) pushes a terminal node to the last column, `left` keeps it in its
-     * earliest possible one.
+     * Node alignment decides which column a node with *slack* lands in: `left` (the
+     * family default) keeps a terminal node in its earliest possible column, `justify`
+     * pushes it to the last one.
      *
      * **Not `nodesFrame`**, deliberately. Its four nodes form a diamond in which every
      * node's earliest column is already its justified one, so the two settings draw
-     * byte-identical pictures and a baseline taken on it would pin nothing. `cache` here
-     * is the node with slack — a leaf hanging off `gateway` while the chain runs two more
-     * columns — and the render is compared against the same frames at the default to say
-     * so, the way `relations-overrides` does for the derived-node override.
+     * identical pictures and a baseline taken on it would pin nothing. `cache` here is the
+     * node with slack — a leaf hanging off `gateway` while the chain runs two more columns.
+     *
+     * The *contrast* between the two settings is asserted in
+     * `integration-tests/relations/layout.integration.test.tsx`, not here. It used to be a
+     * `not.toEqual` beside this baseline, which was **vacuous**: a sankey's ribbons carry
+     * gradient objects, so two renders are never `toEqual` whatever their geometry, and the
+     * guard passed no matter what. It also does not belong in a canvas suite — see the
+     * one-kind-of-test-per-file rule in AGENTS.md.
      */
     it('node align left (a leaf kept in its earliest column, not pushed to the last)', async () => {
-      const slackEdges = toDataFrame({
-        name: 'edges',
-        fields: [
-          { name: 'id', type: FieldType.string, values: ['e1', 'e2', 'e3'] },
-          { name: 'source', type: FieldType.string, values: ['gateway', 'api', 'gateway'] },
-          { name: 'target', type: FieldType.string, values: ['api', 'db', 'cache'] },
-          { name: 'mainstat', type: FieldType.number, values: [100, 90, 30] },
-        ],
-      });
       const { defaultEvents, seriesEvents } = await renderSankey({
-        frames: [slackEdges],
+        frames: [slackEdgesFrame],
         options: { relationsSankeyNodeAlign: 'left' },
       });
-
-      const justified = await renderSankey({ frames: [slackEdges] });
-      expect(normalizeCanvasEvents(seriesEvents)).not.toEqual(normalizeCanvasEvents(justified.seriesEvents));
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });

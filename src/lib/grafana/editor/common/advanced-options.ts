@@ -15,11 +15,18 @@ import { type PanelOptions } from 'types';
  * ("Advanced") category and is hidden unless the panel is in Advanced editor mode.
  * These helpers capture that shape so each editor file is a single declarative
  * call instead of repeating `category` + `showIf: isAdvancedEditorMode` (and
- * hand-composing the gate with any extra condition). The shared category is baked
- * in here, so callers never pass one.
+ * hand-composing the gate with any extra condition).
+ *
+ * The tier and the **section** are two different questions, so `category` is an
+ * optional override rather than baked in. It defaults to the shared "Advanced"
+ * section, which is what every family except relations wants: one clearly-labelled
+ * extra section. Relations groups by purpose instead (Labels, Layout, Interaction,
+ * Edges, Sankey, Chord) and carries the tier only through the `showIf` gate, so an
+ * Advanced control sits beside the Default-tier controls it belongs with rather
+ * than in a bucket of unrelated knobs.
  */
 
-/** The single builder category (wrapped for the `category` array) every advanced option uses. */
+/** Default section for an advanced option when the caller names none. */
 const advancedCategory = [advancedOptionsCategoryName];
 
 /** Extra visibility predicate composed on top of the Advanced-mode gate. */
@@ -50,12 +57,17 @@ export function composeShowIf(...predicates: Array<ExtraShowIf | undefined>): Ex
   return (options) => defined.every((predicate) => predicate(options) ?? true);
 }
 
-/** Fields shared by every advanced-option spec. The category is fixed to "Advanced" by the helpers. */
+/** Fields shared by every advanced-option spec. */
 interface AdvancedSpecBase<TValue> {
   path: string;
   name: string;
   description?: string;
   defaultValue?: TValue;
+  /**
+   * Section to register under. Defaults to the shared "Advanced" category; pass one
+   * to keep an Advanced-gated control in a purpose-named section instead.
+   */
+  category?: string[];
   /** Extra condition beyond Advanced mode; composed via `showIfAdvanced`. */
   showIf?: ExtraShowIf;
 }
@@ -78,47 +90,47 @@ interface AdvancedTextSpec extends AdvancedSpecBase<string> {
 /** Advanced-gated number input (ECharts numeric option). */
 export function addAdvancedNumberInput(
   builder: PanelOptionsEditorBuilder<PanelOptions>,
-  { showIf, ...rest }: AdvancedNumberSpec
+  { showIf, category, ...rest }: AdvancedNumberSpec
 ): void {
-  builder.addNumberInput({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
+  builder.addNumberInput({ ...rest, category: category ?? advancedCategory, showIf: showIfAdvanced(showIf) });
 }
 
 /** Advanced-gated select (single choice from a fixed option list). */
 export function addAdvancedSelect<TOption>(
   builder: PanelOptionsEditorBuilder<PanelOptions>,
-  { showIf, ...rest }: AdvancedSelectSpec<TOption>
+  { showIf, category, ...rest }: AdvancedSelectSpec<TOption>
 ): void {
-  builder.addSelect({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
+  builder.addSelect({ ...rest, category: category ?? advancedCategory, showIf: showIfAdvanced(showIf) });
 }
 
 /** Advanced-gated radio (single choice rendered as buttons). */
 export function addAdvancedRadio<TOption>(
   builder: PanelOptionsEditorBuilder<PanelOptions>,
-  { showIf, ...rest }: AdvancedSelectSpec<TOption>
+  { showIf, category, ...rest }: AdvancedSelectSpec<TOption>
 ): void {
-  builder.addRadio({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
+  builder.addRadio({ ...rest, category: category ?? advancedCategory, showIf: showIfAdvanced(showIf) });
 }
 
 /** Advanced-gated boolean switch (on/off ECharts toggle). */
 export function addAdvancedBooleanSwitch(
   builder: PanelOptionsEditorBuilder<PanelOptions>,
-  { showIf, ...rest }: AdvancedBooleanSpec
+  { showIf, category, ...rest }: AdvancedBooleanSpec
 ): void {
-  builder.addBooleanSwitch({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
+  builder.addBooleanSwitch({ ...rest, category: category ?? advancedCategory, showIf: showIfAdvanced(showIf) });
 }
 
 /** Advanced-gated text input (a free-form string, e.g. a datasource label key). */
 export function addAdvancedTextInput(
   builder: PanelOptionsEditorBuilder<PanelOptions>,
-  { showIf, ...rest }: AdvancedTextSpec
+  { showIf, category, ...rest }: AdvancedTextSpec
 ): void {
-  builder.addTextInput({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
+  builder.addTextInput({ ...rest, category: category ?? advancedCategory, showIf: showIfAdvanced(showIf) });
 }
 
 /** Advanced-gated color picker (hex or theme token). */
 export function addAdvancedColorPicker(
   builder: PanelOptionsEditorBuilder<PanelOptions>,
-  { showIf, ...rest }: AdvancedColorSpec
+  { showIf, category, ...rest }: AdvancedColorSpec
 ): void {
-  builder.addColorPicker({ ...rest, category: advancedCategory, showIf: showIfAdvanced(showIf) });
+  builder.addColorPicker({ ...rest, category: category ?? advancedCategory, showIf: showIfAdvanced(showIf) });
 }

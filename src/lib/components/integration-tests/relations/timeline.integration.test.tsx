@@ -82,15 +82,21 @@ describe('relations time slider', () => {
 
   /**
    * The reduced reading and the selected-row reading of the same frames, side by side.
-   * `lastNotNull` — the family's default — is the newest row, which is why the slider
-   * starting at the newest stop changes no picture.
+   *
+   * The family default is `median` (`RELATIONS_CALC_DEFAULT`), so over these three rows
+   * the reduced reading is the middle one — which is the point of the contrast: scrubbing
+   * to either end gives a graph the reducer never draws. It used to be `lastNotNull`, so
+   * the reduced reading coincided with the newest stop and the slider's starting position
+   * changed no picture.
    */
   it('builds a different graph at an earlier timestamp than the reducer draws', () => {
     const reduced = weights(context([rangedEdges()]));
-    const earlier = weights(context([rangedEdges()], { selectedTime: T0 }));
+    const earliest = weights(context([rangedEdges()], { selectedTime: T0 }));
+    const newest = weights(context([rangedEdges()], { selectedTime: T0 + 2 * STEP }));
 
-    expect(reduced).toEqual([3, 30]);
-    expect(earlier).toEqual([1, 10]);
+    expect(reduced).toEqual([2, 20]);
+    expect(earliest).toEqual([1, 10]);
+    expect(newest).toEqual([3, 30]);
   });
 
   it('reads each mark at the selected row', () => {

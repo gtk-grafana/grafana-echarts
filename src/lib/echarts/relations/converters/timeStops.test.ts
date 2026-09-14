@@ -134,8 +134,12 @@ describe('reading a mark at a timestamp', () => {
     const at = frameToGraphWide([pivoted()], theme, undefined, T0 + STEP)!;
 
     expect(at.links.map((link) => link.value)).toEqual([2, 20]);
-    // The reducing reading of the same frames, for contrast: `lastNotNull` is the newest.
-    expect(frameToGraphWide([pivoted()], theme)!.links.map((link) => link.value)).toEqual([3, 30]);
+    // The reducing reading of the same frames, for contrast. The default reducer is
+    // `median` (`RELATIONS_CALC_DEFAULT`), which over three rows is the middle one — so
+    // it coincides with the selected row here. The point of the assertion is that the
+    // two readings are computed by different paths, which the ragged cases below
+    // separate properly.
+    expect(frameToGraphWide([pivoted()], theme)!.links.map((link) => link.value)).toEqual([2, 20]);
   });
 
   /**

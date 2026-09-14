@@ -55,13 +55,16 @@ export function getSankeyOrient(options: PanelOptions): RelationsSankeyOrient | 
 }
 
 /**
- * Column placement for nodes that could occupy more than one. Omitted at the
- * justify default.
+ * Column placement for nodes that could occupy more than one.
+ *
+ * **Always emitted**, unlike every other sankey key here, because the family default is
+ * `left` and ECharts' is `justify` (`SANKEY_NODE_ALIGN_DEFAULT`). The usual
+ * omit-at-the-default trick would hand ECharts no key and get `justify` — the one value
+ * the family is deliberately not choosing.
  * https://echarts.apache.org/en/option.html#series-sankey.nodeAlign
  */
-export function getSankeyNodeAlign(options: PanelOptions): RelationsSankeyNodeAlign | undefined {
-  const align = options.relationsSankeyNodeAlign ?? SANKEY_NODE_ALIGN_DEFAULT;
-  return align === SANKEY_NODE_ALIGN_DEFAULT ? undefined : align;
+export function getSankeyNodeAlign(options: PanelOptions): RelationsSankeyNodeAlign {
+  return options.relationsSankeyNodeAlign ?? SANKEY_NODE_ALIGN_DEFAULT;
 }
 
 /**
@@ -281,7 +284,7 @@ export function getSankeySeries(data: NodeGraphData, ctx: RelationsSeriesContext
   const series: SankeySeriesOption = {
     type: 'sankey',
     ...(orient ? { orient } : {}),
-    ...(nodeAlign ? { nodeAlign } : {}),
+    nodeAlign,
     ...(relationsSankeyNodeWidth != null && relationsSankeyNodeWidth !== SANKEY_NODE_WIDTH_DEFAULT
       ? { nodeWidth: relationsSankeyNodeWidth }
       : {}),

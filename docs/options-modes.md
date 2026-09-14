@@ -28,9 +28,29 @@ The families that normalize by mode, each dispatched from
 `applyEditorModeDefaults` (`lib/echarts/options/editorMode.ts`):
 **part-to-whole** (`ADVANCED_PIE_DEFAULTS`), **cartesian**
 (`ADVANCED_CARTESIAN_DEFAULTS`), **radar** and **parallel** (their own defaults,
-parallel checked first because it shares the multivariate family), and **stream**
-(`ADVANCED_STREAM_DEFAULTS`). Heatmap and hierarchy have no Advanced tier, so the
-dispatch is the identity for them.
+parallel checked first because it shares the multivariate family), **stream**
+(`ADVANCED_STREAM_DEFAULTS`), and **relations** — whose three render variants
+each own a tier, all applied whatever the selected variant, plus a fourth set for
+the shared `animation.enabled` it also gates
+(`lib/echarts/relations/options/advancedDefaults.ts`). Heatmap and hierarchy have
+no Advanced tier, so the dispatch is the identity for them.
+
+### Tier is not the same as section
+
+The mode decides **whether** a control is shown. It does not have to decide
+**where**. `addAdvanced*` (`lib/grafana/editor/common/advanced-options.ts`)
+defaults an Advanced option's category to a single shared `"Advanced"` section,
+which is what most families want: one clearly-labelled extra group.
+
+**Relations deliberately does not.** It groups by purpose — Relations, Value,
+Labels, Layout, Interaction, Edges, Sankey, Chord — and passes its own `category`
+to the same helpers, so an Advanced control sits beside the Default-tier controls
+it relates to (label width under Labels, force repulsion under Layout) and a
+section that happens to be entirely Advanced, like Chord, simply does not render
+in Default mode. The tier is then carried by the `showIf` gate and nothing else,
+which is why `advancedTier.test.ts` probes each gate rather than reading a
+category. Consider this shape for any family whose Advanced bucket grows past a
+handful of unrelated controls.
 
 > **Known gap:** cartesian's `performance.*` options are not in
 > `ADVANCED_CARTESIAN_DEFAULTS`, so a stored `performance.showPoints: 'never'`
@@ -55,6 +75,17 @@ Default plus high-value ECharts-only features and less-common core options. The
 semantics are **additive**: Advanced never hides a Default option, it only
 reveals more. These options are unsupported for core-parity purposes and are
 gated with `showIf: isAdvancedEditorMode`.
+
+Treat "Advanced" as a warning, not just a promise of more — this is what the
+option's own description says: _"Advanced adds experimental features, which may
+not work as expected."_
+
+One thing the additive rule does **not** cover: an Advanced-only _choice_ within
+a Default-tier control. `showIf` can hide an option but not one of its values, so
+this needs a custom editor that filters its own list — see `RelationsLayoutEditor`,
+where the graph layout control is Default-tier but its `Fixed` choice is offered
+only in Advanced mode (or when it is already the stored value, so the control
+never shows an unresolvable one).
 
 ## API
 

@@ -183,10 +183,11 @@ describe('collecting every edges frame', () => {
   it('collects every frame that looks like edges', () => {
     const data = frameToGraphWide(valueEdges(), theme)!;
 
+    // Values are the `median` default (`RELATIONS_CALC_DEFAULT`) of each edge's rows.
     expect(data.links.map((link) => [link.source, link.target, link.value])).toEqual([
-      ['a', 'b', 12],
-      ['b', 'c', 22],
-      ['a', 'c', 32],
+      ['a', 'b', 11],
+      ['b', 'c', 21],
+      ['a', 'c', 31],
     ]);
     // The whole topology, rather than the first frame's single pair.
     expect(data.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);

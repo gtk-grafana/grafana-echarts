@@ -7,11 +7,13 @@ import {
   RELATIONS_EDGE_LENGTH_DEFAULT,
   RELATIONS_LAYOUT_ANIMATION_DEFAULT,
   RELATIONS_REPULSION_DEFAULT,
+  relationsLayoutCategoryName,
 } from 'editor/relations/constants';
 import { isGraphVariant } from 'editor/relations/variants';
 /**
- * Force-layout tuning (Advanced). All four are inert under the circular/fixed layouts
- * and so are hidden there.
+ * Force-layout tuning: Advanced-tier, registered into the **Layout** section beside the
+ * layout choice they tune rather than into a separate Advanced bucket. All four are inert
+ * under the circular/fixed layouts and so are hidden there.
  *
  * Repulsion and edge length carry **the family's** defaults rather than ECharts', which
  * are tuned for small gallery graphs and pack a real topology into an unreadable knot;
@@ -25,12 +27,15 @@ import { isGraphVariant } from 'editor/relations/variants';
 const isForceLayout = (options: PanelOptions) =>
   isGraphVariant(options) && (options.relationsLayout ?? 'force') === 'force';
 
+const forceCategory = [relationsLayoutCategoryName];
+
 export function addRelationsForceOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   addAdvancedNumberInput(builder, {
     path: 'relationsRepulsion',
     name: 'Repulsion',
     description: 'How strongly nodes push each other apart. Higher spreads the graph out',
     defaultValue: RELATIONS_REPULSION_DEFAULT,
+    category: forceCategory,
     showIf: isForceLayout,
     settings: { min: 0, step: 10 },
   });
@@ -40,6 +45,7 @@ export function addRelationsForceOptions(builder: PanelOptionsEditorBuilder<Pane
     name: 'Edge length',
     description: 'Target link length in px',
     defaultValue: RELATIONS_EDGE_LENGTH_DEFAULT,
+    category: forceCategory,
     showIf: isForceLayout,
     settings: { min: 0, step: 5 },
   });
@@ -48,6 +54,7 @@ export function addRelationsForceOptions(builder: PanelOptionsEditorBuilder<Pane
     path: 'relationsGravity',
     name: 'Gravity',
     description: 'Pull toward the centre. Higher keeps the graph compact',
+    category: forceCategory,
     showIf: isForceLayout,
     settings: { min: 0, max: 1, step: 0.01 },
   });
@@ -60,6 +67,7 @@ export function addRelationsForceOptions(builder: PanelOptionsEditorBuilder<Pane
     name: 'Animate layout',
     description: 'Draw the force simulation settling. Off draws only the final layout',
     defaultValue: RELATIONS_LAYOUT_ANIMATION_DEFAULT,
+    category: forceCategory,
     showIf: isForceLayout,
   });
 }

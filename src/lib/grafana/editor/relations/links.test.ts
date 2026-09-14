@@ -1,5 +1,9 @@
 import { PanelOptionsEditorBuilder, standardEditorsRegistry } from '@grafana/data';
-import { advancedOptionsCategoryName } from 'editor/constants';
+import {
+  RELATIONS_LINK_COLOR_DEFAULT,
+  relationsEdgesCategoryName,
+  relationsLabelsCategoryName,
+} from 'editor/relations/constants';
 
 import {
   blendsGradient,
@@ -9,8 +13,7 @@ import {
 import { type PanelOptions } from 'types';
 import { addRelationsLinkOptions } from './links';
 
-import { RELATIONS_LINK_COLOR_DEFAULT } from 'editor/relations/constants';
-/** See `nodes.test.ts` for why `standardEditorsRegistry` has to be stubbed. */
+/** See `labels.test.ts` for why `standardEditorsRegistry` has to be stubbed. */
 const noEditor = (): null => null;
 standardEditorsRegistry.setInit(() =>
   ['boolean', 'select', 'number', 'slider'].map((id) => ({ id, name: id, editor: noEditor }))
@@ -18,13 +21,15 @@ standardEditorsRegistry.setInit(() =>
 
 const options = (extra: Partial<PanelOptions> = {}): PanelOptions => extra as PanelOptions;
 
-const linkColorOption = () => {
+const optionAt = (path: string) => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
   addRelationsLinkOptions(builder);
-  const item = builder.getItems().find((entry) => entry.path === 'relationsLinkColor');
+  const item = builder.getItems().find((entry) => entry.path === path);
   expect(item).toBeDefined();
   return item!;
 };
+
+const linkColorOption = () => optionAt('relationsLinkColor');
 
 const labelsFor = (panelOptions: PanelOptions) => linkColorChoices(panelOptions).map(({ label }) => label);
 
@@ -35,17 +40,15 @@ describe('addRelationsLinkOptions — Link color', () => {
   /**
    * The path is what a saved dashboard is keyed on and the default is what every variant's
    * `?? RELATIONS_LINK_COLOR_DEFAULT` falls back to, so both are contract rather than
-   * detail. Registered through `addCustomEditor` rather than `addAdvancedSelect`, so the
-   * Advanced category and the editor-mode gate are restated by hand — asserted here
-   * because nothing else would notice their absence.
+   * detail. Registered through `addCustomEditor` because the choice list is contextual.
    */
-  it('registers the component editor in the Advanced tier', () => {
+  it('registers the component editor in the Edges section', () => {
     const item = linkColorOption();
 
     expect(item.path).toBe('relationsLinkColor');
     expect(item.name).toBe('Link color');
     expect(item.defaultValue).toBe(RELATIONS_LINK_COLOR_DEFAULT);
-    expect(item.category).toEqual([advancedOptionsCategoryName]);
+    expect(item.category).toEqual([relationsEdgesCategoryName]);
     expect(item.editor).toBe(RelationsLinkColorEditor);
   });
 
@@ -58,11 +61,51 @@ describe('addRelationsLinkOptions — Link color', () => {
     expect(linkColorOption().description).toBe('Which node a link inherits its color from');
   });
 
-  it('is hidden outside Advanced editor mode', () => {
-    const showIf = linkColorOption().showIf;
+  /**
+   * **Default-tier**, where it used to be Advanced. An edge's colour is the first thing
+   * about it a reader configures; it applies to all three render variants; and the two
+   * endpoint keywords have no equivalent anywhere else in the pane. So it carries no
+   * gate at all — the section is what places it now, not the tier.
+   *
+   * This is also why `relationsLinkColor` had to leave `ADVANCED_RELATIONS_DEFAULTS`:
+   * a Default-tier control that the render path resets in Default mode would show one
+   * value and draw another. `advancedTier.test.ts` asserts that both ways round.
+   */
+  it('carries no editor-mode gate', () => {
+    expect(linkColorOption().showIf).toBeUndefined();
+  });
+});
 
-    expect(showIf?.(options({ editorMode: 'advanced' } as Partial<PanelOptions>), undefined, undefined)).toBe(true);
-    expect(showIf?.(options(), undefined, undefined)).toBe(false);
+/**
+ * **The section is chosen by what a control *is*, not by which supplier registers it.**
+ * Everything in this file is about an edge, but "Show edge values" answers the same
+ * question the node label switches do — what *text* is drawn on a mark — so it is filed
+ * under Labels. The arrowhead is not text, and is not optional in the same sense (it is
+ * how a directed edge reads at all), so it stays with the edge styling.
+ */
+describe('addRelationsLinkOptions — sections', () => {
+  it('files the edge styling under Edges', () => {
+    for (const path of ['relationsLinkColor', 'relationsEdgeArrows', 'relationsCurveness']) {
+      expect(optionAt(path).category).toEqual([relationsEdgesCategoryName]);
+    }
+  });
+
+  it('files the edge-value switch under Labels', () => {
+    expect(optionAt('relationsShowEdgeValues').category).toEqual([relationsLabelsCategoryName]);
+  });
+
+  /**
+   * **Only the curvature is still Advanced.** An edge is directed by contract, and on a
+   * force layout the arrowhead is the only thing that says which way, so something the
+   * chart is unreadable without is not an expert setting. Asserted on a graph fixture in
+   * Default mode, since all three of these are graph-reachable.
+   */
+  it('gates only the curvature behind Advanced mode', () => {
+    const graph = options({ seriesType: 'graph' });
+
+    expect(optionAt('relationsEdgeArrows').showIf?.(graph, undefined, undefined)).toBe(true);
+    expect(optionAt('relationsShowEdgeValues').showIf?.(graph, undefined, undefined)).toBe(true);
+    expect(optionAt('relationsCurveness').showIf?.(graph, undefined, undefined)).toBe(false);
   });
 });
 

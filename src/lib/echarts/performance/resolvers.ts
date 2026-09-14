@@ -4,19 +4,12 @@ import {
   PERFORMANCE_DOWNSAMPLING_DEFAULT,
   PERFORMANCE_SHOW_POINTS_DEFAULT,
 } from 'editor/constants';
-import {
-  type CartesianSingleValueSeriesType,
-  type HeatmapSeriesType,
-  type PerformanceMode,
-  type SeriesType,
-} from 'editor/types';
-import { isRelationsSeriesType } from 'lib/echarts/charts/narrowing';
+import { type CartesianSingleValueSeriesType, type HeatmapSeriesType, type PerformanceMode } from 'editor/types';
 import { forEachTimeSeriesField } from 'lib/echarts/converters/frames';
 import { LARGE_MODE_THRESHOLD, SYMBOL_VISIBLE_MAX_TOTAL_POINTS } from 'lib/echarts/performance/constants';
 import { type PerfSeriesOptions, type SeriesDensity } from 'lib/echarts/performance/types';
 import { type PanelOptions } from 'types';
 
-import { RELATIONS_ANIMATION_ENABLED_DEFAULT } from 'editor/relations/constants';
 /**
  * Resolvers that turn a chart's density plus any Advanced overrides into ECharts'
  * big-data levers. The thresholds they compare against live in `./constants.ts`;
@@ -176,16 +169,12 @@ export function getSeriesPerfOptions({
  * its viz panels do not animate at all. Deliberately takes no frame stats:
  * nothing about the data affects the answer any more. See `docs/performance.md`.
  *
- * The relations family is the one exception, and `seriesType` is passed only so this
- * can tell: a mark there is a whole *field*, so the panel is tens of marks rather than
- * tens of thousands of points and the density argument above does not reach it. See
- * `RELATIONS_ANIMATION_ENABLED_DEFAULT`. Omitting `seriesType` keeps the off default,
- * which is what every caller that does not know its family wants.
+ * **No family exceptions.** Relations used to default this *on*, reasoning that a mark
+ * there is a whole field so the panel is tens of marks rather than tens of thousands of
+ * points. That is true and still beside the point: the switch is an Advanced opt-in on
+ * every family now, and a panel that animates by default animates on every dashboard
+ * refresh, not only on the load where the effect was wanted.
  */
-export function resolveAnimation(options: PanelOptions, seriesType?: SeriesType): boolean {
-  const familyDefault =
-    seriesType != null && isRelationsSeriesType(seriesType)
-      ? RELATIONS_ANIMATION_ENABLED_DEFAULT
-      : ANIMATION_ENABLED_DEFAULT;
-  return options.animation?.enabled ?? familyDefault;
+export function resolveAnimation(options: PanelOptions): boolean {
+  return options.animation?.enabled ?? ANIMATION_ENABLED_DEFAULT;
 }

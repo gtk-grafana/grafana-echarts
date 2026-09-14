@@ -270,7 +270,7 @@ describe('buildRelationsTooltipModel', () => {
       const model = modelFor([wideEdges()]);
 
       expect(model(nodeParams({ id: 'gateway', name: 'gateway' })).rows.map((row) => row.label)).not.toContain(
-        'Last *'
+        'Median'
       );
     });
 
@@ -371,7 +371,7 @@ describe('buildRelationsTooltipModel', () => {
       // Sliced: everything the node says about *itself* comes first, and the edges touching
       // it follow (asserted in "a node's edges" below).
       expect(node.rows.slice(0, 3).map((row) => [row.label, row.value])).toEqual([
-        ['Last *', '12.0 ms'],
+        ['Median', '12.0 ms'],
         ['Subtitle', 'eu-west'],
         ['Secondary', '3 errors'],
       ]);
@@ -430,7 +430,7 @@ describe('buildRelationsTooltipModel', () => {
       );
 
       expect(link.rows.map((row) => [row.label, row.value])).toEqual([
-        ['Last *', '3.50 s'],
+        ['Median', '3.50 s'],
         ['Secondary', '1.0 s'],
       ]);
     });
@@ -509,7 +509,7 @@ describe('buildRelationsTooltipModel', () => {
 
       const rows = model(nodeParams({ id: 'api', name: 'API', value: 7 })).rows;
 
-      expect(rows[0]).toEqual(expect.objectContaining({ label: 'Last *', value: '7 ms' }));
+      expect(rows[0]).toEqual(expect.objectContaining({ label: 'Median', value: '7 ms' }));
       expect(rows.slice(1).map((row) => [row.label, row.value])).toEqual([['gateway →', '1.2 s']]);
     });
 
@@ -592,12 +592,12 @@ describe('buildRelationsTooltipModel', () => {
     it('names the default calculation when none is picked', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
-      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Last *');
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Median');
     });
 
     /**
      * Under the time slider the value was **read**, not reduced — so no reducer is named.
-     * `Last *` there would label a calculation the panel did not run and whose picker the
+     * `Median` there would label a calculation the panel did not run and whose picker the
      * switch has hidden, which is the wart this closes. `Value` is what core's tooltips
      * call an unnamed measurement.
      */
@@ -628,7 +628,7 @@ describe('buildRelationsTooltipModel', () => {
     it('names the reducer again once the slider is off', () => {
       const model = modelFor([wideNodes(), wideEdges()], options({ relationsTimeSlider: false }));
 
-      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Last *');
+      expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Median');
     });
 
     // A stat with no reducer behind it did not come from a reduction at all: it is the

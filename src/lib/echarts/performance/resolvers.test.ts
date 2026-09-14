@@ -293,25 +293,15 @@ describe('resolveAnimation', () => {
   });
 
   /**
-   * The relations family is the one exception, because the density argument does not
-   * reach it: a mark there is a whole *field*, so the panel is tens of marks rather
-   * than tens of thousands of points. See `RELATIONS_ANIMATION_ENABLED_DEFAULT`.
+   * **No family exception.** Relations used to default this on, reasoning that a mark
+   * there is a whole *field* so the panel is tens of marks rather than tens of thousands
+   * of points. That reasoning held; the conclusion did not. A panel that animates by
+   * default animates on every dashboard refresh, not only on the load where the effect
+   * was wanted — so the switch is a plain Advanced opt-in on every family, and
+   * `resolveAnimation` no longer takes a `seriesType` to branch on at all.
    */
-  describe('the relations family default', () => {
-    it('is on for each of the three render variants', () => {
-      expect(resolveAnimation(options(), 'graph')).toBe(true);
-      expect(resolveAnimation(options(), 'sankey')).toBe(true);
-      expect(resolveAnimation(options(), 'chord')).toBe(true);
-    });
-
-    it('is still off for another family, and when the caller does not say', () => {
-      expect(resolveAnimation(options(), 'line')).toBe(false);
-      expect(resolveAnimation(options())).toBe(false);
-    });
-
-    it('yields to an explicit switch in both directions', () => {
-      expect(resolveAnimation(options({ animation: { enabled: false } }), 'graph')).toBe(false);
-      expect(resolveAnimation(options({ animation: { enabled: true } }), 'line')).toBe(true);
-    });
+  it('takes no family default — off everywhere until the switch is set', () => {
+    expect(resolveAnimation(options())).toBe(false);
+    expect(resolveAnimation(options({ animation: { enabled: true } }))).toBe(true);
   });
 });

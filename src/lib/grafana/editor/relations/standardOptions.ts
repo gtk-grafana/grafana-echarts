@@ -35,4 +35,45 @@ export const RELATIONS_FIELD_OPTIONS = {
     // `settings` is `any` — the one key that differs has to be the only difference.
     settings: { ...STANDARD_COLOR_SETTINGS, bySeriesSupport: false } satisfies FieldColorConfigSettings,
   },
+  /**
+   * **Display name: override-only.**
+   *
+   * It is read — a node's name *is* its field's display name (`readNodes`), which is why
+   * it also drives the legend and the tooltip header — but only ever usefully per field.
+   * A panel-wide display name would rename every node in the graph to the same string,
+   * which is not a configuration anyone wants; the useful form is a `byName` override
+   * renaming one node, and four provisioned dashboards use exactly that.
+   *
+   * `hideFromDefaults` takes it out of the Fields tab while leaving it in the override
+   * property picker, so nothing is lost. Note edges ignore it deliberately: an edge's
+   * display name carries its labels, `e1 {source="a", target="b"}`.
+   */
+  [FieldConfigProperty.DisplayName]: { hideFromDefaults: true },
 };
+
+/**
+ * Standard field-config properties the relations family **unregisters** entirely,
+ * because nothing on its contract can act on them. A control that is offered and inert
+ * is worse than one that is absent — the same reasoning as `bySeriesSupport: false`
+ * above, and as `custom.hideFrom` being registered with no editor.
+ *
+ * - **Actions.** `config.actions` is read nowhere in this plugin. If it is ever
+ *   supported, its home is the pinned tooltip footer beside `config.links`
+ *   (`tooltip/model.ts`), which is the only per-mark affordance surface the family has.
+ *
+ * - **No value.** Plumbed but unreachable. `getNoValueText` is wired into the per-mark
+ *   formatter (`lib/echarts/style.ts`), but no null ever reaches it: a null node stat
+ *   makes the tooltip omit its row outright (`tooltip/model.ts`, deliberate — an empty
+ *   value under a "Value" label reads as a failed measurement) and the node label fall
+ *   back to the bare name (`options/labels.ts`), while a null edge weight is coerced to
+ *   `1` in `readEdges` because the geometry needs a number. So the text could only ever
+ *   have applied to a case that does not occur. The edge coercion reporting a fake `1`
+ *   is a separate defect — see `todo/relations-null-edge-weight.md`.
+ *
+ * Min / Max / Field min-max are deliberately **kept**, even though no relations code
+ * reads them directly: Grafana's `applyFieldOverrides` turns them into
+ * `field.state.range`, which is the domain `field.display(value)` scales against in
+ * `colorOf` — the family's only colour path. They are the one way to pin a
+ * percentage-threshold domain. See `provisioning/dashboards/relations/colour-domain.json`.
+ */
+export const RELATIONS_DISABLED_FIELD_OPTIONS = [FieldConfigProperty.Actions, FieldConfigProperty.NoValue];
