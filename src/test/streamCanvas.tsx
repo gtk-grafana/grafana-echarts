@@ -1,7 +1,7 @@
 import { type DataFrame, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
 import { SERIES_ZLEVEL } from 'test/canvas';
-import { getComponent, getSettledSeriesCanvasEvents } from 'test/panel';
+import { getComponent, getSeriesCanvasEvents } from 'test/panel';
 import { type PanelOptions } from 'types';
 
 /**
@@ -10,9 +10,10 @@ import { type PanelOptions } from 'types';
  *
  * Series are placed on `SERIES_ZLEVEL`, so only the series-layer draw calls are read
  * (the axis paints on the default layer); see `Panel.canvas.test.tsx` for the
- * layered-capture rationale. Events are read after a forced single repaint — the
- * themeRiver view sets a clip path it removes on a timer when animation is enabled, the
- * same multi-paint hazard `getSettledSeriesCanvasEvents` exists for.
+ * layered-capture rationale. Events are read after a forced single repaint, which
+ * `getSeriesCanvasEvents` does for every family: the themeRiver view sets a clip path it
+ * removes on a timer when animation is enabled, and its pre-settle layout used to be
+ * pinned in the baseline alongside the settled one.
  *
  * Rendered in Advanced editor mode so the advanced options these suites exercise
  * (boundary gap, ribbon style, emphasis, label placement) are respected as-is. In
@@ -36,16 +37,16 @@ export const renderStream = async (
   const { container } = render(
     getComponent(frames, 'themeRiver', streamCanvasOptions(options), undefined, undefined, 'stream', fieldConfig)
   );
-  return getSettledSeriesCanvasEvents(container);
+  return getSeriesCanvasEvents(container);
 };
 
 /**
- * Filled paths in the *final* repaint — one per rendered ribbon.
+ * Filled paths in the last recorded repaint — one per rendered ribbon.
  *
- * jest-canvas-mock accumulates draw calls across repaints and never resets on
- * `clearRect`, and the themeRiver view still paints the series layer twice per render
- * (each paint opening with a `clearRect`), so the events are sliced to the last paint
- * before counting.
+ * The capture helper already reduces a render to a single paint, so the slice is a
+ * guard rather than a correction: jest-canvas-mock accumulates draw calls and never
+ * resets on `clearRect`, so anything that repaints after the capture (a hover, a
+ * rerender the case drives itself) would otherwise be counted twice.
  */
 export const fillCount = (events: Array<{ type: string }>) => {
   const lastPaint = events.map((event) => event.type).lastIndexOf('clearRect');

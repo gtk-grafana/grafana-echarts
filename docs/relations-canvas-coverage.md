@@ -165,11 +165,11 @@ scheme as a `byType: number` override, which reaches nodes and edges alike.
 
 ## What a case costs
 
-167 baselines hold 27.9k lines (2.1 MB), of which the relations family is 12.6k lines
-(45%). One relations baseline averages **~215 lines** on the four-node fixtures and ~165
-on the three-node colour one — one line per recorded draw call since the compact
-serializer landed, down from 9.8. A picture is still not the cheap option: prefer a
-drawn-primitive assertion in an
+167 baselines hold 14.5k lines (1.06 MB), of which the relations family is 6.6k lines
+(45%). One relations baseline averages **~110 lines** on the four-node fixtures and ~85
+on the three-node colour one — one line per recorded draw call, and one render pass
+rather than two. A picture is still not the cheap option: prefer a drawn-primitive
+assertion in an
 `*.integration.test.tsx` sibling whenever the claim is a string or a number, and keep the
 baseline for geometry. `src/test/suiteShape.test.ts` enforces the split — every test in a
 `*.canvas.test.*` file must assert `toMatchCanvasSnapshot`.
@@ -189,12 +189,13 @@ Execution order, commits and verification for the two below live in
 
 Three levers, measured on the 266k lines this was audited at. They compose:
 
-1. **Assert one render pass, not two — ~50%.** Every baseline records the harness's two
-   paints; for the relations `base` picture the two halves are identical event-for-event
-   (366 events, first half == second half). Written up with three options in
-   [todo/canvas-snapshot-double-render.md](../todo/canvas-snapshot-double-render.md),
-   where it matters for correctness too: the themeRiver baseline pins a pre-settle layout.
-   Doing it for size gets the correctness fix for free. **Not implemented.**
+1. **Assert one render pass, not two — ~50%. Landed.** Every baseline used to record two
+   paints: `useChartOption` draws, then `useChartResize` pushes the box `VizLayout`
+   allocated into `chart.resize(…)`, which re-lays-out and repaints unconditionally. The
+   capture helpers in `src/test/panel.tsx` now drop what accumulated and record one
+   forced repaint, which was a correctness fix as well as a size one — the themeRiver
+   baselines had a pre-settle layout pinned alongside the settled one, and every replayed
+   image drew each label twice.
 2. **Drop `props.path` from the asserted events — 29% of bytes.** Every `stroke`, `fill`
    and `clip` event embeds the whole path it is about, which is a verbatim copy of the
    `moveTo` / `lineTo` / `quadraticCurveTo` / `arc` events already recorded immediately
@@ -203,17 +204,17 @@ Three levers, measured on the 266k lines this was audited at. They compose:
    same array, so this needs a change in `jest-canvas-mock-compare` rather than in
    `normalizeCanvasEvents`. **Blocked upstream.**
 3. **One line per event instead of 9.8 — ~90%. Landed.** `src/test/canvasSerializer.ts`
-   stores one JSON object per line: 265,626 lines (4.0 MB) → 27,924 (2.1 MB). The format
-   has to stay valid JSON, because the matcher parses the stored baseline back to build
-   the compare viewer's "expected" side; `src/test/canvasSerializer.test.ts` parses every
-   committed baseline to keep that true.
+   stores one JSON object per line. The format has to stay valid JSON, because the matcher
+   parses the stored baseline back to build the compare viewer's "expected" side;
+   `src/test/canvasSerializer.test.ts` parses every committed baseline to keep that true.
 
-Lever 1 would take what is left to ~14k lines, lever 2 to ~1.4 MB. Each rewrites every
-baseline, so each wants to be its own commit — per `AGENTS.md`, never a side effect of
-feature work.
+Levers 3 and 1 together took the tree from 265,626 lines (4.0 MB) to 14,524 (1.06 MB).
+Lever 2 would take it to ~0.75 MB without removing a line. Each rewrites every baseline,
+so each wants to be its own commit — per `AGENTS.md`, never a side effect of feature
+work.
 
-A fourth, cheaper option for the biggest offenders: `graph.canvas` (4.9k lines over 18
-baselines), `part-to-whole` (4.5k over 27), `axis` (3.4k over 22) and `Panel` (3.1k over
+A fourth, cheaper option for the biggest offenders: `graph.canvas` (2.5k lines over 18
+baselines), `part-to-whole` (2.3k over 27), `axis` (1.7k over 22) and `Panel` (1.6k over
 27). Some of those pin a
 variation whose whole claim is one number — an opacity, a width — and convert to
 drawn-primitive assertions without losing anything a reviewer looks at.

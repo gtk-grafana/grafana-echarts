@@ -141,51 +141,33 @@ export const waitForFinished = async (chart: EChartsType | undefined) => {
   await waitFor(() => expect(finished).toBeTruthy());
 };
 
-/** Render-settled series and default (grid/axis) layer draw calls. */
-export const getCanvasEvents = async (container: HTMLElement) => {
-  const { chartInstanceDom, chart } = setupECharts(container);
-  await waitForFinished(chart);
-  const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
-  return { defaultEvents, seriesEvents };
-};
-
 /**
- * Render-settled series-layer draw calls, read tolerantly. Axis-less charts
- * (pie, hierarchy) paint nothing on the default grid layer, so zrender never
- * creates that canvas; only the series layer is required. Reads both layers
- * without asserting either exists (unlike `getCanvasEvents`).
- */
-export const getSeriesCanvasEvents = async (container: HTMLElement) => {
-  const { chartInstanceDom, chart } = getChart(container);
-  await waitForFinished(chart);
-  const defaultEvents = readCanvasLayer(chartInstanceDom, DEFAULT_LAYER_SELECTOR);
-  const seriesEvents = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
-  return { defaultEvents, seriesEvents };
-};
-
-/**
- * Series-layer draw calls for charts that repaint more than once on first render,
- * captured deterministically.
+ * Discard everything drawn so far and record exactly one clean repaint.
  *
- * ECharts' parallel-coordinates view draws its polylines under a grid clip-path
- * and then removes it via a `setTimeout` (see ParallelView `createGridClipShape`),
- * which clears and repaints the series layer a second (and sometimes third) time.
- * jest-canvas-mock *accumulates* draw calls across repaints and never resets on
- * `clearRect`, so a capture taken at the `finished` event sees a non-deterministic
- * number of accumulated paints — the source of the flaky parallel snapshots.
+ * **A panel paints at least twice on mount.** `useChartOption` draws, then
+ * `useChartResize` pushes the box `VizLayout` allocated into `chart.resize(…)` — with
+ * the numbers ECharts already measured off the container, but `resize` re-lays-out and
+ * repaints unconditionally. Charts with a deferred view add more: the parallel
+ * coordinates view draws its polylines under a grid clip path and drops it on a
+ * `setTimeout` (ParallelView `createGridClipShape`), and themeRiver does the same when
+ * animation is on.
  *
- * This drains the deferred repaints, discards the accumulated draw calls, then
- * forces a single clean full repaint via `resize` (which re-renders everything;
- * the parallel view is already initialized, so it no longer re-adds the clip-path)
- * and captures exactly that one paint. Use it instead of `getSeriesCanvasEvents`
- * for the parallel family; single-paint charts do not need it.
+ * jest-canvas-mock *accumulates* draw calls and never resets on `clearRect`, so a
+ * capture at the `finished` event held every one of those paints end to end. Every
+ * baseline was therefore two copies of the same picture (and, where the passes
+ * disagreed, one pre-settle layout pinned alongside the settled one), while replayed
+ * images showed each label drawn twice a few pixels apart.
+ *
+ * So: drain the deferred repaints, drop what has accumulated, then force one full
+ * repaint at the size the chart is already at — `resize` re-renders everything, and
+ * passing the instance's own dimensions rather than re-measuring the DOM means the
+ * geometry cannot shift — and flush it synchronously so the capture is that one paint.
+ *
+ * https://echarts.apache.org/en/api.html#echartsInstance.resize
  */
-export const getSettledSeriesCanvasEvents = async (container: HTMLElement) => {
-  const { chartInstanceDom, chart } = getChart(container);
-  await waitForFinished(chart);
+const recordOnePaint = (chartInstanceDom: HTMLElement, chart: EChartsType | undefined) => {
   chart?.getZr().flush();
-  // Discard the accumulated multi-paint draw calls on every layer canvas.
-  chartInstanceDom.querySelectorAll('canvas').forEach((canvas) => {
+  for (const canvas of chartInstanceDom.querySelectorAll('canvas')) {
     const ctx = canvas.getContext('2d');
     expect(ctx).not.toBeNull();
     if (ctx === null) {
@@ -193,25 +175,45 @@ export const getSettledSeriesCanvasEvents = async (container: HTMLElement) => {
     }
     ctx.__clearEvents?.();
     ctx.__clearDrawCalls?.();
-  });
-  // Force one clean full repaint (same dimensions) and flush it synchronously, so
-  // the captured events are a single deterministic paint.
-  chart?.resize({ width, height });
+  }
+  chart?.resize({ width: chart.getWidth(), height: chart.getHeight() });
   chart?.getZr().flush();
+};
+
+/** One render pass of the series and default (grid/axis) layers. */
+export const getCanvasEvents = async (container: HTMLElement) => {
+  const { chartInstanceDom, chart } = setupECharts(container);
+  await waitForFinished(chart);
+  recordOnePaint(chartInstanceDom, chart);
+  const { defaultEvents, seriesEvents } = readLayeredCanvasEvents(chartInstanceDom);
+  return { defaultEvents, seriesEvents };
+};
+
+/**
+ * One render pass of the series layer, read tolerantly. Axis-less charts
+ * (pie, hierarchy) paint nothing on the default grid layer, so zrender never
+ * creates that canvas; only the series layer is required. Reads both layers
+ * without asserting either exists (unlike `getCanvasEvents`).
+ */
+export const getSeriesCanvasEvents = async (container: HTMLElement) => {
+  const { chartInstanceDom, chart } = getChart(container);
+  await waitForFinished(chart);
+  recordOnePaint(chartInstanceDom, chart);
   const defaultEvents = readCanvasLayer(chartInstanceDom, DEFAULT_LAYER_SELECTOR);
   const seriesEvents = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
   return { defaultEvents, seriesEvents };
 };
 
 /**
- * Render-settled draw calls including the dedicated axis layer. Requires the
- * panel to be rendered with `zLevel.axis` set (see `AXIS_ZLEVEL`).
+ * One render pass including the dedicated axis layer. Requires the panel to be
+ * rendered with `zLevel.axis` set (see `AXIS_ZLEVEL`).
  */
 export const getAxisCanvasEvents = async (container: HTMLElement) => {
   // The axis is on its own zlevel, which can leave the default (grid) layer with
   // nothing to paint, so read layers tolerantly instead of asserting each canvas.
   const { chartInstanceDom, chart } = getChart(container);
   await waitForFinished(chart);
+  recordOnePaint(chartInstanceDom, chart);
   const defaultEvents = readCanvasLayer(chartInstanceDom, DEFAULT_LAYER_SELECTOR);
   const seriesEvents = readCanvasLayer(chartInstanceDom, SERIES_LAYER_SELECTOR);
   const axisEvents = readAxisCanvasEvents(chartInstanceDom);

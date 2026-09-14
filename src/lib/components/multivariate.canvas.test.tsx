@@ -1,7 +1,7 @@
 import { type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
 import { normalizeCanvasEvents, SERIES_ZLEVEL } from 'test/canvas';
-import { getComponent, getSettledSeriesCanvasEvents, height, width } from 'test/panel';
+import { getComponent, getSeriesCanvasEvents, height, width } from 'test/panel';
 import { type PanelOptions } from 'types';
 
 // Multivariate canvas snapshots, mirroring `part-to-whole.canvas.test.tsx`.
@@ -36,7 +36,7 @@ const renderParallel = async (
   const { container } = render(
     getComponent(frames, 'parallel', canvasOptions(options), undefined, undefined, 'multivariate', fieldConfig)
   );
-  return getSettledSeriesCanvasEvents(container);
+  return getSeriesCanvasEvents(container);
 };
 
 describe('multivariate (parallel) canvas renders', () => {
@@ -190,7 +190,7 @@ describe('multivariate (radar) canvas renders', () => {
     const { container } = render(
       getComponent([teamsFrame], 'radar', canvasOptions(), undefined, undefined, 'multivariate', undefined)
     );
-    const { defaultEvents, seriesEvents } = await getSettledSeriesCanvasEvents(container);
+    const { defaultEvents, seriesEvents } = await getSeriesCanvasEvents(container);
 
     expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, {
       width,

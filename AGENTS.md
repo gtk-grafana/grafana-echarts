@@ -48,4 +48,3 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
     2. `node scripts/canvas-shots.mjs --failing` writes one PNG per changed snapshot to `.jest-canvas-mock-compare/shots/` (gitignored). Omit `--failing` for all of them; drop `--root <dir>` in if the payloads are in another worktree.
     3. Read each PNG — a changed snapshot renders Expected | Actual | Diff in one image, so it is the before/after to hand the user. Include the paths in the summary.
     Run it from a checkout with node_modules installed (needs `@playwright/test` + `npx playwright install chromium`).
-    Payloads currently record two render passes, so labels look doubled in the replay — that is a known harness artifact, not a regression: [todo/canvas-snapshot-double-render.md](todo/canvas-snapshot-double-render.md)
