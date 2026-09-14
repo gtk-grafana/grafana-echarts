@@ -1,20 +1,20 @@
 import { type FieldConfigSource } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
-import { toSankeyLinks } from 'lib/echarts/converters/dag';
-import { graphWideTimeline } from 'lib/echarts/converters/graphWide';
-import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
-import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
-import { getChordSeries } from 'lib/echarts/options/chord';
+import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
+import { graphWideTimeline } from 'lib/echarts/relations/converters/graphWide';
+import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
+import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
+import { getChordSeries } from 'lib/echarts/relations/options/chord';
 import {
   getGraphSeries,
   relationsDefaultOptions,
   resolveRelationsZoom,
   type RelationsSeriesContext,
-} from 'lib/echarts/options/graph';
-import { resolveRelationsTimeSlider } from 'lib/echarts/options/timeline';
+} from 'lib/echarts/relations/options/graph';
+import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
 import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
-import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/options/sankey';
-import { getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
+import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/relations/options/sankey';
+import { getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/tooltip';
 import { getHiddenSeriesNames, getMarkPositionOverride } from 'lib/grafana/fields/seriesConfig';
 import {
   type ChartModule,
@@ -25,7 +25,7 @@ import {
   type EChartSankeySeriesOption,
   type LegendHighlightTarget,
   type RelationsChartContext,
-} from './types';
+} from 'lib/echarts/charts/types';
 
 /**
  * Ids of every node hidden from the visualization.

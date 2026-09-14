@@ -8,8 +8,8 @@ import {
   GRAPH_META_CUSTOM,
   GRAPH_META_DERIVED_NODES,
   resolveGraphWideRoles,
-} from 'lib/echarts/converters/graphWide';
-import { nodesWideFrame } from 'lib/echarts/converters/toGraphWide';
+} from 'lib/echarts/relations/converters/graphWide';
+import { nodesWideFrame } from 'lib/echarts/relations/converters/toGraphWide';
 import { type RelationsFamilyField } from 'lib/grafana/fields/relationsFields';
 import { map } from 'rxjs';
 
@@ -18,7 +18,7 @@ import { map } from 'rxjs';
  * are applied.
  *
  * The wide contract lets a response carry edges alone: the node set is then the union of
- * the edges' endpoints (../../../../data-plane/graph-wide.md). The reader has always
+ * the edges' endpoints (../../../../../data-plane/graph-wide.md). The reader has always
  * honoured that — `deriveNodesFromLinks` (`graphWide.ts`) invents a node for every endpoint
  * no nodes frame declares — but a node invented *inside* the panel arrives after
  * `applyFieldOverrides` has already run, so it has no field of its own. A mark with no
@@ -32,7 +32,7 @@ import { map } from 'rxjs';
  * created. Sibling of `legacyToWide.ts` and `longToWide.ts`, registered in the same prefix
  * (`modules/relations/dataTransformations.ts`) and sharing their construction
  * (`toGraphWide.ts`); unlike them it claims no response of its own, it completes whatever
- * the others left. Background: ../../../../docs/relations-derived-nodes.md.
+ * the others left. Background: ../../../../../docs/relations-derived-nodes.md.
  *
  * **The reader's derivation stays**, and stays the fallback: the host gates panel-registered
  * transformations behind `grafana.panelPluginTransformations`, off by default, so on a stock

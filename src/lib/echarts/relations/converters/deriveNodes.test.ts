@@ -9,7 +9,7 @@ import {
 } from '@grafana/data';
 import { lastValueFrom, of } from 'rxjs';
 
-import { deriveNodes, deriveNodesOperator } from 'lib/echarts/converters/deriveNodes';
+import { deriveNodes, deriveNodesOperator } from 'lib/echarts/relations/converters/deriveNodes';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 import {
   frameToGraphWide,

@@ -18,7 +18,7 @@ import {
   isCanonicalEndpointKeys,
   SOURCE_LABEL,
   TARGET_LABEL,
-} from 'lib/echarts/converters/graphWide';
+} from 'lib/echarts/relations/converters/graphWide';
 import { type RelationsFamilyField, type RelationsFamilyFrame } from 'lib/grafana/fields/relationsFields';
 
 /**
@@ -37,7 +37,7 @@ import { type RelationsFamilyField, type RelationsFamilyFrame } from 'lib/grafan
  * apart?" has to be answered the same way in both places, or the same response would be
  * keyed differently depending on whether the pivot ran. Hence one ladder, here.
  *
- * Spec: ../../../../data-plane/graph-wide.md.
+ * Spec: ../../../../../data-plane/graph-wide.md.
  */
 
 /**

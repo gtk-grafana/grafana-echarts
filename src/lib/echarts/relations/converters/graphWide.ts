@@ -19,8 +19,14 @@ import {
   type NodeGraphData,
   type RelationLink,
   type RelationNode,
-} from 'lib/echarts/converters/relationsModel';
-import { contestedIds, edgeId, numberAt, uniqueId, withoutEndpoints } from 'lib/echarts/converters/toGraphWide';
+} from 'lib/echarts/relations/converters/model';
+import {
+  contestedIds,
+  edgeId,
+  numberAt,
+  uniqueId,
+  withoutEndpoints,
+} from 'lib/echarts/relations/converters/toGraphWide';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { type ConfigTypedField } from 'lib/grafana/types';
 
@@ -29,7 +35,7 @@ import { type ConfigTypedField } from 'lib/grafana/types';
  * field**. Identity is `field.name`, topology is in `field.labels`, and everything else
  * — colour, unit, decimals, links, per-mark style — is ordinary `fieldConfig`.
  *
- * Spec: ../../../../data-plane/graph-wide.md. This is the family's only reader; the
+ * Spec: ../../../../../data-plane/graph-wide.md. This is the family's only reader; the
  * row-based format is converted to this one above the panel (`legacyToWide.ts`).
  *
  * The payoff is that every mark is an override target, because a field is the unit
@@ -161,7 +167,7 @@ export const ENDPOINT_LABEL_KEYS: ReadonlySet<string> = new Set(
 
 /**
  * `frame.meta.custom.graph`, the contract's own block — see *Frame meta* in
- * ../../../../data-plane/graph-wide.md, which reserves `{ sourceKey?, targetKey? }` for
+ * ../../../../../data-plane/graph-wide.md, which reserves `{ sourceKey?, targetKey? }` for
  * "non-default endpoint label keys, e.g. Tempo's `client` / `server`".
  *
  * It answers **the datasource's** key, which is subtly more than "where the labels are", and
@@ -1157,7 +1163,7 @@ function fillPaletteColors(nodes: RelationNode[], theme: GrafanaTheme2): void {
  * slot is drawn under the node by "Show node values" and read as `Value` in the tooltip,
  * where nothing tells it apart from a measurement, and it cannot be relabelled, formatted
  * or turned off because there is no field config to do it with. See
- * ../../../../docs/relations-derived-nodes.md.
+ * ../../../../../docs/relations-derived-nodes.md.
  */
 function deriveNodesFromLinks(links: RelationLink[]): RelationNode[] {
   const ids = new Set<string>();

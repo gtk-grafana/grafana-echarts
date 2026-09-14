@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { type EChartsType } from 'echarts';
 import { type SeriesType } from 'editor/types';
 import { type ChartFamily } from 'lib/echarts/charts/autoSeriesType';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import {
   clickAt,
   dispatch,

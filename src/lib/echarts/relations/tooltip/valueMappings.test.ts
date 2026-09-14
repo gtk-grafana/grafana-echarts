@@ -1,9 +1,9 @@
 import { createTheme, type DataFrame, FieldType, MappingType, toDataFrame } from '@grafana/data';
 import { type TopLevelFormatterParams } from 'echarts/types/dist/shared';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
-import { frameToRelationsGraph } from 'lib/echarts/converters/relationsGraph';
-import { getRelationsNodeLabelFormatter } from 'lib/echarts/options/graph';
-import { buildRelationsTooltipModel, getRelationsTooltipMarks } from 'lib/echarts/tooltip/relations';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
+import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
+import { getRelationsNodeLabelFormatter } from 'lib/echarts/relations/options/graph';
+import { buildRelationsTooltipModel, getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/tooltip';
 import { type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 import { relationsSeriesContext, relationsOptions } from 'test/relations';

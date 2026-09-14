@@ -1,9 +1,9 @@
 import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 
-import { deriveNodesOperator } from 'lib/echarts/converters/deriveNodes';
-import { GRAPH_EDGES_WIDE } from 'lib/echarts/converters/graphWide';
-import { legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
-import { longToWideOperator } from 'lib/echarts/converters/longToWide';
+import { deriveNodesOperator } from 'lib/echarts/relations/converters/deriveNodes';
+import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/graphWide';
+import { legacyToWideOperator } from 'lib/echarts/relations/converters/legacyToWide';
+import { longToWideOperator } from 'lib/echarts/relations/converters/longToWide';
 import { relationsDataTransformations } from './dataTransformations';
 
 const rowEdges = (): DataFrame =>

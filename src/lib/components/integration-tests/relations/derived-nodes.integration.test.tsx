@@ -1,5 +1,5 @@
 import { type FieldConfigSource } from '@grafana/data';
-import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
+import { legacyToWide } from 'lib/echarts/relations/converters/legacyToWide';
 import { normalizeCanvasEvents } from 'test/canvas';
 import { edgesFrame } from 'test/relations';
 import { renderRelations } from 'test/relationsCanvas';

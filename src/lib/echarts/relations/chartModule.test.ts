@@ -1,8 +1,8 @@
 import { createTheme, type DataFrame, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
-import { relationsChartModule } from 'lib/echarts/charts/relations';
+import { relationsChartModule } from 'lib/echarts/relations/chartModule';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
-import { legacyToWide } from 'lib/echarts/converters/legacyToWide';
+import { legacyToWide } from 'lib/echarts/relations/converters/legacyToWide';
 import { changeSeriesColorConfig, toggleSeriesVisibilityConfig } from 'lib/grafana/fields/seriesConfig';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 import { type PanelOptions } from 'types';

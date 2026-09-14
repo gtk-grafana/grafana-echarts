@@ -1,8 +1,8 @@
 import { type Field, type GrafanaTheme2, type ValueFormatter } from '@grafana/data';
 import { type VizTooltipOptions } from '@grafana/schema';
 import { type LinearGradientObject, type TooltipOption } from 'echarts/types/dist/shared';
-import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
-import { type MarkStat } from 'lib/echarts/converters/relationsModel';
+import { type GraphEndpointKeys } from 'lib/echarts/relations/converters/graphWide';
+import { type MarkStat } from 'lib/echarts/relations/converters/model';
 
 /**
  * ECharts tooltip trigger: cartesian time series share an x axis; pie/radar hover per item.

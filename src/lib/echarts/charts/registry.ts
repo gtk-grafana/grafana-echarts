@@ -17,7 +17,7 @@ import { heatmapChartModule } from './heatmap';
 import { hierarchyChartModule } from './hierarchy';
 import { multivariateChartModule, radarChartModule } from './multivariate';
 import { partToWholeChartModule, pieChartModule } from './pie';
-import { relationsChartModule } from './relations';
+import { relationsChartModule } from 'lib/echarts/relations/chartModule';
 import { streamChartModule } from './stream';
 import { type ChartModule } from './types';
 

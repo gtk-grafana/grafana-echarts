@@ -5,7 +5,7 @@ import {
   standardEditorsRegistry,
   toDataFrame,
 } from '@grafana/data';
-import { GRAPH_EDGES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { type PanelOptions } from 'types';
 import { relationsOptions } from 'test/relations';

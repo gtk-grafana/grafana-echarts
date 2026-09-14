@@ -1,7 +1,7 @@
 import { type DataFrame, type GrafanaTheme2, type ReduceDataOptions } from '@grafana/data';
-import { frameToGraphWide, isGraphWideFrames } from 'lib/echarts/converters/graphWide';
-import { isLegacyGraphFrames } from 'lib/echarts/converters/legacyToWide';
-import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
+import { frameToGraphWide, isGraphWideFrames } from 'lib/echarts/relations/converters/graphWide';
+import { isLegacyGraphFrames } from 'lib/echarts/relations/converters/legacyToWide';
+import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 
 /**
  * Single entry point for the relations family's data.
@@ -18,7 +18,7 @@ import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
  * converts the frames, and this throws rather than rendering nothing: a row-format
  * response reaching the panel means the pipeline is missing a step the user can supply
  * by hand, and a silent empty panel would hide that. See
- * ../../../../todo/graph-wide-migration.md.
+ * ../../../../../todo/graph-wide-migration.md.
  *
  * `at` selects one timestamp rather than reducing — the panel's time slider. See
  * {@link frameToGraphWide}.

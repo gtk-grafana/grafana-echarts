@@ -18,7 +18,7 @@ import { LegendDisplayMode, TooltipDisplayMode, type VizLegendOptions } from '@g
 import { seriesTypePath } from 'editor/constants';
 import { type SeriesType } from 'editor/types';
 import { type ChartContext } from 'lib/echarts/charts/types';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';

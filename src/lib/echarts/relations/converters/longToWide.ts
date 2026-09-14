@@ -22,7 +22,7 @@ import {
   type GraphEndpoints,
   isCanonicalEndpointKeys,
   isEdgesWideFrame,
-} from 'lib/echarts/converters/graphWide';
+} from 'lib/echarts/relations/converters/graphWide';
 import {
   contestedIds,
   edgeId,
@@ -32,7 +32,7 @@ import {
   uniqueId,
   withEndpointLabelsMeta,
   withoutEndpoints,
-} from 'lib/echarts/converters/toGraphWide';
+} from 'lib/echarts/relations/converters/toGraphWide';
 import { type RelationsFamilyField } from 'lib/grafana/fields/relationsFields';
 import { map } from 'rxjs';
 
@@ -59,7 +59,7 @@ import { map } from 'rxjs';
  * Nothing in core composes to do it either: `joinByField` renames a `Value` field to its
  * **frame name**, which TestData sets and a real Prometheus range query does not, so the
  * join silently produces a wide frame whose fields are all still called `Value` (measured
- * against live Mimir; ../../../../data-plane/graph-wide.md).
+ * against live Mimir; ../../../../../data-plane/graph-wide.md).
  *
  * **The row dimension is kept.** A range query pivots to one frame with many rows and
  * `calcs[0]` reduces it, so `mean` / `max` over the window are available and the default
@@ -74,7 +74,7 @@ import { map } from 'rxjs';
  * **The endpoint keys are the contract's own**, `source` / `target`. A conventional-pair
  * list (`client`/`server`, `src`/`dst`) is the next step and belongs here, in one place:
  * the supplier's context is `{ series }` only, so no panel option can reach this far —
- * see ../../../../todo/graph-wide-migration.md.
+ * see ../../../../../todo/graph-wide-migration.md.
  *
  * Deliberately theme-free and synchronous, like its sibling: it runs inside the host's rx
  * pipeline, where no theme is in scope and `field.display` does not exist yet.

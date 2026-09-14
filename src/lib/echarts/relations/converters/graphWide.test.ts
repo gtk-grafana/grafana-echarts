@@ -27,7 +27,7 @@ import {
   isEdgesWideFrame,
   isGraphWideFrames,
   normalizeRelationsCalcs,
-} from 'lib/echarts/converters/graphWide';
+} from 'lib/echarts/relations/converters/graphWide';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 

@@ -26,7 +26,7 @@ One rule explains all of it: **a mark is a field**. That is the premise the whol
 engine matched the field upstream.
 
 A derived node has no field. It is invented by the reader (`deriveNodesFromLinks` in
-`src/lib/echarts/converters/graphWide.ts`), inside the panel, which is _downstream_ of
+`src/lib/echarts/relations/converters/graphWide.ts`), inside the panel, which is _downstream_ of
 `applyFieldOverrides` — so there was never anything for an override to land on:
 
 | Capability                                           | Declared node           | Derived node, before        |
@@ -49,7 +49,7 @@ read `2 ms`.
 
 ## The fix: declare them above the panel
 
-`src/lib/echarts/converters/deriveNodes.ts` runs the same derivation **before**
+`src/lib/echarts/relations/converters/deriveNodes.ts` runs the same derivation **before**
 `applyFieldOverrides`, where a field can still be created. Every endpoint the response left
 undeclared becomes a real numeric field in a `graph-nodes-wide` frame, and the whole table
 above flips to "Yes" with no reader change at all: the node is an ordinary mark, the
@@ -114,7 +114,7 @@ is listed once. The list stops at ten rows with a `+N more` count, because the r
 tooltip is a Single-mode tooltip and core only scrolls a Multi-mode one.
 
 It is a fallback, not an addition: a node that has a stat reports the stat. See
-`adjacencyRows` in `src/lib/echarts/tooltip/relations.ts`.
+`adjacencyRows` in `src/lib/echarts/relations/tooltip/tooltip.ts`.
 
 The tooltip's ad-hoc filters are the one capability that does **not** degrade here, and
 deliberately so. A node's filters are written under the _endpoint label keys_, which are the
@@ -136,7 +136,7 @@ produce the same node set in the same order and therefore the same palette colou
 dashboard does not change appearance depending on whether the host ran the pass.
 
 **Legend hiding still matches by name** for a node with no field (`hiddenNodeIds`,
-`src/lib/echarts/charts/relations.ts`), for the same reason and only on that path.
+`src/lib/echarts/relations/chartModule.ts`), for the same reason and only on that path.
 
 **Relations stays out of `stripHiddenValueFields`.** Deleting a hidden node's column makes
 the reader re-derive that node from the edges still naming it, so it comes straight back.

@@ -1,5 +1,5 @@
 import { type Field } from '@grafana/data';
-import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
+import { type GraphEndpointKeys } from 'lib/echarts/relations/converters/graphWide';
 
 /**
  * Chart-agnostic node/link model shared by the relations family's render variants
@@ -7,14 +7,14 @@ import { type GraphEndpointKeys } from 'lib/echarts/converters/graphWide';
  * `option.edges || option.links`, so one model feeds all three).
  *
  * Built **only** from the field-based graph contract — one node is one field, one
- * edge is one field. See ../../../../data-plane/graph-wide.md for the contract and
+ * edge is one field. See ../../../../../data-plane/graph-wide.md for the contract and
  * `graphWide.ts` for the reader.
  *
  * Grafana's row-based `node-graph` frames are not read directly any more: they are
  * converted to the wide form *above* the panel by the transformation this plugin
  * registers (`legacyToWide.ts`, `modules/relations/dataTransformations.ts`), so that
  * every mark exists as a field before field overrides are applied. The row format
- * itself is still documented in ../../../../data-plane/graph-long.md, because it is
+ * itself is still documented in ../../../../../data-plane/graph-long.md, because it is
  * what the conversion reads.
  */
 

@@ -319,7 +319,7 @@ and drop back-edges, or refuse and fall back) rather than passing edges through.
 `graph` and `chord` have no such restriction. See
 [graph-wide.md](./graph-wide.md) for the edges/nodes frame format.
 
-**Implemented** in `src/lib/echarts/converters/dag.ts`: the sankey path drops
+**Implemented** in `src/lib/echarts/relations/converters/dag.ts`: the sankey path drops
 self-loops, merges duplicate `source → target` pairs, and removes back-edges found
 by a deterministic depth-first traversal, before the links reach ECharts. It runs
 unconditionally — the only alternative to breaking a cycle is crashing, so there is

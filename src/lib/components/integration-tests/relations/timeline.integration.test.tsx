@@ -1,8 +1,8 @@
 import { FieldType, toDataFrame } from '@grafana/data';
 import { act, fireEvent, screen } from '@testing-library/react';
-import { relationsChartModule } from 'lib/echarts/charts/relations';
+import { relationsChartModule } from 'lib/echarts/relations/chartModule';
 import { type EChartGraphSeriesOption, type RelationsChartContext } from 'lib/echarts/charts/types';
-import { GRAPH_EDGES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import { getChart, readCanvasLayer, SERIES_LAYER_SELECTOR } from 'test/canvas';
 import { waitForFinished } from 'test/panel';
 import { linkItems, relationsContext, relationsOptions } from 'test/relations';

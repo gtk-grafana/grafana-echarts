@@ -1,5 +1,10 @@
-import { getChordEmphasis, getChordLabel, getChordLinkStyle, getChordSeries } from 'lib/echarts/options/chord';
-import { type RelationsSeriesContext } from 'lib/echarts/options/graph';
+import {
+  getChordEmphasis,
+  getChordLabel,
+  getChordLinkStyle,
+  getChordSeries,
+} from 'lib/echarts/relations/options/chord';
+import { type RelationsSeriesContext } from 'lib/echarts/relations/options/graph';
 import {
   linkItems,
   nodeGraph,

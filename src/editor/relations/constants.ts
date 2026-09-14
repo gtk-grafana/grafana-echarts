@@ -18,7 +18,7 @@ import { type RelationsLabelOverflow, type RelationsSeriesType } from 'editor/ty
  * Relations types: nodes plus the links between them, built from the field-based graph
  * contract. All three ECharts series consume the identical node/link input, so they are
  * render variants of one family rather than separate panels. See
- * echarts/converters/graphWide.ts.
+ * echarts/relations/converters/graphWide.ts.
  */
 export const relationsSeriesTypes: RelationsSeriesType[] = ['graph', 'sankey', 'chord'];
 /**

@@ -1,7 +1,7 @@
 import { type PanelOptionsEditorBuilder, type SelectableValue } from '@grafana/data';
 
 import { type RelationsLabelOverflow } from 'editor/types';
-import { hasNoNodeStats } from 'lib/echarts/converters/graphWide';
+import { hasNoNodeStats } from 'lib/echarts/relations/converters/graphWide';
 
 import { addAdvancedNumberInput, addAdvancedSelect, composeShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';

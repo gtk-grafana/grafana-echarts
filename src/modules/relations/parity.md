@@ -345,7 +345,7 @@ routinely contain cycles (retries, bidirectional RPC, A→B→A chains), and Tes
 `node_graph` scenario generates them on purpose.
 
 So the sankey path sanitizes the links **before ECharts sees them**
-([converters/dag.ts](../../lib/echarts/converters/dag.ts)), unconditionally:
+([converters/dag.ts](../../lib/echarts/relations/converters/dag.ts)), unconditionally:
 
 1. self-loops (`source === target`) are dropped — a sankey has no way to draw one;
 2. duplicate `source → target` pairs are merged, summing their weights;
@@ -439,7 +439,7 @@ frames can legitimately show a different number of links.
 - **Force layout is not snapshot-tested.** It is a physics simulation whose node
   positions depend on iteration count and timing, so the canvas suites pin `circular`
   and `none` instead; force _option mapping_ is covered by unit tests in
-  `lib/echarts/options/graph.test.ts`, and its one testable render property —
+  `lib/echarts/relations/options/graph.test.ts`, and its one testable render property —
   reproducibility — by [integration: two renders of the same frames draw identical
   calls][int-layout]. See [graph.canvas.test.tsx][canvas-graph]. The sankey
   variant needs no such pinning — it self-layouts deterministically from the weights, so
@@ -529,20 +529,20 @@ place a node but do not size it. Node _size_ is per-item only on `graph`, via
 [int-timeline]: ../../lib/components/integration-tests/relations/timeline.integration.test.tsx
 [canvas-timeline]: ../../lib/components/canvas-tests/relations/timeline.canvas.test.tsx
 [ed-timeline]: ../../lib/grafana/editor/relations/timeline.test.ts
-[graph-opts]: ../../lib/echarts/options/graph.test.ts
-[sankey-opts]: ../../lib/echarts/options/sankey.test.ts
-[chord-opts]: ../../lib/echarts/options/chord.test.ts
-[rel-chart]: ../../lib/echarts/charts/relations.test.ts
-[ng-conv]: ../../lib/echarts/converters/graphWide.test.ts
-[wide-conv]: ../../lib/echarts/converters/graphWide.test.ts
+[graph-opts]: ../../lib/echarts/relations/options/graph.test.ts
+[sankey-opts]: ../../lib/echarts/relations/options/sankey.test.ts
+[chord-opts]: ../../lib/echarts/relations/options/chord.test.ts
+[rel-chart]: ../../lib/echarts/relations/chartModule.test.ts
+[ng-conv]: ../../lib/echarts/relations/converters/graphWide.test.ts
+[wide-conv]: ../../lib/echarts/relations/converters/graphWide.test.ts
 [use-legend]: ../../lib/components/hooks/useLegend.test.tsx
-[tip-marks]: ../../lib/echarts/tooltip/relations.test.ts
-[mappings]: ../../lib/echarts/tooltip/relationsValueMappings.test.ts
+[tip-marks]: ../../lib/echarts/relations/tooltip/tooltip.test.ts
+[mappings]: ../../lib/echarts/relations/tooltip/valueMappings.test.ts
 [tip-emit]: ../../lib/echarts/tooltip/tooltipEmit.test.ts
 [dl-test]: ../../lib/components/tooltip/dataLinks.test.tsx
 [tip-overlay]: ../../lib/components/tooltip/EChartsTooltip.test.tsx
 [filters-test]: ../../lib/components/tooltip/adHocFilters.test.tsx
-[derived-conv]: ../../lib/echarts/converters/deriveNodes.test.ts
+[derived-conv]: ../../lib/echarts/relations/converters/deriveNodes.test.ts
 
 <!-- Docs -->
 

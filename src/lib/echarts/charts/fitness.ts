@@ -24,7 +24,11 @@ import {
   STREAM_MIN_LAYERS,
 } from 'lib/echarts/charts/suggestionLimits';
 import { isFlameGraphFrame } from 'lib/echarts/converters/hierarchy';
-import { isLegacyEdgesFrame, isLegacyGraphFrames, isLegacyNodesFrame } from 'lib/echarts/converters/legacyToWide';
+import {
+  isLegacyEdgesFrame,
+  isLegacyGraphFrames,
+  isLegacyNodesFrame,
+} from 'lib/echarts/relations/converters/legacyToWide';
 import { resolveMultiValueSeriesType } from 'lib/echarts/converters/multiValueCartesian';
 import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
 

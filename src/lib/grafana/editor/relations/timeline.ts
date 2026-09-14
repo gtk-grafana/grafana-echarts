@@ -1,6 +1,6 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { hasGraphTimeline } from 'lib/echarts/converters/graphWide';
+import { hasGraphTimeline } from 'lib/echarts/relations/converters/graphWide';
 
 import { type PanelOptions } from 'types';
 

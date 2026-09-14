@@ -1,8 +1,8 @@
 import { debug, LOG_LEVELS } from 'development';
-import { deriveNodesOperator } from 'lib/echarts/converters/deriveNodes';
-import { isGraphWideFrames } from 'lib/echarts/converters/graphWide';
-import { isLegacyGraphFrames, legacyToWideOperator } from 'lib/echarts/converters/legacyToWide';
-import { isLongGraphFrames, longToWideOperator } from 'lib/echarts/converters/longToWide';
+import { deriveNodesOperator } from 'lib/echarts/relations/converters/deriveNodes';
+import { isGraphWideFrames } from 'lib/echarts/relations/converters/graphWide';
+import { isLegacyGraphFrames, legacyToWideOperator } from 'lib/echarts/relations/converters/legacyToWide';
+import { isLongGraphFrames, longToWideOperator } from 'lib/echarts/relations/converters/longToWide';
 import { type SystemTransformationsSupplier } from 'lib/grafana/panelDataTransformations';
 
 /**

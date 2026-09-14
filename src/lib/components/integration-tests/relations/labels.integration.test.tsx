@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
-import { revealEdgeLabelsFor } from 'lib/echarts/features/edgeLabelLayout';
+import { revealEdgeLabelsFor } from 'lib/echarts/relations/edgeLabels/edgeLabelLayout';
 import { getChart, readCanvasLayer, SERIES_LAYER_SELECTOR } from 'test/canvas';
 import { getComponent, waitForFinished } from 'test/panel';
 import {

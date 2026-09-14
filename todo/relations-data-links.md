@@ -8,7 +8,7 @@
 > and one edge one **field**, so `config.links` on a mark's own field is a link on that
 > mark and nothing else — and the panel now resolves the footer from the hovered mark's
 > own field rather than from one field per series (`getRelationsTooltipMarks`,
-> `lib/echarts/tooltip/relations.ts`). Demonstrated on core panels in
+> `lib/echarts/relations/tooltip/tooltip.ts`). Demonstrated on core panels in
 > `provisioning/dashboards/relations/graph-wide.json` and on the relations panel itself in
 > `provisioning/dashboards/relations/per-mark-tooltip-links.json`: a `byName` override
 > puts a runbook link on node `db` and a trace link on edge `api-db`, and every other mark
@@ -80,7 +80,7 @@ The row-form reader's `deriveNodesFromLinks` could not set `sourceRowIndex`, so 
 adjacency" panel (`id,source,target,mainstat`, no nodes frame), so `eu-west` there could
 carry no link by any route. Edge-only frames are legal input and TestData's
 `nodes.type: "random edges"` produces them. The wide contract's equivalent is exercised in
-[relationsGraph.test.ts](../src/lib/echarts/converters/relationsGraph.test.ts) (the "reads
+[relationsGraph.test.ts](../src/lib/echarts/relations/converters/nodeGraph.test.ts) (the "reads
 an edges-only response, deriving its nodes" case, asserting `node.field === undefined`) —
 still the behaviour on a host that cannot run the `deriveNodes.ts` pre-pass, which is why
 the banner above closes this gap only "where the pre-pass runs."

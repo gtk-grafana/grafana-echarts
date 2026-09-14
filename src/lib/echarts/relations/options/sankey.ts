@@ -1,8 +1,8 @@
 import { type SankeySeriesOption } from 'echarts';
 
 import { type RelationsSankeyNodeAlign, type RelationsSankeyOrient } from 'editor/types';
-import { toSankeyLinks } from 'lib/echarts/converters/dag';
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
+import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
+import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/relations/converters/model';
 import {
   getRelationsEdgeLabel,
   getRelationsLabelLayout,
@@ -12,9 +12,9 @@ import {
   type RelationsSeriesContext,
   resolveRelationsFocusAdjacency,
   resolveRelationsRoam,
-} from 'lib/echarts/options/graph';
+} from 'lib/echarts/relations/options/graph';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
-import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
+import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/tooltip';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 

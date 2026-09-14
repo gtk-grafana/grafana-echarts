@@ -10,8 +10,14 @@ import {
 } from '@grafana/data';
 import { debug, LOG_LEVELS } from 'development';
 import type { EChartsRelationsFieldConfig } from 'editor/types';
-import { isGraphWideFrames } from 'lib/echarts/converters/graphWide';
-import { edgeId, edgeLabels, edgesWideFrame, nodesWideFrame, numberAt } from 'lib/echarts/converters/toGraphWide';
+import { isGraphWideFrames } from 'lib/echarts/relations/converters/graphWide';
+import {
+  edgeId,
+  edgeLabels,
+  edgesWideFrame,
+  nodesWideFrame,
+  numberAt,
+} from 'lib/echarts/relations/converters/toGraphWide';
 import {
   type RelationsFamilyField,
   type RelationsFamilyFrame,
@@ -26,7 +32,7 @@ import { map } from 'rxjs';
  * field-based wide contract (`graph-*-wide`) — one node per field, one edge per
  * field.
  *
- * See ../../../../data-plane/graph-wide.md#graph-edges-wide-format-graph-edges-wide for
+ * See ../../../../../data-plane/graph-wide.md#graph-edges-wide-format-graph-edges-wide for
  * the mapping this implements. This is the **only** reader of the row format left in the
  * plugin: the panel itself reads the wide contract exclusively (`graphWide.ts`), so
  * the conversion has to happen *above* the panel to be useful at all. Registered as a
@@ -412,7 +418,7 @@ export function legacyToWide(frames: DataFrame[]): RelationsFamilyFrame[] {
  * `config.custom.*` nor `config.links`, and `rowsToFields` drops `meta` — so
  * `custom.lineWidth`, per-mark links and `meta.type` are all unreachable through a
  * JSON-configured prefix. Measured in
- * ../../../../docs/relations-data-sources.md#what-the-pivot-cannot-carry-however-it-is-configured.
+ * ../../../../../docs/relations-data-sources.md#what-the-pivot-cannot-carry-however-it-is-configured.
  *
  * Two properties of the operator form matter here and are relied on: it is dispatched
  * on `typeof config === 'function'` **before** `standardTransformersRegistry` is read,

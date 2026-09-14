@@ -1,4 +1,4 @@
-import { type RelationsSeriesContext } from 'lib/echarts/options/graph';
+import { type RelationsSeriesContext } from 'lib/echarts/relations/options/graph';
 import {
   getSankeyDroppedNoticeText,
   getSankeyEmphasis,
@@ -7,7 +7,7 @@ import {
   getSankeyNodeAlign,
   getSankeyOrient,
   getSankeySeries,
-} from 'lib/echarts/options/sankey';
+} from 'lib/echarts/relations/options/sankey';
 import {
   linkItems,
   nodeGraph,

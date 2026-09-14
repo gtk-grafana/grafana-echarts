@@ -7,10 +7,10 @@ import {
   normalizeRelationsCalcs,
   SOURCE_LABEL,
   TARGET_LABEL,
-} from 'lib/echarts/converters/graphWide';
-import { type MarkStat, type NodeGraphData } from 'lib/echarts/converters/relationsModel';
+} from 'lib/echarts/relations/converters/graphWide';
+import { type MarkStat, type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { formatEChartsValue, getValueFormatter } from 'lib/echarts/style';
-import { resolveRelationsTimeSlider } from 'lib/echarts/options/timeline';
+import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
 import {
   type NodeFilterLabels,
   type RelationsAdjacentEdge,

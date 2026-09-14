@@ -1,8 +1,8 @@
 import { PanelOptionsEditorBuilder, standardEditorsRegistry } from '@grafana/data';
 import { advancedOptionsCategoryName } from 'editor/constants';
-import { ADVANCED_CHORD_DEFAULTS } from 'lib/echarts/options/chord';
-import { ADVANCED_RELATIONS_DEFAULTS } from 'lib/echarts/options/graph';
-import { ADVANCED_SANKEY_DEFAULTS } from 'lib/echarts/options/sankey';
+import { ADVANCED_CHORD_DEFAULTS } from 'lib/echarts/relations/options/chord';
+import { ADVANCED_RELATIONS_DEFAULTS } from 'lib/echarts/relations/options/graph';
+import { ADVANCED_SANKEY_DEFAULTS } from 'lib/echarts/relations/options/sankey';
 import { addRelationsAnimationOption } from 'lib/grafana/editor/relations/animation';
 import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';

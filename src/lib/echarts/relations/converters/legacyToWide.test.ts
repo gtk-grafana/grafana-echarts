@@ -2,14 +2,14 @@ import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { lastValueFrom, of } from 'rxjs';
 
 import { debug, LOG_LEVELS } from 'development';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import {
   isLegacyEdgesFrame,
   isLegacyGraphFrames,
   isLegacyNodesFrame,
   legacyToWide,
   legacyToWideOperator,
-} from 'lib/echarts/converters/legacyToWide';
+} from 'lib/echarts/relations/converters/legacyToWide';
 
 // Gated on `NODE_ENV`/`CI`/localStorage, so the console itself is not assertable across
 // environments; the mock tests the decision to log. See `development.ts`.

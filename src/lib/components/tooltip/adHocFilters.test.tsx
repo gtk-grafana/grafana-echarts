@@ -1,7 +1,7 @@
 import { type DataFrame, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { fireEvent, screen } from '@testing-library/react';
 import { type EChartsType } from 'echarts';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import { clickAt, dispatch, markPoint, renderTooltipPanel, tooltipText } from 'test/tooltipPointer';
 
 /**

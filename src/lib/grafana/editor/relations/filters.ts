@@ -1,6 +1,6 @@
 import { type FieldConfigEditorBuilder } from '@grafana/data';
 import { type EChartsRelationsFieldConfig } from 'editor/types';
-import { SOURCE_LABEL, TARGET_LABEL } from 'lib/echarts/converters/graphWide';
+import { SOURCE_LABEL, TARGET_LABEL } from 'lib/echarts/relations/converters/graphWide';
 
 /**
  * Which label a mark's endpoint is filtered on, when a pinned tooltip's "Filter on" /
@@ -60,7 +60,7 @@ import { SOURCE_LABEL, TARGET_LABEL } from 'lib/echarts/converters/graphWide';
  * fixing instead, and offering it in the Fields tab advertises the wrong fix.
  *
  * The buttons themselves only appear when the mark's standard **Filterable** config is
- * set; see `markFilterable` in `lib/echarts/tooltip/relations.ts`.
+ * set; see `markFilterable` in `lib/echarts/relations/tooltip/tooltip.ts`.
  */
 /**
  * Their own section rather than "Node" or "Edge": both kinds of mark read them — an edge

@@ -1,4 +1,4 @@
-import { type RelationLink } from 'lib/echarts/converters/relationsModel';
+import { type RelationLink } from 'lib/echarts/relations/converters/model';
 
 /**
  * Cycle policy for the sankey render variant.
@@ -17,8 +17,8 @@ import { type RelationLink } from 'lib/echarts/converters/relationsModel';
  * This is not expressible as a user option: the only alternative to breaking a
  * cycle is crashing. `graph` and `chord` accept any digraph and never call this.
  *
- * See ../../../../data-plane/echarts-coverage.md ("Sankey is DAG-only") and the
- * `sankey` row in ../../../../data-plane/echarts-coverage.md.
+ * See ../../../../../data-plane/echarts-coverage.md ("Sankey is DAG-only") and the
+ * `sankey` row in ../../../../../data-plane/echarts-coverage.md.
  */
 
 /** DFS vertex colors. A `GRAY` target means the edge closes a cycle. */

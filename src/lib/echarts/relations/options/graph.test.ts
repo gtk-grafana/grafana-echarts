@@ -1,7 +1,7 @@
 import { type Field, FieldType, toDataFrame } from '@grafana/data';
 import { type CallbackDataParams, type LabelLayoutOptionCallbackParams } from 'echarts/types/dist/shared';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData } from 'lib/echarts/converters/relationsModel';
+import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import {
   getGraphEdgeSymbol,
   getGraphEmphasis,
@@ -20,7 +20,7 @@ import {
   resolveGraphDraggable,
   resolveRelationsRoam,
   resolveRelationsZoom,
-} from 'lib/echarts/options/graph';
+} from 'lib/echarts/relations/options/graph';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { nodeGraph, relationsContext, relationsOptions, relationsTheme } from 'test/relations';
 import { type TooltipSource } from 'lib/echarts/tooltip/types';

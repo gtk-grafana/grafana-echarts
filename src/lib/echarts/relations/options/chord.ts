@@ -1,15 +1,15 @@
 import { type ChordSeriesOption } from 'echarts';
 
-import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/converters/relationsModel';
+import { type NodeGraphData, type RelationLink, type RelationNode } from 'lib/echarts/relations/converters/model';
 import {
   getRelationsLabelLayout,
   getRelationsLabelStyle,
   getRelationsNodeLabelFormatter,
   type RelationsSeriesContext,
   resolveRelationsFocusAdjacency,
-} from 'lib/echarts/options/graph';
+} from 'lib/echarts/relations/options/graph';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
-import { buildRelationsTooltipModel } from 'lib/echarts/tooltip/relations';
+import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/tooltip';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 

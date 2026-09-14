@@ -22,11 +22,11 @@ import {
   RELATIONS_SHOW_NODE_VALUES_DEFAULT,
 } from 'editor/relations/constants';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
-import { type NodeGraphData, type RelationLink } from 'lib/echarts/converters/relationsModel';
+import { type NodeGraphData, type RelationLink } from 'lib/echarts/relations/converters/model';
 import { createBaseOptions } from 'lib/echarts/options/base';
 import { formatEChartsValue } from 'lib/echarts/style';
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
-import { buildRelationsTooltipModel, formatDerivedMarkValue } from 'lib/echarts/tooltip/relations';
+import { buildRelationsTooltipModel, formatDerivedMarkValue } from 'lib/echarts/relations/tooltip/tooltip';
 import { type RelationsLinkItem, type RelationsMarks, type RelationsNodeItem } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 

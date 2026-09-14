@@ -37,7 +37,7 @@ initPluginTranslations('grafana-echarts-app');
 // graph contract — one node is one field, one edge is one field. Three render variants —
 // `graph`, `sankey` and `chord` — over one converter, since all three ECharts series
 // consume the identical node/link input. See data-plane/graph-wide.md and
-// lib/echarts/converters/graphWide.ts. Grafana's row-based node-graph frames are
+// lib/echarts/relations/converters/graphWide.ts. Grafana's row-based node-graph frames are
 // converted to the contract above the panel, by the transformation registered below.
 const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfig>(makeLazyPanel('relations'))
   .useFieldConfig({

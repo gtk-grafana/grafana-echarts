@@ -1,7 +1,7 @@
 import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { t } from '@grafana/i18n';
 
-import { resolveRelationsTimeSlider } from 'lib/echarts/options/timeline';
+import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
 import { RelationsStatsPicker } from 'lib/grafana/editor/relations/RelationsStatsPicker';
 import { type PanelOptions } from 'types';
 

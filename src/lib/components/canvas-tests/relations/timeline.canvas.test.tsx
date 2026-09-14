@@ -1,6 +1,6 @@
 import { DataFrameType, FieldColorModeId, FieldType, ThresholdsMode, toDataFrame } from '@grafana/data';
 import { act, fireEvent, screen } from '@testing-library/react';
-import { GRAPH_EDGES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import {
   clearMockedCanvasEvents,
   DEFAULT_LAYER_SELECTOR,

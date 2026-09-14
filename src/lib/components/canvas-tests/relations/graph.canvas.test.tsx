@@ -1,5 +1,5 @@
 import { FieldColorModeId, FieldType, type Labels, ThresholdsMode, toDataFrame } from '@grafana/data';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import { normalizeCanvasEvents } from 'test/canvas';
 import { height, width } from 'test/panel';
 import { edgesFrame, nodesFrame, pinnedNodesFrame } from 'test/relations';

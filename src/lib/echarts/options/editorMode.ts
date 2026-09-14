@@ -8,12 +8,12 @@ import {
   isStreamSeriesType,
 } from 'lib/echarts/charts/narrowing';
 import { ADVANCED_CARTESIAN_DEFAULTS } from 'lib/echarts/options/cartesian';
-import { ADVANCED_CHORD_DEFAULTS } from 'lib/echarts/options/chord';
-import { ADVANCED_RELATIONS_DEFAULTS } from 'lib/echarts/options/graph';
+import { ADVANCED_CHORD_DEFAULTS } from 'lib/echarts/relations/options/chord';
+import { ADVANCED_RELATIONS_DEFAULTS } from 'lib/echarts/relations/options/graph';
 import { ADVANCED_PARALLEL_DEFAULTS } from 'lib/echarts/options/parallel';
 import { ADVANCED_PIE_DEFAULTS } from 'lib/echarts/options/pie';
 import { ADVANCED_RADAR_DEFAULTS } from 'lib/echarts/options/radar';
-import { ADVANCED_SANKEY_DEFAULTS } from 'lib/echarts/options/sankey';
+import { ADVANCED_SANKEY_DEFAULTS } from 'lib/echarts/relations/options/sankey';
 import { ADVANCED_STREAM_DEFAULTS } from 'lib/echarts/options/stream';
 import { isAdvancedEditorMode, isApiEditorMode } from 'lib/grafana/editor/common/editor-mode';
 import { type PanelOptions } from 'types';

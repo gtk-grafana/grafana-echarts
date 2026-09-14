@@ -5,7 +5,7 @@ import {
   standardEditorsRegistry,
   toDataFrame,
 } from '@grafana/data';
-import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/converters/graphWide';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/graphWide';
 import { type PanelOptions } from 'types';
 import { addRelationsNodeOptions } from './nodes';
 
