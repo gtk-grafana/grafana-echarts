@@ -124,10 +124,10 @@ describe('getRelationsTooltipMarks', () => {
       const marks = getRelationsTooltipMarks(frameToRelationsGraph([chain()], theme)!, theme, 'utc');
 
       expect([...marks.nodeFilterLabels!]).toEqual([
-        ['a', { sources: ['source'], targets: [], negate: ['source', 'target'] }],
-        ['b', { sources: ['source'], targets: ['target'], negate: ['source', 'target'] }],
-        ['c', { sources: [], targets: ['target'], negate: ['source', 'target'] }],
-        ['d', { sources: ['source'], targets: ['target'], negate: ['source', 'target'] }],
+        ['a', { sources: ['source'], targets: [] }],
+        ['b', { sources: ['source'], targets: ['target'] }],
+        ['c', { sources: [], targets: ['target'] }],
+        ['d', { sources: ['source'], targets: ['target'] }],
       ]);
     });
 
