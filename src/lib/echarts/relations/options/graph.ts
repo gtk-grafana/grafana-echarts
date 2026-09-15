@@ -32,7 +32,7 @@ export const relationsDefaultOptions: ECBasicOption = {
 export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext): GraphSeriesOption {
   const layout = getGraphLayout(data, ctx.options);
   const edgeSymbol = getGraphEdgeSymbol(ctx.options);
-  const emphasis = getGraphEmphasis(ctx.options);
+  const emphasis = getGraphEmphasis(ctx);
   const edgeLabel = getRelationsEdgeLabel(ctx);
   const labelLayout = getRelationsLabelLayout(ctx.options);
   // Resolve edge colors from the final node colors.

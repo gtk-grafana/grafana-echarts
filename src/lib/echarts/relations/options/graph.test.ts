@@ -27,12 +27,26 @@ const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
 describe('getGraphEdgeSymbol / getGraphEmphasis', () => {
   it('emit an arrow and adjacency focus at their defaults', () => {
     expect(getGraphEdgeSymbol(baseOptions())).toEqual(['none', 'arrow']);
-    expect(getGraphEmphasis(baseOptions())).toEqual({ focus: 'adjacency' });
+    expect(getGraphEmphasis(ctx())).toEqual({ focus: 'adjacency' });
   });
 
   it('omit their keys when switched off', () => {
     expect(getGraphEdgeSymbol(baseOptions({ relationsEdgeArrows: false }))).toBeUndefined();
-    expect(getGraphEmphasis(baseOptions({ relationsFocusAdjacency: false }))).toBeUndefined();
+    expect(getGraphEmphasis(ctx(baseOptions({ relationsFocusAdjacency: false })))).toBeUndefined();
+  });
+
+  it('uses the normal label style on hover when node labels are hidden', () => {
+    expect(getGraphEmphasis(ctx(baseOptions({ relationsShowNodeLabels: false })))).toMatchObject({
+      focus: 'adjacency',
+      label: {
+        show: true,
+        position: 'bottom',
+        color: theme.colors.text.primary,
+        fontFamily: theme.typography.fontFamily,
+        overflow: 'truncate',
+        width: 120,
+      },
+    });
   });
 });
 
