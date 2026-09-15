@@ -57,6 +57,7 @@ const OPTION_PANEL: Record<string, number> = {
   legend: 31,
   relationsPan: 32,
   relationsDraggable: 33,
+  relationsFocusAdjacency: 42,
 };
 
 const NO_VISUAL: Record<string, string> = {
@@ -64,7 +65,6 @@ const NO_VISUAL: Record<string, string> = {
   relationsLayoutAnimation: 'motion only — the settled layout is identical',
   'animation.enabled': 'motion only — the settled render is identical',
   relationsRememberView: 'behaviour only — persists a view, draws nothing',
-  relationsFocusAdjacency: 'hover only — the idle render is identical',
   tooltip: 'hover only — the idle render is identical',
 };
 
@@ -74,8 +74,15 @@ const FIELD_CONFIG_PANEL: Record<string, number> = {
   'Value mappings': 36,
 };
 
-/** Return option panels before field-configuration panels. */
-const ALL_PANEL_IDS = [...Object.values(OPTION_PANEL), ...Object.values(FIELD_CONFIG_PANEL)];
+/** Extra values that explain a supported choice or chart variant. */
+const SUPPLEMENTAL_PANEL_IDS = [37, 38, 39, 40, 41, 43, 44];
+
+/** Return every expected panel id in dashboard order. */
+const ALL_PANEL_IDS = [
+  ...Object.values(OPTION_PANEL),
+  ...Object.values(FIELD_CONFIG_PANEL),
+  ...SUPPLEMENTAL_PANEL_IDS,
+].sort((left, right) => left - right);
 
 const ADVANCED_PATHS = new Set(
   Object.keys({
@@ -101,7 +108,7 @@ describe('the all-options reference dashboard', () => {
     }
   });
 
-  it('has exactly one panel per demoed option and field-config option, numbered 1..n', () => {
+  it('has every primary and supplemental demo, numbered 1..n', () => {
     const panels = dashboard().panels;
 
     expect(panels.map((panel) => panel.id)).toEqual(ALL_PANEL_IDS);
