@@ -28,7 +28,7 @@
       "id": 1,
       "type": "grafana-echartsrelations-panel",
       "title": "Control \u2014 no mappings",
-      "description": "**The baseline.** Node values are the raw numbers `1`, `2`, `3` \u2014 which say nothing. Each node field carries one sample, so the default `median` reducer (`RELATIONS_CALC_DEFAULT`) returns that sample unchanged.\n\nCompare every panel to the right of this one against it.",
+      "description": "This panel has no value mappings. The node labels show the raw values `1`, `2`, and `3`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -86,7 +86,7 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Value \u2192 text on a node stat",
-      "description": "**A `ValueToText` mapping reaches both places a node stat is shown.** `1`/`2`/`3` become `Healthy`/`Degraded`/`Down`, in the label under each node name **and** in the tooltip's value row.\n\nNothing in the plugin implements this: a mark's value is formatted by its own field's display processor (`getValueFormatter` \u2192 `field.display`), which `applyFieldOverrides` already built with the mappings applied. So a mapping targets **one mark** \u2014 set it as a `byName` override and a single node reads `Healthy` while its neighbours stay numeric.",
+      "description": "Value mappings change `1`, `2`, and `3` to `Healthy`, `Degraded`, and `Down`. The mapped text appears in node labels and tooltips.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -163,7 +163,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "Mapping a colour, not just text",
-      "description": "**The undocumented half: a mapping's `color` colours the mark.**\n\nSame three mappings as the panel to the left, each now carrying a colour. `colorOf` reads `field.display(value).color`, and `DisplayProcessor` sets that from the matched mapping \u2014 so the node symbols turn green/orange/red even though the colour scheme is still `palette-classic`.\n\nThis is the use case that makes value mappings worth having here: a status field becomes a topology coloured by status, with no thresholds and no per-node overrides.",
+      "description": "Each value mapping also sets a color. The node symbols use green, orange, and red for the three mapped states.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -243,7 +243,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "Range \u2192 text on an edge weight",
-      "description": "**Mappings work on edges too, and reach the edge label.** The three request rates (`120`, `80`, `45`) are mapped by range to `saturated`, `busy` and `light`, drawn on the links themselves.\n\nNo `editorMode` needed. \"Show edge values\" is a Default-tier option in the **Edges** section, so the switch is reachable \u2014 and its stored value survives \u2014 without putting the panel in Advanced mode. It was Advanced, and this panel had to set `editorMode: advanced` or `applyEditorModeDefaults` would reset the switch at render time and the labels would silently not draw.\n\nNote the mappings are on the **edges** query only; the nodes keep their numbers.",
+      "description": "Range mappings change the edge values `120`, `80`, and `45` to `saturated`, `busy`, and `light`. Show edge values displays the mapped text on each link. The node values stay numeric.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -348,7 +348,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Special \u2192 text on a null node stat (what does NOT happen)",
-      "description": "**The honest case, and why the \"No value\" standard option is unregistered here.**\n\n`api` reports no sample at all. A `SpecialValueMatch` mapping for `null` **does** fire \u2014 the mapping is applied by the display processor, which runs whether or not the panel asks it to. But the relations family never asks: `buildRelationsTooltipModel` omits the value row outright when a node's stat is null, and the node label falls back to the bare name. Both are deliberate \u2014 an empty value under a `Value` label reads as a measurement that failed rather than one that was never taken.\n\nSo `api` shows a name and no value line, and the mapped text `unreported` appears nowhere. That unreachability is exactly why `FieldConfigProperty.NoValue` is in `RELATIONS_DISABLED_FIELD_OPTIONS`: it could only ever have applied to a case the family does not render. The edge half of the same gap is still open \u2014 see `todo/relations-null-edge-weight.md`.",
+      "description": "The `api` node has no value. The panel omits the value from its label and tooltip, so the `null` mapping text does not appear.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -435,7 +435,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "Same mappings, sankey",
-      "description": "**Mappings are variant-independent.** Identical field config to \"Value \u2192 text on a node stat\", rendered as a sankey: the node labels read `Healthy`/`Degraded`/`Down` because the formatter is per mark, not per series type.\n\n`nodeAlign` is left at the family default (`left`), so a node's column is its depth in the flow.",
+      "description": "Sankey uses the same node mappings. The labels show `Healthy`, `Degraded`, and `Down`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -511,7 +511,7 @@
       "id": 7,
       "type": "grafana-echartsrelations-panel",
       "title": "Same mappings, chord",
-      "description": "**And on the chord ring.** Same field config again. Worth having all three variants here because each builds its labels through a different ECharts series, and all three route through the one `getRelationsNodeLabelFormatter`.",
+      "description": "Chord uses the same node mappings. The labels show `Healthy`, `Degraded`, and `Down`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"

@@ -33,7 +33,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "# Ad-hoc filters, one behaviour per panel\n\nPin a tooltip — **click** a node or a link — and the footer offers **Filter on this value**,\n**Filter out this value**, and a **Filter for …** button per non-endpoint label. They write into\nthe **Ad hoc filters** variable at the top, which Prometheus injects into every query's metric\nselector, so the whole dashboard narrows on the click.\n\nEverything below is about one question: **which label key does an endpoint go out under, and is it\noffered at all?** The contract's own `source`/`target` is a *topology carrier* — it says which mark\nconnects to which, not that the datasource has ever heard of a label called `source`. A filter built\nstraight from the frame is `source=\"elasticsearch\"`, which matches zero series and silently empties the\ndashboard.\n\n| Panel | What it isolates | Code |\n| --- | --- | --- |\n| 2 | the `filterable` gate, and a **derived** node taking the edges' opt-in | `resolveFilters`, `markFilterable` |\n| 3 | the same panel with the gate off — no buttons anywhere | `resolveFilters` |\n| 4 | **direction**: a destination-only node asserts its *target* key | `toNodeFilterLabels` |\n| 5 | why the fallback exists — a node override with nothing to bind to | `markFilterable` |\n| 6 | two levels, **per-edge** key recovery, and a middle node deduping to one key | `aliasEndpointKeys`, `toNodeFilterLabels` |\n| 7 | the **deprecated** escape hatch, and the query fix that replaces it | `addRelationsFilterConfig` |\n\nPanels 2–6 configure **nothing**. Only panel 7 sets a key by hand, and only because its query threw\nthe original away. Clear the variable between experiments — a stale `!=` chip looks like a bug in the\npanel.\n\n**The topology is tiny and every role is in it**: `user` only ever calls (a pure origin, and a `virtual_node`), `elasticsearch` and `grafana-assistant-app` are only ever called, `grafana` and `prometheus` sit in the middle, and `prometheus` calls itself. Every edge is produced by these five containers doing their normal work, so **a quiet stack is a thin graph** — open a few dashboards to give Tempo something to measure."
+        "content": "# Ad hoc filters for relations\n\nPin a tooltip by selecting a node or edge. If the field is filterable, the tooltip can add or remove an ad hoc filter.\n\nThe panel writes filters to the Ad hoc filters variable at the top of this dashboard. Prometheus applies the variable to the metric selectors.\n\nAn edge can use `source` and `target` as display labels while the query uses different label keys. The panel maps the displayed endpoints back to the original query labels.\n\nThe examples use these cases:\n\n| Panel | Case |\n| --- | --- |\n| 2 | Filterable fields and derived nodes |\n| 3 | Fields that are not filterable |\n| 4 | Source and target direction for node filters |\n| 5 | A derived node with no matching field |\n| 6 | Different endpoint labels in one graph |\n| 7 | Manual endpoint labels and the preferred query fix |\n\nClear the Ad hoc filters variable before you compare panels. An existing filter changes the data in every panel."
       },
       "transparent": true
     },
@@ -41,7 +41,7 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "The gate is on — and every node here is derived",
-      "description": "`sum by (client, server)` — the pair the reader recognises, so nothing is configured here at all and the filters still go out under the datasource's own keys (`ENDPOINT_LABEL_PAIRS`). Standard **Filterable** is set once in the Fields tab, which is why any button appears at all (`resolveFilters`).\n\nThe response is **edges only**, so no node has a field of its own: each is a mark the response only implied. Pin one anyway and it offers filters, taken from the edges that named it (`markFilterable` → `RelationsMarks.endpointsFilterable`). Pin an edge for the grouped pair, and `connection_type` for a button of its own.",
+      "description": "The query groups the metric by `client` and `server`. The panel recognizes this endpoint pair and uses the same keys for filters.\n\nThe query returns edge fields only. The panel derives each node from the edge endpoints, and the node uses the filterable state of those edges.\n\nSelect an edge to filter by `client`, `server`, or `connection_type`.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -106,7 +106,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "The same panel with Filterable off — no buttons at all",
-      "description": "Identical query, identical marks; **Filterable** cleared in the Fields tab. The footer offers no filter button on any mark, node or edge — a filter written under a key the datasource cannot answer either does nothing or empties the dashboard, so the panel offers nothing instead.\n\nData links are **not** gated the same way: a link is the field's own config, not a claim about the query. This panel has none to show, but `per-mark-tooltip-links.json` does.",
+      "description": "This panel uses the same query as panel 2, but Filterable is off. Node and edge tooltips do not offer ad hoc filter actions.\n\nData links use separate field configuration. Turning Filterable off does not turn data links off.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -170,7 +170,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "Direction — a destination-only node asserts its target key",
-      "description": "The bug this fixes: which key can carry a node's name is a property of the **topology**, not of the node. Pin **elasticsearch** — it is never a client — and \"Filter on this value\" asserts the *target* key, not `client=\"elasticsearch\"`, which would match no series at all. No key mapping could have fixed that: the key was right and the direction was wrong.\n\nPin **grafana**, which is at both ends of something, and it asserts the source key instead — `client=x AND server=x` is self-loops, and there is no ad-hoc filter for \"either endpoint\".\n\n\"Filter out this value\" negates **both** keys on either node. That is deliberate and asymmetric: a `topk` re-ranks the moment the filter applies, so negating one direction alone lets the node reappear at the other end (`NodeFilterLabels.negate`).",
+      "description": "A node filter uses the endpoint labels for the edges that touch the node. Select `elasticsearch` to create a `server` filter because it appears only as a target.\n\nSelect `grafana` to create a `client` filter because it appears as a source. The panel does not create an either-endpoint filter.\n\nFilter out this value excludes the node from both endpoint keys. This prevents the node from returning through the other direction.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -235,7 +235,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Why the fallback exists — a node override with nothing to bind to",
-      "description": "Same query, with a `byName` override clearing **Filterable** on the `elasticsearch` node — and it makes **no difference**: pin that node and both buttons are still there. This is not a bug in the override, it is the reason `markFilterable` has a fallback at all.\n\nA node override needs the node to *be* a field, which is what the derived-node pre-pass provides — and that needs the `panelPluginTransformations` feature. **This Grafana is 13.1 and does not have it**, so every node here is a mark the response only implied, with no field for an override to land on and none to carry `filterable`. So the node takes the **edges'** answer instead, which is the honest authority: a node's filters are written under the endpoint keys, and those are the edges' dimensions.\n\nGating on the node's own absent field is what left a service-graph panel offering filters on every link and none at all on its nodes. To turn a node off *here* you turn the whole panel off — panel 3. The dev-Grafana sibling (`echarts-relations-adhoc-filters`) runs a build that has the feature, and there the same override does bind.",
+      "description": "The query returns edges but no node fields. The panel derives the `elasticsearch` node from the edge endpoints.\n\nA field override can match only a field that exists before the panel renders it. If no node field exists, the derived node uses the filterable state of its edges.\n\nTurn Filterable off for the edge fields if no mark in the panel must offer filter actions.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -313,7 +313,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "Two levels in one frame, each filtering under its own keys",
-      "description": "An `or`-joined two-level flow. Both halves relabel to the contract's `source`/`target` — but from **different** originals, so no single setting could ever hold both answers. Each half's outer aggregation keeps the label it relabelled from, and the panel recovers the pair **per edge** by matching the endpoint values back against the labels (`aliasEndpointKeys`).\n\n- pin a level-1 edge → `stack` / `client`;\n- pin a level-2 edge → `client` / `server`;\n- pin **grafana**, a node on the boundary → **one** `client` filter, not two. It is level 1's target and level 2's source and both say the same key, so a node's keys come from the edges touching it and dedupe (`toNodeFilterLabels`).\n\nNothing is configured on this panel. The recovered key also gets **no** separate \"Filter for\" button: the query carries its topology twice, so that label is not a dimension beside the endpoints — it *is* the endpoint.",
+      "description": "This graph combines two endpoint pairs. Level 1 uses `stack` and `client`, while level 2 uses `client` and `server`.\n\nThe query keeps the original labels after it adds `source` and `target`. The panel can therefore recover the correct filter keys for each edge.\n\nThe `grafana` node appears in both levels. Its connected edges resolve to one `client` filter key.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -378,7 +378,7 @@
       "id": 7,
       "type": "grafana-echartsrelations-panel",
       "title": "The deprecated escape hatch — and the one-line query fix that replaces it",
-      "description": "**This is the only thing left that sets `sourceFilterLabel` / `targetFilterLabel`, and it is kept to demonstrate a setting on its way out.** Nothing else in the repo sets it; it is override-only (`hideFromDefaults`), so it no longer appears in the Fields tab — this panel reaches it through an **override** on `/.*/`, which is how you would have to now.\n\n`sum by (source, target) (label_replace(…))` **drops** the originals, so nothing downstream can recover them and the endpoints have to be told they go out as `client` / `server`.\n\n**The fix is to not do that.** Name the originals in the outer aggregation —\n\n```\nsum by (source, target, client, server) (…)\n```\n\nand the panel recovers the pair per edge with nothing configured, exactly as panel 6 does. The rename is 1:1, so naming them in `by` splits no group and costs no cardinality. On the `rowsToFields` route the equivalent is leaving the columns out of `organize`'s **Exclude**.\n\nTwo cases the fix cannot reach, which is why the setting still exists: a query you cannot edit (provisioned, imported, a library panel, a recording rule), and an ambiguous recovery where two labels hold the same value as an endpoint. Neither has turned up in practice — if none does, this goes before release.",
+      "description": "This panel uses the deprecated `sourceFilterLabel` and `targetFilterLabel` overrides. They map displayed endpoints back to `client` and `server` after the query drops those labels.\n\nPrefer to keep `client` and `server` in the outer aggregation:\n\n```promql\nsum by (source, target, client, server) (…)\n```\n\nThe panel can then recover the filter keys without manual endpoint configuration. Keep the overrides only when you cannot change the query or when label values are ambiguous.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"

@@ -26,7 +26,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "TestData `node_graph` with `nodes.type: response_small` — a saved, deterministic service-map response. Baseline reference: prefer the saved responses over `random` for anything that should look the same twice.\n\nEach core Node graph panel in this dashboard has its ECharts Relations twin to its right, over the same query, for side-by-side comparison.",
+      "description": "This core Node graph uses the small saved response from the TestData data source. Compare it with the ECharts Relations panel on the right.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
@@ -60,7 +60,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "The same saved service-map response rendered by the ECharts Relations panel, beside the core Node graph above-left. Compare topology, labels and colors.\n\nLayout is Circular here for a stable, comparable picture; the panel default is Force.",
+      "description": "This panel uses the same small saved response as the core Node graph. The Circular layout keeps node positions stable for comparison.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -110,7 +110,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "TestData `node_graph` with `nodes.type: response_medium` — a larger saved service-map response. Useful for checking layout behaviour and label collision at a realistic node count.",
+      "description": "This core Node graph uses the medium saved response from the TestData data source. It contains enough nodes to show label collisions.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
@@ -144,7 +144,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Larger saved response through the ECharts panel. Circular layout keeps node placement deterministic at this node count.",
+      "description": "This panel uses the same medium saved response as the core Node graph. The Circular layout keeps node positions stable.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -194,7 +194,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "**Adversarial case for sankey.** TestData `node_graph` with `nodes.type: random` deliberately introduces cycles — `generateRandomNodes` has a loop commented \"Add some random edges to create possible cycle\".\n\nECharts' sankey layout throws `'Sankey is a DAG, the original data has cycle!'` on cyclic input, and that throw is **not** behind a `__DEV__` guard, so it reaches production. Any sankey converter must break cycles before handing links to ECharts; this panel is the fixture that proves it. `graph` and `chord` accept cycles fine.\n\nNote `seed` only drives edge topology — per-node stats, `icon`, `noderadius` and `highlighted` use bare `Math.random()`, so this panel is not pixel-reproducible.",
+      "description": "This core Node graph uses random TestData that can contain cycles. Graph and Chord can show cycles. Sankey removes links that cause cycles.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
@@ -230,7 +230,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Cyclic data through the ECharts `graph` series, which handles cycles fine — unlike `sankey`, whose layout throws on a cycle. This panel is the fixture that will prove the sankey cycle-breaking in a later phase.",
+      "description": "This ECharts graph can show the cycles in the random TestData response. Select Sankey to see which links the panel removes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -282,7 +282,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "TestData `node_graph` with `nodes.type: \"random edges\"` — emits a **single edges frame** and no nodes frame.\n\nThis is legal input: Grafana derives the node set and its stats from `source`/`target` when no nodes frame is present. A converter that requires both frames renders nothing here, so this is the edge-only regression fixture.",
+      "description": "This TestData response contains an edges frame but no nodes frame. Grafana derives the nodes from the `source` and `target` fields.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
@@ -318,7 +318,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Edges-only response. Nodes and their degree stats are derived from `source`/`target` by the converter, matching what Grafana does when no nodes frame is supplied.",
+      "description": "This panel derives each node from the `source` and `target` fields. The input does not contain a nodes frame.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -370,7 +370,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "TestData `node_graph` with `nodes.type: feature_showcase` — exercises the optional node fields, notably `arc__*` (the multi-section coloured ring) and `icon`.\n\nNeither has a native equivalent in any ECharts relationship series: `arc__*` would need a custom symbol or composed pie to render faithfully, and `icon` values are Grafana built-in icon names that need resolving before they can become an ECharts `symbol`. This panel shows what the first pass will approximate or drop — see data-plane/graph-long.md.",
+      "description": "This core Node graph shows optional node fields such as `arc__*`, `icon`, `color`, and `noderadius`.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
@@ -404,7 +404,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Optional node fields through the ECharts panel. Note the divergences: `arc__*` proportional rings and `icon` are **not** rendered (see src/modules/relations/parity.md); node `color` and `noderadius` are.",
+      "description": "The ECharts panel supports the `color` and `noderadius` fields. It does not render `arc__*` rings or Grafana `icon` values.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -454,7 +454,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "**Show node values** on. Each node label gains a second line carrying that node's `mainstat`, formatted with the field's unit and decimals — the same value, and the same `stat ?? value` precedence, the tooltip shows.\n\nThe option is shared by all three render variants and rides on the node label, so it is hidden in the editor when **Show node labels** is off.",
+      "description": "Show node values adds the formatted `mainstat` below each node name. The setting is available when Show node labels is on.",
       "fieldConfig": {
         "defaults": {
           "color": {

@@ -20,7 +20,7 @@
   "panels": [
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "The **input**: a flat call table, one row per caller/callee pair with a count. This is the shape Prometheus, Loki and SQL actually return — the rows already describe edges, but the column names do not match the node-graph convention and there is no `id` column.\n\nNote `api -> db` and `db -> api` form a cycle, on purpose: the reshaped output is therefore also a sankey adversarial fixture.",
+      "description": "This table contains one row for each caller and callee pair. The columns do not yet use the Node graph field names.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 9, "w": 8, "x": 0, "y": 0 },
       "id": 1,
@@ -38,7 +38,7 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "The **edges frame**, produced by a SQL Expression over query A. Renames `caller`/`callee` to `source`/`target`, synthesises the required `id`, and casts the count to a number for `mainstat`.\n\nThe `CAST` matters: SQL Expressions run **server-side, before** frontend transformations, so a `convertFieldType` transformation cannot be used to prepare data for them. `csv_content` delivers untyped columns, and MySQL `CAST` is a no-op on a value that is already numeric — so casting is safe regardless of source.",
+      "description": "SQL Expression B renames `caller` and `callee` to `source` and `target`. It also creates `id` and converts `count` to numeric `mainstat`.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 9, "w": 8, "x": 8, "y": 0 },
       "id": 2,
@@ -63,7 +63,7 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "The **nodes frame**, produced by a second SQL Expression over the same query A. Both endpoint columns are `UNION`ed and de-duplicated so a service appearing as both caller and callee yields one node.\n\nThis frame is **optional** — Grafana derives the node set from `source`/`target` when no nodes frame is present. Add it when nodes need titles, subtitles or their own stats.",
+      "description": "SQL Expression C combines both endpoint columns into one list of unique nodes. This frame is optional, but it can provide node titles, subtitles, and values.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 9, "w": 8, "x": 16, "y": 0 },
       "id": 3,
@@ -88,7 +88,7 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "Both reshaped frames feeding a node graph. Query A is hidden — it still executes because the expressions reference it, but it is not displayed.\n\n**This is the case that forces field-shape detection.** The two frames reaching the panel are named `B` and `C` by refId; they are not called `nodes`/`edges`, and a SQL Expression cannot set `meta.preferredVisualisationType`. Of Grafana's three node-graph detection signals, only field shape survives — `B` is the edges frame because it carries `source`, `C` is nodes because it does not.\n\nRendered with the core Node graph panel; the ECharts relations panel beside it reads the identical frames.\n\nRequires the `sqlExpressions` feature toggle (GA, on by default). Not available on 32-bit ARM hosts; arm64 including Apple Silicon is fine.",
+      "description": "The core Node graph reads the edges from expression B and the nodes from expression C. Query A stays hidden but still runs because both expressions use it. SQL Expressions must be available on the Grafana server.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 10, "w": 12, "x": 0, "y": 9 },
       "id": 4,
@@ -119,7 +119,7 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "The same two SQL Expression frames, rendered by the **ECharts relations panel**. Nothing about the queries changes — this panel runs the same field-shape detection (`isEdgesFrame` / `isNodesFrame` in `converters/nodeGraph.ts`), so `B` is read as edges and `C` as nodes purely from their columns.\n\nSwitch **Chart type** to `sankey` or `chord` to see the other variants over the identical frames. Note the input contains a cycle (`api -> db`, `db -> api`), so the sankey variant will report a dropped link.",
+      "description": "The ECharts Relations panel reads the same edges and nodes from expressions B and C. Select `sankey` or `chord` under Chart type to compare layouts. Sankey removes a link when the input contains a cycle.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 9 },
       "id": 5,

@@ -1883,7 +1883,7 @@
       "id": 25,
       "type": "grafana-echartsrelations-panel",
       "title": "25. Layout iterations \u2014 0",
-      "description": "Sets how many passes ECharts uses to reduce ribbon crossings in a Sankey chart. This panel uses 0, so it shows the first layout. A node with a calculated value of 0 also stops these passes.\n\nDefault: `32`.",
+      "description": "Sets how many passes ECharts uses to reduce ribbon crossings in a Sankey chart. This panel uses 0, so it shows the first layout.\n\nDefault: `32`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2231,7 +2231,7 @@
       "id": 31,
       "type": "grafana-echartsrelations-panel",
       "title": "31. Legend \u2014 Table, placed right",
-      "description": "Shows one legend entry for each node. This panel uses a table on the right. Use the color control in an entry to change that node. Use the visibility control to hide that node. Legend calculations are not available because Calculation already gives each node one value.\n\nDefault: visible List at the bottom.",
+      "description": "Shows one legend entry for each node. This panel uses a table on the right. Use the color control in an entry to change that node. Use the visibility control to hide that node. Legend calculations are not available because Calculation already gives each node one value.\n\nDefault: a visible list at the bottom.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2346,7 +2346,7 @@
       "id": 33,
       "type": "grafana-echartsrelations-panel",
       "title": "33. Draggable nodes \u2014 on",
-      "description": "Lets you move one node and saves its new position in the panel configuration. Drag a Sankey bar up or down and watch its ribbons move. You can also drag nodes in a Graph chart with Fixed layout. Force and Circular layouts calculate positions again, so they do not support this option.\n\nDefault: off.",
+      "description": "Lets you move one node and saves its new position as a field override. Drag a Sankey bar up or down and watch its ribbons move. You can also drag nodes in a Graph chart with Fixed layout. Force and Circular layouts calculate positions again, so they do not support this option.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
