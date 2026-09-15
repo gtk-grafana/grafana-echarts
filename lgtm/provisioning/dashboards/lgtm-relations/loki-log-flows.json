@@ -21,7 +21,7 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "# Relations charts from Loki logs\n\nThe relations panel needs one field for each edge. Each edge must identify its source and target.\n\nThese examples use the following Loki values:\n\n| Value | Purpose |\n| --- | --- |\n| `service_name` | Identifies the service that wrote the log line. |\n| `detected_level` | Identifies the log level that Loki detected. |\n| `logger` | Identifies the Grafana logger after `| logfmt` parses the line. |\n| `job=\"lgtm/docker\"` | Selects the container log streams for this stack. |\n\n## Route A: ranged series\n\nA ranged LogQL metric query returns one `Value` field for each series. Use `label_format` to add `source` and `target` labels to that field.\n\nKeep the original endpoint labels in the outer aggregation. The panel uses their matching values to detect the filter names.\n\nThe panel reads each labeled field as an edge. This route does not need a transformation.\n\n## Route B: instant rows\n\nAn instant query returns one row for each series. Use `label_format` to create a unique `edge` label.\n\nUse Organize fields to put `edge` first and rename the endpoint columns to `source` and `target`. Keep the original endpoint columns. Then use Rows to fields.\n\nThis route creates a named field for each edge. You can use the field name in an override.\n\nEach relations panel enables ad hoc filters. Pin a tooltip to add a filter to the Ad hoc filters variable."
+        "content": "# Relations charts from Loki logs\n\nThe relations panel needs one field for each edge. Each edge must identify its source and target.\n\nThese examples use the following Loki values:\n\n| Value | Purpose |\n| --- | --- |\n| `service_name` | Identifies the service that wrote the log line. |\n| `detected_level` | Identifies the log level that Loki detected. |\n| `logger` | Identifies the Grafana logger after `| logfmt` parses the line. |\n| `job=\"lgtm/docker\"` | Selects the container log streams for this stack. |\n\n`detected_level` is structured metadata. Grafana must add this filter after the stream selector. The parser-free queries use no-op `pattern` and `drop` stages for [the Grafana Loki workaround](https://github.com/grafana/grafana-loki-datasource/issues/155).\n\n## Route A: ranged series\n\nA ranged LogQL metric query returns one `Value` field for each series. Use `label_format` to add `source` and `target` labels to that field.\n\nKeep the original endpoint labels in the outer aggregation. The panel uses their matching values to detect the filter names.\n\nThe panel reads each labeled field as an edge. This route does not need a transformation.\n\n## Route B: instant rows\n\nAn instant query returns one row for each series. Use `label_format` to create a unique `edge` label.\n\nUse Organize fields to put `edge` first and rename the endpoint columns to `source` and `target`. Keep the original endpoint columns. Then use Rows to fields.\n\nThis route creates a named field for each edge. You can use the field name in an override.\n\nEach relations panel enables ad hoc filters. Pin a tooltip to add a filter to the Ad hoc filters variable."
       }
     },
     {
@@ -114,7 +114,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "sum by (source, target, service_name, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | label_format source=service_name, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "expr": "sum by (source, target, service_name, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | pattern `<line>`\n      | drop line\n      | label_format source=`{{.service_name}}`, target=`{{.detected_level}}`\n      | target != \"\"\n    [$__auto]\n  )\n)",
           "legendFormat": "{{source}}-->{{target}}"
         }
       ],
@@ -197,7 +197,7 @@
           },
           "editorMode": "code",
           "queryType": "instant",
-          "expr": "topk(12,\n  sum by (edge, src, dst, service_name, logger) (\n    count_over_time(\n      {job=\"lgtm/docker\"} | logfmt\n        | label_format src=service_name, dst=logger\n        | dst != \"\"\n        | label_format edge=`{{.src}}-->{{.dst}}`\n      [$__range]\n    )\n  )\n)",
+          "expr": "topk(12,\n  sum by (edge, src, dst, service_name, logger) (\n    count_over_time(\n      {job=\"lgtm/docker\"} | logfmt\n        | label_format src=`{{.service_name}}`, dst=`{{.logger}}`\n        | dst != \"\"\n        | label_format edge=`{{.src}}-->{{.dst}}`\n      [$__range]\n    )\n  )\n)",
           "legendFormat": "__auto"
         }
       ],
@@ -288,7 +288,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "sum by (source, target, service_name, logger) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=service_name, target=logger\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "expr": "sum by (source, target, service_name, logger) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=`{{.service_name}}`, target=`{{.logger}}`\n      | target != \"\"\n    [$__auto]\n  )\n)",
           "legendFormat": "{{source}}-->{{target}}"
         },
         {
@@ -299,7 +299,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "sum by (source, target, logger, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=logger, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "expr": "sum by (source, target, logger, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=`{{.logger}}`, target=`{{.detected_level}}`\n      | target != \"\"\n    [$__auto]\n  )\n)",
           "legendFormat": "{{source}}-->{{target}}"
         }
       ],
@@ -391,7 +391,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "sum by (source, target, service_name, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | label_format source=service_name, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "expr": "sum by (source, target, service_name, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | pattern `<line>`\n      | drop line\n      | label_format source=`{{.service_name}}`, target=`{{.detected_level}}`\n      | target != \"\"\n    [$__auto]\n  )\n)",
           "legendFormat": "{{source}}-->{{target}}"
         }
       ],
@@ -435,7 +435,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "{job=\"lgtm/docker\"}",
+          "expr": "{job=\"lgtm/docker\"}\n  | pattern `<line>`\n  | drop line",
           "maxLines": 200
         }
       ],

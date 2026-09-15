@@ -6,7 +6,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "links": [],
-  "description": "This dashboard shows each relations chart option that changes the chart. Each panel changes one option and tells you what to look for.\n\nPanels 32 and 33 show actions. Follow their instructions to pan the chart or move a node.\n\nPanels 34 to 36 show standard field configuration. These panels show how color schemes, thresholds, and value mappings change nodes and links.",
+  "description": "This dashboard groups relations chart options into Sankey, Graph, and Chord rows. Each panel changes one option and tells you what to look for. Expand a family row to compare the options for that chart type.\n\nPanels 32, 33, and 42 show actions. Follow their instructions to pan the chart, move a node, or hover a node.\n\nPanels 34 to 36 show standard field configuration. These panels show how color schemes, thresholds, and value mappings change nodes and links. Panels 37 to 41, 43, and 44 show more chart types and option values.",
   "refresh": "",
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "panel-options", "reference"],
@@ -19,15 +19,28 @@
   },
   "timepicker": {},
   "timezone": "utc",
-  "title": "ECharts Relations \u2014 every panel option",
+  "title": "ECharts Relations — every panel option",
   "uid": "echarts-relations-all-options",
   "version": 1,
   "weekStart": "",
   "panels": [
     {
+      "id": 45,
+      "type": "row",
+      "title": "Sankey",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
       "id": 1,
       "type": "grafana-echartsrelations-panel",
-      "title": "1. Chart type \u2014 Sankey",
+      "title": "Chart type — Sankey",
       "description": "Selects how the panel draws the same nodes and links. This panel uses Sankey, which shows each link as a flow ribbon.\n\nDefault: `graph`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -37,7 +50,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 0
+        "y": 1
       },
       "fieldConfig": {
         "defaults": {
@@ -81,10 +94,10 @@
       ]
     },
     {
-      "id": 2,
+      "id": 19,
       "type": "grafana-echartsrelations-panel",
-      "title": "2. Calculation \u2014 Max, plus Min as a tooltip row",
-      "description": "Selects the value that represents each node and link. This panel uses Max and shows Min as an extra tooltip row. Hover a node to compare the values. Show node values is on so you can see the Max value.\n\nDefault: `median`.",
+      "title": "Node alignment — Justify",
+      "description": "Sets the column for a Sankey node that can fit in more than one column. This panel uses Justify, so Cache moves to the last column while Logs stays in the first column. Compare it with panels 43 and 44.\n\nDefault: `left`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -93,7 +106,684 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 0
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsSankeyNodeAlign": "justify"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,gateway-->cache,logs-->db\n100,90,30,20"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Flow direction — Vertical",
+      "description": "Sets the direction of a Sankey chart. This panel uses Vertical, so flow moves from top to bottom instead of left to right. Node labels move with the new direction.\n\nDefault: `horizontal`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsSankeyOrient": "vertical"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Node width — 40px",
+      "description": "Sets the thickness of each Sankey node bar in pixels. In a horizontal chart, this value sets the bar width. In a vertical chart, it sets the bar height. This panel uses 40 px.\n\nDefault: `20`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyNodeWidth": 40
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Node gap — 30px",
+      "description": "Sets the space in pixels between Sankey nodes in the same column. This panel uses 30 px, so the middle nodes move apart and the ribbons spread out. Increase the gap when node labels overlap.\n\nDefault: `8`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyNodeGap": 30
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Ribbon curveness — 0",
+      "description": "Sets how much Sankey ribbons curve between nodes. This panel uses 0, so straight-sided bands connect the columns. Higher values produce stronger curves. Graph charts use Link curveness instead.\n\nDefault: `0.5`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyCurveness": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Ribbon opacity — 0.8",
+      "description": "Sets the opacity of Sankey ribbons from 0 to 1. This panel uses 0.8, so the ribbons are nearly solid. Lower values make overlapping ribbons easier to distinguish.\n\nDefault: `0.2`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 21
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyLinkOpacity": 0.8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Layout iterations — 0",
+      "description": "Sets how many passes ECharts uses to reduce ribbon crossings in a Sankey chart. This panel uses 0, so it shows the first layout.\n\nDefault: `32`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 21
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyLayoutIterations": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "source-a,source-b,middle-a,middle-b,sink-a,sink-b\n90,80,70,60,50,40"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "source-a-->middle-b,source-b-->middle-a,middle-a-->sink-b,middle-b-->sink-a\n90,80,80,90"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Draggable nodes — on",
+      "description": "Lets you move one node and saves its new position as a field override. Drag a Sankey bar up or down and watch its ribbons move. You can also drag nodes in a Graph chart with Fixed layout. Force and Circular layouts calculate positions again, so they do not support this option.\n\nDefault: off.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 21
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsDraggable": true,
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Link color — Gradient on Sankey",
+      "description": "Controls how each ribbon gets its color. This Sankey panel uses Gradient, so each ribbon blends from its source node color to its target node color.\n\nDefault: `gradient`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsLinkColor": "gradient"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n20,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Show edge values — Sankey",
+      "description": "Controls whether link weights appear on the chart. This Sankey panel shows each value on its flow ribbon, so you can compare the flow without opening a tooltip.\n\nDefault: off.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsShowEdgeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n20,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Node alignment — Left",
+      "description": "Sets the column for a Sankey node that can fit in more than one column. This panel uses Left, so Cache stays in the middle column and Logs stays in the first column. Compare it with panel 19.\n\nDefault: `left`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsSankeyNodeAlign": "left"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,gateway-->cache,logs-->db\n100,90,30,20"
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Node alignment — Right",
+      "description": "Sets the column for a Sankey node that can fit in more than one column. This panel uses Right, so Cache stays in the last column and Logs moves to the middle column. Compare it with panel 19.\n\nDefault: `left`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 41
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsSankeyNodeAlign": "right"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,gateway-->cache,logs-->db\n100,90,30,20"
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "type": "row",
+      "title": "Graph",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Calculation — Max, plus Min as a tooltip row",
+      "description": "Selects the value that represents each node and link. This panel uses Max and shows Min as an extra tooltip row. Hover a node to compare the values. Show node values is on so you can see the Max value.\n\nDefault: `median`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 52
       },
       "fieldConfig": {
         "defaults": {
@@ -144,7 +834,7 @@
     {
       "id": 3,
       "type": "grafana-echartsrelations-panel",
-      "title": "3. Time slider \u2014 on",
+      "title": "Time slider — on",
       "description": "Shows node and link values at one time. Drag the time slider and watch the link values change. This option needs data with more than one time value.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -153,8 +843,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 16,
-        "y": 0
+        "x": 8,
+        "y": 52
       },
       "fieldConfig": {
         "defaults": {
@@ -204,7 +894,7 @@
     {
       "id": 4,
       "type": "grafana-echartsrelations-panel",
-      "title": "4. Show node labels \u2014 off",
+      "title": "Show node labels — off",
       "description": "Controls whether the panel draws each node name. This panel turns node labels off, so you see symbols without names. Other node label options are hidden when this option is off.\n\nDefault: on.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -213,8 +903,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 0,
-        "y": 10
+        "x": 16,
+        "y": 52
       },
       "fieldConfig": {
         "defaults": {
@@ -262,7 +952,7 @@
     {
       "id": 5,
       "type": "grafana-echartsrelations-panel",
-      "title": "5. Show node values \u2014 on",
+      "title": "Show node values — on",
       "description": "Adds the calculated value below each node name. The node field controls the unit, decimals, and value mapping. The option is not available when the response contains links without node values.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -271,8 +961,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 8,
-        "y": 10
+        "x": 0,
+        "y": 62
       },
       "fieldConfig": {
         "defaults": {
@@ -320,7 +1010,7 @@
     {
       "id": 6,
       "type": "grafana-echartsrelations-panel",
-      "title": "6. Hide overlapping labels \u2014 off",
+      "title": "Hide overlapping labels — off",
       "description": "Controls whether the panel hides labels that overlap. This panel turns the option off, so all 16 long service names appear and some labels overlap. Node symbols, colors, and tooltips do not change.\n\nDefault: on.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -329,8 +1019,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 16,
-        "y": 10
+        "x": 8,
+        "y": 62
       },
       "fieldConfig": {
         "defaults": {
@@ -342,7 +1032,7 @@
       },
       "options": {
         "legend": {
-          "showLegend": true,
+          "showLegend": false,
           "displayMode": "list",
           "placement": "bottom",
           "calcs": []
@@ -379,7 +1069,7 @@
     {
       "id": 7,
       "type": "grafana-echartsrelations-panel",
-      "title": "7. Label overflow \u2014 None",
+      "title": "Label overflow — None",
       "description": "Controls what happens when a node name is wider than the label width. This panel uses None, so the full names extend past the 70 px width. Truncate cuts long names and adds an ellipsis.\n\nDefault: `truncate`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -388,8 +1078,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 0,
-        "y": 20
+        "x": 16,
+        "y": 62
       },
       "fieldConfig": {
         "defaults": {
@@ -439,7 +1129,7 @@
     {
       "id": 8,
       "type": "grafana-echartsrelations-panel",
-      "title": "8. Label width \u2014 40px",
+      "title": "Label width — 40px",
       "description": "Sets the maximum node label width in pixels. This panel uses 40 px, so each long service name is truncated earlier. This option is hidden when Label overflow is None.\n\nDefault: `120`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -448,8 +1138,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 8,
-        "y": 20
+        "x": 0,
+        "y": 72
       },
       "fieldConfig": {
         "defaults": {
@@ -498,7 +1188,7 @@
     {
       "id": 9,
       "type": "grafana-echartsrelations-panel",
-      "title": "9. Show edge values \u2014 on",
+      "title": "Show edge values — on",
       "description": "Draws each link value on the link. The link field controls the displayed unit and decimals. This option is available for Graph and Sankey charts, but not for Chord charts.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -507,8 +1197,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 16,
-        "y": 20
+        "x": 8,
+        "y": 72
       },
       "fieldConfig": {
         "defaults": {
@@ -556,7 +1246,7 @@
     {
       "id": 10,
       "type": "grafana-echartsrelations-panel",
-      "title": "10. Layout \u2014 Fixed (a smiley face)",
+      "title": "Layout — Fixed (a smiley face)",
       "description": "Places each node at its fixed X and Y coordinates. The coordinates in this panel form a face. The classic palette gives nodes different colors, and the default link gradient blends the source and target colors. Fixed layout is available in Advanced mode.\n\nDefault: `force`. The panel selects Fixed when every node has coordinates.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -565,8 +1255,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 0,
-        "y": 30
+        "x": 16,
+        "y": 72
       },
       "fieldConfig": {
         "defaults": {
@@ -1077,7 +1767,7 @@
     {
       "id": 11,
       "type": "grafana-echartsrelations-panel",
-      "title": "11. Node size \u2014 45px",
+      "title": "Node size — 45px",
       "description": "Sets the diameter of graph nodes in pixels. This panel uses 45 px, so its nodes are larger than the default. A node-specific size overrides this value. Sankey charts use Node width instead.\n\nDefault: `20`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -1086,8 +1776,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 8,
-        "y": 30
+        "x": 0,
+        "y": 82
       },
       "fieldConfig": {
         "defaults": {
@@ -1135,7 +1825,7 @@
     {
       "id": 12,
       "type": "grafana-echartsrelations-panel",
-      "title": "12. Repulsion \u2014 1200",
+      "title": "Repulsion — 1200",
       "description": "Sets how strongly nodes push away from each other in a Force layout. This panel uses 1200, so the nodes spread farther apart. This option is available only for Force layouts.\n\nDefault: `400`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -1144,8 +1834,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 16,
-        "y": 30
+        "x": 8,
+        "y": 82
       },
       "fieldConfig": {
         "defaults": {
@@ -1194,7 +1884,7 @@
     {
       "id": 13,
       "type": "grafana-echartsrelations-panel",
-      "title": "13. Edge length \u2014 40",
+      "title": "Edge length — 40",
       "description": "Sets the target length of each link in pixels for a Force layout. This panel uses 40, so the simulation pulls connected nodes close together.\n\nDefault: `200`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -1203,8 +1893,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 0,
-        "y": 40
+        "x": 16,
+        "y": 82
       },
       "fieldConfig": {
         "defaults": {
@@ -1253,7 +1943,7 @@
     {
       "id": 14,
       "type": "grafana-echartsrelations-panel",
-      "title": "14. Gravity \u2014 0.5",
+      "title": "Gravity — 0.5",
       "description": "Sets how strongly a Force layout pulls nodes toward the center of the panel. A higher value keeps the graph compact when node repulsion pushes outward.\n\nDefault: unset, so ECharts uses its default value.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -1262,8 +1952,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 8,
-        "y": 40
+        "x": 0,
+        "y": 92
       },
       "fieldConfig": {
         "defaults": {
@@ -1312,7 +2002,7 @@
     {
       "id": 15,
       "type": "grafana-echartsrelations-panel",
-      "title": "15. Zoom \u2014 on",
+      "title": "Zoom — on",
       "description": "Shows zoom in, zoom out, and reset buttons in the panel corner. Use these buttons when the full chart does not fit in the panel. The mouse wheel continues to scroll the dashboard. Chord charts do not support zoom.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -1321,8 +2011,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 16,
-        "y": 40
+        "x": 8,
+        "y": 92
       },
       "fieldConfig": {
         "defaults": {
@@ -1370,7 +2060,7 @@
     {
       "id": 16,
       "type": "grafana-echartsrelations-panel",
-      "title": "16. Link color \u2014 Target",
+      "title": "Link color — Target",
       "description": "Selects the node color that each link uses. This panel uses the target node color. Source uses the source node color. Gradient blends both colors in Sankey charts and Graph charts with Fixed layout. A link-specific color overrides this option.\n\nDefault: `gradient`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -1379,8 +2069,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 0,
-        "y": 50
+        "x": 16,
+        "y": 92
       },
       "fieldConfig": {
         "defaults": {
@@ -1428,7 +2118,7 @@
     {
       "id": 17,
       "type": "grafana-echartsrelations-panel",
-      "title": "17. Edge arrows \u2014 off",
+      "title": "Edge arrows — off",
       "description": "Controls whether each graph link has an arrowhead at its target. This panel turns arrows off, so the links do not show direction. Sankey ribbons show direction through their shape and do not use this option.\n\nDefault: on.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -1437,8 +2127,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 8,
-        "y": 50
+        "x": 0,
+        "y": 102
       },
       "fieldConfig": {
         "defaults": {
@@ -1486,7 +2176,7 @@
     {
       "id": 18,
       "type": "grafana-echartsrelations-panel",
-      "title": "18. Link curveness \u2014 0.4",
+      "title": "Link curveness — 0.4",
       "description": "Sets the curve of graph links from 0 to 1. This panel uses 0.4, so links bend and both directions of a two-way connection stay visible. Sankey charts use Ribbon curveness instead.\n\nDefault: unset, which draws straight links.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -1495,8 +2185,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 16,
-        "y": 50
+        "x": 8,
+        "y": 102
       },
       "fieldConfig": {
         "defaults": {
@@ -1543,694 +2233,9 @@
       ]
     },
     {
-      "id": 19,
-      "type": "grafana-echartsrelations-panel",
-      "title": "19. Node alignment \u2014 Justify",
-      "description": "Sets the column for a Sankey node that can fit in more than one column. This panel uses Justify, so nodes without outgoing links move to the last column. Left keeps each node in its earliest column.\n\nDefault: `left`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 0,
-        "y": 60
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "seriesType": "sankey",
-        "relationsSankeyNodeAlign": "justify"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,gateway-->cache\n100,90,30"
-        }
-      ]
-    },
-    {
-      "id": 20,
-      "type": "grafana-echartsrelations-panel",
-      "title": "20. Flow direction \u2014 Vertical",
-      "description": "Sets the direction of a Sankey chart. This panel uses Vertical, so flow moves from top to bottom instead of left to right. Node labels move with the new direction.\n\nDefault: `horizontal`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 8,
-        "y": 60
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "seriesType": "sankey",
-        "relationsSankeyOrient": "vertical"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 21,
-      "type": "grafana-echartsrelations-panel",
-      "title": "21. Node width \u2014 40px",
-      "description": "Sets the thickness of each Sankey node bar in pixels. In a horizontal chart, this value sets the bar width. In a vertical chart, it sets the bar height. This panel uses 40 px.\n\nDefault: `20`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 16,
-        "y": 60
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "sankey",
-        "relationsSankeyNodeWidth": 40
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 22,
-      "type": "grafana-echartsrelations-panel",
-      "title": "22. Node gap \u2014 30px",
-      "description": "Sets the space in pixels between Sankey nodes in the same column. This panel uses 30 px, so the middle nodes move apart and the ribbons spread out. Increase the gap when node labels overlap.\n\nDefault: `8`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 0,
-        "y": 70
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "sankey",
-        "relationsSankeyNodeGap": 30
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 23,
-      "type": "grafana-echartsrelations-panel",
-      "title": "23. Ribbon curveness \u2014 0",
-      "description": "Sets how much Sankey ribbons curve between nodes. This panel uses 0, so straight-sided bands connect the columns. Higher values produce stronger curves. Graph charts use Link curveness instead.\n\nDefault: `0.5`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 8,
-        "y": 70
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "sankey",
-        "relationsSankeyCurveness": 0
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 24,
-      "type": "grafana-echartsrelations-panel",
-      "title": "24. Ribbon opacity \u2014 0.8",
-      "description": "Sets the opacity of Sankey ribbons from 0 to 1. This panel uses 0.8, so the ribbons are nearly solid. Lower values make overlapping ribbons easier to distinguish.\n\nDefault: `0.2`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 16,
-        "y": 70
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "sankey",
-        "relationsSankeyLinkOpacity": 0.8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 25,
-      "type": "grafana-echartsrelations-panel",
-      "title": "25. Layout iterations \u2014 0",
-      "description": "Sets how many passes ECharts uses to reduce ribbon crossings in a Sankey chart. This panel uses 0, so it shows the first layout.\n\nDefault: `32`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 0,
-        "y": 80
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "sankey",
-        "relationsSankeyLayoutIterations": 0
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 26,
-      "type": "grafana-echartsrelations-panel",
-      "title": "26. Start angle \u2014 0\u00b0",
-      "description": "Sets where the first Chord arc starts in degrees. This panel uses 0 degrees, so the first arc starts at the right side of the ring. A value of 90 starts at the top.\n\nDefault: `90`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 8,
-        "y": 80
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "chord",
-        "relationsChordStartAngle": 0
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 27,
-      "type": "grafana-echartsrelations-panel",
-      "title": "27. Clockwise \u2014 off",
-      "description": "Sets the direction of Chord arcs from the start angle. This panel turns Clockwise off, so the arcs run counterclockwise and the node order reverses. Compare the order with another Chord panel.\n\nDefault: on.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 16,
-        "y": 80
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "chord",
-        "relationsChordClockwise": false
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 28,
-      "type": "grafana-echartsrelations-panel",
-      "title": "28. Arc gap \u2014 12\u00b0",
-      "description": "Sets the gap in degrees between adjacent Chord arcs. This panel uses 12 degrees, so the spaces between arcs are easy to see. The value is an angle, not a pixel distance.\n\nDefault: `3`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 0,
-        "y": 90
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "chord",
-        "relationsChordPadAngle": 12
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 29,
-      "type": "grafana-echartsrelations-panel",
-      "title": "29. Minimum arc angle \u2014 20\u00b0",
-      "description": "Sets the smallest angle that a Chord node arc can use. This panel uses 20 degrees, so nodes with low flow remain visible instead of shrinking to nothing.\n\nDefault: `0`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 8,
-        "y": 90
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "chord",
-        "relationsChordMinAngle": 20
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
-      "id": 30,
-      "type": "grafana-echartsrelations-panel",
-      "title": "30. Ribbon opacity \u2014 0.7",
-      "description": "Sets the opacity of Chord ribbons from 0 to 1. This panel uses 0.7, so the ribbons are easy to see but can hide ribbons below them. Lower values help when many ribbons cross.\n\nDefault: `0.2`.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 16,
-        "y": 90
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "editorMode": "advanced",
-        "seriesType": "chord",
-        "relationsChordLinkOpacity": 0.7
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
       "id": 31,
       "type": "grafana-echartsrelations-panel",
-      "title": "31. Legend \u2014 Table, placed right",
+      "title": "Legend — Table, placed right",
       "description": "Shows one legend entry for each node. This panel uses a table on the right. Use the color control in an entry to change that node. Use the visibility control to hide that node. Legend calculations are not available because Calculation already gives each node one value.\n\nDefault: a visible list at the bottom.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -2239,8 +2244,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 0,
-        "y": 100
+        "x": 16,
+        "y": 102
       },
       "fieldConfig": {
         "defaults": {
@@ -2287,7 +2292,7 @@
     {
       "id": 32,
       "type": "grafana-echartsrelations-panel",
-      "title": "32. Pan \u2014 on",
+      "title": "Pan — on",
       "description": "Lets you move the full chart inside the panel. Drag an empty part of the plot area and watch the chart follow the pointer. This option does not change the chart until you drag. Chord charts do not support pan. Turn on Remember view to keep the new position after a reload.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -2296,8 +2301,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 8,
-        "y": 100
+        "x": 0,
+        "y": 112
       },
       "fieldConfig": {
         "defaults": {
@@ -2343,68 +2348,10 @@
       ]
     },
     {
-      "id": 33,
-      "type": "grafana-echartsrelations-panel",
-      "title": "33. Draggable nodes \u2014 on",
-      "description": "Lets you move one node and saves its new position as a field override. Drag a Sankey bar up or down and watch its ribbons move. You can also drag nodes in a Graph chart with Fixed layout. Force and Circular layouts calculate positions again, so they do not support this option.\n\nDefault: off.",
-      "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 8,
-        "x": 16,
-        "y": 100
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "single"
-        },
-        "seriesType": "sankey",
-        "relationsDraggable": true,
-        "editorMode": "advanced"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
-          },
-          "scenarioId": "csv_content",
-          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
-        }
-      ]
-    },
-    {
       "id": 34,
       "type": "grafana-echartsrelations-panel",
-      "title": "34. Color scheme \u2014 by value (Green-Yellow-Red)",
-      "description": "Colors each node and link from its calculated value. This panel uses the Green-Yellow-Red gradient. Gateway is green at 20, API is yellow at 55, and DB is orange at 85. The shared range includes link values up to 125, so no node reaches red. Set Min and Max, or turn on Field min/max, to change the range.\n\nDefault: Classic palette.",
+      "title": "Color scheme — by value (Green-Yellow-Red)",
+      "description": "Colors each node and link from its calculated value. This panel uses the Green-Yellow-Red gradient with a fixed range from 0 to 85. Gateway is green at 20, API is yellow at 55, and DB reaches red at 85. Higher values also use red.\n\nDefault: Classic palette.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2412,15 +2359,17 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 0,
-        "y": 110
+        "x": 8,
+        "y": 112
       },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "continuous-GrYlRd"
           },
-          "unit": "reqps"
+          "unit": "reqps",
+          "min": 0,
+          "max": 85
         },
         "overrides": []
       },
@@ -2462,7 +2411,7 @@
     {
       "id": 35,
       "type": "grafana-echartsrelations-panel",
-      "title": "35. Thresholds \u2014 absolute steps at 50 and 80",
+      "title": "Thresholds — absolute steps at 50 and 80",
       "description": "Colors each node and link by threshold bands. This panel uses green below 50, yellow from 50 to 80, and red above 80. Min and Max are 0 and 100, so each color represents a fixed value range. Show node values is on so you can compare each value with its color. Percentage thresholds use the data range instead.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -2471,8 +2420,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 8,
-        "y": 110
+        "x": 16,
+        "y": 112
       },
       "fieldConfig": {
         "defaults": {
@@ -2540,7 +2489,7 @@
     {
       "id": 36,
       "type": "grafana-echartsrelations-panel",
-      "title": "36. Value mappings \u2014 colour and text",
+      "title": "Value mappings — colour and text",
       "description": "Replaces field values with text and colors. This panel maps 1 to Healthy and green, 2 to Degraded and orange, and 3 to Down and red. Node labels and tooltips show the mapped text. The mapping color overrides the Classic palette for that node.\n\nDefault: no value mappings.",
       "datasource": {
         "type": "grafana-testdata-datasource",
@@ -2549,8 +2498,8 @@
       "gridPos": {
         "h": 10,
         "w": 8,
-        "x": 16,
-        "y": 110
+        "x": 0,
+        "y": 122
       },
       "fieldConfig": {
         "defaults": {
@@ -2614,6 +2563,539 @@
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Label overflow — Wrap",
+      "description": "Controls how a node name uses the label width. This panel wraps long service names at word boundaries, so the full names use more than one line.\n\nDefault: `truncate`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 122
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsLabelOverflow": "break"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge gateway ingress,checkout api service,storefront web frontend,orders postgres database\n120,80,60,200"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "edge gateway ingress-->checkout api service,edge gateway ingress-->storefront web frontend,checkout api service-->orders postgres database,storefront web frontend-->orders postgres database\n100,52,88,41"
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Link color — Source",
+      "description": "Controls which endpoint supplies each link color. This panel uses Source, so every link uses the color of the node where the link starts. Compare it with panel 16.\n\nDefault: `gradient`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 122
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsLinkColor": "source"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n20,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Highlight adjacency — off",
+      "description": "Controls the hover focus. Hover a node in this dense graph. Unrelated nodes and links stay fully visible because Highlight adjacency is off. Turn it on to fade unrelated marks.\n\nDefault: on.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 132
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsFocusAdjacency": false
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,worker,db,cache,auth,search,queue,billing\n90,80,70,60,50,40,30,20,10"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,gateway-->auth,gateway-->search,api-->worker,api-->db,api-->cache,worker-->queue,worker-->billing,auth-->db,search-->cache,queue-->db,billing-->db\n100,60,45,80,70,50,40,30,25,20,15,10"
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "type": "row",
+      "title": "Chord",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 142
+      },
+      "panels": []
+    },
+    {
+      "id": 26,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Start angle — 0°",
+      "description": "Sets where the first Chord arc starts in degrees. This panel uses 0 degrees, so the first arc starts at the right side of the ring. A value of 90 starts at the top.\n\nDefault: `90`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 143
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordStartAngle": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Clockwise — off",
+      "description": "Sets the direction of Chord arcs from the start angle. This panel turns Clockwise off, so the arcs run counterclockwise and the node order reverses. Compare the order with another Chord panel.\n\nDefault: on.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 143
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordClockwise": false
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Arc gap — 12°",
+      "description": "Sets the gap in degrees between adjacent Chord arcs. This panel uses 12 degrees, so the spaces between arcs are easy to see. The value is an angle, not a pixel distance.\n\nDefault: `3`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 143
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordPadAngle": 12
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Minimum arc angle — 20°",
+      "description": "Sets the smallest angle that a Chord node arc can use. This panel uses 20 degrees, so nodes with low flow remain visible instead of shrinking to nothing.\n\nDefault: `0`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 153
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordMinAngle": 20
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,web,trickle\n100,100,100,0.5"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,gateway-->web,api-->web,api-->trickle\n100,100,100,0.5"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Ribbon opacity — 0.7",
+      "description": "Sets the opacity of Chord ribbons from 0 to 1. This panel uses 0.7, so the ribbons are easy to see but can hide ribbons below them. Lower values help when many ribbons cross.\n\nDefault: `0.2`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 153
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordLinkOpacity": 0.7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Chart type — Chord baseline",
+      "description": "Selects how the panel draws the same nodes and links. This panel uses Chord, which shows each node as a ring arc and each link as a ribbon across the ring.\n\nDefault: `graph`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 153
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n20,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
         }
       ]
     }

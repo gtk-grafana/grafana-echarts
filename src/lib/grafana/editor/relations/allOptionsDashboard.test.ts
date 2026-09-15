@@ -14,6 +14,8 @@ const repoFile = (...parts: string[]) => join(__dirname, '../../../../..', ...pa
 interface DemoPanel {
   id: number;
   title: string;
+  type: string;
+  collapsed?: boolean;
   description?: string;
   options: Record<string, unknown>;
 }
@@ -77,6 +79,12 @@ const FIELD_CONFIG_PANEL: Record<string, number> = {
 /** Extra values that explain a supported choice or chart variant. */
 const SUPPLEMENTAL_PANEL_IDS = [37, 38, 39, 40, 41, 43, 44];
 
+const FAMILY_ROWS = [
+  { id: 45, title: 'Sankey', seriesType: 'sankey' },
+  { id: 46, title: 'Graph', seriesType: 'graph' },
+  { id: 47, title: 'Chord', seriesType: 'chord' },
+] as const;
+
 /** Return every expected panel id in dashboard order. */
 const ALL_PANEL_IDS = [
   ...Object.values(OPTION_PANEL),
@@ -109,18 +117,37 @@ describe('the all-options reference dashboard', () => {
   });
 
   it('has every primary and supplemental demo, numbered 1..n', () => {
-    const panels = dashboard().panels;
+    const panels = dashboard().panels.filter((panel) => panel.type !== 'row');
 
-    expect(panels.map((panel) => panel.id)).toEqual(ALL_PANEL_IDS);
+    expect(panels.map((panel) => panel.id).sort((left, right) => left - right)).toEqual(ALL_PANEL_IDS);
     expect(panels).toHaveLength(ALL_PANEL_IDS.length);
     expect(ALL_PANEL_IDS).toEqual(ALL_PANEL_IDS.map((_, index) => index + 1));
   });
 
-  // The id is the doc's link target, so it has to be legible on the panel itself.
-  it('prefixes every panel title with its id', () => {
-    for (const panel of dashboard().panels) {
-      expect(panel.title.startsWith(`${panel.id}. `)).toBe(true);
+  it('groups every chart under an expanded family row', () => {
+    const panels = dashboard().panels;
+    const rowIndexes = panels.flatMap((panel, index) => (panel.type === 'row' ? [index] : []));
+
+    expect(rowIndexes.map((index) => panels[index])).toMatchObject(
+      FAMILY_ROWS.map(({ id, title }) => ({ id, title, type: 'row', collapsed: false }))
+    );
+
+    for (const [rowIndex, family] of FAMILY_ROWS.entries()) {
+      const start = rowIndexes[rowIndex] + 1;
+      const end = rowIndexes[rowIndex + 1] ?? panels.length;
+      const seriesTypes = panels.slice(start, end).map((panel) => panel.options.seriesType ?? 'graph');
+
+      expect(seriesTypes.length).toBeGreaterThan(0);
+      expect(new Set(seriesTypes)).toEqual(new Set([family.seriesType]));
     }
+  });
+
+  it('uses unnumbered chart titles', () => {
+    const numbered = dashboard()
+      .panels.filter((panel) => panel.type !== 'row' && /^\d+\.\s/.test(panel.title))
+      .map((panel) => panel.title);
+
+    expect(numbered).toEqual([]);
   });
 
   it('puts every panel demoing an Advanced option into Advanced editor mode', () => {
@@ -140,6 +167,7 @@ describe('the all-options reference dashboard', () => {
   it('describes every panel', () => {
     const thin = dashboard()
       .panels.filter((panel) => (panel.description ?? '').length < 100)
+      .filter((panel) => panel.type !== 'row')
       .map((panel) => panel.title);
 
     expect(thin).toEqual([]);
