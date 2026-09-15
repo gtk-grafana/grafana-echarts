@@ -157,11 +157,10 @@ describe('relations layout', () => {
      * and half the edges would report their direction backwards, so nothing is emitted.
      * See `makeEdgeGradientResolver`.
      *
-     * This is the assertion the family's gradient baseline could not make. It was
-     * previously snapshotted under the harness's pinned `circular` layout, where the
-     * degradation applies — so the "gradient" baseline was byte-identical to the base
-     * render *and* to the `source`-mode one, and would have gone on passing if gradients
-     * had stopped working entirely. The picture is in
+     * This is the assertion the family's gradient baseline cannot make. Snapshotted under
+     * the harness's pinned `circular` layout the degradation applies, so a "gradient"
+     * baseline is byte-identical to the base render *and* to the `source`-mode one, and
+     * would keep passing if gradients stopped working entirely. The picture is in
      * `canvas-tests/relations/graph.canvas.test.tsx`; the mechanism is here.
      */
     it('a gradient link colour is emitted only where the layout knows the positions', async () => {

@@ -55,8 +55,7 @@ describe('addRelationsLayoutOptions', () => {
 
   /**
    * Node size shares the section: it is how big a mark is, which is the same subject as
-   * where it sits. It used to sit with the label switches, which it has nothing to do
-   * with. Both are graph-only.
+   * where it sits — and not the label switches' subject. Both are graph-only.
    */
   it('registers node size in the same section, and nothing else', () => {
     const builder = new PanelOptionsEditorBuilder<PanelOptions>();

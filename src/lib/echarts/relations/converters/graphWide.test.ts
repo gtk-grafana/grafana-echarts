@@ -100,9 +100,9 @@ describe('frameToGraphWide — edges', () => {
 
     expect(frameToGraphWide([frame], theme, { calcs: ['max'] })!.links[0].value).toBe(9);
     expect(frameToGraphWide([frame], theme, { calcs: ['sum'] })!.links[0].value).toBe(12);
-    // Default is median (`RELATIONS_CALC_DEFAULT`) — of [1, 2, 9], so 2. It used to be
-    // `lastNotNull`, which would give 9 here and is the reducer most sensitive to
-    // whatever the series happened to be doing at the right-hand edge of the range.
+    // Default is median (`RELATIONS_CALC_DEFAULT`) — of [1, 2, 9], so 2. Not
+    // `lastNotNull`, which gives 9 here: it is the reducer most sensitive to whatever the
+    // series happens to be doing at the right-hand edge of the range.
     expect(frameToGraphWide([frame], theme)!.links[0].value).toBe(2);
   });
 
@@ -178,10 +178,10 @@ describe('frameToGraphWide — nodes', () => {
     const data = frameToGraphWide([labelledEdges()], theme);
 
     expect(data?.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
-    // No stat: a node with neither field nor row has nothing to report. It used to be the
-    // node's degree, which is a link count wearing a measurement's clothes — see
-    // `deriveNodesFromLinks` and `converters/deriveNodes.ts`, the pre-pass that gives these
-    // nodes a field instead on a host that can run it.
+    // No stat: a node with neither field nor row has nothing to report. Not its degree,
+    // which is a link count wearing a measurement's clothes — see `deriveNodesFromLinks`
+    // and `converters/deriveNodes.ts`, the pre-pass that gives these nodes a field
+    // instead on a host that can run it.
     expect(data?.nodes.map((node) => node.value)).toEqual([null, null, null]);
   });
 });
@@ -318,12 +318,12 @@ describe('frameToGraphWide — edge colour', () => {
   });
 
   /**
-   * **The reported bug.** The rule used to be a two-entry deny-list of `palette-classic`
-   * and `palette-classic-by-name`, so every other palette — `palette-colorblind`, and
-   * 13.3's `palette-categorical-next*` — gave each edge a colour of its own and turned
-   * "Link color" off for the whole panel. A palette is a colour by series index or by a
-   * hash of the name, which says nothing about which two nodes an edge joins, so all of
-   * them fall through to the endpoint colouring.
+   * **Every palette falls through to the endpoint colouring, not a named few.** A palette
+   * is a colour by series index or by a hash of the name, which says nothing about which
+   * two nodes an edge joins. A deny-list naming only `palette-classic` and
+   * `palette-classic-by-name` would let every other palette — `palette-colorblind`, 13.3's
+   * `palette-categorical-next*` — give each edge a colour of its own and so turn
+   * "Link color" off for the whole panel.
    *
    * `palette-invented-upstream` is not a real mode and is the point: `getFieldColorMode`
    * answers an id it does not know with the `thresholds` mode, so the registry alone
@@ -602,7 +602,7 @@ describe('reduceOptions', () => {
   /**
    * Nothing is truncated. Only `calcs[0]` has a job outside the tooltip — it colours a mark and
    * weighs an edge — and every calc after it is a row, so a third and fourth are as usable as
-   * the second. This used to drop `calcs[2..]` silently.
+   * the second. Truncating here would drop `calcs[2..]` silently.
    */
   it('keeps every calc, defaulting only an empty list', () => {
     expect(normalizeRelationsCalcs({ calcs: ['max', 'min', 'mean'] })).toEqual(['max', 'min', 'mean']);
@@ -621,8 +621,8 @@ describe('reduceOptions', () => {
   });
 
   /**
-   * A third and fourth calculation are rows too. They used to be dropped by
-   * `normalizeRelationsCalcs` before the reader ever saw them, so picking one did nothing.
+   * A third and fourth calculation are rows too. `normalizeRelationsCalcs` must not drop
+   * them before the reader sees them, or picking one does nothing.
    */
   it('reduces one stat per calc past the first, in the order they were picked', () => {
     const frames = [labelledEdges(), withDisplay(ranged())];

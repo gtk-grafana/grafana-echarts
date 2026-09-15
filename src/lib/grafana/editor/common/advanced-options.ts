@@ -45,9 +45,9 @@ export function showIfAdvanced(extra?: ExtraShowIf): ExtraShowIf {
 /**
  * AND-compose several optional visibility predicates into one (treating a missing
  * or `undefined` result as "shown"), or return `undefined` when none are given so
- * callers can pass it straight through. Used to combine a family-variant gate
- * (e.g. `isPieVariant`) passed down from the module with a control's own
- * dependency predicate (e.g. "an overflow mode is chosen").
+ * callers can pass it straight through. Combines a family-variant gate (e.g.
+ * `isPieVariant`) passed down from the module with a control's own dependency
+ * predicate (e.g. "an overflow mode is chosen").
  */
 export function composeShowIf(...predicates: Array<ExtraShowIf | undefined>): ExtraShowIf | undefined {
   const defined = predicates.filter((predicate): predicate is ExtraShowIf => predicate != null);

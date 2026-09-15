@@ -36,16 +36,12 @@ export const relationsSeriesTypeOptions: Array<SelectableValue<RelationsSeriesTy
 /**
  * The relations family's editor sections.
  *
- * The family used to have three: "Relations" for everything Default-tier, "Sankey",
- * and one "Advanced" bucket that collected 25 unrelated controls — chord ring geometry
- * beside force repulsion beside label width. The tier split cut the *count* an editor
- * sees by default but did nothing for grouping, so finding a specific feature meant
- * scanning one flat list.
- *
- * These sections group by **purpose** instead, and the Default/Advanced tier is carried
- * only by each option's `showIf` gate (`showIfAdvanced`). So an Advanced control appears
- * in the section it belongs to, next to the Default-tier controls it relates to, and a
- * section that is entirely Advanced (Chord) simply does not render in Default mode.
+ * Sections group by **purpose**, and the Default/Advanced tier is carried only by each
+ * option's `showIf` gate (`showIfAdvanced`) — never by a section. So an Advanced control
+ * appears in the section it belongs to, next to the Default-tier controls it relates to,
+ * and a section that is entirely Advanced (Chord) simply does not render in Default mode.
+ * A single "Advanced" bucket would instead collect unrelated controls — chord ring
+ * geometry beside force repulsion beside label width — and leave purpose ungrouped.
  *
  * Section order in the pane follows the order each category is **first** registered —
  * see the supplier call order in `modules/relations/module.tsx`.

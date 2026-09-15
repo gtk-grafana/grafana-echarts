@@ -30,8 +30,8 @@ import {
  * see docs/options-modes.md.
  *
  * Each family's own suite tests its own keys, which is where the *contents* of a tier
- * belong. What had no test at all was the dispatch: which family a `SeriesType` reaches,
- * and in what order the predicates are asked. That is what this file is for.
+ * belong. This file covers the dispatch instead: which family a `SeriesType` reaches, and
+ * in what order the predicates are asked.
  */
 
 const options = (extra: Partial<PanelOptions> = {}): PanelOptions => relationsOptions(extra);

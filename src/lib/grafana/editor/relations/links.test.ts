@@ -62,14 +62,14 @@ describe('addRelationsLinkOptions — Link color', () => {
   });
 
   /**
-   * **Default-tier**, where it used to be Advanced. An edge's colour is the first thing
-   * about it a reader configures; it applies to all three render variants; and the two
-   * endpoint keywords have no equivalent anywhere else in the pane. So it carries no
-   * gate at all — the section is what places it now, not the tier.
+   * **Default-tier.** An edge's colour is the first thing about it a reader configures;
+   * it applies to all three render variants; and the two endpoint keywords have no
+   * equivalent anywhere else in the pane. So it carries no gate at all — its section is
+   * what places it, not a tier.
    *
-   * This is also why `relationsLinkColor` had to leave `ADVANCED_RELATIONS_DEFAULTS`:
-   * a Default-tier control that the render path resets in Default mode would show one
-   * value and draw another. `advancedTier.test.ts` asserts that both ways round.
+   * Which is also why it is absent from `ADVANCED_RELATIONS_DEFAULTS`: a Default-tier
+   * control the render path resets in Default mode would show one value and draw
+   * another. `advancedTier.test.ts` asserts that both ways round.
    */
   it('carries no editor-mode gate', () => {
     expect(linkColorOption().showIf).toBeUndefined();

@@ -167,13 +167,12 @@ export function getSeriesPerfOptions({
  *
  * So animation is opt-in instead, which also matches core Grafana more closely —
  * its viz panels do not animate at all. Deliberately takes no frame stats:
- * nothing about the data affects the answer any more. See `docs/performance.md`.
+ * nothing about the data affects the answer. See `docs/performance.md`.
  *
- * **No family exceptions.** Relations used to default this *on*, reasoning that a mark
- * there is a whole field so the panel is tens of marks rather than tens of thousands of
- * points. That is true and still beside the point: the switch is an Advanced opt-in on
- * every family now, and a panel that animates by default animates on every dashboard
- * refresh, not only on the load where the effect was wanted.
+ * **No family exceptions**, including relations, where a mark is a whole field so the
+ * panel is tens of marks rather than tens of thousands of points. That is true and beside
+ * the point: a panel that animates by default animates on every dashboard refresh, not
+ * only on the load where the effect was wanted.
  */
 export function resolveAnimation(options: PanelOptions): boolean {
   return options.animation?.enabled ?? ANIMATION_ENABLED_DEFAULT;

@@ -8,16 +8,16 @@ import { type PanelOptions } from 'types';
  * the order `module.tsx` calls them in and the category each one passes. No single file
  * states it, and none of the per-supplier suites can: each sees only its own options.
  *
- * So the thing this asserts is the thing that was actually wrong before the reorg and
- * that no test would have caught: options scattered across a "Relations" catch-all and
- * one 25-control "Advanced" bucket, with the editor-mode switch in a section Grafana
- * named after the plugin. A reorganisation that regresses is a reorganisation nobody
- * notices, because every individual option still registers fine.
+ * So what this asserts is the failure no other test can catch: options drifting back
+ * into a catch-all section, an oversized Advanced bucket, or the editor-mode switch
+ * landing in a section Grafana named after the plugin. Structural drift is invisible
+ * otherwise, because every individual option still registers fine.
  *
  * It is a **surface pin, not a proof of usefulness** — it cannot tell that an option is
- * read by the render path. Two known-inert controls were found by hand during the audit
- * (`tooltip.sort` / `tooltip.hideZeros`); what this guarantees is that the next one has
- * to be added deliberately, by editing an expectation, rather than appearing silently.
+ * read by the render path. The two known-inert controls it cannot judge
+ * (`tooltip.sort` / `tooltip.hideZeros`) were found by hand; what this guarantees is that
+ * the next one has to be added deliberately, by editing an expectation, rather than
+ * appearing silently.
  *
  * The pane itself is built by `test/relationsPane.ts`, shared with
  * `allOptionsDashboard.test.ts` so the two cannot drift.

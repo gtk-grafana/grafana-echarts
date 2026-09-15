@@ -49,18 +49,11 @@ describe('resolveRelationsRoam / resolveRelationsZoom', () => {
   });
 
   /**
-   * **Unset means off, with no legacy fallback.**
+   * **Unset means off**, and each resolver reads only its own key.
    *
-   * Both resolvers used to read a superseded single "Zoom and pan" switch
-   * (`relationsRoam`) when their own key was absent. That was tolerable while zoom and
-   * pan were Advanced and invisible; it became a wrong-state bug when they turned
-   * Default-tier, because a panel carrying only the old key rendered with both *on*
-   * while both switches displayed *off* — neither option was set, and neither carries a
-   * `defaultValue`. The control contradicted the panel.
-   *
-   * The key is deleted rather than migrated: the plugin is unreleased, so no dashboard
-   * outside this repo can be carrying it, and a deliberate break beats a migration path
-   * that has to be maintained forever for zero real dashboards.
+   * Neither switch carries a `defaultValue`, so any fallback that resolved an unset
+   * option to `true` would render a panel with pan or zoom live while its control
+   * displayed off — the control contradicting the panel.
    */
   it('treats an unset switch as off', () => {
     expect(resolveRelationsRoam(baseOptions())).toBe(false);

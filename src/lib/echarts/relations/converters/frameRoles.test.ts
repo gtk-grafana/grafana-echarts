@@ -295,8 +295,8 @@ describe('collecting every edges frame', () => {
 describe('collecting every nodes frame', () => {
   /**
    * The same silent drop on the nodes side: `legacyToWide` converts *every* legacy nodes
-   * frame it finds, so a two-query legacy response produces two `graph-nodes-wide` frames of
-   * which the reader used to read one. A node id is the ECharts graph key, so a repeated
+   * frame it finds, so a two-query legacy response produces two `graph-nodes-wide` frames
+   * and the reader has to read both. A node id is the ECharts graph key, so a repeated
    * declaration is a real collision rather than a display problem — response order decides.
    */
   it('reads every nodes frame, first field per id winning', () => {

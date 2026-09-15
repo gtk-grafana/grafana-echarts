@@ -144,7 +144,9 @@ visibly does nothing; the editor is handed the panel's frames and hides it
 wheel — and a panel that captures the wheel is a panel the dashboard cannot be scrolled
 past. The panel draws its own corner buttons and dispatches the roam _action_
 (`registerRoamActionSimply`), which resolves the view coordinate system directly and so
-works with `roam: false`. Only panning goes through `roam`, as `'move'`. The superseded single `relationsRoam` switch has been removed rather than migrated: its fallback made a panel carrying only the old key render with zoom and pan on while both switches displayed off, and the plugin is unreleased so no dashboard outside this repo can carry it.
+works with `roam: false`. Only panning goes through `roam`, as `'move'`. Zoom and pan are
+separate switches, and each resolver reads only its own key — neither carries a
+`defaultValue`, so an unset option must resolve to off or the control contradicts the panel.
 
 **Three graph defaults are deliberately not ECharts'.** `force.repulsion` (400 vs
 `[0, 50]`) and `force.edgeLength` (200 vs 30), because ECharts' are tuned for gallery
@@ -159,7 +161,7 @@ there: `SankeyView` gates a clip-path reveal on `isAnimationEnabled()` and `Chor
 enters through `graphic.initProps`, but `GraphView` writes node and edge positions straight
 through `SymbolDraw.updateLayout` and consults the flag nowhere. Measured in a real host, a
 graph paints the same two frames with the switch on as off, where a sankey paints ~64 over
-a second. A graph panel used to show both controls with only this one working.
+a second. Showing both controls on a graph would offer one that does nothing.
 
 **The switch hides itself on data it cannot serve.** "Time slider" only appears where there
 is more than one timestamp to step through (`hasGraphTimeline`) — otherwise every instant
@@ -321,8 +323,8 @@ Not registered, deliberately:
   row there is nothing left to reduce, so the two controls are alternative answers to the
   same question rather than settings that compose.
 - **Legend calcs** — `includeLegendCalcs: false`. The original reason (legend entries are
-  not fields, so there is nothing to reduce) is obsolete: a legend entry **is** a field
-  now. **Still off**, for a narrower reason — a mark is
+  not fields, so there is nothing to reduce) does not hold: a legend entry **is** a field.
+  **Still off**, for a narrower reason — a mark is
   already reduced to one value by `reduceOptions`, so on the instant data this family
   normally sees, every legend calc would print that same number again. It becomes a real
   option only for a _ranged_ wide frame, where a mark has many rows and Max/Mean over the
@@ -357,7 +359,7 @@ Not registered, deliberately:
   its original (`aliasEndpointKeys`), on the pivot route and the `rowsToFields` route
   alike. Recovery is not just easier but strictly more correct on a multi-level flow,
   whose levels relabel from different originals: one configured pair is wrong for every
-  level but one, which is exactly what the four panels that used to set this were doing.
+  level but one, so configuring the pair per panel cannot answer a multi-level flow at all.
   Two cases it cannot reach keep it alive for now — a query that destroyed its original
   **and** cannot be edited, and an ambiguous recovery where two labels hold the same
   value as an endpoint. Kept, hidden, for demonstration
@@ -501,7 +503,7 @@ frames can legitimately show a different number of links.
 - **Every frame in a role contributes, not just the first.** `findEdgesFrames` /
   `findNodesFrames` collect every frame that declares or shape-matches a role — the
   shape a labelled datasource returns with no transformation is N single-series frames,
-  and reading only the first used to silently draw a one-edge graph from a ten-series
+  and reading only the first would silently draw a one-edge graph from a ten-series
   response. Declared beats shape as a **filter**, not a find: once any frame declares
   `graph-edges-wide`, only declared frames are collected. See
   [data-plane/graph-wide.md](../../../data-plane/graph-wide.md#a-role-is-one-to-many).

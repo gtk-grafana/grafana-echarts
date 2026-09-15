@@ -9,8 +9,6 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - This plugins should provide a simple user experience that aligns with core Grafana panels
 - Grafana and EChart APIs should be isolated from each other whenever possible, preferably in different directories
 - Any usage of Grafana or EChart APIs should contain links to the relevant documentation
-- Editor options are tiered via a shared `editorMode` option (Default / Advanced / API); see [docs/options-modes.md](docs/options-modes.md)
-- Dense cartesian charts auto-switch onto ECharts' big-data levers above density thresholds; see [docs/performance.md](docs/performance.md)
 
 ## Critical rules
 
@@ -18,10 +16,13 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Ask for permission and clarity whenever ambiguities arise.
 - Keep plans small and focused to the task at hand, do not make changes that were not explicitly requested
 - Add comments to code, but keep them as concise as possible
-- Adhere to data plane frame specifications: https://grafana.com/developers/dataplane/, except when explicitly told not to
-- Create provisioned dashboards for all new panel functionality, prompt the user to check existing dashboards that can be impacted by a change
-- Always use eCharts types instead of creating local definitions of the eCharts API. See https://echarts.apache.org/handbook/en/basics/import/#creating-an-option-type-in-typescript
-- Assume data frames are square (all fields have the same number of values) and the frame length matches the value length.
+- Adhere to data plane frame specifications: https://grafana.com/developers/dataplane/
+- Create provisioned dashboards for all new panel functionality, prompt the user to check existing dashboards that can
+  be impacted by a change
+- Always use eCharts types instead of creating local definitions of the eCharts API.
+  See https://echarts.apache.org/handbook/en/basics/import/#creating-an-option-type-in-typescript
+- Assume data frames are square (all fields have the same number of values) and the frame length matches the value
+  length.
 - Don't update the jest snapshots in `*.canvas.test.*` tests!
 - One kind of test per file, by name. `*.canvas.test.*`: **only** jest-canvas-mock
   baselines — every test asserts `toMatchCanvasSnapshot` and nothing else belongs there
@@ -29,15 +30,7 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
   renders that assert drawn primitives or compare two renders, no baseline. `*.test.ts`:
   unit tests, no infix. Splitting a claim out of a canvas suite is never scope creep.
 - Stay on task & document out of scope context in the /todo directory
-- **Family as filename until a kind holds three or more of them, then a family
-  directory.** A chart family is normally a filename inside a kind directory
-  (`options/pie.ts`, `charts/pie.ts`). Once one family owns three or more files in the
-  same kind, it gets a directory instead — that is why
-  `lib/grafana/editor/relations/`, `lib/components/canvas-tests/relations/` and
-  `lib/echarts/relations/` exist while `src/editor/pie.ts` does not. Relations is the
-  only family over the threshold today; `stream` and `part-to-whole` are the next
-  candidates. A family directory nests **inside** the Grafana/ECharts split, never
-  across it. No barrel `index.ts` files anywhere — imports name the concrete module.
+- **Comments describe the current state, never a superseded one.**
 
 ## Development environment
 

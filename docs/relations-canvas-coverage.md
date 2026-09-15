@@ -78,8 +78,8 @@ alternatives (see `test/relationsCanvas.tsx`): `relationsLayout: 'circular'`,
 
 ### The animation flag does nothing on a graph
 
-`animation.enabled` is **hidden on the graph variant**, so a graph panel no longer shows
-two animation controls of which one is dead. Whether the root flag does anything is up to
+`animation.enabled` is **hidden on the graph variant**, so a graph panel never shows two
+animation controls of which one is dead. Whether the root flag does anything is up to
 the series' view: `SankeyView` gates a clip-path reveal on
 `seriesModel.isAnimationEnabled()` and `ChordView` enters its group through
 `graphic.initProps`, so both animate — but `GraphView` writes node and edge positions

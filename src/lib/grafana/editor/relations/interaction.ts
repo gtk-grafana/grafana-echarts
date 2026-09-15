@@ -8,14 +8,12 @@ import { isChordVariant, isGraphVariant, isSankeyVariant } from 'editor/relation
 /**
  * The "Interaction" section: what the reader may do to the view once it is drawn.
  *
- * **Zoom, pan and Remember view are Default-tier**, where they used to be Advanced. That
- * was the wrong tier for a reason specific to this family: a relations panel's problem is
- * not that it has too much detail to take in, it is that a topology of any size does not
- * fit in a panel at all. Zoom and pan are how the rest of the data is reachable, so
- * requiring Advanced mode to turn them on hid the controls that make a large graph usable
- * behind a switch whose label suggests expert tuning.
+ * **Zoom, pan and Remember view are Default-tier**, for a reason specific to this family:
+ * a relations panel's problem is not that it has too much detail to take in, it is that a
+ * topology of any size does not fit in a panel at all. Zoom and pan are how the rest of
+ * the data is reachable, not expert tuning.
  *
- * "Draggable nodes" stays Advanced: it is only offered on two of the four layouts, and it
+ * "Draggable nodes" is Advanced: it is offered on only two of the four layouts, and it
  * writes a field override as a side effect. "Highlight adjacency" is Default and on.
  * https://echarts.apache.org/en/option.html#series-graph.roam
  * https://echarts.apache.org/en/option.html#series-graph.draggable
@@ -28,20 +26,14 @@ const hasView = (options: PanelOptions) => !isChordVariant(options);
 
 export function addRelationsInteractionOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   /**
-   * Zoom and pan were one switch ("Zoom and pan", `relationsRoam`) and are two now,
-   * because they are two different decisions and the old pairing forced them together:
-   * a dashboard that wants to drag a large topology around does not necessarily want
-   * the panel to rescale, and — the reason this matters — a panel that captures the
-   * scroll wheel is a panel the dashboard cannot be scrolled past.
+   * Zoom and pan are two switches, because they are two decisions: a dashboard that
+   * wants to drag a large topology around does not necessarily want the panel to
+   * rescale, and a panel that captures the scroll wheel is a panel the dashboard cannot
+   * be scrolled past.
    *
    * So zoom does not use ECharts' roam zoom at all. It draws buttons in the panel
    * corner (`ChartZoomControls`) and dispatches the roam *action*, which leaves the
    * wheel alone. See `resolveRelationsRoam`.
-   *
-   * The superseded single switch (`relationsRoam`) is **gone**, not migrated: its
-   * fallback made a panel carrying only the old key render with zoom and pan on while
-   * both of these switches displayed off, which is a worse failure than losing the
-   * setting. The plugin is unreleased, so no dashboard outside this repo can carry it.
    *
    * Chord is excluded from both: `series.chord` has no `roam` and no view coordinate
    * system, so neither the option nor the action reaches it.
@@ -110,8 +102,7 @@ export function addRelationsInteractionOptions(builder: PanelOptionsEditorBuilde
   });
 
   // Default-tier and on: reading one node's neighbourhood out of a dense topology is
-  // the main thing a relations panel is hovered for, so requiring Advanced mode to get
-  // it was the wrong tier. See `RELATIONS_FOCUS_ADJACENCY_DEFAULT`.
+  // the main thing a relations panel is hovered for. See `RELATIONS_FOCUS_ADJACENCY_DEFAULT`.
   builder.addBooleanSwitch({
     path: 'relationsFocusAdjacency',
     name: 'Highlight adjacency',

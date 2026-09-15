@@ -25,7 +25,7 @@ import {
  * (see `applyEditorModeDefaults` and docs/options-modes.md). The two lists are written
  * by hand in different files, and nothing tied them together: a new Advanced control
  * that nobody added to the defaults renders from a value the user cannot see a control
- * for, and a defaults entry for a control that no longer exists resets nothing while
+ * for, and a defaults entry for a control that does not exist resets nothing while
  * looking like coverage.
  *
  * That is not hypothetical here. `filters.ts` — then two Advanced text inputs for the
@@ -34,14 +34,12 @@ import {
  * have no tier at all and are absent from both lists.) This test is what makes the next
  * mismatch fail loudly instead.
  *
- * **Tier membership is probed from each `showIf`, not read off a category.** It used to
- * be the category: every Advanced control went through `addAdvanced*`, which pinned the
- * category to "Advanced", so the category was the same fact stated once. The family
- * groups by purpose now — Labels, Layout, Interaction, Edges, Sankey, Chord — and an
- * Advanced control sits in the section it belongs to, so the category no longer says
- * anything about the tier. The gate is the only remaining statement of it, so the gate
- * is what this interrogates: an option is Advanced iff there is some panel configuration
- * where it shows in Advanced mode and hides in Default mode.
+ * **Tier membership is probed from each `showIf`, not read off a category.** The family
+ * groups by purpose — Labels, Layout, Interaction, Edges, Sankey, Chord — and an Advanced
+ * control sits in the section it belongs to, so a category says nothing about the tier.
+ * The gate is the only statement of it, so the gate is what this interrogates: an option
+ * is Advanced iff there is some panel configuration where it shows in Advanced mode and
+ * hides in Default mode.
  */
 
 /**
@@ -144,11 +142,8 @@ describe('relations Advanced tier', () => {
    * A Default-tier control must **not** be reset — it is visible in both modes, so
    * clearing it would read as the editor forgetting what the user typed.
    *
-   * There is no allow-list any more. It existed for one entry, `relationsRoam` — the
-   * superseded single "Zoom and pan" switch, which had no control of its own but was
-   * still read as a fallback, so it had to be in the reset while being absent from the
-   * pane. The option is deleted now (`resolveRelationsPan`), so every key in the reset
-   * has a control and the exception is gone.
+   * Asserted with no allow-list: every key in the reset has a control in the pane, so an
+   * exception here would mean an option the editor resets and the reader cannot see.
    */
   it('leaves every Default-tier control out of the reset', () => {
     const defaultTier = registeredOptions()
@@ -160,11 +155,5 @@ describe('relations Advanced tier', () => {
     expect(defaultTier).toEqual(
       expect.arrayContaining(['relationsLayout', 'relationsSankeyOrient', 'relationsZoom', 'relationsLabelOverflow'])
     );
-  });
-
-  // The deleted legacy key must not reappear in either list.
-  it('has no legacy roam key left in the tier', () => {
-    expect(RELATIONS_TIER).not.toHaveProperty('relationsRoam');
-    expect(registeredOptions().map((item) => item.path)).not.toContain('relationsRoam');
   });
 });
