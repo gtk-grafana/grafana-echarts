@@ -181,7 +181,7 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
-    it('negates both directions of a node in the middle but asserts only the source', () => {
+    it('uses one source filter for a node in the middle', () => {
       const model = modelFor([hubNodes(), hubEdges()]);
 
       const filters = model(nodeParams({ id: 'gateway', name: 'gateway' })).filters;
@@ -189,10 +189,7 @@ describe('buildRelationsTooltipModel', () => {
       expect(filters).toEqual({
         each: [],
         filterFor: [{ key: 'source', value: 'gateway' }],
-        filterOut: [
-          { key: 'source', value: 'gateway' },
-          { key: 'target', value: 'gateway' },
-        ],
+        filterOut: [{ key: 'source', value: 'gateway' }],
       });
     });
 
@@ -202,10 +199,7 @@ describe('buildRelationsTooltipModel', () => {
       const filters = model(nodeParams({ id: 'api', name: 'API', value: 7 })).filters;
 
       expect(filters?.filterFor).toEqual([{ key: 'target', value: 'api' }]);
-      expect(filters?.filterOut).toEqual([
-        { key: 'source', value: 'api' },
-        { key: 'target', value: 'api' },
-      ]);
+      expect(filters?.filterOut).toEqual([{ key: 'target', value: 'api' }]);
     });
 
     it('asserts the source key for an origin-only node', () => {
@@ -214,10 +208,7 @@ describe('buildRelationsTooltipModel', () => {
       const filters = model(nodeParams({ id: 'web', name: 'web' })).filters;
 
       expect(filters?.filterFor).toEqual([{ key: 'source', value: 'web' }]);
-      expect(filters?.filterOut).toEqual([
-        { key: 'source', value: 'web' },
-        { key: 'target', value: 'web' },
-      ]);
+      expect(filters?.filterOut).toEqual([{ key: 'source', value: 'web' }]);
     });
 
     it('offers filters for a derived node, on the edges’ opt-in', () => {
@@ -226,10 +217,7 @@ describe('buildRelationsTooltipModel', () => {
       const node = model(nodeParams({ id: 'gateway', name: 'gateway' }));
 
       expect(node.source).toBeUndefined();
-      expect(node.filters?.filterOut).toEqual([
-        { key: 'source', value: 'gateway' },
-        { key: 'target', value: 'gateway' },
-      ]);
+      expect(node.filters?.filterOut).toEqual([{ key: 'source', value: 'gateway' }]);
     });
 
     /** No opt-in anywhere: the footer's buttons would write filters nothing can answer. */
@@ -320,16 +308,12 @@ describe('buildRelationsTooltipModel', () => {
 
       expect(
         modelFor([nodes, wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway', value: 12 })).filters?.filterOut
-      ).toEqual([
-        { key: 'client', value: 'gateway' },
-        { key: 'server', value: 'gateway' },
-      ]);
+      ).toEqual([{ key: 'client', value: 'gateway' }]);
     });
 
     it('falls back to the response’s pair for a node with no field', () => {
       expect(modelFor([wideEdges()])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
         { key: 'source', value: 'gateway' },
-        { key: 'target', value: 'gateway' },
       ]);
     });
 
@@ -436,10 +420,7 @@ describe('buildRelationsTooltipModel', () => {
         expect(node('checkout')).toEqual({
           each: [],
           filterFor: [{ key: 'workload', value: 'checkout' }],
-          filterOut: [
-            { key: 'namespace', value: 'checkout' },
-            { key: 'workload', value: 'checkout' },
-          ],
+          filterOut: [{ key: 'workload', value: 'checkout' }],
         });
       });
     });
@@ -470,10 +451,7 @@ describe('buildRelationsTooltipModel', () => {
       expect(model(nodeParams({ id: 'db', name: 'db' })).filters).toEqual({
         each: [],
         filterFor: [{ key: 'client', value: 'db' }],
-        filterOut: [
-          { key: 'client', value: 'db' },
-          { key: 'server', value: 'db' },
-        ],
+        filterOut: [{ key: 'client', value: 'db' }],
       });
     });
 
@@ -482,7 +460,6 @@ describe('buildRelationsTooltipModel', () => {
 
       expect(model(nodeParams({ id: 'orphan', name: 'orphan' })).filters?.filterOut).toEqual([
         { key: 'source', value: 'orphan' },
-        { key: 'target', value: 'orphan' },
       ]);
     });
 
@@ -503,7 +480,6 @@ describe('buildRelationsTooltipModel', () => {
 
       expect(modelFor([selfOnly])(nodeParams({ id: 'gateway', name: 'gateway' })).filters?.filterOut).toEqual([
         { key: 'source', value: 'gateway' },
-        { key: 'target', value: 'gateway' },
       ]);
     });
 

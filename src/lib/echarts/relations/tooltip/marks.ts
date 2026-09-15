@@ -102,22 +102,13 @@ export function getRelationsTooltipMarks(data: NodeGraphData, theme: GrafanaThem
 
 /** The keys each node is an endpoint under, from the edges touching it. */
 function toNodeFilterLabels(data: NodeGraphData): Map<string, NodeFilterLabels> {
-  /** The four roles a node can hold a key in: its own two, and the far end of each. */
-  interface Roles {
-    sources: string[];
-    targets: string[];
-    /** Target keys of the pairs it is a *source* of. its missing target role. */
-    farTargets: string[];
-    /** Source keys of the pairs it is a *target* of. its missing source role. */
-    farSources: string[];
-  }
-  const roles = new Map<string, Roles>();
-  const entry = (id: string): Roles => {
+  const roles = new Map<string, NodeFilterLabels>();
+  const entry = (id: string): NodeFilterLabels => {
     const existing = roles.get(id);
     if (existing) {
       return existing;
     }
-    const created: Roles = { sources: [], targets: [], farTargets: [], farSources: [] };
+    const created: NodeFilterLabels = { sources: [], targets: [] };
     roles.set(id, created);
     return created;
   };
@@ -131,22 +122,10 @@ function toNodeFilterLabels(data: NodeGraphData): Map<string, NodeFilterLabels> 
     const keys = relationsFilterLabels(link.field, link.filterLabels ?? data.endpointLabels);
     const source = entry(link.source);
     push(source.sources, keys.source);
-    push(source.farTargets, keys.target);
     const target = entry(link.target);
     push(target.targets, keys.target);
-    push(target.farSources, keys.source);
   }
-
-  const byNode = new Map<string, NodeFilterLabels>();
-  for (const [id, { sources, targets, farTargets, farSources }] of roles) {
-    // Fill missing roles from the far endpoint keys.
-    const negate = [...(sources.length > 0 ? sources : farSources)];
-    for (const key of targets.length > 0 ? targets : farTargets) {
-      push(negate, key);
-    }
-    byNode.set(id, { sources, targets, negate });
-  }
-  return byNode;
+  return roles;
 }
 
 /**

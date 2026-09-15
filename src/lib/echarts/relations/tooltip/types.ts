@@ -75,5 +75,4 @@ export interface RelationsMarks {
 export interface NodeFilterLabels {
   sources: string[];
   targets: string[];
-  negate: string[];
 }
