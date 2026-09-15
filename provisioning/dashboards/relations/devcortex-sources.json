@@ -14,7 +14,7 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 14,
+        "h": 5,
         "w": 24,
         "x": 0,
         "y": 0
@@ -33,7 +33,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 5
       },
       "options": {
         "mode": "markdown",
@@ -49,7 +49,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 11
       },
       "options": {
         "mode": "markdown",
@@ -70,7 +70,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 18
       },
       "fieldConfig": {
         "defaults": {
@@ -214,7 +214,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 18
       },
       "fieldConfig": {
         "defaults": {
@@ -299,7 +299,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 39
+        "y": 30
       },
       "fieldConfig": {
         "defaults": {
@@ -383,7 +383,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 39
+        "y": 30
       },
       "fieldConfig": {
         "defaults": {
@@ -463,10 +463,10 @@
       "type": "text",
       "title": "Prometheus — the queries, continued",
       "gridPos": {
-        "h": 13,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 42
       },
       "options": {
         "mode": "markdown",
@@ -487,7 +487,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 64
+        "y": 49
       },
       "fieldConfig": {
         "defaults": {
@@ -573,7 +573,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 64
+        "y": 49
       },
       "fieldConfig": {
         "defaults": {
@@ -658,7 +658,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 76
+        "y": 61
       },
       "fieldConfig": {
         "defaults": {
@@ -740,7 +740,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 76
+        "y": 61
       },
       "fieldConfig": {
         "defaults": {

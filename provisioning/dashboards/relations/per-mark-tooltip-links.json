@@ -14,7 +14,7 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 8,
+        "h": 4,
         "w": 24,
         "x": 0,
         "y": 0
@@ -38,7 +38,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 4
       },
       "fieldConfig": {
         "defaults": {
@@ -194,7 +194,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 4
       },
       "fieldConfig": {
         "defaults": {
@@ -253,7 +253,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -364,7 +364,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -422,7 +422,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -536,7 +536,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 38
+        "y": 34
       },
       "fieldConfig": {
         "defaults": {
@@ -674,7 +674,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 38
+        "y": 34
       },
       "fieldConfig": {
         "defaults": {

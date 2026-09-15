@@ -14,7 +14,7 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 7,
+        "h": 5,
         "w": 24,
         "x": 0,
         "y": 0
@@ -30,10 +30,10 @@
       "type": "text",
       "title": "Prometheus \u2014 the queries",
       "gridPos": {
-        "h": 11,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 5
       },
       "options": {
         "mode": "markdown",
@@ -54,7 +54,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -327,7 +327,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -484,7 +484,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 30
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -605,7 +605,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 30
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -681,10 +681,10 @@
       "type": "text",
       "title": "Loki \u2014 the queries",
       "gridPos": {
-        "h": 11,
+        "h": 6,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 36
       },
       "options": {
         "mode": "markdown",
@@ -705,7 +705,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 53
+        "y": 42
       },
       "fieldConfig": {
         "defaults": {
@@ -822,7 +822,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 53
+        "y": 42
       },
       "fieldConfig": {
         "defaults": {
@@ -991,7 +991,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 65
+        "y": 54
       },
       "fieldConfig": {
         "defaults": {
@@ -1112,7 +1112,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 65
+        "y": 54
       },
       "fieldConfig": {
         "defaults": {
@@ -1231,10 +1231,10 @@
       "type": "text",
       "title": "PR rollout by wave \u2014 the frame, and whether it suits this family",
       "gridPos": {
-        "h": 15,
+        "h": 6,
         "w": 24,
         "x": 0,
-        "y": 77
+        "y": 66
       },
       "options": {
         "mode": "markdown",
@@ -1255,7 +1255,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 92
+        "y": 72
       },
       "fieldConfig": {
         "defaults": {
@@ -1557,7 +1557,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 92
+        "y": 72
       },
       "fieldConfig": {
         "defaults": {

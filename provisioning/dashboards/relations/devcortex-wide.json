@@ -26,7 +26,7 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 18,
+        "h": 6,
         "w": 24,
         "x": 0,
         "y": 0
@@ -42,10 +42,10 @@
       "type": "text",
       "title": "The variables",
       "gridPos": {
-        "h": 11,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 6
       },
       "options": {
         "mode": "markdown",
@@ -61,7 +61,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 13
       },
       "options": {
         "mode": "markdown",
@@ -82,7 +82,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -148,7 +148,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 20
       },
       "fieldConfig": {
         "defaults": {
@@ -215,7 +215,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 44
+        "y": 32
       },
       "fieldConfig": {
         "defaults": {
@@ -279,7 +279,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 44
+        "y": 32
       },
       "fieldConfig": {
         "defaults": {
@@ -412,10 +412,10 @@
       "type": "text",
       "title": "Prometheus — the queries, continued",
       "gridPos": {
-        "h": 13,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 44
       },
       "options": {
         "mode": "markdown",
@@ -436,7 +436,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 69
+        "y": 51
       },
       "fieldConfig": {
         "defaults": {
@@ -502,7 +502,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 69
+        "y": 51
       },
       "fieldConfig": {
         "defaults": {
@@ -569,7 +569,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 81
+        "y": 63
       },
       "fieldConfig": {
         "defaults": {
@@ -633,7 +633,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 81
+        "y": 63
       },
       "fieldConfig": {
         "defaults": {
