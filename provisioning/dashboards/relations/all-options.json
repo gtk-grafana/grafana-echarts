@@ -6,7 +6,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "links": [],
-  "description": "**One panel per panel option that visibly changes what the panel draws**, in the order the options pane lists them. Each sets exactly one option to a non-default value and says in its description what the option does, what the default is, and what to look at \u2014 so every panel here can be read against its neighbours without touching it.\n\nPanels demonstrating an Advanced-tier option also set `editorMode: advanced`: an Advanced value on a panel left in Default mode is reset at render time by `applyEditorModeDefaults`, so the panel would draw the default while claiming to show the option.\n\n**Panels 32 and 33 demo behaviour rather than a picture** \u2014 Pan and Draggable nodes draw nothing until you drag, so they look identical to their neighbours at rest and their descriptions say what to drag.\n\n**Panels 34-36 are standard field-config options, not panel options**: the by-value colour scheme, Thresholds and Value mappings. They are here because a relations mark's colour and stat label come from `field.display(value)`, so these three change the render as much as any panel option does. Each also switches \"Show node values\" on as scaffolding, so the number behind the colour is readable.\n\n**Six options are deliberately absent**, because nothing about them is demonstrable in a panel \u2014 there would be nothing to compare. `editorMode` changes the options pane rather than the panel; `Animate layout` and `Animation` are motion, and settle to an identical render; `Remember view` persists a view and draws nothing; `Highlight adjacency` and `Tooltip mode` act on hover. Each is unit- or integration-tested instead, and `allOptionsDashboard.test.ts` asserts this list stays exhaustive so a new option cannot go undemoed unnoticed.\n\nLinked option-by-option from `src/modules/relations/parity.md`.",
+  "description": "This dashboard shows each relations chart option that changes the chart. Each panel changes one option and tells you what to look for.\n\nPanels 32 and 33 show actions. Follow their instructions to pan the chart or move a node.\n\nPanels 34 to 36 show standard field configuration. These panels show how color schemes, thresholds, and value mappings change nodes and links.",
   "refresh": "",
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "panel-options", "reference"],
@@ -28,7 +28,7 @@
       "id": 1,
       "type": "grafana-echartsrelations-panel",
       "title": "1. Chart type \u2014 Sankey",
-      "description": "Picks the render variant: Graph, Sankey or Chord. One converter feeds all three, so the same nodes and links are drawn three ways.\n\n**Default:** `graph`.",
+      "description": "Selects how the panel draws the same nodes and links. This panel uses Sankey, which shows each link as a flow ribbon.\n\nDefault: `graph`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -84,7 +84,7 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "2. Calculation \u2014 Max, plus Min as a tooltip row",
-      "description": "`calcs[0]` is the one number that stands for a mark. Every calc after it is an extra tooltip row and nothing else \u2014 hover a node to see `Min` listed under `Max`.\n\n\"Show node values\" is on here because that is the **only** way the reducer is visible on a graph: `90` for `inventory` under `max`, against `85` under the `median` default. On a graph the value drives colour (through the field's display processor) and nothing geometric \u2014 it does **not** size the node, which is `custom.nodeRadius` or the panel-level \"Node size\", and it does not widen the edge, which is `custom.lineWidth`. Here the scheme is the classic palette, which colours by index rather than by value, so without a drawn number this panel would show nothing at all.\n\nWhere the value *does* set a size is sankey and chord, whose ribbon and arc thickness ECharts derives from it \u2014 see panels 19-25 and 26-30. Sizing a **graph** node by its value is a gap: `todo/relations-node-size-by-value.md`.\n\nNon-numeric reducers (All values, All unique values, All nulls/zeros) are filtered out of the picker: a mark needs one number.\n\n**Default:** `median`.",
+      "description": "Selects the value that represents each node and link. This panel uses Max and shows Min as an extra tooltip row. Hover a node to compare the values. Show node values is on so you can see the Max value.\n\nDefault: `median`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -145,7 +145,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "3. Time slider \u2014 on",
-      "description": "Reads every mark at **one timestamp** instead of reducing its rows away, and draws a scrub strip in the panel. Drag it and the weights change.\n\nThe alternative answer to the same question as Calculation, which is why it hides that picker while on, and why it is registered above it.\n\n**Default:** off. Needs ranged data \u2014 the switch hides itself on instant responses, which is why this panel's two queries carry a `time` column.",
+      "description": "Shows node and link values at one time. Drag the time slider and watch the link values change. This option needs data with more than one time value.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -205,7 +205,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "4. Show node labels \u2014 off",
-      "description": "Draws each node's name beside it. Off here, so the graph is symbols only \u2014 every other label control depends on this one and hides itself when it is off.\n\n**Default:** **on**; an unlabelled topology is hard to read.",
+      "description": "Controls whether the panel draws each node name. This panel turns node labels off, so you see symbols without names. Other node label options are hidden when this option is off.\n\nDefault: on.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -263,7 +263,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "5. Show node values \u2014 on",
-      "description": "Adds each node's `calcs[0]` under its name, formatted through that node's own field \u2014 so unit, decimals and value mappings all apply per node.\n\nHides itself on an edges-only response, where every node is derived from an endpoint and carries no stat at all.\n\n**Default:** off: a second label line on every node is a lot of ink.",
+      "description": "Adds the calculated value below each node name. The node field controls the unit, decimals, and value mapping. The option is not available when the response contains links without node values.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -321,7 +321,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "6. Hide overlapping labels \u2014 off",
-      "description": "On (the default), a label that would collide with one already drawn is dropped \u2014 the node keeps its symbol, colour and tooltip either way. **Off here**, so all sixteen long service names are drawn and the ring's labels run into each other. That is what a dense graph looks like without it, and why it defaults on.\n\nSixteen nodes on a ring, deliberately. Measured against the default: eight never collide at this panel size, a force layout spreads them far enough that it does not either, and twelve drops only one label \u2014 enough to differ, not enough to do so reliably. Sixteen drops two every time, so the panel is a stable demo rather than an intermittent one.\n\n**Default:** **on**.",
+      "description": "Controls whether the panel hides labels that overlap. This panel turns the option off, so all 16 long service names appear and some labels overlap. Node symbols, colors, and tooltips do not change.\n\nDefault: on.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -380,7 +380,7 @@
       "id": 7,
       "type": "grafana-echartsrelations-panel",
       "title": "7. Label overflow \u2014 None",
-      "description": "How a name longer than the label width is handled. **None** here, so each name is drawn in full and runs past the 70px width into its neighbours \u2014 against the `truncate` default, which would cut each one at 70px with an ellipsis.\n\nTwo of the four ECharts modes are not offered. `breakAll` (\"Wrap anywhere\") was dropped in the options reorg for splitting identifier-shaped names mid-word. **\"Wrap\" (`break`) is still offered but does not work** \u2014 measured, it draws one clipped line with no ellipsis, and below ~40px it draws nothing at all. That is why this panel demos `none`: a reference should show a value that does what it says. See `todo/relations-label-wrap-broken.md`.\n\n**Default:** `truncate`.",
+      "description": "Controls what happens when a node name is wider than the label width. This panel uses None, so the full names extend past the 70 px width. Truncate cuts long names and adds an ellipsis.\n\nDefault: `truncate`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -440,7 +440,7 @@
       "id": 8,
       "type": "grafana-echartsrelations-panel",
       "title": "8. Label width \u2014 40px",
-      "description": "The px at which the overflow mode above bites. Advanced, because the *mode* is a first question and the exact width is tuning. Hidden when overflow is None, which has no width to bite at.\n\n**Default:** `120`.",
+      "description": "Sets the maximum node label width in pixels. This panel uses 40 px, so each long service name is truncated earlier. This option is hidden when Label overflow is None.\n\nDefault: `120`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -499,7 +499,7 @@
       "id": 9,
       "type": "grafana-echartsrelations-panel",
       "title": "9. Show edge values \u2014 on",
-      "description": "Draws each link's weight on the link itself, formatted through that edge's own field. Filed under **Labels** rather than Edges because it is text drawn on a mark \u2014 the same question the node label switches answer.\n\nGraph and sankey only: a chord ribbon builds no text element.\n\n**Default:** off: one number per link buries a graph of any size.",
+      "description": "Draws each link value on the link. The link field controls the displayed unit and decimals. This option is available for Graph and Sankey charts, but not for Chord charts.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -557,7 +557,7 @@
       "id": 10,
       "type": "grafana-echartsrelations-panel",
       "title": "10. Layout \u2014 Fixed (a smiley face)",
-      "description": "Where nodes are positioned: Force (physics), Circular (a deterministic ring) or **Fixed** \u2014 ECharts' `layout: 'none'`, where the panel does no placement of its own and draws each node exactly where its coordinates say.\n\nWhich is how 23 nodes and 20 links become a face. Each node carries `custom.fixedX` / `custom.fixedY` as a `byName` override \u2014 a node **is** a field, so its position is ordinary per-mark config: 16 nodes on a ring joined in sequence draw the outline, a 5-node arc joined end to end draws the smile, and the eyes are isolated nodes enlarged by `custom.nodeRadius`. Switch this panel to Force or Circular and it is a graph again \u2014 nothing in the *data* says \"face\".\n\nPinned by overrides rather than by the row form's `fixedx`/`fixedy` columns deliberately: the row form needs the panel-registered transformations API, which is off on hosts where the `grafana.panelPluginTransformations` flag cannot be read \u2014 there the pre-pass never runs and the panel errors. Overrides work everywhere. See `fixed-layout.json` for both routes and for why the coordinate *scale* has to be pixel-ish.\n\n**Fixed is offered only in Advanced mode**, because it cannot be satisfied without those coordinates: a node lacking them is seeded on a ring rather than laid out at `[NaN, NaN]`, which would blank the panel outright.\n\n**Default:** `force`, unless every node pins coordinates \u2014 then Fixed is inferred.",
+      "description": "Places each node at its fixed X and Y coordinates. The coordinates in this panel form a face. The classic palette gives nodes different colors, and the default link gradient blends the source and target colors. Fixed layout is available in Advanced mode.\n\nDefault: `force`. The panel selects Fixed when every node has coordinates.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -571,8 +571,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "fixed",
-            "fixedColor": "#F2CC0C"
+            "mode": "palette-classic"
           }
         },
         "overrides": [
@@ -1079,7 +1078,7 @@
       "id": 11,
       "type": "grafana-echartsrelations-panel",
       "title": "11. Node size \u2014 45px",
-      "description": "Node diameter in px. A node supplying `custom.nodeRadius` keeps its own size and ignores this.\n\nGraph-only: a sankey node is a rectangle whose thickness is `nodeWidth` and whose length is its flow.\n\n**Default:** `20`.",
+      "description": "Sets the diameter of graph nodes in pixels. This panel uses 45 px, so its nodes are larger than the default. A node-specific size overrides this value. Sankey charts use Node width instead.\n\nDefault: `20`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1137,7 +1136,7 @@
       "id": 12,
       "type": "grafana-echartsrelations-panel",
       "title": "12. Repulsion \u2014 1200",
-      "description": "How hard force-layout nodes push each other apart. Far above ECharts' own `[0, 50]`, whose default packs a real topology into a knot with every label on top of every other.\n\nForce layout only \u2014 hidden under Circular and Fixed.\n\n**Default:** `400`.",
+      "description": "Sets how strongly nodes push away from each other in a Force layout. This panel uses 1200, so the nodes spread farther apart. This option is available only for Force layouts.\n\nDefault: `400`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1196,7 +1195,7 @@
       "id": 13,
       "type": "grafana-echartsrelations-panel",
       "title": "13. Edge length \u2014 40",
-      "description": "The target link length in px the simulation pulls toward. Low here, so the graph draws tight; likewise well above ECharts' 30 by default.\n\n**Default:** `200`.",
+      "description": "Sets the target length of each link in pixels for a Force layout. This panel uses 40, so the simulation pulls connected nodes close together.\n\nDefault: `200`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1255,7 +1254,7 @@
       "id": 14,
       "type": "grafana-echartsrelations-panel",
       "title": "14. Gravity \u2014 0.5",
-      "description": "Pull toward the centre of the panel. Higher keeps the graph compact instead of letting repulsion push it to the edges.\n\n**Default:** unset, so ECharts' own value applies.",
+      "description": "Sets how strongly a Force layout pulls nodes toward the center of the panel. A higher value keeps the graph compact when node repulsion pushes outward.\n\nDefault: unset, so ECharts uses its default value.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1314,7 +1313,7 @@
       "id": 15,
       "type": "grafana-echartsrelations-panel",
       "title": "15. Zoom \u2014 on",
-      "description": "Draws zoom in / out / reset buttons in the panel corner. They dispatch the ECharts roam *action* rather than binding the scroll wheel \u2014 a panel that captured the wheel would be one the dashboard could not be scrolled past.\n\nDefault-tier, because on a topology that does not fit the panel this is how the rest of the data is reachable, not expert tuning.\n\n**Default:** off. Not offered on chord, which has no view.",
+      "description": "Shows zoom in, zoom out, and reset buttons in the panel corner. Use these buttons when the full chart does not fit in the panel. The mouse wheel continues to scroll the dashboard. Chord charts do not support zoom.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1372,7 +1371,7 @@
       "id": 16,
       "type": "grafana-echartsrelations-panel",
       "title": "16. Link color \u2014 Target",
-      "description": "Which endpoint a link inherits its colour from: Source, Target, or a Source-to-Target Gradient. An edge whose own field carries a non-palette colour (a fixed colour, or a by-value scheme such as thresholds) overrides this per edge.\n\nGradient only truly blends on a sankey and on a graph under Fixed \u2014 elsewhere the picker relabels it to say it draws as Source.\n\n**Default:** `gradient`.",
+      "description": "Selects the node color that each link uses. This panel uses the target node color. Source uses the source node color. Gradient blends both colors in Sankey charts and Graph charts with Fixed layout. A link-specific color overrides this option.\n\nDefault: `gradient`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1430,7 +1429,7 @@
       "id": 17,
       "type": "grafana-echartsrelations-panel",
       "title": "17. Edge arrows \u2014 off",
-      "description": "On (the default), an arrowhead is drawn at each link's target end. Off here, so the links are plain lines and the direction is invisible.\n\nDefault-tier: an edge is directed by contract, and on a force layout the arrowhead is the *only* thing that says which way \u2014 a source-to-target gradient cannot be oriented without knowing the node positions.\n\n**Default:** **on**. Graph-only; a sankey ribbon carries direction by shape.",
+      "description": "Controls whether each graph link has an arrowhead at its target. This panel turns arrows off, so the links do not show direction. Sankey ribbons show direction through their shape and do not use this option.\n\nDefault: on.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1488,7 +1487,7 @@
       "id": 18,
       "type": "grafana-echartsrelations-panel",
       "title": "18. Link curveness \u2014 0.4",
-      "description": "Curves the links, which separates the two directions of a bidirectional pair so both are visible instead of one drawing over the other.\n\n**Default:** unset (straight, ECharts' 0). Graph-only \u2014 the sankey has its own ribbon curveness, because its ECharts default differs.",
+      "description": "Sets the curve of graph links from 0 to 1. This panel uses 0.4, so links bend and both directions of a two-way connection stay visible. Sankey charts use Ribbon curveness instead.\n\nDefault: unset, which draws straight links.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1547,7 +1546,7 @@
       "id": 19,
       "type": "grafana-echartsrelations-panel",
       "title": "19. Node alignment \u2014 Justify",
-      "description": "Which column a node with *slack* lands in. `cache` here is a leaf hanging off `gateway` while the chain runs two more columns: Justify pushes it to the last column, Left (the default) keeps it in its earliest.\n\nDefaulted to Left against ECharts' Justify, so a node's column means its depth in the flow \u2014 under Justify a leaf two steps in is drawn beside leaves five steps in.\n\n**Default:** `left`. Registered before Flow direction because it decides what a column *means*.",
+      "description": "Sets the column for a Sankey node that can fit in more than one column. This panel uses Justify, so nodes without outgoing links move to the last column. Left keeps each node in its earliest column.\n\nDefault: `left`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1595,7 +1594,7 @@
       "id": 20,
       "type": "grafana-echartsrelations-panel",
       "title": "20. Flow direction \u2014 Vertical",
-      "description": "Lays the node columns out top-to-bottom instead of left-to-right. The node label placement follows, which ECharts' does not \u2014 it places a sankey label `right` in both orientations, so vertically the label would be drawn over the next node's fill.\n\n**Default:** `horizontal`.",
+      "description": "Sets the direction of a Sankey chart. This panel uses Vertical, so flow moves from top to bottom instead of left to right. Node labels move with the new direction.\n\nDefault: `horizontal`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1652,7 +1651,7 @@
       "id": 21,
       "type": "grafana-echartsrelations-panel",
       "title": "21. Node width \u2014 40px",
-      "description": "The thickness of each sankey node bar, measured across the flow \u2014 so horizontally it is the bar's width, and under a vertical flow direction it is its height.\n\n**Default:** `20` (ECharts' own).",
+      "description": "Sets the thickness of each Sankey node bar in pixels. In a horizontal chart, this value sets the bar width. In a vertical chart, it sets the bar height. This panel uses 40 px.\n\nDefault: `20`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1710,7 +1709,7 @@
       "id": 22,
       "type": "grafana-echartsrelations-panel",
       "title": "22. Node gap \u2014 30px",
-      "description": "The vertical gap between node bars sharing a column. Wide here, so the bars in the middle column are pushed apart and the ribbons have to fan out to reach them \u2014 the main lever when a column has enough nodes that their labels collide.\n\n**Default:** `8` (ECharts' own).",
+      "description": "Sets the space in pixels between Sankey nodes in the same column. This panel uses 30 px, so the middle nodes move apart and the ribbons spread out. Increase the gap when node labels overlap.\n\nDefault: `8`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1768,7 +1767,7 @@
       "id": 23,
       "type": "grafana-echartsrelations-panel",
       "title": "23. Ribbon curveness \u2014 0",
-      "description": "The bezier control-point placement of the ribbons. At 0 the columns are joined by straight-sided bands instead of S-curves.\n\nA separate option from the graph's Link curveness because the two have **different ECharts defaults** \u2014 0.5 here, 0 there \u2014 so one shared option could not omit its key at both.\n\n**Default:** `0.5`.",
+      "description": "Sets how much Sankey ribbons curve between nodes. This panel uses 0, so straight-sided bands connect the columns. Higher values produce stronger curves. Graph charts use Link curveness instead.\n\nDefault: `0.5`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1826,7 +1825,7 @@
       "id": 24,
       "type": "grafana-echartsrelations-panel",
       "title": "24. Ribbon opacity \u2014 0.8",
-      "description": "Ribbon translucency. Overlapping ribbons are the norm in a sankey, so this is its main legibility lever; at 0.8 they are nearly solid and hide each other.\n\n**Default:** `0.2`.",
+      "description": "Sets the opacity of Sankey ribbons from 0 to 1. This panel uses 0.8, so the ribbons are nearly solid. Lower values make overlapping ribbons easier to distinguish.\n\nDefault: `0.2`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1884,7 +1883,7 @@
       "id": 25,
       "type": "grafana-echartsrelations-panel",
       "title": "25. Layout iterations \u2014 0",
-      "description": "How many relaxation passes refine node positions to reduce ribbon crossings. At 0 the first-guess layout is drawn.\n\nNote ECharts disables iteration entirely when any node's computed value is 0, so this can be inert on data with a zero-flow node.\n\n**Default:** `32`.",
+      "description": "Sets how many passes ECharts uses to reduce ribbon crossings in a Sankey chart. This panel uses 0, so it shows the first layout. A node with a calculated value of 0 also stops these passes.\n\nDefault: `32`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1942,7 +1941,7 @@
       "id": 26,
       "type": "grafana-echartsrelations-panel",
       "title": "26. Start angle \u2014 0\u00b0",
-      "description": "Where the ring begins, in degrees. 90 is twelve o'clock; 0 here puts the first arc at three o'clock.\n\n**Default:** `90`.",
+      "description": "Sets where the first Chord arc starts in degrees. This panel uses 0 degrees, so the first arc starts at the right side of the ring. A value of 90 starts at the top.\n\nDefault: `90`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2000,7 +1999,7 @@
       "id": 27,
       "type": "grafana-echartsrelations-panel",
       "title": "27. Clockwise \u2014 off",
-      "description": "The direction arcs are laid out around the ring from the start angle. Off here, so the arcs run counter-clockwise and the ring's reading order reverses \u2014 compare the node order against any other chord panel.\n\n**Default:** **on**.",
+      "description": "Sets the direction of Chord arcs from the start angle. This panel turns Clockwise off, so the arcs run counterclockwise and the node order reverses. Compare the order with another Chord panel.\n\nDefault: on.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2058,7 +2057,7 @@
       "id": 28,
       "type": "grafana-echartsrelations-panel",
       "title": "28. Arc gap \u2014 12\u00b0",
-      "description": "The angular gap between adjacent node arcs \u2014 the chord analogue of a node gap, and **angular rather than pixel-based**. `series.chord` has no `nodeWidth` or `nodeGap` at all; assuming them by analogy with the sankey would wire two options that silently do nothing.\n\n**Default:** `3`.",
+      "description": "Sets the gap in degrees between adjacent Chord arcs. This panel uses 12 degrees, so the spaces between arcs are easy to see. The value is an angle, not a pixel distance.\n\nDefault: `3`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2116,7 +2115,7 @@
       "id": 29,
       "type": "grafana-echartsrelations-panel",
       "title": "29. Minimum arc angle \u2014 20\u00b0",
-      "description": "A floor on each arc's angle, so a low-flow node stays visible instead of collapsing to nothing. Mirrors the pie's minimum slice angle.\n\n**Default:** `0`.",
+      "description": "Sets the smallest angle that a Chord node arc can use. This panel uses 20 degrees, so nodes with low flow remain visible instead of shrinking to nothing.\n\nDefault: `0`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2174,7 +2173,7 @@
       "id": 30,
       "type": "grafana-echartsrelations-panel",
       "title": "30. Ribbon opacity \u2014 0.7",
-      "description": "Ribbon translucency. A chord is dense by nature \u2014 every ribbon crosses the ring \u2014 so this is its main legibility lever.\n\n**Default:** `0.2`.",
+      "description": "Sets the opacity of Chord ribbons from 0 to 1. This panel uses 0.7, so the ribbons are easy to see but can hide ribbons below them. Lower values help when many ribbons cross.\n\nDefault: `0.2`.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2232,7 +2231,7 @@
       "id": 31,
       "type": "grafana-echartsrelations-panel",
       "title": "31. Legend \u2014 Table, placed right",
-      "description": "Grafana's own legend, one entry per node. A legend entry **is** a field here, so its colour picker writes a real field override and its visibility toggle hides that node.\n\nLegend calcs are deliberately not offered: a mark is already reduced to one value by Calculation, so every calc would print that same number again.\n\n**Default:** visible, List, bottom.",
+      "description": "Shows one legend entry for each node. This panel uses a table on the right. Use the color control in an entry to change that node. Use the visibility control to hide that node. Legend calculations are not available because Calculation already gives each node one value.\n\nDefault: visible List at the bottom.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2289,7 +2288,7 @@
       "id": 32,
       "type": "grafana-echartsrelations-panel",
       "title": "32. Pan \u2014 on",
-      "description": "Lets the view be dragged inside the panel: `series.*.roam` is set to `'move'`, which moves the view without binding the scroll wheel \u2014 zoom is a separate switch (#15) drawing buttons, so a panel can be pannable without capturing the page scroll.\n\n**Drag anywhere in the plot area.** The whole topology follows the pointer; do the same on any neighbouring panel and nothing happens. Nothing is drawn differently until you drag, which is why this panel looks identical to its neighbours at rest.\n\nDefault-tier and off by default. Not offered on chord, which has no view coordinate system. Pair it with \"Remember view\" to make a drag stick across a reload.",
+      "description": "Lets you move the full chart inside the panel. Drag an empty part of the plot area and watch the chart follow the pointer. This option does not change the chart until you drag. Chord charts do not support pan. Turn on Remember view to keep the new position after a reload.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2347,7 +2346,7 @@
       "id": 33,
       "type": "grafana-echartsrelations-panel",
       "title": "33. Draggable nodes \u2014 on",
-      "description": "Lets individual nodes be dragged (`series.sankey.draggable`), and **saves the drop position back into the panel** as a `custom.fixedX` / `fixedY` field override on that node \u2014 a sankey keeps its own 0\u20131 `localX` / `localY` space. So a drag here is an edit, not a transient nudge.\n\n**Drag a bar up or down.** Its ribbons re-route and the position persists; this panel is a sankey because draggable is only offered where a dropped position *is* a position \u2014 sankey, or a graph on the Fixed layout. Force and circular re-solve on every render, so a drag there could never be kept, and `getGraphSeries` refuses the pair as well as hiding the switch.\n\nAdvanced-tier, off by default \u2014 hence `editorMode: advanced` on this panel.",
+      "description": "Lets you move one node and saves its new position in the panel configuration. Drag a Sankey bar up or down and watch its ribbons move. You can also drag nodes in a Graph chart with Fixed layout. Force and Circular layouts calculate positions again, so they do not support this option.\n\nDefault: off.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2405,7 +2404,7 @@
       "id": 34,
       "type": "grafana-echartsrelations-panel",
       "title": "34. Color scheme \u2014 by value (Green-Yellow-Red)",
-      "description": "A **standard field-config** option rather than a panel option, included because it is the load-bearing one for this family: a mark's colour is `field.display(value).color`, already resolved by `applyFieldOverrides`, so all eight schemes work and a `byName` override can recolour a single node or edge.\n\nHere `continuous-GrYlRd` maps each mark's `calcs[0]` onto a gradient, so colour *is* the value \u2014 gateway (20) green, api (55) yellow, db (85) orange. Compare the classic palette on every other panel, where colour only tells marks apart. The values are medians, the reducer default, and \"Show node values\" is on as scaffolding so the number behind each colour is readable.\n\n**Nothing here reaches red**, which is the lesson: the domain spans *every field in the response*, and the edge weights run to 125, so db at 85 sits two-thirds up a scale the nodes do not own. Pin `min`/`max`, or switch \"Field min/max\" on to give each field its own domain \u2014 see the `colour-domain` dashboard. The panel to the right shows the discrete form of the same idea.\n\n**Default:** Classic palette.",
+      "description": "Colors each node and link from its calculated value. This panel uses the Green-Yellow-Red gradient. Gateway is green at 20, API is yellow at 55, and DB is orange at 85. The shared range includes link values up to 125, so no node reaches red. Set Min and Max, or turn on Field min/max, to change the range.\n\nDefault: Classic palette.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2464,7 +2463,7 @@
       "id": 35,
       "type": "grafana-echartsrelations-panel",
       "title": "35. Thresholds \u2014 absolute steps at 50 and 80",
-      "description": "Thresholds are reachable on this family **only as a by-value colour scheme** (`color.mode: thresholds`): there are no axes, so there is no `markLine` equivalent to draw a threshold *at*. Set the scheme and each mark lands in a band instead of on a gradient.\n\nSteps are absolute here \u2014 green below 50, yellow to 80, red above \u2014 with `min`/`max` pinned to 0-100 so a band means a value rather than a rank. gateway (20) and cache (35) are green, api (55) and auth (65) yellow, db (85) red; the values are medians, the reducer default, and \"Show node values\" is on so the boundaries are checkable.\n\nThis is also the fix for the panel to the left, whose gradient shares its domain with the edge fields: an absolute threshold ignores the rest of the response entirely. Switch the steps to `percentage` and the bands follow the data's own range instead \u2014 see the `colour-domain` dashboard for what \"Field min/max\" then changes.",
+      "description": "Colors each node and link by threshold bands. This panel uses green below 50, yellow from 50 to 80, and red above 80. Min and Max are 0 and 100, so each color represents a fixed value range. Show node values is on so you can compare each value with its color. Percentage thresholds use the data range instead.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2542,7 +2541,7 @@
       "id": 36,
       "type": "grafana-echartsrelations-panel",
       "title": "36. Value mappings \u2014 colour and text",
-      "description": "Value mappings are applied through each field's display processor, so a mapping targets **one mark**: a node can read `Healthy` while its neighbour reads a number, in the \"Show node values\" label and in the tooltip alike.\n\nThe less obvious half is colour. A mapping carrying a `color` **recolours the mark** through the same `field.display(value)` call \u2014 the scheme here is still the classic palette, yet the symbols are green / orange / red because the mappings say so. The query returns `1`, `2`, `3`; the panel shows Healthy, Degraded, Down. That is a status field turned into a topology coloured by status, with no thresholds and no per-node overrides.\n\n**Default:** none. See the `value-mappings` dashboard for range and special mappings, and for what a mapping cannot reach.",
+      "description": "Replaces field values with text and colors. This panel maps 1 to Healthy and green, 2 to Degraded and orange, and 3 to Down and red. Node labels and tooltips show the mapped text. The mapping color overrides the Classic palette for that node.\n\nDefault: no value mappings.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
