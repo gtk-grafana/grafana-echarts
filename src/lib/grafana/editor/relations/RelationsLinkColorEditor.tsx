@@ -8,23 +8,7 @@ import { type PanelOptions } from 'types';
 import { RELATIONS_LINK_COLOR_DEFAULT } from 'editor/relations/constants';
 import { isChordVariant, isSankeyVariant } from 'editor/relations/variants';
 import { type RelationsLinkColor } from 'editor/relations/types';
-/**
- * The precedence the control cannot show, carried by an info icon rather than by the
- * option's `description`.
- *
- * A `description` is **always** rendered — `OptionsPaneItemDescriptor` passes it to
- * `<Field description>` and to the option's `<Label>`, both of which draw it as standing
- * help text under the label — so a caveat this long sits permanently under a control that
- * is usually doing exactly what it says. Behind an icon it is there when wanted and
- * silent otherwise.
- *
- * It has to be said *somewhere*, because nothing about the control reveals it: an edge
- * whose own field carries a colour uses that instead, and a by-value scheme is such a
- * colour (`isPaletteColorMode`). Hiding the control in that case is not available —
- * `PanelOptionsEditorItem.showIf` is handed the panel options and the frames, never
- * `fieldConfig` — and would be wrong anyway, since a field override can put one edge
- * under a by-value scheme while the rest of the panel follows this option.
- */
+/** Help text for per-field color precedence. */
 export const LINK_COLOR_PRECEDENCE_HELP =
   'Ignored where the link’s own field colors it: a single/fixed color, or a by-value scheme such as thresholds. Gradient is only supported with Sankey';
 
@@ -34,45 +18,19 @@ const endpointColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
   { value: 'target', label: 'Target' },
 ];
 
-/** Where a source-to-target blend is really drawn. See {@link blendsGradient}. */
+/** Check whether the variant draws a source-to-target blend. */
 const linkColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
   ...endpointColorOptions,
   { value: 'gradient', label: 'Gradient' },
 ];
 
-/**
- * Where it is not. The entry stays in the list, relabelled with what the panel actually
- * draws, rather than being dropped: `gradient` is the family default
- * (`RELATIONS_LINK_COLOR_DEFAULT`) and a panel-option default is persisted into every
- * panel's JSON, so a list without it would leave the picker resolving a stored value it
- * does not offer — every chord panel would open showing a bare lowercase "gradient". A
- * per-variant default cannot fix that either: one path carries one default.
- */
+/** Check whether the variant uses a gradient fallback. */
 const degradedLinkColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
   ...endpointColorOptions,
   { value: 'gradient', label: 'Gradient (draws as "Source")' },
 ];
 
-/**
- * Does the panel, as currently configured, actually **blend** a gradient — or silently
- * draw the source node's colour instead?
- *
- * - **sankey**: always. `SankeyView` implements all three keywords itself.
- * - **chord**: never. `getChordLinkStyle` maps the keyword to `'source'` unconditionally,
- *   because a chord ribbon is a wide filled area whose bulk lies off the blend axis and
- *   washes out at ECharts' 0.2 ribbon opacity.
- * - **graph**: only under `layout: 'none'`, the one layout whose node positions are known
- *   before ECharts lays the graph out. zrender resolves a non-global gradient against the
- *   shape's bounding box, so an unoriented blend would run source-to-target only for the
- *   edges whose source happens to sit on the left — see `makeEdgeGradientResolver`. An
- *   *absent* layout counts, since data that pins every node infers `none`
- *   (`getGraphLayout`).
- *
- * Read off the panel options rather than the resolved layout, which is all an editor can
- * see: a graph with `Layout` left unset and unpinned data resolves to `force` and still
- * gets the plain label. That direction is the safe one — it never hides a blend that does
- * happen.
- */
+/** Does the panel, as currently configured, actually blend a gradient. */
 export function blendsGradient(options: Partial<PanelOptions> = {}): boolean {
   if (isChordVariant(options)) {
     return false;
@@ -88,21 +46,7 @@ export function linkColorChoices(options: Partial<PanelOptions> = {}): Array<Com
   return blendsGradient(options) ? linkColorOptions : degradedLinkColorOptions;
 }
 
-/**
- * The "Link color" picker.
- *
- * A local component rather than the standard `select` editor id for two reasons, both of
- * which the standard editor cannot do:
- *
- * - the **choice list is contextual** (see {@link linkColorChoices}), and this is the only
- *   place it can be. `settings.getOptions` looks like the way and is a trap:
- *   `SelectValueEditor` re-runs it only when `context.data` changes, so the list would
- *   still read "Gradient" after a switch to Circular. A component re-renders whenever the
- *   panel options do, since the whole pane is rebuilt from them
- *   (`getVisualizationOptions2`).
- * - the **caveat is an icon**, not standing help text. See
- *   {@link LINK_COLOR_PRECEDENCE_HELP}.
- */
+/** The "Link color" picker. */
 export const RelationsLinkColorEditor: React.FC<StandardEditorProps<RelationsLinkColor, unknown, PanelOptions>> = ({
   value,
   onChange,
@@ -132,8 +76,7 @@ export const RelationsLinkColorEditor: React.FC<StandardEditorProps<RelationsLin
 };
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  // The picker takes the row; `minWidth: 0` so the flex item may shrink below the
-  // control's own content width rather than pushing the icon out of the pane.
+  // Allow the picker to shrink without hiding the help icon.
   picker: css({
     flex: 1,
     minWidth: 0,

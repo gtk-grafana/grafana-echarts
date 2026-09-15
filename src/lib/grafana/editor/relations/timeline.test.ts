@@ -11,17 +11,7 @@ import { type PanelOptions } from 'types';
 import { relationsOptions } from 'test/relations';
 
 import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/contract';
-/**
- * The "Time slider" switch's **visibility**, which is a data question rather than an
- * option one — `showIf` is handed the panel's frames, the same way "Show node values"
- * gates on `hasNoNodeStats`.
- *
- * Without the gate the switch appears on every instant panel in a dashboard, where
- * turning it on hides the reducer picker and produces nothing but an advisory.
- */
 
-// See `advancedTier.test.ts`: the standard editor registry is filled by core app code a
-// plugin cannot import, so `builder.addX` throws under jest unless the ids are stubbed.
 const noEditor = (): null => null;
 standardEditorsRegistry.setInit(() =>
   ['boolean', 'number', 'slider'].map((id) => ({ id, name: id, editor: noEditor }))
@@ -45,7 +35,7 @@ const instant = (): DataFrame =>
     fields: [{ name: 'a-->b', type: FieldType.number, values: [1] }],
   });
 
-/** Whether the option at `path` would render, given these options and these frames. */
+/** Check whether an option is visible for the given data. */
 const isShown = (path: string, options: PanelOptions, data?: DataFrame[]): boolean => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
   addRelationsTimelineOptions(builder);
@@ -66,12 +56,6 @@ describe('the Time slider switch', () => {
     expect(shown({}, [instant()])).toBe(false);
   });
 
-  /**
-   * The escape hatch, and the reason the gate is an `||`. The timeline comes and goes with
-   * the data — a query edit, a narrowed dashboard range or a refresh returning one row —
-   * and taking the switch away while it is set would leave the user with a hidden reducer
-   * picker and no control to undo it.
-   */
   it('stays visible on instant data once it is already on', () => {
     expect(shown({ relationsTimeSlider: true }, [instant()])).toBe(true);
     expect(shown({ relationsTimeSlider: true }, undefined)).toBe(true);

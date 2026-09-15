@@ -6,16 +6,6 @@ import { edgesFrame, nodesFrame } from 'test/relations';
 import { renderRelations } from 'test/relationsCanvas';
 
 import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
-// Canvas snapshots for field overrides on the relations family. A mark is a *field*
-// under the wide contract — one node is one field, one edge is one field — so an
-// ordinary `byName` override addresses exactly one node or one link, which is the whole
-// point of the contract and something the row form could not express at all. See
-// data-plane/graph-wide.md.
-//
-// Every test here is a snapshot test. The control that says why the derived-node
-// pre-pass has to run *above* the panel — the same override, inert without it — is
-// `integration-tests/relations/derived-nodes.integration.test.tsx`, which needs two renders and no
-// baseline.
 
 /** Colour, size and label, all three on a node the response never declared. */
 const overrideDb: FieldConfigSource = {
@@ -50,32 +40,15 @@ describe('relations overrides', () => {
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
-    /**
-     * A node no frame declares — inferred from an edge's endpoints — drawn as a mark the
-     * override engine can reach. `converters/deriveNodes.ts` declares it as a field above
-     * the panel, which is what the harness's pipeline prefix runs; see
-     * ../../../docs/relations-derived-nodes.md.
-     *
-     * The fixture is `edgesFrame` alone, so **every** node in this render is derived:
-     * there is no nodes frame anywhere in the response, and `db` is a name only the
-     * edges' `target` column ever mentions.
-     */
     it('a byName override on a node only the edges imply (db red, larger, and renamed Database)', async () => {
       const { defaultEvents, seriesEvents } = await renderRelations({ frames: [edgesFrame], fieldConfig: overrideDb });
 
-      // The snapshot is only worth reading if the override moved something, so say so
-      // here rather than trusting a reviewer to spot it in 22 kB of draw calls.
       const plain = await renderRelations({ frames: [edgesFrame] });
       expect(normalizeCanvasEvents(seriesEvents)).not.toEqual(normalizeCanvasEvents(plain.seriesEvents));
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
-    /**
-     * "Hide in area" on a **node** rather than an edge. A node is a field too, so the
-     * same matcher reaches it — and taking the node out has to take the two links that
-     * touched it with it, or the picture would keep two lines running to nothing.
-     */
     it('a byName hideFrom override on a node (web gone, and both links that touched it)', async () => {
       const fieldConfig: FieldConfigSource = {
         defaults: {},
@@ -93,9 +66,6 @@ describe('relations overrides', () => {
   });
 
   describe('edges', () => {
-    // An edge is a field under the wide contract, so "Hide in area" can name one. `e1`
-    // is gateway->api, so the node symbols are untouched and exactly one line goes
-    // missing.
     it('a byName hideFrom override (gateway to api missing, three lines left)', async () => {
       const fieldConfig: FieldConfigSource = {
         defaults: {},
@@ -111,17 +81,6 @@ describe('relations overrides', () => {
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
-    // Per-edge `custom.curveness` beats the panel-level "Link curveness": `e1` bows hard
-    // (its control point sits 343px off the chord, lifting the apex to y=27 in a 300px
-    // box) while the other three stay on the panel's 0.1, which is ~10px of bow.
-    //
-    // **Two of those three are dead straight, not nearly.** ECharts' circular layout puts
-    // a link's control point at `centre * 3c + midpoint * (1 - 3c)` (`circularLayoutHelper`
-    // — it bows links *around the ring*, not perpendicular to themselves), and
-    // `gateway --> web` and `api --> db` are diameters of this four-node ring: their
-    // midpoint *is* the centre, so the control point lands on it however high the
-    // curveness goes. Only `web --> db` shows the panel value. A browser draws the same
-    // three lines; the baseline is not hiding an edge.
     it('a byName curveness override (gateway to api bowed hard, the rest nearly straight)', async () => {
       const fieldConfig: FieldConfigSource<Partial<EChartsRelationsFieldConfig>> = {
         defaults: {},

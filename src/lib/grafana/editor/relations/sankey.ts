@@ -24,18 +24,7 @@ import {
 } from 'editor/relations/sankey';
 import { isSankeyVariant } from 'editor/relations/variants';
 /**
- * Sankey layout options. Every control gates on `isSankeyVariant`, so they vanish
- * when the panel renders the `graph` variant instead.
- *
- * The two Default-tier controls live in a dedicated always-visible "Sankey"
- * category, mirroring the funnel's — sankey has no core Grafana equivalent, so its
- * primary layout controls are first-class rather than Advanced-gated. The finer
- * geometry and ribbon-styling knobs are Advanced, and are registered into this same
- * section rather than a separate Advanced bucket.
- *
- * "Node alignment" comes first: it decides what a column *means*, which "Flow
- * direction" then merely orients on the screen.
- *
+ * Sankey layout options.
  * https://echarts.apache.org/en/option.html#series-sankey
  */
 export function addRelationsSankeyOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {

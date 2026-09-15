@@ -17,37 +17,7 @@ import {
   ADVANCED_RELATIONS_SHARED_DEFAULTS,
   ADVANCED_SANKEY_DEFAULTS,
 } from 'lib/echarts/relations/options/advancedDefaults';
-/**
- * **The Advanced tier and its reset must name the same options.**
- *
- * An option gated behind Advanced is *hidden*, not cleared, when the user switches back
- * to Default — so `ADVANCED_*_DEFAULTS` exists to reset it before the render reads it
- * (see `applyEditorModeDefaults` and docs/options-modes.md). The two lists are written
- * by hand in different files, and nothing tied them together: a new Advanced control
- * that nobody added to the defaults renders from a value the user cannot see a control
- * for, and a defaults entry for a control that does not exist resets nothing while
- * looking like coverage.
- *
- * That is not hypothetical here. `filters.ts` — then two Advanced text inputs for the
- * endpoint label keys — was added by hand, and the tier had to be updated by hand to
- * match. (Those two are per-mark field config now, `addRelationsFilterConfig`, so they
- * have no tier at all and are absent from both lists.) This test is what makes the next
- * mismatch fail loudly instead.
- *
- * **Tier membership is probed from each `showIf`, not read off a category.** The family
- * groups by purpose — Labels, Layout, Interaction, Edges, Sankey, Chord — and an Advanced
- * control sits in the section it belongs to, so a category says nothing about the tier.
- * The gate is the only statement of it, so the gate is what this interrogates: an option
- * is Advanced iff there is some panel configuration where it shows in Advanced mode and
- * hides in Default mode.
- */
 
-/**
- * `standardEditorsRegistry` is filled by Grafana core app code a plugin cannot import,
- * so under jest it is empty and every `builder.addX` throws looking its editor component
- * up. Stubbing the ids these files register is the supported way in — the components are
- * never rendered here. Same problem, and same shape of answer, as `test/fieldConfig.ts`.
- */
 const noEditor = (): null => null;
 standardEditorsRegistry.setInit(() =>
   ['boolean', 'select', 'radio', 'number', 'slider', 'text', 'color', 'stats-picker'].map((id) => ({
@@ -57,11 +27,6 @@ standardEditorsRegistry.setInit(() =>
   }))
 );
 
-/**
- * Every relations option the panel registers, in `module.tsx`'s order. The stat picker
- * and the shared legend/tooltip block are left out: neither is Advanced-gated, and both
- * pull in registry entries this stub has no reason to fake.
- */
 const registeredOptions = () => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
   addRelationsTimelineOptions(builder);
@@ -84,15 +49,6 @@ const RELATIONS_TIER: Partial<PanelOptions> = {
   ...ADVANCED_RELATIONS_SHARED_DEFAULTS,
 };
 
-/**
- * Panel configurations to probe each gate against.
- *
- * A single fixture is not enough: the gates AND a variant (and sometimes a layout)
- * condition into the Advanced check, so a chord option reads as hidden on a graph
- * fixture whatever the mode. An option counts as Advanced if **any** of these
- * configurations reveals it in Advanced mode and hides it in Default mode, which is the
- * definition that does not depend on guessing the right fixture per option.
- */
 const PROBES: Array<Partial<PanelOptions>> = [
   { seriesType: 'graph', relationsLayout: 'force' },
   { seriesType: 'graph', relationsLayout: 'circular' },
@@ -101,11 +57,6 @@ const PROBES: Array<Partial<PanelOptions>> = [
   { seriesType: 'chord' },
 ];
 
-/**
- * The reset is keyed by top-level option key while an editor item carries a full path,
- * so `animation.enabled` has to be compared as `animation`. Only the shared animation
- * flag is nested today; every relations-owned option is a flat key.
- */
 const resetKeyOf = (path: string) => path.split('.')[0];
 
 const isAdvanced = (item: { showIf?: (options: PanelOptions, data?: undefined) => boolean | undefined }) => {
@@ -132,19 +83,10 @@ describe('relations Advanced tier', () => {
     expect(advancedKeys().length).toBeGreaterThan(10);
   });
 
-  // Both directions in one assertion, so a failure names the drifted key rather than
-  // only its count.
   it('resets exactly the options it hides', () => {
     expect(advancedKeys()).toEqual(tierKeys());
   });
 
-  /**
-   * A Default-tier control must **not** be reset — it is visible in both modes, so
-   * clearing it would read as the editor forgetting what the user typed.
-   *
-   * Asserted with no allow-list: every key in the reset has a control in the pane, so an
-   * exception here would mean an option the editor resets and the reader cannot see.
-   */
   it('leaves every Default-tier control out of the reset', () => {
     const defaultTier = registeredOptions()
       .filter((item) => !isAdvanced(item))

@@ -1,4 +1,3 @@
-// Root specifier deliberately: `rxjs` is an exact-string webpack external
 import {
   type CustomTransformOperator,
   type DataFrame,
@@ -23,28 +22,13 @@ import {
   type RelationsFamilyFrame,
   type RelationsFamilyValue,
 } from 'lib/grafana/fields/relationsFields';
-import { type ConfigTypedField } from 'lib/grafana/types'; // (`.config/bundler/externals.ts`), so `rxjs/operators` would be bundled instead of
-// taken from the host.
+import { type ConfigTypedField } from 'lib/grafana/types';
+// The root package is a webpack external. A subpath import would be bundled.
 import { map } from 'rxjs';
 
 import { isGraphWideFrames } from 'lib/echarts/relations/converters/frameRoles';
-/**
- * Convert Grafana's legacy row-based node-graph frames (`graph-*-long`) into the
- * field-based wide contract (`graph-*-wide`) — one node per field, one edge per
- * field.
- *
- * See ../../../../../data-plane/graph-wide.md#graph-edges-wide-format-graph-edges-wide for
- * the mapping this implements. This is the **only** reader of the row format left in the
- * plugin: the panel itself reads the wide contract exclusively (`graphWide.ts`), so
- * the conversion has to happen *above* the panel to be useful at all. Registered as a
- * panel transformation (`setDataTransformations`, grafana/grafana#129992) it runs
- * before the override pass, and each node and edge becomes an ordinary override
- * target. On a host without that API nothing converts these frames and the panel
- * reports that it cannot read them — see `frameToRelationsGraph`.
- *
- * Deliberately theme-free and synchronous: it runs inside the host's rx pipeline,
- * where no theme is in scope and `field.display` does not exist yet.
- */
+
+/** Convert Grafana's legacy row-based node-graph frames (`graph-*-long`) into the field-based wide contract (`graph-*-wide`). */
 
 // Legacy field names, from Grafana's `NodeGraphDataFrameFieldNames`. All lowercase.
 const ID_FIELD = 'id';
@@ -64,9 +48,8 @@ const FIXEDY_FIELD = 'fixedy';
 const DETAIL_PREFIX = 'detail__';
 
 /**
- * Case-insensitive field lookup — Grafana matches these names lowercased.
- * Doesn't need template types since this is still internal to the relations family
- * @todo potential performance enhancement to audit usages and prevent unnecessary iterations
+ * Find a field without case sensitivity.
+ * @todo Reuse a field-name map if this lookup becomes expensive.
  */
 
 function findField<V, C>(frame: DataFrame, name: string): ConfigTypedField<V, C> | undefined {
@@ -75,56 +58,24 @@ function findField<V, C>(frame: DataFrame, name: string): ConfigTypedField<V, C>
 
 const hasField = (frame: DataFrame, name: string): boolean => findField(frame, name) != null;
 
-/**
- * True when a frame declares itself part of a node-graph response.
- *
- * Both signals are set by data sources that know what they are emitting — Tempo, X-Ray
- * and TestData's `node_graph` scenario all set the first (`nodeGraphUtils.ts`). They currently
- * say "this response is a node graph", **not** "this frame is the edges frame": a
- * declared response carries a nodes frame *and* an edges frame, so telling the two
- * apart is still a job for field shape.
- */
+/** True when a frame declares itself part of a node-graph response. */
 function declaresLegacyNodeGraph(frame: DataFrame): boolean {
   return (
     frame.meta?.preferredVisualisationType === 'nodeGraph' ||
-    // Currently unused, proposed frame meta
-    //@ts-expect-error @todo add legacy graph-edges-long, graph-node-long and proposed graph-nodes-wide, graph-edges-wide to core as alpha. @todo one frame or two?
+    // Proposed frame metadata is not yet typed by Grafana.
+    //@ts-expect-error Proposed graph-wide metadata is not yet typed by Grafana.
     frame.meta?.type === 'graph-edges-long' ||
     //@ts-expect-error
     frame.meta?.type === 'graph-node-long'
   );
 }
 
-/**
- * A time dimension means a datasource response, not a static table of edges.
- *
- * That is the whole difference between `id,source,target,mainstat` from a CSV or a SQL
- * Expression — one row per edge, no time — and a Prometheus instant table that happens
- * to have `source` and `target` columns, which always carries `Time`. Without this
- * guard the conversion claims the Prometheus frame, widens it, and the user's own
- * transformation chain then finds none of the columns it filters for: the panel renders
- * "No data" and nothing is logged anywhere. Measured against a live Mimir.
- *
- * A frame that *declares* itself a node graph is trusted ahead of this heuristic, so a
- * datasource emitting the row format with a time column is unaffected.
- */
+/** A time dimension means a datasource response, not a static table of edges. */
 function hasTimeField(frame: DataFrame): boolean {
   return frame.fields.some((field) => field.type === FieldType.time);
 }
 
-/**
- * True when a frame is a legacy **edges** frame.
- *
- * Grafana's own role test is just "has a `source` field" (`applyOptionsToFrames`), but
- * that only runs after the user has already picked the node graph panel. Here the
- * predicate doubles as *detection*, so it requires `target` as well — and, for a frame
- * that declares nothing, the absence of a time field.
- *
- * `source` and `target` are required even when the frame declares itself a node graph.
- * The declaration is about the response, not the frame, and reading it as "these are
- * the edges" converted every declared *nodes* frame into an empty edges frame, silently
- * dropping every node's title, stat and colour.
- */
+/** True when a frame is a legacy edges frame. */
 export function isLegacyEdgesFrame(frame: DataFrame): boolean {
   if (!hasField(frame, SOURCE_FIELD) || !hasField(frame, TARGET_FIELD)) {
     return false;
@@ -132,14 +83,7 @@ export function isLegacyEdgesFrame(frame: DataFrame): boolean {
   return declaresLegacyNodeGraph(frame) || !hasTimeField(frame);
 }
 
-/**
- * True when a frame is a legacy **nodes** frame: an `id` and no `source`/`target`.
- *
- * Deliberately stricter than Grafana, which treats any non-edges candidate frame as
- * nodes. Here the `id` field is required so an unrelated frame in a mixed response is
- * not silently read as a node list, and the same time-field rule applies — `id` is far
- * too common a column name to claim a datasource's own table on.
- */
+/** True when a frame is a legacy nodes frame: an `id` and no `source`/`target`. */
 export function isLegacyNodesFrame(frame: DataFrame): boolean {
   if (!hasField(frame, ID_FIELD) || isLegacyEdgesFrame(frame)) {
     return false;
@@ -147,31 +91,12 @@ export function isLegacyNodesFrame(frame: DataFrame): boolean {
   return declaresLegacyNodeGraph(frame) || !hasTimeField(frame);
 }
 
-/**
- * True when these frames carry legacy row-based node-graph data.
- *
- * Role resolution is **field shape** — `source` and `target` are required on an edges
- * frame either way — and metadata only decides how much benefit of the doubt a frame
- * gets: a declared node graph skips the time-field guard, an undeclared one does not.
- * Shape has to stay load-bearing because metadata does not survive the paths that
- * matter: provisioned TestData `csv_content` fixtures cannot set frame metadata, and
- * SQL Expression outputs are named by `refId`.
- *
- * An edges frame is required: a lone nodes frame is a table, not a graph.
- */
+/** True when these frames carry legacy row-based node-graph data. */
 export function isLegacyGraphFrames(frames: DataFrame[]): boolean {
   return frames.some(isLegacyEdgesFrame);
 }
 
-/**
- * Read a value as a display string without a theme.
- *
- * Nothing here can resolve through a display processor: this runs in the
- * transformation pipeline, before `applyFieldOverrides`, so `field.display` is not
- * attached yet and there is no theme to build one from. Numeric enum ids therefore
- * stringify as their index — acceptable because `id`/`source`/`target` are string
- * fields in every producer.
- */
+/** Read a value as a display string without a theme. */
 function stringAt(field: Field | undefined, row: number): string | undefined {
   const raw: unknown = field?.values[row];
   if (raw == null || raw === '') {
@@ -180,17 +105,13 @@ function stringAt(field: Field | undefined, row: number): string | undefined {
   return typeof raw === 'string' ? raw : String(raw);
 }
 
-/** A `color` column is only a colour when it holds an HTML colour string. */
+/** Read a non-empty color string. */
 function fixedColorAt(field: Field | undefined, row: number): string | undefined {
   const raw: unknown = field?.values[row];
   return typeof raw === 'string' && raw !== '' ? raw : undefined;
 }
 
-/**
- * `strokedasharray` -> `custom.lineType`, the same three-way approximation the
- * renderer already made: an SVG dash array has no ECharts equivalent, so only
- * "is it dashed, and how tightly" survives.
- */
+/** Map an SVG dash array to the nearest ECharts line type. */
 function toLineType(dashArray: string | undefined): 'dashed' | 'dotted' | undefined {
   if (dashArray == null || dashArray.trim() === '') {
     return undefined;
@@ -218,13 +139,7 @@ function detailLabels(frame: DataFrame, row: number): Labels {
   return labels;
 }
 
-/**
- * Carry the stat column's own formatting onto every mark.
- *
- * The long form has one `unit`/`decimals` for the whole column; the wide form is
- * per-mark, so the faithful conversion is to copy the column's config to each field
- * rather than drop it. A later per-mark override simply replaces it.
- */
+/** Carry the stat column's own formatting onto every mark. */
 function statConfig(statField: Field | undefined): FieldConfig<EChartsRelationsFieldConfig> {
   if (!statField) {
     return {};
@@ -296,7 +211,7 @@ function edgesToWide(frame: DataFrame): RelationsFamilyFrame {
 
 /** One numeric field per node row. */
 function nodesToWide(frame: DataFrame): RelationsFamilyFrame {
-  // @todo instead of iterating through the fields this many times, let's create a map of field names to field refs and make a single pass
+  // @todo Reuse a field-name map if this lookup becomes expensive.
   const idField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, ID_FIELD);
   const titleField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, TITLE_FIELD);
   const subtitleField = findField<RelationsFamilyValue, EChartsRelationsFieldConfig>(frame, SUBTITLE_FIELD);
@@ -345,7 +260,7 @@ function nodesToWide(frame: DataFrame): RelationsFamilyFrame {
     // `secondarystat` is carried as a label rather than lost: the row form has only
     // one value per node, so there is no second row for `calcs[1]` to reduce. A
     // natively-wide frame with a real value dimension uses `calcs[1]` instead.
-    // A `detail__secondarystat` column cannot shadow it — the stat wins.
+    // The stat takes precedence over `detail__secondarystat`.
     const labels: Labels = detailLabels(frame, row);
     const secondary = stringAt(secondaryField, row);
     if (secondary != null) {
@@ -369,17 +284,9 @@ function nodesToWide(frame: DataFrame): RelationsFamilyFrame {
   return nodesWideFrame(frame, fields);
 }
 
-/**
- * Convert every legacy node-graph frame in the response to its wide equivalent.
- *
- * Frames that are not node-graph frames are returned **by reference**, and when
- * nothing converts the input array itself is returned. Both matter: a custom
- * transform operator bypasses `config.filter`, so it sees every frame in the
- * response and must leave the others identity-intact, which is what lets the host
- * skip re-running field overrides.
- */
+/** Convert every legacy node-graph frame in the response to its wide equivalent. */
 export function legacyToWide(frames: DataFrame[]): RelationsFamilyFrame[] {
-  // Already wide (or natively emitted as wide) — nothing to do.
+  // Keep native wide frames unchanged.
   if (frames.length === 0 || isGraphWideFrames(frames)) {
     return frames;
   }
@@ -411,20 +318,5 @@ export function legacyToWide(frames: DataFrame[]): RelationsFamilyFrame[] {
   return out;
 }
 
-/**
- * `legacyToWide` as a transformation the host can run above the panel.
- *
- * A `CustomTransformOperator` rather than a `DataTransformerConfig` because no core
- * transformation can express this conversion: `configMapHandlers` writes neither
- * `config.custom.*` nor `config.links`, and `rowsToFields` drops `meta` — so
- * `custom.lineWidth`, per-mark links and `meta.type` are all unreachable through a
- * JSON-configured prefix. Measured in
- * ../../../../../docs/relations-data-sources.md#what-the-pivot-cannot-carry-however-it-is-configured.
- *
- * Two properties of the operator form matter here and are relied on: it is dispatched
- * on `typeof config === 'function'` **before** `standardTransformersRegistry` is read,
- * so there is no host-registry coupling and no jest stubbing problem; and a function
- * cannot round-trip dashboard JSON, so the entry is structurally non-persistable and
- * non-editable rather than only by convention.
- */
+/** `legacyToWide` as a transformation the host can run above the panel. */
 export const legacyToWideOperator: CustomTransformOperator = () => (source) => source.pipe(map(legacyToWide));

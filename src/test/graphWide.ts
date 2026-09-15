@@ -11,15 +11,7 @@ import {
 import { GRAPH_EDGES_WIDE } from 'lib/echarts/relations/converters/contract';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 
-/**
- * Frame fixtures for the graph-wide reader's suites, shared by `contract.test.ts`,
- * `frameRoles.test.ts`, `timeStops.test.ts` and `graphWide.test.ts` — the four files the
- * reader's single suite was split into. Each builder returns a **fresh** frame, because
- * the reader attaches display processors and the suites mutate `fieldConfig`.
- *
- * Distinct from `test/relations.ts`, which builds the panel-level fixtures the render
- * suites use; these are the contract-level ones.
- */
+/** Shared graph-wide frame fixtures. */
 
 export const theme = createTheme();
 
@@ -46,15 +38,7 @@ export const namedEdges = (): DataFrame =>
 export const T0 = 1700000000000;
 export const STEP = 300000;
 
-/**
- * One frame of a **raw labelled response**: `[Time, Value]`, endpoints on `Value`.
- *
- * Byte-for-byte what `sum by (source, target) (…)` in `Format: Time series` returns from
- * Prometheus, Loki or TestData, one frame per series — the contract's *Multi* row variant.
- * This is what reaches the reader untouched whenever the pivot does not run, which is the
- * default: the host gates panel-registered transformations behind
- * `grafana.panelPluginTransformations`.
- */
+/** One frame of a raw labelled response: `[Time, Value]`, endpoints on `Value`. */
 export const rawSeries = (labels: Labels, values: Array<number | null>, times?: number[]): DataFrame =>
   toDataFrame({
     fields: [
@@ -80,10 +64,6 @@ export const withDisplay = (frame: DataFrame): DataFrame => {
   return frame;
 };
 
-/**
- * The real pre-panel field-config pass, so an override is matched and resolved by
- * Grafana rather than by the test. Under jest the standard property registry is empty
- * and overrides are silently dropped unless one is supplied — see `test/fieldConfig.ts`.
- */
+/** The real pre-panel field-config pass, so an override is matched and resolved by Grafana rather than by the test. */
 export const asPipelineWould = (frames: DataFrame[], overrides: FieldConfigSource['overrides'] = []): DataFrame[] =>
   applyTestFieldConfig(frames, { defaults: {}, overrides }, theme);

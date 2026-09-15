@@ -5,16 +5,8 @@ import { type GraphPoint } from 'lib/echarts/relations/options/layout';
 import { type EdgeGradientResolver, resolveLinkColor } from 'lib/echarts/relations/options/linkColor';
 
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
-/**
- * Turning the family's model into the two `data` arrays a `series.graph` takes: one item
- * per node and one per link, each carrying the per-mark style, the mark id the tooltip and
- * the label formatters look up, and the endpoint ids ECharts joins on.
- */
 
-/**
- * Map the model's nodes to ECharts graph data items. `positions` is supplied only under
- * `layout: 'none'`, where it holds *every* node — see {@link resolveFixedPositions}.
- */
+/** Map the model's nodes to ECharts graph data items. */
 export function toNodeItems(
   data: NodeGraphData,
   ctx: RelationsSeriesContext,
@@ -24,13 +16,9 @@ export function toNodeItems(
 
   return data.nodes.map((node) => {
     const item: RelationsNodeItem = {
-      // ECharts keys nodes by `retrieve(id, name, dataIndex)` and resolves each
-      // link's source/target against that key (`createGraphFromNodeEdge`). Setting
-      // `id` therefore pins link resolution to the mark's field name, which frees
-      // `name` to carry the human-readable `displayName` for the label.
+      // Use `id` for links and `name` for the visible title.
       id: node.id,
       name: node.name,
-      // `custom.nodeRadius` always wins over the panel-level size.
       symbolSize: node.radius ?? defaultSize,
     };
     if (node.value != null) {
@@ -39,8 +27,7 @@ export function toNodeItems(
     if (node.color != null) {
       item.itemStyle = { color: node.color };
     }
-    // Only meaningful under `layout: 'none'`, which is the only layout `positions` is
-    // built for — and there it answers for every node, pinned or seeded.
+    // Only fixed layouts provide positions.
     const position = positions?.get(node.id);
     if (position != null) {
       item.x = position.x;
@@ -64,10 +51,7 @@ export function toLinkItems(
   resolveGradient?: EdgeGradientResolver
 ): RelationsLinkItem[] {
   return links.map((link) => {
-    // `markId` is how a hovered edge finds its own field for formatting and data
-    // links; the endpoints cannot identify it, since parallel edges share them.
-    // `markKey` first, for the one case where the ids are not unique either — N raw
-    // frames whose value field is called `Value`. See `RelationLink.markKey`.
+    // `markKey` distinguishes parallel edges with the same id.
     const item: RelationsLinkItem = { source: link.source, target: link.target, markId: link.markKey ?? link.id };
     if (link.value != null) {
       item.value = link.value;
@@ -76,8 +60,7 @@ export function toLinkItems(
       item.secondaries = link.secondaries;
     }
     const lineStyle: NonNullable<RelationsLinkItem['lineStyle']> = {};
-    // Every edge carries its own colour: the series-level ECharts keywords do not
-    // work on a `graph` series. See `resolveLinkColor`.
+    // Graph series cannot resolve endpoint color keywords.
     const color = resolveLinkColor(link, nodeColors, mode, resolveGradient);
     if (color != null) {
       lineStyle.color = color;
@@ -88,8 +71,7 @@ export function toLinkItems(
     if (link.lineType != null) {
       lineStyle.type = link.lineType;
     }
-    // Overrides the series-level `relationsCurveness` for this edge alone —
-    // `GraphSeries` reads `curveness` off the item's own `lineStyle` first.
+    // Per-edge curveness overrides the series value.
     if (link.curveness != null) {
       lineStyle.curveness = link.curveness;
     }

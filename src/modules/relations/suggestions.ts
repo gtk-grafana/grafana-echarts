@@ -5,20 +5,7 @@ import { exceedsChordNodeBudget, scoreRelations } from 'lib/echarts/charts/fitne
 import { previewCardOptions } from 'lib/echarts/charts/suggestionCards';
 import { type PanelOptions } from 'types';
 
-// Visualization Suggestions for the relations family (graph / sankey / chord).
-//
-// This supplier used to be permanently silent, on the documented grounds that
-// node-graph data is identified by an `id`/`source`/`target` field shape or by
-// `meta.preferredVisualisationType` and `PanelDataSummary` exposed neither. It does
-// expose both: `rawFrames` gives the field shape (read by `isLegacyGraphFrames`,
-// which requires *both* `source` and `target` so an ordinary table with a `source`
-// column is not claimed) and `hasPreferredVisualisationType` gives Grafana's own
-// hint. So the family is scored from the real signal now — see `scoreRelations`.
-//
-// All three render types consume the identical node/link model, so they are
-// variants of one card set rather than separate branches. Chord is the exception:
-// it gives every node an arc on one circle, so it runs out of circumference long
-// before a force layout runs out of canvas, and is dropped on crowded graphs.
+// Chord is not suggested when its node arcs would become crowded.
 // https://grafana.com/developers/plugin-tools/how-to-guides/panel-plugins/add-suggestions-support
 export const relationsSuggestionsSupplier: VisualizationSuggestionsSupplier<PanelOptions, EChartsFieldConfig> = (
   dataSummary
@@ -28,8 +15,7 @@ export const relationsSuggestionsSupplier: VisualizationSuggestionsSupplier<Pane
     return;
   }
 
-  // Node labels are the dominant layout cost here (one text element per node, laid
-  // out against the graph) and are unreadable at card scale.
+  // Hide node labels in small preview cards.
   const cardOptions = previewCardOptions({ options: { relationsShowNodeLabels: false } });
 
   const suggestions: Array<VisualizationSuggestion<PanelOptions, EChartsFieldConfig>> = [

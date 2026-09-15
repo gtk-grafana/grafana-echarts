@@ -4,40 +4,13 @@ import { commonOptionsBuilder } from '@grafana/ui';
 import { addRelationsFilterConfig } from 'lib/grafana/editor/relations/filters';
 
 import { type EChartsRelationsFieldConfig, type RelationsLineType } from 'editor/relations/types';
-/**
- * Per-mark custom field config for the relations family.
- *
- * This is what the whole `graph-*-wide` pivot was for: a mark is a field, so an
- * ordinary Grafana override that names one node or one edge can style it, and the
- * override picker lists every mark by name. The row form could not express any of
- * this — its `noderadius` / `thickness` / `strokedasharray` columns were data, so the
- * only way to change one was to change the query.
- *
- * **Every style control is override-only** (`hideFromDefaults: true`). The Fields tab sets
- * a value for *all* fields at once, which here means every node **and** every edge, and
- * none of these properties means anything applied that way: `subtitle` and `fixedX`
- * are per-mark by nature, while node size and edge curveness already have panel-level
- * options that say "all marks" properly (`addRelationsNodeOptions`,
- * `addRelationsLinkOptions`). A default would either duplicate those or be nonsense.
- *
- * The two ad-hoc filter labels are override-only for a different reason: they are
- * **deprecated**. They used to keep a defaults editor on the argument that one response
- * groups by one endpoint pair — but a response that needs its pair stated by hand needs its
- * query fixed instead, so offering it to "every mark" advertised the wrong fix. See
- * `addRelationsFilterConfig`.
- *
- * Node and edge controls sit in separate categories because a field override cannot
- * know which frame its field came from — both sets are offered for any mark, and the
- * reader ignores the ones that do not apply (`converters/graphWide.ts`).
- */
+/** Per-mark custom field config for the relations family. */
 
 const NODE_CATEGORY = ['Node'];
 const EDGE_CATEGORY = ['Edge'];
 
 /**
- * The three ECharts `lineStyle.type` keywords. Chosen directly instead of inferred
- * from an SVG dash array, which is what the row form's `strokedasharray` forced —
- * see `toLineType` in `converters/legacyToWide.ts`.
+ * The three ECharts `lineStyle.type` keywords.
  * https://echarts.apache.org/en/option.html#series-graph.lineStyle.type
  */
 const lineTypeOptions: Array<SelectableValue<RelationsLineType>> = [
@@ -63,8 +36,7 @@ export function addRelationsCustomConfig(builder: FieldConfigEditorBuilder<EChar
       category: NODE_CATEGORY,
       hideFromDefaults: true,
     })
-    // Pinned coordinates are all-or-nothing: `getGraphLayout` only switches to
-    // `layout: 'none'` when *every* node pins both, matching the node-graph spec.
+    // Fixed layout requires both coordinates on every node.
     .addNumberInput({
       path: 'fixedX',
       name: 'Fixed x',
@@ -104,13 +76,8 @@ export function addRelationsCustomConfig(builder: FieldConfigEditorBuilder<EChar
       settings: { min: 0, max: 1, step: 0.05 },
     });
 
-  // Which label each endpoint is filtered on — the one setting here that is about the
-  // query rather than the chart, and the only one with a meaningful default.
   addRelationsFilterConfig(builder);
 
-  // The real "Hide in area" switches, not the editor-less registration this family
-  // used to need. A mark is a field, so a `byName` `custom.hideFrom` override now
-  // genuinely targets one node or one edge — and the legend's visibility toggle
-  // writes the same property. Read back per mark in `converters/graphWide.ts`.
+  // Marks are fields, so standard visibility overrides apply directly.
   commonOptionsBuilder.addHideFrom(builder);
 }

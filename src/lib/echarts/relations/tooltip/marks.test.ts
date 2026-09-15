@@ -2,15 +2,11 @@ import { createTheme, type DataFrame, FieldType, toDataFrame } from '@grafana/da
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 import { getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/marks';
-// The reader warns when collected marks share a `field.name`, which the fixtures below do
-// deliberately. Mocked so the decision is testable in `graphWide.test.ts` and silent here.
 jest.mock('development', () => ({
   debug: jest.fn(),
   LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
 }));
 
-// The reader warns when collected marks share a `field.name`, which the fixtures below do
-// deliberately. Mocked so the decision is testable in `graphWide.test.ts` and silent here.
 jest.mock('development', () => ({
   debug: jest.fn(),
   LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
@@ -18,10 +14,6 @@ jest.mock('development', () => ({
 
 const theme = createTheme();
 
-/**
- * Two nodes with **different units**, which is the case the row form cannot express
- * at all: `mainstat` is one column, so one unit covers every node.
- */
 const wideNodes = (): DataFrame =>
   toDataFrame({
     name: 'nodes',
@@ -37,10 +29,6 @@ const wideNodes = (): DataFrame =>
     ],
   });
 
-/**
- * Two **parallel** edges over the same pair, each with its own unit and its own link.
- * They are why an edge is looked up by `markId` rather than by its endpoints.
- */
 const wideEdges = (): DataFrame =>
   toDataFrame({
     name: 'edges',
@@ -98,23 +86,12 @@ describe('getRelationsTooltipMarks', () => {
     expect(marks.links.get('e1')?.source.field.config.unit).toBe('percent');
   });
 
-  /**
-   * Every node, whether or not it measures anything of its own: a node's value and the edges
-   * touching it are different facts, and the tooltip now reports both (value first). The map
-   * used to hold the statless nodes alone, which is where the list started.
-   */
-
-  /**
-   * Every node, whether or not it measures anything of its own: a node's value and the edges
-   * touching it are different facts, and the tooltip now reports both (value first). The map
-   * used to hold the statless nodes alone, which is where the list started.
-   */
   it('collects an adjacency list for every node', () => {
     const withStats = frameToRelationsGraph([wideNodes(), wideEdges()], theme)!;
     const derived = frameToRelationsGraph([wideEdges()], theme)!;
 
     expect([...getRelationsTooltipMarks(withStats, theme, 'utc').adjacency!.keys()]).toEqual(['gateway', 'db']);
-    // Derived from the endpoints, and keyed the same way — the two parallel edges, from each end.
+    // Derive both parallel edges from each endpoint.
     expect([...getRelationsTooltipMarks(derived, theme, 'utc').adjacency!.keys()]).toEqual(['gateway', 'db']);
   });
 
@@ -124,15 +101,6 @@ describe('getRelationsTooltipMarks', () => {
     expect(getRelationsTooltipMarks(data!, theme, 'utc').nodes.size).toBe(0);
   });
 
-  /**
-   * The two derivations the filter footer reads, asserted directly rather than through a
-   * hover: which endpoint keys a node may claim, and whether anything opted in at all.
-   */
-
-  /**
-   * The two derivations the filter footer reads, asserted directly rather than through a
-   * hover: which endpoint keys a node may claim, and whether anything opted in at all.
-   */
   describe('the filter footer’s inputs', () => {
     /** `a → b → c`, one node per role, plus a self-loop on `d`. */
     const chain = () =>
@@ -152,9 +120,6 @@ describe('getRelationsTooltipMarks', () => {
         ],
       });
 
-    // The roles a node really plays, and the key each is under. `a` is only ever a source
-    // and `c` only ever a target, so one list of theirs is empty — and `negate` fills it
-    // from the far end of the pair they sit on. See `NodeFilterLabels`.
     it('reads each node’s endpoint keys off the edges touching it', () => {
       const marks = getRelationsTooltipMarks(frameToRelationsGraph([chain()], theme)!, theme, 'utc');
 
@@ -166,8 +131,6 @@ describe('getRelationsTooltipMarks', () => {
       ]);
     });
 
-    // Any, not every: the endpoint keys are resolved response-wide, so one filterable edge
-    // means the response's endpoint dimensions are filterable. Only `d-d` carries it here.
     it('takes one filterable edge as the response’s opt-in', () => {
       const marks = getRelationsTooltipMarks(frameToRelationsGraph([chain()], theme)!, theme, 'utc');
 
@@ -178,7 +141,7 @@ describe('getRelationsTooltipMarks', () => {
       const marks = getRelationsTooltipMarks(frameToRelationsGraph([wideEdges()], theme)!, theme, 'utc');
       const plain = { ...wideEdges(), fields: wideEdges().fields.map((field) => ({ ...field, config: {} })) };
 
-      // `wideEdges` opts in; the same frames stripped of it do not.
+      // Only `wideEdges` metadata enables this behavior.
       expect(marks.endpointsFilterable).toBe(true);
       expect(getRelationsTooltipMarks(frameToRelationsGraph([plain], theme)!, theme, 'utc').endpointsFilterable).toBe(
         false

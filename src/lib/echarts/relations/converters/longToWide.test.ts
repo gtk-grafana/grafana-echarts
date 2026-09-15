@@ -20,8 +20,6 @@ import {
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
-// `debug` is gated on `NODE_ENV`/`CI`/localStorage, so asserting on the console directly
-// would pass locally and go quiet in CI. Mocking the module tests the *decision* to warn.
 jest.mock('development', () => ({
   debug: jest.fn(),
   LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
@@ -40,11 +38,6 @@ beforeEach(() => {
 const T0 = 1700000000000;
 const T1 = T0 + 300000;
 
-/**
- * One frame of a long response, byte-for-byte what a labelled datasource returns for
- * `sum by (source, target) (…)` in `Format: Time series`: `meta.type: timeseries-multi`,
- * a `Time` column, and a single `Value` field carrying the grouping labels.
- */
 const series = (
   labels: Labels,
   values: Array<number | null>,
@@ -71,7 +64,7 @@ describe('longToWide — the pivot', () => {
     const out = longToWide(edges());
 
     expect(out).toHaveLength(1);
-    // The leading field is the row dimension; the marks follow.
+    // The row dimension comes before the mark fields.
     expect(out[0].fields.map((field) => field.name)).toEqual(['Time', 'a-->b', 'b-->c', 'a-->c']);
     expect(out[0].fields.slice(1).map((field) => field.type)).toEqual([
       FieldType.number,
@@ -80,16 +73,6 @@ describe('longToWide — the pivot', () => {
     ]);
   });
 
-  /**
-   * What the pivot buys, in the model the panel actually reads: every edge arrives with its
-   * **own** id, so each one is a `byName` override target, a legend entry and a tooltip
-   * title of its own.
-   *
-   * Deliberately says nothing about how the reader treats a *raw* multi-frame response —
-   * that it collects all of them is the reader's own contract, asserted in
-   * `graphWide.test.ts`. The pivot's job is identity either way: N frames whose value field
-   * is called `Value` are N marks sharing one name, and no override can address them.
-   */
   it('gives every edge its own id in the model the panel reads', () => {
     const data = frameToRelationsGraph(longToWide(edges()), createTheme());
 
@@ -121,10 +104,6 @@ describe('longToWide — the pivot', () => {
     expect(wide.meta?.typeVersion).toEqual([0, 1]);
   });
 
-  /**
-   * `refId` and `meta` describe the query every series shares, so they carry over. The
-   * frame *name* cannot: one series' legend is not the name of a frame holding all of them.
-   */
   it('carries the query identity over but not one series name', () => {
     const [wide] = longToWide([series({ source: 'a', target: 'b' }, [1], { name: 'a-->b' })]);
 
@@ -133,15 +112,6 @@ describe('longToWide — the pivot', () => {
   });
 });
 
-/**
- * The endpoint pair a datasource actually used.
- *
- * The contract's `source`/`target` is what the panel reads and what this pivot writes, but no
- * datasource emits it: Grafana's own service-graph metrics are labelled `client`/`server`, and
- * the query that reached the panel before this existed spent two `label_replace` calls renaming
- * them — then aggregated the originals away, which is why an ad-hoc filter on an endpoint could
- * only ever be written under a key the datasource had never heard of.
- */
 describe('longToWide — conventional endpoint labels', () => {
   const clientServer = (): DataFrame[] => [
     series({ client: 'a', server: 'b' }, [10, 12]),
@@ -159,11 +129,6 @@ describe('longToWide — conventional endpoint labels', () => {
     expect(wide.fields[1].labels).toEqual({ source: 'a', target: 'b' });
   });
 
-  /**
-   * The declaration, and the reason this pivot has to leave one: its output is canonical by
-   * construction, so without it nothing downstream can tell `sum by (client, server)` from
-   * `sum by (source, target)` — and the tooltip's filters would go on writing `source=`.
-   */
   it('declares the pair it read on the frame', () => {
     const [wide] = longToWide(clientServer());
 
@@ -176,17 +141,12 @@ describe('longToWide — conventional endpoint labels', () => {
     expect(wide.meta?.custom?.graph).toBeUndefined();
   });
 
-  // Recording one of two pairs would be worse than recording neither: the tooltip would write
-  // a key that is right for half the edges and silently wrong for the rest.
   it('records nothing when the response mixes pairs', () => {
     const [wide] = longToWide([series({ client: 'a', server: 'b' }, [1]), series({ source: 'b', target: 'c' }, [1])]);
 
     expect(wide.meta?.custom?.graph).toBeUndefined();
   });
 
-  // The endpoints are not a discriminator, whatever they are called: leaving `client`/`server`
-  // in the "everything else" label set would make every parallel edge look distinguishable by
-  // the one thing its siblings share.
   it('keeps the endpoints out of the parallel-edge discriminator', () => {
     const [wide] = longToWide([
       series({ client: 'a', server: 'b', protocol: 'grpc' }, [1]),
@@ -200,8 +160,6 @@ describe('longToWide — conventional endpoint labels', () => {
     ]);
   });
 
-  // Precedence: a frame carrying both pairs is read as the contract says, since that is the
-  // pair a converter would have written.
   it('prefers the canonical pair when both are present', () => {
     const [wide] = longToWide([series({ source: 'a', target: 'b', client: 'x', server: 'y' }, [1])]);
 
@@ -217,11 +175,6 @@ describe('longToWide — conventional endpoint labels', () => {
   });
 });
 
-/**
- * The **wire id** as an endpoint carrier: a rendered `legendFormat` lands in
- * `config.displayNameFromDS`, never in `field.name`, so the contract's documented fallback
- * carrier was unreachable for every long response until this claimed it.
- */
 describe('longToWide — the legend format as a carrier', () => {
   const legend = (id: string, labels: Labels = {}): DataFrame =>
     series(labels, [1, 2], { config: { displayNameFromDS: id } });
@@ -240,11 +193,6 @@ describe('longToWide — the legend format as a carrier', () => {
     expect(wide.fields[1].labels).toEqual({ cluster: 'a', namespace: 'b', source: 'a', target: 'b' });
   });
 
-  /**
-   * And the keys come with it. The id says *which* values are the endpoints; matching them
-   * back against the labels says which keys hold them, which is the pair an ad-hoc filter
-   * has to be written under.
-   */
   it('records the pair the id was rendered from', () => {
     const [wide] = longToWide([legend('a-->b', { cluster: 'a', namespace: 'b' })]);
 
@@ -271,12 +219,6 @@ describe('longToWide — the legend format as a carrier', () => {
   });
 });
 
-/**
- * The pivot rewrites every field to the canonical pair, so a query that kept its originals
- * beside them has to have the recovery recorded here or lose it. Only the frame-wide half —
- * a response whose levels recover different pairs records none, and the reader answers per
- * edge off the originals the pivot carries through.
- */
 describe('longToWide — recovered endpoint labels', () => {
   it('declares a pair recovered from a response that kept its originals', () => {
     const [wide] = longToWide([
@@ -296,8 +238,6 @@ describe('longToWide — recovered endpoint labels', () => {
     expect(wide.meta?.custom?.graph).toBeUndefined();
   });
 
-  // What the reader then does with it: the originals ride through on the fields, so each
-  // level answers for itself.
   it('carries the originals through so the reader can answer per edge', () => {
     const data = frameToRelationsGraph(
       longToWide([
@@ -338,11 +278,6 @@ describe('longToWide — the row dimension', () => {
     expect(wide.fields[1].values).toEqual([7]);
   });
 
-  /**
-   * Prometheus aligns a range query to one step grid, but a series with a gap has fewer
-   * points than its siblings. Index-aligning the columns would put a mark's values on rows
-   * belonging to another mark.
-   */
   it('outer-joins mismatched timestamps and nulls the gaps', () => {
     const [wide] = longToWide([
       series({ source: 'a', target: 'b' }, [10, 12], { times: [T0, T1] }),
@@ -378,33 +313,18 @@ describe('longToWide — identity', () => {
     expect(wide.fields[1].labels).toEqual({ source: 'a', target: 'b' });
   });
 
-  /**
-   * The parity case with the route this replaces: `joinByField` renamed each `Value` field
-   * to its frame name, so a dashboard whose overrides target those names keeps working.
-   */
   it('prefers a frame name, which is what the documented join renamed fields to', () => {
     const [wide] = longToWide([series({ source: 'gateway', target: 'api' }, [1], { name: 'gateway->api (http)' })]);
 
     expect(wide.fields[1].name).toBe('gateway->api (http)');
   });
 
-  /**
-   * Without a legend format Prometheus names the frame after the series' own label set,
-   * which is no id anybody would write an override against — and is why the acceptance
-   * query needs no legend format at all.
-   */
   it('ignores a frame name that is only the label set', () => {
     const [wide] = longToWide([series({ source: 'a', target: 'b' }, [1], { name: '{source="a", target="b"}' })]);
 
     expect(wide.fields[1].name).toBe('a-->b');
   });
 
-  /**
-   * Parallel edges: two marks over one node pair, separated only by a third label. Two
-   * fields with one name would be silent mark loss — `byName` matches both. **Every**
-   * member of the clash is discriminated, not just the later one, so the pair reads as a
-   * pair rather than as an edge plus an anomaly.
-   */
   it('discriminates parallel edges by the label that distinguishes them', () => {
     const [wide] = longToWide([
       series({ source: 'a', target: 'b', protocol: 'http' }, [1]),
@@ -498,11 +418,6 @@ describe('longToWide — detection', () => {
     }
   });
 
-  /**
-   * The `csv_content` / SQL / `rowsToFields` route: no time column, one mark per field
-   * already. Claiming it would rename marks that have real ids, and `meta` does not
-   * survive those paths, so shape is all there is to go on.
-   */
   it('declines a static wide table, which has no row dimension', () => {
     const table = toDataFrame({
       fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] }],
@@ -549,13 +464,6 @@ describe('longToWide — detection', () => {
     expect(isLongGraphFrames([rows])).toBe(false);
   });
 
-  /**
-   * A declared edges frame *is* the edges frame; a labelled series beside it is a second
-   * query. Pivoting it would mint a rival edges frame — a second set of ids over the same
-   * topology — which is how two converters end up disagreeing about one response. The
-   * reader agrees from the other side: declared frames win as a *filter*, so this response
-   * renders exactly the declared frame's edges.
-   */
   it('declines the whole response when something else is already the edges frame', () => {
     const declared = toDataFrame({
       meta: { type: GRAPH_EDGES_WIDE },
@@ -598,8 +506,6 @@ describe('longToWide — pass-through', () => {
     });
     const out = longToWide([unrelated, ...edges()]);
 
-    // A custom operator bypasses `config.filter`, so it must return what it does not own
-    // unchanged — by reference, so field-override memoisation still short-circuits.
     expect(out).toHaveLength(2);
     expect(out[0]).toBe(unrelated);
     expect(out[1].meta?.type).toBe(GRAPH_EDGES_WIDE);
@@ -612,11 +518,6 @@ describe('longToWide — pass-through', () => {
   });
 });
 
-/**
- * The conversion is invisible — no Transform tab entry, no off switch — so what it did has
- * to be legible somewhere. `development.ts` suppresses info by default and shows warn in a
- * dev build, which is the split these two want.
- */
 describe('longToWide — diagnostics', () => {
   it('notes the pivot at info level, with the edge count that would otherwise be lost', () => {
     longToWide(edges());
@@ -625,12 +526,6 @@ describe('longToWide — diagnostics', () => {
     expect(logged(LOG_LEVELS.warn)).toEqual([]);
   });
 
-  /**
-   * The inherent ambiguity: one long series and one single-edge wide frame with a row
-   * dimension are the same shape. Renaming the edge breaks a `byName` override on the old
-   * id, so it cannot be silent — and cannot be an error either, since for a real
-   * single-series query the conversion is right.
-   */
   it('warns when it renames the only mark in the response', () => {
     const wideLookalike = toDataFrame({
       fields: [

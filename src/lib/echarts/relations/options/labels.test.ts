@@ -13,10 +13,6 @@ import { type TooltipSource } from 'lib/echarts/tooltip/types';
 import { relationsContext, relationsOptions } from 'test/relations';
 import { type PanelOptions } from 'types';
 
-/**
- * Label-layout callback params. Only `dataType` is read, so the rest is left off
- * rather than filled with values no assertion depends on.
- */
 const labelParams = (dataType: 'node' | 'edge'): LabelLayoutOptionCallbackParams =>
   ({ dataType, dataIndex: 0, seriesIndex: 0 }) as LabelLayoutOptionCallbackParams;
 
@@ -30,15 +26,10 @@ describe('getRelationsLabelLayout', () => {
     expect(getRelationsLabelLayout(baseOptions())?.(labelParams('node'))).toEqual({ hideOverlap: true });
   });
 
-  // The reason the callback form is used at all. An edge label put through
-  // `hideOverlap` is measured before the link geometry has settled, so each render
-  // lets one more through and "Show edge values" draws more labels every refresh.
   it('leaves edge labels out of the overlap pass', () => {
     expect(getRelationsLabelLayout(baseOptions())?.(labelParams('edge'))).toEqual({});
   });
 
-  // Omitted rather than emitted empty: `LabelManager` skips a series whose
-  // `labelLayout` has no keys, so the two are equivalent and omitting says it.
   it('omits the key when switched off', () => {
     expect(getRelationsLabelLayout(baseOptions({ relationsHideOverlappingLabels: false }))).toBeUndefined();
   });
@@ -87,8 +78,6 @@ describe('getGraphLabel', () => {
     expect(getGraphLabel(ctx(baseOptions({ relationsShowNodeLabels: false })))).toEqual({ show: false });
   });
 
-  // A graph node is labelled from `data.getName(idx)` already, so the formatter is
-  // dead weight until there is a value to append.
   it('omits the formatter while node values are off', () => {
     expect(getGraphLabel(ctx())).not.toHaveProperty('formatter');
   });
@@ -115,8 +104,6 @@ describe('getRelationsNodeLabelFormatter', () => {
     expect(getRelationsNodeLabelFormatter(ctx())).toBeUndefined();
   });
 
-  // `graph` carries the stat as `value`; `sankey` and `chord` leave `value` to
-  // ECharts' flow computation and carry it as `stat`.
   it('reads the stat from `value` (graph items)', () => {
     const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
 
@@ -129,8 +116,6 @@ describe('getRelationsNodeLabelFormatter', () => {
     expect(formatter(params('B', { id: 'b', name: 'B', stat: 7 }))).toBe('B\n7');
   });
 
-  // `stat` wins so a sankey's ECharts-computed `value` cannot shadow the mainstat,
-  // matching the tooltip's precedence.
   it('prefers `stat` over `value`', () => {
     const formatter = getRelationsNodeLabelFormatter(ctx(baseOptions({ relationsShowNodeValues: true })))!;
 
@@ -143,11 +128,6 @@ describe('getRelationsNodeLabelFormatter', () => {
     expect(formatter(params('D', { id: 'd', name: 'D' }))).toBe('D');
   });
 
-  /**
-   * The label prints the same number the tooltip does, so it formats through the same
-   * per-mark lookup. Formatting it with the panel formatter instead would put two
-   * different renderings of one value on screen at once.
-   */
   it('formats the stat with the node’s own field, like the tooltip', () => {
     const withMarks: RelationsSeriesContext = {
       ...ctx(baseOptions({ relationsShowNodeValues: true })),
@@ -162,9 +142,6 @@ describe('getRelationsNodeLabelFormatter', () => {
     const formatter = getRelationsNodeLabelFormatter(withMarks)!;
 
     expect(formatter(params('A', { id: 'a', name: 'A', value: 42 }))).toBe('A\n42 ms');
-    // A node with no field of its own has no unit to borrow, so it prints plainly rather
-    // than in the first edge's. A derived node reaches this only if it somehow carries a
-    // stat — it no longer does — which is why `formatDerivedMarkValue` is a safety net.
     expect(formatter(params('Z', { id: 'z', name: 'Z', value: 42 }))).toBe('Z\n42');
   });
 });

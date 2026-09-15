@@ -21,18 +21,7 @@ import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { type PanelOptions } from 'types';
 
-/**
- * The relations options pane, built exactly as `modules/relations/module.tsx` builds it.
- *
- * A shared fixture rather than a private helper because **two** suites need the live
- * registry and they must not drift apart: `optionSurface.test.ts` asserts the pane's shape
- * (which sections exist, in what order, holding what), and `allOptionsDashboard.test.ts`
- * asserts the reference dashboard and the parity doc cover every option in it. If each
- * reconstructed the pane itself, the second could pass against a stale copy of the first.
- *
- * Kept in `src/test/` beside the other fixtures, so neither suite imports from the other —
- * importing across `*.test.ts` files would also break the one-kind-of-test-per-file rule.
- */
+/** The relations options pane, built exactly as `modules/relations/module.tsx` builds it. */
 
 /** See `labels.test.ts` for why `standardEditorsRegistry` has to be stubbed under jest. */
 const noEditor = (): null => null;
@@ -44,14 +33,7 @@ standardEditorsRegistry.setInit(() =>
   }))
 );
 
-/**
- * `module.tsx`'s supplier order, reproduced.
- *
- * `addRelationsStatOptions` is the one omission: it calls `t()` at registration time, which
- * needs an initialised i18n the panel module sets up and a unit test has no reason to. Its
- * one option (`reduceOptions.calcs`) is therefore added by hand below, so the registry this
- * returns is still complete — callers assert against the *whole* option set.
- */
+/** `module.tsx`'s supplier order, reproduced. */
 export const buildRelationsPane = () => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
 
@@ -81,12 +63,7 @@ export const buildRelationsPane = () => {
   return builder.getItems();
 };
 
-/**
- * Every option path the panel registers, collapsed to the key a dashboard or a reset is
- * written against: `legend.*` and `tooltip.*` are one Grafana block each and are demoed
- * and excused as `legend` / `tooltip`, while `animation.enabled` keeps its full path
- * because that is the key the editor registers and the reset names.
- */
+/** Every option path the panel registers. */
 export const registeredRelationsOptions = (): string[] => {
   const paths = buildRelationsPane().map((item) => item.path);
   const collapsed = paths.map((path) =>

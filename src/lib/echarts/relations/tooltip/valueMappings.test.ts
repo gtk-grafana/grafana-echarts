@@ -11,23 +11,6 @@ import { getRelationsNodeLabelFormatter } from 'lib/echarts/relations/options/la
 import { getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/marks';
 import { buildRelationsTooltipModel } from 'lib/echarts/relations/tooltip/model';
 import { type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
-/**
- * **Value mappings on a relations mark.**
- *
- * `parity.md` lists them as supported — "applied through the field's display processor"
- * — with no test behind the claim, which is exactly the kind of statement that is true
- * until it isn't: a mark's value reaches the screen through `field.display(value)`, and
- * anything that formatted a raw number instead would keep working for every other case
- * and silently drop the mapping.
- *
- * A mapping is also the sharpest available proof that a mark formats through **its own**
- * field, because a mapping replaces the text outright rather than decorating it. A node
- * showing `Healthy` where its neighbour shows `2` cannot be a shared frame-level
- * formatter.
- *
- * Unit-only, as the plan calls for: a mapping changes text, not geometry, so a canvas
- * baseline would spend 2,500 lines to say what one string comparison says.
- */
 
 const theme = createTheme();
 
@@ -72,12 +55,6 @@ const mappedEdges = (): DataFrame =>
     ],
   });
 
-/**
- * Mappings live in `field.config`, and it is `applyFieldOverrides` — not the reader —
- * that turns them into a display processor. Running the frames through the same pass the
- * host does is therefore load-bearing here: a fixture that skipped it would be a state
- * the panel is never in, and the mapping would appear not to work for the wrong reason.
- */
 const asPipelineWould = (frames: DataFrame[]): DataFrame[] =>
   applyTestFieldConfig(frames, { defaults: {}, overrides: [] }, theme);
 
@@ -110,22 +87,16 @@ describe('relations value mappings', () => {
       expect(tooltipTextFor(graphFrames(), { id: 'gateway', name: 'gateway', value: 1 })).toBe('Healthy');
     });
 
-    // The mapping belongs to one field, so its neighbour is untouched — which is the
-    // whole point of a mark being a field.
     it('leaves an unmapped node on its own number', () => {
       expect(tooltipTextFor(graphFrames(), { id: 'db', name: 'db', value: 2 })).toBe('2');
     });
 
-    // Range mappings too, on an edge rather than a node: both marks go through the same
-    // per-mark display processor.
     it('shows an edge its mapped band instead of its weight', () => {
       expect(tooltipTextFor(graphFrames(), { markId: 'e1', source: 'gateway', target: 'db', value: 250 }, 'edge')).toBe(
         'Slow'
       );
     });
 
-    // A value the mapping does not cover falls through to ordinary formatting rather
-    // than rendering blank.
     it('falls through to the plain number for an unmapped value', () => {
       const unmapped = toDataFrame({
         name: 'nodes',
@@ -137,11 +108,6 @@ describe('relations value mappings', () => {
     });
   });
 
-  /**
-   * "Show node values" prints the same number the tooltip does, through the same
-   * per-mark lookup — so a mapping has to reach the label too, or the panel would show
-   * `Healthy` on hover and `1` underneath the node at the same time.
-   */
   describe('node value label', () => {
     it('prints the mapped text under the node', () => {
       const context = {

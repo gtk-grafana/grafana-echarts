@@ -19,7 +19,7 @@ import { longToWide } from './longToWide';
 
 const theme = createTheme();
 
-/** Two edges, three endpoints, no nodes frame — the shape every node of which is implied. */
+/** Build two edges that imply three nodes. */
 const wideEdges = (): DataFrame =>
   toDataFrame({
     refId: 'A',
@@ -69,11 +69,6 @@ describe('deriveNodes', () => {
     expect(rest[0]).toBe(edges);
   });
 
-  /**
-   * A node the response only implies has no measurement to report. The degree the reader's
-   * fallback used to put here is a link count, and in the value slot nothing tells it apart
-   * from a stat the query returned.
-   */
   it('gives each derived node no stat', () => {
     const [nodes] = deriveNodes([wideEdges()]);
 
@@ -81,11 +76,6 @@ describe('deriveNodes', () => {
     expect(nodes.length).toBe(1);
   });
 
-  /**
-   * Grafana numbers `seriesIndex` — and therefore each classic-palette colour — in field
-   * order across the response. Leading with the nodes is what keeps the colours the ones a
-   * host that never runs this pass already draws.
-   */
   it('puts a new nodes frame first', () => {
     const out = deriveNodes([wideEdges()]);
 
@@ -105,8 +95,6 @@ describe('deriveNodes', () => {
       wideEdges(),
     ];
 
-    // Identity, not equality: a custom transform operator bypasses `config.filter`, so
-    // handing the host a new array would make it re-run field overrides for nothing.
     expect(deriveNodes(frames)).toBe(frames);
   });
 
@@ -123,12 +111,6 @@ describe('deriveNodes', () => {
     expect(deriveNodes(frames)).toBe(frames);
   });
 
-  /**
-   * The trap this avoids: `findNodesFrames` treats a declared `graph-nodes-wide` frame as a
-   * **filter**, so emitting one beside a merely shape-matched nodes frame would make the
-   * reader collect the new frame and drop the real one — losing every stat and every piece
-   * of config the response actually carried, to a pass whose whole job is to add config.
-   */
   it('appends to an existing nodes frame rather than minting a rival declared one', () => {
     const declared = toDataFrame({
       fields: [{ name: 'a', type: FieldType.number, config: { unit: 'ms' }, values: [5] }],
@@ -178,17 +160,8 @@ describe('deriveNodes', () => {
   });
 });
 
-/**
- * The pre-pass runs at the *head* of the pipeline, so "the response declares no nodes" can
- * mean "not yet": the node-stat route builds its nodes frame in the user's own
- * transformations, downstream of here (`instant + organize + rowsToFields`, measured on
- * `echarts-relations-devcortex-wide` panel 6). The frame the pre-pass mints then meets the
- * real one at the reader, and a declared frame beats a shape-matched one by contract — so
- * before {@link GRAPH_META_DERIVED_NODES} every real node stat was replaced by a placeholder
- * holding `null`, and a value-based colour mode painted every node the base threshold.
- */
 describe('a placeholder frame meeting the real nodes frame downstream', () => {
-  /** What `organize` + `rowsToFields` leaves behind: one row per node, no `meta.type`. */
+  /** Build one row per node without `meta.type`. */
   const nodeStats = (): DataFrame =>
     toDataFrame({
       refId: 'rowsToFields-B',
@@ -198,7 +171,7 @@ describe('a placeholder frame meeting the real nodes frame downstream', () => {
       ],
     });
 
-  /** The response as the reader sees it: pre-pass output, then the user's transformations. */
+  /** Apply the pre-pass before user transformations. */
   const asRendered = (): DataFrame[] => [...deriveNodes([wideEdges()]), nodeStats()];
 
   it('collects the real frame instead of letting the placeholder filter it out', () => {
@@ -218,10 +191,6 @@ describe('a placeholder frame meeting the real nodes frame downstream', () => {
     ]);
   });
 
-  /**
-   * Order is the placeholder's, i.e. the endpoint order — so the palette colours do not
-   * depend on where in the response the real frame ended up.
-   */
   it('keeps the endpoint order even though the real frame arrives last', () => {
     const graph = frameToGraphWide(applyTestFieldConfig(asRendered(), { defaults: {}, overrides: [] }, theme), theme)!;
 
@@ -240,11 +209,6 @@ describe('a placeholder frame meeting the real nodes frame downstream', () => {
 });
 
 describe('deriveNodes and the reader agree', () => {
-  /**
-   * The two derivations have to produce the same node set in the same order, because the
-   * pass is gated behind `panelPluginTransformations` and a dashboard must not change
-   * colours depending on whether the host ran it.
-   */
   it('derives the same nodes, in the same order, as the reader’s fallback', () => {
     const fallback = frameToGraphWide([wideEdges()], theme)!;
     const prePass = frameToGraphWide(deriveNodes([wideEdges()]), theme)!;
@@ -253,13 +217,6 @@ describe('deriveNodes and the reader agree', () => {
     expect(prePass.links.map((link) => link.id)).toEqual(fallback.links.map((link) => link.id));
   });
 
-  /**
-   * The no-visual-change guarantee, and the reason a newly created nodes frame goes
-   * **first**. Two different palettes are at work — `fillPaletteColors` indexes the node
-   * list, Grafana's `palette-classic` indexes `field.state.seriesIndex` across the whole
-   * response — and they agree only while the node fields lead. Both sides run through the
-   * real override pass here, which is the only way the second palette exists at all.
-   */
   it('paints the nodes the colours the fallback already paints them', () => {
     const fallback = frameToGraphWide(applyTestFieldConfig([wideEdges()], undefined, theme), theme)!;
     const prePass = frameToGraphWide(applyTestFieldConfig(deriveNodes([wideEdges()]), undefined, theme), theme)!;
@@ -267,7 +224,7 @@ describe('deriveNodes and the reader agree', () => {
     expect(prePass.nodes.map((node) => node.color)).toEqual(fallback.nodes.map((node) => node.color));
   });
 
-  /** The whole point: every node now has a field, which is what an override can land on. */
+  /** Each derived node now has a field for overrides. */
   it('turns each node into a mark with a field of its own', () => {
     const fallback = frameToGraphWide([wideEdges()], theme)!;
     const prePass = frameToGraphWide(deriveNodes([wideEdges()]), theme)!;
@@ -285,11 +242,6 @@ describe('deriveNodes and the reader agree', () => {
   });
 });
 
-/**
- * The claim the whole pass rests on, run through Grafana's real override engine rather
- * than asserted about field shapes: a node that exists only as an edge's endpoint is an
- * ordinary `byName` override target once it has been declared above the panel.
- */
 describe('a derived node under applyFieldOverrides', () => {
   it('takes a byName colour and per-mark config, like any other mark', () => {
     const frames = applyTestFieldConfig(deriveNodes([wideEdges()]), byName('b'), theme);

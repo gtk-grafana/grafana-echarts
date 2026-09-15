@@ -33,15 +33,10 @@ describe('getChordLabel', () => {
     expect(label?.color).toBe(theme.colors.text.primary);
   });
 
-  // `ChordPiece` passes `defaultText: node.dataIndex + ''`, so without a formatter the
-  // labels are raw numeric indices. Its fallback — using the item's `name` as a
-  // *formatter string* — would also misread a node named `{svc}` as a template.
   it('routes the label through the node name, not the data index', () => {
     expect(getChordLabel(ctx())?.formatter).toBe('{b}');
   });
 
-  // The shared formatter reads `params.name`, so the index-labelling bug above stays
-  // fixed while the stat is appended.
   it('swaps in the shared formatter when node values are switched on', () => {
     const formatter = getChordLabel(ctx(baseOptions({ relationsShowNodeValues: true })))?.formatter;
 
@@ -64,19 +59,6 @@ describe('getChordLabel', () => {
 });
 
 describe('getChordLinkStyle', () => {
-  /**
-   * **The reported bug**: a chord nobody had configured drew ribbons with no fill.
-   *
-   * The family default is `gradient`, and `ChordEdge.applyEdgeFill` does implement the
-   * keyword — but the ribbon it produces paints nothing in a browser, so the default
-   * chord was empty outlines. It degrades to `source`, which is also ECharts' own chord
-   * default, so the key is omitted entirely.
-   *
-   * The three ways of arriving at "nothing to say" are one case, because they are one
-   * claim: the whole `lineStyle` is omitted whenever every key on it would have matched
-   * an ECharts default. `LabelManager` and the series builder both treat an empty object
-   * and an absent one identically, so omitting is what says it.
-   */
   it('omits the whole key whenever nothing differs from the ECharts defaults', () => {
     // The family default, `gradient`, degraded to `source`…
     expect(getChordLinkStyle(baseOptions())).toBeUndefined();
@@ -91,8 +73,6 @@ describe('getChordLinkStyle', () => {
     expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'target' }))).toEqual({ color: 'target' });
   });
 
-  // Paired with a non-default colour so the assertion is about `opacity` alone: on the
-  // default colour every key is omitted and the whole `lineStyle` disappears.
   it('omits opacity at the ECharts default', () => {
     expect(
       getChordLinkStyle(baseOptions({ relationsLinkColor: 'target', relationsChordLinkOpacity: 0.2 }))
@@ -105,14 +85,10 @@ describe('getChordLinkStyle', () => {
 });
 
 describe('getChordEmphasis', () => {
-  // The family default is adjacency now, which is also ECharts' own chord default, so
-  // the two finally agree out of the box.
   it('focuses adjacency by default', () => {
     expect(getChordEmphasis(baseOptions())).toEqual({ focus: 'adjacency' });
   });
 
-  // Still always emitted: omitting it would leave ECharts' adjacency highlighting
-  // active while the switch reads off, and the control would be lying.
   it('pins focus to none when the switch is off, against the ECharts default', () => {
     expect(getChordEmphasis(baseOptions({ relationsFocusAdjacency: false }))).toEqual({ focus: 'none' });
   });
@@ -165,8 +141,6 @@ describe('getChordSeries', () => {
     expect(series.minAngle).toBe(2);
   });
 
-  // `series.chord` has no `nodeWidth`/`nodeGap` — they are sankey keys. Wiring them by
-  // analogy would have produced two controls that silently do nothing.
   it('never emits the sankey-only node geometry keys', () => {
     const series = getChordSeries(
       data(),
@@ -177,8 +151,6 @@ describe('getChordSeries', () => {
     expect(series).not.toHaveProperty('nodeGap');
   });
 
-  // `chordLayout` takes `Math.max(declaredValue, edgeSum)`, so a declared value is an
-  // arc-angle floor — the same trap as sankey.
   it('carries mainstat as stat rather than value', () => {
     const series = getChordSeries(data(), ctx());
 
@@ -203,9 +175,6 @@ describe('getChordSeries', () => {
     expect(nodeItems(series)[0]).not.toHaveProperty('y');
   });
 
-  // Neither key is emitted. `ChordSeries` declares no `draggable` and no `roam` — it
-  // pins `coordinateSystem: 'none'`, so there is no view to move or scale and the two
-  // switches were writing keys nothing reads. The panel hides them on chord instead.
   it('emits neither roam nor draggable, which chord does not implement', () => {
     const series = getChordSeries(data(), ctx(baseOptions({ relationsDraggable: true, relationsPan: true })));
 
@@ -213,8 +182,6 @@ describe('getChordSeries', () => {
     expect(series).not.toHaveProperty('draggable');
   });
 
-  // A ring of small arcs is exactly where labels pile up, and `series.chord` has no
-  // `avoidLabelOverlap` of its own — the shared label-layout stage is the answer.
   it('hides overlapping labels by default', () => {
     expect(typeof getChordSeries(data(), ctx()).labelLayout).toBe('function');
     expect(getChordSeries(data(), ctx(baseOptions({ relationsHideOverlappingLabels: false })))).not.toHaveProperty(
@@ -249,10 +216,3 @@ describe('getChordSeries', () => {
     });
   });
 });
-
-// The Advanced-tier reset is not tested per-family any more. It was, twice, under the
-// same `editor-mode normalization` describe name in this file and in `sankey.test.ts` —
-// two copies of one claim, neither of which could see the dispatch that routes a
-// `seriesType` to a tier. `options/editorMode.test.ts` now covers every family's tier
-// and the dispatch itself, and `editor/relations/advancedTier.test.ts` checks that the
-// tier and the registered Advanced controls name the same options.

@@ -3,10 +3,6 @@ import { render } from '@testing-library/react';
 import React from 'react';
 import { RelationsStatsPicker } from './RelationsStatsPicker';
 
-/**
- * `StatsPicker` is stubbed so the test can report a selection the way the real widget would,
- * without driving Grafana's combobox — what is under test is what reaches the panel options.
- */
 const pickerProps: { stats?: string[]; onChange?: (stats: string[]) => void } = {};
 
 jest.mock('@grafana/ui', () => ({
@@ -39,16 +35,6 @@ describe('RelationsStatsPicker', () => {
     expect(pickerProps.stats).toEqual([]);
   });
 
-  /**
-   * **No maximum.** The control was clamped to two, on the reasoning that a mark has one main
-   * stat slot and one secondary. Only the first half holds: `calcs[0]` sizes the node and
-   * weighs the edge, so it is singular, but every calc after it is a tooltip row and the
-   * tooltip has as many rows as it needs.
-   *
-   * The clamp also misbehaved on its own terms — it kept the *last* two, so adding a third to
-   * `[max, min]` produced `[min, mean]`, silently promoting `min` to the main stat and changing
-   * the colours the panel drew.
-   */
   it('passes a third and fourth selection straight through', () => {
     const { onChange, select } = renderPicker(['max', 'min']);
 

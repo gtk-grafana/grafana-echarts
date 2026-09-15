@@ -12,13 +12,6 @@ const theme = relationsTheme;
 
 const baseOptions = relationsOptions;
 
-/**
- * Nodes reach this layer already coloured — the reader resolves every mark's colour
- * through its own display processor and palettes whatever is left
- * (`converters/readNodes.ts`), so a fixture that omitted `color` would not be one the
- * panel can produce. Colour *resolution* is tested there; this file only checks that
- * the resolved colour is painted.
- */
 const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
   nodeGraph({
     nodes: [
@@ -65,8 +58,6 @@ describe('getGraphLayout', () => {
 });
 
 describe('resolveFixedPositions', () => {
-  // The whole point: a node with no `x` lays out at `[NaN, NaN]` and is not drawn, so
-  // "Fixed" on data that pins nothing used to blank the panel.
   it('gives every node a finite position when nothing is pinned', () => {
     const positions = resolveFixedPositions(data().nodes);
 
@@ -77,8 +68,6 @@ describe('resolveFixedPositions', () => {
     }
   });
 
-  // Deterministic, so a refresh does not reshuffle the graph — the same reason the force
-  // simulation is seeded (`RELATIONS_FORCE_INIT_LAYOUT`).
   it('seeds the same positions for the same nodes', () => {
     expect([...resolveFixedPositions(data().nodes)]).toEqual([...resolveFixedPositions(data().nodes)]);
   });
@@ -97,9 +86,6 @@ describe('resolveFixedPositions', () => {
     ]);
   });
 
-  // Partially-pinned data: the pinned marks keep their exact coordinates and the rest go
-  // on a ring outside their bounding box, so they read as "not placed yet" rather than
-  // landing on top of the pinned cluster.
   it('seeds the unpinned nodes clear of the pinned ones', () => {
     const partial = data({
       nodes: [
@@ -113,13 +99,6 @@ describe('resolveFixedPositions', () => {
     expect(positions.get('a')).toEqual({ x: 0, y: 0 });
     expect(positions.get('b')).toEqual({ x: 10, y: 0 });
 
-    /**
-     * The property, not the number. "Outside the pinned box" is what the seeding is
-     * for; the exact ring radius is an implementation choice that a reader has no way
-     * to check and that would fail this test on any harmless tuning. Asserted as
-     * "further from the centre of the pinned box than the box's own half-extent", which
-     * is the claim the comment used to make and the constant only implied.
-     */
     const pinnedCentre = { x: 5, y: 0 };
     const pinnedHalfExtent = 5;
     const seeded = positions.get('c')!;
@@ -127,20 +106,6 @@ describe('resolveFixedPositions', () => {
     expect(Math.hypot(seeded.x - pinnedCentre.x, seeded.y - pinnedCentre.y)).toBeGreaterThan(pinnedHalfExtent);
   });
 
-  /**
-   * **The reported "edges are not attached to any nodes".** The seed ring was a *unit* circle
-   * on the reasoning that the view rescales the bounding box anyway, so only the shape
-   * survives — true for the nodes, and false for the edges between them.
-   *
-   * A graph edge is drawn by an `ECLinePath` with `subPixelOptimize: true`, and zrender's
-   * `subPixelOptimizeLine` shifts an axis-aligned line by half a *unit* to land a 1px stroke
-   * on a pixel centre. Those units are the graph's data space, so on a unit ring the shift was
-   * half the graph: the two edges of a four-node ring that happen to share an x or a y were
-   * drawn ~159px away from their nodes. A pixel-ish space makes it sub-pixel again.
-   *
-   * Asserted as an order of magnitude rather than an exact radius: the number is arbitrary,
-   * the scale is not.
-   */
   it('seeds in a pixel-ish space, so an axis-aligned edge is not nudged off its nodes', () => {
     const positions = [...resolveFixedPositions(data().nodes).values()];
 
@@ -151,18 +116,10 @@ describe('resolveFixedPositions', () => {
 });
 
 describe('resolveGraphDraggable', () => {
-  // Fixed is the only layout that reads a stored coordinate back, so it is the only one where
-  // a drag is an edit rather than a nudge the next render discards.
   it('allows dragging under the fixed layout', () => {
     expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'none')).toBe(true);
   });
 
-  /**
-   * Refused as well as hidden, so a dashboard that saved `relationsDraggable: true` alongside
-   * a force layout gets a working panel rather than an interaction that rearranges the graph
-   * on every mouse move — `layoutAnimation` is off, so ECharts iterates the simulation to
-   * convergence inside the `drag` handler.
-   */
   it('refuses it under force and circular, whatever the option says', () => {
     expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'force')).toBe(false);
     expect(resolveGraphDraggable(baseOptions({ relationsDraggable: true }), 'circular')).toBe(false);
@@ -174,9 +131,6 @@ describe('resolveGraphDraggable', () => {
 });
 
 describe('getGraphForce', () => {
-  // Always emitted, because three of the four keys disagree with ECharts on purpose:
-  // the simulation is seeded so a render is reproducible, its steps are not drawn so a
-  // refresh does not jiggle, and it is spread far wider so the labels have room.
   it('always emits the seeded, non-animated, spread-out defaults', () => {
     expect(getGraphForce(baseOptions())).toEqual({
       initLayout: 'circular',

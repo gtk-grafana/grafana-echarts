@@ -12,8 +12,6 @@ import {
 } from 'lib/echarts/relations/converters/legacyToWide';
 
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
-// Gated on `NODE_ENV`/`CI`/localStorage, so the console itself is not assertable across
-// environments; the mock tests the decision to log. See `development.ts`.
 jest.mock('development', () => ({
   debug: jest.fn(),
   LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
@@ -94,7 +92,7 @@ describe('legacyToWide — edges', () => {
     expect(edges.fields[0].config.custom).toEqual({ lineWidth: 3, lineType: 'dotted' });
     expect(edges.fields[0].config.color).toEqual({ mode: 'fixed', fixedColor: '#ff0000' });
     expect(edges.fields[1].config.custom).toEqual({ lineWidth: 9, lineType: 'dashed' });
-    // An empty `color` cell is not a colour.
+    // An empty `color` cell is not a color.
     expect(edges.fields[1].config.color).toBeUndefined();
   });
 
@@ -136,10 +134,6 @@ describe('legacyToWide — edges', () => {
     expect(legacyToWide([frame])[0].fields[0].labels).toEqual({ source: 'a', target: 'b', env: 'prod' });
   });
 
-  /**
-   * The endpoints have to win: they are the edge's topology, and a `detail__source`
-   * column would otherwise silently move the edge to a node that does not exist.
-   */
   it('does not let a detail__ column shadow an endpoint label', () => {
     const frame = toDataFrame({
       fields: [
@@ -253,8 +247,6 @@ describe('legacyToWide — pass-through', () => {
     });
     const out = legacyToWide([edgesFrame(), unrelated]);
 
-    // A custom operator bypasses `config.filter`, so it must return what it does not
-    // own unchanged — by reference, so field-override memoisation still short-circuits.
     expect(out[1]).toBe(unrelated);
   });
 
@@ -265,10 +257,6 @@ describe('legacyToWide — pass-through', () => {
 });
 
 describe('legacyToWide — detection', () => {
-  // A Prometheus instant table with `Format: Table`. `source`/`target` are ordinary
-  // labels the query grouped by, and the frame is on its way to the user's own
-  // `organize` + `rowsToFields` chain. Claiming it here would widen it first and leave
-  // that chain with none of the columns it filters for — a silent "No data".
   const prometheusTable = (extra: Array<{ name: string; type: FieldType; values: unknown[] }> = []): DataFrame =>
     toDataFrame({
       refId: 'A',
@@ -290,8 +278,6 @@ describe('legacyToWide — detection', () => {
   });
 
   it('does not claim one that also has an id column', () => {
-    // The case that actually broke a live dashboard: `label_join` builds `id`, so the
-    // frame carries id + source + target and still is not the row format.
     const frames = [prometheusTable([{ name: 'id', type: FieldType.string, values: ['a:b'] }])];
 
     expect(isLegacyEdgesFrame(frames[0])).toBe(false);
@@ -305,7 +291,7 @@ describe('legacyToWide — detection', () => {
   });
 
   it('claims a declared node graph even when it carries a time field', () => {
-    // Tempo and X-Ray set this; the declaration is trusted ahead of the heuristic.
+    // Tempo and X-Ray set this declaration. It takes precedence over the heuristic.
     const declared = toDataFrame({
       meta: { preferredVisualisationType: 'nodeGraph' },
       fields: [
@@ -321,9 +307,6 @@ describe('legacyToWide — detection', () => {
   });
 
   it('reads a declared nodes frame as nodes, not as empty edges', () => {
-    // The declaration describes the response, not the frame. Reading it as "these are
-    // the edges" turned every declared nodes frame into an empty edges frame and lost
-    // every node's title, stat and colour.
     const declaredNodes = toDataFrame({
       name: 'nodes',
       meta: { preferredVisualisationType: 'nodeGraph' },
@@ -356,11 +339,6 @@ describe('legacyToWide — detection', () => {
   });
 });
 
-/**
- * The conversion is a hidden prefix with no off switch, so it says what it did. Info
- * level: `development.ts` suppresses it unless someone asks for it, which is the right
- * default for a conversion that is working as intended.
- */
 describe('legacyToWide — diagnostics', () => {
   beforeEach(() => {
     jest.mocked(debug).mockClear();

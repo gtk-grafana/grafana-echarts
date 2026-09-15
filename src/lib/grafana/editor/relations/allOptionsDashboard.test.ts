@@ -9,32 +9,6 @@ import {
   ADVANCED_RELATIONS_SHARED_DEFAULTS,
   ADVANCED_SANKEY_DEFAULTS,
 } from 'lib/echarts/relations/options/advancedDefaults';
-/**
- * **The reference dashboard and its doc links must cover every option the panel has.**
- *
- * `provisioning/dashboards/relations/all-options.json` is one panel per panel option **that
- * visibly changes what the panel draws** — plus the three standard field-config options
- * that carry this family's contract (by-value colour, thresholds, value mappings), since a
- * relations mark's colour and stat label come from `field.display(value)` and so change the
- * render as much as any panel option does. Every such option's row in
- * `src/modules/relations/parity.md` links to its panel. Both are
- * hand-maintained, which is exactly the shape of artefact that rots: add an option and the
- * dashboard silently stops being "every option" while still being titled that, and still
- * being cited as the demo for its neighbours.
- *
- * Not hypothetical. `docs/relations-canvas-coverage.md` claimed canvas coverage for a
- * sankey option whose baseline could not discriminate it, and nothing failed — which is how
- * a default change slipped through. A hand-written inventory can assert something untrue; a
- * test comparing it against the registry cannot.
- *
- * So this is what lets the dashboard be trusted as a reference rather than becoming a
- * second liability. `optionSurface.test.ts` owns the option *set* itself; this owns the
- * claim that the demo and the docs keep up with it.
- *
- * The split is asserted as a **partition**: every registered option is either demoed by a
- * panel or named in `NO_VISUAL` with a reason. A new option belongs to one or the other,
- * and the build says so until somebody decides which.
- */
 const repoFile = (...parts: string[]) => join(__dirname, '../../../../..', ...parts);
 
 interface DemoPanel {
@@ -49,20 +23,6 @@ const dashboard = (): { panels: DemoPanel[] } =>
 
 const parityDoc = () => readFileSync(repoFile('src/modules/relations/parity.md'), 'utf8');
 
-/**
- * Option path -> the panel that demos it, in the dashboard's own order.
- *
- * Written out rather than derived: a panel sets one option away from its default, but it
- * also carries scaffolding (`seriesType`, a pinned layout, legend and tooltip defaults),
- * so "the option this panel is about" is not recoverable from the JSON without guessing.
- * Stating it here costs one line per option and makes the two assertions below exact.
- *
- * The last two demo an **interaction** rather than a picture: Pan and Draggable nodes draw
- * nothing until the reader drags, so their panels are indistinguishable from their
- * neighbours at rest and earn their place only because the description says what to drag.
- * That is still worth a panel — the dashboard is a live demo, not a screenshot — but it is
- * why they sat in `NO_VISUAL` before, and why nothing here asserts they *look* different.
- */
 const OPTION_PANEL: Record<string, number> = {
   seriesType: 1,
   'reduceOptions.calcs': 2,
@@ -99,21 +59,6 @@ const OPTION_PANEL: Record<string, number> = {
   relationsDraggable: 33,
 };
 
-/**
- * Options a demo panel could not show **even with the reader interacting with it**, so a
- * panel for them would look like every other one and claim to be showing something. Each
- * reason was checked against the running panel, not assumed.
- *
- * Narrower than it reads: "draws nothing at rest" is *not* enough to be excused — Pan and
- * Draggable nodes are demoed as panels 32 and 33 on the strength of a drag alone. What is
- * left is the pane-only option, the two that settle to an identical render, the one that
- * merely persists state, and the two that act on a hover the panel already demonstrates
- * everywhere.
- *
- * They are covered by unit and integration tests instead; what this list buys is that a
- * *new* option cannot quietly join it. Adding one fails the partition assertion below
- * until somebody either writes its panel or states why it has none.
- */
 const NO_VISUAL: Record<string, string> = {
   editorMode: 'changes the options pane, not the panel',
   relationsLayoutAnimation: 'motion only — the settled layout is identical',
@@ -123,39 +68,15 @@ const NO_VISUAL: Record<string, string> = {
   tooltip: 'hover only — the idle render is identical',
 };
 
-/**
- * The dashboard's second half-dozen: panels demoing a **standard field-config** option
- * rather than a panel option.
- *
- * They are not in `registeredRelationsOptions` — that is the panel's own option pane — so
- * the partition above neither requires nor forbids them, and without this map they would
- * simply be unaccounted-for panels. Listed for the same reason as `OPTION_PANEL`: a
- * field-config demo has to be as findable, as described and as linked from `parity.md` as
- * an option demo, and "the option this panel is about" is no more derivable from its JSON.
- *
- * Keyed by the option's name in the Fields tab, since a field-config path (`color.mode`,
- * `thresholds.steps`, `mappings`) is not a stable identifier the way an option path is.
- *
- * Only the three that carry the family's contract are here, and only by the same test as
- * the panel options: does the render change? `parity.md`'s standard-options table lists
- * every other one (Unit, Decimals, Data links, Filterable, Field min/max, Display name)
- * with its own demo dashboard, and those dashboards are the right home for them — this one
- * is read option-by-option against the pane.
- */
 const FIELD_CONFIG_PANEL: Record<string, number> = {
   'Color scheme (by value)': 34,
   Thresholds: 35,
   'Value mappings': 36,
 };
 
-/** Every panel in the dashboard, in order: option demos first, then field-config demos. */
+/** Return option panels before field-configuration panels. */
 const ALL_PANEL_IDS = [...Object.values(OPTION_PANEL), ...Object.values(FIELD_CONFIG_PANEL)];
 
-/**
- * The Advanced tier, taken from the render-time reset rather than by probing each
- * `showIf` — `advancedTier.test.ts` already asserts those two name the same options, so
- * reading either is reading both, and the reset is a plain module with no builder to stub.
- */
 const ADVANCED_PATHS = new Set(
   Object.keys({
     ...ADVANCED_RELATIONS_DEFAULTS,
@@ -166,10 +87,6 @@ const ADVANCED_PATHS = new Set(
 );
 
 describe('the all-options reference dashboard', () => {
-  /**
-   * The partition. Every option the panel registers is either demoed or explicitly
-   * excused; nothing may be in both lists or in neither.
-   */
   it('accounts for every registered option exactly once', () => {
     const demoed = Object.keys(OPTION_PANEL);
     const excused = Object.keys(NO_VISUAL);
@@ -189,8 +106,6 @@ describe('the all-options reference dashboard', () => {
 
     expect(panels.map((panel) => panel.id)).toEqual(ALL_PANEL_IDS);
     expect(panels).toHaveLength(ALL_PANEL_IDS.length);
-    // The ids are the doc's link targets and the panels' own titles, so a gap or a
-    // repeat would silently point two rows of parity.md at one panel.
     expect(ALL_PANEL_IDS).toEqual(ALL_PANEL_IDS.map((_, index) => index + 1));
   });
 
@@ -201,12 +116,6 @@ describe('the all-options reference dashboard', () => {
     }
   });
 
-  /**
-   * An Advanced value on a panel left in Default editor mode is reset before the render
-   * reads it (`applyEditorModeDefaults`), so the panel would draw the default while
-   * claiming to show the option — wrong in the one way a reference must not be, and
-   * invisible from the JSON.
-   */
   it('puts every panel demoing an Advanced option into Advanced editor mode', () => {
     const byId = new Map(dashboard().panels.map((panel) => [panel.id, panel]));
     // Excused options have no panel, so only the demoed half of the tier is checkable.
@@ -221,11 +130,6 @@ describe('the all-options reference dashboard', () => {
     expect(demoedAdvanced.length).toBeGreaterThan(10);
   });
 
-  /**
-   * A reference panel with a bare title is not a reference: each has to say what the
-   * option does, what the default is, and what to look at. Asserted as a list of
-   * offenders so a failure names the thin panel rather than only its length.
-   */
   it('describes every panel', () => {
     const thin = dashboard()
       .panels.filter((panel) => (panel.description ?? '').length < 100)
@@ -236,10 +140,6 @@ describe('the all-options reference dashboard', () => {
 });
 
 describe('parity.md option links', () => {
-  /**
-   * Every option's row links to its panel, which is the thing that makes the doc navigable
-   * option-by-option instead of pointing at a dashboard and leaving the reader to hunt.
-   */
   it('references and defines a link for every panel', () => {
     const doc = parityDoc();
     const missingRef = ALL_PANEL_IDS.filter((id) => !doc.includes(`[#${id} opts][live-opt-${id}]`));

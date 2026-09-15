@@ -18,21 +18,7 @@ import {
 } from 'editor/relations/chord';
 import { isChordVariant } from 'editor/relations/variants';
 /**
- * Chord ring options, in their own **"Chord"** section. Every control gates on
- * `isChordVariant`, so the whole section vanishes for the graph and sankey variants.
- *
- * All five are Advanced-gated, so — unlike "Sankey" — this section does not render at
- * all in Default mode. That is deliberate rather than an oversight: the chord ring has
- * no core Grafana equivalent to be at parity with, and none of these five is needed to
- * read the chart. A panel-specific section is still where an editor looks for them, which
- * is why they are here and not in a shared Advanced bucket beside force repulsion and
- * label width. Every option omits its ECharts key at its default.
- *
- * **No `nodeWidth` / `nodeGap` here.** `series.chord` has neither — they are sankey
- * keys. The angular `padAngle` is the gap analogue; ring thickness is
- * `series.chord.radius` (a two-element tuple), left at the ECharts default rather
- * than flattened into one control.
- *
+ * Chord ring options, in their own "Chord" section.
  * https://echarts.apache.org/en/option.html#series-chord
  */
 const chordCategory = [chordCategoryName];

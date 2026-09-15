@@ -11,19 +11,10 @@ import {
 } from 'editor/relations/constants';
 import { isGraphVariant } from 'editor/relations/variants';
 /**
- * Force-layout tuning: Advanced-tier, registered into the **Layout** section beside the
- * layout choice they tune rather than into a separate Advanced bucket. All four are inert
- * under the circular/fixed layouts and so are hidden there.
- *
- * Repulsion and edge length carry **the family's** defaults rather than ECharts', which
- * are tuned for small gallery graphs and pack a real topology into an unreadable knot;
- * `getGraphForce` always emits them. Gravity is the one control left unset, so ECharts'
- * own default applies.
+ * Add force-layout settings to the Layout section.
  * https://echarts.apache.org/en/option.html#series-graph.force
  */
-// Also requires the graph variant: `relationsLayout` persists across a variant
-// switch, so a panel saved as a force graph would otherwise keep showing force
-// tuning after switching to sankey, where there is no simulation at all.
+// A saved graph layout can remain after the user selects another variant.
 const isForceLayout = (options: PanelOptions) =>
   isGraphVariant(options) && (options.relationsLayout ?? 'force') === 'force';
 
@@ -59,9 +50,7 @@ export function addRelationsForceOptions(builder: PanelOptionsEditorBuilder<Pane
     settings: { min: 0, max: 1, step: 0.01 },
   });
 
-  // Off by default, against ECharts. On, every simulation step is painted, so the graph
-  // visibly settles on each refresh even when the topology has not changed — which
-  // reads as the nodes jiggling for no reason. See `RELATIONS_LAYOUT_ANIMATION_DEFAULT`.
+  // Disable ECharts animation by default to avoid movement on every refresh.
   addAdvancedBooleanSwitch(builder, {
     path: 'relationsLayoutAnimation',
     name: 'Animate layout',

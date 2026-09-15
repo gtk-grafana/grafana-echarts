@@ -8,15 +8,11 @@ import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/rela
 import { type TooltipModel } from 'lib/echarts/tooltip/types';
 import { type PanelOptions } from 'types';
 
-// The reader warns when collected marks share a `field.name`, which the fixtures below do
-// deliberately. Mocked so the decision is testable in `graphWide.test.ts` and silent here.
 jest.mock('development', () => ({
   debug: jest.fn(),
   LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
 }));
 
-// The reader warns when collected marks share a `field.name`, which the fixtures below do
-// deliberately. Mocked so the decision is testable in `graphWide.test.ts` and silent here.
 jest.mock('development', () => ({
   debug: jest.fn(),
   LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
@@ -24,14 +20,8 @@ jest.mock('development', () => ({
 
 const theme = createTheme();
 
-// ECharts formatter params carry more fields at runtime than the base type; only the
-// ones the relations formatter reads are set here (`data`, `color`, `name`).
 const asParams = (params: unknown) => params as TopLevelFormatterParams;
 
-/**
- * Two nodes with **different units**, which is the case the row form cannot express
- * at all: `mainstat` is one column, so one unit covers every node.
- */
 const wideNodes = (): DataFrame =>
   toDataFrame({
     name: 'nodes',
@@ -47,10 +37,6 @@ const wideNodes = (): DataFrame =>
     ],
   });
 
-/**
- * Two **parallel** edges over the same pair, each with its own unit and its own link.
- * They are why an edge is looked up by `markId` rather than by its endpoints.
- */
 const wideEdges = (): DataFrame =>
   toDataFrame({
     name: 'edges',
@@ -78,14 +64,6 @@ const wideEdges = (): DataFrame =>
     ],
   });
 
-/**
- * A hub the response never declared, and its own edges have different units.
- *
- * `gateway` is only ever an endpoint, so it has no field and therefore no stat — the shape
- * `docs/relations-derived-nodes.md` describes, and the one whose tooltip was a header and
- * nothing else. `web` is derived too; `api` is declared by {@link hubNodes}. The third edge
- * is a self-loop.
- */
 const hubEdges = (): DataFrame =>
   toDataFrame({
     name: 'edges',
@@ -144,7 +122,7 @@ const fanOutEdges = (count: number): DataFrame =>
     })),
   });
 
-/** Only the keys the tooltip model reads; the rest of `PanelOptions` is irrelevant here. */
+/** Build the panel configuration used by the tooltip model. */
 const options = (extra: Partial<PanelOptions> = {}): PanelOptions =>
   ({
     legend: { showLegend: true, displayMode: 'list', placement: 'bottom', calcs: [] },
@@ -169,11 +147,6 @@ const nodeParams = (item: RelationsNodeItem) => asParams({ data: item, color: '#
 const linkParams = (item: RelationsLinkItem) => asParams({ data: item, color: '#ffffff', dataType: 'edge' });
 
 describe('buildRelationsTooltipModel', () => {
-  /**
-   * "Tooltip unit decided by frame order" was the frame's *first* numeric field
-   * formatting every mark. A mark is a field now, so each one formats with its own
-   * unit and decimals.
-   */
   describe('per-mark formatting', () => {
     it('formats each node with its own unit and decimals', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
@@ -191,8 +164,6 @@ describe('buildRelationsTooltipModel', () => {
       expect(link.rows[0].value).toBe('3.50 s');
     });
 
-    // Two edges joining the same pair are indistinguishable by endpoint, which is
-    // exactly why the item carries the edge's field name.
     it('tells parallel edges apart by their mark id', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
@@ -201,8 +172,6 @@ describe('buildRelationsTooltipModel', () => {
       );
     });
 
-    // Sankey and chord leave `value` to ECharts' flow computation and carry the stat
-    // as `stat`; it must format through the same mark.
     it('formats the sankey/chord `stat` through the hovered node’s field', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
@@ -210,11 +179,6 @@ describe('buildRelationsTooltipModel', () => {
     });
   });
 
-  /**
-   * The footer's source is the **hovered mark's own field**. Resolving one field for the
-   * whole series instead would paint a link configured anywhere everywhere (gaps 1-3 of
-   * `todo/relations-data-links.md`).
-   */
   describe('per-mark data links', () => {
     it('resolves a node back to its own field and row', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
@@ -232,16 +196,9 @@ describe('buildRelationsTooltipModel', () => {
 
       expect(link.source?.field.name).toBe('e1');
       expect(link.source?.field.config.links).toEqual([{ title: 'Trace e1', url: 'http://example.com/e1' }]);
-      // The row carries the same source, so a pinned tooltip resolves links from
-      // either the model or the clicked row.
       expect(link.rows[0].source).toBe(link.source);
     });
 
-    /**
-     * Gap 4, which the contract does **not** close on a host that cannot run the
-     * `deriveNodes` pre-pass: a node derived from an edge's endpoints has no field, so
-     * there is nothing for an override to land on and no footer to render.
-     */
     it('gives a derived node no source', () => {
       const model = modelFor([wideEdges()]);
 
@@ -251,15 +208,6 @@ describe('buildRelationsTooltipModel', () => {
       expect(node.header.label).toBe('gateway');
     });
 
-    /**
-     * A derived node carries no stat at all (`deriveNodesFromLinks`), and a value row with
-     * nothing in it reads as a measurement that failed rather than one that was never
-     * taken. Carrying its degree instead would have the panel formatter — the first numeric
-     * field of the first frame — print it here as `2 s`, borrowing the first edge's unit
-     * for a link count.
-     *
-     * What the rows are instead is the subject of `a statless node's edges` below.
-     */
     it('omits the value row for a node with no stat', () => {
       const model = modelFor([wideEdges()]);
 
@@ -275,27 +223,6 @@ describe('buildRelationsTooltipModel', () => {
     });
   });
 
-  /**
-   * The only thing duplicate ids actually break, and the class of bug the per-mark lookup
-   * exists to kill. A raw labelled response is N frames whose value field is called
-   * `Value`, so keying the link map by `id` alone would be last-write-wins: every edge
-   * would format with the last one's unit and surface its `config.links`.
-   *
-   * The ids stay `Value` — that is the contract's invariant, and a minted id would be one
-   * no override can match. What tells the marks apart is `markKey`, which is the item key
-   * and nothing else.
-   */
-
-  /**
-   * The only thing duplicate ids actually break, and the class of bug the per-mark lookup
-   * exists to kill. A raw labelled response is N frames whose value field is called
-   * `Value`, so keying the link map by `id` alone would be last-write-wins: every edge
-   * would format with the last one's unit and surface its `config.links`.
-   *
-   * The ids stay `Value` — that is the contract's invariant, and a minted id would be one
-   * no override can match. What tells the marks apart is `markKey`, which is the item key
-   * and nothing else.
-   */
   describe('marks that share an id', () => {
     /** One frame per series, endpoints in labels: the shape with no pivot in front of it. */
     const rawSeries = (source: string, target: string, config: Record<string, unknown>): DataFrame =>
@@ -316,12 +243,10 @@ describe('buildRelationsTooltipModel', () => {
       const model = buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'));
       const [first, second] = data.links;
 
-      // Same id, different keys — the premise this regression test rests on.
+      // The edges share an id but use different keys.
       expect([first.id, second.id]).toEqual(['Value', 'Value']);
       expect([first.markKey, second.markKey]).toEqual(['gateway-->db', 'db-->cache']);
 
-      // One value, two formatters. Keyed by id alone both would read `3.5%`, the last
-      // field's unit and decimals.
       const links = [first, second].map((link) =>
         model(linkParams({ source: link.source, target: link.target, markId: link.markKey, value: 3.5 }))
       );
@@ -358,12 +283,6 @@ describe('buildRelationsTooltipModel', () => {
       );
 
       expect(node.header).toEqual({ label: 'Gateway', value: '' });
-      // `Last *` is `RELATIONS_CALC_DEFAULT`'s display name — the row says which reducer
-      // produced it, and a stat with no reducer behind it is the `secondarystat` label the
-      // row-form conversion carried, which keeps the generic name.
-      //
-      // Sliced: everything the node says about *itself* comes first, and the edges touching
-      // it follow (asserted in "a node's edges" below).
       expect(node.rows.slice(0, 3).map((row) => [row.label, row.value])).toEqual([
         ['Median', '12.0 ms'],
         ['Subtitle', 'eu-west'],
@@ -371,12 +290,6 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
-    /**
-     * **One row per reducer, with no cap.** Only `calcs[0]` is structurally singular — it
-     * sizes the node and weighs the edge — so a third and fourth calculation are rows like
-     * the second. Dropping them in `normalizeRelationsCalcs` or clamping them in the picker
-     * would make choosing one do nothing at all.
-     */
     it('adds a row for every stat the mark carries, however many', () => {
       const model = modelFor([wideNodes(), wideEdges()], options({ reduceOptions: { calcs: ['max', 'min', 'mean'] } }));
 
@@ -405,11 +318,6 @@ describe('buildRelationsTooltipModel', () => {
       expect(model(nodeParams({ id: 'db', name: 'db', value: 0.42 })).rows[0].color).toBe('#ffffff');
     });
 
-    /**
-     * An **edge** reports its secondary stat too, which it did not: `calcs[1]` was read
-     * for nodes only, so on an edges-only response — the common shape — choosing a
-     * second calculation produced no second value anywhere. See `readLinks`.
-     */
     it('adds a secondary row to an edge that carries one', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
@@ -436,21 +344,7 @@ describe('buildRelationsTooltipModel', () => {
     });
   });
 
-  /**
-   * A node with no stat of its own would otherwise produce a tooltip with a header and no
-   * rows at all — the normal case, not a corner one: an edges-only response derives every
-   * one of its nodes (`docs/relations-derived-nodes.md`). It has no measurement to report,
-   * but it does know its edges, and those are numbers the response really returned.
-   *
-   * Listed for **every** node, not just that one: a node's own measurement leads and its
-   * edges follow, since the two are different facts and neither displaces the other.
-   */
   describe('a node’s edges', () => {
-    /**
-     * Direction is an arrow rather than a repeat of the hovered node's name, the other
-     * endpoint reads with its **display name** (`API`, not `api`), and each row formats
-     * through that **edge's** own field — `ms` on one, `s` on the next.
-     */
     it('lists the edges touching the node, in place of no rows at all', () => {
       const model = modelFor([hubNodes(), hubEdges()]);
 
@@ -464,8 +358,6 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
-    // A self-loop is one edge, and the node is both of its endpoints: listing it under
-    // each direction would print the same edge twice.
     it('lists a self-loop once', () => {
       const model = modelFor([hubNodes(), hubEdges()]);
 
@@ -482,12 +374,6 @@ describe('buildRelationsTooltipModel', () => {
       ]);
     });
 
-    /**
-     * **Both facts, in one order.** A node's own value first — which is what a core plot
-     * leads with — then what it is connected to. Reporting only one would lose the edge
-     * list on a node that measures something, and lose nothing but say nothing on a node
-     * that does not.
-     */
     it('leads with the stat and still lists the edges, for a node that has one', () => {
       const model = modelFor([hubNodes(), hubEdges()]);
 
@@ -497,11 +383,6 @@ describe('buildRelationsTooltipModel', () => {
       expect(rows.slice(1).map((row) => [row.label, row.value])).toEqual([['gateway →', '1.2 s']]);
     });
 
-    /**
-     * The relations tooltip is a Single-mode tooltip and `isTooltipScrollable` only scrolls
-     * in Multi mode, so an uncapped list would run a hub node's tooltip off the screen. The
-     * count says so rather than the list simply stopping.
-     */
     it('caps the list and counts what it left out', () => {
       const model = modelFor([fanOutEdges(13)]);
 
@@ -522,8 +403,6 @@ describe('buildRelationsTooltipModel', () => {
       expect(node.rows.map((row) => row.label)).toEqual(['Subtitle', 'Secondary', '→ gateway']);
     });
 
-    // Nothing is invented for a hover the model cannot place — the formatter also fields
-    // items that are not marks at all.
     it('adds no rows for a node the model does not know', () => {
       const model = modelFor([hubNodes(), hubEdges()]);
 
@@ -531,17 +410,6 @@ describe('buildRelationsTooltipModel', () => {
     });
   });
 
-  /**
-   * **The reported bug.** Both stat slots are a reducer the user picked, so a tooltip
-   * reading `Value` / `Secondary` threw away the only thing the row does not otherwise
-   * say — a panel reduced by mean and min should read `Mean` and `Min`.
-   */
-
-  /**
-   * **The reported bug.** Both stat slots are a reducer the user picked, so a tooltip
-   * reading `Value` / `Secondary` threw away the only thing the row does not otherwise
-   * say — a panel reduced by mean and min should read `Mean` and `Min`.
-   */
   describe('stat row labels', () => {
     const meanAndMin = options({ reduceOptions: { calcs: ['mean', 'min'] } });
 
@@ -571,20 +439,12 @@ describe('buildRelationsTooltipModel', () => {
       expect(link.rows.map((row) => row.label)).toEqual(['Mean', 'Min']);
     });
 
-    // The default reducer is still a reducer, and naming it is what makes a panel nobody
-    // configured say what its number means.
     it('names the default calculation when none is picked', () => {
       const model = modelFor([wideNodes(), wideEdges()]);
 
       expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Median');
     });
 
-    /**
-     * Under the time slider the value was **read**, not reduced — so no reducer is named.
-     * `Median` there would label a calculation the panel did not run and whose picker the
-     * switch has hidden, which is the wart this closes. `Value` is what core's tooltips
-     * call an unnamed measurement.
-     */
     it('labels the main row Value under the time slider, on nodes and edges alike', () => {
       const model = modelFor([wideNodes(), wideEdges()], options({ relationsTimeSlider: true }));
 
@@ -594,11 +454,6 @@ describe('buildRelationsTooltipModel', () => {
       );
     });
 
-    /**
-     * Keyed on the **switch**, not on whether a stop is selected. The switch is also what
-     * hides the reducer picker, and the two have to agree: a refresh that takes the
-     * timeline away must not flip the label back to a reducer whose control is still gone.
-     */
     it('keeps the Value label with the slider on but a stored calculation', () => {
       const model = modelFor(
         [wideNodes(), wideEdges()],
@@ -615,9 +470,6 @@ describe('buildRelationsTooltipModel', () => {
       expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('Median');
     });
 
-    // A stat with no reducer behind it did not come from a reduction at all: it is the
-    // `secondarystat` label the row-form conversion carries, where an instant response has no
-    // second value to reduce. See `secondaryStatsOf`.
     it('keeps the generic label for a secondarystat with no reducer behind it', () => {
       const model = modelFor([wideNodes(), wideEdges()], options({ reduceOptions: { calcs: ['mean'] } }));
 
@@ -628,18 +480,10 @@ describe('buildRelationsTooltipModel', () => {
       expect(node.rows.slice(0, 2).map((row) => row.label)).toEqual(['Mean', 'Secondary']);
     });
 
-    // A reducer the registry does not know still names its row, rather than falling back
-    // to a word that says less than the raw id does.
     it('falls back to the raw reducer id', () => {
       const model = modelFor([wideNodes(), wideEdges()], options({ reduceOptions: { calcs: ['notAReducer'] } }));
 
       expect(model(nodeParams({ id: 'gateway', name: 'Gateway', value: 12 })).rows[0].label).toBe('notAReducer');
     });
   });
-
-  /**
-   * **The reported bug**, in two halves: a hovered *node* offered no ad-hoc filter at
-   * all, and an edge's endpoint filters were written under the contract's own
-   * `source`/`target` keys, which a datasource that never emitted them cannot match.
-   */
 });
