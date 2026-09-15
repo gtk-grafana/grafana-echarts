@@ -21,6 +21,7 @@ This directory contains current work and design references. Completed implementa
 ## Upstream work
 
 - [Canvas snapshot path duplication](./canvas-snapshot-props-path.md)
+- [Chord fixed edge colors](./relations-chord-edge-color.md)
 - [Conditional relations field configuration](./relations-conditional-field-config.md)
 - [Relations pre-pass registration test](./relations-prepass-registration-test.md)
 - [Relations scrub animation](./relations-scrub-animation.md)
