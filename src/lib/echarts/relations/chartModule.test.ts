@@ -488,8 +488,8 @@ describe('relationsChartModule', () => {
       expect(relationsChartModule.getZoomAction?.(withZoom(chordCtx([nodesFrame, edgesFrame])))).toBeUndefined();
     });
 
-    // The superseded single "Zoom and pan" switch reaches this through
-    // `resolveRelationsZoom`, and is tested there — see `options/graph.test.ts`.
+    // Unset means off: there is no legacy "Zoom and pan" fallback any more. See
+    // `resolveRelationsZoom` and `options/view.test.ts`.
   });
 
   /**

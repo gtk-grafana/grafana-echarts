@@ -63,7 +63,7 @@ const VALUE_ROW_LABEL = 'Value';
  * "Calculation" setting reads the same on both.
  *
  * **One row per reducer, with no cap.** `calcs[0]` is the main stat and is singular because
- * it is the number that sizes a node and weighs an edge; everything after it is a tooltip row
+ * it is the number that colours a mark and thickens a sankey ribbon; everything after it is a tooltip row
  * and nothing else, so a third or fourth calculation has somewhere to go. Picking one used to
  * be silently discarded by the reader and clamped away by the editor.
  *

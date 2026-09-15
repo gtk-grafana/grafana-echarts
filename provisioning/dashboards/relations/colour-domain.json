@@ -1,0 +1,431 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "description": "**What `min`, `max` and `Field min/max` actually do on a relations panel** \u2014 the evidence for keeping them registered. No relations code reads any of the three directly, which makes them look inert; they are not. Grafana's `applyFieldOverrides` turns them into `field.state.range`, and that range is the domain `field.display(value)` scales against in `colorOf` \u2014 the family's only colour path. So they are the one way to pin the domain a **percentage** threshold grades against, and the only way to stop a mark's colour depending on what its neighbours happened to measure. Every panel uses the same two queries and the same percentage steps (50% / 80%); only the domain differs. Gating these three on the colour scheme being by-value needs Grafana 13.3 \u2014 see `todo/relations-conditional-field-config.md`, which names this dashboard as its verification fixture.",
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "standard-options", "thresholds", "colour-domain"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations \u2014 colour domain (min, max, field min/max)",
+  "uid": "echarts-relations-colour-domain",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "id": 1,
+      "type": "grafana-echartsrelations-panel",
+      "title": "1 \u2014 Percentage thresholds, no domain set",
+      "description": "**The baseline.** Colour scheme `thresholds`, steps at 50% and 80% **percentage**, and neither `min` nor `max` set.\n\nWith no domain, Grafana infers one from the data: `applyFieldOverrides` computes `field.state.range` across **every field in the response**, here `[10, 90]`. Each node's median is then graded inside that shared band \u2014 `gateway` 20 \u2192 12%, `api` 55 \u2192 56%, `db` 85 \u2192 94%, `cache` 35 \u2192 31%. So one green, one yellow, one red, one green.\n\nThe catch this dashboard exists to show: the band is whatever the data happened to be, so a node's colour changes when an **unrelated** node's numbers change.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "2 \u2014 Explicit min / max pins the domain",
+      "description": "**`min: 0`, `max: 100` \u2014 the same data, graded against a domain the author chose.**\n\n`gateway` 20%, `api` 55%, `db` 85%, `cache` 35%. Two of the four cross a different step than in panel 1, and \u2014 the actual point \u2014 these colours no longer move when a neighbour's traffic does.\n\nThis is why `min`/`max` are **kept** for this family even though no relations code reads them: `applyFieldOverrides` turns them into `field.state.range`, which is the domain `field.display(value)` scales against in `colorOf` (`converters/markRead.ts`) \u2014 the only colour path relations has. They are the one way to pin a percentage-threshold domain.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "3 \u2014 Field min/max grades each mark against itself",
+      "description": "**`fieldMinMax: true`, and it does something unmistakable: all four nodes turn yellow.**\n\nOn, each field's range is computed from **that field alone** instead of across the whole response. Every node's samples straddle its own median \u2014 `gateway` is `[10, 30]` with median 20, `db` is `[80, 90]` with median 85 \u2014 so every mark sits at 50% of its own range and lands on the same step. Compare against panels 1, 2 and 4, each of which paints at least one node red or green.\n\nThat is the honest answer to \"does Field min/max do anything here?\" \u2014 yes, and it changes the *question* the colour answers, from \"how does this node compare to the others\" to \"how does it compare to its own recent range\".",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps",
+          "fieldMinMax": true
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "4 \u2014 A byName min/max override on one node",
+      "description": "**The domain is per-mark addressable, like colour and unit.**\n\nPanel-wide `min: 0 / max: 100` as in panel 2, plus a `byName` override giving **`db`** a domain of `0\u2013200`. Its median of 85 is 85% of 100 (red) but only 42% of 200 (green), so `db` alone changes step while the other three are untouched.\n\nUseful because a relations mark **is** a field: one node measured on a different scale to its neighbours can be graded on its own terms without splitting the query.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "db"
+            },
+            "properties": [
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 200
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "5 \u2014 The same pinned domain on a sankey",
+      "description": "**Variant-independent: the domain drives ribbon colour too.**\n\nIdentical field config to panel 2. An edge is a mark like any other, so its own median is graded against the same `0\u2013100` domain \u2014 and because the edge fields carry a non-palette colour (a by-value scheme counts), each ribbon colours *itself* rather than inheriting from its endpoints. See `isPaletteColorMode` for that precedence rule.\n\n`Link color` in the Edges section is therefore ignored on this panel, which is what the info icon beside that control warns about.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 16,
+        "x": 8,
+        "y": 12
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
+        }
+      ]
+    }
+  ]
+}

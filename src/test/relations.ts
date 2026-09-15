@@ -127,6 +127,27 @@ export const edgesFrame = toDataFrame({
 });
 
 /**
+ * An edge set with **slack**: `cache` is a leaf hanging off `gateway` while the chain
+ * `gateway -> api -> db` runs two more columns, so `cache` could legally sit in column 1
+ * or in the last one.
+ *
+ * That distinction is the *only* thing sankey node alignment decides, and `nodesFrame` +
+ * `edgesFrame` cannot express it — their four nodes form a diamond in which every node's
+ * earliest column is already its justified one, so `left` and `justify` draw identical
+ * pictures there. Shared between `sankey.canvas` (which pins the picture) and
+ * `layout.integration` (which pins the contrast).
+ */
+export const slackEdgesFrame = toDataFrame({
+  name: 'edges',
+  fields: [
+    { name: 'id', type: FieldType.string, values: ['e1', 'e2', 'e3'] },
+    { name: 'source', type: FieldType.string, values: ['gateway', 'api', 'gateway'] },
+    { name: 'target', type: FieldType.string, values: ['api', 'db', 'cache'] },
+    { name: 'mainstat', type: FieldType.number, values: [100, 90, 30] },
+  ],
+});
+
+/**
  * The same edges plus `db -> gateway`, which closes a cycle. ECharts' sankey layout
  * throws on one — in production too, since the throw is not `__DEV__`-guarded — so
  * this is the fixture the family's cycle policy exists for.

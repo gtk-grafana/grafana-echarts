@@ -1,0 +1,590 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "description": "What Grafana's standard **Value mappings** option does on a relations panel, one use case per panel. Three things actually happen: mapped text replaces a mark's number in the tooltip row and in the node value label; a mapping carrying a `color` recolours the mark; and a mapping is per *field*, so it targets one node or one edge rather than the panel. None of it is implemented by the plugin \u2014 it all arrives through `field.display`, the display processor `applyFieldOverrides` already built. The fifth panel is the counter-example: a null-matching mapping that fires and is still never shown, which is why the \"No value\" standard option is unregistered for this family.",
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "standard-options", "value-mappings"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations \u2014 value mappings",
+  "uid": "echarts-relations-value-mappings",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "id": 1,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Control \u2014 no mappings",
+      "description": "**The baseline.** Node values are the raw numbers `1`, `2`, `3` \u2014 which say nothing. Each node field carries one sample, so the default `median` reducer (`RELATIONS_CALC_DEFAULT`) returns that sample unchanged.\n\nCompare every panel to the right of this one against it.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n1,2,3,1,2"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Value \u2192 text on a node stat",
+      "description": "**A `ValueToText` mapping reaches both places a node stat is shown.** `1`/`2`/`3` become `Healthy`/`Degraded`/`Down`, in the label under each node name **and** in the tooltip's value row.\n\nNothing in the plugin implements this: a mark's value is formatted by its own field's display processor (`getValueFormatter` \u2192 `field.display`), which `applyFieldOverrides` already built with the mappings applied. So a mapping targets **one mark** \u2014 set it as a `byName` override and a single node reads `Healthy` while its neighbours stay numeric.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Healthy",
+                  "index": 0
+                },
+                "2": {
+                  "text": "Degraded",
+                  "index": 1
+                },
+                "3": {
+                  "text": "Down",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n1,2,3,1,2"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Mapping a colour, not just text",
+      "description": "**The undocumented half: a mapping's `color` colours the mark.**\n\nSame three mappings as the panel to the left, each now carrying a colour. `colorOf` reads `field.display(value).color`, and `DisplayProcessor` sets that from the matched mapping \u2014 so the node symbols turn green/orange/red even though the colour scheme is still `palette-classic`.\n\nThis is the use case that makes value mappings worth having here: a status field becomes a topology coloured by status, with no thresholds and no per-node overrides.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Healthy",
+                  "color": "green",
+                  "index": 0
+                },
+                "2": {
+                  "text": "Degraded",
+                  "color": "orange",
+                  "index": 1
+                },
+                "3": {
+                  "text": "Down",
+                  "color": "red",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n1,2,3,1,2"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Range \u2192 text on an edge weight",
+      "description": "**Mappings work on edges too, and reach the edge label.** The three request rates (`120`, `80`, `45`) are mapped by range to `saturated`, `busy` and `light`, drawn on the links themselves.\n\nNo `editorMode` needed. \"Show edge values\" is a Default-tier option in the **Edges** section, so the switch is reachable \u2014 and its stored value survives \u2014 without putting the panel in Advanced mode. It was Advanced, and this panel had to set `editorMode: advanced` or `applyEditorModeDefaults` would reset the switch at render time and the labels would silently not draw.\n\nNote the mappings are on the **edges** query only; the nodes keep their numbers.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 8,
+        "x": 0,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*-->.*"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 0,
+                      "to": 50,
+                      "result": {
+                        "text": "light",
+                        "index": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 50,
+                      "to": 100,
+                      "result": {
+                        "text": "busy",
+                        "index": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "range",
+                    "options": {
+                      "from": 100,
+                      "to": 100000,
+                      "result": {
+                        "text": "saturated",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowEdgeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n1,2,3,1,2"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Special \u2192 text on a null node stat (what does NOT happen)",
+      "description": "**The honest case, and why the \"No value\" standard option is unregistered here.**\n\n`api` reports no sample at all. A `SpecialValueMatch` mapping for `null` **does** fire \u2014 the mapping is applied by the display processor, which runs whether or not the panel asks it to. But the relations family never asks: `buildRelationsTooltipModel` omits the value row outright when a node's stat is null, and the node label falls back to the bare name. Both are deliberate \u2014 an empty value under a `Value` label reads as a measurement that failed rather than one that was never taken.\n\nSo `api` shows a name and no value line, and the mapped text `unreported` appears nowhere. That unreachability is exactly why `FieldConfigProperty.NoValue` is in `RELATIONS_DISABLED_FIELD_OPTIONS`: it could only ever have applied to a case the family does not render. The edge half of the same gap is still open \u2014 see `todo/relations-null-edge-weight.md`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 8,
+        "x": 8,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "unreported",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Healthy",
+                  "index": 0
+                },
+                "2": {
+                  "text": "Degraded",
+                  "index": 1
+                },
+                "3": {
+                  "text": "Down",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n1,,3,1,2"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Same mappings, sankey",
+      "description": "**Mappings are variant-independent.** Identical field config to \"Value \u2192 text on a node stat\", rendered as a sankey: the node labels read `Healthy`/`Degraded`/`Down` because the formatter is per mark, not per series type.\n\n`nodeAlign` is left at the family default (`left`), so a node's column is its depth in the flow.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 8,
+        "x": 16,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Healthy",
+                  "index": 0
+                },
+                "2": {
+                  "text": "Degraded",
+                  "index": 1
+                },
+                "3": {
+                  "text": "Down",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n1,2,3,1,2"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Same mappings, chord",
+      "description": "**And on the chord ring.** Same field config again. Worth having all three variants here because each builds its labels through a different ECharts series, and all three route through the one `getRelationsNodeLabelFormatter`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Healthy",
+                  "color": "green",
+                  "index": 0
+                },
+                "2": {
+                  "text": "Degraded",
+                  "color": "orange",
+                  "index": 1
+                },
+                "3": {
+                  "text": "Down",
+                  "color": "red",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n1,2,3,1,2"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    }
+  ]
+}

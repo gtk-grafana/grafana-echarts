@@ -14,16 +14,19 @@ import {
   chordMinAnglePath,
   chordPadAnglePath,
   chordStartAnglePath,
+  chordCategoryName,
 } from 'editor/relations/chord';
 import { isChordVariant } from 'editor/relations/variants';
 /**
- * Chord ring options, all Advanced. Every control gates on `isChordVariant`, so they
- * vanish for the graph and sankey variants.
+ * Chord ring options, in their own **"Chord"** section. Every control gates on
+ * `isChordVariant`, so the whole section vanishes for the graph and sankey variants.
  *
- * Unlike the sankey variant, chord gets no dedicated Default-tier category: its only
- * first-class control is the shared "Show node labels" switch, and everything else is
- * ring geometry that a reader rarely needs to touch. Every option omits its ECharts
- * key at its default.
+ * All five are Advanced-gated, so — unlike "Sankey" — this section does not render at
+ * all in Default mode. That is deliberate rather than an oversight: the chord ring has
+ * no core Grafana equivalent to be at parity with, and none of these five is needed to
+ * read the chart. They previously sat in the shared "Advanced" bucket mixed in with
+ * force repulsion and label width; a panel-specific section is where an editor looks
+ * for them. Every option omits its ECharts key at its default.
  *
  * **No `nodeWidth` / `nodeGap` here.** `series.chord` has neither — they are sankey
  * keys. The angular `padAngle` is the gap analogue; ring thickness is
@@ -32,12 +35,15 @@ import { isChordVariant } from 'editor/relations/variants';
  *
  * https://echarts.apache.org/en/option.html#series-chord
  */
+const chordCategory = [chordCategoryName];
+
 export function addRelationsChordOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   addAdvancedNumberInput(builder, {
     path: chordStartAnglePath,
     name: 'Start angle',
     description: 'Where the first arc begins, in degrees (90 = twelve o’clock)',
     defaultValue: CHORD_START_ANGLE_DEFAULT,
+    category: chordCategory,
     showIf: isChordVariant,
     settings: { min: 0, max: 360, step: 5 },
   });
@@ -47,6 +53,7 @@ export function addRelationsChordOptions(builder: PanelOptionsEditorBuilder<Pane
     name: 'Clockwise',
     description: 'Lay arcs out clockwise (off = counter-clockwise)',
     defaultValue: CHORD_CLOCKWISE_DEFAULT,
+    category: chordCategory,
     showIf: isChordVariant,
   });
 
@@ -55,6 +62,7 @@ export function addRelationsChordOptions(builder: PanelOptionsEditorBuilder<Pane
     name: 'Arc gap',
     description: 'Angular gap between adjacent node arcs, in degrees',
     defaultValue: CHORD_PAD_ANGLE_DEFAULT,
+    category: chordCategory,
     showIf: isChordVariant,
     settings: { min: 0, max: 30, step: 0.5 },
   });
@@ -64,6 +72,7 @@ export function addRelationsChordOptions(builder: PanelOptionsEditorBuilder<Pane
     name: 'Minimum arc angle',
     description: 'Smallest arc a node may occupy, so a low-flow node stays visible',
     defaultValue: CHORD_MIN_ANGLE_DEFAULT,
+    category: chordCategory,
     showIf: isChordVariant,
     settings: { min: 0, max: 30, step: 0.5 },
   });
@@ -73,6 +82,7 @@ export function addRelationsChordOptions(builder: PanelOptionsEditorBuilder<Pane
     name: 'Ribbon opacity',
     description: 'Translucency of the flow ribbons (0-1). Raise it on a sparse chord',
     defaultValue: CHORD_LINK_OPACITY_DEFAULT,
+    category: chordCategory,
     showIf: isChordVariant,
     settings: { min: 0, max: 1, step: 0.05 },
   });

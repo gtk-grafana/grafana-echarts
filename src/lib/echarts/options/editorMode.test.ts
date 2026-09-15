@@ -15,6 +15,7 @@ import { type PanelOptions } from 'types';
 import {
   ADVANCED_CHORD_DEFAULTS,
   ADVANCED_RELATIONS_DEFAULTS,
+  ADVANCED_RELATIONS_SHARED_DEFAULTS,
   ADVANCED_SANKEY_DEFAULTS,
 } from 'lib/echarts/relations/options/advancedDefaults';
 /**
@@ -46,11 +47,18 @@ interface FamilyCase {
  * The relations family's three variants each own an Advanced tier, and all three are
  * applied whatever the selected variant, so switching Chart type can never leave the
  * other one's hidden values in force.
+ *
+ * Plus a fourth set for the **shared** options it gates — `animation.enabled`. It is
+ * separate because `ADVANCED_RELATIONS_DEFAULTS` is typed to the family's own option
+ * slice, which does not declare shared keys. It has to be listed here or the
+ * "resets nothing outside its own tier" case below reads `animation` as another
+ * family's key and fails on a reset that is this family's business.
  */
 const RELATIONS_DEFAULTS: Partial<PanelOptions> = {
   ...ADVANCED_RELATIONS_DEFAULTS,
   ...ADVANCED_SANKEY_DEFAULTS,
   ...ADVANCED_CHORD_DEFAULTS,
+  ...ADVANCED_RELATIONS_SHARED_DEFAULTS,
 };
 
 const FAMILIES: FamilyCase[] = [

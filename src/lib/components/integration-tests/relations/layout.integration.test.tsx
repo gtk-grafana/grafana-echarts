@@ -1,10 +1,10 @@
 import { FieldType, toDataFrame } from '@grafana/data';
 import { normalizeCanvasEvents } from 'test/canvas';
-import { edgesFrame, nodesFrame } from 'test/relations';
+import { edgesFrame, nodesFrame, slackEdgesFrame } from 'test/relations';
 import { labelTexts, renderRelations } from 'test/relationsCanvas';
 
 /**
- * How the graph variant places its nodes: that a force layout is *reproducible*, that
+ * How the relations variants place their marks: that a force layout is *reproducible*, that
  * Fixed draws every node whether or not the data pinned it, and that the one thing
  * downstream of a known position — an oriented edge gradient — appears exactly where
  * positions exist.
@@ -47,6 +47,64 @@ describe('relations layout', () => {
 
       expect(normalizeCanvasEvents(second.seriesEvents)).toEqual(normalizeCanvasEvents(first.seriesEvents));
       expect(first.seriesEvents.length).toBeGreaterThan(0);
+    });
+  });
+
+  /**
+   * **Sankey node alignment, and the comparison idiom it needs.**
+   *
+   * Alignment only decides where a node with *slack* lands, so the claim is necessarily a
+   * relation between two renders rather than one picture — which is why it lives here and
+   * not beside the baseline in `sankey.canvas.test.tsx`. `slackEdgesFrame` is the fixture
+   * that can express it at all.
+   *
+   * Compared through `JSON.stringify`, deliberately. The obvious `not.toEqual` is
+   * **vacuous on a sankey**: its ribbons carry gradient objects, so two renders are never
+   * `toEqual` whatever their geometry, and such a guard passes even when both sides are
+   * byte-identical. That is not hypothetical — it is what let the family's `nodeAlign`
+   * default change from `justify` to `left` without any test noticing, even though a
+   * `not.toEqual` guard was sitting right next to the affected baseline.
+   */
+  describe('sankey node alignment', () => {
+    const renderAligned = async (options: Record<string, unknown> = {}) => {
+      const { seriesEvents } = await renderRelations({
+        frames: [slackEdgesFrame],
+        variant: 'sankey',
+        options,
+      });
+      return JSON.stringify(normalizeCanvasEvents(seriesEvents));
+    };
+
+    /** The control for the idiom itself: two identical renders must agree. */
+    it('draws the same picture twice for one setting', async () => {
+      const [first, second] = [await renderAligned(), await renderAligned()];
+
+      expect(second).toEqual(first);
+      expect(first.length).toBeGreaterThan(0);
+    });
+
+    // `left` keeps `cache` in column 1; `justify` pushes it to the last column.
+    it('draws a different picture for left than for justify', async () => {
+      const left = await renderAligned({ relationsSankeyNodeAlign: 'left' });
+      const justify = await renderAligned({ relationsSankeyNodeAlign: 'justify' });
+
+      expect(left).not.toEqual(justify);
+    });
+
+    /**
+     * **The family default is `left`, not ECharts' `justify`.** So `getSankeyNodeAlign`
+     * always emits the key rather than omitting it at the default, which is the one place
+     * this family departs from the omit-at-the-ECharts-default rule the rest of the sankey
+     * options follow. Asserted on the rendered picture, so it cannot pass on the resolver
+     * alone.
+     */
+    it('defaults to left, so an unset panel matches an explicit left', async () => {
+      const unset = await renderAligned();
+      const left = await renderAligned({ relationsSankeyNodeAlign: 'left' });
+      const justify = await renderAligned({ relationsSankeyNodeAlign: 'justify' });
+
+      expect(unset).toEqual(left);
+      expect(unset).not.toEqual(justify);
     });
   });
 

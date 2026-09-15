@@ -7,7 +7,7 @@ import {
 } from '@grafana/data';
 
 import { type PanelOptions } from 'types';
-import { addRelationsNodeOptions } from './nodes';
+import { addRelationsLabelOptions } from './labels';
 
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 /**
@@ -26,7 +26,7 @@ standardEditorsRegistry.setInit(() =>
 /** The registered option at `path`, so a `showIf` can be asked its question directly. */
 const optionAt = (path: string) => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
-  addRelationsNodeOptions(builder);
+  addRelationsLabelOptions(builder);
   const item = builder.getItems().find((entry) => entry.path === path);
   expect(item).toBeDefined();
   return item!;
@@ -49,10 +49,16 @@ const nodesFrame = (values: Array<number | null>): DataFrame =>
     ],
   });
 
-describe('addRelationsNodeOptions', () => {
-  it('registers the label, value, overlap, overflow, width and size controls', () => {
+describe('addRelationsLabelOptions', () => {
+  /**
+   * "Node size" is deliberately absent: it is how big a mark is and where it sits, which
+   * is the Layout section's subject, not a label question. See `addRelationsLayoutOptions`.
+   * "Show edge values" *is* in this section, but registered by `addRelationsLinkOptions`
+   * rather than here, so it is absent from this file's own list.
+   */
+  it('registers the five label controls, and nothing about geometry', () => {
     const builder = new PanelOptionsEditorBuilder<PanelOptions>();
-    addRelationsNodeOptions(builder);
+    addRelationsLabelOptions(builder);
 
     expect(builder.getItems().map((item) => item.path)).toEqual([
       'relationsShowNodeLabels',
@@ -60,8 +66,29 @@ describe('addRelationsNodeOptions', () => {
       'relationsHideOverlappingLabels',
       'relationsLabelOverflow',
       'relationsLabelWidth',
-      'relationsNodeSize',
     ]);
+  });
+
+  /** All five land in one section — the point of the section existing. */
+  it('puts every control in the Labels section', () => {
+    const builder = new PanelOptionsEditorBuilder<PanelOptions>();
+    addRelationsLabelOptions(builder);
+
+    expect(builder.getItems().map((item) => item.category?.[0])).toEqual(Array(5).fill('Labels'));
+  });
+
+  /**
+   * **"Wrap anywhere" (`breakAll`) is off the menu.** It breaks at any character, which
+   * on the identifier-shaped names a topology carries splits mid-word. The value stays
+   * valid in the type and the ECharts resolver so a panel already saved with it keeps
+   * rendering — it is only unofferable now.
+   */
+  it('offers no break-anywhere overflow mode', () => {
+    const settings = optionAt('relationsLabelOverflow').settings as {
+      options: Array<{ value: string }>;
+    };
+
+    expect(settings.options.map(({ value }) => value)).toEqual(['none', 'truncate', 'break']);
   });
 
   describe('"Show node values" visibility', () => {
@@ -108,18 +135,25 @@ describe('addRelationsNodeOptions', () => {
     // "Label width" is the one that also depends on an overflow mode being chosen —
     // ECharts ignores `overflow` without a width, and a width without one does nothing.
     it('hides the width once overflow handling is turned off', () => {
-      // Both are Advanced-gated, so the mode has to be on for the gate to be the
-      // overflow value rather than the tier.
+      // The width is still Advanced-gated, so the mode has to be on for the gate under
+      // test to be the overflow value rather than the tier.
       const advanced = (extra: Partial<PanelOptions>) => options({ editorMode: 'advanced', ...extra });
 
       expect(optionAt('relationsLabelWidth').showIf?.(advanced({}))).toBe(true);
       expect(optionAt('relationsLabelWidth').showIf?.(advanced({ relationsLabelOverflow: 'none' }))).toBe(false);
     });
 
-    it('keeps the overflow controls out of the Default tier', () => {
-      expect(optionAt('relationsLabelOverflow').showIf?.(options())).toBe(false);
-      // …while the overlap switch is Default-tier, since it is the main lever.
+    /**
+     * **Label overflow is Default-tier**, where it used to be Advanced. On any real
+     * topology the labels do not fit, so how an over-long name is handled is a first
+     * question rather than an expert one — the same reasoning that keeps "Hide
+     * overlapping labels" out of the Advanced tier. Only the *px* at which the chosen
+     * mode bites stays Advanced.
+     */
+    it('keeps overflow handling in the Default tier, and only its width in Advanced', () => {
+      expect(optionAt('relationsLabelOverflow').showIf?.(options())).toBe(true);
       expect(optionAt('relationsHideOverlappingLabels').showIf?.(options())).toBe(true);
+      expect(optionAt('relationsLabelWidth').showIf?.(options())).toBe(false);
     });
   });
 });

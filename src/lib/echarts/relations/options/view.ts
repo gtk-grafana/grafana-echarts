@@ -25,19 +25,26 @@ export function resolveRelationsRoam(options: PanelOptions): 'move' | false {
 }
 
 /**
- * Whether drag-to-pan is on, falling back to the superseded single `relationsRoam`
- * switch so a dashboard saved before the split keeps panning. These two are the only
- * readers of the deprecated option, which is exactly why they may read it.
+ * Whether drag-to-pan is on.
+ *
+ * Both this and `resolveRelationsZoom` used to fall back to a superseded single
+ * "Zoom and pan" switch (`relationsRoam`), which is **gone**. The fallback was actively
+ * wrong once these two became Default-tier controls: a panel carrying only the old key
+ * rendered with pan and zoom *on* while both switches displayed *off*, because neither
+ * option was set and neither carries a `defaultValue`. The control contradicted the
+ * panel until someone happened to toggle it.
+ *
+ * Deleting rather than migrating it is available because the plugin is unreleased, so no
+ * dashboard outside this repo can carry the key. A panel that does simply loses the
+ * setting, which is the intended break.
  */
 export function resolveRelationsPan(options: PanelOptions): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- reading it is the migration
-  return (options.relationsPan ?? options.relationsRoam) === true;
+  return options.relationsPan === true;
 }
 
-/** Whether the panel's zoom buttons are shown. Same back-compat fallback as pan. */
+/** Whether the panel's zoom buttons are shown. */
 export function resolveRelationsZoom(options: PanelOptions): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- reading it is the migration
-  return (options.relationsZoom ?? options.relationsRoam) === true;
+  return options.relationsZoom === true;
 }
 
 /** The remembered view, as the keys ECharts keeps a `View`'s roam state in. */

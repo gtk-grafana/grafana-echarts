@@ -43,38 +43,97 @@ alternatives (see `test/relationsCanvas.tsx`): `relationsLayout: 'circular'`,
 | `relationsLayout`                | `'force'`      | · harness pins `circular`                   | ■ `circular` (every baseline), ■ `none` (`graph.canvas` fixed coords), ▫ `force` (`layout.integration`) |
 | `relationsFocusAdjacency`        | `true`         | ■ every `base` (option on, nothing hovered) | · **gap** — see below                                                                                   |
 | `relationsSankeyOrient`          | `'horizontal'` | ■ `sankey.canvas` base                      | ■ `sankey.canvas` "vertical flow"                                                                       |
-| `relationsSankeyNodeAlign`       | `'justify'`    | ■ `sankey.canvas` base                      | ■ `sankey.canvas` "node align left"                                                                     |
+| `relationsSankeyNodeAlign`       | `'left'`       | ■ `sankey.canvas` base                      | ■ `sankey.canvas` "node align left"                                                                     |
 | `relationsTimeSlider`            | `false`        | ■ every `base`                              | ■ `timeline.canvas` (both baselines)                                                                    |
-| `reduceOptions.calcs`            | `lastNotNull`  | ▫ `values.integration`                      | ▫ `values.integration` (`max`, and a second calc ignored)                                               |
-| `animation.enabled`              | `true`         | — forced off in tests                       | — a settled render is the same picture                                                                  |
+| `reduceOptions.calcs`            | `median`       | ▫ `values.integration`                      | ▫ `values.integration` (`max`, and a second calc ignored)                                               |
+| `relationsLabelOverflow`         | `'truncate'`   | ■ every `base`                              | ■ `graph.canvas` "break overflow", ▫ `labels.inte picture                                               |
+| `relationsEdgeArrows`            | `true`         | ■ `graph` base                              | ■ `graph.canvas` "arrows off"                                                                           |
+| `relationsLinkColor`             | `'gradient'`   | ■ `graph` base                              | ■ `graph.canvas` `source` / `target` / gradient                                                         |
+| `relationsShowEdgeValues`        | `false`        | ■ every `base`                              | ■ `graph` + `sankey.canvas`, ■ `timeline.canvas`                                                        |
+| `relationsZoom` / `relationsPan` | `false`        | ■ every `base`                              | ▫ `interaction.integration` (roam action, label a11y)                                                   |
+| `relationsRememberView`          | `false`        | ■ every `base`                              | · no render — covered by option + persistence units                                                     |
 
 ## Advanced-tier options
 
-| Option                            | Default      | Default                   | Changed                                                     |
-| --------------------------------- | ------------ | ------------------------- | ----------------------------------------------------------- |
-| `relationsEdgeArrows`             | `true`       | ■ `graph` base            | ■ `graph.canvas` "arrows off"                               |
-| `relationsShowEdgeValues`         | `false`      | ■ every `base`            | ■ `graph` + `sankey.canvas`, ■ `timeline.canvas`            |
-| `relationsCurveness`              | unset (0)    | ■ `graph` base            | ■ `graph.canvas` "curveness 0.3"                            |
-| `relationsLinkColor`              | `'gradient'` | ■ `graph` base            | ■ `graph.canvas` `source` / `target` / gradient             |
-| `relationsLabelOverflow`          | `'truncate'` | ■ every `base`            | ■ `graph.canvas` "break overflow", ▫ `labels.integration`   |
-| `relationsLabelWidth`             | `120`        | ■ every `base`            | ■ `graph.canvas` "label width 60"                           |
-| `relationsSankeyNodeWidth`        | `20`         | ■ `sankey` base           | ■ `sankey.canvas` "node width 32 and gap 20"                |
-| `relationsSankeyNodeGap`          | `8`          | ■ `sankey` base           | ■ same baseline                                             |
-| `relationsSankeyCurveness`        | `0.5`        | ■ `sankey` base           | ■ `sankey.canvas` "ribbon curveness 0"                      |
-| `relationsSankeyLinkOpacity`      | `0.2`        | ■ `sankey` base           | ■ `sankey.canvas` "ribbon opacity 0.7"                      |
-| `relationsSankeyLayoutIterations` | `32`         | ■ `sankey` base           | · low risk — one passthrough key, unit-covered              |
-| `relationsChordStartAngle`        | `90`         | ■ `chord` base            | ■ `chord.canvas` "start angle 0"                            |
-| `relationsChordClockwise`         | `true`       | ■ `chord` base            | ■ same baseline                                             |
-| `relationsChordPadAngle`          | `3`          | ■ `chord` base            | ■ `chord.canvas` "pad angle 12"                             |
-| `relationsChordMinAngle`          | `0`          | ■ `chord` base            | ■ `chord.canvas` "minimum arc angle 30"                     |
-| `relationsChordLinkOpacity`       | `0.2`        | ■ `chord` base            | · low risk — one passthrough key, unit-covered              |
-| `relationsZoom` / `relationsPan`  | `false`      | ■ every `base`            | ▫ `interaction.integration` (roam action, label attachment) |
-| `relationsDraggable`              | `false`      | ■ every `base`            | · no render — a drag has no committed picture               |
-| `relationsRememberView`           | `false`      | ■ every `base`            | · no render — covered by option + persistence unit tests    |
-| `relationsRepulsion`              | `400`        | · force layout not pinned | · by design — see below                                     |
-| `relationsEdgeLength`             | `200`        | · same                    | · same                                                      |
-| `relationsGravity`                | unset        | · same                    | · same                                                      |
-| `relationsLayoutAnimation`        | `false`      | · same                    | · same                                                      |
+| Option                            | Default   | Default                   | Changed                                        |
+| --------------------------------- | --------- | ------------------------- | ---------------------------------------------- |
+| `relationsCurveness`              | unset (0) | ■ `graph` base            | ■ `graph.canvas` "curveness 0.3"               |
+| `relationsLabelWidth`             | `120`     | ■ every `base`            | ■ `graph.canvas` "label width 60"              |
+| `relationsSankeyNodeWidth`        | `20`      | ■ `sankey` base           | ■ `sankey.canvas` "node width 32 and gap 20"   |
+| `relationsSankeyNodeGap`          | `8`       | ■ `sankey` base           | ■ same baseline                                |
+| `relationsSankeyCurveness`        | `0.5`     | ■ `sankey` base           | ■ `sankey.canvas` "ribbon curveness 0"         |
+| `relationsSankeyLinkOpacity`      | `0.2`     | ■ `sankey` base           | ■ `sankey.canvas` "ribbon opacity 0.7"         |
+| `relationsSankeyLayoutIterations` | `32`      | ■ `sankey` base           | · low risk — one passthrough key, unit-covered |
+| `relationsChordStartAngle`        | `90`      | ■ `chord` base            | ■ `chord.canvas` "start angle 0"               |
+| `relationsChordClockwise`         | `true`    | ■ `chord` base            | ■ same baseline                                |
+| `relationsChordPadAngle`          | `3`       | ■ `chord` base            | ■ `chord.canvas` "pad angle 12"                |
+| `relationsChordMinAngle`          | `0`       | ■ `chord` base            | ■ `chord.canvas` "minimum arc angle 30"        |
+| `relationsChordLinkOpacity`       | `0.2`     | ■ `chord` base            | · low risk — one passthrough key, unit-covered |
+| `relationsDraggable`              | `false`   | ■ every `base`            | · no render — a drag has no committed picture  |
+| `relationsRepulsion`              | `400`     | · force layout not pinned | · by design — see below                        |
+| `relationsEdgeLength`             | `200`     | · same                    | · same                                         |
+| `relationsGravity`                | unset     | · same                    | · same                                         |
+| `relationsLayoutAnimation`        | `false`   | · same                    | · same                                         |
+| `animation.enabled`               | `false`   | — forced off in tests     | — **inert on graph**, see below                |
+
+### The animation flag does nothing on a graph
+
+`animation.enabled` is **hidden on the graph variant**, so a graph panel no longer shows
+two animation controls of which one is dead. Whether the root flag does anything is up to
+the series' view: `SankeyView` gates a clip-path reveal on
+`seriesModel.isAnimationEnabled()` and `ChordView` enters its group through
+`graphic.initProps`, so both animate — but `GraphView` writes node and edge positions
+straight through `SymbolDraw.updateLayout` / `LineDraw.updateLayout` and consults the flag
+nowhere.
+
+Measured in a real host rather than inferred, by counting distinct paint frames over the
+first ~3.5s of a render:
+
+| variant          | switch on             | switch off |
+| ---------------- | --------------------- | ---------- |
+| graph (force)    | 2 frames              | 2 frames   |
+| graph (circular) | 2 frames              | 2 frames   |
+| sankey           | **64 frames / ~1.0s** | 2 frames   |
+| chord            | **21 frames / ~1.0s** | 3 frames   |
+
+The graph control that _does_ work is `relationsLayoutAnimation`
+(`force.layoutAnimation`), which repaints every simulation step; it stays Advanced and
+force-only. `optionSurface.test.ts` pins both facts, since a regression here would just
+put a silent no-op switch back in the pane.
+
+No canvas baseline covers this either way — the harness pins `animation: { enabled: false }`
+so a snapshot is never taken mid-tween.
+
+### What moved, and one thing the move exposed
+
+The options-reorg (2026-09-14) changed four tiers and three defaults, so rows above have
+moved between the two tables. Promoted to Default: **label overflow** (on a real topology
+the labels never fit, so how they are handled is a first question), **zoom / pan / remember
+view** (on a graph that does not fit the panel, these are how the rest of the data is
+reachable rather than expert tuning), and **link colour** and **show edge values** — an
+edge's colour and whether it carries its own number, both first questions rather than
+tuning. Note "show edge values" stays _off_ by default; Default-tier means the switch is
+reachable without Advanced mode, not that it is on. Demoted to Advanced:
+**animation**, which also flipped off. Defaults changed: `reduceOptions.calcs`
+`lastNotNull` -> `median`, `relationsSankeyNodeAlign` `justify` -> `left`,
+`animation.enabled` `true` -> `false`.
+
+**None of those moved a baseline**, which is worth stating rather than assuming: the tier
+is carried by `showIf` and the harness renders in Advanced mode anyway; the harness pins
+`animation: { enabled: false }` explicitly; and the fixtures reduce single samples, where a
+median is that sample.
+
+`nodeAlign` was the exception, and it exposed a defect. A `not.toEqual` cross-render guard
+sat directly beside the affected baseline and did not fire, because **a sankey's ribbons
+carry gradient objects — so two renders are never `toEqual` whatever their geometry**, and
+the guard passed unconditionally. The claim is now a real assertion in
+`layout.integration.test.tsx`, compared through `JSON.stringify`, on a new
+`slackEdgesFrame` fixture — the base fixtures form a diamond in which `left` and `justify`
+draw identically, so they could not have caught it either. The same idiom remains in
+`chord.canvas.test.tsx`, `graph.canvas.test.tsx` and `overrides.canvas.test.tsx`; each
+compares two explicit configurations rather than against a default, so they are less
+exposed, but the idiom is unsound in all three and belongs in an integration suite anyway
+(AGENTS.md's one-kind-of-test-per-file rule).
 
 ## Field config
 

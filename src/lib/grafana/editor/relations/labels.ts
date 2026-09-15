@@ -1,49 +1,57 @@
 import { type PanelOptionsEditorBuilder, type SelectableValue } from '@grafana/data';
 
-import { addAdvancedNumberInput, addAdvancedSelect, composeShowIf } from 'lib/grafana/editor/common/advanced-options';
+import { addAdvancedNumberInput, composeShowIf } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
 import {
   RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT,
   RELATIONS_LABEL_OVERFLOW_DEFAULT,
   RELATIONS_LABEL_WIDTH_DEFAULT,
-  RELATIONS_NODE_SIZE_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   RELATIONS_SHOW_NODE_VALUES_DEFAULT,
-  relationsCategoryName,
+  relationsLabelsCategoryName,
 } from 'editor/relations/constants';
-import { isGraphVariant } from 'editor/relations/variants';
 import { hasNoNodeStats } from 'lib/echarts/relations/converters/frameRoles';
 import { type RelationsLabelOverflow } from 'editor/relations/types';
 /**
- * Node presentation options: whether node names and stats are drawn, how a label that
- * does not fit is handled, and the fallback node size. All mirror what a user coming
- * from core Grafana's Node graph panel expects to be able to control.
+ * The "Labels" section: what text a mark carries, and what happens when it does not fit.
  *
- * Labels, values and the two overlap controls are shared by every render variant;
- * "Node size" is graph-only, since a sankey node is a rectangle whose thickness is the
- * series-level `nodeWidth` and whose length is its flow — see
- * `addRelationsSankeyOptions`.
+ * These five controls used to be split across two sections and two tiers — the switches
+ * sat in "Relations" while overflow handling was in the "Advanced" bucket — which put
+ * "Show node labels" and "how a label that doesn't fit is handled" in different places.
+ * They are one subject, so they are one section, and only "Label width" stays Advanced.
+ * "Show edge values" belongs to the same subject and is registered into this category by
+ * `addRelationsLinkOptions`, which owns the rest of the edge controls.
+ *
+ * Node *size* is not here: it is where a mark sits and how big it is, which is the
+ * Layout section's subject. See `addRelationsLayoutOptions`.
  * https://echarts.apache.org/en/option.html#series-graph.label
- * https://echarts.apache.org/en/option.html#series-graph.symbolSize
+ */
+const labelsCategory = [relationsLabelsCategoryName];
+
+/**
+ * Overflow handling. **No `breakAll` ("Wrap anywhere").** It is ECharts' break-at-any-
+ * character mode, which on the identifier-shaped names a topology carries — `checkout`,
+ * `api-gateway`, `db-primary` — splits mid-word and costs more legibility than the
+ * truncation it replaces. The value stays in `RelationsLabelOverflow` and in the ECharts
+ * resolver so a panel already saved with it keeps rendering; it is only off the menu.
  */
 const labelOverflowOptions: Array<SelectableValue<RelationsLabelOverflow>> = [
   { value: 'none', label: 'None', description: 'Draw the whole name, however wide' },
   { value: 'truncate', label: 'Truncate', description: 'Ellipsis at the label width' },
   { value: 'break', label: 'Wrap', description: 'Wrap at word boundaries' },
-  { value: 'breakAll', label: 'Wrap anywhere', description: 'Wrap at any character' },
 ];
 
 /** Whether node labels are drawn at all — nothing below it means anything if not. */
 const showsNodeLabels = (options: PanelOptions) =>
   (options.relationsShowNodeLabels ?? RELATIONS_SHOW_NODE_LABELS_DEFAULT) !== false;
 
-export function addRelationsNodeOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
+export function addRelationsLabelOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   builder.addBooleanSwitch({
     path: 'relationsShowNodeLabels',
     name: 'Show node labels',
     description: 'Draw each node name beside it',
-    category: [relationsCategoryName],
+    category: labelsCategory,
     defaultValue: RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   });
 
@@ -51,7 +59,7 @@ export function addRelationsNodeOptions(builder: PanelOptionsEditorBuilder<Panel
     path: 'relationsShowNodeValues',
     name: 'Show node values',
     description: "Add each node's mainstat under its name",
-    category: [relationsCategoryName],
+    category: labelsCategory,
     defaultValue: RELATIONS_SHOW_NODE_VALUES_DEFAULT,
     // Two gates. The value rides on the label, so it can only show when the label
     // does; and there has to be a value to show — on an edges-only response every node
@@ -70,42 +78,42 @@ export function addRelationsNodeOptions(builder: PanelOptionsEditorBuilder<Panel
     path: 'relationsHideOverlappingLabels',
     name: 'Hide overlapping labels',
     description: 'Drop a node label that would collide with one already drawn',
-    category: [relationsCategoryName],
+    category: labelsCategory,
     defaultValue: RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT,
     showIf: showsNodeLabels,
   });
 
-  // Advanced, and defaulted to truncate rather than to ECharts' `none`: node names in a
-  // topology are routinely long enough to reach the next node, and an ellipsis keeps
-  // the first (identifying) part of every one of them readable.
-  addAdvancedSelect(builder, {
+  /**
+   * Default-tier, and defaulted to truncate rather than to ECharts' `none`: node names
+   * in a topology are routinely long enough to reach the next node, and an ellipsis
+   * keeps the first (identifying) part of every one of them readable.
+   *
+   * It was Advanced, which was the wrong tier for the same reason "Hide overlapping
+   * labels" is not: on any real topology the labels do not fit, so how they are handled
+   * is a first question, not an expert one.
+   */
+  builder.addSelect({
     path: 'relationsLabelOverflow',
     name: 'Label overflow',
     description: 'How a node name longer than the label width is handled',
+    category: labelsCategory,
     defaultValue: RELATIONS_LABEL_OVERFLOW_DEFAULT,
     settings: { options: labelOverflowOptions },
     showIf: showsNodeLabels,
   });
 
+  // Advanced: the *px* at which the mode above bites is a tuning number, unlike the
+  // choice of mode. Hidden under `none`, which has no width to bite at.
   addAdvancedNumberInput(builder, {
     path: 'relationsLabelWidth',
     name: 'Label width',
     description: 'Width in px at which label overflow handling applies',
+    category: labelsCategory,
     defaultValue: RELATIONS_LABEL_WIDTH_DEFAULT,
     settings: { min: 10, max: 400, integer: true },
     showIf: composeShowIf(
       showsNodeLabels,
       (options) => (options.relationsLabelOverflow ?? RELATIONS_LABEL_OVERFLOW_DEFAULT) !== 'none'
     ),
-  });
-
-  builder.addSliderInput({
-    path: 'relationsNodeSize',
-    name: 'Node size',
-    description: 'Node diameter in px. Nodes supplying noderadius keep their own size',
-    category: [relationsCategoryName],
-    defaultValue: RELATIONS_NODE_SIZE_DEFAULT,
-    settings: { min: 4, max: 80, step: 1 },
-    showIf: isGraphVariant,
   });
 }

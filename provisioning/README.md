@@ -27,12 +27,20 @@ hover, All-mode row emphasis, click-to-pin, and the pinned footer's data links �
 each family resolves a hovered item back to a source field + row differently, so
 each gets its own panel with a data link attached.
 
-## `relations/` — node graph fixtures (no ECharts panel yet)
+## `relations/` — graph / sankey / chord
 
-Groundwork for the planned **relations** family (ECharts graph / sankey / chord; see
-[../todo/node-graph.md](../todo/node-graph.md)). The ECharts panel does not exist yet,
-so these render with the **core Node graph panel** — swap the panel type once the
-nested panel ships.
+Demonstrates the ECharts **Relations** panel (`grafana-echartsrelations-panel`) across
+its three render variants, all on one node/link converter. Every dashboard here is
+TestData-backed so it needs no external data source; the live-data equivalents are under
+[../lgtm/provisioning/dashboards/lgtm-relations/](../lgtm/provisioning/dashboards/lgtm-relations/).
+
+Grouped roughly: the **contract** fixtures (`node-graph-testdata`, `graph-wide`,
+`node-graph-sql-expressions`, `derived-nodes`), the **variant** showcases (`sankey`,
+`chord`, `timeline`, `fixed-layout`), the **option** showcases (`all-options`,
+`readability`, `per-mark-tooltip-links`) and the **standard-options** showcases
+(`value-mappings`, `colour-domain`). Three files are **generated** — `observability-sources.json`,
+`devcortex-sources.json` and `devcortex-wide.json` — so edit their `scripts/build-*.py`
+generator and re-run rather than the JSON.
 
 - **`node-graph-testdata.json`** — all five TestData `node_graph` sub-types, one panel
   each. Three are deliberate regression fixtures: `random` (which **generates cycles**,
@@ -51,6 +59,32 @@ nested panel ships.
   `grafana.panelPluginTransformations` on; without it the graphs still draw and the
   overrides go inert except hiding, which the panel re-reads by name. Background:
   [../docs/relations-derived-nodes.md](../docs/relations-derived-nodes.md).
+- **`value-mappings.json`** — what Grafana's standard **Value mappings** option does
+  here, one use case per panel: mapped text in the tooltip row and the node value label,
+  a mapping's `color` recolouring the mark, per-mark targeting via `byName`, and the
+  counter-example — a null-matching mapping that fires and is still never shown, which is
+  why the "No value" standard option is unregistered for this family.
+- **`all-options.json`** — the **reference**: one panel per panel option **that visibly
+  changes what the panel draws** (31 of them), in the order the options pane lists them,
+  each setting exactly one option away from its default and describing what to look at.
+  Every panel was checked in a browser against the same panel at that option's default, so
+  none of them silently demos nothing. Linked option-by-option from
+  [../src/modules/relations/parity.md](../src/modules/relations/parity.md) and pinned by
+  `allOptionsDashboard.test.ts`, which asserts the demoed set plus an explicit
+  `NO_VISUAL` list partitions the registered options — so a new option fails the build
+  until someone writes its panel or states why it has none.
+
+  The eight excused ones have nothing a still picture could show: `editorMode` changes the
+  pane rather than the panel; `Animate layout` and `Animation` are motion and settle to an
+  identical render; `Pan`, `Remember view` and `Draggable nodes` draw nothing until you
+  interact; `Highlight adjacency` and `Tooltip mode` act on hover.
+
+- **`colour-domain.json`** — the evidence for keeping `min` / `max` / **Field min/max**
+  registered, since no relations code reads them directly and they therefore look inert.
+  They are not: Grafana turns them into `field.state.range`, the domain a **percentage**
+  threshold grades against. Same data and steps on every panel; only the domain differs.
+  Named as the verification fixture by
+  [../todo/relations-conditional-field-config.md](../todo/relations-conditional-field-config.md).
 
 Which real data sources can produce this shape, and the Prometheus/Loki/SQL recipes,
 are in [../docs/relations-data-sources.md](../docs/relations-data-sources.md).

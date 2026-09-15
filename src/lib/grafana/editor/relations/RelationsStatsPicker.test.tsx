@@ -47,7 +47,7 @@ describe('RelationsStatsPicker', () => {
    *
    * The clamp also misbehaved on its own terms — it kept the *last* two, so adding a third to
    * `[max, min]` produced `[min, mean]`, silently promoting `min` to the main stat and changing
-   * the node sizes and colours the panel drew.
+   * the colours the panel drew.
    */
   it('passes a third and fourth selection straight through', () => {
     const { onChange, select } = renderPicker(['max', 'min']);

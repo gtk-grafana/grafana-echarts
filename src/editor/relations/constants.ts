@@ -33,27 +33,55 @@ export const relationsSeriesTypeOptions: Array<SelectableValue<RelationsSeriesTy
   { value: 'sankey', label: 'Sankey' },
   { value: 'chord', label: 'Chord' },
 ];
-/** Editor category holding the relations family's Default-tier options. */
+/**
+ * The relations family's editor sections.
+ *
+ * The family used to have three: "Relations" for everything Default-tier, "Sankey",
+ * and one "Advanced" bucket that collected 25 unrelated controls — chord ring geometry
+ * beside force repulsion beside label width. The tier split cut the *count* an editor
+ * sees by default but did nothing for grouping, so finding a specific feature meant
+ * scanning one flat list.
+ *
+ * These sections group by **purpose** instead, and the Default/Advanced tier is carried
+ * only by each option's `showIf` gate (`showIfAdvanced`). So an Advanced control appears
+ * in the section it belongs to, next to the Default-tier controls it relates to, and a
+ * section that is entirely Advanced (Chord) simply does not render in Default mode.
+ *
+ * Section order in the pane follows the order each category is **first** registered —
+ * see the supplier call order in `modules/relations/module.tsx`.
+ */
+/** Chart type, and the editor-mode tier switch (registered last). */
 export const relationsCategoryName = 'Relations';
+/** Node and edge label presentation: what is drawn, and what happens when it does not fit. */
+export const relationsLabelsCategoryName = 'Labels';
+/** Where marks are positioned: the layout choice, node size, force tuning, animation. */
+export const relationsLayoutCategoryName = 'Layout';
+/** What the reader may do to the view: zoom, pan, drag, remember, highlight. */
+export const relationsInteractionCategoryName = 'Interaction';
+/**
+ * Edge styling — deliberately **not** "Links". "Data links" is a standard field-config
+ * option, and a section called "Links" beside it would read as being about URLs rather
+ * than about the lines between nodes.
+ */
+export const relationsEdgesCategoryName = 'Edges';
 
 /**
- * The relations family's animation default: **on**, and a Default-tier control rather
- * than an Advanced one.
+ * Reducer used when the panel has no `reduceOptions.calcs`.
  *
- * The reasoning above is about *density*, and a relations panel is not dense in the way
- * that argument is about: a mark is a whole field here, so a graph is tens of marks
- * where a cartesian panel is tens of thousands of points. What the animation buys is
- * also worth more — arcs and ribbons growing into place on load is how a chord or
- * sankey reads as one connected flow rather than a static picture.
+ * **Median**, not `lastNotNull`. A relations mark is a whole field, so the reducer picks
+ * the one number that stands for a node's or an edge's entire timeline — and the last
+ * sample is the one number most sensitive to whatever the series happened to be doing at
+ * the right-hand edge of the time range, including a single scrape gap or spike. A median
+ * is the same shape of answer (one value, same units, robust to outliers) and reads as a
+ * property of the range rather than of its final instant.
  *
- * The force graph's *jiggle* is a separate thing entirely and stays off: that is
- * `force.layoutAnimation`, which draws every simulation step and is unaffected by this.
- * See `RELATIONS_LAYOUT_ANIMATION_DEFAULT`.
+ * A panel that wants the instantaneous reading has a better control for it than a
+ * reducer: the time slider (`RELATIONS_TIME_SLIDER_DEFAULT`).
+ *
+ * Only new panels are affected — Grafana persists a panel-option default into the saved
+ * JSON, so a dashboard already carrying `reduceOptions.calcs` keeps it.
  */
-export const RELATIONS_ANIMATION_ENABLED_DEFAULT = true;
-
-/** Reducer used when the panel has no `reduceOptions.calcs`. */
-export const RELATIONS_CALC_DEFAULT = ReducerID.lastNotNull;
+export const RELATIONS_CALC_DEFAULT = ReducerID.median;
 
 /** Default node diameter in px, used when a node has no `custom.nodeRadius`. */
 export const RELATIONS_NODE_SIZE_DEFAULT = 20;

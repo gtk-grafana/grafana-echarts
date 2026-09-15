@@ -1,7 +1,12 @@
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { getGraphSeries } from 'lib/echarts/relations/options/graph';
-import { getRelationsViewState, resolveRelationsRoam, resolveRelationsZoom } from 'lib/echarts/relations/options/view';
+import {
+  getRelationsViewState,
+  resolveRelationsPan,
+  resolveRelationsRoam,
+  resolveRelationsZoom,
+} from 'lib/echarts/relations/options/view';
 import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { nodeGraph, relationsContext, relationsOptions, relationsTheme } from 'test/relations';
 import { type PanelOptions } from 'types';
@@ -44,20 +49,23 @@ describe('resolveRelationsRoam / resolveRelationsZoom', () => {
   });
 
   /**
-   * A dashboard saved with the superseded single "Zoom and pan" switch keeps both
-   * behaviours. This is the only test of the fallback: `charts/relations.test.ts`
-   * asserted the same thing through `getZoomAction`, which reaches
-   * `resolveRelationsZoom` and so restated this one indirectly. The option-level answer
-   * belongs here; the action-level one is the same fact read through a second layer.
-   * `relationsRoam` is also the one entry on the Advanced-tier allow-list, because the
-   * control it names no longer exists — see `editor/relations/advancedTier.test.ts`.
+   * **Unset means off, with no legacy fallback.**
+   *
+   * Both resolvers used to read a superseded single "Zoom and pan" switch
+   * (`relationsRoam`) when their own key was absent. That was tolerable while zoom and
+   * pan were Advanced and invisible; it became a wrong-state bug when they turned
+   * Default-tier, because a panel carrying only the old key rendered with both *on*
+   * while both switches displayed *off* — neither option was set, and neither carries a
+   * `defaultValue`. The control contradicted the panel.
+   *
+   * The key is deleted rather than migrated: the plugin is unreleased, so no dashboard
+   * outside this repo can be carrying it, and a deliberate break beats a migration path
+   * that has to be maintained forever for zero real dashboards.
    */
-  it('falls back to the superseded relationsRoam switch', () => {
-    expect(resolveRelationsRoam(baseOptions({ relationsRoam: true }))).toBe('move');
-    expect(resolveRelationsZoom(baseOptions({ relationsRoam: true }))).toBe(true);
-    // An explicit new value wins over it, in both directions.
-    expect(resolveRelationsZoom(baseOptions({ relationsRoam: true, relationsZoom: false }))).toBe(false);
-    expect(resolveRelationsRoam(baseOptions({ relationsRoam: true, relationsPan: false }))).toBe(false);
+  it('treats an unset switch as off', () => {
+    expect(resolveRelationsRoam(baseOptions())).toBe(false);
+    expect(resolveRelationsZoom(baseOptions())).toBe(false);
+    expect(resolveRelationsPan(baseOptions())).toBe(false);
   });
 });
 

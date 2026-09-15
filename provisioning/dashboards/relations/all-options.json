@@ -1,0 +1,2289 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "description": "**One panel per panel option that visibly changes what the panel draws**, in the order the options pane lists them. Each sets exactly one option to a non-default value and says in its description what the option does, what the default is, and what to look at \u2014 so every panel here can be read against its neighbours without touching it.\n\nPanels demonstrating an Advanced-tier option also set `editorMode: advanced`: an Advanced value on a panel left in Default mode is reset at render time by `applyEditorModeDefaults`, so the panel would draw the default while claiming to show the option.\n\n**Eight options are deliberately absent**, because a still picture cannot show them \u2014 there would be nothing to compare. `editorMode` changes the options pane rather than the panel; `Animate layout` and `Animation` are motion, and settle to an identical render; `Pan`, `Remember view` and `Draggable nodes` are behaviour and draw nothing until you interact; `Highlight adjacency` and `Tooltip mode` act on hover. Each is unit- or integration-tested instead, and `allOptionsDashboard.test.ts` asserts this list stays exhaustive so a new option cannot go undemoed unnoticed.\n\nLinked option-by-option from `src/modules/relations/parity.md`.",
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "panel-options", "reference"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2024-01-01T00:00:00.000Z",
+    "to": "2024-01-01T00:25:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations \u2014 every panel option",
+  "uid": "echarts-relations-all-options",
+  "version": 1,
+  "weekStart": "",
+  "panels": [
+    {
+      "id": 1,
+      "type": "grafana-echartsrelations-panel",
+      "title": "1. Chart type \u2014 Sankey",
+      "description": "Picks the render variant: Graph, Sankey or Chord. One converter feeds all three, so the same nodes and links are drawn three ways.\n\n**Default:** `graph`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "grafana-echartsrelations-panel",
+      "title": "2. Calculation \u2014 Max, plus Min as a tooltip row",
+      "description": "`calcs[0]` is the one number that stands for a mark. Every calc after it is an extra tooltip row and nothing else \u2014 hover a node to see `Min` listed under `Max`.\n\n\"Show node values\" is on here because that is the **only** way the reducer is visible on a graph: `90` for `inventory` under `max`, against `85` under the `median` default. On a graph the value drives colour (through the field's display processor) and nothing geometric \u2014 it does **not** size the node, which is `custom.nodeRadius` or the panel-level \"Node size\", and it does not widen the edge, which is `custom.lineWidth`. Here the scheme is the classic palette, which colours by index rather than by value, so without a drawn number this panel would show nothing at all.\n\nWhere the value *does* set a size is sankey and chord, whose ribbon and arc thickness ECharts derives from it \u2014 see panels 19-25 and 26-30. Sizing a **graph** node by its value is a gap: `todo/relations-node-size-by-value.md`.\n\nNon-numeric reducers (All values, All unique values, All nulls/zeros) are filtered out of the picker: a mark needs one number.\n\n**Default:** `median`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "reduceOptions": {
+          "calcs": ["max", "min"]
+        },
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "grafana-echartsrelations-panel",
+      "title": "3. Time slider \u2014 on",
+      "description": "Reads every mark at **one timestamp** instead of reducing its rows away, and draws a scrub strip in the panel. Drag it and the weights change.\n\nThe alternative answer to the same question as Calculation, which is why it hides that picker while on, and why it is registered above it.\n\n**Default:** off. Needs ranged data \u2014 the switch hides itself on instant responses, which is why this panel's two queries carry a `time` column.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsTimeSlider": true,
+        "relationsShowEdgeValues": true,
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "time,gateway-->api\n1704067200000,10\n1704067500000,40\n1704067800000,20\n1704068100000,60\n1704068400000,30"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "time,api-->db\n1704067200000,80\n1704067500000,20\n1704067800000,70\n1704068100000,15\n1704068400000,55"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "grafana-echartsrelations-panel",
+      "title": "4. Show node labels \u2014 off",
+      "description": "Draws each node's name beside it. Off here, so the graph is symbols only \u2014 every other label control depends on this one and hides itself when it is off.\n\n**Default:** **on**; an unlabelled topology is hard to read.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeLabels": false
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "grafana-echartsrelations-panel",
+      "title": "5. Show node values \u2014 on",
+      "description": "Adds each node's `calcs[0]` under its name, formatted through that node's own field \u2014 so unit, decimals and value mappings all apply per node.\n\nHides itself on an edges-only response, where every node is derived from an endpoint and carries no stat at all.\n\n**Default:** off: a second label line on every node is a lot of ink.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "grafana-echartsrelations-panel",
+      "title": "6. Hide overlapping labels \u2014 off",
+      "description": "On (the default), a label that would collide with one already drawn is dropped \u2014 the node keeps its symbol, colour and tooltip either way. **Off here**, so all sixteen long service names are drawn and the ring's labels run into each other. That is what a dense graph looks like without it, and why it defaults on.\n\nSixteen nodes on a ring, deliberately. Measured against the default: eight never collide at this panel size, a force layout spreads them far enough that it does not either, and twelve drops only one label \u2014 enough to differ, not enough to do so reliably. Sixteen drops two every time, so the panel is a stable demo rather than an intermittent one.\n\n**Default:** **on**.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsHideOverlappingLabels": false,
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "checkout-service,payments-service,inventory-service,shipping-service,notifications-service,identity-service,search-service,recommendations-service,billing-service,auth-service,catalog-service,pricing-service,fulfilment-service,analytics-service,sessions-service,routing-service\n10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "checkout-service-->payments-service,payments-service-->inventory-service,inventory-service-->shipping-service,shipping-service-->notifications-service,notifications-service-->identity-service,identity-service-->search-service,search-service-->recommendations-service,recommendations-service-->billing-service,billing-service-->auth-service,auth-service-->catalog-service,catalog-service-->pricing-service,pricing-service-->fulfilment-service,fulfilment-service-->analytics-service,analytics-service-->sessions-service,sessions-service-->routing-service,routing-service-->checkout-service\n50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "grafana-echartsrelations-panel",
+      "title": "7. Label overflow \u2014 None",
+      "description": "How a name longer than the label width is handled. **None** here, so each name is drawn in full and runs past the 70px width into its neighbours \u2014 against the `truncate` default, which would cut each one at 70px with an ellipsis.\n\nTwo of the four ECharts modes are not offered. `breakAll` (\"Wrap anywhere\") was dropped in the options reorg for splitting identifier-shaped names mid-word. **\"Wrap\" (`break`) is still offered but does not work** \u2014 measured, it draws one clipped line with no ellipsis, and below ~40px it draws nothing at all. That is why this panel demos `none`: a reference should show a value that does what it says. See `todo/relations-label-wrap-broken.md`.\n\n**Default:** `truncate`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsLabelOverflow": "none",
+        "relationsLabelWidth": 70,
+        "relationsHideOverlappingLabels": false
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "checkout service eu west,payments service eu west,inventory service eu west\n10,50,90"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "checkout service eu west-->payments service eu west,payments service eu west-->inventory service eu west\n100,80"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "grafana-echartsrelations-panel",
+      "title": "8. Label width \u2014 40px",
+      "description": "The px at which the overflow mode above bites. Advanced, because the *mode* is a first question and the exact width is tuning. Hidden when overflow is None, which has no width to bite at.\n\n**Default:** `120`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsLabelWidth": 40
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "a-gateway-service,an-api-service,a-database-service\n10,50,90"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "a-gateway-service-->an-api-service,an-api-service-->a-database-service\n100,80"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "grafana-echartsrelations-panel",
+      "title": "9. Show edge values \u2014 on",
+      "description": "Draws each link's weight on the link itself, formatted through that edge's own field. Filed under **Labels** rather than Edges because it is text drawn on a mark \u2014 the same question the node label switches answer.\n\nGraph and sankey only: a chord ribbon builds no text element.\n\n**Default:** off: one number per link buries a graph of any size.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowEdgeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "grafana-echartsrelations-panel",
+      "title": "10. Layout \u2014 Fixed (a smiley face)",
+      "description": "Where nodes are positioned: Force (physics), Circular (a deterministic ring) or **Fixed** \u2014 ECharts' `layout: 'none'`, where the panel does no placement of its own and draws each node exactly where its coordinates say.\n\nWhich is how 23 nodes and 20 links become a face. Each node carries `custom.fixedX` / `custom.fixedY` as a `byName` override \u2014 a node **is** a field, so its position is ordinary per-mark config: 16 nodes on a ring joined in sequence draw the outline, a 5-node arc joined end to end draws the smile, and the eyes are isolated nodes enlarged by `custom.nodeRadius`. Switch this panel to Force or Circular and it is a graph again \u2014 nothing in the *data* says \"face\".\n\nPinned by overrides rather than by the row form's `fixedx`/`fixedy` columns deliberately: the row form needs the panel-registered transformations API, which is off on hosts where the `grafana.panelPluginTransformations` flag cannot be read \u2014 there the pre-pass never runs and the panel errors. Overrides work everywhere. See `fixed-layout.json` for both routes and for why the coordinate *scale* has to be pixel-ish.\n\n**Fixed is offered only in Advanced mode**, because it cannot be satisfied without those coordinates: a node lacking them is seeded on a ring rather than laid out at `[NaN, NaN]`, which used to blank the panel outright.\n\n**Default:** `force`, unless every node pins coordinates \u2014 then Fixed is inferred.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#F2CC0C"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face00"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 370
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 200
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face01"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 357
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 265
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face02"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 320
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 320
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face03"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 265
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 357
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face04"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 200
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 370
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face05"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 135
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 357
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face06"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 80
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 320
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face07"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 43
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 265
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face08"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 30
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 200
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face09"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 43
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 135
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face10"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 80
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 80
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face11"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 135
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 43
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face12"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 200
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 30
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face13"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 265
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 43
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face14"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 320
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 80
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "face15"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 357
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 135
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "eyeL"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 140
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 142
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 26
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "eyeR"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 260
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 142
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 26
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "smile0"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 286
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 250
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 11
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "smile1"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 252
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 281
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 11
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "smile2"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 200
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 295
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 11
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "smile3"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 148
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 281
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 11
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "smile4"
+            },
+            "properties": [
+              {
+                "id": "custom.fixedX",
+                "value": 114
+              },
+              {
+                "id": "custom.fixedY",
+                "value": 250
+              },
+              {
+                "id": "custom.nodeRadius",
+                "value": 11
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "none",
+        "relationsShowNodeLabels": false,
+        "relationsEdgeArrows": false,
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "face00,face01,face02,face03,face04,face05,face06,face07,face08,face09,face10,face11,face12,face13,face14,face15,eyeL,eyeR,smile0,smile1,smile2,smile3,smile4\n1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "face00-->face01,face01-->face02,face02-->face03,face03-->face04,face04-->face05,face05-->face06,face06-->face07,face07-->face08,face08-->face09,face09-->face10,face10-->face11,face11-->face12,face12-->face13,face13-->face14,face14-->face15,face15-->face00,smile0-->smile1,smile1-->smile2,smile2-->smile3,smile3-->smile4\n1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "grafana-echartsrelations-panel",
+      "title": "11. Node size \u2014 45px",
+      "description": "Node diameter in px. A node supplying `custom.nodeRadius` keeps its own size and ignores this.\n\nGraph-only: a sankey node is a rectangle whose thickness is `nodeWidth` and whose length is its flow.\n\n**Default:** `20`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsNodeSize": 45
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "grafana-echartsrelations-panel",
+      "title": "12. Repulsion \u2014 1200",
+      "description": "How hard force-layout nodes push each other apart. Far above ECharts' own `[0, 50]`, whose default packs a real topology into a knot with every label on top of every other.\n\nForce layout only \u2014 hidden under Circular and Fixed.\n\n**Default:** `400`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 30
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "relationsLayout": "force",
+        "relationsRepulsion": 1200
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "grafana-echartsrelations-panel",
+      "title": "13. Edge length \u2014 40",
+      "description": "The target link length in px the simulation pulls toward. Low here, so the graph draws tight; likewise well above ECharts' 30 by default.\n\n**Default:** `200`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "relationsLayout": "force",
+        "relationsEdgeLength": 40
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "grafana-echartsrelations-panel",
+      "title": "14. Gravity \u2014 0.5",
+      "description": "Pull toward the centre of the panel. Higher keeps the graph compact instead of letting repulsion push it to the edges.\n\n**Default:** unset, so ECharts' own value applies.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "relationsLayout": "force",
+        "relationsGravity": 0.5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "grafana-echartsrelations-panel",
+      "title": "15. Zoom \u2014 on",
+      "description": "Draws zoom in / out / reset buttons in the panel corner. They dispatch the ECharts roam *action* rather than binding the scroll wheel \u2014 a panel that captured the wheel would be one the dashboard could not be scrolled past.\n\nDefault-tier, because on a topology that does not fit the panel this is how the rest of the data is reachable, not expert tuning.\n\n**Default:** off. Not offered on chord, which has no view.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 40
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsZoom": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "grafana-echartsrelations-panel",
+      "title": "16. Link color \u2014 Target",
+      "description": "Which endpoint a link inherits its colour from: Source, Target, or a Source-to-Target Gradient. An edge whose own field carries a non-palette colour (a fixed colour, or a by-value scheme such as thresholds) overrides this per edge.\n\nGradient only truly blends on a sankey and on a graph under Fixed \u2014 elsewhere the picker relabels it to say it draws as Source.\n\n**Default:** `gradient`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 50
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsLinkColor": "target"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "grafana-echartsrelations-panel",
+      "title": "17. Edge arrows \u2014 off",
+      "description": "On (the default), an arrowhead is drawn at each link's target end. Off here, so the links are plain lines and the direction is invisible.\n\nDefault-tier: an edge is directed by contract, and on a force layout the arrowhead is the *only* thing that says which way \u2014 a source-to-target gradient cannot be oriented without knowing the node positions.\n\n**Default:** **on**. Graph-only; a sankey ribbon carries direction by shape.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 50
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsEdgeArrows": false
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "grafana-echartsrelations-panel",
+      "title": "18. Link curveness \u2014 0.4",
+      "description": "Curves the links, which separates the two directions of a bidirectional pair so both are visible instead of one drawing over the other.\n\n**Default:** unset (straight, ECharts' 0). Graph-only \u2014 the sankey has its own ribbon curveness, because its ECharts default differs.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 50
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsCurveness": 0.4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "type": "grafana-echartsrelations-panel",
+      "title": "19. Node alignment \u2014 Justify",
+      "description": "Which column a node with *slack* lands in. `cache` here is a leaf hanging off `gateway` while the chain runs two more columns: Justify pushes it to the last column, Left (the default) keeps it in its earliest.\n\nDefaulted to Left against ECharts' Justify, so a node's column means its depth in the flow \u2014 under Justify a leaf two steps in is drawn beside leaves five steps in.\n\n**Default:** `left`. Registered before Flow direction because it decides what a column *means*.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 60
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsSankeyNodeAlign": "justify"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,gateway-->cache\n100,90,30"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "type": "grafana-echartsrelations-panel",
+      "title": "20. Flow direction \u2014 Vertical",
+      "description": "Lays the node columns out top-to-bottom instead of left-to-right. The node label placement follows, which ECharts' does not \u2014 it places a sankey label `right` in both orientations, so vertically the label would be drawn over the next node's fill.\n\n**Default:** `horizontal`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 60
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsSankeyOrient": "vertical"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "type": "grafana-echartsrelations-panel",
+      "title": "21. Node width \u2014 40px",
+      "description": "The thickness of each sankey node bar, measured across the flow \u2014 so horizontally it is the bar's width, and under a vertical flow direction it is its height.\n\n**Default:** `20` (ECharts' own).",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 60
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyNodeWidth": 40
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "type": "grafana-echartsrelations-panel",
+      "title": "22. Node gap \u2014 30px",
+      "description": "The vertical gap between node bars sharing a column. Wide here, so the bars in the middle column are pushed apart and the ribbons have to fan out to reach them \u2014 the main lever when a column has enough nodes that their labels collide.\n\n**Default:** `8` (ECharts' own).",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 70
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyNodeGap": 30
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "type": "grafana-echartsrelations-panel",
+      "title": "23. Ribbon curveness \u2014 0",
+      "description": "The bezier control-point placement of the ribbons. At 0 the columns are joined by straight-sided bands instead of S-curves.\n\nA separate option from the graph's Link curveness because the two have **different ECharts defaults** \u2014 0.5 here, 0 there \u2014 so one shared option could not omit its key at both.\n\n**Default:** `0.5`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 70
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyCurveness": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "type": "grafana-echartsrelations-panel",
+      "title": "24. Ribbon opacity \u2014 0.8",
+      "description": "Ribbon translucency. Overlapping ribbons are the norm in a sankey, so this is its main legibility lever; at 0.8 they are nearly solid and hide each other.\n\n**Default:** `0.2`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 70
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyLinkOpacity": 0.8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "type": "grafana-echartsrelations-panel",
+      "title": "25. Layout iterations \u2014 0",
+      "description": "How many relaxation passes refine node positions to reduce ribbon crossings. At 0 the first-guess layout is drawn.\n\nNote ECharts disables iteration entirely when any node's computed value is 0, so this can be inert on data with a zero-flow node.\n\n**Default:** `32`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 80
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "sankey",
+        "relationsSankeyLayoutIterations": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "type": "grafana-echartsrelations-panel",
+      "title": "26. Start angle \u2014 0\u00b0",
+      "description": "Where the ring begins, in degrees. 90 is twelve o'clock; 0 here puts the first arc at three o'clock.\n\n**Default:** `90`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 80
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordStartAngle": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "type": "grafana-echartsrelations-panel",
+      "title": "27. Clockwise \u2014 off",
+      "description": "The direction arcs are laid out around the ring from the start angle. Off here, so the arcs run counter-clockwise and the ring's reading order reverses \u2014 compare the node order against any other chord panel.\n\n**Default:** **on**.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 80
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordClockwise": false
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "type": "grafana-echartsrelations-panel",
+      "title": "28. Arc gap \u2014 12\u00b0",
+      "description": "The angular gap between adjacent node arcs \u2014 the chord analogue of a node gap, and **angular rather than pixel-based**. `series.chord` has no `nodeWidth` or `nodeGap` at all; assuming them by analogy with the sankey would wire two options that silently do nothing.\n\n**Default:** `3`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 90
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordPadAngle": 12
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "type": "grafana-echartsrelations-panel",
+      "title": "29. Minimum arc angle \u2014 20\u00b0",
+      "description": "A floor on each arc's angle, so a low-flow node stays visible instead of collapsing to nothing. Mirrors the pie's minimum slice angle.\n\n**Default:** `0`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 90
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordMinAngle": 20
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "type": "grafana-echartsrelations-panel",
+      "title": "30. Ribbon opacity \u2014 0.7",
+      "description": "Ribbon translucency. A chord is dense by nature \u2014 every ribbon crosses the ring \u2014 so this is its main legibility lever.\n\n**Default:** `0.2`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 90
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "editorMode": "advanced",
+        "seriesType": "chord",
+        "relationsChordLinkOpacity": 0.7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "type": "grafana-echartsrelations-panel",
+      "title": "31. Legend \u2014 Table, placed right",
+      "description": "Grafana's own legend, one entry per node. A legend entry **is** a field here, so its colour picker writes a real field override and its visibility toggle hides that node.\n\nLegend calcs are deliberately not offered: a mark is already reduced to one value by Calculation, so every calc would print that same number again.\n\n**Default:** visible, List, bottom.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    }
+  ]
+}

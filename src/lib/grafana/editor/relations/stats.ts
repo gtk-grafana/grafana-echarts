@@ -10,9 +10,18 @@ import { RELATIONS_CALC_DEFAULT } from 'editor/relations/constants';
  * The mark reducers, applying to **nodes and edges alike** — a mark is a mark — which is
  * what the description promises and what `readNodes` / `readLinks` deliver.
  *
- * `calcs[0]` is the **main stat** and is the only one with a job outside the tooltip: it is
- * the number that sizes a node, colours it, and weighs an edge or a sankey ribbon. A chart
- * has one geometry, so that slot is singular by construction. Every calculation after it is a
+ * `calcs[0]` is the **main stat** and is the only one with a job outside the tooltip: it
+ * colours every mark (`colorOf` reads `field.display(value).color`) and, on a sankey or
+ * chord, sets ribbon and arc thickness, which ECharts derives from the item value. A chart
+ * has one geometry, so that slot is singular by construction.
+ *
+ * **It does not size a graph node or widen a graph edge**, which this comment claimed for a
+ * long time and which the option's own description repeated. `toNodeItems` emits
+ * `symbolSize: node.radius ?? relationsNodeSize` and `toLinkItems` emits
+ * `lineStyle.width: link.width` — `custom.nodeRadius` and `custom.lineWidth`, per-mark field
+ * config, never the reduced value. So on a graph, changing the reducer moves nothing
+ * geometric; it changes colours, labels and tooltip rows. Sizing a node by its value is a
+ * real gap rather than a wrong comment — see `todo/relations-node-size-by-value.md`. Every calculation after it is a
  * tooltip row and nothing else, so **as many as the user wants** — the picker had a maximum
  * of two and the reader silently dropped `calcs[2..]`, which is the pair of things this
  * replaces. See `normalizeRelationsCalcs` and `secondaryStatsOf`.
@@ -31,6 +40,12 @@ import { RELATIONS_CALC_DEFAULT } from 'editor/relations/constants';
  * other answer to the same question: at one selected row there is nothing left to
  * reduce, every reducer agrees, and leaving the picker up would read as a control that
  * does nothing. The stored `calcs` survive the toggle, so switching back restores them.
+ * The slider is registered *before* this picker for that reason — it is the prior
+ * question ("reduce the range, or read one instant?"), and the picker is what it reveals.
+ *
+ * The section is "Value", not core's "Value options": the family now has a "Labels"
+ * section beside it, and the two read as a pair. Nothing else in Grafana keys off the
+ * borrowed `stat.*` category string.
  */
 export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<PanelOptions>): void {
   builder.addCustomEditor({
@@ -39,9 +54,9 @@ export function addRelationsStatOptions(builder: PanelOptionsEditorBuilder<Panel
     name: t('relations.stats.name-calculation', 'Calculation'),
     description: t(
       'relations.stats.description-calculation',
-      'How each node and edge reduces its values. The first sizes and colours the mark; the rest are extra tooltip rows'
+      'How each node and edge reduces its values. The first colours the mark and sizes sankey and chord ribbons; the rest are extra tooltip rows'
     ),
-    category: [t('stat.add-standard-data-reduce-options.category-value-options', 'Value options')],
+    category: [t('relations.category-value', 'Value')],
     editor: RelationsStatsPicker,
     defaultValue: [RELATIONS_CALC_DEFAULT],
     settings: { allowMultiple: true },

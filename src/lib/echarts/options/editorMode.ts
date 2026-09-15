@@ -20,6 +20,7 @@ import { type PanelOptions } from 'types';
 import {
   ADVANCED_CHORD_DEFAULTS,
   ADVANCED_RELATIONS_DEFAULTS,
+  ADVANCED_RELATIONS_SHARED_DEFAULTS,
   ADVANCED_SANKEY_DEFAULTS,
 } from 'lib/echarts/relations/options/advancedDefaults';
 /**
@@ -85,6 +86,7 @@ export function applyEditorModeDefaults(seriesType: SeriesType, options: PanelOp
       ...ADVANCED_RELATIONS_DEFAULTS,
       ...ADVANCED_SANKEY_DEFAULTS,
       ...ADVANCED_CHORD_DEFAULTS,
+      ...ADVANCED_RELATIONS_SHARED_DEFAULTS,
     });
   }
   if (isStreamSeriesType(seriesType)) {

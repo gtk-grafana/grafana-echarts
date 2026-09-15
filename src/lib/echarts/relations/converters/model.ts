@@ -22,8 +22,9 @@ import { type GraphEndpointKeys } from 'lib/echarts/relations/converters/contrac
  * One **extra** stat a mark reports, beyond the main one — a tooltip row and nothing else.
  *
  * `reduceOptions.calcs[0]` is the main stat and is structurally singular: it is the number
- * that sizes a node, colours it, and weighs an edge or a sankey ribbon, and a chart has one
- * geometry. Every reducer *after* the first has nowhere to go but the tooltip, so there is no
+ * that colours every mark, and on a sankey or chord it is the ribbon and arc thickness — ECharts derives those from the item value, and a chart has one geometry. (It does **not** size a graph node or
+ * widen a graph edge — those are `custom.nodeRadius` and `custom.lineWidth`. See
+ * `todo/relations-node-size-by-value.md`.) Every reducer *after* the first has nowhere to go but the tooltip, so there is no
  * reason to cap how many there are — one row each. See `normalizeRelationsCalcs`.
  *
  * Carried as a `{calc, value}` pair rather than a bare list of strings so a row cannot be

@@ -100,8 +100,10 @@ describe('frameToGraphWide — edges', () => {
 
     expect(frameToGraphWide([frame], theme, { calcs: ['max'] })!.links[0].value).toBe(9);
     expect(frameToGraphWide([frame], theme, { calcs: ['sum'] })!.links[0].value).toBe(12);
-    // Default is lastNotNull.
-    expect(frameToGraphWide([frame], theme)!.links[0].value).toBe(9);
+    // Default is median (`RELATIONS_CALC_DEFAULT`) — of [1, 2, 9], so 2. It used to be
+    // `lastNotNull`, which would give 9 here and is the reducer most sensitive to
+    // whatever the series happened to be doing at the right-hand edge of the range.
+    expect(frameToGraphWide([frame], theme)!.links[0].value).toBe(2);
   });
 
   it('carries the owning field on every link', () => {
@@ -598,7 +600,7 @@ describe('reduceOptions', () => {
     });
 
   /**
-   * Nothing is truncated. Only `calcs[0]` has a job outside the tooltip — it sizes a node and
+   * Nothing is truncated. Only `calcs[0]` has a job outside the tooltip — it colours a mark and
    * weighs an edge — and every calc after it is a row, so a third and fourth are as usable as
    * the second. This used to drop `calcs[2..]` silently.
    */

@@ -15,10 +15,14 @@ import { type SeriesType } from 'editor/types';
 export const chordSeriesTypes: SeriesType[] = ['chord'];
 
 /**
- * Editor category grouping the chord layout options. Like the funnel's and sankey's,
- * chord has no core-parity baseline, so its controls get their own category rather
- * than the shared "Advanced" one — except that chord's are *all* Advanced-gated
- * beyond the shared label switch, so this category holds only the ring geometry.
+ * Editor category grouping the chord ring geometry. Like the funnel's and sankey's,
+ * chord has no core-parity baseline, so its controls get their own panel-specific
+ * category rather than the shared "Advanced" one.
+ *
+ * Every option in it *is* Advanced-gated, so the section renders only in Advanced mode
+ * — unlike "Sankey", whose two layout controls are Default-tier. None of the ring
+ * geometry is needed to read the chart, and there is no core option any of it is at
+ * parity with. See `addRelationsChordOptions`.
  */
 export const chordCategoryName = 'Chord';
 
