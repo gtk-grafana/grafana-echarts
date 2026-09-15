@@ -25,8 +25,9 @@ import { numberAt } from 'lib/echarts/relations/converters/toGraphWide';
  * rest are extra tooltip rows.
  *
  * Only the first is structurally singular, and it is singular for a reason a cap cannot be
- * put on the others: `calcs[0]` is the number that sizes a node, colours it, and weighs an
- * edge or a sankey ribbon — a chart has one geometry. Everything after it has nowhere to go
+ * put on the others: `calcs[0]` is the number that colours every mark, and on a sankey or chord it is the ribbon and arc thickness — ECharts derives those from the item value — a chart has one
+ * geometry. (Not a graph node's size nor a graph edge's width; both of those are per-mark
+ * field config. See `todo/relations-node-size-by-value.md`.) Everything after it has nowhere to go
  * but the tooltip, which has as many rows as it needs, so nothing is truncated.
  *
  * `reduceOptions.values` is not honoured: "all values" would mean one mark per row, and a

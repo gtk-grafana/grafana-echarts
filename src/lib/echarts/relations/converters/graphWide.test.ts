@@ -600,7 +600,7 @@ describe('reduceOptions', () => {
     });
 
   /**
-   * Nothing is truncated. Only `calcs[0]` has a job outside the tooltip — it sizes a node and
+   * Nothing is truncated. Only `calcs[0]` has a job outside the tooltip — it colours a mark and
    * weighs an edge — and every calc after it is a row, so a third and fourth are as usable as
    * the second. This used to drop `calcs[2..]` silently.
    */
