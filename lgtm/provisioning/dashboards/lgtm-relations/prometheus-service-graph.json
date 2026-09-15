@@ -13,7 +13,7 @@
       "id": 1,
       "type": "text",
       "gridPos": {
-        "h": 25,
+        "h": 12,
         "w": 24,
         "x": 0,
         "y": 0
@@ -21,14 +21,14 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "# Relations charts from Prometheus\n\nTempo writes the metric `traces_service_graph_request_total{client, server}` to Prometheus. The `client` and `server` labels identify the endpoints of each service call.\n\nThe relations panel recognizes these endpoint label pairs:\n\n- `source` and `target`\n- `client` and `server`\n- `src` and `dst`\n- `from` and `to`\n\n## Route A: ranged series\n\nA time series query returns one `Value` field for each edge. The field keeps its `client` and `server` labels.\n\nThe panel reads those labels directly, so the Transform tab can stay empty. Calculation controls how the panel reduces each ranged field to one edge value.\n\nAll edge fields are named `Value`. A field override by name applies to every edge.\n\n## Route B: instant rows\n\nAn instant table query returns one row for each edge. `label_join` creates an `edge` label such as `grafana-->prometheus`.\n\nUse Organize fields to put `edge` before the endpoint columns. Then use Rows to fields to create one named field for each edge.\n\nThe `client` and `server` columns become labels on each new field. You can use the unique field name in an edge override."
+        "content": "# Relations charts from Prometheus\n\nTempo writes the metric `traces_service_graph_request_total{client, server}` to Prometheus. The `client` and `server` labels identify the endpoints of each service call.\n\nThe relations panel recognizes these endpoint label pairs:\n\n- `source` and `target`\n- `client` and `server`\n- `src` and `dst`\n- `from` and `to`\n\n## Route A: ranged series\n\nA time series query returns one `Value` field for each edge. The field keeps its `client` and `server` labels.\n\nThe panel reads those labels directly, so the Transform tab can stay empty. Calculation controls how the panel reduces each ranged field to one edge value.\n\n## Route B: instant rows\n\nAn instant table query returns one row for each edge. `label_join` creates an `edge` label such as `grafana-->prometheus`.\n\nUse Organize fields to put `edge` before the endpoint columns. Then use Rows to fields to create one named field for each edge.\n\nKeep the original endpoint labels when a query copies them to `source` and `target`. The panel uses their matching values to detect filter names.\n\nEach relations panel enables ad hoc filters. Pin a tooltip to add a filter to the Ad hoc filters variable."
       }
     },
     {
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Route A — service dependency map, no transformations",
-      "description": "This graph uses Route A. Each ranged `Value` field keeps its `client` and `server` labels, so the panel reads every edge without transformations.\n\nThe time slider selects one timestamp from the ranged data. Edge values change as you move the slider.\n\nThe query supplies no node fields, so the panel derives the nodes from endpoints. Derived nodes have no values to change with the slider.",
+      "description": "This graph uses Route A. Each ranged `Value` field keeps its `client` and `server` labels, so the panel reads every edge without transformations.\n\nThe panel also uses these labels as the ad hoc filter names. The time slider selects one timestamp from the ranged data.\n\nThe query supplies no node fields, so the panel derives the nodes from endpoints. Derived nodes have no values to change with the slider.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -37,7 +37,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 25
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -45,7 +45,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": []
       },
@@ -93,7 +94,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "Route B — the same graph, with per-edge ids",
-      "description": "This graph uses an instant table query. `label_join` creates a unique `edge` label, and Organize fields puts it first.\n\nRows to fields creates one field named `client-->server` for each edge. The overrides can therefore style or link one edge without changing the others.\n\nThe query calculates one value over the selected range. Calculation does not change a field that contains one value.",
+      "description": "This graph uses an instant table query. `label_join` creates a unique `edge` label, and Organize fields puts it first.\n\nRows to fields creates one field named `client-->server` for each edge. It keeps the `client` and `server` columns as labels for ad hoc filters.\n\nThe overrides can style or link one edge without changing the others. The query calculates one value over the selected range.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -102,7 +103,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 25
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -110,7 +111,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": [
           {
@@ -240,7 +242,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 37
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -249,6 +251,7 @@
           },
           "unit": "percentunit",
           "decimals": 3,
+          "filterable": true,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -409,7 +412,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Span metrics: service → operation — sankey",
-      "description": "This Sankey chart uses `traces_spanmetrics_calls_total{service, span_name}`. Each edge connects a service to one server operation.\n\nThe query keeps only server spans and limits the result to ten edges. It uses an instant time series query so `topk(10, …)` returns ten series for the selected range.\n\nThe query adds `source` and `target` labels, so the panel needs no transformations. The service and operation sets are separate, which makes the graph acyclic.",
+      "description": "This Sankey chart uses `traces_spanmetrics_calls_total{service, span_name}`. Each edge connects a service to one server operation.\n\nThe query adds `source` and `target` labels. Its outer aggregation keeps `service` and `span_name` so the panel detects the ad hoc filter names.\n\nThe query keeps only server spans and limits the result to ten edges. The service and operation sets are separate, which makes the graph acyclic.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -418,7 +421,7 @@
         "h": 13,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 36
       },
       "fieldConfig": {
         "defaults": {
@@ -426,7 +429,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": []
       },
@@ -462,7 +466,7 @@
             "uid": "lgtm-prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(10,\n  sum by (source, target) (\n    label_replace(\n      label_replace(\n        sum by (service, span_name) (\n          rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[$__range])\n        ),\n        \"source\", \"$1\", \"service\", \"(.*)\"\n      ),\n      \"target\", \"$1\", \"span_name\", \"(.*)\"\n    )\n  )\n)",
+          "expr": "topk(10,\n  sum by (source, target, service, span_name) (\n    label_replace(\n      label_replace(\n        sum by (service, span_name) (\n          rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[$__range])\n        ),\n        \"source\", \"$1\", \"service\", \"(.*)\"\n      ),\n      \"target\", \"$1\", \"span_name\", \"(.*)\"\n    )\n  )\n)",
           "format": "time_series",
           "instant": true,
           "range": false,
@@ -484,7 +488,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 37
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -492,7 +496,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": []
       },
@@ -546,7 +551,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 49
       },
       "fieldConfig": {
         "defaults": {
@@ -593,7 +598,19 @@
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "lgtm", "prometheus", "live-data"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "filters",
+        "label": "Ad hoc filters",
+        "type": "adhoc",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "lgtm-prometheus"
+        },
+        "filters": [],
+        "hide": 0
+      }
+    ]
   },
   "time": {
     "from": "now-1h",

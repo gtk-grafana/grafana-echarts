@@ -13,7 +13,7 @@
       "id": 1,
       "type": "text",
       "gridPos": {
-        "h": 20,
+        "h": 13,
         "w": 24,
         "x": 0,
         "y": 0
@@ -21,14 +21,14 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "# Relations charts from Loki logs\n\nThe relations panel needs one field for each edge. Each edge must identify its source and target.\n\nThese examples use the following Loki values:\n\n| Value | Purpose |\n| --- | --- |\n| `service_name` | Identifies the service that wrote the log line. |\n| `detected_level` | Identifies the log level that Loki detected. |\n| `logger` | Identifies the Grafana logger after `| logfmt` parses the line. |\n| `job=\"lgtm/docker\"` | Selects the container log streams for this stack. |\n\n## Route A: ranged series\n\nA ranged LogQL metric query returns one `Value` field for each series. Use `label_format` to add `source` and `target` labels to that field.\n\nThe panel reads each labeled field as an edge. This route does not need a transformation.\n\nAll edges keep the field name `Value`. A field override by name therefore applies to every edge.\n\n## Route B: instant rows\n\nAn instant query returns one row for each series. Use `label_format` to create a unique `edge` label.\n\nUse Organize fields to put `edge` first and rename the endpoint columns to `source` and `target`. Then use Rows to fields.\n\nThis route creates a named field for each edge. You can use the field name in an override.\n\nThe charts count log lines in the selected time range. A quiet stack can produce few or no edges."
+        "content": "# Relations charts from Loki logs\n\nThe relations panel needs one field for each edge. Each edge must identify its source and target.\n\nThese examples use the following Loki values:\n\n| Value | Purpose |\n| --- | --- |\n| `service_name` | Identifies the service that wrote the log line. |\n| `detected_level` | Identifies the log level that Loki detected. |\n| `logger` | Identifies the Grafana logger after `| logfmt` parses the line. |\n| `job=\"lgtm/docker\"` | Selects the container log streams for this stack. |\n\n## Route A: ranged series\n\nA ranged LogQL metric query returns one `Value` field for each series. Use `label_format` to add `source` and `target` labels to that field.\n\nKeep the original endpoint labels in the outer aggregation. The panel uses their matching values to detect the filter names.\n\nThe panel reads each labeled field as an edge. This route does not need a transformation.\n\n## Route B: instant rows\n\nAn instant query returns one row for each series. Use `label_format` to create a unique `edge` label.\n\nUse Organize fields to put `edge` first and rename the endpoint columns to `source` and `target`. Keep the original endpoint columns. Then use Rows to fields.\n\nThis route creates a named field for each edge. You can use the field name in an override.\n\nEach relations panel enables ad hoc filters. Pin a tooltip to add a filter to the Ad hoc filters variable."
       }
     },
     {
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Route A — service → level, no transformations",
-      "description": "This Sankey chart groups log lines by service and detected level. The ranged query adds `source` and `target` labels with `label_format`.\n\nThe Transform tab is empty because the panel reads the labels directly. The Sum calculation adds the counts from all time buckets.\n\nNode values are off because the query supplies edge values only. A derived node has no service total.",
+      "description": "This Sankey chart groups log lines by service and detected level. The ranged query adds `source` and `target` labels with `label_format`.\n\nThe outer aggregation keeps `service_name` and `detected_level`. The panel uses these original labels for ad hoc filters.\n\nThe Transform tab is empty because the panel reads the labels directly. The Sum calculation adds the counts from all time buckets.\n\nNode values are off because the query supplies edge values only. A derived node has no service total.",
       "datasource": {
         "type": "loki",
         "uid": "lgtm-loki"
@@ -37,7 +37,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 20
+        "y": 13
       },
       "fieldConfig": {
         "defaults": {
@@ -45,7 +45,8 @@
             "mode": "palette-classic"
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true
         },
         "overrides": [
           {
@@ -113,7 +114,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "sum by (source, target) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | label_format source=service_name, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "expr": "sum by (source, target, service_name, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | label_format source=service_name, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
           "legendFormat": "{{source}}-->{{target}}"
         }
       ],
@@ -123,7 +124,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "Route B — service → logger, with per-edge ids",
-      "description": "This graph uses an instant query and creates an `edge` label in LogQL. Organize fields puts `edge` first and renames `src` and `dst` to `source` and `target`.\n\nRows to fields creates one named field for each edge. The `grafana-->migrator` override changes only that edge.",
+      "description": "This graph uses an instant query and creates an `edge` label in LogQL. Organize fields puts `edge` first and renames `src` and `dst` to `source` and `target`.\n\nThe query and transformation keep `service_name` and `logger`. The panel uses these original endpoint labels for ad hoc filters.\n\nRows to fields creates one named field for each edge. The `grafana-->migrator` override changes only that edge.",
       "datasource": {
         "type": "loki",
         "uid": "lgtm-loki"
@@ -132,7 +133,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 20
+        "y": 13
       },
       "fieldConfig": {
         "defaults": {
@@ -140,7 +141,8 @@
             "mode": "palette-classic"
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true
         },
         "overrides": [
           {
@@ -195,7 +197,7 @@
           },
           "editorMode": "code",
           "queryType": "instant",
-          "expr": "topk(12,\n  sum by (edge, src, dst) (\n    count_over_time(\n      {job=\"lgtm/docker\"} | logfmt\n        | label_format src=service_name, dst=logger\n        | dst != \"\"\n        | label_format edge=`{{.src}}-->{{.dst}}`\n      [$__range]\n    )\n  )\n)",
+          "expr": "topk(12,\n  sum by (edge, src, dst, service_name, logger) (\n    count_over_time(\n      {job=\"lgtm/docker\"} | logfmt\n        | label_format src=service_name, dst=logger\n        | dst != \"\"\n        | label_format edge=`{{.src}}-->{{.dst}}`\n      [$__range]\n    )\n  )\n)",
           "legendFormat": "__auto"
         }
       ],
@@ -210,7 +212,9 @@
               "edge": 0,
               "src": 1,
               "dst": 2,
-              "Value #A": 3
+              "service_name": 3,
+              "logger": 4,
+              "Value #A": 5
             },
             "renameByName": {
               "src": "source",
@@ -229,7 +233,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "Three tiers from two queries — grafana → logger → level",
-      "description": "This Sankey chart combines two ranged queries. Query A supplies `service → logger` edges, and query B supplies `logger → level` edges.\n\nBoth queries use `source` and `target` labels, so the panel combines their frames without transformations. The logger allow-list keeps the middle column stable across the selected time range.\n\nSome logger lines have no detected level. Their inbound and outbound totals can differ.",
+      "description": "This Sankey chart combines two ranged queries. Query A supplies `service → logger` edges, and query B supplies `logger → level` edges.\n\nBoth queries keep their original endpoint labels after they add `source` and `target`. The panel detects the correct ad hoc filter names for each edge.\n\nThe logger allow-list keeps the middle column stable across the selected time range. Some logger lines have no detected level, so the totals can differ.",
       "datasource": {
         "type": "loki",
         "uid": "lgtm-loki"
@@ -238,7 +242,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 25
       },
       "fieldConfig": {
         "defaults": {
@@ -246,7 +250,8 @@
             "mode": "palette-classic"
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true
         },
         "overrides": []
       },
@@ -283,7 +288,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "sum by (source, target) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=service_name, target=logger\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "expr": "sum by (source, target, service_name, logger) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=service_name, target=logger\n      | target != \"\"\n    [$__auto]\n  )\n)",
           "legendFormat": "{{source}}-->{{target}}"
         },
         {
@@ -294,7 +299,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "sum by (source, target) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=logger, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "expr": "sum by (source, target, logger, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\", service_name=\"grafana\"} | logfmt\n      | logger =~ `migrator|authn.service|resource-migrator|tsdb.loki|context|backgroundsvcs.managerAdapter`\n      | label_format source=logger, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
           "legendFormat": "{{source}}-->{{target}}"
         }
       ],
@@ -304,7 +309,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Service × level as a matrix — chord",
-      "description": "This chord chart uses the same service-to-level query as the Sankey chart. Arc length shows the total for each service or level.\n\nThe `error` and `warn` overrides use edge display names from `legendFormat`. Link color comes from the target node.",
+      "description": "This chord chart uses the same service-to-level query as the Sankey chart. The query keeps the original endpoint labels for ad hoc filters.\n\nArc length shows the total for each service or level. The `error` and `warn` overrides use edge display names from `legendFormat`. Link color comes from the target node.",
       "datasource": {
         "type": "loki",
         "uid": "lgtm-loki"
@@ -313,7 +318,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 46
+        "y": 39
       },
       "fieldConfig": {
         "defaults": {
@@ -321,7 +326,8 @@
             "mode": "palette-classic"
           },
           "unit": "short",
-          "decimals": 0
+          "decimals": 0,
+          "filterable": true
         },
         "overrides": [
           {
@@ -385,7 +391,7 @@
           },
           "editorMode": "code",
           "queryType": "range",
-          "expr": "sum by (source, target) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | label_format source=service_name, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
+          "expr": "sum by (source, target, service_name, detected_level) (\n  count_over_time(\n    {job=\"lgtm/docker\"}\n      | label_format source=service_name, target=detected_level\n      | target != \"\"\n    [$__auto]\n  )\n)",
           "legendFormat": "{{source}}-->{{target}}"
         }
       ],
@@ -404,7 +410,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 58
+        "y": 51
       },
       "fieldConfig": {
         "defaults": {},
@@ -440,7 +446,19 @@
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "lgtm", "loki", "live-data"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "filters",
+        "label": "Ad hoc filters",
+        "type": "adhoc",
+        "datasource": {
+          "type": "loki",
+          "uid": "lgtm-loki"
+        },
+        "filters": [],
+        "hide": 0
+      }
+    ]
   },
   "time": {
     "from": "now-1h",

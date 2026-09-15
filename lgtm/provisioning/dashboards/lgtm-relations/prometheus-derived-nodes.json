@@ -12,7 +12,19 @@
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "lgtm", "prometheus", "live-data", "derived-nodes"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "filters",
+        "label": "Ad hoc filters",
+        "type": "adhoc",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "lgtm-prometheus"
+        },
+        "filters": [],
+        "hide": 0
+      }
+    ]
   },
   "time": {
     "from": "now-1h",
@@ -29,7 +41,7 @@
       "id": 1,
       "type": "text",
       "gridPos": {
-        "h": 14,
+        "h": 10,
         "w": 24,
         "x": 0,
         "y": 0
@@ -37,14 +49,14 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "# Derived nodes\n\nA derived node is a node that the panel creates from an edge endpoint. The query does not supply a separate field for that node.\n\nThe metric `traces_service_graph_request_total{client, server}` returns one series for each edge. The `client` and `server` labels identify the nodes at both ends.\n\nThe panel can draw all endpoint nodes without a node query. However, Grafana field overrides need a node field before the panel renders.\n\nThis dashboard compares three cases:\n\n| Panel | Case |\n| --- | --- |\n| 2 | The graph with no node overrides |\n| 3 | The same graph with three node overrides |\n| 4 | Node values when the query supplies edge values only |\n\nIn this dashboard, the data path does not expose derived node fields to field overrides. The hide override still works because the panel can match the derived node by name."
+        "content": "# Derived nodes\n\nA derived node is a node that the panel creates from an edge endpoint. The query does not supply a separate field for that node.\n\nThe metric `traces_service_graph_request_total{client, server}` returns one series for each edge. The `client` and `server` labels identify the nodes at both ends.\n\nThe panel can draw all endpoint nodes without a node query. However, Grafana field overrides need a node field before the panel renders.\n\nThis dashboard compares three cases:\n\n| Panel | Case |\n| --- | --- |\n| 2 | The graph with no node overrides |\n| 3 | The same graph with three node overrides |\n| 4 | Node values when the query supplies edge values only |\n\nEach panel keeps the original endpoint labels and enables ad hoc filters. Pin a tooltip to add a filter to the Ad hoc filters variable.\n\nThe data path does not expose derived node fields to field overrides. The hide override still works because the panel can match the derived node by name."
       }
     },
     {
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Control — the live service graph, nothing configured",
-      "description": "The query returns one ranged series for each edge. The `client` and `server` labels identify the endpoints, so the panel does not need label renames.\n\nEvery node is derived because the query returns no node fields. The `prometheus → prometheus` edge is a self-loop.\n\nTempo uses `user` as a virtual node for requests that have no client span. A virtual node is part of the data, while a derived node describes how the panel creates a mark.",
+      "description": "The query returns one ranged series for each edge. The `client` and `server` labels identify the endpoints and the ad hoc filter names.\n\nEvery node is derived because the query returns no node fields. The `prometheus → prometheus` edge is a self-loop.\n\nTempo uses `user` as a virtual node for requests that have no client span. A virtual node is part of the data, while a derived node describes how the panel creates a mark.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -53,7 +65,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 14
+        "y": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -61,7 +73,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": []
       },
@@ -116,7 +129,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 14
+        "y": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -124,7 +137,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": [
           {
@@ -241,7 +255,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 22
       },
       "fieldConfig": {
         "defaults": {
@@ -249,7 +263,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": []
       },

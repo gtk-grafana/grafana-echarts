@@ -13,14 +13,14 @@
       "id": 1,
       "type": "text",
       "gridPos": {
-        "h": 27,
+        "h": 12,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "options": {
         "mode": "markdown",
-        "content": "# Threshold colors on a timeline\n\nThe time slider selects one timestamp from ranged data. A by-value color scheme recalculates each mark color at that timestamp.\n\nThese panels use two queries:\n\n| Query | Result |\n| --- | --- |\n| A | One edge field for each `client` and `server` pair |\n| B | One node field for each `server` |\n\nQuery A keeps the endpoint labels on each ranged `Value` field. The panel reads those fields as edges without a transformation.\n\nQuery B also returns ranged `Value` fields. Labels to fields uses the `server` label as each node field name.\n\nThe transformation applies only to query B. Both edge and node fields keep their time values for the slider.\n\n## Compare the panels\n\nThe absolute panel uses fixed request-rate thresholds. The percentage panel compares each field with its own range because Field min/max is on.\n\nThe memory panel uses different measurements for nodes and edges. Node fields use bytes, while edge fields use requests per second.\n\nSome endpoints have no matching node series. The panel derives those nodes, but it cannot apply value thresholds without a node value."
+        "content": "# Threshold colors on a timeline\n\nThe time slider selects one timestamp from ranged data. A by-value color scheme recalculates each mark color at that timestamp.\n\nThese panels use two queries:\n\n| Query | Result |\n| --- | --- |\n| A | One edge field for each `client` and `server` pair |\n| B | One node field for each `server` |\n\nQuery A keeps the endpoint labels on each ranged `Value` field. The panel reads those fields as edges without a transformation.\n\nQuery B also returns ranged `Value` fields. Labels to fields uses the `server` label as each node field name.\n\nThe transformation applies only to query B. Both edge and node fields keep their time values for the slider.\n\nEach relations panel enables ad hoc filters. Pin a tooltip to add a filter to the Ad hoc filters variable.\n\n## Compare the panels\n\nThe absolute panel uses fixed request-rate thresholds. The percentage panel compares each field with its own range because Field min/max is on.\n\nThe memory panel uses different measurements for nodes and edges. Node fields use bytes, while edge fields use requests per second.\n\nSome endpoints have no matching node series. The panel derives those nodes, but it cannot apply value thresholds without a node value."
       },
       "transparent": true
     },
@@ -37,7 +37,7 @@
         "h": 14,
         "w": 12,
         "x": 0,
-        "y": 27
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -46,6 +46,7 @@
           },
           "unit": "reqps",
           "decimals": 3,
+          "filterable": true,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -146,7 +147,7 @@
         "h": 14,
         "w": 12,
         "x": 12,
-        "y": 27
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -155,6 +156,7 @@
           },
           "unit": "reqps",
           "decimals": 3,
+          "filterable": true,
           "thresholds": {
             "mode": "percentage",
             "steps": [
@@ -256,7 +258,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 26
       },
       "fieldConfig": {
         "defaults": {
@@ -265,6 +267,7 @@
           },
           "unit": "bytes",
           "decimals": 0,
+          "filterable": true,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -395,6 +398,17 @@
   "tags": ["echarts", "relations", "lgtm", "prometheus", "live-data"],
   "templating": {
     "list": [
+      {
+        "name": "filters",
+        "label": "Ad hoc filters",
+        "type": "adhoc",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "lgtm-prometheus"
+        },
+        "filters": [],
+        "hide": 0
+      },
       {
         "name": "server",
         "label": "Server",
