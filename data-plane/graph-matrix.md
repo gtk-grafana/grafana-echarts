@@ -20,7 +20,7 @@ c,50,60,
 | b      | 30  |     | 40  |
 | c      | 50  | 60  |     |
 
-Four fields and three rows, where [`graph-edges-wide`](./graph-wide.md) needs six fields and
+Four fields and three rows, where the [graph-wide format](./graph-wide-proposed.md) needs six fields and
 `graph-edges-long` needs four fields and six rows. The field count grows as N rather than
 |E|, which is why it was considered: a dense 100-node graph is 101 fields instead of 9 900.
 

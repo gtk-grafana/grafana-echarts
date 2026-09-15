@@ -1,9 +1,16 @@
 # ECharts `lines` series
 
-> **Status: deferred, not blocked.** This is the fourth member of ECharts'
-> relationship group, and the only one the **relations** family does not render —
-> `graph`, `sankey` and `chord` all ship (see
-> [node-graph.md](./node-graph.md)). It is left out because no Grafana frame kind
+## Status
+
+This feature is deferred until the project selects a geographic or Cartesian scope. The Relations plugin already ships `graph`, `sankey`, and `chord`.
+
+## Release impact
+
+The `lines` series is a post-release feature. It does not block the Relations plugin release.
+
+> This is the fourth member of the ECharts relationship group, and the only one the
+> Relations family does not render. See the [Relations parity document](../src/modules/relations/parity.md).
+> It is left out because no Grafana frame kind
 > supplies its input, not because of missing plugin code, so there is nothing to
 > schedule until a scope decision is made. Everything below was checked against the
 > installed **ECharts 6.1.0** source.
@@ -83,7 +90,7 @@ is geographic — which returns to Candidate A.
   `Unknown coordinate system geo`; that check **is** `NODE_ENV`-guarded, so a
   production build fails differently — quieter, not better. (Contrast the sankey cycle
   throw, which is unguarded and takes the panel down in production; see
-  [node-graph.md](./node-graph.md).)
+  [graph-wide contract](../data-plane/graph-wide.md).)
 - **Multi-point lines need `polyline: true`.** The default is `false`, which draws only
   the first and last point of each `coords` array. The source notes the trade:
   _"polyline not support curveness, label, animation"_.
@@ -110,7 +117,7 @@ guessed. When a scope is chosen, the order is:
 1. **Decide geo in or out.** In → Candidate A, and geo stops being out of scope
    repo-wide. Out → Candidate B and a frame convention.
 2. **If Candidate B, fix the frame convention** (`x1,y1,x2,y2`, one row per segment?)
-   and document it beside [node-graph.md](./node-graph.md) as another
+   and document it beside the [graph-long contract](../data-plane/graph-long.md) as another
    out-of-contract kind.
 3. **Then** the usual pattern: converter → options → chart module → registry, plus
    registering `LinesChart` (and `GeoComponent` for Candidate A) in

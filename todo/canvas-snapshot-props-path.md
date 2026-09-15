@@ -1,6 +1,12 @@
 # Canvas baselines duplicate every path they draw
 
-Blocked on a change in `grafana/jest-canvas-mock-compare`; nothing to do in this repo yet.
+## Status
+
+This optimization is blocked on a change in `grafana/jest-canvas-mock-compare`. This repository cannot remove `props.path` yet.
+
+## Release impact
+
+This optimization is not a release gate. It reduces baseline size but does not change panel behavior or test coverage.
 
 ## The duplication
 

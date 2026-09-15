@@ -426,7 +426,7 @@ describe('buildPanelChartOption animation resolution', () => {
  * the shape the panel is handed builds a series, and a shape it cannot draw leaves the
  * panel empty instead of erroring.
  *
- * See todo/graph-wide-migration.md phases 1-2 and data-plane/graph-wide.md.
+ * See data-plane/graph-wide.md for the shipped contract.
  */
 describe('buildPanelChartOption for the relations family', () => {
   const visible: FieldConfigSource = { defaults: {}, overrides: [] };

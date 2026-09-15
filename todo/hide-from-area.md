@@ -1,5 +1,13 @@
 # "Hide in area" (`custom.hideFrom`) gaps
 
+## Status
+
+The `viz` option works for field-based panels. The `legend` and `tooltip` options do not work, and the `viz` option can blank a pie.
+
+## Release impact
+
+This partial standard option is a post-release correctness task. It does not block the Relations plugin release.
+
 ## Problem
 
 The legend visibility + color work registered `commonOptionsBuilder.addHideFrom`

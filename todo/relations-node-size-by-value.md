@@ -1,9 +1,12 @@
 # Size a graph node by its value
 
-> **Status: open, proposed 2026-09-14.** Surfaced by a request for a reference panel
-> "where the node value changes the node size" — which could not be built, because it does
-> not happen. Nine comments in the family said it did; those are corrected, and this is the
-> gap they were describing.
+## Status
+
+Graph node size does not use the node value. The proposed value-based scale remains open and must be opt-in.
+
+## Release impact
+
+This opt-in graph enhancement is post-release. It does not block the Relations plugin release.
 
 ## What happens today
 

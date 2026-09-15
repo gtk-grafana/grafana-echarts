@@ -1,10 +1,12 @@
 # A null edge weight reports a fake `1`
 
-> **Status: open, and now the family's only answer for a null edge.** Surfaced while
-> auditing the standard options for the options-reorg (2026-09-14), which disabled
-> `FieldConfigProperty.NoValue` for relations because nothing on the family's contract
-> could reach it. That decision is right for the _node_ case and makes this one the
-> remaining gap rather than one of two.
+## Status
+
+The layout still replaces a null edge weight with `1`, and the tooltip and label report that layout value. The display path must keep the original null value.
+
+## Release impact
+
+This display defect is a post-release correctness task. It does not block the Relations plugin release.
 
 ## What happens
 

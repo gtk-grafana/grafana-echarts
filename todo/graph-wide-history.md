@@ -1,7 +1,16 @@
 # Design history — `graph-nodes-wide` / `graph-edges-wide`
 
-> **A working record, not the specification.** The spec is
-> [data-plane/graph-wide.md](../data-plane/graph-wide.md); the row form it replaced is
+## Status
+
+This file is a design reference. It does not describe open implementation work.
+
+## Release impact
+
+This reference is not a release gate. The shipped contract and implementation documents define current behavior.
+
+> **A working record, not the specification.** The portable proposal is
+> [data-plane/graph-wide-proposed.md](../data-plane/graph-wide-proposed.md). The ECharts implementation is
+> [data-plane/graph-wide.md](../data-plane/graph-wide.md), and the row form it replaced is
 > [data-plane/graph-long.md](../data-plane/graph-long.md). What is kept here is the
 > evidence and reasoning behind the contract — what was measured in a running Grafana,
 > what was considered and rejected, and what the pivot costs. Read the spec first; come
@@ -316,13 +325,11 @@ residual cost of the name-split form, and representable only via labels.
 - Grafana data plane contract (kinds, versioning, "propose a new type"):
   https://grafana.com/developers/dataplane/
 - The row format, still supported: [../data-plane/graph-long.md](../data-plane/graph-long.md)
-- The specification this record backs: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
+- The proposed specification this record backs: [../data-plane/graph-wide-proposed.md](../data-plane/graph-wide-proposed.md)
+- The ECharts implementation: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
 - `rowsToFields` source (the auto-detection, the display-name keying and the label
   fall-through measured above):
   https://github.com/grafana/grafana/blob/v13.1.0/public/app/features/transformers/rowsToFields/rowsToFields.ts
 - Sourcing guide: [../docs/relations-data-sources.md](../docs/relations-data-sources.md)
-- Rewrite plan: [graph-wide-migration.md](./graph-wide-migration.md)
-- Whether core's ad-hoc panel transformations would change the migration:
-  [graph-wide-adhoc-transformations.md](./graph-wide-adhoc-transformations.md)
 - Family coverage overview: [../data-plane/echarts-coverage.md](../data-plane/echarts-coverage.md)
 - Proof dashboard: `provisioning/dashboards/relations/graph-wide.json`

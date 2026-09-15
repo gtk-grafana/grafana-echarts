@@ -19,7 +19,7 @@ TestData — and they are published on the core Node graph panel's
 Structurally this is a `numeric-long` frame pair with reserved column names: `source` and
 `target` are dimension columns, `mainstat` is the value column. The field-based
 counterpart, in which a mark is a field rather than a row, is
-[graph-wide.md](./graph-wide.md).
+[the proposed graph-wide format](./graph-wide-proposed.md).
 
 ## Common properties
 
@@ -241,5 +241,6 @@ it cannot write into `custom.*` or `links`; those columns degrade to labels. See
   https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/nodeGraph/utils.ts
 - Grafana data plane contract: https://grafana.com/developers/dataplane/
 - Numeric kind, which this specialises: https://grafana.com/developers/dataplane/numeric
-- The field-based counterpart: [graph-wide.md](./graph-wide.md)
+- The proposed field-based counterpart: [graph-wide-proposed.md](./graph-wide-proposed.md)
+- The ECharts field-based implementation: [graph-wide.md](./graph-wide.md)
 - How the relations family draws a graph: [echarts-coverage.md](./echarts-coverage.md)

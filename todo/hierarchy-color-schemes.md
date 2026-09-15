@@ -1,11 +1,15 @@
 # Color schemes and per-item color for hierarchy
 
-> **Status: open.** This was originally a shared bug report for **relations** and
-> **hierarchy** — both used the same two-branch colour-mode guard. Relations' half closed
-> by deletion: the family pivoted to a field-per-mark contract
-> ([graph-wide-migration.md](./graph-wide-migration.md)), so a relations mark's colour is
-> now `field.display(value).color` — whatever `applyFieldOverrides` already resolved —
-> with no custom dispatch needed at all.
+## Status
+
+The hierarchy color-mode dispatch and fixed-color theme resolution remain open. Relations now uses the field-per-mark implementation in [graph-wide.md](../data-plane/graph-wide.md).
+
+## Release impact
+
+This hierarchy defect is a post-release correctness task. It does not block the Relations plugin release.
+
+> This was originally a shared bug report for **relations** and **hierarchy**. Relations
+> now uses `field.display(value).color`, which `applyFieldOverrides` resolves.
 >
 > **Hierarchy has not pivoted and still carries the byte-identical guard**
 > (`options/hierarchy.ts:64-67`, in `makeHierarchyColorResolver`), so the dispatch bug
@@ -161,6 +165,5 @@ underneath. Not scoped for a first pass.
   https://grafana.com/docs/grafana/latest/panels-visualizations/configure-overrides/
 - Field overrides in a panel plugin:
   https://grafana.com/developers/plugin-tools/how-to-guides/panel-plugins/field-overrides.md
-- Relations' half of this bug, and why the fix doesn't transfer:
-  [graph-wide-migration.md](./graph-wide-migration.md)
+- Relations' current field-per-mark implementation: [../data-plane/graph-wide.md](../data-plane/graph-wide.md)
 - Frame spec for the row-form `color` field: [../data-plane/graph-long.md](../data-plane/graph-long.md)

@@ -1,5 +1,13 @@
 # The time slider's step animates on chord, cuts on sankey and graph
 
+## Status
+
+Chord animates between time-slider steps. Sankey cuts between steps because ECharts does not animate Sankey updates. Graph has no value-driven geometry to animate.
+
+## Release impact
+
+This upstream ECharts limitation is not a release gate. The dashboard and parity document describe the current behavior.
+
 ## Problem
 
 Stepping the relations [time slider](../src/lib/components/ChartTimeSlider.tsx) redraws
