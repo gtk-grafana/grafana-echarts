@@ -28,7 +28,7 @@
       "id": 1,
       "type": "grafana-echartsrelations-panel",
       "title": "1 \u2014 Percentage thresholds, no domain set",
-      "description": "**The baseline.** Colour scheme `thresholds`, steps at 50% and 80% **percentage**, and neither `min` nor `max` set.\n\nWith no domain, Grafana infers one from the data: `applyFieldOverrides` computes `field.state.range` across **every field in the response**, here `[10, 90]`. Each node's median is then graded inside that shared band \u2014 `gateway` 20 \u2192 12%, `api` 55 \u2192 56%, `db` 85 \u2192 94%, `cache` 35 \u2192 31%. So one green, one yellow, one red, one green.\n\nThe catch this dashboard exists to show: the band is whatever the data happened to be, so a node's colour changes when an **unrelated** node's numbers change.",
+      "description": "This panel uses percentage thresholds at 50% and 80%. Min and Max are not set, so Grafana uses the shared node range `[10, 90]`. The node medians use that range: `gateway` is 12%, `api` is 56%, `db` is 94%, and `cache` is 31%. A value change in any node field can change the shared range and the resulting colors.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -104,7 +104,7 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "2 \u2014 Explicit min / max pins the domain",
-      "description": "**`min: 0`, `max: 100` \u2014 the same data, graded against a domain the author chose.**\n\n`gateway` 20%, `api` 55%, `db` 85%, `cache` 35%. Two of the four cross a different step than in panel 1, and \u2014 the actual point \u2014 these colours no longer move when a neighbour's traffic does.\n\nThis is why `min`/`max` are **kept** for this family even though no relations code reads them: `applyFieldOverrides` turns them into `field.state.range`, which is the domain `field.display(value)` scales against in `colorOf` (`converters/markRead.ts`) \u2014 the only colour path relations has. They are the one way to pin a percentage-threshold domain.",
+      "description": "This panel sets Min to 0 and Max to 100. The node medians are `gateway` 20%, `api` 55%, `db` 85%, and `cache` 35%. These percentages do not change when another field contains a new minimum or maximum. Set Min and Max when percentage thresholds must use a fixed range.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -182,7 +182,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "3 \u2014 Field min/max grades each mark against itself",
-      "description": "**`fieldMinMax: true`, and it does something unmistakable: all four nodes turn yellow.**\n\nOn, each field's range is computed from **that field alone** instead of across the whole response. Every node's samples straddle its own median \u2014 `gateway` is `[10, 30]` with median 20, `db` is `[80, 90]` with median 85 \u2014 so every mark sits at 50% of its own range and lands on the same step. Compare against panels 1, 2 and 4, each of which paints at least one node red or green.\n\nThat is the honest answer to \"does Field min/max do anything here?\" \u2014 yes, and it changes the *question* the colour answers, from \"how does this node compare to the others\" to \"how does it compare to its own recent range\".",
+      "description": "Field min/max gives each field its own color range. Each node median is at 50% of its field range, so all four nodes are yellow. For example, `gateway` has the range `[10, 30]` and the median 20. Use this configuration to compare each node with its own values instead of the values from other nodes.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -259,7 +259,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "4 \u2014 A byName min/max override on one node",
-      "description": "**The domain is per-mark addressable, like colour and unit.**\n\nPanel-wide `min: 0 / max: 100` as in panel 2, plus a `byName` override giving **`db`** a domain of `0\u2013200`. Its median of 85 is 85% of 100 (red) but only 42% of 200 (green), so `db` alone changes step while the other three are untouched.\n\nUseful because a relations mark **is** a field: one node measured on a different scale to its neighbours can be graded on its own terms without splitting the query.",
+      "description": "The panel range is `[0, 100]`. A field override gives the `db` node the range `[0, 200]`. Its median of 85 changes from 85% and red to 42% and green. The other nodes keep the panel range. Use a field override when one node needs a different scale.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -354,7 +354,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "5 \u2014 The same pinned domain on a sankey",
-      "description": "**Variant-independent: the domain drives ribbon colour too.**\n\nIdentical field config to panel 2. An edge is a mark like any other, so its own median is graded against the same `0\u2013100` domain \u2014 and because the edge fields carry a non-palette colour (a by-value scheme counts), each ribbon colours *itself* rather than inheriting from its endpoints. See `isPaletteColorMode` for that precedence rule.\n\n`Link color` in the Edges section is therefore ignored on this panel, which is what the info icon beside that control warns about.",
+      "description": "This Sankey chart uses the fixed range `[0, 100]` from panel 2. Each ribbon uses its edge value to select a threshold color. This field color takes priority over Link color, so the Link color configuration does not change these ribbons.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"

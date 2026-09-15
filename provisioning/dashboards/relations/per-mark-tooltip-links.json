@@ -14,14 +14,14 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 8,
+        "h": 4,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "options": {
         "mode": "markdown",
-        "content": "This dashboard demonstrates field behavior for each mark. Every panel runs the *same* row-format query. The plugin's registered transformation converts it to `graph-nodes-wide` and `graph-edges-wide` above the panel. Each node and edge exists as a field before Grafana applies overrides.\n\n**Try it:**\n\n1. **Hover** a node, then an edge. Each value uses the unit and decimals for that mark.\n2. **Click** a mark to pin its tooltip. Only marks with a `links` override show a footer link.\n3. **Click a legend swatch** and select a color. Grafana writes a `byName` color override, and the node changes color. **Click a legend label** to hide that node and its edges.\n4. Open **Field overrides**. The field picker lists `gateway`, `api`, `db`, `gw-api`, `api-db`, and `gw-db`."
+        "content": "Each node and edge can use its own unit, decimals, color, and data links.\n\n1. Hover a node and an edge to compare their value formats.\n2. Select a mark to pin its tooltip. A footer appears only when that mark has a data link.\n3. Select a legend color swatch to change that node color.\n4. Select a legend label to hide that node and its connected edges."
       },
       "transparent": true
     },
@@ -29,7 +29,7 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Per-mark units \u2014 hover any node or edge",
-      "description": "**One unit per mark, not one per frame.**\n\n`gateway` and `api` are milliseconds, `db` is a percentage, and each edge carries its own unit again (`gw-api` req/s, `api-db` seconds, `gw-db` percent). Node values are printed on the canvas too, through the same per-mark formatter \u2014 the label and the tooltip cannot disagree.\n\nBefore the field contract the tooltip formatted every mark with the frame's *first* numeric column, so the hovered item's unit depended on frame order.",
+      "description": "`gateway` and `api` use milliseconds. `db` uses percent. Each edge also uses its own unit. Node labels and tooltips use the same formatted value.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -38,7 +38,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 4
       },
       "fieldConfig": {
         "defaults": {
@@ -185,7 +185,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "Control \u2014 same query, no overrides",
-      "description": "The identical query with an empty `overrides` list. Every mark shows a raw number, which is all the row form could ever offer: `mainstat` is one column, so its unit is the graph's unit.",
+      "description": "This panel uses the same query without field overrides. Each mark shows its raw numeric value.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -194,7 +194,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 4
       },
       "fieldConfig": {
         "defaults": {
@@ -244,7 +244,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "Per-mark data links \u2014 click a mark to pin its tooltip",
-      "description": "**A link on exactly one node and exactly one edge.**\n\nA `byName` override sets `config.links` on node `db` and edge `api-db`. Click `db`, and the footer shows *Database runbook*. Click `gateway` or `api`, and the footer shows no link. Click the `api \u2192 db` edge for *Trace api-db*. Its URL uses `${__field.name}`. The tooltip resolves the field for the selected mark.",
+      "description": "The `db` node links to Database runbook. The `api-db` edge links to Trace api-db. Select a mark to pin its tooltip and open its link.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -253,7 +253,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -355,7 +355,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Control \u2014 same query, no links",
-      "description": "Nothing to pin: no mark carries `config.links`, so no tooltip renders a footer. Pair this with the panel on the left to see that the link's *presence* \u2014 not just its destination \u2014 is per mark.",
+      "description": "This panel uses the same query without data links. Pinned tooltips do not contain a footer link.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -364,7 +364,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -413,7 +413,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "Legend \u2014 the colour picker writes an ordinary byName override",
-      "description": "**No family-specific legend mechanism.** `gateway` already carries a fixed `dark-red` colour override, exactly the shape the legend's colour picker writes; Grafana's override engine applies it to that node's field and the panel reads it back as `field.display(value).color`.\n\nPick a colour for another node and compare the two overrides in the Fields tab \u2014 they are the same thing. Toggling a legend row writes the standard `hideSeriesFrom` override, which hides that node **and the edges touching it** while keeping every other edge (the edges are fields too, so they have to be named in the kept list).",
+      "description": "Select a legend color swatch to change one node color. Select a legend label to hide that node and its connected edges.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -422,7 +422,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -527,7 +527,7 @@
       "id": 7,
       "type": "grafana-echartsrelations-panel",
       "title": "Sankey \u2014 the same answers in another variant",
-      "description": "The three render variants read one model, so per-mark units and per-mark links are a family property rather than a graph-variant one. Hover a ribbon: it formats with the edge field's own unit; pin the `api \u2192 db` ribbon for its link.",
+      "description": "Sankey uses the same units and data links for each mark. Hover a ribbon to see its unit. Select the `api → db` ribbon to open its link.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -536,7 +536,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 38
+        "y": 34
       },
       "fieldConfig": {
         "defaults": {
@@ -665,7 +665,7 @@
       "id": 8,
       "type": "grafana-echartsrelations-panel",
       "title": "Chord \u2014 and again",
-      "description": "Same model, same overrides, laid out as a ring. Chord takes cyclic input unchanged, so this is also the variant to reach for when a service graph has a loop.",
+      "description": "Chord uses the same units and data links for each mark. Chord can show cyclic relationships without removing links.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -674,7 +674,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 38
+        "y": 34
       },
       "fieldConfig": {
         "defaults": {

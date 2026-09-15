@@ -25,14 +25,14 @@
       "gridPos": { "h": 7, "w": 24, "x": 0, "y": 0 },
       "options": {
         "mode": "markdown",
-        "content": "# Fixed layout\n\n`Layout: Fixed` is ECharts' `series.graph.layout: 'none'` — the panel does no placement of its own and draws each node where its coordinates say. A node is a **field**, so those coordinates are ordinary per-mark config: `custom.fixedX` / `custom.fixedY`, reachable from the override picker like any other property, or the legacy row form's `fixedx` / `fixedy` columns.\n\nThe catch this dashboard exists for: **overrides do not exist until somebody writes them.** ECharts' `simpleLayout` does `node.setLayout([+model.get('x'), +model.get('y')])`, so a node with no `x` lays out at `[NaN, NaN]` — invisible, and so is every link that touches it. Selecting Fixed on a fresh panel therefore used to blank the visualization outright, leaving nothing on screen to drag or to write an override *against*.\n\nSo any node without a full pair is now **seeded on a ring**, in data order, exactly the way the force simulation is seeded (`force.initLayout: 'circular'`). Deterministic, so a refresh does not reshuffle the graph; already spread out, so the labels have room. Where some nodes *are* pinned, the ring goes around their bounding box, so the pinned marks keep their layout and the rest read as \"not placed yet\".\n\n### The coordinate *scale* matters, which is not obvious\n\nECharts scales the bounding box of the emitted `x`/`y` onto the panel rect, so the shape of the point set is all that survives and any radius draws the same **nodes**. The **edges** are a different story: a graph edge is an `ECLinePath` with `subPixelOptimize: true`, and zrender shifts an axis-aligned line by half a *unit* to land a 1px stroke on a pixel centre. Those units are the graph's own space, so the seed ring used to be radius `1` and the shift was half the graph — the two edges of a four-node ring that share an x or a y were drawn 159px away from the nodes they joined. Dragging a node \"fixed\" it only because a drop is almost never exactly axis-aligned. The ring is pixel-ish now, so the nudge is back to being sub-pixel.\n\n| panel | positions from |\n| --- | --- |\n| 1 | nothing — every node seeded |\n| 2 | the data (`fixedx` / `fixedy` columns, legacy row form) |\n| 3 | `custom.fixedX` / `custom.fixedY` overrides, one per node |\n| 4 | two overrides; the other two nodes seeded |\n\nPanels 1 and 4 have **Draggable nodes** on, which is what these seeds are for: drag a node to where it belongs and write that position back as an override."
+        "content": "# Fixed layout\n\nFixed layout draws each Graph node at a saved x and y position. You can supply positions with `fixedx` and `fixedy` node fields. You can also set `Fixed x` and `Fixed y` for a node with field overrides.\n\nIf a node does not have both coordinates, the panel places it on a stable ring. If some nodes have coordinates, the ring surrounds those nodes. A dashboard reload keeps the same fallback positions.\n\nUse a practical coordinate range, such as pixel values. A range from 0 to 1 can offset horizontal or vertical links from their nodes.\n\nPanels 1 and 4 enable Draggable nodes. Drag a node to save the displayed positions as field overrides."
       }
     },
     {
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "1 · Fixed, nothing pinned — every node seeded",
-      "description": "**The regression.** One edges-only query, no nodes frame, no overrides: not a single node carries `fixedX`/`fixedY`, which is the state of every panel the moment Fixed is selected. This used to render an empty canvas.\n\nThe four nodes are seeded on a ring in the order the edges name them, so the panel draws its topology and the user has something to drag. Refresh the dashboard — the layout does not move, because the seed is data order rather than `Math.random()`.",
+      "description": "The edge-only query does not provide node coordinates. The panel places all four nodes on a ring in data order. Reload the dashboard to see that the fallback positions stay the same. Draggable nodes is on, so you can move a node.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 12, "w": 12, "x": 0, "y": 7 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
@@ -57,7 +57,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "2 · Fixed, pinned by the data",
-      "description": "The route the node-graph row form has always had: a nodes frame with `fixedx` / `fixedy` columns, converted to the wide contract above the panel (`converters/legacyToWide.ts`). Every node pins both, which is also what makes Fixed the layout the panel would have inferred on its own with `Layout` left unset.\n\nThe coordinate space is arbitrary for the **nodes** — ECharts takes the bounding box of the emitted `x`/`y` and scales it onto the panel rect (`createViewCoordSys`), so what survives is the *shape* of the point set. Its **scale** still matters for the edges: pick a range like 0–1 and zrender's sub-pixel optimization shifts every axis-aligned edge half a unit off its nodes. See the note above.",
+      "description": "The nodes frame contains `fixedx` and `fixedy` fields for every node. These fields set the node positions. If Layout is not set, the panel selects Fixed when every node has both coordinates. ECharts scales the coordinate shape to fit the panel.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 12, "w": 12, "x": 12, "y": 7 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
@@ -87,7 +87,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "3 · Fixed, pinned by per-node overrides",
-      "description": "The same four positions as panel 2, written as **field overrides** rather than carried in the response — `custom.fixedX` / `custom.fixedY` under a `byName` matcher, one pair per node. This is only addressable because a node is a field: the row form could not express it without changing the query.\n\nIt is also the shape a \"remember where I dragged this node\" feature writes, which is why it gets a panel of its own.\n\n**Needs `grafana.panelPluginTransformations`** on an edges-only response like this one — the nodes are declared as fields above the panel by `converters/deriveNodes.ts`, and without that pass there is no field for a `byName` override to land on, so this panel falls back to panel 1's seeded ring.",
+      "description": "This panel uses the same positions as panel 2. `Fixed x` and `Fixed y` field overrides set each node position instead of query fields. Select a node by name in the Overrides tab to edit or remove its coordinates.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 12, "w": 12, "x": 0, "y": 19 },
       "fieldConfig": {
@@ -143,7 +143,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "4 · Fixed, half pinned — the two halves coexist",
-      "description": "`gateway` and `db` carry `custom.fixedX` / `custom.fixedY`; `api` and `web` carry nothing. This is the state a panel is in halfway through positioning a topology by hand, and it has to draw — the old all-or-nothing reading dropped the unpinned two and both links between them.\n\nThe seeded pair goes on a ring **around** the pinned bounding box rather than inside it, so which nodes are placed and which are not is readable at a glance. Drag one and it joins the pinned set.",
+      "description": "`Fixed x` and `Fixed y` field overrides position `gateway` and `db`. The `api` and `web` nodes do not have coordinates, so the panel places them around the positioned nodes. Draggable nodes is on. Drag an unpositioned node to save the displayed positions.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 12, "w": 12, "x": 12, "y": 19 },
       "fieldConfig": {
@@ -186,7 +186,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "5 · Drag a node — the position is written back as an override",
-      "description": "**Drag one of these nodes.** The panel writes the layout **as drawn** into `custom.fixedX` / `custom.fixedY` overrides — every node, not just the one that moved — exactly as the legend's colour picker writes a fixed colour. Every node, because the unpinned ones are seeded around whichever nodes *are* pinned: recording the first drag alone re-seeded all its neighbours around it, so moving one node rearranged the whole topology. Open the Overrides tab afterwards and they are all there, editable and clearable like any other override; the dashboard shows unsaved changes until you save it.\n\nBoth frames are already **wide** (one field per node, one field per edge), so unlike panels 3 and 4 this needs no pre-pass and works on any host. A node with no field is fine too: the panel reads its position back out of the override by name, so an edges-only response remembers a drag as well.\n\n**Remember view** is on here too. Pan the graph (drag the background) or use the corner zoom buttons and the view is written into the panel's options rather than forgotten on reload.",
+      "description": "Drag a node to move it. The panel saves the displayed position of every node as `Fixed x` and `Fixed y` field overrides. Open the Overrides tab to edit or remove the saved positions. The dashboard has unsaved changes until you save it.\n\nRemember view is also on. Drag the background to pan, or use the zoom controls. Save the dashboard to keep the view after a reload.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 12, "w": 24, "x": 0, "y": 31 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },

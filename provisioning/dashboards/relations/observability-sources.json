@@ -14,14 +14,14 @@
       "type": "text",
       "title": "",
       "gridPos": {
-        "h": 7,
+        "h": 5,
         "w": 24,
         "x": 0,
         "y": 0
       },
       "options": {
         "mode": "markdown",
-        "content": "# Prometheus & Loki \u2192 relations charts\n\nEvery other relations dashboard in this repo hands the panel row-format CSV. This one\nstarts from **the frame shapes Prometheus and Loki actually return** and reaches the\nfield-based graph contract with ordinary dashboard transformations \u2014 the work a real\nuser has to do, which nothing else here shows.\n\n**The rule:** *N series = N frames.* A `joinByField` on `Time` makes them **one wide\nframe whose field names are the edge ids**, because `joinDataFrames` renames a field\ncalled `Value` to its frame name and keeps its labels.\n\n**The join is about ids here, not about topology.** The reader collects every frame that\nlooks like edges, so a response whose labels are already `source`/`target` needs no join at\nall. These panels mostly do need one, for a different reason: `sum by (client, server)`\nemits `client`/`server`, which the contract does not recognise, so the endpoints have to\ncome from splitting the field **name** \u2014 and the name only becomes the legend format when\nthe join renames it. Without the join those panels draw nothing, because no frame passes\nthe shape test. The two panels that genuinely emit `source`/`target` labels would draw\nunjoined; they keep the join so their edges have ids.\n\n| Fixture here | Is byte-for-byte | Which is |\n| --- | --- | --- |\n| `predictable_csv_wave` | `meta.type: timeseries-multi`, one frame per series, frame name = legend format, value field named `Value` with the label set | a Prometheus/Loki **metric query**, `Format: Time series` |\n| `csv_content` | one frame, `Time` as `time`, label columns as `string`, `Value` as `number` | a Prometheus **instant query**, `Format: Table` |\n\nSo the transformation chain on each panel below is the *same chain* you would write\nagainst a live datasource. **No Prometheus or Loki is provisioned in this repo** \u2014 the\nqueries in every panel description and in the two query panels are reference copy, not\nexecuted. Swap the datasource, paste the query, keep the transformations.\n\n**Two queries in one panel** (edges + nodes, or two edge tiers) are separated with\n`filter.byRefId` on each join. `refIdMatcher` is exact string equality, and the joined\noutput is stamped `refId: joinByField-A-A-\u2026`, so a later `byRefId: \"B\"` cannot\nre-capture it \u2014 both joins survive side by side.\n\n**Which carrier holds the endpoints.** The contract reads exactly two label keys,\n`source` and `target`. A `sum by (client, server)` emits `client` / `server`, which it\ndoes not recognise \u2014 so on most panels here the endpoints come from splitting the\nfield **name** on `-->`, i.e. from the legend format. Only the two panels that\ngenuinely produce `source` / `target` labels \u2014 the `rowsToFields` one and the\n`label_format` one \u2014 resolve from labels, which is also why only those two can express\nan id that is not `left-->right`."
+        "content": "# Prometheus and Loki data\n\nPrometheus and Loki range queries usually return one frame for each series. Join by field on `Time` combines those frames into one wide frame.\n\nSet the legend to `source-->target` so each edge field contains both endpoint names. If the query provides `source` and `target` labels, the panel can read the endpoints from those labels.\n\nIf a panel has separate edge and node queries, filter each join by query letter. This keeps the two frame types separate."
       },
       "transparent": true
     },
@@ -30,14 +30,14 @@
       "type": "text",
       "title": "Prometheus \u2014 the queries",
       "gridPos": {
-        "h": 11,
+        "h": 7,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 5
       },
       "options": {
         "mode": "markdown",
-        "content": "### 1 \u00b7 Service dependency map \u2014 graph (panel below left)\n\nTwo queries. **A** is the edges, **B** the per-service error ratio that colours the nodes.\n\n```promql\nsum by (client, server) (rate(traces_service_graph_request_total[$__rate_interval]))\n```\n`Format: Time series` \u00b7 `Legend: {{client}}-->{{server}}` \u00b7 `Type: Range`\n\n```promql\n  sum by (server) (rate(traces_service_graph_request_failed_total[$__rate_interval]))\n/ sum by (server) (rate(traces_service_graph_request_total[$__rate_interval]))\n```\n`Format: Time series` \u00b7 `Legend: {{server}}` \u00b7 `Type: Range`\n\n```json\n[\n  {\n    \"id\": \"joinByField\",\n    \"filter\": {\n      \"id\": \"byRefId\",\n      \"options\": \"A\"\n    },\n    \"options\": {\n      \"byField\": \"Time\",\n      \"mode\": \"outer\"\n    }\n  },\n  {\n    \"id\": \"joinByField\",\n    \"filter\": {\n      \"id\": \"byRefId\",\n      \"options\": \"B\"\n    },\n    \"options\": {\n      \"byField\": \"Time\",\n      \"mode\": \"outer\"\n    }\n  }\n]\n```\n\n### 2 \u00b7 Kubernetes CPU requests \u2014 sankey (panel below right)\n\nTwo queries, both edges, **one unfiltered join** \u2014 one step, all eight ids. Two separate\njoins would work too: the reader unions every edges frame it finds.\n\n```promql\nsum by (node, namespace) (kube_pod_container_resource_requests{resource=\"cpu\"})\n```\n`Legend: {{node}}-->{{namespace}}`\n\n```promql\nsum by (namespace, workload) (\n  namespace_workload_pod:kube_pod_owner:relabel\n    * on (namespace, pod) group_left()\n      sum by (namespace, pod) (kube_pod_container_resource_requests{resource=\"cpu\"})\n)\n```\n`Legend: {{namespace}}-->{{workload}}`\n\n### 3 \u00b7 Cross-AZ request matrix \u2014 chord\n\n```promql\nsum by (source_zone, destination_zone) (\n  rate(istio_requests_total{reporter=\"destination\"}[$__rate_interval])\n)\n```\n`Legend: {{source_zone}}-->{{destination_zone}}`\n\n### 4 \u00b7 The table route \u2014 graph, instant + `label_join` + `rowsToFields`\n\n```promql\nlabel_join(\n  sum by (client, server) (rate(traces_service_graph_request_total[$__range])),\n  \"id\", \":\", \"client\", \"server\"\n)\n```\n`Format: Table` \u00b7 `Type: Instant`\n\n```json\n[\n  {\n    \"id\": \"organize\",\n    \"options\": {\n      \"excludeByName\": {\n        \"Time\": true\n      },\n      \"indexByName\": {\n        \"id\": 0,\n        \"Value\": 1,\n        \"client\": 2,\n        \"server\": 3\n      },\n      \"renameByName\": {\n        \"client\": \"source\",\n        \"server\": \"target\"\n      }\n    }\n  },\n  {\n    \"id\": \"rowsToFields\",\n    \"options\": {}\n  }\n]\n```"
+        "content": "### Prometheus panels\n\nThe service Graph joins one edge query and one node error-ratio query. Each query uses a separate transformation filtered by query letter.\n\nThe CPU Sankey combines node-to-namespace and namespace-to-workload edges.\n\nThe cross-zone Chord keeps cycles and self-links. Use Chord for a traffic matrix that contains both directions.\n\nThe instant-table Graph creates edge ids with `label_join`. Organize fields and Rows to fields convert its rows into fields."
       },
       "transparent": true
     },
@@ -45,7 +45,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "Service dependency map \u2014 graph",
-      "description": "**Prometheus, two queries, two filtered joins.** Edges from the Tempo service-graph metrics; node colour from a per-service error ratio.\n\n```promql\n# A - edges\\nsum by (client, server) (rate(traces_service_graph_request_total[$__rate_interval]))\n```\n```promql\n# B - nodes: error ratio\\n  sum by (server) (rate(traces_service_graph_request_failed_total[$__rate_interval]))\n/ sum by (server) (rate(traces_service_graph_request_total[$__rate_interval]))\n```\nEach query joins under its own `filter.byRefId`, so refId A becomes the edges frame and refId B the nodes frame. Without the joins the panel would draw nothing: these series carry `client`/`server` labels, which the contract does not read, so the endpoints have to come from the field **name** \u2014 and the name is only the legend format once the join has renamed `Value` to it.\n\n`payments-->gateway` closes a **cycle**. A graph draws it; the sankey panels alongside would have to hide such a link to stay acyclic, which is the whole reason to pick this variant for a dependency map.\n\nNodes are percentages against green/orange/red thresholds; one `byRegexp: /-->/` override flips every edge to req/s and back to a palette colour. That colour property is required, not cosmetic \u2014 an edge left on `thresholds` resolves a threshold colour instead of deferring to **Link color**. Pin the `gateway \u2192 catalogue` edge for its Explore link.",
+      "description": "Prometheus query A provides service-call edges. Query B provides the error ratio for each server node. Separate Join by field transformations keep edges and nodes in different frames. Graph keeps the cycle in the service calls.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -54,7 +54,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -318,7 +318,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "Kubernetes CPU requests \u2014 sankey",
-      "description": "**Prometheus, two edge queries, one unfiltered join.** Both refIds are edges, so there is nothing to keep apart \u2014 and since the reader now collects every edges frame, they no longer *have* to share a frame. One join is still the simplest way to give all eight edges their ids in one step.\n\n```promql\n# A - node -> namespace\\nsum by (node, namespace) (kube_pod_container_resource_requests{resource=\"cpu\"})\n```\n```promql\n# B - namespace -> workload\\nsum by (namespace, workload) (\n  namespace_workload_pod:kube_pod_owner:relabel\n    * on (namespace, pod) group_left()\n      sum by (namespace, pod) (kube_pod_container_resource_requests{resource=\"cpu\"})\n)\n```\nThree tiers, conserved: 15 + 13 cores requested on the two nodes, 6 / 14 / 8 through the namespaces, the same out to the workloads. Because the flow balances, every ribbon width is directly comparable and no node shows a phantom surplus.\n\nThe fixture is a **DAG**, so no link is hidden to remove cycles and the panel shows no corner notice. Feed a sankey a cyclic topology and it will.\n\n**Derived nodes have no measured value.** With only edge queries, there is no nodes frame. The reader creates each node from the edge endpoints and sets its value to `null`. The tooltip lists its adjacent edges and uses the format for each edge. Add a third query (`sum by (node) (\u2026)`) under its own `filter.byRefId` to give each node a measured field. The service map above uses this pattern to color its nodes.",
+      "description": "Two Prometheus queries provide node-to-namespace and namespace-to-workload edges. Join by field gives each edge a field name. The input has no node frame, so the panel derives nodes from the endpoints.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -327,7 +327,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -475,7 +475,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Cross-AZ request matrix \u2014 chord",
-      "description": "**Prometheus, one query, one unfiltered join.** All nine ordered zone pairs from the Istio destination-side counter.\n\n```promql\nsum by (source_zone, destination_zone) (\n  rate(istio_requests_total{reporter=\"destination\"}[$__rate_interval])\n)\n```\nIntra-AZ traffic dominates (the three self-loops); the cross-AZ ribbons in the 890\u20131450 band are the ones that carry a transfer charge. Chord takes **self-loops and cycles unchanged**, which is exactly why it fits a traffic matrix \u2014 a sankey would have to drop half of it.\n\nFlavoured as an instant query: each series is a single flat value, so `mean` returns the fixture number exactly, the same as `lastNotNull` would.\n\nEdges only, so every node is derived and has no measured value. Hover a zone to list its adjacent edges. The ribbons carry the traffic values.",
+      "description": "A Prometheus query groups Istio requests by source and destination zone. Chord keeps both directions and self-links. Ribbon width shows the request rate.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -484,7 +484,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 30
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -596,7 +596,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "The table route \u2014 graph, instant + label_join",
-      "description": "**Prometheus, `Format: Table`, `Type: Instant`.** The other route: build the id in PromQL and pivot with core's **Rows to fields**.\n\n```promql\nlabel_join(\n  sum by (client, server) (rate(traces_service_graph_request_total[$__range])),\n  \"id\", \":\", \"client\", \"server\"\n)\n```\n`organize` runs filter \u2192 order \u2192 rename, so `indexByName`/`excludeByName` key on the **original** column names and `renameByName` runs last. `rowsToFields` then takes the first string column (`id`) as the field name, the first numeric one (`Value`) as its value, and drops everything else \u2014 `source`, `target` \u2014 into `field.labels`.\n\nThe ids deliberately join with `:` and contain **no** `-->`, so this panel proves the label carrier on its own: `endpointsOf` reads `field.labels` first and never reaches the name split. Same topology as the service map above, built a completely different way.\n\nNo `convertFieldType` step: `csv_content` already returns `Value` as a number, exactly as Prometheus does. Add one only when a column really does arrive as a string.\n\nEdges only, so the derived nodes have no measured value. Hover a node to list its adjacent edges. The service map above has a nodes query and reports a real error ratio.",
+      "description": "This Prometheus instant-table query creates an edge `id` with `label_join`. Organize fields and Rows to fields convert each row into an edge field. The `source` and `target` labels provide the endpoints.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -605,7 +605,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 30
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -681,14 +681,14 @@
       "type": "text",
       "title": "Loki \u2014 the queries",
       "gridPos": {
-        "h": 11,
+        "h": 6,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 36
       },
       "options": {
         "mode": "markdown",
-        "content": "LogQL metric queries return the **same** `timeseries-multi` shape as Prometheus, so the\nfirst three panels reuse the recipe above unchanged \u2014 which is the point.\n\n### 5 \u00b7 Service call graph from structured logs \u2014 graph (panel below left)\n\n```logql\nsum by (service, upstream) (\n  count_over_time({cluster=\"prod\", namespace=\"ecommerce\"} | logfmt | upstream != \"\" [$__auto])\n)\n```\n`Legend: {{service}}-->{{upstream}}` \u00b7 `Type: Range`\n\n### 6 \u00b7 Log volume by cluster \u2192 namespace \u2192 level \u2014 sankey (panel below right)\n\nTwo queries, one unfiltered join, both **instant**.\n\n```logql\nsum by (cluster, namespace) (count_over_time({env=\"prod\"} [$__range]))\n```\n`Legend: {{cluster}}-->{{namespace}}`\n\n```logql\nsum by (namespace, level) (count_over_time({env=\"prod\"} | logfmt | level != \"\" [$__range]))\n```\n`Legend: {{namespace}}-->{{level}}`\n\n### 7 \u00b7 Page-transition matrix from ingress access logs \u2014 chord\n\n```logql\nsum by (referer_path, path) (\n  count_over_time({job=\"ingress-nginx\"} | logfmt | referer_path != \"\" | path != \"\" [$__range])\n)\n```\n`Legend: {{referer_path}}-->{{path}}` \u00b7 `Type: Instant`\n\n### 8 \u00b7 Parallel edges via `label_format` \u2014 graph\n\n```logql\nsum by (source, target, protocol) (\n  count_over_time(\n    {job=\"mesh/envoy\"}\n      | json\n      | label_format source=`{{.source_workload}}`, target=`{{.destination_workload}}`\n      | target != \"\"\n    [$__range]\n  )\n)\n```\n`Legend: {{source}}->{{target}} ({{protocol}})` \u00b7 `Type: Instant`\n\n**`label_format` is doing the load-bearing work here.** It renames JSON fields into\nreal labels called `source` and `target`, which is what the contract reads endpoints\nfrom. The legend deliberately uses `->`, *not* the `-->` separator, so the two\nprotocols over one pair stay **distinct field names** \u2014 two parallel edges \u2014 while both\nstill resolve to the same endpoints from their labels. A datasource that cannot emit\nlabels reaches the same place with an `extractFields` transformation."
+        "content": "### Loki panels\n\nLogQL metric queries return the same multi-frame shape as Prometheus range queries. Join by field on `Time` uses the legend names as edge field names.\n\nThe service Graph shows calls between services from structured logs. The log-volume Sankey combines cluster-to-namespace and namespace-to-level flows.\n\nThe page-transition Chord keeps forward links, back links, and self-links. The parallel-edge Graph groups by `protocol`, so HTTP and gRPC can connect the same nodes."
       },
       "transparent": true
     },
@@ -696,7 +696,7 @@
       "id": 8,
       "type": "grafana-echartsrelations-panel",
       "title": "Service call graph from structured logs \u2014 graph",
-      "description": "**Loki, range query, identical recipe to the Prometheus service map.** A LogQL metric query returns the same `timeseries-multi` shape, so the same single `joinByField` widens it \u2014 that equivalence is the point of this row.\n\n```logql\nsum by (service, upstream) (\n  count_over_time({cluster=\"prod\", namespace=\"ecommerce\"} | logfmt | upstream != \"\" [$__auto])\n)\n```\nAn async order pipeline: `api \u2192 orders-worker \u2192 {inventory, billing}`, with `warehouse \u2192 orders-worker` closing a **retry loop**, plus the read path `api \u2192 search \u2192 catalogue-index`.\n\n`sum` is the reducer, because a `count_over_time` series is a rate per bucket and the interesting number is the total over the window. Laid out `circular` \u2014 a second layout on the dashboard, and the one that makes the retry loop obvious.",
+      "description": "A LogQL metric query counts calls between services. Join by field converts the series into edge fields. Sum shows the total count over the selected time range.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -705,7 +705,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 53
+        "y": 42
       },
       "fieldConfig": {
         "defaults": {
@@ -813,7 +813,7 @@
       "id": 9,
       "type": "grafana-echartsrelations-panel",
       "title": "Log volume by cluster \u2192 namespace \u2192 level \u2014 sankey",
-      "description": "**Loki, two instant queries, one unfiltered join.** Where the ingest bill goes.\n\n```logql\n# A - cluster -> namespace\\nsum by (cluster, namespace) (count_over_time({env=\"prod\"} [$__range]))\n```\n```logql\n# B - namespace -> level\\nsum by (namespace, level) (count_over_time({env=\"prod\"} | logfmt | level != \"\" [$__range]))\n```\nConserved across three tiers: each namespace's outflow to the levels sums to its inflow from the clusters (ecommerce 73 000, platform 18 000, observability 26 000), so the `info` ribbon width is honestly comparable with the `error` one. A **DAG** again, so nothing is hidden to remove cycles.\n\nInstant-flavoured: single flat values, so `lastNotNull` returns the fixture number. The response contains only edges, so each derived node has no measured value. Hover a node to list its adjacent edges.",
+      "description": "Two LogQL queries provide cluster-to-namespace and namespace-to-level edges. Ribbon width shows the log count. The input has no node frame, so the panel derives nodes from the endpoints.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -822,7 +822,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 53
+        "y": 42
       },
       "fieldConfig": {
         "defaults": {
@@ -982,7 +982,7 @@
       "id": 10,
       "type": "grafana-echartsrelations-panel",
       "title": "Page-transition matrix from ingress access logs \u2014 chord",
-      "description": "**Loki, one instant query.** Referer \u2192 path over the nginx ingress access log.\n\n```logql\nsum by (referer_path, path) (\n  count_over_time({job=\"ingress-nginx\"} | logfmt | referer_path != \"\" | path != \"\" [$__range])\n)\n```\nForward flow through `/home \u2192 /search \u2192 /product \u2192 /cart \u2192 /checkout`, two back-edges (`/product \u2192 /search`, `/cart \u2192 /product`), a loop close (`/checkout \u2192 /home`) and a **self-loop** on `/home` \u2014 a refresh. That reciprocal structure is what a chord exists for: every pair keeps both directions as separate ribbons.\n\nThe node ids are paths, so the edge id reads `/home-->/search` \u2014 and since the query groups by `referer_path` / `path`, not `source` / `target`, the endpoints really do come from splitting that name. Fine here, because no path contains `-->`; relabel to `source` / `target` the moment one might.",
+      "description": "A LogQL metric query groups ingress logs by referrer path and destination path. Chord keeps forward links, back links, and the `/home` self-link.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -991,7 +991,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 65
+        "y": 54
       },
       "fieldConfig": {
         "defaults": {
@@ -1103,7 +1103,7 @@
       "id": 11,
       "type": "grafana-echartsrelations-panel",
       "title": "Parallel edges via label_format \u2014 graph",
-      "description": "**Loki, one instant query, one join, no other transformation.** Two edges over the same node pair, separated only by a third label.\n\n```logql\nsum by (source, target, protocol) (\n  count_over_time(\n    {job=\"mesh/envoy\"}\n      | json\n      | label_format source=`{{.source_workload}}`, target=`{{.destination_workload}}`\n      | target != \"\"\n    [$__range]\n  )\n)\n```\n`label_format` promotes the JSON fields to labels literally called `source` and `target` \u2014 the keys the contract reads endpoints from. The legend then uses `->`, which is **not** the separator (that is exactly `-->`), so `gateway->api (http)` and `gateway->api (grpc)` stay two distinct field names \u2014 two parallel edges \u2014 while both resolve to the same endpoints purely from their labels.\n\nEach grpc edge carries `custom.lineType: dashed` and a curveness offset through an ordinary `byName` override, which is only addressable because an edge is a field. A datasource that cannot emit labels (Infinity, SQL returning `json`, quoted CSV) reaches the same place with an `extractFields` transformation in `json` format.",
+      "description": "The LogQL query creates `source` and `target` labels from JSON fields and groups by `protocol`. HTTP and gRPC therefore appear as separate edges between the same nodes.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1112,7 +1112,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 65
+        "y": 54
       },
       "fieldConfig": {
         "defaults": {
@@ -1231,14 +1231,14 @@
       "type": "text",
       "title": "PR rollout by wave \u2014 the frame, and whether it suits this family",
       "gridPos": {
-        "h": 15,
+        "h": 6,
         "w": 24,
         "x": 0,
-        "y": 77
+        "y": 66
       },
       "options": {
         "mode": "markdown",
-        "content": "A real frame, supplied as-is: **one row per deploy wave**, recording the build each wave\nis running and whether that build contains a given PR. One `csv_content` fixture\nreproduces it byte for byte \u2014 `is_in_build` really does arrive as a `boolean`, and the\nempty `eta_epoch_ms` cells really do arrive as nulls.\n\n| Column | Type | Role here |\n| --- | --- | --- |\n| `wavev2` | `string` | the wave \u2014 **the node id** |\n| `is_in_build` | `boolean` | does this wave have the PR \u2014 **the threshold value** |\n| `build_number` / `pr_build_number` | `number` | what `is_in_build` was derived from |\n| `version`, `wave_idx`, `eta_epoch_ms` | | fall through to `field.labels` |\n| `stackwave` | `string` | a UI marker; dropped |\n\n### Is this a relations use case?\n\n**Graph \u2014 yes.** The waves are a *pipeline*: `dev0 \u2192 dev1 \u2192 ops \u2192 prod0 \u2192 \u2026 \u2192 prod4`.\nThat is a path graph, and colouring its nodes by threshold puts the **rollout frontier**\n\u2014 the exact point where the PR stops being deployed \u2014 on screen as a position, which a\ntable cannot do.\n\n**Sankey \u2014 yes, but for a different question.** Not for the chain: a sankey of a path\ngraph is eight equal ribbons in a row and says nothing. For the *aggregate* \u2014 wave \u2192\nversion \u2014 it shows how fragmented the fleet is and which stale versions the waiting\nwaves are stuck on. It earns its place as the wave count grows past what a table shows\nat a glance.\n\n**Chord \u2014 no.** A chord draws a square matrix of flows **between one set of entities**,\nand its whole value is reciprocity: `a \u2192 b` next to `b \u2192 a`. Waves send nothing to each\nother, so there is no matrix and no reciprocal pair. It would render, and it would be\ndecoration. Left out on purpose.\n\nWorth saying: with eight waves a **table** or a **state-timeline** is a real competitor.\nThe graph wins when order and adjacency matter; the table wins when you want the version\nstrings and the ETAs side by side.\n\n### The frame carries no edges\n\n`wave_idx` gives the order, but no core transformation turns a row *order* into\n`previous \u2192 this` pairs \u2014 there is no lag or offset transform. So the chain arrives as a\nsecond query. That is the right shape anyway: the pipeline is **topology, not\ntelemetry**, and it changes when someone adds a wave, not every scrape. A static CSV, a\nSQL table, Infinity, or a recording rule all work. If the query can emit a `next_wave`\ncolumn (a self-join on `wave_idx + 1`), one query does both.\n\n### The two chains\n\nNodes \u2014 the frame above:\n\n```json\n[\n  {\n    \"id\": \"convertFieldType\",\n    \"options\": {\n      \"fields\": {},\n      \"conversions\": [\n        {\n          \"targetField\": \"is_in_build\",\n          \"destinationType\": \"number\"\n        }\n      ]\n    }\n  },\n  {\n    \"id\": \"organize\",\n    \"options\": {\n      \"excludeByName\": {\n        \"stackwave\": true\n      },\n      \"indexByName\": {\n        \"wavev2\": 0,\n        \"is_in_build\": 1,\n        \"version\": 2,\n        \"build_number\": 3,\n        \"wave_idx\": 4,\n        \"eta_epoch_ms\": 5,\n        \"pr_build_number\": 6\n      },\n      \"renameByName\": {}\n    }\n  },\n  {\n    \"id\": \"rowsToFields\",\n    \"options\": {}\n  }\n]\n```\n\n`convertFieldType` is **not optional here**: the reader only ever looks at `number`\nfields (`numericFields`), so a `boolean` mark is invisible and the panel would draw\nnothing. After it, `organize` puts `wavev2` first among the strings and `is_in_build`\nfirst among the numbers, which is all `rowsToFields` needs.\n\nEdges \u2014 the wave order, pivoted the same way:\n\n```csv\nid,source,target,step\ndev0-->dev1,dev0,dev1,1\ndev1-->ops,dev1,ops,1\nops-->prod0,ops,prod0,1\nprod0-->prod1,prod0,prod1,1\nprod1-->prod2,prod1,prod2,1\nprod2-->prod3,prod2,prod3,1\nprod3-->prod4,prod3,prod4,1\n```\n\nBoth are joined under their own `filter.byRefId`, exactly as the service map at the top\ndoes, so neither swallows the other.\n\n### The threshold\n\n```json\n{\n  \"color\": {\n    \"mode\": \"thresholds\"\n  },\n  \"thresholds\": {\n    \"mode\": \"absolute\",\n    \"steps\": [\n      {\n        \"color\": \"red\",\n        \"value\": null\n      },\n      {\n        \"color\": \"green\",\n        \"value\": 1\n      }\n    ]\n  },\n  \"mappings\": [\n    {\n      \"type\": \"value\",\n      \"options\": {\n        \"0\": {\n          \"text\": \"not in build\",\n          \"index\": 0\n        },\n        \"1\": {\n          \"text\": \"in build\",\n          \"index\": 1\n        }\n      }\n    }\n  ]\n}\n```\n\nThe step is **1**, not the PR's build number \u2014 so it never needs editing. The datasource\nalready evaluated the predicate into `is_in_build`; the dashboard just colours it. A\nliteral `30866803359` step on `build_number` would colour identically **today** and\nbe wrong for the next PR, and Grafana does not interpolate dashboard variables into\nthreshold steps. If you want \"how far behind\" rather than a boolean, add\n`Add field from calculation \u2192 Binary operation \u2192 build_number - pr_build_number` and\nthreshold that at `0`; it is self-maintaining too, at the cost of a value nobody can read.\n\nThe value mapping sets **text only**, no colour, so `thresholds` still decides. That is\nwhy a node reads `not in build` and is red at the same time."
+        "content": "### Rollout examples\n\nThe rollout query returns one row for each deployment wave. Rows to fields converts the rows into node fields. Field labels keep the version and estimated completion time.\n\nThe Graph uses a second query for edges between consecutive waves. Fixed positions show the rollout from left to right. A threshold colors each wave by `is_in_build`.\n\nThe Sankey connects each wave to its current version. Ribbon width shows how many waves use each version. Derived version nodes have no measured value."
       },
       "transparent": true
     },
@@ -1246,7 +1246,7 @@
       "id": 13,
       "type": "grafana-echartsrelations-panel",
       "title": "PR rollout by wave \u2014 graph",
-      "description": "**The rollout frontier, as a position.** Eight deploy waves in pipeline order; a node is green once its build contains the PR and red until then, straight off a **threshold** on `is_in_build`.\n\nTwo inputs. **A** is the frame as the query returns it, pivoted to one field per wave by `convertFieldType` \u2192 `organize` \u2192 `rowsToFields`. **B** is the wave order, which the frame does not contain \u2014 `wave_idx` gives the sequence but no core transformation turns a row order into `previous \u2192 this` pairs. Each pivots under its own `filter.byRefId`.\n\nEvery node pins `custom.fixedX` / `custom.fixedY` through an ordinary `byName` override, so the pipeline reads left to right instead of knotting into a force cluster. **Layout is set to `Fixed` explicitly** \u2014 the option's description promises it defaults there \"when every node supplies fixedx/fixedy\", but `relationsLayout` carries a registered `defaultValue` of `force`, so it is never unset and `getGraphLayout`'s all-pinned branch never runs. Measured: pinned nodes with the option left alone still lay out as force.\n\n**Exactly one edge is coloured, and it is the frontier.** `makeEdgeGradientResolver` only builds a per-edge gradient when every node pins a position (this panel does) *and* the two endpoint colours differ \u2014 so `ops --> prod0` paints green-to-red and every same-colour edge falls back to the series keyword. That keyword is `source`, which ECharts does not resolve to the node's colour on the graph variant: it paints a flat blue. Useful by accident here, but do not read the blue as meaning anything.\n\nHover a wave: the value mapping reads `in build` / `not in build`, because a mapping that sets no colour leaves the threshold to decide. The version and ETA ride along in `field.labels`; emit a `displayName` column from the query (`wavev2 || ' \u00b7 ' || version`) to put them on the node itself.",
+      "description": "Each deployment wave is a node. Fixed positions show the rollout from left to right. A threshold on `is_in_build` colors each wave. Select a node to see its version and estimated completion time.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1255,7 +1255,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 92
+        "y": 72
       },
       "fieldConfig": {
         "defaults": {
@@ -1548,7 +1548,7 @@
       "id": 14,
       "type": "grafana-echartsrelations-panel",
       "title": "Fleet version spread \u2014 sankey",
-      "description": "**The same frame, the aggregate question.** Which version is each wave actually running, and how much of the fleet is behind?\n\nNot the chain \u2014 a sankey of a path graph is eight equal ribbons in a row and says nothing. Here the edges are `wave --> version`, so the version nodes size themselves by how many waves sit on them: `13.2.0-30616302309` is three waves wide, and the red ribbons flowing into it are the ones still waiting for the PR.\n\nWave nodes carry the same `is_in_build` threshold as the graph beside this one, and the default **gradient** link colour carries that red or green along the ribbon \u2014 so the stale versions are the ones with red flowing in. Version nodes are **derived** from the edges, so they have no field and no measured value. The ribbon widths show the counts.\n\nThis earns its place as the wave count grows past what a table shows at a glance. At eight waves it is a close call, and the honest alternative is a table.",
+      "description": "Each ribbon connects a deployment wave to its current version. Ribbon width shows how many waves use a version. Wave color shows whether its build contains the selected change.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1557,7 +1557,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 92
+        "y": 72
       },
       "fieldConfig": {
         "defaults": {

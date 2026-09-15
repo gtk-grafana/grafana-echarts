@@ -14,7 +14,11 @@ import {
   resolveGraphDraggable,
 } from 'lib/echarts/relations/options/layout';
 import { getGraphLinkStyle, makeEdgeGradientResolver, nodeColorsById } from 'lib/echarts/relations/options/linkColor';
-import { getRelationsViewState, resolveRelationsRoam } from 'lib/echarts/relations/options/view';
+import {
+  getAutomaticGraphCenter,
+  getRelationsViewState,
+  resolveRelationsRoam,
+} from 'lib/echarts/relations/options/view';
 
 import { seriesTooltip } from 'lib/echarts/tooltip/option';
 
@@ -29,7 +33,11 @@ export const relationsDefaultOptions: ECBasicOption = {
  * Graph series: nodes plus the links between them.
  * https://echarts.apache.org/en/option.html#series-graph
  */
-export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext): GraphSeriesOption {
+export function getGraphSeries(
+  data: NodeGraphData,
+  ctx: RelationsSeriesContext,
+  plotHeight?: number
+): GraphSeriesOption {
   const layout = getGraphLayout(data, ctx.options);
   const edgeSymbol = getGraphEdgeSymbol(ctx.options);
   const emphasis = getGraphEmphasis(ctx);
@@ -41,12 +49,15 @@ export function getGraphSeries(data: NodeGraphData, ctx: RelationsSeriesContext)
   // Only fixed layout uses explicit positions.
   const positions = layout === 'none' ? resolveFixedPositions(data.nodes) : undefined;
   const resolveGradient = makeEdgeGradientResolver(positions, nodeColors, ctx.options);
+  const automaticCenter = getAutomaticGraphCenter(data, ctx.options, layout, plotHeight);
 
   return {
     type: 'graph',
     layout,
     // The panel buttons control zoom separately.
     roam: resolveRelationsRoam(ctx.options),
+    ...(automaticCenter ? { center: automaticCenter } : {}),
+    // A remembered pan position overrides the automatic circular-layout center.
     ...getRelationsViewState(ctx.options),
     draggable: resolveGraphDraggable(ctx.options, layout),
     // Plugin defaults differ from ECharts defaults.

@@ -26,7 +26,7 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Defaults, as shipped",
-      "description": "**Everything here is a default.** No option is set beyond the chart type.\n\n- Force layout spread by `repulsion: 400` / `edgeLength: 200`; ECharts' own `[0,50]` / `30` pack a real topology into a knot in the middle of the panel.\n- Node positions are **reproducible**: the simulation is seeded on a ring (`force.initLayout`) where ECharts seeds it at `Math.random()`, so this graph is the same on every refresh instead of shuffling.\n- The simulation's steps are **not painted** (`force.layoutAnimation: false`), so a refresh does not jiggle.\n- Arrowheads at the target end, since an edge is directed by contract.\n- Hover a node: adjacency highlighting is on, and Default-tier rather than Advanced.\n- Labels truncate at 120px and any that would still collide are dropped.",
+      "description": "This panel uses the default Graph configuration. Force layout spreads the nodes and keeps their positions stable between refreshes. Labels truncate at 120 pixels, and the panel hides overlapping labels. Hover a node to highlight its adjacent nodes and links.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -82,7 +82,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "Control — labels unmanaged",
-      "description": "The same data with both label defaults off (`Label overflow: None`, `Hide overlapping labels: off`), which is what the panel used to draw: every name in full, several of them on top of each other.\n\nNothing else differs — this is the comparison the defaults exist for.",
+      "description": "This panel shows every full label and does not hide overlaps. All other settings match the default panel on the left.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -154,7 +154,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Link colour: Source",
-      "description": "Each link takes the colour of the node it leaves.\n\n**The bug.** ECharts' `graph` series resolves the `source` / `target` keywords in `edgeVisual` at visual priority 3000, but the pass that applies each node's own `itemStyle.color` runs at 4500 — so the keyword read a colour the nodes did not have yet and *every* edge came out the same palette blue, whichever mode was picked. The panel resolves the endpoint colours itself now.",
+      "description": "Each link uses the color of its source node.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -212,7 +212,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "Link colour: Target",
-      "description": "Each link takes the colour of the node it arrives at — visibly different from the panel on the left, which is the whole claim.\n\n**The bug.** ECharts' `graph` series resolves the `source` / `target` keywords in `edgeVisual` at visual priority 3000, but the pass that applies each node's own `itemStyle.color` runs at 4500 — so the keyword read a colour the nodes did not have yet and *every* edge came out the same palette blue, whichever mode was picked. The panel resolves the endpoint colours itself now.",
+      "description": "Each link uses the color of its target node. Compare the links with the Source panel on the left.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -270,7 +270,7 @@
       "id": 7,
       "type": "grafana-echartsrelations-panel",
       "title": "Link colour: Gradient (the default), on pinned positions",
-      "description": "`Gradient` is the family default. Under a **fixed** layout the node positions are known before ECharts lays the graph out, so each edge gets a real source-to-target blend oriented along the edge. The positions come from `custom.fixedX` / `custom.fixedY` overrides — one per node, which is only addressable because a node is a field.\n\nUnder force or circular it degrades to the source node's colour: a bounding-box gradient cannot be oriented without the positions, and half the edges would report their direction backwards. The arrowheads carry the direction there instead.",
+      "description": "Gradient is the default link color. Fixed node positions let each link blend from its source color to its target color. Force and Circular layouts use the source color because the final positions are not known in advance.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -393,7 +393,7 @@
       "id": 8,
       "type": "grafana-echartsrelations-panel",
       "title": "Edge values, zoom and pan",
-      "description": "Three Advanced options, all off by default:\n\n- **Show edge values** draws each link's own weight on the link, formatted through that edge's field.\n- **Zoom** adds zoom in / out / reset buttons in the panel's bottom-right corner. They dispatch the ECharts roam *action* rather than binding the scroll wheel — a panel that captured the wheel would be one the dashboard could not be scrolled past.\n- **Pan** is the drag half, and the only one routed through `roam`.",
+      "description": "Show edge values displays each link weight with that edge format. Zoom adds buttons to zoom in, zoom out, and reset the view. Pan lets you drag the chart.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -454,7 +454,7 @@
       "id": 9,
       "type": "grafana-echartsrelations-panel",
       "title": "Derived nodes — no \"Show node values\" control",
-      "description": "An edges-only response: every node here is inferred from an endpoint, so none carries a stat.\n\nOpen the editor and look at the **Relations** section — **Show node values** is absent. It used to sit there as a switch that could be flipped and would visibly do nothing.",
+      "description": "The response contains only edges, so the panel derives nodes from the endpoints. Derived nodes have no measured values. The editor hides Show node values for this data.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -501,7 +501,7 @@
       "id": 10,
       "type": "grafana-echartsrelations-panel",
       "title": "Force tuning, and the jiggle put back",
-      "description": "**Animate layout** switched on, which is ECharts' default and no longer the panel's: every simulation step is painted, so the graph visibly settles. On a dashboard refreshing on a timer that reads as the nodes jiggling for no reason, since the topology has not changed. Compare with the first panel.\n\nRepulsion and edge length sit next to it, both carrying the family's defaults rather than ECharts'.",
+      "description": "Animate layout shows each step while the Force layout settles. Repulsion controls the space between nodes. Edge length controls the target distance between connected nodes.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -574,7 +574,7 @@
       "id": 12,
       "type": "grafana-echartsrelations-panel",
       "title": "Vertical flow, labels below the bars",
-      "description": "**The fix.** ECharts places a sankey label `right` of the node in both orientations. Vertically the bars run *along* the row, `nodeGap` (8px) apart, so a label 5px to the right of one is drawn straight over the next node's fill — unreadable against a saturated colour, and colliding with that node's own label.\n\nThe label sits below the bar now, in the ribbon gap.",
+      "description": "For vertical Sankey flow, node labels appear below the bars. This placement keeps each label away from the next node.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -631,7 +631,7 @@
       "id": 13,
       "type": "grafana-echartsrelations-panel",
       "title": "Horizontal flow with ribbon values",
-      "description": "Horizontally `right` is the correct placement and is left alone: the node columns are separated by the ribbon area, so a label beside a bar has nothing but ribbons behind it.\n\n**Show edge values** is on, so each ribbon carries its own weight.",
+      "description": "For horizontal Sankey flow, node labels appear beside the bars. Show edge values displays each weight on its ribbon.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -703,7 +703,7 @@
       "id": 15,
       "type": "grafana-echartsrelations-panel",
       "title": "Overlapping labels dropped (default)",
-      "description": "Four real flows and six slivers. The slivers collapse into a narrow wedge of the ring and their labels stack on one another — the case the pie answers with `avoidLabelOverlap`, which `series.chord` has no equivalent of.\n\nChord labels go through the same label-layout stage as every other series, so **Hide overlapping labels** is the lever, and it is on by default. Animation is on by default for the whole family too: reload and the ribbons grow into place.",
+      "description": "This Chord chart contains several narrow arcs with labels in the same area. Hide overlapping labels removes labels that collide. The setting is on by default.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -750,7 +750,7 @@
       "id": 16,
       "type": "grafana-echartsrelations-panel",
       "title": "Control — every label drawn",
-      "description": "The same ring with **Hide overlapping labels** off and no truncation. This is the smear the default removes.",
+      "description": "This Chord chart turns off Hide overlapping labels and label truncation. It draws every label, including labels that overlap.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -813,7 +813,7 @@
       "id": 18,
       "type": "grafana-echartsrelations-panel",
       "title": "Main and secondary stat on nodes and edges",
-      "description": "**Calculation** takes exactly two reducers now — the picker used to accept any number while only the first two could mean anything, and dropped the rest silently.\n\nHere they are `max` and `min`. Hover a **node** or an **edge**: both report a `Value` and a `Secondary` row. The second reducer used to apply to nodes only, so on an edges-only response — the common shape — choosing one produced no second value anywhere.",
+      "description": "Calculation uses `max` as the main value and `min` as the secondary value. Hover a node or edge to see both values.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -872,7 +872,7 @@
       "id": 19,
       "type": "grafana-echartsrelations-panel",
       "title": "The same marks as a chord",
-      "description": "One converter, three layouts: the reducers, the tooltip rows and the per-mark formatting belong to the family, not to the variant.",
+      "description": "Chord applies the same calculations, tooltip rows, and value formats to each node and edge.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"

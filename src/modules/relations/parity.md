@@ -139,6 +139,10 @@ These links need Grafana on `http://localhost:3001`. Each link opens one panel i
 | [#16 opts][live-opt-16] | Link color: Target           | [#34 opts][live-opt-34] | Color scheme: By value         |
 | [#17 opts][live-opt-17] | Edge arrows: Off             | [#35 opts][live-opt-35] | Thresholds: 50 and 80          |
 | [#18 opts][live-opt-18] | Link curveness: 0.4          | [#36 opts][live-opt-36] | Value mappings: Color and text |
+| [#37 opts][live-opt-37] | Chart type: Chord            | [#40 opts][live-opt-40] | Link color: Gradient on Sankey |
+| [#38 opts][live-opt-38] | Label overflow: Wrap         | [#41 opts][live-opt-41] | Show edge values: Sankey       |
+| [#39 opts][live-opt-39] | Link color: Source           | [#42 opts][live-opt-42] | Highlight adjacency: Off       |
+| [#43 opts][live-opt-43] | Node alignment: Left         | [#44 opts][live-opt-44] | Node alignment: Right          |
 
 ## Cycle policy
 
@@ -275,3 +279,11 @@ Sankey node width and gap are series options. They cannot vary by node. Graph no
 [live-opt-34]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=34
 [live-opt-35]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=35
 [live-opt-36]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=36
+[live-opt-37]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=37
+[live-opt-38]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=38
+[live-opt-39]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=39
+[live-opt-40]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=40
+[live-opt-41]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=41
+[live-opt-42]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=42
+[live-opt-43]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=43
+[live-opt-44]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=44

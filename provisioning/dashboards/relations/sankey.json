@@ -13,7 +13,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "A clean DAG: no cycles, weighted flow splitting at each stage. This is what the sankey variant is for.\n\nNo nodes frame — the node set is derived from the edges, so labels are the raw ids.",
+      "description": "This Sankey chart shows weighted flow through a conversion funnel. The links contain no cycles. The data has no nodes frame, so the panel creates nodes from the link endpoints. The labels use the node IDs.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -60,7 +60,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "The same frames with Flow direction set to Vertical (`series.sankey.orient`), so the node columns become rows.",
+      "description": "This panel uses the same data as the horizontal funnel. Flow direction is Vertical, so flow moves from top to bottom.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -108,7 +108,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "**The case this variant exists to survive.** These edges contain a cycle (`api -> db` and `db -> api`). ECharts' sankey layout throws on cyclic input — and the throw is not `__DEV__`-guarded, so a production build would render a blank, broken panel.\n\nThe converter breaks the cycle before ECharts sees the links (`converters/dag.ts`) and reports the cost in the bottom-left note. Compare the node graph to the right to see which link was removed.",
+      "description": "The `api -> db` and `db -> api` links form a cycle. Sankey charts require data without cycles. The panel removes one link and shows a notice at the bottom left. Compare this panel with the Node graph to see the removed link.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -155,7 +155,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "The same edges in core Grafana's Node graph, which has no DAG restriction. Every link is drawn here, including the `db -> api` back-edge the sankey drops.",
+      "description": "This Grafana Node graph uses the same data as the Sankey chart. Node graphs support cycles, so this panel includes the `db -> api` link.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -190,7 +190,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Identical queries to the sankey on the left of the row above, rendered by the `graph` variant instead. One converter, two layouts: switching Chart type re-renders the same `{ nodes, links }` model, and `graph` keeps the cycle because it accepts any digraph.\n\nLayout is Circular for a stable picture; the panel default is Force.",
+      "description": "This panel uses the same queries as the Sankey chart. The Graph chart type keeps every link because it supports cycles. This panel uses a Circular layout. The default Graph layout is Force.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -238,7 +238,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "An edges frame plus a nodes frame (two `csv_content` queries, detected by field shape rather than frame name). The nodes frame's `title` supplies each label, so the sankey reads \"Database\" rather than the raw `db` id.",
+      "description": "The data contains an edges frame and a nodes frame. The `title` field in the nodes frame supplies each label. The chart shows \"Database\" instead of the node ID `db`.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -294,7 +294,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "TestData's `node_graph` random scenario deliberately generates cycles (its `generateRandomNodes` has a loop commented \"Add some random edges to create possible cycle\"). A stress case for the cycle policy: the dropped-link count in the note tracks however many back-edges the generator produced.",
+      "description": "The TestData `node_graph` random scenario can generate cycles. The panel removes links that form cycles. The notice shows the number of removed links.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -345,7 +345,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "TestData's `random edges` produces an edges frame with no nodes frame. The converter derives the node set from the `source`/`target` union, so a valid response still renders.",
+      "description": "The TestData `random edges` scenario returns an edges frame without a nodes frame. The panel creates the node set from the `source` and `target` values.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -396,7 +396,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Advanced-tier options: wider node bars (`nodeWidth`), a larger gap (`nodeGap`), less translucent ribbons (`lineStyle.opacity`) and right-aligned columns (`nodeAlign`). Switch the editor back to Default mode and every one of these resets.",
+      "description": "This panel uses Advanced mode. Node width makes the node bars wider. Node gap adds more space between nodes. Ribbon opacity makes the ribbons less transparent. Node alignment is Right. If you change the editor to Default mode, these configuration values reset.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -448,7 +448,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "**Show node values** on. Each node label gains a second line carrying that node's `mainstat`, formatted with the field's unit and decimals — the same value, and the same `stat ?? value` precedence, the tooltip shows.\n\nThe option is shared by all three render variants and rides on the node label, so it is hidden in the editor when **Show node labels** is off.",
+      "description": "Show node values adds the calculated node value below each node label. The node field supplies the unit and decimals. The tooltip shows the same value. If Show node labels is off, the editor hides Show node values.",
       "fieldConfig": {
         "defaults": {
           "color": {
