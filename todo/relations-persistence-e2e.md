@@ -1,5 +1,13 @@
 # Relations persistence — the e2e gap
 
+## Status
+
+Unit tests cover persistence, and browser checks cover data refreshes. No end-to-end test covers save and reload through a dashboard.
+
+## Release impact
+
+The team must decide whether save-and-reload coverage is a release gate. This missing test leaves a persistence risk in the release.
+
 Node-position and view persistence (`lib/components/hooks/useRelationsPersistence.ts`)
 is covered by unit tests at both ends and was verified by hand in a browser, but the one
 thing neither can assert is the **round trip through a saved dashboard**. That needs
@@ -41,9 +49,7 @@ positions.
    with it off, the view resets on reload and the dashboard is _not_ marked dirty.
 3. **Clearing.** Delete the overrides in the Overrides tab and confirm the nodes return
    to their seeded ring positions, so the write is reversible through the ordinary UI.
-4. **Both hosts.** With and without `grafana.panelPluginTransformations`, an edges-only
-   response should remember a drag either way — via the pre-pass's field on one host and
-   via the by-name read on the other. Only an e2e run can put the two side by side.
+4. **Current and future hosts.** Test the compatibility path and the open system-transformations stack. An edges-only response must remember a drag through both paths.
 5. **The N-overrides cost.** A first drag on a large topology writes one override per
    node. Worth an assertion on the count, and a look at what the Overrides tab does with
    fifty of them.

@@ -153,13 +153,8 @@ describe('pinned tooltip data links', () => {
   });
 
   /**
-   * Relations, which had no case here at all until the field-based graph contract
-   * gave it one worth writing — `todo/relations-data-links.md` gaps 1-3.
-   *
-   * Each assertion is the *negative* as much as the positive: a link configured on
-   * node `a` must not appear on node `b`, and an edge must resolve the edge field
-   * rather than either endpoint's. In the row form neither was expressible — one
-   * `mainstat` column backed every mark, so a link on it painted on all of them.
+   * A link on node `a` must not appear on node `b`. An edge must resolve its own
+   * field instead of an endpoint field. These assertions prevent both regressions.
    */
   describe('relations', () => {
     const NODE_LINK = 'NodeLink';

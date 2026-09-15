@@ -2,7 +2,7 @@
 
 This document compares the Relations panel with Grafana Node graph. It also lists options that apply only to ECharts graph, sankey, or chord.
 
-Both panels can use the same row query. Relations converts row frames to the [graph-wide contract](../../../data-plane/graph-wide.md) before field overrides.
+Both panels can use the same row query. Relations converts row frames to the [ECharts graph-wide format](../../../data-plane/graph-wide.md) before field overrides.
 
 ## Main differences
 

@@ -1,5 +1,13 @@
 # The relations pre-pass registration has no test of its own
 
+## Status
+
+The direct registration test remains open. It depends on the system-transformations stack in [Grafana 132104](https://github.com/grafana/grafana/pull/132104), [Grafana 132109](https://github.com/grafana/grafana/pull/132109), and [Scenes 1614](https://github.com/grafana/scenes/pull/1614).
+
+## Release impact
+
+This test does not block the Relations plugin release. The upstream stack must land before this repository can replace its compatibility path.
+
 ## Problem
 
 `modules/relations/module.tsx` is the one link in the derived-node chain with no direct
@@ -43,6 +51,4 @@ doing it once, generically, rather than for relations alone.
 
 ## Priority
 
-Low. The expression is one line, it is covered end to end by a real Grafana pass over
-`provisioning/dashboards/relations/`, and the failure mode is a visible error message
-rather than a silent wrong render.
+Low. A real Grafana pass over `provisioning/dashboards/relations/` covers the one-line expression end to end. The failure mode is a visible error message.

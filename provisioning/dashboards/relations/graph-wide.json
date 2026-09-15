@@ -7,7 +7,7 @@
   "graphTooltip": 0,
   "links": [],
   "liveNow": false,
-  "description": "Proof for the graph-nodes-wide / graph-edges-wide contract (data-plane/graph-wide.md). Every styled panel is paired with an unstyled control, and every styled panel achieves its effect with fieldConfig.overrides alone - no plugin-local per-item mechanism. Each row now ends with the ECharts relations panel reading the same fixture with the same overrides (phases 1-5 of todo/graph-wide-migration.md), with the core panels kept alongside as the \"this is standard Grafana\" reference. Two shapes are deliberately not folded and say so on the panel: the adjacency matrix, whose interpretation was proposed and rejected, and a raw multi-frame response, which needs one joinByField first.",
+  "description": "This dashboard demonstrates the shipped graph-nodes-wide and graph-edges-wide contract in data-plane/graph-wide.md. Each styled panel has an unstyled control. Each styled panel uses only fieldConfig.overrides. The ECharts Relations panel reads the same fixture with the same overrides. The adjacency matrix is not supported. A raw multi-frame response needs a joinByField transformation first.",
   "panels": [
     {
       "datasource": {
@@ -179,7 +179,7 @@
       "id": 13,
       "type": "grafana-echartsrelations-panel",
       "title": "The same wide edges, drawn as a graph",
-      "description": "**The same four overrides, on the relations panel.**\n\nIdentical fixture and identical `fieldConfig.overrides` to the bar chart on the left \u2014 no plugin-local mechanism, no transformation. An edge is a field, so the override engine reaches it here exactly as it reaches a bar:\n\n- `a-->c` renders dark red, while every other edge keeps the endpoint gradient\n- `b-->d` is gone (`custom.hideFrom.viz`), and so is the link it drew\n- hovering `a-->b` reads milliseconds and `c-->d` reads seconds \u2014 two units in one graph\n\nPhases 3-5 of [todo/graph-wide-migration.md](../../../todo/graph-wide-migration.md): colour, hiding, and per-mark tooltip formatting.",
+      "description": "**The same four overrides, on the relations panel.**\n\nIdentical fixture and identical `fieldConfig.overrides` to the bar chart on the left \u2014 no plugin-local mechanism, no transformation. An edge is a field, so the override engine reaches it here exactly as it reaches a bar:\n\n- `a-->c` renders dark red, while every other edge keeps the endpoint gradient\n- `b-->d` is gone (`custom.hideFrom.viz`), and so is the link it drew\n- hovering `a-->b` reads milliseconds and `c-->d` reads seconds \u2014 two units in one graph\n\nThe panel supports color, hiding, and tooltip formats for each mark.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -520,7 +520,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "**A data link on exactly one node.**\n\nSame wide nodes fixture. `config.links` is set by a `byName` override on field `a` only, so `a`'s value renders as a link and `b`/`c` do not \u2014 visible without clicking.\n\nThis is gap 1 of `todo/relations-data-links.md`: in the legacy form a link lives on the `mainstat` *column*, so it paints on **every** node and `${__data.fields.id}` can vary only its destination, never its presence.",
+      "description": "**A data link on exactly one node.**\n\nThe wide nodes fixture sets `config.links` with a `byName` override on field `a` only. The value for `a` renders as a link. The values for `b` and `c` do not render as links. A legacy row frame applies one `mainstat` field to every node, so it cannot control link presence for each node.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -630,7 +630,7 @@
       "id": 15,
       "type": "grafana-echartsrelations-panel",
       "title": "A data link on exactly one node, drawn as a graph",
-      "description": "**Click node `a` to pin its tooltip: the footer offers the runbook link.** Pin `b` or `c` and there is no footer at all.\n\nSame `links` override as the table on the left. This is gaps 1-3 of [todo/relations-data-links.md](../../../todo/relations-data-links.md), closed in phase 5: the footer resolves the hovered mark's *own* field, so a link's **presence** \u2014 not just its destination \u2014 is per mark. In the row form one `links` override on the `mainstat` column painted the same link on every node.",
+      "description": "**Click node `a` to pin its tooltip.** The footer shows the runbook link. Pin `b` or `c`, and the footer shows no link. The table on the left uses the same `links` override. The tooltip resolves the field for the selected mark, so each mark controls whether the footer has a link.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1349,7 +1349,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "**The regression target, now passing.** The same wide edges fixture as the top-left bar chart, handed straight to the relations panel: no nodes frame, no transformations, no overrides.\n\nThis panel used to render \u201cAn unexpected error happened\u201d. The old reader required columns literally named `source` and `target`, found none, returned `null`, and `buildOption` threw. Phases 1-2 replaced it: `graph-*-wide` is the family's only reader, the four nodes are derived from the edge endpoints, and a response it cannot read falls back to the no-data view instead of throwing.\n\nThe nodes here are **derived**, so they carry no field: no per-node override, no data link, no subtitle. That is gap 4 of [todo/relations-data-links.md](../../../todo/relations-data-links.md), the one thing the contract does not close \u2014 supply a nodes frame (as the row above does) and it goes away.",
+      "description": "**The regression target now passes.** The Relations panel receives the same wide edges fixture as the top-left bar chart. It receives no nodes frame, transformations, or overrides. The reader derives four nodes from the edge endpoints. Unsupported data shows the no-data view instead of an error. A derived node has no field, so it has no node override, data link, or subtitle. Supply a nodes frame to add those features.",
       "fieldConfig": {
         "defaults": {
           "color": {

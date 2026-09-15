@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "Phase 5 of todo/graph-wide-migration.md: every mark resolves its own field, so the tooltip formats with that mark's unit, its config.links reach the pinned footer, and the legend writes ordinary byName overrides. Every panel runs the same row-format query; the plugin's registered transformation converts it above the panel, before field overrides.",
+  "description": "Every mark resolves its own field. The tooltip uses the unit for that mark, config.links reaches the pinned footer, and the legend writes ordinary byName overrides. Every panel runs the same row-format query. The registered transformation converts the data above the panel, before field overrides.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -21,7 +21,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "This dashboard is the **phase 5** proof of [todo/graph-wide-migration.md](https://github.com/grafana/grafana-echarts-panel):\neach mark answers for itself. Every panel runs the *same* row-format query \u2014 the plugin's\nregistered transformation converts it to `graph-nodes-wide` / `graph-edges-wide` above the\npanel, so each node and each edge exists as a field before overrides are applied.\n\n**Try it:**\n\n1. **Hover** a node, then an edge. Each value is formatted by that mark's own unit and decimals.\n2. **Click** a mark to pin its tooltip. Only the marks with a `links` override show a footer link.\n3. **Click a legend swatch** and pick a colour: Grafana writes a plain `byName` colour override \u2014\n   no plugin-specific mechanism \u2014 and the node repaints. **Click a legend label** to hide that node\n   and the edges touching it.\n4. Open **Field overrides** and look at the field picker: it lists `gateway`, `api`, `db`,\n   `gw-api`, `api-db`, `gw-db` \u2014 one entry per mark."
+        "content": "This dashboard demonstrates field behavior for each mark. Every panel runs the *same* row-format query. The plugin's registered transformation converts it to `graph-nodes-wide` and `graph-edges-wide` above the panel. Each node and edge exists as a field before Grafana applies overrides.\n\n**Try it:**\n\n1. **Hover** a node, then an edge. Each value uses the unit and decimals for that mark.\n2. **Click** a mark to pin its tooltip. Only marks with a `links` override show a footer link.\n3. **Click a legend swatch** and select a color. Grafana writes a `byName` color override, and the node changes color. **Click a legend label** to hide that node and its edges.\n4. Open **Field overrides**. The field picker lists `gateway`, `api`, `db`, `gw-api`, `api-db`, and `gw-db`."
       },
       "transparent": true
     },
@@ -244,7 +244,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "Per-mark data links \u2014 click a mark to pin its tooltip",
-      "description": "**A link on exactly one node and exactly one edge.**\n\n`config.links` is set by a `byName` override on node `db` and on edge `api-db`. Pin `db` (click it) and the footer offers *Database runbook*; pin `gateway` or `api` and there is no footer at all. Pin the `api \u2192 db` edge for *Trace api-db*, whose URL interpolates `${__field.name}`.\n\nGaps 1-3 of `todo/relations-data-links.md`: in the row form a link lives on the `mainstat` column, so it paints on **every** node, and an edge could be handed the nodes frame's field.",
+      "description": "**A link on exactly one node and exactly one edge.**\n\nA `byName` override sets `config.links` on node `db` and edge `api-db`. Click `db`, and the footer shows *Database runbook*. Click `gateway` or `api`, and the footer shows no link. Click the `api \u2192 db` edge for *Trace api-db*. Its URL uses `${__field.name}`. The tooltip resolves the field for the selected mark.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"

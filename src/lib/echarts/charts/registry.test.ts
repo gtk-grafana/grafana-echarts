@@ -54,7 +54,7 @@ describe('resolveChartModule', () => {
     // gauge is a planned part-to-whole variant, not yet registered.
     expect(() => resolveChartModule('gauge')).toThrow();
     // `lines` is a deliberate deferral, not an oversight: it needs coordinate-pair
-    // polylines, which no Grafana frame carries. See todo/node-graph.md.
+    // polylines, which no Grafana frame carries. See todo/lines.md.
     expect(() => resolveChartModule('lines')).toThrow();
   });
 

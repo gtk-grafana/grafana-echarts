@@ -4,7 +4,7 @@ A **flame graph** visualizes hierarchical profiling data (a call tree weighted b
 CPU time, memory, samples, ...). Grafana models it as a **single** column-oriented
 data frame in a **nested set model**.
 
-> **Not a data plane contract kind.** Like the [graph kinds](./graph-wide.md), flame
+> **Not a data plane contract kind.** Like the [proposed graph kind](./graph-wide-proposed.md), flame
 > graph is **out of the Grafana data plane contract**. It carries no
 > `frame.meta.type`. Grafana identifies it through a separate routing signal
 > (`frame.meta.preferredVisualisationType`).
@@ -15,8 +15,8 @@ data frame in a **nested set model**.
 > [hierarchy.md](./hierarchy.md). This doc describes the **input frame format**;
 > the hierarchy doc describes the tree model and the charts. ECharts has no native
 > flame/icicle series, so the classic left-aligned stacked-bar layout (a `custom`
-> `renderItem` series) remains unbuilt — `todo/flame-graph.md` sketches it, though
-> that doc predates the hierarchy converter and still reads as if nothing exists.
+> `renderItem` series) remains unbuilt. The plugin does not include a custom flame
+> renderer.
 
 Live examples ship in `provisioning/dashboards/hierarchy.json` ("ECharts
 Hierarchy treemap and sunburst"): _Treemap (flame-graph nested set)_ and

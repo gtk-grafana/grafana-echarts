@@ -1,7 +1,12 @@
 # Conditional standard options for relations (needs Grafana 13.3)
 
-> **Status: blocked on a release, not on a decision.** Deferred out of the options-reorg
-> (2026-09-14) after confirming the capability exists upstream but is unpublished.
+## Status
+
+This work is blocked until Grafana 13.3 publishes the required API. Pull request 132398 merged. Pull requests 132414 and 132419 remain open.
+
+## Release impact
+
+This work is a Grafana 13.3 follow-up. It does not block the Relations plugin release.
 
 ## The capability
 
@@ -19,8 +24,7 @@ min/max when `graphMode` is none").
 
 ## Why it is not done yet
 
-`npm view @grafana/data` on 2026-09-14: `latest` is **13.2.1**, and the `nightly` tag is
-still a `13.2.0-*` build. There is no 13.3 to depend on. The repo pins 13.1.1.
+`npm view @grafana/data` on 2026-09-15 reports that `latest` is **13.2.2**. There is no 13.3 release to use. The repository pins 13.1.1.
 
 Note also that `package.json` pins `@grafana/*` at 13.1.1 while
 `src/modules/relations/plugin.json` already declares `grafanaDependency: ">=13.2.0"`.
@@ -54,7 +58,7 @@ Those two disagree today, independently of this document.
    written for exactly this: the gate is right when every panel in that dashboard still
    shows its domain controls and a `palette-classic` panel shows none.
 
-4. Track the override half, both still open as of 2026-09-14:
+4. Track the override half, which remains open as of 2026-09-15:
    [#132414](https://github.com/grafana/grafana/pull/132414) (panel options on the
    override editor context) and
    [#132419](https://github.com/grafana/grafana/pull/132419) (`showIfOverride`, which

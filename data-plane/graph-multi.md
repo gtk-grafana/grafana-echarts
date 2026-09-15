@@ -4,10 +4,10 @@ A **graph** is a set of **nodes** and the **edges** that join them. A response o
 carries an **edges** frame and, optionally, a **nodes** frame.
 
 In the **multi** formats one mark is one **frame**: one edge is one frame, one node is one
-frame. Each frame holds a single value field, and everything the
-[wide formats](./graph-wide.md) say about that field — its name is the mark's id, its labels
-carry the topology, its config carries the styling — applies unchanged. The response grows
-by _multiple_ frames rather than by columns.
+frame. Each frame holds a single value field. Its identity and topology use the rules from
+the [proposed wide format](./graph-wide-proposed.md). Its field configuration uses the
+[ECharts implementation rules](./graph-wide.md#field-configuration). The response grows by
+_multiple_ frames rather than by columns.
 
 This is the shape a labelled datasource returns with no reshaping at all:
 `sum by (source, target) (rate(traces_service_graph_request_total[$__range]))` in
@@ -24,8 +24,8 @@ never measured.
 
 Related kinds:
 
-- [graph-wide.md](./graph-wide.md) — one frame, one field per mark. The base contract; every
-  per-field rule below is defined there.
+- [graph-wide-proposed.md](./graph-wide-proposed.md): One frame, one field per mark. This
+  specification defines the portable identity and topology rules.
 - [graph-long.md](./graph-long.md) — one frame, one row per mark.
 - [graph-matrix.md](./graph-matrix.md) — an adjacency-matrix edges format, proposed and
   rejected.
@@ -75,7 +75,7 @@ It should have the following properties:
 - One `number` field per frame, which is the edge.
 - `field.name` is the edge id.
 - `field.labels[source]` and `field.labels[target]` are the ids of the nodes it joins,
-  under the keys the [wide format](./graph-wide.md#graph-edges-wide-format-graph-edges-wide)
+  under the keys the [wide format](./graph-wide-proposed.md#edges-role)
   defines. Endpoints may also be split out of the name using the same
   [separator](./graph-wide.md#the-separator) rules.
 - The field's reduced value is the edge weight.
@@ -118,8 +118,8 @@ It should have the following properties:
 
 - One `number` field per frame, which is the node.
 - `field.name` is the node id, and is what an edge's `source` and `target` resolve against.
-- All the optional `field.config` of
-  [`graph-nodes-wide`](./graph-wide.md#graph-nodes-wide-format-graph-nodes-wide).
+- All optional `field.config` values from the
+  [ECharts wide implementation](./graph-wide.md#field-configuration).
 
 **This format needs a declaration or a named field, and usually both.** A nodes frame is
 recognised by shape only when its numeric field names an endpoint the edges already refer
@@ -220,7 +220,8 @@ Nodes convert the same way, with `graph-nodes-*` throughout.
   https://grafana.com/developers/dataplane/contract-spec
 - Time series multi, the format this mirrors:
   https://grafana.com/developers/dataplane/timeseries
-- The base contract: [graph-wide.md](./graph-wide.md)
+- The base contract: [graph-wide-proposed.md](./graph-wide-proposed.md)
+- The ECharts implementation: [graph-wide.md](./graph-wide.md)
 - The row formats: [graph-long.md](./graph-long.md)
 - `DataFrameType`:
   https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/types/dataFrameTypes.ts

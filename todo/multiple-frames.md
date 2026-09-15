@@ -1,5 +1,13 @@
 # Multiple frames in categorical converters
 
+## Status
+
+Category-axis Cartesian charts support multiple frames. Matrix heatmap, radar, parallel, and hierarchy converters still use one frame.
+
+## Release impact
+
+The remaining converter work is post-release. It does not block the Relations plugin release.
+
 ## Problem
 
 The categorical converters only read the **first** frame that has a numeric field
@@ -7,10 +15,8 @@ The categorical converters only read the **first** frame that has a numeric fiel
 time series "Multi" format, or one-frame-per-series datasources like Prometheus)
 are **not** merged.
 
-## Status
-
 **Contract A is implemented for the category-axis cartesian path only**
-(`converters/categoryCartesianModel.ts`). Still single-frame:
+(`converters/categoryCartesianModel.ts`). These converters still use one frame:
 
 - `frameToMatrixHeatmap` (matrix heatmap layout)
 - `frameToCategorical` — retained as-is for radar / parallel / hierarchy

@@ -2,7 +2,7 @@
 
 The relations family includes ECharts graph, sankey, and chord charts. Each chart needs edges and can also use declared nodes.
 
-The panel reads the [graph-wide contract](../data-plane/graph-wide.md). One node or edge is one numeric field. It can convert the [row contract](../data-plane/graph-long.md) before field overrides.
+The panel reads the [ECharts graph-wide implementation](../data-plane/graph-wide.md). One node or edge is one numeric field. The generic shape is in the [proposed graph-wide specification](../data-plane/graph-wide-proposed.md). The panel can convert the [row contract](../data-plane/graph-long.md) before field overrides.
 
 Use wide input for Prometheus, Loki, SQL, CSV, and JSON. Use row input for Tempo, AWS X-Ray, TestData DB, and compatibility with Grafana Node graph.
 
@@ -258,7 +258,8 @@ Wide input can keep a time dimension because the panel reduces each field or rea
 
 ## References
 
-- [Graph-wide contract](../data-plane/graph-wide.md)
+- [Proposed graph-wide specification](../data-plane/graph-wide-proposed.md)
+- [ECharts graph-wide implementation](../data-plane/graph-wide.md)
 - [Graph row contract](../data-plane/graph-long.md)
 - [Graph multi-frame contract](../data-plane/graph-multi.md)
 - [ECharts series coverage](../data-plane/echarts-coverage.md)

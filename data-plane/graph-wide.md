@@ -1,467 +1,238 @@
-# Graph data frame kind, wide
+# ECharts implementation of graph-wide
 
-A **graph** is a set of **nodes** and the **edges** that join them. A response of this kind
-carries an **edges** frame and, optionally, a **nodes** frame.
+The relations family contains the ECharts graph, Sankey, and chord charts. Each chart reads one numeric field as one node or edge.
 
-In the **wide** formats one mark is one **field**: one node is one field, one edge is one
-field. A field's values are that mark's weight over the frame's row dimension, its `name`
-is the mark's id, its `labels` carry the topology, and its `config` carries everything else
-— colour, unit, decimals, thresholds, mappings, data links and per-mark style.
+The [proposed graph-wide data plane specification](./graph-wide-proposed.md) defines the portable data shape. This document describes how the ECharts relations panel reads that shape.
 
-This is the graph counterpart of `numeric-wide`: a graph is a set of named numbers, plus
-the statement of which pairs of names are joined.
+## Support status
 
-> **Proposed kind.** `DataFrameType` in `@grafana/data` 13.1.1 has twelve members and none
-> is graph-related, so nothing here redefines an existing kind. Per the contract's
-> versioning rules these formats are at `typeVersion` `0.1` — well defined, but subject to
-> change. See [Frame meta](#frame-meta).
+The proposal uses `meta.type: 'graph-wide'` and a separate role in `meta.custom.graph.role`. The current panel does not read these proposed metadata values.
 
-Related kinds:
+The panel uses `graph-edges-wide` and `graph-nodes-wide` as compatibility types. Each type identifies the graph format and the frame role.
 
-- [graph-long.md](./graph-long.md) — the row formats, `graph-nodes-long` /
-  `graph-edges-long`, which every graph-native datasource emits today.
-- [graph-multi.md](./graph-multi.md) — the same contract as this one, spread one mark per
-  **frame**, for responses whose marks do not share a row grid.
+The panel detects canonical edges from their labels. It detects nodes when a numeric field name matches an endpoint.
 
-## Common properties
-
-- A response has **one or more edges frames** and **zero or more nodes frames**. An edges
-  frame is required; a lone nodes frame is a table, not a graph.
-- Every frame may declare its role in `frame.meta.type`. When no frame declares one, the
-  role is read from field shape — see [Frame role resolution](#frame-role-resolution).
-- A **mark** — a node or an edge — is one `number` field. Non-numeric fields are never
-  marks.
-- A mark's **id** is `field.name`. Ids should be meaningful, because `field.name` is what a
-  `byName` override, the override picker and the legend address. See
-  [Identity](#identity).
-- A mark's **value** is its field's values reduced by the consumer's chosen reducer. On a
-  single-row frame every reducer agrees.
-- A frame may carry one leading `time` or `string` field, the **row dimension**. Its
-  presence distinguishes the ranged form from the instant one; it is never a mark.
-- Field **labels** carry topology (an edge's endpoints) and free-form attributes.
-- Everything a consumer draws beyond position and weight comes from `field.config`, which
-  is to say from standard Grafana field configuration and overrides.
-
-### Invalid cases
-
-- A frame with no `number` field is not a graph frame.
-- An edge whose endpoints cannot be resolved — no endpoint labels, and no separator in its
-  name — is not an edge. Consumers should skip it rather than reject the frame.
-- Two nodes should not share an id. A node id is the key edges resolve against, so a
-  repeated node is one node; consumers should take the first.
-- Two edges **may** share an id, and two edges may share a pair of endpoints, but not both:
-  see [Parallel edges require labels](#parallel-edges-require-labels).
-- A mark's field should have the same length as its frame, as everywhere in the data plane.
-
-## Graph Edges Wide Format (`graph-edges-wide`)
-
-Version: 0.1
-
-One field per edge. The frame grows _wider_ as edges are added.
-
-**Example:** three edges over three nodes, instant.
-
-| **Type: Number**<br>**Name: gw-api**<br>**Labels: {"source": "gateway", "target": "api"}** | **Type: Number**<br>**Name: api-db**<br>**Labels: {"source": "api", "target": "db"}** | **Type: Number**<br>**Name: gw-db**<br>**Labels: {"source": "gateway", "target": "db"}** |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| 1200                                                                                       | 800                                                                                   | 40                                                                                       |
-
-It should have the following properties:
-
-- One `number` field per edge.
-- `field.name` is the **edge id**.
-- `field.labels[source]` and `field.labels[target]` are the ids of the nodes the edge
-  joins. The two keys default to `source` and `target`; a producer may declare others in
-  [`meta.custom.graph`](#frame-meta), and a short list of conventional pairs is accepted
-  without any declaration — see [Endpoint label keys](#endpoint-label-keys).
-- Where labels are absent, the endpoints may be split out of `field.name` — see
-  [The separator](#the-separator).
-- The field's reduced value is the edge **weight**, which is the ribbon size for flow
-  visualisations and the tooltip value everywhere.
-- The frame has no rows, one row, or — with a row dimension — many.
-
-Optional field configuration, all of it standard:
-
-| `field.config`                                   | Is the edge's                                                      |
-| ------------------------------------------------ | ------------------------------------------------------------------ |
-| `displayName`                                    | Label                                                              |
-| `color`                                          | Colour, in every mode but the palettes — see below                 |
-| `unit` / `decimals` / `mappings` / `min` / `max` | Value formatting                                                   |
-| `thresholds`                                     | Value formatting, and colour when `color.mode` is threshold-driven |
-| `links`                                          | Data links                                                         |
-| `custom.hideFrom`                                | Visibility, per surface (`viz` / `legend` / `tooltip`)             |
-| `custom.lineWidth`                               | Stroke width                                                       |
-| `custom.lineType`                                | Stroke pattern — `solid`, `dashed` or `dotted`                     |
-| `custom.curveness`                               | Curvature, 0–1                                                     |
-
-The `custom.*` keys are declared by the consuming panel, so a wide edges frame drawn by a
-panel that does not declare them keeps everything above them and ignores the rest.
-
-An edge reads `color` in every mode **except the palettes** (`palette-*`), which pick a
-colour by the field's position among its siblings or by a hash of its name — neither of
-which says anything about the two nodes the edge joins. A palette therefore counts as
-"nothing configured" for an edge and leaves it to the consumer's own link colouring; a
-literal colour (`fixed`, `shades`, `gradient`) and a by-value scheme (`thresholds`,
-`continuous-*`) are both read, the first as a decision about this mark and the second as
-the edge's own weight graded. A node reads all of them, palettes included.
-
-Remainder data:
-
-- Any second `time` or `string` field past the row dimension.
-- Numeric fields whose endpoints do not resolve.
-- Frames with a different or absent role.
-
-### Endpoint label keys
-
-`source` and `target` are the contract's keys, and **no datasource emits them.** Grafana's
-own service-graph metrics are labelled `client` / `server`; other producers use `src` / `dst`
-or `from` / `to`. A query written to reach the contract therefore ends up as
-
-```promql
-sum by (source, target) (
-  label_replace(label_replace(…, "source", "$1", "client", "(.*)"), "target", "$1", "server", "(.*)")
-)
-```
-
-whose only purpose is the rename, and whose side effect is that `client` / `server` are gone
-by the time the panel sees the response.
-
-So a consumer resolves an edge's endpoint keys in three steps:
-
-1. the pair the frame **declares** in [`meta.custom.graph`](#frame-meta) — authoritative, and
-   the only route for keys nobody could guess;
-2. failing that, the first **conventional pair** both of whose keys the field carries, in
-   order: `source`/`target`, `client`/`server`, `src`/`dst`, `from`/`to`. The canonical pair
-   is first so a frame carrying both resolves the way the contract says;
-3. failing that, [the separator](#the-separator) in `field.name`.
-
-**A converter writes the canonical pair and keeps the declaration pointing at the original.**
-That is the one asymmetry worth stating plainly: a pivot rewriting `client` / `server` labels
-to `source` / `target` leaves `meta.custom.graph.sourceKey: 'client'` behind. Reading still
-works — step 1 misses, step 2 finds the canonical pair — and the declaration remains the only
-record of what the datasource calls the dimension. That matters to any consumer writing a
-query back out: an ad-hoc filter, a drilldown link, a generated PromQL selector. A filter on
-`source="web-api"` matches nothing on a metric that has never carried the label.
-
-#### Recovery by value
-
-Steps 1–3 answer **where the endpoints are**. There is a fourth question they cannot answer,
-and it only has one carrier: which key the datasource holds those values under, when the
-response reached the panel with the canonical pair already in place and the original still
-beside it.
-
-`label_replace` **copies** a value rather than moving it, so an operand that simply stops
-aggregating the original away carries both:
-
-```promql
-sum by (source, target, cluster, namespace) (
-  label_replace(label_replace(…, "source", "$1", "cluster", "(.*)"), "target", "$1", "namespace", "(.*)")
-)
-```
-
-A consumer may then recover the keys by **matching the endpoint values back against the
-labels**, per field: whichever key holds this edge's source value is the source key. The
-recovery is exact — it is the same string comparison the copy created — and, crucially, it is
-**per edge**, which is the one thing steps 1–3 are not. A multi-level flow is one query whose
-`or`-joined operands relabel from _different_ originals, so its level-1 edges recover
-`cluster`/`namespace` and its level-2 edges `namespace`/`workload`, from one frame, with no
-declaration that could hold two answers.
-
-It is conservative by construction, because a wrong key writes a filter that matches nothing:
-
-- **both ends or neither.** One matched end is a coincidence — `{source: "api", target:
-"db", job: "api"}` recovers nothing, and the canonical pair stands;
-- **ambiguity recovers nothing.** Two labels holding the source's value cannot be told apart;
-- **the pair the endpoints were read from is skipped**, since it is the answer already.
-  Other recognised endpoint keys are _not_ skipped: `server` is half of `client`/`server` and
-  is also an ordinary leaf label in a `namespace → service` flow;
-- a **self-loop** has one value at both ends, so it takes the first two keys holding it, and
-  declines on any other count.
-
-A **node** has no pair of its own — its identity is a `field.name` — so its keys come from the
-edges touching it. That falls out correctly for a multi-level flow with nothing configured: a
-namespace node is level 1's target and level 2's source, and both say `namespace`.
-
-### The separator
-
-An edge's endpoints may be encoded in its name, for producers that cannot emit labels — a
-CSV header, a hand-written fixture, a `legendFormat`.
-
-**The separator is exactly the three ASCII characters `-->`.** Not `->`, not `→`, not `=>`.
-`a-->b` is the edge from `a` to `b`.
-
-- **Labels win.** A field carrying both endpoint labels and a separator in its name resolves
-  from the labels.
-- **First separator wins**, with nothing to check the split against. `a-->b-->c` is the edge
-  from `a` to `b-->c`.
-- **Unless the labels settle it.** Where the field carries labels, a consumer may split at
-  the point where _both_ halves are values the field holds — so `a-->b-->c` beside
-  `{src_group: "a-->b", dst_group: "c"}` is the edge from `a-->b` to `c`. Only a split
-  matching both halves counts; one matching half is no evidence, since every split of
-  `a-->b-->c` has some half that matches something.
-- A node id that itself contains `-->` is therefore not representable in a name **alone**.
-  Put the endpoints in labels, or carry a label the halves can be checked against.
-
-**The name is not always `field.name`.** A datasource renders a `legendFormat` into
-`field.config.displayNameFromDS`, never into the field name — a long Prometheus series is
-called `Value` whatever its legend says. A converter pivoting long series to this contract
-should therefore read the separator out of the rendered legend as well, which is what makes
-`legendFormat: "{{cluster}}-->{{namespace}}"` a usable carrier for a query whose labels cannot
-name a conventional pair.
-
-Exactly one separator form is accepted because `->` is a substring of `-->`: a reader
-accepting both has to match longest-first, and a shortest-first scan silently mis-splits the
-ordinary `my-svc-->other-svc` into `my-svc-` and `other-svc`.
-
-```csv
-a-->b,b-->c
-420,380
-```
-
-### Parallel edges require labels
-
-Two edges joining the same pair of nodes must be two fields with **distinct names** and
-their endpoints in **labels**:
-
-| **Type: Number**<br>**Name: e1**<br>**Labels: {"source": "a", "target": "b"}** | **Type: Number**<br>**Name: e2**<br>**Labels: {"source": "a", "target": "b"}** |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| 10                                                                             | 20                                                                             |
-
-The name-split form cannot express this: both edges would be named `a-->b`, and while a
-frame may legally hold two identically named fields, only their _display_ names are
-disambiguated (`a-->b 1`, `a-->b 2`) and the ordinal is positional, so inserting an edge
-retargets every override after it.
-
-## Graph Nodes Wide Format (`graph-nodes-wide`)
-
-Version: 0.1
-
-One field per node. Optional: when no nodes frame is present, the node set is the union of
-the edges' endpoints. A consumer that infers its nodes this way should declare them, in a
-pre-pass over the response, as ordinary fields of a `graph-nodes-wide` frame — an inferred
-node is otherwise the one mark in the response that no field config can reach; see
-[../docs/relations-derived-nodes.md](../docs/relations-derived-nodes.md).
-
-**Example:** three nodes, instant.
-
-| **Type: Number**<br>**Name: gateway**<br>**Labels: {"zone": "us-east-1"}** | **Type: Number**<br>**Name: api**<br>**Labels: nil** | **Type: Number**<br>**Name: db**<br>**Labels: nil** |
-| -------------------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------- |
-| 12                                                                         | 8                                                    | 3                                                   |
-
-It should have the following properties:
-
-- One `number` field per node.
-- `field.name` is the **node id**, and is what an edge's `source` and `target` resolve
-  against.
-- The field's reduced value is the node's main stat.
-- A node that no edge refers to is still a node; it is drawn unconnected.
-
-Optional field configuration:
-
-| `field.config`                                   | Is the node's                                                            |
-| ------------------------------------------------ | ------------------------------------------------------------------------ |
-| `displayName`                                    | Title                                                                    |
-| `color`                                          | Colour, in any of the eight standard modes                               |
-| `unit` / `decimals` / `mappings` / `min` / `max` | Stat formatting                                                          |
-| `thresholds`                                     | Stat formatting, and colour when `color.mode` is threshold-driven        |
-| `links`                                          | Data links                                                               |
-| `custom.hideFrom`                                | Visibility, per surface                                                  |
-| `custom.subtitle`                                | Second line                                                              |
-| `custom.nodeRadius`                              | Radius in pixels                                                         |
-| `custom.icon`                                    | Grafana icon name, drawn in place of the stat                            |
-| `custom.fixedX` / `custom.fixedY`                | Pinned position. All-or-nothing: honoured only when every node pins both |
-
-`field.labels` are free-form node attributes, available to tooltips and to a consumer that
-wants to group or filter by them.
-
-Remainder data:
-
-- Any second `time` or `string` field past the row dimension.
-- Numeric fields naming nodes no edge refers to, for a consumer that derives its node set
-  from the edges.
-- Frames with a different or absent role.
-
-### The two stats
-
-A node has two stat slots, filled by two reducers over the mark's own field: the first is
-the main stat, the second the secondary. On an **instant** frame both reducers see one value
-and therefore agree, so a genuine second measurement needs a second carrier — a label, or a
-second numeric field excluded from the mark set. Two distinct stats are expressible only
-where there is a row dimension to reduce differently.
-
-Reducing "all values" is not part of this kind: it would make one mark per row, and a mark
-is a field.
-
-## Frame role resolution
-
-In precedence order:
-
-| Signal                          | Survives                                           |
-| ------------------------------- | -------------------------------------------------- |
-| 1. `frame.meta.type`            | Only producers that can set frame meta             |
-| 2. **Field shape**              | Everything — CSV, SQL expressions, transformations |
-| 3. A consumer-side frame picker | Always; the manual override of last resort         |
-
-`meta.type` is authoritative in **both** directions: a frame that declares itself as nodes
-is never read as edges, however its fields are named. Field shape is consulted only for
-frames that declare nothing, in this order:
-
-1. A frame whose numeric fields carry both endpoint label keys is an **edges** frame.
-2. Otherwise a frame whose numeric field names split on `-->` is an **edges** frame.
-3. Otherwise, in a response that already has an edges frame, a remaining frame whose numeric
-   fields **name a known endpoint** is a **nodes** frame. The endpoint test is what stops an
-   unrelated second query from adding disconnected nodes.
-4. Without an edges frame there is no graph.
-
-### A role is one-to-many
-
-A role maps to a **list** of frames, not to one. Every frame that claims a role contributes
-its marks — which is what makes [graph-multi.md](./graph-multi.md) readable, and is the
-only place two edges frames from two queries can be unioned.
-
-Two rules keep the plural reading well defined:
-
-- **Declared wins as a filter.** If any frame declares `graph-edges-wide`, only declared
-  frames are collected and the shape test is not consulted; likewise for
-  `graph-nodes-wide`. A frame that says what it is is never mixed with frames that were
-  guessed at.
-- **The nodes search excludes every edges candidate**, collected or not. Where two nodes
-  frames declare the same node, the first wins.
-
-The endpoint set the nodes search runs against is the union over every collected edges
-frame.
+If field-shape detection is not sufficient, use the compatibility types. The panel does not use the proposed type for role selection.
 
 ## Frame meta
 
-Field shape is enough to _render_. Frame meta is what makes the kind **discoverable**, and
-a producer emitting this kind should set all of it:
+The panel and its converters use these metadata values:
 
-| Meta key                          | Value                                   | What it buys                                                                                                                      |
-| --------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `meta.type`                       | `graph-nodes-wide` / `graph-edges-wide` | Unambiguous role resolution, and visualization suggestions                                                                        |
-| `meta.typeVersion`                | `[0, 1]`                                | The contract's versioning rule for a kind that has not stabilised                                                                 |
-| `meta.preferredVisualisationType` | `nodeGraph`                             | Routing in Explore                                                                                                                |
-| `meta.custom.graph`               | `{ sourceKey?, targetKey? }`            | Declares the datasource's endpoint label keys, e.g. Tempo's `client` / `server` — see [Endpoint label keys](#endpoint-label-keys) |
+| Meta key                         | Value                                    | Behavior                                 |
+| -------------------------------- | ---------------------------------------- | ---------------------------------------- |
+| `meta.type`                      | `graph-edges-wide` or `graph-nodes-wide` | Selects the frame role                   |
+| `meta.typeVersion`               | `[0, 1]`                                 | Records the compatibility format version |
+| `meta.custom.graph.sourceKey`    | Endpoint label name                      | Declares a non-standard source label     |
+| `meta.custom.graph.targetKey`    | Endpoint label name                      | Declares a non-standard target label     |
+| `meta.custom.graph.derivedNodes` | `true`                                   | Identifies a placeholder nodes frame     |
 
-The proposed additions to `@grafana/data`, **not yet present in core Grafana**:
+The wide reader does not use `meta.preferredVisualisationType`. The row converter uses `nodeGraph` to identify declared Grafana Node Graph data.
 
-```typescript
-// packages/grafana-data/src/types/dataFrameTypes.ts
-export enum DataFrameType {
-  // …existing twelve members…
+These metadata values describe current compatibility behavior. They are not part of the proposed `graph-wide` type.
 
-  /** One field per node; `field.name` is the node id. */
-  GraphNodesWide = 'graph-nodes-wide',
-  /** One field per edge; endpoints in `field.labels`. */
-  GraphEdgesWide = 'graph-edges-wide',
+## Frame role resolution
 
-  // The sibling formats propose their own members:
-  // graph-nodes-long / graph-edges-long   — graph-long.md
-  // graph-nodes-multi / graph-edges-multi — graph-multi.md
-}
+The reader gives special meaning to `graph-edges-wide` and `graph-nodes-wide`. A different `frame.meta.type` value does not stop field-shape detection.
 
-/** The shape of `frame.meta.custom.graph`, for any graph format. Optional. */
-export interface GraphFrameMeta {
-  /**
-   * Label key holding an edge's source node id, as the **datasource** names the dimension.
-   * Default `'source'`. A converter that rewrites the labels to the contract's keys leaves
-   * this pointing at the original, so a consumer writing a query back out — an ad-hoc
-   * filter, a drilldown link — has a key the datasource will recognise.
-   */
-  sourceKey?: string;
-  /** Label key holding an edge's target node id. Default `'target'`. See `sourceKey`. */
-  targetKey?: string;
-}
-```
+The reader uses these rules:
 
-Until those members exist, writing one needs a cast —
-`meta: { type: 'graph-edges-wide' as DataFrameType }`. Runtime is unaffected: `meta.type` is
-a plain assignment and every consumer test is a string comparison.
+1. `graph-edges-wide` forces an edges role.
+2. `graph-nodes-wide` forces a nodes role and prevents an edges role.
+3. If no edges frame declares `graph-edges-wide`, endpoint labels or `-->` identify edges frames.
+4. If an edges frame declares `graph-edges-wide`, the reader uses only declared edges frames.
+5. A numeric field name that matches an endpoint identifies a nodes frame.
+6. If a real nodes frame declares `graph-nodes-wide`, the reader uses only declared nodes frames.
+7. If all declared nodes frames are placeholders, the reader also adds nodes frames that match by shape.
 
-**Meta does not survive reshaping.** No core transformation can set `meta.type`, and
-`rowsToFields` builds its output frame from scratch. Field shape is therefore the
-load-bearing signal on every reshaped path, and meta is what a producer emitting the kind
-natively should add on top.
+The nodes shape test applies to the frame. If one numeric field matches an endpoint, the reader keeps all numeric fields in that frame.
+
+The reader does not report an error for fields that do not match a graph role. It leaves those fields as remainder data.
+
+## A role is one-to-many
+
+The reader can collect many frames for each role. It combines their marks in frame order.
+
+This behavior accepts graph multi data and responses from many queries. The role resolution rules select the frames that contribute.
+
+## Graph edges wide format (`graph-edges-wide`)
+
+Each numeric field in an edges frame is one edge. The field uses the [edge field properties](./graph-wide-proposed.md#edges-role) from the proposal.
+
+The panel also accepts compatibility endpoint labels and field names. It examines endpoint label pairs in this order:
+
+1. A complete pair in `meta.custom.graph.sourceKey` and `meta.custom.graph.targetKey`.
+2. `source` and `target`.
+3. `client` and `server`.
+4. `src` and `dst`.
+5. `from` and `to`.
+6. A split of the field name on `-->`.
+
+The metadata pair must contain both keys. The reader ignores a pair that contains only one key.
+
+### The separator
+
+The `-->` separator is compatibility input. New data must use `source` and `target` labels.
+
+If endpoint labels are absent, `a-->b` identifies an edge from `a` to `b`. The reader uses the first separator by default.
+
+If other labels contain both split values, the reader selects that split. Endpoint labels have priority over the field name.
+
+A long-series converter also examines `field.config.displayNameFromDS` and `frame.name`. This behavior accepts a Prometheus legend such as `{{cluster}}-->{{namespace}}`.
+
+### Parallel edges require labels
+
+Parallel edges join the same source and target. Each parallel edge must have a different field name and explicit endpoint labels.
+
+The separator form cannot safely identify parallel edges. Duplicate field names do not give stable field override targets.
+
+## Graph nodes wide format (`graph-nodes-wide`)
+
+Each numeric field in a nodes frame is one node. The field uses the [node field properties](./graph-wide-proposed.md#nodes-role) from the proposal.
+
+The reader keeps every numeric field in a selected nodes frame. An edge does not need to refer to each node.
+
+If node IDs are duplicated, the first real node field supplies the value and field configuration. An earlier placeholder does not replace real data.
+
+### Derived nodes
+
+A derived node comes from an edge endpoint when no nodes frame declares it. The panel can add placeholder node fields before Grafana applies field overrides.
+
+The panel marks a placeholder frame with `meta.custom.graph.derivedNodes: true`. A later real nodes frame can supply the value and field configuration for the same ID.
+
+If the host does not operate this pre-pass, the panel creates nodes during conversion. These fallback nodes have no field configuration.
+
+For more information, refer to [Derived nodes](../docs/relations-derived-nodes.md).
+
+## Values and time
+
+Only a `FieldType.time` field defines a row dimension. A string field does not define one.
+
+The panel treats a frame as instant when it has no time field. It also treats declared `numeric-wide`, `numeric-multi`, and `numeric-long` frames as instant.
+
+An instant frame uses reducers. The first reducer supplies the main statistic. Each additional reducer supplies one tooltip row.
+
+A ranged frame can use a selected row from the shared graph timeline. If the panel does not select a row, it uses reducers.
+
+The panel reads `field.labels.secondarystat` when the selected reducers do not supply extra statistics. This compatibility rule applies to nodes and edges.
+
+If an edge value is null, the panel uses `1` as the ECharts link weight. A null node value remains null.
+
+## Field configuration
+
+The panel reads standard Grafana field configuration for each graph mark.
+
+| `field.config`                                   | Nodes                                 | Edges                                 |
+| ------------------------------------------------ | ------------------------------------- | ------------------------------------- |
+| `displayName`                                    | Visible node title                    | Display name for Grafana tools        |
+| `color`                                          | Mark color                            | Mark color                            |
+| `unit` / `decimals` / `mappings` / `min` / `max` | Value format                          | Value format                          |
+| `thresholds`                                     | Value format and value-based color    | Value format and value-based color    |
+| `links`                                          | Data links                            | Data links                            |
+| `filterable`                                     | Enables ad hoc filters for this field | Enables ad hoc filters for this field |
+| `custom.hideFrom.viz`                            | Hides the node                        | Hides the edge                        |
+
+`displayName` does not define a visible edge label. The panel can show the formatted weight on the edge.
+
+The edge tooltip title uses `source → target`. The panel reads only `custom.hideFrom.viz` from `hideFrom`.
+
+### ECharts field configuration
+
+These keys control the ECharts relations charts. Another consumer does not need to read them.
+
+| Field key                   | Graph                                           | Sankey                        | Chord                         |
+| --------------------------- | ----------------------------------------------- | ----------------------------- | ----------------------------- |
+| Node `displayName`          | Node title                                      | Node title                    | Node title                    |
+| Node `custom.subtitle`      | Tooltip row                                     | Tooltip row                   | Tooltip row                   |
+| Node `custom.nodeRadius`    | ECharts symbol diameter in pixels               | Ignored                       | Ignored                       |
+| Node `custom.icon`          | Stored but not shown                            | Stored but not shown          | Stored but not shown          |
+| Node `custom.fixedX/fixedY` | Both values work when the panel layout is unset | Fractions from 0 through 1    | Ignored                       |
+| Edge `color`                | Link color outside palette modes                | Ribbon color outside palettes | Ribbon color outside palettes |
+| Edge `custom.lineWidth`     | Line width                                      | Ignored                       | Ignored                       |
+| Edge `custom.lineType`      | `solid`, `dashed`, or `dotted`                  | Ignored                       | Ignored                       |
+| Edge `custom.curveness`     | Per-edge curvature                              | Ignored                       | Ignored                       |
+| `custom.hideFrom.viz`       | Hides the node or edge                          | Hides the node or edge        | Hides the node or edge        |
+
+For a fixed graph layout, every node must supply both coordinates. The `relationsLayout` value must be unset.
+
+Sankey reads both coordinates only when each value is from `0` through `1`. Chord ignores the coordinates.
+
+The panel stores `custom.icon` during legacy conversion. It does not register an icon field option or send an icon to ECharts.
+
+## Ad hoc filters
+
+Topology keys identify endpoint labels in the response. Filter keys identify label names that a data source accepts in a query.
+
+The panel reuses `sourceKey` and `targetKey` as filter keys. This behavior is for compatibility with existing data.
+
+The panel can recover filter keys from labels that contain the endpoint values. It compares the source and target values with every other label value.
+
+The recovery excludes the label pair that supplied the endpoints.
+
+The panel recovers both ends or neither end. It recovers nothing when one endpoint has no single match.
+
+If a self-loop has the same value at both ends, the panel uses the first two other labels with that value. It recovers nothing unless the match count is two.
+
+Different edges in one frame can recover different filter-key pairs. The panel does not read a `filterKeys` tuple at this time.
+
+The panel creates an ad hoc filter only when `field.config.filterable === true`. If no related field enables filters, the panel does not create them.
 
 ## Identity
 
-`field.name` is the mark's id, and the only stable handle on it.
+The panel uses `field.name` as the stable mark ID. It does not use `getFieldDisplayName` as an ID.
 
-**Display names are not ids.** `getFieldDisplayName` returns `field.name` plus the label
-set, and what it returns changes with the rest of the response: a node field `a` with
-`labels: {title: 'Gateway'}` displays as `a Gateway` alone and as `a {title="Gateway"}` once
-an edges frame joins the response.
+Do not use a generic name such as `Value` for many marks. A `byName` override can then match many marks at the same time.
 
-| Frame content                                          | Display name                  |
-| ------------------------------------------------------ | ----------------------------- |
-| `e1`, labels `{source: 'a', target: 'b'}`              | `e1 {source="a", target="b"}` |
-| `a`, labels `{title: 'Gateway'}` — nodes frame alone   | `a Gateway`                   |
-| `a`, labels `{title: 'Gateway'}` — with an edges frame | `a {title="Gateway"}`         |
-| `Value`, labels `{source: 'a', target: 'b'}`           | `{source="a", target="b"}`    |
-| `a-->b`, no labels                                     | `a-->b`                       |
-| `a-->b` twice in one frame                             | `a-->b 1` and `a-->b 2`       |
+The reader can make a private key for repeated names. This key is not a field override target and is not a stable ID.
 
-Two consequences for a producer:
+<a id="converting-between-graph-formats"></a>
 
-- **Give every mark a meaningful name.** A field named literally `Value` contributes
-  nothing to its own display name and makes `byName: 'Value'` match every mark at once.
-- **Anchor `byRegexp` patterns tolerantly.** `byName` matches the raw name _or_ the display
-  name, but `byRegexp` tests the display name only, so `/^e1$/` fails on a labelled field
-  and `/^e1 /` matches.
+## Legacy row data to wide data
 
-A consumer must not mint ids for marks that collide. A synthetic id is not an override
-target, is not what the override picker lists, and is not what a `byName` matcher compares
-against — so it would look addressable while being unaddressable.
+The panel can convert the [Grafana Node Graph row format](./graph-long.md) to wide fields. The `legacyToWide` converter does not preserve all input data.
 
-## Converting between graph formats
+The converter preserves these items:
 
-| Src                 | Dst                 | Modifies data | Notes                                                                                                                                   |
-| ------------------- | ------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `graph-edges-long`  | `graph-edges-wide`  | **No**        | One row becomes one field. Reserved columns become field config; unreserved columns become labels. See [graph-long.md](./graph-long.md) |
-| `graph-nodes-long`  | `graph-nodes-wide`  | **No**        | As above                                                                                                                                |
-| `graph-edges-multi` | `graph-edges-wide`  | Yes\*         | Needs a shared row grid: the frames are joined on their time field, and gaps become nulls                                               |
-| `graph-edges-wide`  | `graph-edges-multi` | **No**        | Split one frame into one frame per field                                                                                                |
-| `graph-*-wide`      | `graph-*-long`      | Yes           | Lossy. Per-mark `config` has no column to go to, so colour, unit, links, thresholds and style are dropped                               |
+- Edge and node IDs.
+- Edge `source` and `target` values.
+- Numeric `mainstat` values.
+- Node `secondarystat` as `labels.secondarystat`.
+- Node title, subtitle, fixed color, size value, icon value, and fixed coordinates.
+- Edge fixed color and thickness.
+- `detail__*` values as labels.
+- Unit, decimals, minimum, maximum, mappings, and thresholds from `mainstat`.
 
-\* Only where the row dimensions can be aligned. Where they cannot,
-[`graph-edges-multi`](./graph-multi.md) is the only format that fits, which is the reason
-it exists.
+The converter approximates an SVG `strokedasharray` as `dashed` or `dotted`. It sends `noderadius` to ECharts as a symbol diameter.
 
-Core's **Rows to fields** transformation performs the long→wide pivot for anything
-table-shaped, with no options: it takes the first `string` field as the field name, the
-first `number` field as the value, maps columns named `color` / `unit` / `min` / `max` /
-`decimals` onto real field config, and turns every other column into a label. It cannot
-write `custom.*` or `links` — those need a producer or a purpose-built transformation.
+If an edge has no numeric `mainstat`, the converter uses numeric `thickness` as the weight. If both values are absent, it uses `1`.
 
-## Notes
+The converter drops these items:
 
-- **This is a `numeric-wide` frame with extra promises.** Any consumer of `numeric-wide` —
-  a bar chart, a stat panel, a table — renders a wide graph frame today, one mark per
-  field, with per-mark colour, units, links and visibility working. That is the whole
-  argument for the format: a mark that is a field is addressable by machinery Grafana
-  already has.
-- **`field.state.range` is clean.** In the row format the by-value colour domain spans every
-  numeric column at once — stats, radii and coordinates together. Here it spans mark values
-  only.
-- **Density is the cost.** The frame grows as |E|, so a fully connected 30-node graph is 870
-  fields. The pipeline handles it; the override picker, which lists two entries per field,
-  is the surface that degrades first. Past a few hundred marks, prefer `byRegexp`.
+- String statistics.
+- Edge secondary statistics.
+- `arc__*` values.
+- Highlighting and instrumentation.
+- Field data links and field configuration that the preserved list does not name.
+
+## Conversion to row data
+
+A converter to the row format can preserve style only when the row format has a matching column. Examples include `color`, `thickness`, `strokedasharray`, `noderadius`, and `icon`.
+
+The row format has one shared field configuration for each column. It cannot preserve different field configuration for each mark.
+
+## Conversion between wide and multi
+
+A wide frame can split into one multi frame for each mark without a change to mark data. A multi response can join into a wide frame only when row dimensions align.
+
+The join adds null values for missing rows. If row dimensions do not align, keep the multi format.
 
 ## References
 
-- Grafana data plane contract: https://grafana.com/developers/dataplane/
-- Contract spec, including the `typeVersion` rules:
-  https://grafana.com/developers/dataplane/contract-spec
-- Numeric kind, which these formats specialise:
-  https://grafana.com/developers/dataplane/numeric
-- The row formats: [graph-long.md](./graph-long.md)
-- The one-frame-per-mark formats: [graph-multi.md](./graph-multi.md)
-- The rejected matrix format: [graph-matrix.md](./graph-matrix.md)
-- `DataFrameType`:
-  https://github.com/grafana/grafana/blob/main/packages/grafana-data/src/types/dataFrameTypes.ts
-- Rows to fields:
-  https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#rows-to-fields
-- Field overrides:
-  https://grafana.com/docs/grafana/latest/panels-visualizations/configure-overrides/
-- How the relations family draws a graph: [echarts-coverage.md](./echarts-coverage.md)
-- Why the kind is shaped this way, with the measurements behind every rule:
-  [../todo/graph-wide-history.md](../todo/graph-wide-history.md)
+- [Proposed graph-wide data plane specification](./graph-wide-proposed.md)
+- [Grafana data plane contract](https://grafana.com/developers/dataplane/)
+- [Grafana Node Graph Data API](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/node-graph/#data-api)
+- [Grafana field overrides](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-overrides/)
+- [ECharts graph series](https://echarts.apache.org/en/option.html#series-graph)
+- [ECharts Sankey series](https://echarts.apache.org/en/option.html#series-sankey)
+- [ECharts chord series](https://echarts.apache.org/en/option.html#series-chord)
+- [Relations render coverage](./echarts-coverage.md)
+- [Relations design history](../todo/graph-wide-history.md)

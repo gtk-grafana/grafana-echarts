@@ -1,8 +1,16 @@
 # `edgeLabels/` has no unit test
 
-Noted while splitting `lib/echarts/features/edgeLabelLayout.ts` into
-`lib/echarts/relations/edgeLabels/{geometry,reveal,register}.ts`. Nothing here is
-implemented — this is the gap, not a plan to close it.
+## Status
+
+The unit-test gap remains open. Rendered integration tests and canvas baselines cover the feature.
+
+## Priority
+
+Low. A unit test will give a more precise failure when an ECharts upgrade changes zrender internals.
+
+## Release impact
+
+This test is not a release gate because rendered tests cover the current behavior.
 
 The three modules are covered only end-to-end, by
 [labels.integration.test.tsx](../src/lib/components/integration-tests/relations/labels.integration.test.tsx)

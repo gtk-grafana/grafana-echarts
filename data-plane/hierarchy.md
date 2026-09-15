@@ -219,8 +219,8 @@ encoded some other way and then rebuilt. Grafana has exactly one convention for
 that — the flame-graph nested set (`level` plus depth-first row order), which is
 why it is the only multi-level input this converter accepts. A parent-id/child-id
 edge table would also encode a tree, but Grafana has **no data plane convention**
-for one (the closest is the node graph, which is a general digraph — see
-[graph-wide.md](./graph-wide.md)), so nothing reads it. Any other flat frame
+for one (the closest proposal is the general digraph in
+[graph-wide-proposed.md](./graph-wide-proposed.md)), so nothing reads it. Any other flat frame
 degenerates to the single-level forest described above. See
 [echarts-coverage.md](./echarts-coverage.md) for the wider ECharts surface.
 
@@ -246,9 +246,9 @@ degenerates to the single-level forest described above. See
 - **`self` is decorative.** It is carried onto the ECharts item and printed in
   the tooltip, and nothing else. The diff-profile fields documented in the
   [flame graph spec](./flame-graph.md), `valueRight` and `selfRight`, are
-  **unimplemented** — neither name occurs anywhere in `src/`. Comparison
-  profiles render as their baseline side only. Tracked alongside
-  [../todo/flame-graph.md](../todo/flame-graph.md).
+  **unimplemented**. Neither name occurs anywhere in `src/`. Comparison
+  profiles render as their baseline side only. Treemap and sunburst support
+  the flame-graph frame, but the plugin has no custom flame renderer.
 - **First numeric field only** on the flat path, matching pie. Extra numeric
   fields are dropped rather than becoming a second level or a second series.
 - **Field `config.unit` and display processing** apply to the tooltip via the

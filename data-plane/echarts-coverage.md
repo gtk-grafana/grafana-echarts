@@ -95,9 +95,9 @@ The **relations** family is now complete: `graph`, `sankey` and `chord` all cons
 the identical node/link model, differing only in layout (and, for sankey, in the
 cycle policy its layout forces). `lines` is the one member of ECharts' relationship
 group left out, and deliberately — it needs coordinate-pair polylines, which no
-Grafana frame carries. See [../todo/node-graph.md](../todo/node-graph.md) for the
-three that shipped and [../todo/lines.md](../todo/lines.md) for why the fourth did
-not.
+Grafana frame carries. See the [Relations parity guide](../src/modules/relations/parity.md)
+for the three that shipped. See [../todo/lines.md](../todo/lines.md) for why the
+fourth did not.
 
 "Identical input" is literal. `getInitialData` in `GraphSeries.ts`, `SankeySeries.ts`
 and `ChordSeries.ts` reads the same two keys with the same precedence, then builds

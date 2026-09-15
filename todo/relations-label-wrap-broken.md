@@ -1,7 +1,12 @@
 # "Label overflow → Wrap" does not wrap
 
-> **Status: open, found 2026-09-14** while building the all-options reference dashboard.
-> The panel meant to demo the option demoed nothing, which is how it surfaced.
+## Status
+
+The ECharts `break` mode still clips labels instead of wrapping them. The reference dashboard uses the working `none` mode.
+
+## Release impact
+
+This behavior is a post-release correctness task. It does not block the Relations plugin release.
 
 ## What happens
 

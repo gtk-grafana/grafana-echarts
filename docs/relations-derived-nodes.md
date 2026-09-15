@@ -2,7 +2,7 @@
 
 A derived node appears in an edge but not in a nodes frame. The panel builds it from a `source` or `target` value.
 
-Prometheus, Loki, and edge-only row responses often produce derived nodes. The graph-wide contract permits them.
+Prometheus, Loki, and edge-only row responses often produce derived nodes. The [proposed graph-wide specification](../data-plane/graph-wide-proposed.md) permits them.
 
 ## Limits without the pre-pass
 
@@ -63,7 +63,8 @@ Legend hiding matches those fallback nodes by name. Relations data must not use 
 
 ## Related guides
 
-- [Graph-wide contract](../data-plane/graph-wide.md)
+- [Proposed graph-wide specification](../data-plane/graph-wide-proposed.md)
+- [ECharts graph-wide implementation](../data-plane/graph-wide.md)
 - [Relations data sources](./relations-data-sources.md)
 - [Relations option parity](../src/modules/relations/parity.md)
-- [Data-link gaps](../todo/relations-data-links.md)
+- [Tooltip-link dashboard](../provisioning/dashboards/relations/per-mark-tooltip-links.json)
