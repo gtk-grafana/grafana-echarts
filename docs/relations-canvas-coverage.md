@@ -25,12 +25,12 @@ Canvas tests set these values for stable output:
 
 | Option                           | Default value | Base render             | Changed render                           |
 | -------------------------------- | ------------- | ----------------------- | ---------------------------------------- |
-| `relationsShowNodeLabels`        | `true`        | ■ all base renders      | ■ graph, sankey, and chord labels off    |
+| `relationsShowNodeLabels`        | `true`        | ■ all base renders      | ■ graph hover, sankey, and chord off     |
 | `relationsShowNodeValues`        | `false`       | ■ all base renders      | ■ graph and timeline                     |
 | `relationsHideOverlappingLabels` | `true`        | ■ all base renders      | ■ graph and sankey, ▫ labels integration |
 | `relationsNodeSize`              | `20`          | ■ all base renders      | ■ graph node size 40                     |
 | `relationsLayout`                | `force`       | · harness uses circular | ■ circular and fixed, ▫ force            |
-| `relationsFocusAdjacency`        | `true`        | ■ base without hover    | · needs a browser hover                  |
+| `relationsFocusAdjacency`        | `true`        | ■ base and graph hover  | · needs a browser hover                  |
 | `relationsSankeyOrient`          | `horizontal`  | ■ sankey base           | ■ vertical flow                          |
 | `relationsSankeyNodeAlign`       | `left`        | ■ sankey base           | ▫ left and justify differ                |
 | `relationsTimeSlider`            | `false`       | ■ all base renders      | ■ timeline                               |
@@ -113,7 +113,7 @@ A test cannot set a scheme through `fieldConfig.defaults` in this harness. `src/
 
 Force layout coordinates depend on simulation timing. Unit tests pin its options, and `layout.integration.test.tsx` pins repeatable output.
 
-Adjacency emphasis needs a browser hover. Canvas events do not update the ECharts hover state in this test environment.
+The graph canvas suite uses the ECharts highlight action to pin node emphasis. Pointer-driven adjacency emphasis still needs a browser hover.
 
 Drag and remembered view describe gestures. A static render cannot prove them.
 

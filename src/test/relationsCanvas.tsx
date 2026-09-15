@@ -1,5 +1,6 @@
 import { type DataFrame, type FieldConfigSource } from '@grafana/data';
 import { render } from '@testing-library/react';
+import { type EChartsType } from 'echarts';
 
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { deriveNodes } from 'lib/echarts/relations/converters/deriveNodes';
@@ -35,6 +36,8 @@ interface RenderRelationsInput<FieldConfig> {
   fieldConfig?: FieldConfigSource<FieldConfig>;
   /** The pipeline prefix to run the fixture through. */
   prefix?: PipelinePrefix;
+  /** Apply a chart action before the canvas is captured. */
+  beforeCapture?: (chart: EChartsType) => void;
 }
 
 /** Render one relations variant and return its canvas events. */
@@ -44,6 +47,7 @@ export const renderRelations = async ({
   options = {},
   fieldConfig,
   prefix = asPipelineWould,
+  beforeCapture,
 }: RenderRelationsInput<EChartsRelationsFieldConfig>) => {
   const merged = canvasOptions(options);
   const { container } = render(
@@ -58,7 +62,7 @@ export const renderRelations = async ({
     )
   );
   // Some integration tests also inspect React controls.
-  return { ...(await getSeriesCanvasEvents(container)), container };
+  return { ...(await getSeriesCanvasEvents(container, beforeCapture)), container };
 };
 
 /** The text of every label actually painted, so a label test can assert what was drawn rather than only pin it. */

@@ -75,6 +75,16 @@ describe('relations graph', () => {
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
+    it('node labels off with a hovered node (its label below the symbol in theme text color)', async () => {
+      const { defaultEvents, seriesEvents } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsShowNodeLabels: false },
+        beforeCapture: (chart) => chart.dispatchAction({ type: 'highlight', seriesIndex: 0, dataIndex: 0 }),
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
     // The explicit red color for `db` overrides the palette.
     it('a color field per node (blue, green, yellow and red symbols)', async () => {
       const coloredNodes = toDataFrame({

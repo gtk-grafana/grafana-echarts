@@ -105,6 +105,11 @@ export function getGraphLabel(ctx: RelationsSeriesContext): GraphSeriesOption['l
   if (!show) {
     return { show: false };
   }
+  return getVisibleGraphLabel(ctx);
+}
+
+/** Build the graph label used for normal and hover states. */
+export function getVisibleGraphLabel(ctx: RelationsSeriesContext): NonNullable<GraphSeriesOption['label']> {
   const formatter = getRelationsNodeLabelFormatter(ctx);
   return {
     show: true,
