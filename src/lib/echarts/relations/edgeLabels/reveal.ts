@@ -46,7 +46,11 @@ const charts = new WeakMap<object, ChartState>();
 export const markKey = (seriesIndex: number, dataType: 'node' | 'edge', dataIndex: number) =>
   `${seriesIndex}:${dataType}:${dataIndex}`;
 
-/** Replace hidden labels and preserve the current focus. */
+/**
+ * Replace hidden labels and preserve the current focus.
+ * Each render resets `ignore` through `setLabelStyle`.
+ * Without this step, a data refresh hides a pinned value because the pinned node sends no new cursor event.
+ */
 export function setRevealIndex(zr: object, revealed: RevealIndex): void {
   const state: ChartState = { revealed, shown: [], shownFor: charts.get(zr)?.shownFor ?? null };
   charts.set(zr, state);

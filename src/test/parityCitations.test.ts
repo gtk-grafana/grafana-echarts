@@ -33,9 +33,9 @@ interface ParityDocPolicy {
 const PARITY_DOCS: ParityDocPolicy[] = [
   {
     doc: 'src/modules/relations/parity.md',
-    minimumCitations: 34,
+    minimumCitations: 40,
     minimumTestTargets: 34,
-    minimumDashboardCitations: 15,
+    minimumDashboardCitations: 86,
     minimumDashboardSources: 11,
   },
   {

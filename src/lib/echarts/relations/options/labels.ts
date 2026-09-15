@@ -16,7 +16,7 @@ import { type PanelOptions } from 'types';
 import { formatDerivedMarkValue } from 'lib/echarts/relations/tooltip/marks';
 
 /**
- * The node label's `formatter`, shared by all three render variants so a node labels identically however it is drawn.
+ * The three chart variants use this formatter to show node labels in the same way.
  * https://echarts.apache.org/en/option.html#series-graph.label.formatter
  */
 export function getRelationsNodeLabelFormatter(

@@ -90,6 +90,8 @@ sum by (source, target, namespace, workload) (
 
 Keep `cluster`, `namespace`, and `workload` in the outer groups. The tooltip can then filter each level with its original label.
 
+<a id="sql-and-csv--rows-to-fields"></a>
+
 ### SQL and CSV
 
 Use the Grafana Rows to fields transformation for table data. With `id,source,target,mainstat`, the automatic mapping is:
@@ -119,6 +121,8 @@ Tempo, AWS X-Ray, and TestData DB need explicit mappings because their `id` valu
 | Edges | `secondarystat` to Field value                        |
 
 Leave `sourceName` and `targetName` unmapped so they become labels.
+
+<a id="what-the-pivot-cannot-carry-however-it-is-configured"></a>
 
 Rows to fields cannot write `config.custom.*`, `config.links`, or frame metadata. It also drops the input frame name and some field configuration. Use the plugin conversion when full row compatibility is required.
 
