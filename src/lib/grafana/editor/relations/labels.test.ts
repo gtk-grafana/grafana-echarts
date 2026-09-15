@@ -144,11 +144,10 @@ describe('addRelationsLabelOptions', () => {
     });
 
     /**
-     * **Label overflow is Default-tier**, where it used to be Advanced. On any real
-     * topology the labels do not fit, so how an over-long name is handled is a first
-     * question rather than an expert one — the same reasoning that keeps "Hide
-     * overlapping labels" out of the Advanced tier. Only the *px* at which the chosen
-     * mode bites stays Advanced.
+     * **Label overflow is Default-tier.** On any real topology the labels do not fit, so
+     * how an over-long name is handled is a first question rather than an expert one —
+     * the same reasoning that keeps "Hide overlapping labels" out of the Advanced tier.
+     * Only the *px* at which the chosen mode bites is Advanced.
      */
     it('keeps overflow handling in the Default tier, and only its width in Advanced', () => {
       expect(optionAt('relationsLabelOverflow').showIf?.(options())).toBe(true);

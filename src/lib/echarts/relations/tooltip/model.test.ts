@@ -211,15 +211,9 @@ describe('buildRelationsTooltipModel', () => {
   });
 
   /**
-   * The footer used to resolve one field for the whole series, so a link configured
-   * anywhere painted everywhere (gaps 1-3 of `todo/relations-data-links.md`). The
-   * source is now the hovered mark's own field.
-   */
-
-  /**
-   * The footer used to resolve one field for the whole series, so a link configured
-   * anywhere painted everywhere (gaps 1-3 of `todo/relations-data-links.md`). The
-   * source is now the hovered mark's own field.
+   * The footer's source is the **hovered mark's own field**. Resolving one field for the
+   * whole series instead would paint a link configured anywhere everywhere (gaps 1-3 of
+   * `todo/relations-data-links.md`).
    */
   describe('per-mark data links', () => {
     it('resolves a node back to its own field and row', () => {
@@ -258,11 +252,11 @@ describe('buildRelationsTooltipModel', () => {
     });
 
     /**
-     * A derived node carries no stat at all now (`deriveNodesFromLinks`), and a value row
-     * with nothing in it reads as a measurement that failed rather than one that was never
-     * taken. The value it used to carry was its degree, which the panel formatter — the
-     * first numeric field of the first frame — printed here as `2 s`, borrowing the first
-     * edge's unit for a link count.
+     * A derived node carries no stat at all (`deriveNodesFromLinks`), and a value row with
+     * nothing in it reads as a measurement that failed rather than one that was never
+     * taken. Carrying its degree instead would have the panel formatter — the first numeric
+     * field of the first frame — print it here as `2 s`, borrowing the first edge's unit
+     * for a link count.
      *
      * What the rows are instead is the subject of `a statless node's edges` below.
      */
@@ -379,9 +373,9 @@ describe('buildRelationsTooltipModel', () => {
 
     /**
      * **One row per reducer, with no cap.** Only `calcs[0]` is structurally singular — it
-     * sizes the node and weighs the edge — so a third and fourth calculation are rows like the
-     * second. They used to be dropped by `normalizeRelationsCalcs` and clamped away by the
-     * picker, so choosing one did nothing at all.
+     * sizes the node and weighs the edge — so a third and fourth calculation are rows like
+     * the second. Dropping them in `normalizeRelationsCalcs` or clamping them in the picker
+     * would make choosing one do nothing at all.
      */
     it('adds a row for every stat the mark carries, however many', () => {
       const model = modelFor([wideNodes(), wideEdges()], options({ reduceOptions: { calcs: ['max', 'min', 'mean'] } }));
@@ -443,22 +437,12 @@ describe('buildRelationsTooltipModel', () => {
   });
 
   /**
-   * A node with no stat of its own used to produce a tooltip with a header and no rows at
-   * all — the normal case, not a corner one: an edges-only response derives every one of its
-   * nodes (`docs/relations-derived-nodes.md`). It has no measurement to report, but it does
-   * know its edges, and those are numbers the response really returned.
+   * A node with no stat of its own would otherwise produce a tooltip with a header and no
+   * rows at all — the normal case, not a corner one: an edges-only response derives every
+   * one of its nodes (`docs/relations-derived-nodes.md`). It has no measurement to report,
+   * but it does know its edges, and those are numbers the response really returned.
    *
-   * Listed for **every** node now, not just that one: a node's own measurement leads and its
-   * edges follow, since the two are different facts and neither displaces the other.
-   */
-
-  /**
-   * A node with no stat of its own used to produce a tooltip with a header and no rows at
-   * all — the normal case, not a corner one: an edges-only response derives every one of its
-   * nodes (`docs/relations-derived-nodes.md`). It has no measurement to report, but it does
-   * know its edges, and those are numbers the response really returned.
-   *
-   * Listed for **every** node now, not just that one: a node's own measurement leads and its
+   * Listed for **every** node, not just that one: a node's own measurement leads and its
    * edges follow, since the two are different facts and neither displaces the other.
    */
   describe('a node’s edges', () => {
@@ -499,10 +483,10 @@ describe('buildRelationsTooltipModel', () => {
     });
 
     /**
-     * **The reported ask.** A node that measures something used to report *only* that and
-     * lose its edge list; a node that measured nothing reported only the edges. Both are
-     * reported now, in that order — the node's own value first, which is what a core plot
-     * leads with, then what it is connected to.
+     * **Both facts, in one order.** A node's own value first — which is what a core plot
+     * leads with — then what it is connected to. Reporting only one would lose the edge
+     * list on a node that measures something, and lose nothing but say nothing on a node
+     * that does not.
      */
     it('leads with the stat and still lists the edges, for a node that has one', () => {
       const model = modelFor([hubNodes(), hubEdges()]);

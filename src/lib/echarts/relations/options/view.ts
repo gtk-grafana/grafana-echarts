@@ -27,16 +27,9 @@ export function resolveRelationsRoam(options: PanelOptions): 'move' | false {
 /**
  * Whether drag-to-pan is on.
  *
- * Both this and `resolveRelationsZoom` used to fall back to a superseded single
- * "Zoom and pan" switch (`relationsRoam`), which is **gone**. The fallback was actively
- * wrong once these two became Default-tier controls: a panel carrying only the old key
- * rendered with pan and zoom *on* while both switches displayed *off*, because neither
- * option was set and neither carries a `defaultValue`. The control contradicted the
- * panel until someone happened to toggle it.
- *
- * Deleting rather than migrating it is available because the plugin is unreleased, so no
- * dashboard outside this repo can carry the key. A panel that does simply loses the
- * setting, which is the intended break.
+ * Reads only its own key. Neither this nor `resolveRelationsZoom` carries a
+ * `defaultValue`, so an unset option must resolve to off — anything else renders a panel
+ * whose switch displays the opposite of what it draws.
  */
 export function resolveRelationsPan(options: PanelOptions): boolean {
   return options.relationsPan === true;

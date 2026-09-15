@@ -6,7 +6,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "links": [],
-  "description": "**One panel per panel option that visibly changes what the panel draws**, in the order the options pane lists them. Each sets exactly one option to a non-default value and says in its description what the option does, what the default is, and what to look at \u2014 so every panel here can be read against its neighbours without touching it.\n\nPanels demonstrating an Advanced-tier option also set `editorMode: advanced`: an Advanced value on a panel left in Default mode is reset at render time by `applyEditorModeDefaults`, so the panel would draw the default while claiming to show the option.\n\n**Eight options are deliberately absent**, because a still picture cannot show them \u2014 there would be nothing to compare. `editorMode` changes the options pane rather than the panel; `Animate layout` and `Animation` are motion, and settle to an identical render; `Pan`, `Remember view` and `Draggable nodes` are behaviour and draw nothing until you interact; `Highlight adjacency` and `Tooltip mode` act on hover. Each is unit- or integration-tested instead, and `allOptionsDashboard.test.ts` asserts this list stays exhaustive so a new option cannot go undemoed unnoticed.\n\nLinked option-by-option from `src/modules/relations/parity.md`.",
+  "description": "**One panel per panel option that visibly changes what the panel draws**, in the order the options pane lists them. Each sets exactly one option to a non-default value and says in its description what the option does, what the default is, and what to look at \u2014 so every panel here can be read against its neighbours without touching it.\n\nPanels demonstrating an Advanced-tier option also set `editorMode: advanced`: an Advanced value on a panel left in Default mode is reset at render time by `applyEditorModeDefaults`, so the panel would draw the default while claiming to show the option.\n\n**Panels 32 and 33 demo behaviour rather than a picture** \u2014 Pan and Draggable nodes draw nothing until you drag, so they look identical to their neighbours at rest and their descriptions say what to drag.\n\n**Panels 34-36 are standard field-config options, not panel options**: the by-value colour scheme, Thresholds and Value mappings. They are here because a relations mark's colour and stat label come from `field.display(value)`, so these three change the render as much as any panel option does. Each also switches \"Show node values\" on as scaffolding, so the number behind the colour is readable.\n\n**Six options are deliberately absent**, because nothing about them is demonstrable in a panel \u2014 there would be nothing to compare. `editorMode` changes the options pane rather than the panel; `Animate layout` and `Animation` are motion, and settle to an identical render; `Remember view` persists a view and draws nothing; `Highlight adjacency` and `Tooltip mode` act on hover. Each is unit- or integration-tested instead, and `allOptionsDashboard.test.ts` asserts this list stays exhaustive so a new option cannot go undemoed unnoticed.\n\nLinked option-by-option from `src/modules/relations/parity.md`.",
   "refresh": "",
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "panel-options", "reference"],
@@ -557,7 +557,7 @@
       "id": 10,
       "type": "grafana-echartsrelations-panel",
       "title": "10. Layout \u2014 Fixed (a smiley face)",
-      "description": "Where nodes are positioned: Force (physics), Circular (a deterministic ring) or **Fixed** \u2014 ECharts' `layout: 'none'`, where the panel does no placement of its own and draws each node exactly where its coordinates say.\n\nWhich is how 23 nodes and 20 links become a face. Each node carries `custom.fixedX` / `custom.fixedY` as a `byName` override \u2014 a node **is** a field, so its position is ordinary per-mark config: 16 nodes on a ring joined in sequence draw the outline, a 5-node arc joined end to end draws the smile, and the eyes are isolated nodes enlarged by `custom.nodeRadius`. Switch this panel to Force or Circular and it is a graph again \u2014 nothing in the *data* says \"face\".\n\nPinned by overrides rather than by the row form's `fixedx`/`fixedy` columns deliberately: the row form needs the panel-registered transformations API, which is off on hosts where the `grafana.panelPluginTransformations` flag cannot be read \u2014 there the pre-pass never runs and the panel errors. Overrides work everywhere. See `fixed-layout.json` for both routes and for why the coordinate *scale* has to be pixel-ish.\n\n**Fixed is offered only in Advanced mode**, because it cannot be satisfied without those coordinates: a node lacking them is seeded on a ring rather than laid out at `[NaN, NaN]`, which used to blank the panel outright.\n\n**Default:** `force`, unless every node pins coordinates \u2014 then Fixed is inferred.",
+      "description": "Where nodes are positioned: Force (physics), Circular (a deterministic ring) or **Fixed** \u2014 ECharts' `layout: 'none'`, where the panel does no placement of its own and draws each node exactly where its coordinates say.\n\nWhich is how 23 nodes and 20 links become a face. Each node carries `custom.fixedX` / `custom.fixedY` as a `byName` override \u2014 a node **is** a field, so its position is ordinary per-mark config: 16 nodes on a ring joined in sequence draw the outline, a 5-node arc joined end to end draws the smile, and the eyes are isolated nodes enlarged by `custom.nodeRadius`. Switch this panel to Force or Circular and it is a graph again \u2014 nothing in the *data* says \"face\".\n\nPinned by overrides rather than by the row form's `fixedx`/`fixedy` columns deliberately: the row form needs the panel-registered transformations API, which is off on hosts where the `grafana.panelPluginTransformations` flag cannot be read \u2014 there the pre-pass never runs and the panel errors. Overrides work everywhere. See `fixed-layout.json` for both routes and for why the coordinate *scale* has to be pixel-ish.\n\n**Fixed is offered only in Advanced mode**, because it cannot be satisfied without those coordinates: a node lacking them is seeded on a ring rather than laid out at `[NaN, NaN]`, which would blank the panel outright.\n\n**Default:** `force`, unless every node pins coordinates \u2014 then Fixed is inferred.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -2273,6 +2273,339 @@
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "type": "grafana-echartsrelations-panel",
+      "title": "32. Pan \u2014 on",
+      "description": "Lets the view be dragged inside the panel: `series.*.roam` is set to `'move'`, which moves the view without binding the scroll wheel \u2014 zoom is a separate switch (#15) drawing buttons, so a panel can be pannable without capturing the page scroll.\n\n**Drag anywhere in the plot area.** The whole topology follows the pointer; do the same on any neighbouring panel and nothing happens. Nothing is drawn differently until you drag, which is why this panel looks identical to its neighbours at rest.\n\nDefault-tier and off by default. Not offered on chord, which has no view coordinate system. Pair it with \"Remember view\" to make a drag stick across a reload.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsPan": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "type": "grafana-echartsrelations-panel",
+      "title": "33. Draggable nodes \u2014 on",
+      "description": "Lets individual nodes be dragged (`series.sankey.draggable`), and **saves the drop position back into the panel** as a `custom.fixedX` / `fixedY` field override on that node \u2014 a sankey keeps its own 0\u20131 `localX` / `localY` space. So a drag here is an edit, not a transient nudge.\n\n**Drag a bar up or down.** Its ribbons re-route and the position persists; this panel is a sankey because draggable is only offered where a dropped position *is* a position \u2014 sankey, or a graph on the Fixed layout. Force and circular re-solve on every render, so a drag there could never be kept, and `getGraphSeries` refuses the pair as well as hiding the switch.\n\nAdvanced-tier, off by default \u2014 hence `editorMode: advanced` on this panel.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "sankey",
+        "relationsDraggable": true,
+        "editorMode": "advanced"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "type": "grafana-echartsrelations-panel",
+      "title": "34. Color scheme \u2014 by value (Green-Yellow-Red)",
+      "description": "A **standard field-config** option rather than a panel option, included because it is the load-bearing one for this family: a mark's colour is `field.display(value).color`, already resolved by `applyFieldOverrides`, so all eight schemes work and a `byName` override can recolour a single node or edge.\n\nHere `continuous-GrYlRd` maps each mark's `calcs[0]` onto a gradient, so colour *is* the value \u2014 gateway (20) green, api (55) yellow, db (85) orange. Compare the classic palette on every other panel, where colour only tells marks apart. The values are medians, the reducer default, and \"Show node values\" is on as scaffolding so the number behind each colour is readable.\n\n**Nothing here reaches red**, which is the lesson: the domain spans *every field in the response*, and the edge weights run to 125, so db at 85 sits two-thirds up a scale the nodes do not own. Pin `min`/`max`, or switch \"Field min/max\" on to give each field its own domain \u2014 see the `colour-domain` dashboard. The panel to the right shows the discrete form of the same idea.\n\n**Default:** Classic palette.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 110
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "type": "grafana-echartsrelations-panel",
+      "title": "35. Thresholds \u2014 absolute steps at 50 and 80",
+      "description": "Thresholds are reachable on this family **only as a by-value colour scheme** (`color.mode: thresholds`): there are no axes, so there is no `markLine` equivalent to draw a threshold *at*. Set the scheme and each mark lands in a band instead of on a gradient.\n\nSteps are absolute here \u2014 green below 50, yellow to 80, red above \u2014 with `min`/`max` pinned to 0-100 so a band means a value rather than a rank. gateway (20) and cache (35) are green, api (55) and auth (65) yellow, db (85) red; the values are medians, the reducer default, and \"Show node values\" is on so the boundaries are checkable.\n\nThis is also the fix for the panel to the left, whose gradient shares its domain with the edge fields: an absolute threshold ignores the rest of the response entirely. Switch the steps to `percentage` and the bands follow the data's own range instead \u2014 see the `colour-domain` dashboard for what \"Field min/max\" then changes.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 110
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n10,50,90,30,60\n20,60,80,40,70\n30,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30\n130,85,50,35\n125,82,47,32"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "type": "grafana-echartsrelations-panel",
+      "title": "36. Value mappings \u2014 colour and text",
+      "description": "Value mappings are applied through each field's display processor, so a mapping targets **one mark**: a node can read `Healthy` while its neighbour reads a number, in the \"Show node values\" label and in the tooltip alike.\n\nThe less obvious half is colour. A mapping carrying a `color` **recolours the mark** through the same `field.display(value)` call \u2014 the scheme here is still the classic palette, yet the symbols are green / orange / red because the mappings say so. The query returns `1`, `2`, `3`; the panel shows Healthy, Degraded, Down. That is a status field turned into a topology coloured by status, with no thresholds and no per-node overrides.\n\n**Default:** none. See the `value-mappings` dashboard for range and special mappings, and for what a mapping cannot reach.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 110
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Healthy",
+                  "color": "green",
+                  "index": 0
+                },
+                "2": {
+                  "text": "Degraded",
+                  "color": "orange",
+                  "index": 1
+                },
+                "3": {
+                  "text": "Down",
+                  "color": "red",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "circular",
+        "relationsShowNodeValues": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n1,2,3,1,2"
         },
         {
           "refId": "B",

@@ -59,8 +59,7 @@ export function addRelationsLinkOptions(builder: PanelOptionsEditorBuilder<Panel
    * (`source`/`target`), and on a force layout the arrowhead is the *only* thing that
    * says which way — the source-to-target gradient cannot be oriented without knowing
    * the node positions. Something the chart is unreadable without is not an expert
-   * setting, which is why it is no longer gated behind Advanced. See
-   * `RELATIONS_EDGE_ARROWS_DEFAULT`.
+   * setting, so it is not gated behind Advanced. See `RELATIONS_EDGE_ARROWS_DEFAULT`.
    *
    * Graph-only: `SankeySeriesOption` has no `edgeSymbol` (a ribbon carries its direction
    * by shape) and `ChordEdge` none either.

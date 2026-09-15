@@ -51,7 +51,7 @@ export const sankeyNodeAlignOptions: Array<SelectableValue<RelationsSankeyNodeAl
  * sankey's horizontal axis to mean. Under `justify` a leaf two steps in is drawn in the
  * last column beside leaves five steps in, so the axis stops carrying depth at all.
  *
- * Emitted explicitly rather than omitted, since it is no longer the ECharts default —
+ * Emitted explicitly rather than omitted, since it differs from ECharts' own default —
  * see `getSankeySeries`.
  */
 export const SANKEY_NODE_ALIGN_DEFAULT: RelationsSankeyNodeAlign = 'left';

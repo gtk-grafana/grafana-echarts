@@ -12,11 +12,11 @@ import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/rela
  * Shared fixtures for the relations family's unit and canvas suites.
  *
  * The context builder here is **typed**: it returns a real `RelationsChartContext`
- * rather than an object cast through `unknown`. That is the point of it — the three
- * option suites each carried their own double-cast preamble, and a double cast makes
- * a fixture that has drifted from the interface (a renamed key, a field the context
- * no longer has) compile anyway, so the test goes green against a shape the panel
- * can never be handed.
+ * rather than an object cast through `unknown`. That is the point of it — a double cast
+ * lets a fixture that has drifted from the interface (a renamed key, a field the context
+ * does not have) compile anyway, so the test goes green against a shape the panel can
+ * never be handed. One shared typed builder is also one place to fix when the interface
+ * moves, instead of a cast preamble per option suite.
  *
  * The canvas/integration harness that renders these frames through a real `<Panel />`
  * lives next door in `test/relationsCanvas.tsx`; it reads its frames from here so the

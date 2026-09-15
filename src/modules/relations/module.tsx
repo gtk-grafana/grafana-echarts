@@ -110,15 +110,15 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
      * The family has no per-point fast path, so it takes the shared animation switch
      * rather than the cartesian `addPerformanceOptions` bundle — into its own Layout
      * section rather than the shared "Advanced" one. Off by default, like every other
-     * family: it used to default on here, which meant animating on every dashboard
-     * refresh rather than only on the load where the effect was wanted.
+     * family: a panel that animates by default animates on every dashboard refresh, not
+     * only on the load where the effect was wanted.
      *
      * **Hidden on the graph variant, where ECharts ignores it.** `GraphView` writes node
      * and edge positions directly and consults `isAnimationEnabled()` nowhere, so the
-     * switch drew nothing there — while "Animate layout" (`force.layoutAnimation`, from
-     * `addRelationsForceOptions`) sat beside it doing the job. Two animation controls of
-     * which one was dead. Sankey and chord do honour it, so it stays for them. See
-     * `addAnimationOption`.
+     * switch would draw nothing there while "Animate layout" (`force.layoutAnimation`,
+     * from `addRelationsForceOptions`) sat beside it doing the job — two animation
+     * controls of which one is dead. Sankey and chord do honour it, so it stays for them.
+     * See `addAnimationOption`.
      */
     addAnimationOption(builder, {
       category: [relationsLayoutCategoryName],

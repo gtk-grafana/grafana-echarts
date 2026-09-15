@@ -44,12 +44,11 @@ describe('relations sankey', () => {
 
   describe('orientation', () => {
     /**
-     * Vertical flow, where the node labels used to be drawn **over the next node's
-     * fill**: ECharts places a sankey label `'right'` in both orientations, and
-     * vertically the bars run along the row `nodeGap` (8px) apart, so a label 5px to the
-     * right of one lands on its neighbour — unreadable against a saturated colour, and
-     * colliding with that neighbour's own label. They sit below the bar now, in the
-     * ribbon gap. See `getSankeyLabelPosition`.
+     * Vertical flow, where the labels sit **below** their bar, in the ribbon gap.
+     * ECharts places a sankey label `'right'` in both orientations, and vertically the
+     * bars run along the row `nodeGap` (8px) apart — so a label 5px to the right of one
+     * lands on its neighbour's fill, unreadable against a saturated colour and colliding
+     * with that neighbour's own label. See `getSankeyLabelPosition`.
      */
     it('vertical flow (bars in rows, each label below its bar)', async () => {
       const { defaultEvents, seriesEvents } = await renderSankey({
@@ -140,10 +139,10 @@ describe('relations sankey', () => {
      * node with slack — a leaf hanging off `gateway` while the chain runs two more columns.
      *
      * The *contrast* between the two settings is asserted in
-     * `integration-tests/relations/layout.integration.test.tsx`, not here. It used to be a
-     * `not.toEqual` beside this baseline, which was **vacuous**: a sankey's ribbons carry
-     * gradient objects, so two renders are never `toEqual` whatever their geometry, and the
-     * guard passed no matter what. It also does not belong in a canvas suite — see the
+     * `integration-tests/relations/layout.integration.test.tsx`, not here. A `not.toEqual`
+     * beside this baseline would be **vacuous**: a sankey's ribbons carry gradient objects,
+     * so two renders are never `toEqual` whatever their geometry, and the guard would pass
+     * no matter what. It also does not belong in a canvas suite — see the
      * one-kind-of-test-per-file rule in AGENTS.md.
      */
     it('node align left (a leaf kept in its earliest column, not pushed to the last)', async () => {

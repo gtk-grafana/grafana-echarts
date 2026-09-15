@@ -13,7 +13,10 @@ import {
  * **The reference dashboard and its doc links must cover every option the panel has.**
  *
  * `provisioning/dashboards/relations/all-options.json` is one panel per panel option **that
- * visibly changes what the panel draws**, and every such option's row in
+ * visibly changes what the panel draws** — plus the three standard field-config options
+ * that carry this family's contract (by-value colour, thresholds, value mappings), since a
+ * relations mark's colour and stat label come from `field.display(value)` and so change the
+ * render as much as any panel option does. Every such option's row in
  * `src/modules/relations/parity.md` links to its panel. Both are
  * hand-maintained, which is exactly the shape of artefact that rots: add an option and the
  * dashboard silently stops being "every option" while still being titled that, and still
@@ -53,6 +56,12 @@ const parityDoc = () => readFileSync(repoFile('src/modules/relations/parity.md')
  * also carries scaffolding (`seriesType`, a pinned layout, legend and tooltip defaults),
  * so "the option this panel is about" is not recoverable from the JSON without guessing.
  * Stating it here costs one line per option and makes the two assertions below exact.
+ *
+ * The last two demo an **interaction** rather than a picture: Pan and Draggable nodes draw
+ * nothing until the reader drags, so their panels are indistinguishable from their
+ * neighbours at rest and earn their place only because the description says what to drag.
+ * That is still worth a panel — the dashboard is a live demo, not a screenshot — but it is
+ * why they sat in `NO_VISUAL` before, and why nothing here asserts they *look* different.
  */
 const OPTION_PANEL: Record<string, number> = {
   seriesType: 1,
@@ -86,13 +95,20 @@ const OPTION_PANEL: Record<string, number> = {
   relationsChordMinAngle: 29,
   relationsChordLinkOpacity: 30,
   legend: 31,
+  relationsPan: 32,
+  relationsDraggable: 33,
 };
 
 /**
- * Options with **no observable difference in a still render**, so a demo panel for them
- * would show nothing to compare against its neighbours — a panel that looks like every
- * other one and claims to be showing something. Each reason was checked against the
- * running panel, not assumed.
+ * Options a demo panel could not show **even with the reader interacting with it**, so a
+ * panel for them would look like every other one and claim to be showing something. Each
+ * reason was checked against the running panel, not assumed.
+ *
+ * Narrower than it reads: "draws nothing at rest" is *not* enough to be excused — Pan and
+ * Draggable nodes are demoed as panels 32 and 33 on the strength of a drag alone. What is
+ * left is the pane-only option, the two that settle to an identical render, the one that
+ * merely persists state, and the two that act on a hover the panel already demonstrates
+ * everywhere.
  *
  * They are covered by unit and integration tests instead; what this list buys is that a
  * *new* option cannot quietly join it. Adding one fails the partition assertion below
@@ -102,12 +118,38 @@ const NO_VISUAL: Record<string, string> = {
   editorMode: 'changes the options pane, not the panel',
   relationsLayoutAnimation: 'motion only — the settled layout is identical',
   'animation.enabled': 'motion only — the settled render is identical',
-  relationsPan: 'behaviour only — nothing is drawn differently until you drag',
   relationsRememberView: 'behaviour only — persists a view, draws nothing',
-  relationsDraggable: 'behaviour only — nothing differs until you drag a node',
   relationsFocusAdjacency: 'hover only — the idle render is identical',
   tooltip: 'hover only — the idle render is identical',
 };
+
+/**
+ * The dashboard's second half-dozen: panels demoing a **standard field-config** option
+ * rather than a panel option.
+ *
+ * They are not in `registeredRelationsOptions` — that is the panel's own option pane — so
+ * the partition above neither requires nor forbids them, and without this map they would
+ * simply be unaccounted-for panels. Listed for the same reason as `OPTION_PANEL`: a
+ * field-config demo has to be as findable, as described and as linked from `parity.md` as
+ * an option demo, and "the option this panel is about" is no more derivable from its JSON.
+ *
+ * Keyed by the option's name in the Fields tab, since a field-config path (`color.mode`,
+ * `thresholds.steps`, `mappings`) is not a stable identifier the way an option path is.
+ *
+ * Only the three that carry the family's contract are here, and only by the same test as
+ * the panel options: does the render change? `parity.md`'s standard-options table lists
+ * every other one (Unit, Decimals, Data links, Filterable, Field min/max, Display name)
+ * with its own demo dashboard, and those dashboards are the right home for them — this one
+ * is read option-by-option against the pane.
+ */
+const FIELD_CONFIG_PANEL: Record<string, number> = {
+  'Color scheme (by value)': 34,
+  Thresholds: 35,
+  'Value mappings': 36,
+};
+
+/** Every panel in the dashboard, in order: option demos first, then field-config demos. */
+const ALL_PANEL_IDS = [...Object.values(OPTION_PANEL), ...Object.values(FIELD_CONFIG_PANEL)];
 
 /**
  * The Advanced tier, taken from the render-time reset rather than by probing each
@@ -142,11 +184,14 @@ describe('the all-options reference dashboard', () => {
     }
   });
 
-  it('has exactly one panel per demoed option, numbered 1..n', () => {
+  it('has exactly one panel per demoed option and field-config option, numbered 1..n', () => {
     const panels = dashboard().panels;
 
-    expect(panels.map((panel) => panel.id)).toEqual(Object.values(OPTION_PANEL));
-    expect(panels).toHaveLength(Object.keys(OPTION_PANEL).length);
+    expect(panels.map((panel) => panel.id)).toEqual(ALL_PANEL_IDS);
+    expect(panels).toHaveLength(ALL_PANEL_IDS.length);
+    // The ids are the doc's link targets and the panels' own titles, so a gap or a
+    // repeat would silently point two rows of parity.md at one panel.
+    expect(ALL_PANEL_IDS).toEqual(ALL_PANEL_IDS.map((_, index) => index + 1));
   });
 
   // The id is the doc's link target, so it has to be legible on the panel itself.
@@ -197,8 +242,8 @@ describe('parity.md option links', () => {
    */
   it('references and defines a link for every panel', () => {
     const doc = parityDoc();
-    const missingRef = Object.values(OPTION_PANEL).filter((id) => !doc.includes(`[#${id} opts][live-opt-${id}]`));
-    const missingDef = Object.values(OPTION_PANEL).filter((id) => !doc.includes(`\n[live-opt-${id}]: `));
+    const missingRef = ALL_PANEL_IDS.filter((id) => !doc.includes(`[#${id} opts][live-opt-${id}]`));
+    const missingDef = ALL_PANEL_IDS.filter((id) => !doc.includes(`\n[live-opt-${id}]: `));
 
     expect({ missingRef, missingDef }).toEqual({ missingRef: [], missingDef: [] });
   });

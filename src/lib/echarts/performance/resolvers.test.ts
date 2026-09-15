@@ -293,12 +293,11 @@ describe('resolveAnimation', () => {
   });
 
   /**
-   * **No family exception.** Relations used to default this on, reasoning that a mark
-   * there is a whole *field* so the panel is tens of marks rather than tens of thousands
-   * of points. That reasoning held; the conclusion did not. A panel that animates by
-   * default animates on every dashboard refresh, not only on the load where the effect
-   * was wanted — so the switch is a plain Advanced opt-in on every family, and
-   * `resolveAnimation` no longer takes a `seriesType` to branch on at all.
+   * **No family exception**, not even relations, where a mark is a whole *field* so the
+   * panel is tens of marks rather than tens of thousands of points. True and beside the
+   * point: a panel that animates by default animates on every dashboard refresh, not only
+   * on the load where the effect was wanted. So the switch is a plain Advanced opt-in
+   * everywhere, and `resolveAnimation` takes no `seriesType` to branch on.
    */
   it('takes no family default — off everywhere until the switch is set', () => {
     expect(resolveAnimation(options())).toBe(false);

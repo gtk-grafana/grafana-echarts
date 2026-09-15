@@ -16,12 +16,10 @@ import { type RelationsLabelOverflow } from 'editor/relations/types';
 /**
  * The "Labels" section: what text a mark carries, and what happens when it does not fit.
  *
- * These five controls used to be split across two sections and two tiers — the switches
- * sat in "Relations" while overflow handling was in the "Advanced" bucket — which put
- * "Show node labels" and "how a label that doesn't fit is handled" in different places.
- * They are one subject, so they are one section, and only "Label width" stays Advanced.
- * "Show edge values" belongs to the same subject and is registered into this category by
- * `addRelationsLinkOptions`, which owns the rest of the edge controls.
+ * "Show node labels" and "how a label that doesn't fit is handled" are one subject, so
+ * these five controls are one section spanning both tiers — only "Label width" is
+ * Advanced. "Show edge values" belongs to the same subject and is registered into this
+ * category by `addRelationsLinkOptions`, which owns the rest of the edge controls.
  *
  * Node *size* is not here: it is where a mark sits and how big it is, which is the
  * Layout section's subject. See `addRelationsLayoutOptions`.
