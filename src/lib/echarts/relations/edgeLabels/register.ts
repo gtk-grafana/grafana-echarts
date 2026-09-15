@@ -11,8 +11,40 @@ import {
 import { markKey, type RevealIndex, setRevealIndex } from 'lib/echarts/relations/edgeLabels/reveal';
 
 /**
- * Stop edge values from fading in after each rebuild.
- * https://echarts.apache.org/en/option.html#series-graph.labelLayout
+ * Repair edge labels after the shared ECharts label-layout stage.
+ *
+ * `LabelManager.updateLayoutConfig` sets `textConfig.local` to `false`.
+ * Most managed labels then use canvas coordinates.
+ * `Line.beforeUpdate` sets edge labels with `local: true` because a line positions its label in local coordinates.
+ * If `local` stays false, edge labels do not move with graph pan or zoom.
+ *
+ * ECharts `hideOverlap` reads a stored rectangle before `Line.beforeUpdate` positions the edge label.
+ * The stale rectangle makes an unchanged fixture show 1, 2, 3, then 4 labels across four renders.
+ * This hook settles the edge geometry before it does the overlap test.
+ * Node labels keep priority because a name identifies a mark and an edge value also appears in the tooltip.
+ *
+ * Hidden labels return when their edge or an endpoint gets focus.
+ * Do not use an emphasis state for `ignore`.
+ * `_savePrimaryToNormal` copies `ignore` into `_normalState`, so the next state change hides a label revealed elsewhere.
+ *
+ * Use `series:layoutlabels`, not `series:afterupdate`.
+ * Graph zoom calls `updateLabelLayout()` without a series update.
+ * It also supplies no `updatedSeries`, so this hook examines every series.
+ *
+ * Hook order is part of this repair.
+ * `registerEdgeLabelFadeIn` must run before the ECharts `LabelLayout` feature.
+ * `registerEdgeLabelLayout` must run after that feature.
+ * A different order silently breaks sankey edge labels.
+ */
+
+/**
+ * Stop sankey edge values from fading in after each rebuild.
+ *
+ * Sankey creates new label hosts on each render, so `LabelManager` finds no old layout.
+ * It then uses `animationDuration` for a new fade.
+ * Set `disableLabelAnimation` before the label-layout stage reads the host.
+ * Graph reuses label hosts, but the same setting is safe there.
+ * https://echarts.apache.org/en/option.html#animationDuration
  */
 export function registerEdgeLabelFadeIn(): void {
   registerUpdateLifecycle('series:layoutlabels', (ecModel) => {
@@ -32,6 +64,10 @@ export function registerEdgeLabelFadeIn(): void {
   });
 }
 
+/**
+ * Restore local edge-label transforms, remove overlaps, and index hidden labels for focus.
+ * https://echarts.apache.org/en/option.html#series-graph.labelLayout
+ */
 export function registerEdgeLabelLayout(): void {
   registerUpdateLifecycle('series:layoutlabels', (ecModel, api) => {
     const revealed: RevealIndex = new Map();
@@ -60,11 +96,11 @@ export function registerEdgeLabelLayout(): void {
       // Restore host anchoring before measuring labels.
       for (const { host } of edges) {
         host.setTextConfig({ local: true });
-        // A dirty host recalculates its text position.
+        // A redraw makes `updateInnerText` read the restored `local` value.
         host.markRedraw();
       }
 
-      // Edge labels yield to labels already placed by ECharts.
+      // Node names keep priority over edge values, which also appear in tooltips.
       const edgeHosts = new Set(edges.map(({ host }) => host));
       const taken: LabelBox[] = [];
       group.traverse((element) => {

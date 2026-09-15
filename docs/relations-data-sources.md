@@ -8,6 +8,8 @@ Use wide input for Prometheus, Loki, SQL, CSV, and JSON. Use row input for Tempo
 
 The automatic row conversion needs Grafana 13.2 or later and `grafana.panelPluginTransformations`. If the host cannot run it, add a Rows to fields transformation.
 
+Grafana runs the automatic row conversion before the user transformations in the Transform tab. Thus, Rows to fields and Grouping to matrix receive wide frames and return them unchanged. If automatic conversion is active, do not add these row transformations. Transformations that consume wide frames still operate normally.
+
 ## Wide input
 
 A wide response can contain:

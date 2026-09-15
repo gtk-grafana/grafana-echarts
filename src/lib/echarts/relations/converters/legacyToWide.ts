@@ -1,3 +1,5 @@
+// Use the root specifier because `rxjs` is an exact-string webpack external.
+// `.config/bundler/externals.ts` does not match `rxjs/operators`, so webpack bundles that subpath.
 import {
   type CustomTransformOperator,
   type DataFrame,
@@ -23,7 +25,6 @@ import {
   type RelationsFamilyValue,
 } from 'lib/grafana/fields/relationsFields';
 import { type ConfigTypedField } from 'lib/grafana/types';
-// The root package is a webpack external. A subpath import would be bundled.
 import { map } from 'rxjs';
 
 import { isGraphWideFrames } from 'lib/echarts/relations/converters/frameRoles';

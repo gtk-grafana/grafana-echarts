@@ -1,4 +1,10 @@
-/** An element with a label attached, narrowed to what is read here. */
+/**
+ * Isolate the undocumented ECharts and zrender label members that this repair uses.
+ * ECharts upgrades can change these members without a public type change.
+ * https://echarts.apache.org/en/option.html#series-graph.labelLayout
+ */
+
+/** An element with a label attached, narrowed to the members that this file reads. */
 export interface LabelHost {
   textConfig?: { local?: boolean; position?: unknown };
   setTextConfig(config: { local: boolean }): void;
@@ -26,7 +32,7 @@ interface GraphModel {
   getEdgeByIndex(dataIndex: number): { node1: { dataIndex: number }; node2: { dataIndex: number } } | undefined;
 }
 
-/** A label's box as its four corners in canvas coordinates. rotated, so not a rect. */
+/** A rotated label box as four corners in canvas coordinates. */
 export type LabelBox = ReadonlyArray<readonly [number, number]>;
 
 /** The series' graph, or `null` for a series that has none. */
@@ -92,7 +98,13 @@ export function isLabelHost(element: unknown): element is LabelHost {
   );
 }
 
-/** Return the box that a label occupies. */
+/**
+ * Return the box that a label occupies after its host settles the label position.
+ *
+ * `beforeUpdate` places a line label in local coordinates.
+ * `updateInnerText` then calculates the label transform.
+ * zrender calls both methods again during its normal draw traversal.
+ */
 export function labelBox(host: LabelHost): LabelBox | null {
   const label = host.getTextContent();
   if (label == null || label.ignore === true) {
@@ -119,7 +131,12 @@ export function labelBox(host: LabelHost): LabelBox | null {
   return corners.map(([x, y]) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]] as const);
 }
 
-/** Check whether two label boxes overlap. */
+/**
+ * Use the separating-axis test to compare two rotated label boxes.
+ *
+ * An axis-aligned rectangle around a 45-degree label is almost three times too tall.
+ * That rectangle hides values that remain readable beside each other.
+ */
 export function overlaps(a: LabelBox, b: LabelBox): boolean {
   for (const [first, second] of [
     [a, b],
@@ -144,7 +161,10 @@ export function overlaps(a: LabelBox, b: LabelBox): boolean {
   return true;
 }
 
-/** Drop a label from the render. */
+/**
+ * Remove a label from the display list by setting `ignore` directly.
+ * A state-based value can enter `_normalState` and hide a label again after another focus path reveals it.
+ */
 export function hideLabel(host: LabelHost): LabelText | null {
   const label = host.getTextContent();
   if (label == null || label.ignore === true) {

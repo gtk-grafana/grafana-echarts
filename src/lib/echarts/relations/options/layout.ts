@@ -37,7 +37,15 @@ export interface GraphPoint {
   y: number;
 }
 
-/** Ring radius used to seed nodes when nothing is pinned. */
+/**
+ * Use a pixel-sized coordinate range for the default seed ring.
+ *
+ * Graph lines enable the zrender `subPixelOptimize` operation.
+ * It moves an axis-aligned line by half a data unit before ECharts scales the graph to the panel.
+ * With radius `1`, this operation moved two ring edges 159 pixels away from their nodes.
+ * Radius `400` keeps the shift smaller than one rendered pixel, so edges stay attached.
+ * https://echarts.apache.org/en/option.html#series-graph.layout
+ */
 const FIXED_SEED_RADIUS = 400;
 
 /** Distance between pinned and seeded nodes. */

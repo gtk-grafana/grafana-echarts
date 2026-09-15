@@ -17,7 +17,19 @@ const NUMERIC_FRAME_TYPES: ReadonlySet<string> = new Set([
   DataFrameType.NumericLong,
 ]);
 
-/** Check whether a frame has no time selection. */
+/**
+ * Return true when rows do not define a time axis.
+ *
+ * The declared frame type takes priority over the presence of a Time field.
+ * A Prometheus instant query can return `numeric-multi` with one timestamp for its evaluation instant.
+ * That timestamp is not a point on the step grid of a range query.
+ * If it becomes a slider stop, `rowAt` finds no ranged edge at that time.
+ * Node values also become `null`, so threshold colors lose their input and change to palette colors.
+ *
+ * Do not use one-row shape as the test.
+ * A raw ragged response can contain one real sample per frame, and a missing selected sample must remain `null`.
+ * https://grafana.com/developers/dataplane/numeric
+ */
 export function isTimelessFrame(frame: DataFrame): boolean {
   const type = frame.meta?.type;
   return rowDimension(frame) == null || (type != null && NUMERIC_FRAME_TYPES.has(type));
@@ -36,7 +48,7 @@ function collectStops(frames: DataFrame[], limit = Infinity): Set<number> {
     return stops;
   }
   for (const frame of [...roles.edgesFrames, ...roles.nodesFrames]) {
-    // Ignore timestamps on instant data because they are not timeline stops.
+    // Ignore instant-query timestamps because they sit outside the ranged step grid.
     const time = isTimelessFrame(frame) ? undefined : rowDimension(frame);
     for (let row = 0; row < (time?.values.length ?? 0); row++) {
       const at = numberAt(time, row);

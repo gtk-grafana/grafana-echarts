@@ -1,5 +1,11 @@
 import { buildRelationsPane } from 'test/relationsPane';
 import { type PanelOptions } from 'types';
+
+/**
+ * Pin the complete structure of the relations options pane.
+ * Individual option suites cannot detect a control in the wrong section or an accidental catch-all section.
+ * This suite also records controls that are intentionally absent.
+ */
 const buildPane = buildRelationsPane;
 
 /** Section order as the pane renders it: first registration wins. */
@@ -92,6 +98,13 @@ describe('the relations options pane', () => {
     expect(pathsIn(buildPane(), section)).toEqual(paths);
   });
 
+  /**
+   * ECharts ignores the root animation flag for graph.
+   * A host measurement gave graph 2 frames with the flag on and 2 with it off.
+   * Sankey gave about 64 frames with the flag on and 2 with it off.
+   * Chord gave about 21 frames with the flag on and 3 with it off.
+   * Graph keeps `relationsLayoutAnimation`, which controls force-simulation frames.
+   */
   it('hides the animation switch on graph, and offers it on sankey and chord', () => {
     const animation = buildPane().find((item) => item.path === 'animation.enabled');
     expect(animation).toBeDefined();
@@ -116,6 +129,11 @@ describe('the relations options pane', () => {
     ).toBe(true);
   });
 
+  /**
+   * Grafana shows `tooltip.sort` and `tooltip.hideZeros` only when `tooltip.mode` is `multi`.
+   * `singleTooltipOnly` removes `multi` because a relations hover contains one mark.
+   * These controls are unregistered because no reachable state can use them.
+   */
   it('drops the tooltip controls that only a Multi-mode tooltip could reach', () => {
     const tooltip = pathsIn(buildPane(), 'Tooltip');
 

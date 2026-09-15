@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { parseTests } from 'test/testSource';
 
@@ -18,8 +18,34 @@ import { parseTests } from 'test/testSource';
  * be re-cited, because a citation nobody maintains is worth less than none.
  */
 
-/** `parity.md` files that use the citation format; others are ignored. */
-const PARITY_DOCS = ['src/modules/relations/parity.md', 'src/modules/part-to-whole/parity.md'];
+interface ParityDocPolicy {
+  doc: string;
+  minimumCitations: number;
+  minimumTestTargets: number;
+  minimumDashboardCitations: number;
+  minimumDashboardSources: number;
+}
+
+/**
+ * Minimum counts protect broad evidence coverage while permitting new citations.
+ * The relations counts preserve the option evidence that existed before the documentation rewrite.
+ */
+const PARITY_DOCS: ParityDocPolicy[] = [
+  {
+    doc: 'src/modules/relations/parity.md',
+    minimumCitations: 34,
+    minimumTestTargets: 34,
+    minimumDashboardCitations: 15,
+    minimumDashboardSources: 11,
+  },
+  {
+    doc: 'src/modules/part-to-whole/parity.md',
+    minimumCitations: 1,
+    minimumTestTargets: 1,
+    minimumDashboardCitations: 0,
+    minimumDashboardSources: 0,
+  },
+];
 
 /** `[canvas: some test name][ref]` / `[integration: some test name][ref]`. */
 const CITATION = /\[(canvas|integration):\s*([^\]]+)\]\[([^\]]+)\]/g;
@@ -48,13 +74,34 @@ interface Citation {
 const citationsIn = (markdown: string): Citation[] =>
   [...markdown.matchAll(CITATION)].map(([, kind, name, ref]) => ({ kind, name: collapse(name), ref }));
 
-describe.each(PARITY_DOCS)('%s test citations', (doc) => {
+/** Reference names used by inline Markdown links. */
+const referencesIn = (markdown: string): string[] =>
+  [...markdown.matchAll(/\[[^\]]+\]\[([^\]]+)\]/g)].map(([, ref]) => ref);
+
+/** References to committed provisioned dashboards. */
+const dashboardReferencesIn = (markdown: string): string[] =>
+  [...markdown.matchAll(/\[[^\]]+\]\[(db-[^\]]+)\]/g)].map(([, ref]) => ref);
+
+describe.each(PARITY_DOCS)('$doc citations', (policy) => {
+  const { doc } = policy;
   const markdown = readFileSync(doc, 'utf8');
   const targets = linkTargets(markdown);
   const citations = citationsIn(markdown);
+  const references = referencesIn(markdown);
+  const dashboardReferences = dashboardReferencesIn(markdown);
 
-  it('cites at least one test', () => {
-    expect(citations.length).toBeGreaterThan(0);
+  it('keeps the reviewed evidence coverage', () => {
+    const testReferences = new Set(
+      references.flatMap((ref) => {
+        const target = targets.get(ref);
+        return target != null && /\.test\.[jt]sx?$/.test(target) ? [ref] : [];
+      })
+    );
+
+    expect(citations.length).toBeGreaterThanOrEqual(policy.minimumCitations);
+    expect(testReferences.size).toBeGreaterThanOrEqual(policy.minimumTestTargets);
+    expect(dashboardReferences.length).toBeGreaterThanOrEqual(policy.minimumDashboardCitations);
+    expect(new Set(dashboardReferences).size).toBeGreaterThanOrEqual(policy.minimumDashboardSources);
   });
 
   it('resolves every citation to a test file this repo has', () => {
@@ -64,6 +111,21 @@ describe.each(PARITY_DOCS)('%s test citations', (doc) => {
         return target === undefined || !/\.test\.[jt]sx?$/.test(target);
       })
       .map(({ ref }) => ref);
+
+    expect([...new Set(unresolved)]).toEqual([]);
+  });
+
+  it('resolves every dashboard citation to a provisioned file', () => {
+    const unresolved = dashboardReferences
+      .filter((ref) => {
+        const target = targets.get(ref);
+        return (
+          target === undefined ||
+          !target.includes('provisioning/dashboards/') ||
+          !existsSync(path.join(path.dirname(doc), target))
+        );
+      })
+      .map((ref) => ref);
 
     expect([...new Set(unresolved)]).toEqual([]);
   });

@@ -9,7 +9,10 @@ import { type PanelOptions } from 'types';
 const GRAPH_LINK_COLOR_FALLBACK = 'source';
 
 /**
- * Series-level link style.
+ * Return the series-level link style without a color.
+ *
+ * `resolveLinkColor` sets each edge color after Grafana resolves the node colors.
+ * A series color here hides that per-edge result.
  * https://echarts.apache.org/en/option.html#series-graph.lineStyle
  */
 export function getGraphLinkStyle(options: PanelOptions): NonNullable<GraphSeriesOption['lineStyle']> {
@@ -34,7 +37,19 @@ export function nodeColorsById(data: NodeGraphData): Map<string, string> {
 /** Build an edge gradient, if its direction is known. */
 export type EdgeGradientResolver = (link: RelationLink) => LinearGradientObject | undefined;
 
-/** Resolve one edge color. */
+/**
+ * Resolve one edge color before ECharts reads the graph series.
+ *
+ * ECharts resolves the `source` and `target` keywords in `edgeVisual.ts` at `PRIORITY.VISUAL.CHART` (3000).
+ * The item-style task reads each node color later at `CHART_DATA_CUSTOM` (4500).
+ * Thus, the keywords see only the series palette color and give the same color to each edge.
+ * This function uses the final Grafana color of each node instead.
+ *
+ * An edge field color has first priority.
+ * A source-to-target gradient has second priority when the layout gives node positions.
+ * The selected endpoint color is the fallback.
+ * https://echarts.apache.org/en/option.html#series-graph.lineStyle.color
+ */
 export function resolveLinkColor(
   link: RelationLink,
   nodeColors: ReadonlyMap<string, string>,
@@ -52,7 +67,19 @@ export function resolveLinkColor(
   return nodeColors.get(endpoint === 'target' ? link.target : link.source);
 }
 
-/** Build graph gradients from source to target. */
+/**
+ * Build source-to-target gradients only for `layout: 'none'`.
+ *
+ * zrender resolves a non-global gradient against the edge bounding box.
+ * Its left-to-right direction matches source-to-target only when the source is on the left.
+ * Fixed layout supplies the final node positions, so this function can select the correct box corners.
+ * Force and circular layouts do not supply positions until ECharts completes the layout.
+ *
+ * Do not read `fixedX` or `fixedY` here.
+ * Seeded fixed-layout nodes do not have those values.
+ * A force-layout frame can contain those values even though ECharts does not use them.
+ * https://echarts.apache.org/en/option.html#series-graph.layout
+ */
 export function makeEdgeGradientResolver(
   positions: ReadonlyMap<string, GraphPoint> | undefined,
   nodeColors: ReadonlyMap<string, string>,

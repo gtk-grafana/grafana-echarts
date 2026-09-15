@@ -107,6 +107,8 @@ The categorical palette needs Grafana 13.3. The current `@grafana/data` version 
 
 Palette modes let `relationsLinkColor` choose the edge color. Other modes use the edge field color.
 
+A test cannot set a scheme through `fieldConfig.defaults` in this harness. `src/test/fieldConfig.ts` puts `palette-classic` on each field before overrides run. The color canvas suite uses a `byType: number` override for each scheme.
+
 ## Gaps
 
 Force layout coordinates depend on simulation timing. Unit tests pin its options, and `layout.integration.test.tsx` pins repeatable output.
@@ -117,9 +119,23 @@ Drag and remembered view describe gestures. A static render cannot prove them.
 
 Graph pins the shared node value formatter. Sankey and chord use the same formatter.
 
+The `not.toEqual` cross-render guard is not a valid geometry test for sankey. Each ribbon gets a new gradient object, so two renders differ when their geometry is equal. The same guard is still present in `chord.canvas.test.tsx`, `graph.canvas.test.tsx`, and `overrides.canvas.test.tsx`. Move these comparisons to integration tests when you change them.
+
+## Snapshot cost
+
+The repository has 167 canvas baselines. They use 14.5 thousand lines and 1.06 MB. Relations uses 6.6 thousand lines, which is 45 percent of the total.
+
+A relations baseline averages about 110 lines for a four-node fixture. The three-node color fixture averages about 85 lines.
+
+If a claim is a string or number, use a drawn-primitive assertion in an integration test. Keep canvas baselines for geometry. `src/test/suiteShape.test.ts` makes sure that canvas suites contain snapshot assertions only.
+
+Each `stroke`, `fill`, and `clip` event also stores its path in `props.path`. Removing that copy can reduce snapshot bytes by 30 percent. The comparison viewer still uses that property, so this change needs upstream work. See [the snapshot path task](../todo/canvas-snapshot-props-path.md).
+
 ## Test locations
 
 Canvas tests live in `src/lib/components/canvas-tests/relations/`. Integration tests live in `src/lib/components/integration-tests/relations/`.
+
+Coverage rows omit the directory and `.test.tsx` suffix. For example, `graph.canvas` maps to `src/lib/components/canvas-tests/relations/graph.canvas.test.tsx`. `labels.integration` maps to `src/lib/components/integration-tests/relations/labels.integration.test.tsx`.
 
 A `*.canvas.test.*` file contains canvas snapshots only. Every test must call `toMatchCanvasSnapshot`. Use `*.integration.test.*` for drawn values and render comparisons.
 

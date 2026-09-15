@@ -26,26 +26,28 @@ These snapshots pin the three variants:
 
 ## Default options
 
-| Option                  | Variants      | ECharts or panel behavior       | Node graph parity          |
-| ----------------------- | ------------- | ------------------------------- | -------------------------- |
-| Chart type              | All           | Selects graph, sankey, or chord | ECharts only               |
-| Time slider             | All           | Reads one timestamp             | ECharts only               |
-| Calculation             | All           | Reduces each mark               | Different route            |
-| Show node labels        | All           | `series.*.label.show`           | Data driven in core        |
-| Show node values        | All           | Node label formatter            | Main stat equivalent       |
-| Hide overlapping labels | All           | `labelLayout.hideOverlap`       | ECharts only               |
-| Label overflow          | All           | `label.overflow`                | ECharts only               |
-| Layout                  | Graph         | Force, circular, or fixed       | Partial, different choices |
-| Node size               | Graph         | `symbolSize` fallback           | Partial                    |
-| Zoom                    | Graph, sankey | Panel buttons and roam action   | Partial                    |
-| Pan                     | Graph, sankey | `roam: 'move'`                  | ECharts only               |
-| Remember view           | Graph, sankey | Saves center and zoom           | ECharts only               |
-| Highlight adjacency     | All           | `emphasis.focus`                | ECharts only               |
-| Link color              | All           | Source, target, or gradient     | ECharts only               |
-| Edge arrows             | Graph         | Target arrowhead                | ECharts only               |
-| Show edge values        | Graph, sankey | Edge label                      | ECharts only               |
-| Flow direction          | Sankey        | `series.sankey.orient`          | No core sankey             |
-| Node alignment          | Sankey        | `series.sankey.nodeAlign`       | No core sankey             |
+Each Test cell points to automated evidence. Canvas and integration links use exact test names. Each Dashboard cell points to committed provisioned JSON.
+
+| Option                  | Variants      | ECharts or panel behavior       | Node graph parity          | Test                                                                                                                                                                                                                                                                                                                                                                                                                           | Dashboard                                                                     |
+| ----------------------- | ------------- | ------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Chart type              | All           | Selects graph, sankey, or chord | ECharts only               | [canvas: the same nodes and links as flow ribbons (four bars in columns, ribbons weighted by value)][canvas-sankey], [canvas: the same nodes and links as a ring of arcs (four arcs, chords weighted by value)][canvas-chord], [variant unit][rel-chart]                                                                                                                                                                       | [sankey.json][db-sankey], [chord.json][db-chord], [all-options.json][db-opts] |
+| Time slider             | All           | Reads one timestamp             | ECharts only               | [canvas: the graph at the earliest timestamp, under the slider strip (edge weights 1 and 10)][canvas-timeline], [integration: builds a different graph at an earlier timestamp than the reducer draws][int-timeline], [integration: repaints the chart when the slider is moved][int-timeline], [integration: shortens the chart by exactly the strip][int-timeline], [time-stop unit][time-stops], [editor unit][ed-timeline] | [timeline.json][db-timeline], [all-options.json][db-opts]                     |
+| Calculation             | All           | Reduces each mark               | Different route            | [calculation unit][wide-conv]                                                                                                                                                                                                                                                                                                                                                                                                  | [all-options.json][db-opts]                                                   |
+| Show node labels        | All           | `series.*.label.show`           | Data driven in core        | [canvas: node labels off (symbols and links, no text)][canvas-graph], [canvas: node labels off (bars and ribbons, no text)][canvas-sankey], [canvas: node labels off (arcs and chords, no text)][canvas-chord], [label unit][graph-labels]                                                                                                                                                                                     | [all-options.json][db-opts]                                                   |
+| Show node values        | All           | Node label formatter            | Main stat equivalent       | [label formatter unit][graph-labels]                                                                                                                                                                                                                                                                                                                                                                                           | [all-options.json][db-opts]                                                   |
+| Hide overlapping labels | All           | `labelLayout.hideOverlap`       | ECharts only               | [integration: a node label that would collide with one already drawn is dropped][int-labels], [integration: a chord ring of collapsed arcs drops the labels that stack up][int-labels], [label-layout unit][graph-labels]                                                                                                                                                                                                      | [readability.json][db-read], [all-options.json][db-opts]                      |
+| Label overflow          | All           | `label.overflow`                | ECharts only               | [integration: a long name is cut at the label width and ends in an ellipsis][int-labels], [integration: break mode wraps a long name over several lines instead of cutting it][int-labels], [label-style unit][graph-labels]                                                                                                                                                                                                   | [readability.json][db-read], [all-options.json][db-opts]                      |
+| Layout                  | Graph         | Force, circular, or fixed       | Partial, different choices | [canvas: fixed coordinates from the data (nodes at the server's x and y, not on a ring)][canvas-graph], [integration: every node is drawn even when the data pins nothing][int-layout], [layout unit][graph-layout]                                                                                                                                                                                                            | [node-graph-testdata.json][db-testdata], [all-options.json][db-opts]          |
+| Node size               | Graph         | `symbolSize` fallback           | Partial                    | [graph option unit][graph-opts]                                                                                                                                                                                                                                                                                                                                                                                                | [all-options.json][db-opts]                                                   |
+| Zoom                    | Graph, sankey | Panel buttons and roam action   | Partial                    | [integration: the roam action scales the view while scroll-to-zoom stays off][int-interaction], [zoom action unit][rel-chart], [view unit][graph-view]                                                                                                                                                                                                                                                                         | [readability.json][db-read], [all-options.json][db-opts]                      |
+| Pan                     | Graph, sankey | `roam: 'move'`                  | ECharts only               | [view unit][graph-view], [graph option unit][graph-opts], [sankey option unit][sankey-opts]                                                                                                                                                                                                                                                                                                                                    | [readability.json][db-read], [all-options.json][db-opts]                      |
+| Remember view           | Graph, sankey | Saves center and zoom           | ECharts only               | [view-state unit][graph-view]                                                                                                                                                                                                                                                                                                                                                                                                  | None. The option changes later interactions.                                  |
+| Highlight adjacency     | All           | `emphasis.focus`                | ECharts only               | [graph option unit][graph-opts], [sankey option unit][sankey-opts], [chord option unit][chord-opts]                                                                                                                                                                                                                                                                                                                            | [chord.json][db-chord]                                                        |
+| Link color              | All           | Source, target, or gradient     | ECharts only               | [canvas: link color by endpoint (each line takes one end's colour)][canvas-graph], [canvas: gradient link color on a fixed layout (each line blends its source colour into its target)][canvas-graph], [integration: a gradient link colour is emitted only where the layout knows the positions][int-layout], [graph option unit][graph-opts]                                                                                 | [readability.json][db-read], [all-options.json][db-opts]                      |
+| Edge arrows             | Graph         | Target arrowhead                | ECharts only               | [canvas: arrows off (plain lines, no heads)][canvas-graph], [graph option unit][graph-opts]                                                                                                                                                                                                                                                                                                                                    | [readability.json][db-read], [all-options.json][db-opts]                      |
+| Show edge values        | Graph, sankey | Edge label                      | ECharts only               | [canvas: edge values on (a weight drawn at each link's midpoint)][canvas-graph], [canvas: edge values on (a weight drawn on each ribbon)][canvas-sankey], [edge-label unit][graph-labels]                                                                                                                                                                                                                                      | [readability.json][db-read], [all-options.json][db-opts]                      |
+| Flow direction          | Sankey        | `series.sankey.orient`          | No core sankey             | [canvas: vertical flow (bars in rows, each label below its bar)][canvas-sankey], [canvas: long names on a vertical flow (each truncated, none over the next bar)][canvas-sankey], [sankey option unit][sankey-opts]                                                                                                                                                                                                            | [sankey.json][db-sankey], [all-options.json][db-opts]                         |
+| Node alignment          | Sankey        | `series.sankey.nodeAlign`       | No core sankey             | [sankey option unit][sankey-opts]                                                                                                                                                                                                                                                                                                                                                                                              | [sankey.json][db-sankey], [all-options.json][db-opts]                         |
 
 The graph layout choices differ from core. Both support force. Core adds layered and grid. Relations adds circular and fixed.
 
@@ -55,27 +57,27 @@ Show node values is hidden when no node has a measured value. The time slider is
 
 ## Advanced options
 
-| Option            | Variants            | ECharts behavior        |
-| ----------------- | ------------------- | ----------------------- |
-| Label width       | All                 | `label.width`           |
-| Draggable nodes   | Fixed graph, sankey | Saves node position     |
-| Repulsion         | Force graph         | `force.repulsion`       |
-| Edge length       | Force graph         | `force.edgeLength`      |
-| Gravity           | Force graph         | `force.gravity`         |
-| Animate layout    | Force graph         | `force.layoutAnimation` |
-| Animation         | Sankey, chord       | Root ECharts animation  |
-| Link curveness    | Graph               | `lineStyle.curveness`   |
-| Node width        | Sankey              | `nodeWidth`             |
-| Node gap          | Sankey              | `nodeGap`               |
-| Ribbon curveness  | Sankey              | `lineStyle.curveness`   |
-| Ribbon opacity    | Sankey              | `lineStyle.opacity`     |
-| Layout iterations | Sankey              | `layoutIterations`      |
-| Start angle       | Chord               | `startAngle`            |
-| Clockwise         | Chord               | `clockwise`             |
-| Arc gap           | Chord               | `padAngle`              |
-| Minimum arc angle | Chord               | `minAngle`              |
-| Ribbon opacity    | Chord               | `lineStyle.opacity`     |
-| Editor mode       | All                 | Shows advanced controls |
+| Option            | Variants            | ECharts behavior        | Test                                                                                                                                                                                                                         | Dashboard                                                |
+| ----------------- | ------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Label width       | All                 | `label.width`           | [integration: a long name is cut at the label width and ends in an ellipsis][int-labels], [integration: break mode wraps a long name over several lines instead of cutting it][int-labels], [label-style unit][graph-labels] | [readability.json][db-read], [all-options.json][db-opts] |
+| Draggable nodes   | Fixed graph, sankey | Saves node position     | [graph option unit][graph-opts], [sankey option unit][sankey-opts]                                                                                                                                                           | [all-options.json][db-opts]                              |
+| Repulsion         | Force graph         | `force.repulsion`       | [integration: two renders of the same frames draw identical calls][int-layout], [force unit][graph-layout]                                                                                                                   | [readability.json][db-read], [all-options.json][db-opts] |
+| Edge length       | Force graph         | `force.edgeLength`      | [force unit][graph-layout]                                                                                                                                                                                                   | [readability.json][db-read], [all-options.json][db-opts] |
+| Gravity           | Force graph         | `force.gravity`         | [force unit][graph-layout]                                                                                                                                                                                                   | [readability.json][db-read], [all-options.json][db-opts] |
+| Animate layout    | Force graph         | `force.layoutAnimation` | [force unit][graph-layout]                                                                                                                                                                                                   | [readability.json][db-read]                              |
+| Animation         | Sankey, chord       | Root ECharts animation  | [option-surface unit][rel-surface]                                                                                                                                                                                           | [readability.json][db-read]                              |
+| Link curveness    | Graph               | `lineStyle.curveness`   | [canvas: curveness 0.3 (links bowed away from the straight line)][canvas-graph], [graph option unit][graph-opts]                                                                                                             | [all-options.json][db-opts]                              |
+| Node width        | Sankey              | `nodeWidth`             | [canvas: node width 32 and gap 20 (wider bars, further apart)][canvas-sankey], [sankey option unit][sankey-opts]                                                                                                             | [sankey.json][db-sankey], [all-options.json][db-opts]    |
+| Node gap          | Sankey              | `nodeGap`               | [canvas: node width 32 and gap 20 (wider bars, further apart)][canvas-sankey], [sankey option unit][sankey-opts]                                                                                                             | [sankey.json][db-sankey], [all-options.json][db-opts]    |
+| Ribbon curveness  | Sankey              | `lineStyle.curveness`   | [sankey option unit][sankey-opts]                                                                                                                                                                                            | [all-options.json][db-opts]                              |
+| Ribbon opacity    | Sankey              | `lineStyle.opacity`     | [canvas: ribbon opacity 0.7 (ribbons nearly solid over the background)][canvas-sankey], [sankey option unit][sankey-opts]                                                                                                    | [sankey.json][db-sankey], [all-options.json][db-opts]    |
+| Layout iterations | Sankey              | `layoutIterations`      | [sankey option unit][sankey-opts]                                                                                                                                                                                            | [all-options.json][db-opts]                              |
+| Start angle       | Chord               | `startAngle`            | [canvas: start angle 0 and counter-clockwise (the ring rotated and reversed)][canvas-chord], [chord option unit][chord-opts]                                                                                                 | [chord.json][db-chord], [all-options.json][db-opts]      |
+| Clockwise         | Chord               | `clockwise`             | [canvas: start angle 0 and counter-clockwise (the ring rotated and reversed)][canvas-chord], [chord option unit][chord-opts]                                                                                                 | [chord.json][db-chord], [all-options.json][db-opts]      |
+| Arc gap           | Chord               | `padAngle`              | [canvas: pad angle 12 (wide gaps between arcs)][canvas-chord], [chord option unit][chord-opts]                                                                                                                               | [chord.json][db-chord], [all-options.json][db-opts]      |
+| Minimum arc angle | Chord               | `minAngle`              | [chord option unit][chord-opts]                                                                                                                                                                                              | [chord.json][db-chord], [all-options.json][db-opts]      |
+| Ribbon opacity    | Chord               | `lineStyle.opacity`     | [chord option unit][chord-opts]                                                                                                                                                                                              | [chord.json][db-chord], [all-options.json][db-opts]      |
+| Editor mode       | All                 | Shows advanced controls | [tier unit][rel-tier]                                                                                                                                                                                                        | None. This control changes the editor only.              |
 
 ECharts ignores the root animation option for graph. Graph uses Animate layout for force simulation steps.
 
@@ -87,27 +89,27 @@ Sankey labels move below nodes in vertical flow. This avoids labels that overlap
 
 One node or edge is one field. A `byName` override can target one mark.
 
-| Option                          | Support       | Notes                             |
-| ------------------------------- | ------------- | --------------------------------- |
-| Color                           | Yes           | All field color modes             |
-| Unit                            | Yes           | Per mark                          |
-| Decimals                        | Yes           | Per mark                          |
-| Value mappings                  | Yes           | Labels, tooltips, and color       |
-| Thresholds                      | Yes           | Color                             |
-| Min and max                     | Yes           | Color range                       |
-| Field min/max                   | Yes           | Color range                       |
-| Display name                    | Override only | Renames one node                  |
-| Data links                      | Yes           | Tooltip footer                    |
-| Filterable                      | Yes           | Ad hoc filters                    |
-| Hide from visualization         | Yes           | Hides a mark                      |
-| Actions                         | No            | No action surface                 |
-| No value                        | No            | Null marks omit the value         |
-| Node radius                     | Override only | Graph                             |
-| Subtitle                        | Override only | Tooltip                           |
-| Fixed x and y                   | Override only | Fixed graph or sankey position    |
-| Line width and type             | Override only | Graph                             |
-| Curveness                       | Override only | Graph                             |
-| Source and target filter labels | Deprecated    | Keep original labels in the query |
+| Option                          | Support       | Notes                             | Test                                                                                                                                                                                                                   | Dashboard                                                                        |
+| ------------------------------- | ------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Color                           | Yes           | All field color modes             | [canvas: a color field per node (blue, green, yellow and red symbols)][canvas-graph], [canvas: a byName color override (DB drawn red, the other three on the palette)][canvas-overrides], [conversion unit][wide-conv] | [graph-wide.json][db-wide], [all-options.json][db-opts]                          |
+| Unit                            | Yes           | Per mark                          | [tooltip model unit][tip-model], [emitted tooltip model][tip-emit]                                                                                                                                                     | [per-mark-tooltip-links.json][db-marks], [graph-wide.json][db-wide]              |
+| Decimals                        | Yes           | Per mark                          | [tooltip model unit][tip-model]                                                                                                                                                                                        | [per-mark-tooltip-links.json][db-marks]                                          |
+| Value mappings                  | Yes           | Labels, tooltips, and color       | [value-mapping unit][mappings]                                                                                                                                                                                         | [value-mappings.json][db-value-mappings], [all-options.json][db-opts]            |
+| Thresholds                      | Yes           | Color                             | [color resolver unit][perf-res]                                                                                                                                                                                        | [colour-domain.json][db-colour-domain], [all-options.json][db-opts]              |
+| Min and max                     | Yes           | Color range                       | [color resolver unit][perf-res]                                                                                                                                                                                        | [colour-domain.json][db-colour-domain]                                           |
+| Field min/max                   | Yes           | Color range                       | [color resolver unit][perf-res]                                                                                                                                                                                        | [colour-domain.json][db-colour-domain]                                           |
+| Display name                    | Override only | Renames one node                  | [wide conversion unit][wide-conv], [derived-node integration][int-derived]                                                                                                                                             | [graph-wide.json][db-wide]                                                       |
+| Data links                      | Yes           | Tooltip footer                    | [data-link footer test][dl-test]                                                                                                                                                                                       | [per-mark-tooltip-links.json][db-marks], [graph-wide.json][db-wide]              |
+| Filterable                      | Yes           | Ad hoc filters                    | [filter button test][filters-test], [tooltip overlay test][tip-overlay], [tooltip filter unit][tip-filters]                                                                                                            | [devcortex-wide.json][db-devcortex], [per-mark-tooltip-links.json][db-marks]     |
+| Hide from visualization         | Yes           | Hides a mark                      | [legend unit][use-legend], [override canvas][canvas-overrides]                                                                                                                                                         | [node-graph-testdata.json][db-testdata]                                          |
+| Actions                         | No            | No action surface                 | None                                                                                                                                                                                                                   | None                                                                             |
+| No value                        | No            | Null marks omit the value         | [optional-field unit][ng-conv]                                                                                                                                                                                         | None                                                                             |
+| Node radius                     | Override only | Graph                             | [graph canvas][canvas-graph], [conversion unit][wide-conv]                                                                                                                                                             | [graph-wide.json][db-wide], [devcortex-wide.json][db-devcortex]                  |
+| Subtitle                        | Override only | Tooltip                           | [tooltip model unit][tip-model], [conversion unit][ng-conv]                                                                                                                                                            | [per-mark-tooltip-links.json][db-marks], [node-graph-testdata.json][db-testdata] |
+| Fixed x and y                   | Override only | Fixed graph or sankey position    | [canvas: fixed coordinates from the data (nodes at the server's x and y, not on a ring)][canvas-graph], [layout unit][graph-layout]                                                                                    | [node-graph-testdata.json][db-testdata], [all-options.json][db-opts]             |
+| Line width and type             | Override only | Graph                             | [graph canvas][canvas-graph], [conversion unit][wide-conv]                                                                                                                                                             | [node-graph-testdata.json][db-testdata]                                          |
+| Curveness                       | Override only | Graph                             | [override canvas][canvas-overrides], [graph option unit][graph-opts]                                                                                                                                                   | [all-options.json][db-opts]                                                      |
+| Source and target filter labels | Deprecated    | Keep original labels in the query | [tooltip mark unit][tip-marks], [filter button test][filters-test], [derived conversion unit][derived-conv]                                                                                                            | [devcortex-wide.json][db-devcortex]                                              |
 
 The first calculation controls mark color and sankey or chord size. Later calculations add tooltip rows. It does not size graph nodes or edges.
 
@@ -194,7 +196,49 @@ Sankey node width and gap are series options. They cannot vary by node. Graph no
 [canvas-graph]: ../../lib/components/canvas-tests/relations/graph.canvas.test.tsx
 [canvas-sankey]: ../../lib/components/canvas-tests/relations/sankey.canvas.test.tsx
 [canvas-chord]: ../../lib/components/canvas-tests/relations/chord.canvas.test.tsx
+[canvas-overrides]: ../../lib/components/canvas-tests/relations/overrides.canvas.test.tsx
+[int-labels]: ../../lib/components/integration-tests/relations/labels.integration.test.tsx
 [int-layout]: ../../lib/components/integration-tests/relations/layout.integration.test.tsx
+[int-interaction]: ../../lib/components/integration-tests/relations/interaction.integration.test.tsx
+[int-derived]: ../../lib/components/integration-tests/relations/derived-nodes.integration.test.tsx
+[int-timeline]: ../../lib/components/integration-tests/relations/timeline.integration.test.tsx
+[canvas-timeline]: ../../lib/components/canvas-tests/relations/timeline.canvas.test.tsx
+[ed-timeline]: ../../lib/grafana/editor/relations/timeline.test.ts
+[graph-opts]: ../../lib/echarts/relations/options/graph.test.ts
+[graph-layout]: ../../lib/echarts/relations/options/layout.test.ts
+[graph-labels]: ../../lib/echarts/relations/options/labels.test.ts
+[graph-view]: ../../lib/echarts/relations/options/view.test.ts
+[sankey-opts]: ../../lib/echarts/relations/options/sankey.test.ts
+[chord-opts]: ../../lib/echarts/relations/options/chord.test.ts
+[rel-chart]: ../../lib/echarts/relations/chartModule.test.ts
+[ng-conv]: ../../lib/echarts/relations/converters/graphWide.test.ts
+[time-stops]: ../../lib/echarts/relations/converters/timeStops.test.ts
+[wide-conv]: ../../lib/echarts/relations/converters/graphWide.test.ts
+[use-legend]: ../../lib/components/hooks/useLegend.test.tsx
+[tip-marks]: ../../lib/echarts/relations/tooltip/marks.test.ts
+[tip-model]: ../../lib/echarts/relations/tooltip/model.test.ts
+[tip-filters]: ../../lib/echarts/relations/tooltip/filters.test.ts
+[mappings]: ../../lib/echarts/relations/tooltip/valueMappings.test.ts
+[tip-emit]: ../../lib/echarts/tooltip/tooltipEmit.test.ts
+[dl-test]: ../../lib/components/tooltip/dataLinks.test.tsx
+[tip-overlay]: ../../lib/components/tooltip/EChartsTooltip.test.tsx
+[filters-test]: ../../lib/components/tooltip/adHocFilters.test.tsx
+[derived-conv]: ../../lib/echarts/relations/converters/deriveNodes.test.ts
+[perf-res]: ../../lib/echarts/performance/resolvers.test.ts
+[rel-surface]: ../../lib/grafana/editor/relations/optionSurface.test.ts
+[rel-tier]: ../../lib/grafana/editor/relations/advancedTier.test.ts
+[derived]: ../../../docs/relations-derived-nodes.md
+[db-wide]: ../../../provisioning/dashboards/relations/graph-wide.json
+[db-colour-domain]: ../../../provisioning/dashboards/relations/colour-domain.json
+[db-value-mappings]: ../../../provisioning/dashboards/relations/value-mappings.json
+[db-devcortex]: ../../../provisioning/dashboards/relations/devcortex-wide.json
+[db-testdata]: ../../../provisioning/dashboards/relations/node-graph-testdata.json
+[db-marks]: ../../../provisioning/dashboards/relations/per-mark-tooltip-links.json
+[db-sankey]: ../../../provisioning/dashboards/relations/sankey.json
+[db-read]: ../../../provisioning/dashboards/relations/readability.json
+[db-opts]: ../../../provisioning/dashboards/relations/all-options.json
+[db-timeline]: ../../../provisioning/dashboards/relations/timeline.json
+[db-chord]: ../../../provisioning/dashboards/relations/chord.json
 [live-opt-1]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=1
 [live-opt-2]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=2
 [live-opt-3]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=3

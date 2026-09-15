@@ -1,5 +1,16 @@
 import { type RelationLink } from 'lib/echarts/relations/converters/model';
 
+/**
+ * Make sankey links safe for the ECharts directed acyclic graph layout.
+ *
+ * `sankeyLayout.ts` throws `Sankey is a DAG, the original data has cycle!` for cyclic data.
+ * A `__DEV__` guard does not protect this error, so production shows a blank panel.
+ * Service graphs often contain retry, bidirectional, and return-path cycles.
+ * Thus, the sankey path removes cycles unconditionally before it calls ECharts.
+ * Graph and chord do not use this conversion because they support cyclic data.
+ * https://github.com/apache/echarts/blob/6.1.0/src/chart/sankey/sankeyLayout.ts
+ */
+
 /** DFS vertex colors. A `GRAY` target means the edge closes a cycle. */
 const WHITE = 0;
 const GRAY = 1;
@@ -41,7 +52,13 @@ function mergeParallelLinks(links: RelationLink[]): { links: RelationLink[]; sel
   return { links: merged, selfLoops };
 }
 
-/** Remove every back-edge found by a depth-first traversal. */
+/**
+ * Remove every back-edge found by a depth-first traversal.
+ *
+ * Root order and adjacency order follow the first appearance in the link list.
+ * This stable order removes the same edge on each render and keeps canvas snapshots stable.
+ * The traversal is iterative, so a long link chain cannot overflow the JavaScript call stack.
+ */
 function dropBackEdges(links: RelationLink[]): { links: RelationLink[]; backEdges: number } {
   const adjacency = new Map<string, RelationLink[]>();
   // First-appearance vertex order, used as the DFS root order.
