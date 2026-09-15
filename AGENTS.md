@@ -39,6 +39,22 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
     To generate non conflicting docker image, run `GRAFANA_PORT=4001 pnpm run server` and pick a different port number in the 4xxx range to avoid conflicting with the user images running on 3xxx
     Run .canvas tests with env variable `GEN_CANVAS_OUTPUT_ON_PASS=1` which will return a link to the `jest-canvas-mock-compare-viewer` tool which can be used to verify snapshots
 
+## Live dashboard debugging
+
+- Treat a local Grafana URL from the user as an already running instance. Do not start, stop, or restart it unless the
+  user asks.
+- Local Grafana stacks enable anonymous access by default. Open the dashboard directly. Add a login step only if Grafana
+  redirects to `/login`. admin:admin is default user:pass
+- Use a real browser to inspect dashboards. `curl` won't work.
+- Use the available browser tool first. Otherwise, use the installed Playwright Chromium. A macOS sandbox can fail with
+  `MachPortRendezvousServer ... Permission denied`; rerun the browser command with elevated permission.
+- A sandboxed command can return `ECONNREFUSED` for a live loopback port. Check the port with `lsof`. If it listens,
+  rerun the network or browser command with elevated permission. Use `127.0.0.1` if `localhost` resolves to IPv6.
+- Do not wait for `networkidle`; Grafana can keep requests open. Wait for the panel DOM, allow five seconds for queries,
+  and scroll each panel into view because Grafana renders panels lazily.
+- Capture the dashboard or panel as a PNG and inspect the PNG with an image tool. Also collect browser console errors,
+  page errors, and HTTP responses with status 400 or higher.
+
 ## Canvas test coverage
 
     Which relations options a rendered test pins, where the suites live, and what a
