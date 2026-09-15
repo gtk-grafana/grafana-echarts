@@ -29,7 +29,7 @@ const edgesFrame = toDataFrame({
   ],
 });
 
-/** A cyclic edge set (A->B->A), the shape that throws out of ECharts' sankey layout. */
+/** Build a cyclic edge set that ECharts sankey rejects. */
 const cyclicEdgesFrame = toDataFrame({
   name: 'edges',
   fields: [
@@ -40,18 +40,6 @@ const cyclicEdgesFrame = toDataFrame({
   ],
 });
 
-/**
- * Fixtures are written in Grafana's row form, because that is what a datasource emits,
- * and put through the two passes the host runs above the panel: the conversion the
- * plugin registers on itself (`modules/relations/dataTransformations.ts`), then the
- * field-override pass. Running both here keeps the fixtures readable *and* exercises
- * the real path, rather than hand-writing wide frames the pipeline would never produce.
- *
- * The override pass is load-bearing now rather than incidental. The family reads
- * `custom.hideFrom.viz` off each mark's own field, so an override that is only present
- * in `fieldConfig` — never applied to the frames — describes a state the panel can
- * never be in, and a test built on one would pass against a render that ignored it.
- */
 const ctx = (
   rawFrames: DataFrame[],
   fieldConfig: FieldConfigSource = emptyFieldConfig,
@@ -102,8 +90,6 @@ describe('relationsChartModule', () => {
       expect(relationsChartModule.buildOption(ctx([]), base)).toBeNull();
     });
 
-    // The variant is picked from `ctx.seriesType`, the way the hierarchy module picks
-    // treemap vs sunburst — one module, one converter, two layouts.
     it('builds a sankey series from the same frames when the variant is selected', () => {
       const option = relationsChartModule.buildOption(sankeyCtx([nodesFrame, edgesFrame]), base);
       const series = option!.series as Array<Record<string, unknown>>;
@@ -125,8 +111,6 @@ describe('relationsChartModule', () => {
       expect(relationsChartModule.getNotices?.(context)).toEqual([]);
     });
 
-    // Without the cycle policy this edge set throws out of `sankeyLayout.ts` in a
-    // production build, blanking the panel.
     it('breaks a cycle for the sankey variant and reports the dropped link as a notice', () => {
       const context = sankeyCtx([nodesFrame, cyclicEdgesFrame]);
       const option = relationsChartModule.buildOption(context, base);
@@ -166,8 +150,6 @@ describe('relationsChartModule', () => {
       expect(relationsChartModule.buildOption(chordCtx([nodesFrame]), base)).toBeNull();
     });
 
-    // Chord has no DAG restriction, so unlike sankey it keeps every link and adds no
-    // dropped-link note.
     it('keeps the cycle for the chord variant and adds no note', () => {
       const option = relationsChartModule.buildOption(chordCtx([nodesFrame, cyclicEdgesFrame]), base);
       const series = option!.series as Array<Record<string, unknown>>;
@@ -202,18 +184,6 @@ describe('relationsChartModule', () => {
     });
   });
 
-  /**
-   * The legend's colour picker needs no family-specific path any more. It writes the
-   * ordinary `byName` fixed-colour override every panel writes (`changeSeriesColorConfig`,
-   * driven here rather than hand-written), Grafana's override engine applies it to the
-   * node's own field, and the family reads the answer back as `field.display(value).color`.
-   *
-   * The old route — `getSeriesColorOverride`, matching the legend label against
-   * `fieldConfig` inside the converter — was deleted when the family pivoted to the
-   * field-based wide contract, and the reason this test exists is that nothing else would
-   * notice if it came back: a re-implementation would look identical from the outside
-   * until an override used `byRegexp`, or the theme had to resolve the colour name.
-   */
   describe('legend colour', () => {
     const nodeColors = (fieldConfig: FieldConfigSource) => {
       const series = relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame], fieldConfig), base)!
@@ -228,8 +198,6 @@ describe('relationsChartModule', () => {
       const picked = changeSeriesColorConfig(emptyFieldConfig, 'Gateway', 'dark-red');
 
       const [gateway, api] = nodeColors(picked);
-      // `dark-red` arrives as the theme's hex because the display processor resolved
-      // it upstream — the family never sees the colour name.
       expect(gateway).toEqual(['Gateway', '#C4162A']);
       expect(api).toEqual(['API', nodeColors(emptyFieldConfig)[1][1]]);
     });
@@ -242,12 +210,6 @@ describe('relationsChartModule', () => {
       expect(items.map((item) => item.color)).toEqual(nodeColors(picked).map(([, color]) => color));
     });
 
-    /**
-     * The picker addresses a node by the label the legend shows, which is the field's
-     * `displayName` (`title` in the row form) rather than its name. Grafana's `byName`
-     * matcher accepts either, so this works — but only because the legend label and
-     * `getOverrideTargetNames` agree on which of the two they use.
-     */
     it('matches on the display name the legend shows, not the field name', () => {
       const byFieldName = changeSeriesColorConfig(emptyFieldConfig, 'a', 'dark-red');
 
@@ -255,9 +217,6 @@ describe('relationsChartModule', () => {
     });
   });
 
-  // A mark is a field, so Grafana's override engine applies `custom.hideFrom` to it
-  // and the family reads the flag off the mark. `ctx` runs the real override pass, so
-  // these exercise the engine rather than a hand-matched name list.
   describe('legend visibility', () => {
     /** The `hideSeriesFrom` system override core writes: keep only `keptNames`. */
     const hidingAllBut = (keptNames: string[]): FieldConfigSource => ({
@@ -295,8 +254,6 @@ describe('relationsChartModule', () => {
       expect(items.map((item) => item.disabled)).toEqual([false, true]);
     });
 
-    // Palette colors are positional, so filtering the list would otherwise shift
-    // every node after the hidden one onto its neighbour's color.
     it('keeps the surviving nodes on their original palette colors', () => {
       const before = relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame]), base)!.series as Array<
         Record<string, unknown>
@@ -312,14 +269,6 @@ describe('relationsChartModule', () => {
     });
   });
 
-  /**
-   * Per-mark hiding, which the field contract makes expressible for the first time —
-   * an edge is a field, so "Hide in area" can name one.
-   *
-   * Three nodes and two edges, so there is always an edge that does *not* touch the
-   * mark under test. The two-node fixture above cannot tell "hid the right thing"
-   * from "hid everything".
-   */
   describe('per-mark hiding', () => {
     const wideNodes = toDataFrame({
       name: 'nodes',
@@ -357,8 +306,6 @@ describe('relationsChartModule', () => {
     const edgesOf = (series: Record<string, unknown>) =>
       (series.links as Array<{ source: string; target: string }>).map((link) => `${link.source}->${link.target}`);
 
-    // A `custom.hideFrom` override on one edge's field removes exactly that edge —
-    // named, gone — and nothing else moves.
     it('hides one edge without touching its endpoints', () => {
       const series = seriesOf([wideNodes, wideEdges], hiding('e1'));
 
@@ -373,12 +320,6 @@ describe('relationsChartModule', () => {
       expect(edgesOf(series)).toEqual(['b->c']);
     });
 
-    /**
-     * A node the nodes frame declared is a mark in its own right, so it stays even
-     * with no edge left to it. A node *derived* from an edge is not — it exists only
-     * because that edge named it, so hiding the edge takes the node with it rather
-     * than leaving an unexplained dot.
-     */
     it('keeps a declared node with no visible links, but drops a derived one', () => {
       expect(namesOf(seriesOf([wideNodes, wideEdges], hiding('e1')))).toContain('a');
 
@@ -388,16 +329,6 @@ describe('relationsChartModule', () => {
     });
   });
 
-  /**
-   * **Where a dragged node's position is remembered when there is no field to remember it on.**
-   *
-   * `custom.fixedX`/`fixedY` are ordinary per-mark config, so Grafana's override engine applies
-   * them to a node that *is* a field. A node derived from an edge's endpoints is not — which is
-   * every node of an edges-only response on a host that cannot run the `deriveNodes` pre-pass,
-   * i.e. the default — so the coordinate never arrived and dragging could not be kept. The
-   * position is read by name for exactly those marks; the same escape hatch as the legend's
-   * colour and visibility reads.
-   */
   describe('positions for derived nodes', () => {
     const wideEdges = toDataFrame({
       name: 'edges',
@@ -443,8 +374,6 @@ describe('relationsChartModule', () => {
       expect(nodeAt(fixedLayout([wideEdges], pinning('a', 120, 340)), 'a')).toMatchObject({ x: 120, y: 340 });
     });
 
-    // The other node is still unpinned, so it keeps its seeded ring position rather than
-    // inheriting the pinned one.
     it('leaves the nodes no override names where the seed put them', () => {
       const seeded = nodeAt(fixedLayout([wideEdges], pinning('a', 120, 340)), 'b');
 
@@ -452,8 +381,6 @@ describe('relationsChartModule', () => {
       expect(seeded).not.toMatchObject({ x: 120, y: 340 });
     });
 
-    // A node that *is* a field has already been answered by the override engine, so the by-name
-    // read must not be a second, competing source of truth for it.
     it('leaves a fielded node to the override engine', () => {
       const withNodes = fixedLayout([declaredNodes, wideEdges], pinning('a', 120, 340));
 
@@ -482,23 +409,11 @@ describe('relationsChartModule', () => {
       });
     });
 
-    // Not a preference: `ChordSeries` pins `coordinateSystem: 'none'` and declares no
-    // `roam`, so there is no view to scale and no action registered for it.
     it('has nothing to dispatch on a chord, which owns no view', () => {
       expect(relationsChartModule.getZoomAction?.(withZoom(chordCtx([nodesFrame, edgesFrame])))).toBeUndefined();
     });
-
-    // Unset means off: there is no legacy "Zoom and pan" fallback any more. See
-    // `resolveRelationsZoom` and `options/view.test.ts`.
   });
 
-  /**
-   * The legend's visibility override is an *exclude* matcher — "hide everything
-   * except these" — so the kept list has to name every field the engine can reach,
-   * not just the rows the legend drew. Edges are fields now, and they are not in the
-   * legend, so leaving them out erases every link in the panel the moment one node is
-   * hidden. See `ChartModule.getOverrideTargetNames`.
-   */
   describe('getOverrideTargetNames', () => {
     it('reports edges as well as nodes', () => {
       expect(relationsChartModule.getOverrideTargetNames?.(ctx([nodesFrame, edgesFrame]))).toEqual([
@@ -512,8 +427,6 @@ describe('relationsChartModule', () => {
       expect(relationsChartModule.getOverrideTargetNames?.(ctx([]))).toEqual([]);
     });
 
-    // The bug this exists to prevent, driven through the real writer: hide one node
-    // of three and the untouched edge must survive.
     it('keeps the untouched edges when the legend hides one node', () => {
       const wideNodes = toDataFrame({
         name: 'nodes',
@@ -543,9 +456,6 @@ describe('relationsChartModule', () => {
       expect((withEdges.data as Array<{ name: string }>).map((node) => node.name)).toEqual(['b', 'c']);
       expect((withEdges.links as Array<{ source: string }>).map((link) => link.source)).toEqual(['b']);
 
-      // And the failure mode being prevented: a universe of legend rows alone leaves
-      // every edge field out of the kept list, so the engine hides all of them and
-      // `b->c` disappears along with the node nobody asked to hide.
       const nodesOnly = render(hideA(['a', 'b', 'c']));
       expect(nodesOnly.links).toEqual([]);
     });

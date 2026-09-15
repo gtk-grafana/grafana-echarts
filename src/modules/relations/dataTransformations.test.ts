@@ -17,7 +17,7 @@ const rowEdges = (): DataFrame =>
     ],
   });
 
-/** One frame of a labelled datasource's long response — a Prometheus series. */
+/** Build one long data-source frame, such as a Prometheus series. */
 const longEdge = (source: string, target: string): DataFrame =>
   toDataFrame({
     refId: 'A',
@@ -38,13 +38,6 @@ describe('relationsDataTransformations', () => {
     expect(relationsDataTransformations({ series: [rowEdges()] })).toEqual([legacyToWideOperator, deriveNodesOperator]);
   });
 
-  /**
-   * The ordering that matters: a long response *passes* the already-wide shape test, so
-   * checking that first would return `[]`. The reader draws every edge either way now —
-   * what the pivot adds is **identity**: one real `field.name` per edge, i.e. an override
-   * target, a picker entry and a `byName` match. Flipping the order would trade N override
-   * targets for zero.
-   */
   it('registers the pivot for a long response, not nothing', () => {
     const series = [longEdge('a', 'b'), longEdge('b', 'c')];
 
@@ -52,8 +45,6 @@ describe('relationsDataTransformations', () => {
   });
 
   it('registers exactly one converter, never both', () => {
-    // A response cannot be both shapes, but a mixed one must still pick a single owner.
-    // The node derivation rides along with whichever wins and is not one of the two.
     for (const series of [[rowEdges()], [longEdge('a', 'b')], [rowEdges(), longEdge('a', 'b')]]) {
       const registered = relationsDataTransformations({ series }) ?? [];
 
@@ -61,11 +52,6 @@ describe('relationsDataTransformations', () => {
     }
   });
 
-  /**
-   * The pivot declines — something else is already the edges frame — but the response is
-   * still a graph, and still one whose nodes exist only as endpoints. Returning `[]` here
-   * would leave exactly the case the derivation exists for uncovered.
-   */
   it('still derives nodes when a long series sits beside a frame that is already the edges frame', () => {
     const series = [wideEdges(), longEdge('c', 'd')];
 
@@ -73,10 +59,6 @@ describe('relationsDataTransformations', () => {
   });
 
   it('reshapes nothing when the frames are already wide, but still derives their nodes', () => {
-    // A datasource that starts emitting the wide kind natively silently stops
-    // triggering the conversion, with no dashboard change. The derivation stays: an
-    // edges-only wide response is exactly the shape whose nodes are all implied, and it
-    // returns the frames by reference when there is nothing to add.
     expect(relationsDataTransformations({ series: [wideEdges()] })).toEqual([deriveNodesOperator]);
   });
 

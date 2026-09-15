@@ -4,8 +4,6 @@ import { legacyToWide } from 'lib/echarts/relations/converters/legacyToWide';
 import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
-// The reader warns when collected marks share a `field.name`, which the raw multi-frame
-// fixture does deliberately. The decision to warn is tested in `graphWide.test.ts`.
 jest.mock('development', () => ({
   debug: jest.fn(),
   LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
@@ -45,12 +43,6 @@ describe('frameToRelationsGraph', () => {
     expect(data?.nodes[0].field?.name).toBe('a');
   });
 
-  /**
-   * The conversion has to happen above the panel to be worth anything, so a row-format
-   * response reaching the panel means the pipeline is missing a step. Rendering nothing
-   * would hide that; this says so instead, and names the fix (adding a **Rows to
-   * fields** transformation).
-   */
   it('reports row-format frames rather than rendering nothing', () => {
     expect(() => frameToRelationsGraph([rowEdges(), rowNodes()], theme)).toThrow(/Rows to fields/);
   });
@@ -73,12 +65,6 @@ describe('frameToRelationsGraph', () => {
 });
 
 describe('frame roles', () => {
-  /**
-   * `meta.type` is authoritative in both directions, so a node legitimately named with
-   * the edge separator is still read as a node — the case field shape alone gets wrong.
-   * Every mark carries its own field either way, which is what the tooltip formats and
-   * resolves data links from (see `getRelationsTooltipMarks`).
-   */
   it('takes a declared nodes frame as nodes, however its fields are named', () => {
     const nodes = toDataFrame({
       meta: { type: GRAPH_NODES_WIDE },
@@ -95,13 +81,6 @@ describe('frame roles', () => {
     expect(data?.nodes.find((node) => node.id === 'a-->b')?.field?.config.unit).toBe('percent');
   });
 
-  /**
-   * The entry-point-level statement of the reader's one-to-many rule: a raw labelled
-   * response — one `[Time, Value]` frame per series, which is what every labelled
-   * datasource returns and what arrives untouched when the pivot is not running — renders
-   * its whole topology, and every mark still carries its own field. The shared `Value` name
-   * is the price, and is why the pivot is still worth registering.
-   */
   it('reads a raw multi-frame response whole, each mark with its own field', () => {
     const series = (source: string, target: string, unit: string): DataFrame =>
       toDataFrame({
@@ -118,7 +97,7 @@ describe('frame roles', () => {
       ['b', 'c'],
     ]);
     expect(data?.links.map((link) => link.field?.config.unit)).toEqual(['ms', 'percent']);
-    // One id between them, distinct lookup keys — see `RelationLink.markKey`.
+    // The links share an id but use different lookup keys.
     expect(data?.links.map((link) => link.id)).toEqual(['Value', 'Value']);
     expect(data?.links.map((link) => link.markKey)).toEqual(['a-->b', 'b-->c']);
   });
@@ -134,8 +113,6 @@ describe('frame roles', () => {
     const data = frameToRelationsGraph(frames, theme);
 
     expect(data?.links[0].field?.name).toBe('e1');
-    // Derived nodes have no field, which is why they format with the panel formatter
-    // and carry no data links — gap 4 of `todo/relations-data-links.md`.
     expect(data?.nodes.every((node) => node.field === undefined)).toBe(true);
   });
 });

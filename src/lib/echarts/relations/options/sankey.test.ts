@@ -26,13 +26,6 @@ const ctx = (options: PanelOptions = baseOptions()): RelationsSeriesContext =>
 const data = nodeGraph;
 const theme = relationsTheme;
 
-// The Advanced-tier reset is not tested per-family any more. It was, twice, under the
-// same `editor-mode normalization` describe name in this file and in `chord.test.ts` —
-// two copies of one claim, neither of which could see the dispatch that routes a
-// `seriesType` to a tier. `options/editorMode.test.ts` now covers every family's tier
-// and the dispatch itself, and `editor/relations/advancedTier.test.ts` checks that the
-// tier and the registered Advanced controls name the same options.
-
 describe('getSankeyOrient', () => {
   // Omitted at the ECharts default, per the repo-wide convention.
   it('omits the key at the horizontal default', () => {
@@ -45,14 +38,6 @@ describe('getSankeyOrient', () => {
   });
 });
 
-/**
- * **The one sankey key that is always emitted.** The family default is `left` and
- * ECharts' is `justify`, so the omit-at-the-default trick every other key here uses
- * would hand ECharts no key and get `justify` — the one value the family is deliberately
- * not choosing. `left` makes a node's column mean its depth in the flow, which is what a
- * reader takes a sankey's horizontal axis to mean; under `justify` a leaf two steps in is
- * drawn beside leaves five steps in.
- */
 describe('getSankeyNodeAlign', () => {
   it('emits the left default rather than omitting it', () => {
     expect(getSankeyNodeAlign(baseOptions())).toBe('left');
@@ -73,36 +58,23 @@ describe('getSankeyLabel', () => {
     expect(label?.color).toBe(theme.colors.text.primary);
   });
 
-  // Horizontally, `right` is ECharts' own default and the right answer: the node
-  // columns are separated by the ribbon area, so a label to the right of a bar has
-  // nothing but ribbons behind it.
   it('keeps the ECharts label position on a horizontal flow', () => {
     expect(getSankeyLabel(ctx())?.position).toBe('right');
   });
 
-  // Vertically it is the wrong answer, and geometrically so: the bars now run *along*
-  // the row, `nodeGap` (8px) apart, so a label 5px to the right of one is drawn over
-  // the next node's fill — unreadable against a saturated colour and colliding with
-  // that node's own label. `bottom` puts it in the ribbon gap instead.
   it('moves the label below the bar on a vertical flow', () => {
     expect(getSankeyLabel(ctx(baseOptions({ relationsSankeyOrient: 'vertical' })))?.position).toBe('bottom');
   });
 
-  // `SankeyView` labels a node with `defaultText: node.id` — the graph key, which the
-  // converter sets from the frame's `id` so links resolve. Without this formatter a
-  // nodes frame's human-readable `title` would never reach the label. `'{b}'` is the
-  // data name, which is where `title` lands.
   it('routes the label through the node name so titles are shown, not ids', () => {
     expect(getSankeyLabel(ctx())?.formatter).toBe('{b}');
   });
 
-  // The shared formatter reads `params.name` — the same value `'{b}'` resolves to —
-  // so swapping it in keeps titles working while adding the stat.
   it('swaps in the shared formatter when node values are switched on', () => {
     const formatter = getSankeyLabel(ctx(baseOptions({ relationsShowNodeValues: true })))?.formatter;
 
     expect(typeof formatter).toBe('function');
-    // A sankey carries its stat as `stat`; `value` is ECharts' flow computation.
+    // Sankey stores the stat in `stat`. ECharts uses `value` for flow.
     expect(
       typeof formatter === 'function'
         ? formatter({ name: 'Gateway', data: { id: 'gw', name: 'Gateway', stat: 1200 } } as never)
@@ -116,10 +88,6 @@ describe('getSankeyLabel', () => {
 });
 
 describe('getSankeyLinkStyle', () => {
-  // The family default deliberately overrides ECharts' neutral gray so ribbons
-  // inherit node colors, as the graph variant's edges do.
-  // `SankeyView` implements `source`/`target`/`gradient` itself, so the family default
-  // passes straight through — no per-link work, unlike the graph variant.
   it('defaults the color mode to gradient', () => {
     expect(getSankeyLinkStyle(baseOptions())).toEqual({ color: 'gradient' });
   });
@@ -155,10 +123,6 @@ describe('getSankeyEmphasis', () => {
   });
 });
 
-// One case for three counts, because there is one claim: the count, pluralised, and
-// nothing at all at zero. `charts/relations.test.ts` asserts the same string end to end
-// through `getNotices`, so what is left here is only the branch that has no other
-// coverage — the plural.
 describe('getSankeyDroppedNoticeText', () => {
   it('counts the dropped links, pluralised, and says nothing at zero', () => {
     expect(getSankeyDroppedNoticeText(0)).toBeUndefined();
@@ -192,9 +156,6 @@ describe('getSankeySeries', () => {
     expect(series).not.toHaveProperty('nodeWidth');
     expect(series).not.toHaveProperty('nodeGap');
     expect(series).not.toHaveProperty('layoutIterations');
-    // `emphasis` is not in this list: adjacency focus is on by default now, so the key
-    // is emitted — see `getSankeyEmphasis`. Neither is `nodeAlign`, whose family default
-    // differs from ECharts' and so is always emitted — see `getSankeyNodeAlign`.
     expect(series).toHaveProperty('nodeAlign', 'left');
     expect(series).not.toHaveProperty('edgeLabel');
   });
@@ -216,8 +177,6 @@ describe('getSankeySeries', () => {
     expect(series.layoutIterations).toBe(0);
   });
 
-  // ECharts defaults a sankey to `draggable: true`, unlike `graph`. Both variants
-  // must be static out of the box, so the key is pinned rather than omitted.
   it('pins draggable and roam off, against the ECharts sankey default', () => {
     const { series } = getSankeySeries(data(), ctx());
 
@@ -225,8 +184,6 @@ describe('getSankeySeries', () => {
     expect(series.roam).toBe(false);
   });
 
-  // `roam` is pan only: zoom is driven by the panel's buttons, so the wheel is never
-  // bound and the dashboard can still be scrolled past the panel.
   it('honors the interaction switches when enabled', () => {
     const { series } = getSankeySeries(data(), ctx(baseOptions({ relationsDraggable: true, relationsPan: true })));
 
@@ -244,12 +201,6 @@ describe('getSankeySeries', () => {
     expect(typeof getSankeySeries(data(), ctx()).series.labelLayout).toBe('function');
   });
 
-  /**
-   * A dragged sankey node is remembered in the same `custom.fixedX`/`fixedY` pair as a
-   * dragged graph node — a mark has one place to record where it was put — but a
-   * sankey has no coordinate space to pin one in and reads a **fraction** of the
-   * layout rect instead. See `useRelationsPersistence`.
-   */
   describe('remembered node positions', () => {
     const placed = () =>
       data({
@@ -266,9 +217,6 @@ describe('getSankeySeries', () => {
       expect(nodeItems(series)[1]).not.toHaveProperty('localX');
     });
 
-    // The range check is what keeps the shared field pair honest: a graph position
-    // (pixels) reinterpreted as a fraction would put the node whole layout-widths off
-    // screen, so a value outside 0-1 means "not a sankey position".
     it('ignores a coordinate that cannot be a fraction', () => {
       const pixels = data({ nodes: [{ id: 'a', name: 'A', value: 1, fixedX: 340, fixedY: 150 }] });
 
@@ -282,9 +230,6 @@ describe('getSankeySeries', () => {
     });
   });
 
-  // A declared node `value` acts as a floor in ECharts' `computeNodeValues`
-  // (`Math.max(inSum, outSum, nodeRawValue)`), so a `mainstat` unrelated to the flow
-  // would inflate the node past its own ribbons. It rides as `stat` instead.
   it('carries mainstat as stat rather than value', () => {
     const { series } = getSankeySeries(data(), ctx());
 
@@ -292,8 +237,6 @@ describe('getSankeySeries', () => {
     expect(nodeItems(series)[0]).not.toHaveProperty('value');
   });
 
-  // Both are graph-only: ribbon size comes from the weight, and a filled ribbon has
-  // no stroke to dash.
   it('drops per-edge thickness and strokedasharray', () => {
     const styled = data({
       links: [{ id: 'e1', source: 'a', target: 'b', value: 5, width: 4, lineType: 'dashed' as const }],
@@ -312,8 +255,6 @@ describe('getSankeySeries', () => {
     expect(linkItems(series)[0].lineStyle).toEqual({ color: 'red' });
   });
 
-  // Graph-only node keys: `noderadius` and `fixedx`/`fixedy` have no sankey meaning
-  // (a sankey positions with localX/localY/depth, not pixel coordinates).
   it('drops noderadius and fixed coordinates', () => {
     const pinned = data({
       nodes: [{ id: 'a', name: 'A', value: 1, radius: 40, fixedX: 10, fixedY: 20 }],
@@ -325,15 +266,4 @@ describe('getSankeySeries', () => {
     expect(nodeItems(series)[0]).not.toHaveProperty('x');
     expect(nodeItems(series)[0]).not.toHaveProperty('y');
   });
-
-  /**
-   * **The cycle policy is not tested here.** It was, in a `cycle policy` describe that
-   * restated what its two neighbours already say: `converters/dag.test.ts` tests the
-   * algorithm itself (which back-edge is dropped, that self-loops go, that the node set
-   * is untouched), and `charts/relations.test.ts` tests the whole answer a panel gives
-   * — the surviving links *and* the "1 link hidden to remove cycles" notice — through
-   * `buildOption`. `relations sankey base a cyclic edge set` renders it. Four layers for
-   * one policy is three too many; the two that state something the others cannot are
-   * the algorithm and the picture.
-   */
 });

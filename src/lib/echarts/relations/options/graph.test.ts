@@ -15,13 +15,6 @@ const baseOptions = relationsOptions;
 const ctx = (options: PanelOptions = baseOptions()): RelationsChartContext =>
   relationsContext({ options, seriesType: 'graph' });
 
-/**
- * Nodes reach this layer already coloured — the reader resolves every mark's colour
- * through its own display processor and palettes whatever is left
- * (`converters/readNodes.ts`), so a fixture that omitted `color` would not be one the
- * panel can produce. Colour *resolution* is tested there; this file only checks that
- * the resolved colour is painted.
- */
 const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
   nodeGraph({
     nodes: [
@@ -32,9 +25,6 @@ const data = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
   });
 
 describe('getGraphEdgeSymbol / getGraphEmphasis', () => {
-  // Both flipped on: an edge is directed by contract and the arrowhead is the only
-  // thing that says so under a force layout, and adjacency is what a topology is
-  // hovered for.
   it('emit an arrow and adjacency focus at their defaults', () => {
     expect(getGraphEdgeSymbol(baseOptions())).toEqual(['none', 'arrow']);
     expect(getGraphEmphasis(baseOptions())).toEqual({ focus: 'adjacency' });
@@ -47,9 +37,6 @@ describe('getGraphEdgeSymbol / getGraphEmphasis', () => {
 });
 
 describe('getGraphLinkStyle', () => {
-  // No colour at series level any more: the ECharts keywords do not work on a `graph`
-  // series (see `resolveLinkColor`), so every edge carries its own resolved colour and
-  // ECharts' neutral grey stays as the last resort.
   it('emits no colour keyword at all', () => {
     expect(getGraphLinkStyle(baseOptions())).toEqual({});
     expect(getGraphLinkStyle(baseOptions({ relationsLinkColor: 'target' }))).toEqual({});
@@ -65,7 +52,7 @@ describe('getGraphSeries', () => {
   it('maps nodes to data and links to links, keyed by id', () => {
     const series = getGraphSeries(data(), ctx());
     expect(series.type).toBe('graph');
-    // `id` pins ECharts' link resolution; `name` carries the display title.
+    // `id` resolves links. `name` contains the display title.
     expect(series.data).toMatchObject([
       { id: 'a', name: 'A', value: 1, symbolSize: RELATIONS_NODE_SIZE_DEFAULT },
       { id: 'b', name: 'B', value: 2, symbolSize: RELATIONS_NODE_SIZE_DEFAULT },
@@ -84,9 +71,6 @@ describe('getGraphSeries', () => {
     expect(series.data).toMatchObject([{ symbolSize: 8 }, { symbolSize: 8 }]);
   });
 
-  // Only the fixed layout reads `x`/`y`: `getGraphForce` pins `initLayout: 'circular'`,
-  // so `forceLayout` seeds from the ring and never consults them, and a circular layout
-  // computes its own. Emitting them anyway would only move the view's bounding box.
   it('emits no x/y under a layout that does not read them', () => {
     const partlyPinned = data({
       nodes: [
@@ -117,12 +101,6 @@ describe('getGraphSeries', () => {
     ]);
   });
 
-  /**
-   * **The reported bug**: picking Fixed drew nothing. `simpleLayout` lays a node with no
-   * `x` out at `[NaN, NaN]`, and `fixedx`/`fixedy` are per-mark overrides that no fresh
-   * panel has written — so the layout the user selected blanked the panel and left
-   * nothing to drag or override from. See `resolveFixedPositions`.
-   */
   it('seeds a position for every node when Fixed is selected with nothing pinned', () => {
     const series = getGraphSeries(data(), ctx(baseOptions({ relationsLayout: 'none' })));
 
@@ -140,8 +118,6 @@ describe('getGraphSeries', () => {
     expect(series.draggable).toBe(true);
   });
 
-  // The switch is hidden for force and circular, and refused here too, so a dashboard that
-  // saved the pair keeps a working panel. See `resolveGraphDraggable`.
   it('refuses dragging under force even when the option says otherwise', () => {
     const series = getGraphSeries(data(), ctx(baseOptions({ relationsLayout: 'force', relationsDraggable: true })));
 
@@ -156,8 +132,6 @@ describe('getGraphSeries', () => {
     expect(series.links).toMatchObject([{ lineStyle: { color: 'cyan', width: 3, type: 'dashed' } }]);
   });
 
-  // ECharts reads `curveness` off the item's own `lineStyle` first, so a per-edge
-  // override beats the panel-level "Link curveness" for that edge alone.
   it('lets a per-edge curveness override the panel-level one', () => {
     const curved = data({ links: [{ id: 'e1', source: 'a', target: 'b', value: 1, curveness: 0.4 }] });
     const series = getGraphSeries(curved, ctx(baseOptions({ relationsCurveness: 0.1 })));
@@ -166,9 +140,6 @@ describe('getGraphSeries', () => {
     expect(series.lineStyle).toMatchObject({ curveness: 0.1 });
   });
 
-  // Every link carries a colour now, since ECharts cannot resolve the endpoint
-  // keywords itself on a `graph` series — see `resolveLinkColor`. `lineStyle` is
-  // therefore never absent; what an unstyled link omits is everything *else*.
   it('gives an unstyled link a colour and nothing else', () => {
     expect(getGraphSeries(data(), ctx()).links![0]).toMatchObject({
       lineStyle: { color: getPaletteColorByIndex(0, theme) },
@@ -184,7 +155,7 @@ describe('getGraphSeries', () => {
     expect(series.draggable).toBe(false);
   });
 
-  // Pan binds drag, not the wheel; zoom never touches `roam` at all.
+  // Pan binds drag, not the wheel. Zoom does not change `roam`.
   it('emits move roam when panning is on', () => {
     expect(getGraphSeries(data(), ctx(baseOptions({ relationsPan: true }))).roam).toBe('move');
     expect(getGraphSeries(data(), ctx(baseOptions({ relationsZoom: true }))).roam).toBe(false);
@@ -205,8 +176,6 @@ describe('getGraphSeries', () => {
     });
   });
 
-  // The whole of the family's colour path: the mark's own field already decided it,
-  // so this layer paints and does not resolve.
   it('paints each node with the colour its own field resolved', () => {
     const coloured = data({
       nodes: [
@@ -233,24 +202,6 @@ describe('getGraphSeries', () => {
   });
 });
 
-/**
- * Edge colour on a `graph` series is resolved **here, per link** — none of the three
- * modes can be handed to ECharts.
- *
- * `'source'` / `'target'` are keywords `edgeVisual.ts` swaps for the endpoint node's
- * fill, but it runs at `PRIORITY.VISUAL.CHART` (3000) and the task that applies each
- * node's own `itemStyle.color` runs at `CHART_DATA_CUSTOM` (4500) — so the swap sees
- * only the series-level fill and every edge comes out the same palette colour. (ECharts'
- * own demos hide this by colouring nodes through `categories`, which *does* run first.)
- * `'gradient'` it does not implement for `graph` at all.
- *
- * The blend can only be *oriented* when the node positions are known, because zrender
- * resolves a non-global gradient against the shape's bounding box: `x: 0 -> x2: 1` runs
- * left to right across the edge, which is source-to-target only if the source sits on
- * the left. Under a force or circular layout the positions do not exist until ECharts
- * has laid the graph out, so orienting would be a coin flip and half the edges would
- * report their direction backwards — hence the degradation to the source colour.
- */
 describe('getGraphSeries — edge colours', () => {
   const pinned = (extra: Partial<NodeGraphData> = {}): NodeGraphData =>
     data({
@@ -286,8 +237,6 @@ describe('getGraphSeries — edge colours', () => {
   });
 
   it('degrades to the source node colour when the layout has not pinned positions', () => {
-    // The default force layout: no positions, so no honest orientation exists. The
-    // colour is still endpoint-derived — a real hex, not the inert `'source'` keyword.
     expect(gradientOf(getGraphSeries(data(), ctx()))).toBe(getPaletteColorByIndex(0, theme));
   });
 
@@ -303,8 +252,6 @@ describe('getGraphSeries — edge colours', () => {
     expect(gradientOf(getGraphSeries(overridden, ctx()))).toBe('cyan');
   });
 
-  // The reported bug: picking Source or Target changed nothing at all, because the
-  // keyword reached ECharts and resolved against a colour the nodes did not have yet.
   it('resolves the source and target modes to the endpoint colours themselves', () => {
     const source = getGraphSeries(pinned(), ctx(baseOptions({ relationsLinkColor: 'source' })));
     const target = getGraphSeries(pinned(), ctx(baseOptions({ relationsLinkColor: 'target' })));

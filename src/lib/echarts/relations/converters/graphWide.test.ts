@@ -17,9 +17,6 @@ import { getPaletteColorByIndex } from 'lib/echarts/style';
 import { theme, labelledEdges, namedEdges, rawSeries, valueEdges, withDisplay, asPipelineWould } from 'test/graphWide';
 import { debug, LOG_LEVELS } from 'development';
 
-// `debug` is gated on `NODE_ENV`/`CI`/localStorage, so asserting on the console directly
-// would pass locally and go quiet in CI. Mocking the module tests the *decision* to warn —
-// and keeps the collision warning out of every other suite's output.
 jest.mock('development', () => ({
   debug: jest.fn(),
   LOG_LEVELS: { debug: 0, info: 1, warn: 2, error: 3 },
@@ -100,9 +97,6 @@ describe('frameToGraphWide — edges', () => {
 
     expect(frameToGraphWide([frame], theme, { calcs: ['max'] })!.links[0].value).toBe(9);
     expect(frameToGraphWide([frame], theme, { calcs: ['sum'] })!.links[0].value).toBe(12);
-    // Default is median (`RELATIONS_CALC_DEFAULT`) — of [1, 2, 9], so 2. Not
-    // `lastNotNull`, which gives 9 here: it is the reducer most sensitive to whatever the
-    // series happens to be doing at the right-hand edge of the range.
     expect(frameToGraphWide([frame], theme)!.links[0].value).toBe(2);
   });
 
@@ -178,16 +172,12 @@ describe('frameToGraphWide — nodes', () => {
     const data = frameToGraphWide([labelledEdges()], theme);
 
     expect(data?.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
-    // No stat: a node with neither field nor row has nothing to report. Not its degree,
-    // which is a link count wearing a measurement's clothes — see `deriveNodesFromLinks`
-    // and `converters/deriveNodes.ts`, the pre-pass that gives these nodes a field
-    // instead on a host that can run it.
     expect(data?.nodes.map((node) => node.value)).toEqual([null, null, null]);
   });
 });
 
 describe('frameToGraphWide — edge colour', () => {
-  /** One edge, carrying whatever colour config the case is about. */
+  /** Build one edge for a color configuration test. */
   const edgeWith = (color: FieldConfig['color'], config: FieldConfig = {}): DataFrame =>
     withDisplay(
       toDataFrame({
@@ -204,10 +194,6 @@ describe('frameToGraphWide — edge colour', () => {
     );
 
   it('takes the colour the display processor resolved, per mark', () => {
-    // The payoff of the pivot: whatever colour the field ended up with — a literal one
-    // (`fixed` here, `shades`/`gradient` below), a by-value band, panel-wide or from a
-    // byName override — arrives off the field already theme-resolved, so no separate
-    // resolver is involved. Only the palettes are filtered, and only for an edge.
     const color = frameToGraphWide([edgeWith({ mode: FieldColorModeId.Fixed, fixedColor: 'dark-red' })], theme)!
       .links[0].color;
 
@@ -234,14 +220,6 @@ describe('frameToGraphWide — edge colour', () => {
     expect(frameToGraphWide([labelledEdges()], theme)!.links[0].color).toBeUndefined();
   });
 
-  /**
-   * The important half of the rule, and the one a fixture without a display processor
-   * cannot show: in the host every field has `config.color` merged in from the panel's
-   * registered default, which is palette-classic. Reading it would paint every edge a
-   * different palette colour and defeat the series-level endpoint colouring, so a
-   * palette mode counts as "nothing chosen" for an edge — but not for a node, whose
-   * palette colour is exactly right.
-   */
   it('ignores a palette mode on an edge and honours it on a node', () => {
     const paletted = (name: string, index: number, labels?: Record<string, string>): Field => {
       const field: Field = {
@@ -283,14 +261,6 @@ describe('frameToGraphWide — edge colour', () => {
     expect(gradient.links[0].color).toBeDefined();
   });
 
-  /**
-   * "Edges have no color-scheme path at all" (the pre-pivot bug report, phase 3 of
-   * `graph-wide-migration.md`) closes by construction rather than by a new resolver: an
-   * edge **is** a field, so an
-   * ordinary `byName` override targets exactly one of them, and only that one. There
-   * was never an edge equivalent of the node resolver to delete; this is the gap
-   * closing because the mark became addressable.
-   */
   it('lets a byName override recolour one edge, theme-resolved', () => {
     const [frame] = asPipelineWould(
       [
@@ -312,24 +282,9 @@ describe('frameToGraphWide — edge colour', () => {
 
     const [e1, e2] = frameToGraphWide([frame], theme)!.links;
     expect(e2.color).toBe(theme.visualization.getColorByName('dark-red'));
-    // Its neighbour keeps the palette default, which for an *edge* means no per-edge
-    // colour at all so the series-level endpoint mode still governs it.
     expect(e1.color).toBeUndefined();
   });
 
-  /**
-   * **Every palette falls through to the endpoint colouring, not a named few.** A palette
-   * is a colour by series index or by a hash of the name, which says nothing about which
-   * two nodes an edge joins. A deny-list naming only `palette-classic` and
-   * `palette-classic-by-name` would let every other palette — `palette-colorblind`, 13.3's
-   * `palette-categorical-next*` — give each edge a colour of its own and so turn
-   * "Link color" off for the whole panel.
-   *
-   * `palette-invented-upstream` is not a real mode and is the point: `getFieldColorMode`
-   * answers an id it does not know with the `thresholds` mode, so the registry alone
-   * would read a palette shipped after this build as by-value and reopen the bug. The
-   * `palette-` prefix is what closes it.
-   */
   it.each([
     FieldColorModeId.PaletteClassicByName,
     FieldColorModeId.PaletteColorblind,
@@ -339,13 +294,6 @@ describe('frameToGraphWide — edge colour', () => {
     expect(frameToGraphWide([edgeWith({ mode })], theme)!.links[0].color).toBeUndefined();
   });
 
-  /**
-   * The other half of the rule, and the one deliberately **not** changed with it: a
-   * by-value scheme grades the edge by its own weight, which is a thing only the edge can
-   * say — no endpoint colour carries it — so it keeps beating `relationsLinkColor`. The
-   * consequence is that "Link color" has nothing to decide under such a scheme, which is
-   * what its description says, since no `showIf` can see `fieldConfig` to hide it.
-   */
   it.each([FieldColorModeId.Thresholds, FieldColorModeId.ContinuousGrYlRd])(
     'lets a by-value scheme (%s) colour the edge by its own weight',
     (mode) => {
@@ -404,8 +352,6 @@ describe('frameToGraphWide — edge colour', () => {
 
     const data = frameToGraphWide([edges], theme)!;
 
-    // Same source node, opposite bands — which is exactly what an endpoint colour cannot
-    // express, and why a by-value scheme still wins.
     expect(data.links.map((link) => link.color)).toEqual([
       theme.visualization.getColorByName('red'),
       theme.visualization.getColorByName('green'),
@@ -413,13 +359,6 @@ describe('frameToGraphWide — edge colour', () => {
   });
 });
 
-/**
- * `custom.hideFrom.viz`, read off the mark's own field.
- *
- * The reader only *flags* a hidden mark; dropping it (and the links touching a hidden
- * node) is `withoutHiddenMarks` in `charts/relations.ts`, because the legend has to
- * keep listing a hidden mark for it to be restorable.
- */
 describe('frameToGraphWide — hidden marks', () => {
   const hiddenCustom = { hideFrom: { viz: true, legend: false, tooltip: false } };
 
@@ -458,9 +397,6 @@ describe('frameToGraphWide — hidden marks', () => {
     ]);
   });
 
-  // `viz: false` is the default `addHideFrom` writes onto every field, so reading it
-  // as anything but "visible" would hide the whole graph the moment the property is
-  // registered.
   it('treats an unset or false viz flag as visible', () => {
     const frame = toDataFrame({
       meta: { type: GRAPH_EDGES_WIDE },
@@ -479,12 +415,6 @@ describe('frameToGraphWide — hidden marks', () => {
   });
 });
 
-/**
- * The colour path, end to end. There is no resolver any more: `applyFieldOverrides`
- * runs above the panel, so whatever it decided is already on `field.display` by the
- * time the reader looks. These are the cases `makeRelationsColorResolver` used to
- * enumerate, restated against the pipeline that actually produces them.
- */
 describe('frameToGraphWide — node colour', () => {
   /** Two marks, `a` and `b`, joined by the single edge below. */
   const nodesFrame = (): DataFrame =>
@@ -502,23 +432,12 @@ describe('frameToGraphWide — node colour', () => {
       fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1] }],
     });
 
-  /**
-   * Nodes are listed **first** because `applyFieldOverrides` numbers `state.seriesIndex`
-   * across the whole response, and that index is the palette slot. Role resolution reads
-   * `meta.type`, not order, so the graph is the same either way.
-   */
   const graph = (overrides: FieldConfigSource['overrides'] = []): DataFrame[] =>
     asPipelineWould([nodesFrame(), oneEdge()], overrides);
 
   const colorsOf = (frames: DataFrame[]): Array<string | undefined> =>
     frameToGraphWide(frames, theme)!.nodes.map((node) => node.color);
 
-  /**
-   * The headline capability, and the measurement the migration plan rests on: a
-   * `byName` override targets **one mark**, and it arrives theme-resolved. The old
-   * resolver read `fixedColor` straight out of `fieldConfig` and handed ECharts the
-   * raw name, so `dark-red` painted as CSS `darkred` rather than Grafana's `#C4162A`.
-   */
   it('lets a byName override recolour one node, theme-resolved', () => {
     const [a, b] = colorsOf(
       graph([
@@ -531,7 +450,7 @@ describe('frameToGraphWide — node colour', () => {
 
     expect(b).toBe(theme.visualization.getColorByName('dark-red'));
     expect(b).not.toBe('dark-red');
-    // And only that one: its neighbour keeps its palette colour.
+    // The other node keeps its palette color.
     expect(a).toBe(getPaletteColorByIndex(0, theme));
   });
 
@@ -545,23 +464,14 @@ describe('frameToGraphWide — node colour', () => {
       ])
     );
 
-    // Different values, different points on the gradient — per mark, not per frame.
+    // Each mark resolves its own point on the gradient.
     expect(a).not.toBe(b);
   });
 
-  /**
-   * Grafana's own default colour mode is by-value (thresholds), but the panel
-   * registers palette-classic, so "nothing configured" must stay categorical.
-   */
   it('keeps an unconfigured node on the classic palette, by position', () => {
     expect(colorsOf(graph())).toEqual([getPaletteColorByIndex(0, theme), getPaletteColorByIndex(1, theme)]);
   });
 
-  /**
-   * A node **derived** from an edge's endpoints has no field, so nothing resolved a
-   * colour for it. Left unset it would fall through to ECharts' own palette, which is
-   * not the theme's — see `fillPaletteColors`.
-   */
   it('palettes a derived node, which has no field to ask', () => {
     // `labelledEdges` is a->b, b->c: three nodes, none of them declared.
     const data = frameToGraphWide([labelledEdges()], theme)!;
@@ -574,11 +484,6 @@ describe('frameToGraphWide — node colour', () => {
     ]);
   });
 
-  /**
-   * Positions run over the *final* node list, so an endpoint the nodes frame did not
-   * declare continues the palette rather than restarting it and colliding with the
-   * first declared node.
-   */
   it('continues the palette across appended endpoints', () => {
     const partial = toDataFrame({
       meta: { type: GRAPH_NODES_WIDE },
@@ -599,11 +504,6 @@ describe('reduceOptions', () => {
       fields: [{ name: 'a', type: FieldType.number, config: { unit: 'ms' }, values: [1, 5, 9] }],
     });
 
-  /**
-   * Nothing is truncated. Only `calcs[0]` has a job outside the tooltip — it colours a mark and
-   * weighs an edge — and every calc after it is a row, so a third and fourth are as usable as
-   * the second. Truncating here would drop `calcs[2..]` silently.
-   */
   it('keeps every calc, defaulting only an empty list', () => {
     expect(normalizeRelationsCalcs({ calcs: ['max', 'min', 'mean'] })).toEqual(['max', 'min', 'mean']);
     expect(normalizeRelationsCalcs({ calcs: [] })).toEqual([RELATIONS_CALC_DEFAULT]);
@@ -615,15 +515,9 @@ describe('reduceOptions', () => {
     const data = frameToGraphWide(frames, theme, { calcs: ['max', 'min'], values: false, fields: '' })!;
 
     expect(data.nodes[0].value).toBe(9);
-    // Formatted through the mark's *own* display processor, so it carries its own unit — and
-    // paired with the reducer that produced it, so the tooltip can label the row.
     expect(data.nodes[0].secondaries).toEqual([{ calc: 'min', value: '1 ms' }]);
   });
 
-  /**
-   * A third and fourth calculation are rows too. `normalizeRelationsCalcs` must not drop
-   * them before the reader sees them, or picking one does nothing.
-   */
   it('reduces one stat per calc past the first, in the order they were picked', () => {
     const frames = [labelledEdges(), withDisplay(ranged())];
     const data = frameToGraphWide(frames, theme, {
@@ -640,12 +534,6 @@ describe('reduceOptions', () => {
     ]);
   });
 
-  /**
-   * Each row keeps its own reducer rather than relying on position, so a calc that reduces to
-   * nothing on this mark drops its row without relabelling the rows below it. A reducer the
-   * registry does not know is the reachable case — `reduceField` answers `undefined` for it,
-   * which `reduceValue` reads as no value.
-   */
   it('skips a calc that reduces to nothing without shifting the rest', () => {
     const data = frameToGraphWide([labelledEdges(), withDisplay(ranged())], theme, {
       calcs: ['max', 'notAReducer', 'min'],
@@ -665,12 +553,6 @@ describe('reduceOptions', () => {
     ).toEqual([{ value: '12 req/s' }]);
   });
 
-  /**
-   * The second reducer applies to **edges too**, which it did not: `readLinks` took only
-   * `calcs[0]`, so on the common shape — an edges-only response, where every mark is an
-   * edge — picking a second calculation produced no second value anywhere and the
-   * option read as broken. A mark is a mark; both kinds reduce the same way.
-   */
   it('reduces an edge secondary stat with calcs[1]', () => {
     const rangedEdges = toDataFrame({
       meta: { type: GRAPH_EDGES_WIDE },
@@ -713,14 +595,6 @@ describe('mark rows', () => {
 });
 
 describe('identity across collected frames', () => {
-  /**
-   * The contract's first sentence, held even where it is inconvenient: identity is
-   * `field.name`. A minted id would be one no override can match — `byName`/`byNames`
-   * compare against `field.name` or the display name — and `getOverrideTargetNames` feeds an
-   * **exclude** matcher, so an id no field answers to there would make hiding one node erase
-   * every link in the panel. The fix for `Value` × N is upstream: a legend format, or the
-   * `graph-edges-wide` pivot.
-   */
   it('keeps field.name as the id, even when several marks share it', () => {
     const data = frameToGraphWide(valueEdges(), theme)!;
 
@@ -729,11 +603,6 @@ describe('identity across collected frames', () => {
     expect(data.links.map((link) => link.field?.labels?.target)).toEqual(['b', 'c', 'c']);
   });
 
-  /**
-   * `markKey` is what `getRelationsTooltipMarks` keys its link map by, and the only thing
-   * duplicate ids actually break: without it the map is last-write-wins and all N edges
-   * format with the last one's unit and surface its `config.links`.
-   */
   it('gives each colliding mark its own lookup key', () => {
     const keys = frameToGraphWide(valueEdges(), theme)!.links.map((link) => link.markKey);
 
@@ -741,7 +610,7 @@ describe('identity across collected frames', () => {
     expect(new Set(keys).size).toBe(3);
   });
 
-  /** The ladder's second rung, shared with the pivot: parallel edges by their own label. */
+  /** Build parallel edges with distinct labels. */
   it('discriminates colliding marks over one node pair by the label that tells them apart', () => {
     const data = frameToGraphWide(
       [
@@ -760,13 +629,6 @@ describe('identity across collected frames', () => {
     expect(data.links.every((link) => link.markKey === undefined)).toBe(true);
   });
 
-  /**
-   * The one per-edge override the raw path does support, and why the duplication is
-   * "degraded, not lost": `byName` tests the **display name** as well as the field name, and
-   * a field named exactly `Value` contributes nothing to its own display name, so what is
-   * left is the label set. It stops working the moment a legend format is added, because
-   * `displayNameFromDS` then wins.
-   */
   it('lets a byName override on the display name reach exactly one of N Value marks', () => {
     const frames = asPipelineWould(valueEdges(), [
       {
@@ -783,12 +645,6 @@ describe('identity across collected frames', () => {
   });
 });
 
-/**
- * The collection is invisible — no notice, no Transform tab entry — so the two cases where
- * it changes what a response renders have to be legible somewhere. `development.ts`
- * suppresses info by default and shows warn in a dev build, which is the split these want.
- * @todo clean up (by hand) - these tests are useless but they keep the bot from removing the console logs while we're in dev/PoC mode
- */
 describe('reader diagnostics', () => {
   it('notes the collection at info level, with what the first frame alone would have drawn', () => {
     frameToGraphWide(valueEdges(), theme);

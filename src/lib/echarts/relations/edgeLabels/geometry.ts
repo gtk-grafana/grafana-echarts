@@ -1,28 +1,21 @@
 /**
- * The zrender-internals layer: narrowing an ECharts graph series' render tree down to the
- * label hosts, reading a label's settled bounding box out of one, and hiding it.
- *
- * None of this is public ECharts API — it reads `Line`/`Graph` internals, so this is the
- * module an ECharts upgrade breaks, and the reason it is separated from the two callers
- * above it: what to *do* about edge labels is stable, how to reach them is not.
+ * Isolate the undocumented ECharts and zrender label members that this repair uses.
+ * ECharts upgrades can change these members without a public type change.
+ * https://echarts.apache.org/en/option.html#series-graph.labelLayout
  */
 
-/**
- * An element with a label attached, narrowed to what is read here. ECharts' public types
- * describe `Element` without the label plumbing zrender puts on it (`updateInnerText`,
- * `innerTransformable`), and these repairs are entirely about that plumbing.
- */
+/** An element with a label attached, narrowed to the members that this file reads. */
 export interface LabelHost {
   textConfig?: { local?: boolean; position?: unknown };
   setTextConfig(config: { local: boolean }): void;
   markRedraw(): void;
   getTextContent(): LabelText | null;
-  /** Where a host that positions its own label does so — zrender calls it before drawing. */
+  /** Update the label position before zrender draws it. */
   beforeUpdate(): void;
   /** Turns that position into the transform the label is drawn with. */
   updateInnerText(forceUpdate?: boolean): void;
   getComputedTransform(): number[] | null;
-  /** zrender's own opt-out from `LabelManager`'s label animation. See {@link registerEdgeLabelFadeIn}. */
+  /** Disable zrender label animation. */
   disableLabelAnimation?: boolean;
 }
 
@@ -39,14 +32,10 @@ interface GraphModel {
   getEdgeByIndex(dataIndex: number): { node1: { dataIndex: number }; node2: { dataIndex: number } } | undefined;
 }
 
-/** A label's box as its four corners in canvas coordinates — rotated, so not a rect. */
+/** A rotated label box as four corners in canvas coordinates. */
 export type LabelBox = ReadonlyArray<readonly [number, number]>;
 
-/**
- * The series' graph, or `null` for a series that has none. Checked at runtime rather than
- * asserted: `getGraph` is not on the `SeriesModel` type the lifecycle hook is handed, and
- * "is this a graph" is exactly the question being asked.
- */
+/** The series' graph, or `null` for a series that has none. */
 export function readGraph(seriesModel: unknown): GraphModel | null {
   if (typeof seriesModel !== 'object' || seriesModel === null || !('getGraph' in seriesModel)) {
     return null;
@@ -97,11 +86,7 @@ function hasDataIndex(node: unknown): node is { dataIndex: number } {
   return typeof node === 'object' && node !== null && 'dataIndex' in node && typeof node.dataIndex === 'number';
 }
 
-/**
- * Whether an element carries the label plumbing read here. Checked at runtime rather than
- * asserted, because that plumbing is exactly the part ECharts' public `Element` type does
- * not describe — so there is nothing to narrow *from*.
- */
+/** Check whether an element hosts a label. */
 export function isLabelHost(element: unknown): element is LabelHost {
   return (
     typeof element === 'object' &&
@@ -114,16 +99,11 @@ export function isLabelHost(element: unknown): element is LabelHost {
 }
 
 /**
- * Where a label will be painted, as the box it will occupy.
+ * Return the box that a label occupies after its host settles the label position.
  *
- * Settled first, because that is the whole point: `beforeUpdate` is where a host places its
- * own label (for a link, along the line), and `updateInnerText` is what turns that
- * placement into the transform the label is drawn with. Both run again during zrender's own
- * traversal, so calling them early only moves work forward. `getComputedTransform` on the
- * host is what makes its own transform current first, since the label's is composed from it.
- *
- * Returns `null` for a label that is not being drawn — including one the stage has already
- * dropped, which must not be un-dropped or counted as occupying space.
+ * `beforeUpdate` places a line label in local coordinates.
+ * `updateInnerText` then calculates the label transform.
+ * zrender calls both methods again during its normal draw traversal.
  */
 export function labelBox(host: LabelHost): LabelBox | null {
   const label = host.getTextContent();
@@ -152,13 +132,10 @@ export function labelBox(host: LabelHost): LabelBox | null {
 }
 
 /**
- * Whether two label boxes overlap, by the separating-axis test: two convex shapes miss each
- * other exactly when some axis perpendicular to one of their edges separates their
- * projections.
+ * Use the separating-axis test to compare two rotated label boxes.
  *
- * Exact for rotated rectangles, which is the reason for it — an edge label is rotated to lie
- * along its link, and the axis-aligned box around a 45° one is nearly three times too tall,
- * which would drop values that are plainly readable side by side.
+ * An axis-aligned rectangle around a 45-degree label is almost three times too tall.
+ * That rectangle hides values that remain readable beside each other.
  */
 export function overlaps(a: LabelBox, b: LabelBox): boolean {
   for (const [first, second] of [
@@ -168,8 +145,7 @@ export function overlaps(a: LabelBox, b: LabelBox): boolean {
     for (let i = 0; i < first.length; i++) {
       const [x1, y1] = first[i];
       const [x2, y2] = first[(i + 1) % first.length];
-      // The edge's normal; projections onto it are compared unnormalised, since only the
-      // ordering of the two intervals matters.
+      // Compare projections on the edge normal.
       const axis = [y1 - y2, x2 - x1] as const;
       const project = (box: LabelBox) => {
         const values = box.map(([x, y]) => x * axis[0] + y * axis[1]);
@@ -186,10 +162,8 @@ export function overlaps(a: LabelBox, b: LabelBox): boolean {
 }
 
 /**
- * Drop a label from the render. `ignore` rather than `invisible`, so it leaves the display
- * list rather than staying in it as an unpainted hover target — and written from here alone,
- * never through a state, so the state machine has no saved value to put back (see
- * {@link revealEdgeLabelsFor}). Returns the label, which the reveal index keeps.
+ * Remove a label from the display list by setting `ignore` directly.
+ * A state-based value can enter `_normalState` and hide a label again after another focus path reveals it.
  */
 export function hideLabel(host: LabelHost): LabelText | null {
   const label = host.getTextContent();

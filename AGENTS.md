@@ -30,7 +30,8 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
   renders that assert drawn primitives or compare two renders, no baseline. `*.test.ts`:
   unit tests, no infix. Splitting a claim out of a canvas suite is never scope creep.
 - Stay on task & document out of scope context in the /todo directory
-- **Comments describe the current state, never a superseded one.**
+- Comments describe the current state, never a superseded one.
+- Docs and code comments are written with ASD-STE100 style
 
 ## Development environment
 

@@ -8,30 +8,13 @@ import { type PanelOptions } from 'types';
 
 import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
 import { type RelationsLinkItem, type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
-/**
- * Shared fixtures for the relations family's unit and canvas suites.
- *
- * The context builder here is **typed**: it returns a real `RelationsChartContext`
- * rather than an object cast through `unknown`. That is the point of it — a double cast
- * lets a fixture that has drifted from the interface (a renamed key, a field the context
- * does not have) compile anyway, so the test goes green against a shape the panel can
- * never be handed. One shared typed builder is also one place to fix when the interface
- * moves, instead of a cast preamble per option suite.
- *
- * The canvas/integration harness that renders these frames through a real `<Panel />`
- * lives next door in `test/relationsCanvas.tsx`; it reads its frames from here so the
- * two halves of the family's coverage describe the same graph.
- */
+/** Shared fixtures for the relations family's unit and canvas suites. */
 
 export const relationsTheme = createTheme();
 
 export const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
 
-/**
- * Panel options with the two keys every relations context needs. `legend` and
- * `tooltip` are non-optional on `PanelOptions`, so they are supplied rather than cast
- * away; everything else is genuinely optional and left unset.
- */
+/** Panel options with the two keys every relations context needs. */
 export const relationsOptions = (extra: Partial<PanelOptions> = {}): PanelOptions => ({
   legend: { showLegend: true, displayMode: LegendDisplayMode.List, placement: 'bottom', calcs: [] },
   tooltip: { mode: TooltipDisplayMode.Single, sort: SortOrder.None },
@@ -46,14 +29,7 @@ interface RelationsContextInput {
   fieldConfig?: FieldConfigSource;
 }
 
-/**
- * A relations chart context with no cast through `unknown`.
- *
- * `frames` is asserted to `EChartsFrame[]` and nothing else: `toDataFrame` returns a
- * `DataFrame` whose fields carry the open `FieldConfig`, and narrowing that to the
- * plugin's `EChartsFieldConfig` is the one thing a fixture cannot express structurally.
- * Every other key is checked, which is what makes a drifted fixture fail to compile.
- */
+/** A relations chart context with no cast through `unknown`. */
 export const relationsContext = ({
   frames = [],
   options = relationsOptions(),
@@ -79,12 +55,7 @@ export const relationsContext = ({
 export const relationsSeriesContext = (input: RelationsContextInput = {}): RelationsSeriesContext =>
   relationsContext(input);
 
-/**
- * The node/link model the three variants share, as the converter produces it.
- * Colours are supplied by callers that assert on them — a mark reaches this layer
- * already coloured, because its own display processor decided the colour upstream
- * in `converters/graphWide.ts`.
- */
+/** The node/link model the three variants share, as the converter produces it. */
 export const nodeGraph = (extra: Partial<NodeGraphData> = {}): NodeGraphData => ({
   nodes: [
     { id: 'a', name: 'A', value: 1 },
@@ -100,11 +71,7 @@ export const nodeItems = (series: { data?: unknown }): RelationsNodeItem[] => se
 /** A built series' link items, typed for assertions. */
 export const linkItems = (series: { links?: unknown }): RelationsLinkItem[] => series.links as RelationsLinkItem[];
 
-// --- Row-form frames -------------------------------------------------------
-//
-// Written in Grafana's row form because that is what a datasource emits. The canvas
-// harness runs them through the same conversion the host does (`asPipelineWould`);
-// unit suites that want the wide form call `legacyToWide` themselves.
+// Datasource fixtures use Grafana's row format.
 
 /** A small service graph: gateway fans out to api and web, both of which call db. */
 export const nodesFrame = toDataFrame({
@@ -126,17 +93,7 @@ export const edgesFrame = toDataFrame({
   ],
 });
 
-/**
- * An edge set with **slack**: `cache` is a leaf hanging off `gateway` while the chain
- * `gateway -> api -> db` runs two more columns, so `cache` could legally sit in column 1
- * or in the last one.
- *
- * That distinction is the *only* thing sankey node alignment decides, and `nodesFrame` +
- * `edgesFrame` cannot express it — their four nodes form a diamond in which every node's
- * earliest column is already its justified one, so `left` and `justify` draw identical
- * pictures there. Shared between `sankey.canvas` (which pins the picture) and
- * `layout.integration` (which pins the contrast).
- */
+/** An edge set with slack. */
 export const slackEdgesFrame = toDataFrame({
   name: 'edges',
   fields: [
@@ -147,15 +104,7 @@ export const slackEdgesFrame = toDataFrame({
   ],
 });
 
-/**
- * The same edges plus `db -> gateway`, which closes a cycle. ECharts' sankey layout
- * throws on one — in production too, since the throw is not `__DEV__`-guarded — so
- * this is the fixture the family's cycle policy exists for.
- *
- * Weights differ from the acyclic set deliberately: with matching weights the four
- * surviving links would draw the base render exactly, and a sankey snapshot of it
- * would duplicate that baseline instead of pinning this one.
- */
+/** The same edges plus `db -> gateway`, which closes a cycle. */
 export const cyclicEdgesFrame = toDataFrame({
   name: 'edges',
   fields: [
@@ -178,15 +127,7 @@ export const pinnedNodesFrame = toDataFrame({
   ],
 });
 
-/**
- * Twelve nodes whose titles are long enough that neighbouring label boxes genuinely
- * intersect at the default 120px label width, plus a chain of edges through them.
- *
- * 58 characters is deliberate: `jest-setup.js` measures text with per-character em
- * fractions, so a name this long overruns the label box by about three times over —
- * enough that truncation and collision are reached at the product's own defaults rather
- * than at numbers picked to suit the harness.
- */
+/** Twelve nodes with overlapping labels at the default width. */
 export const crowdedIds = [
   'gateway',
   'api',
@@ -225,17 +166,7 @@ export const crowdedEdgesFrame = toDataFrame({
   ],
 });
 
-/**
- * Two links between the same pair of nodes, which a response can perfectly well
- * contain (two call paths between the same services) and which is drawn as one line
- * over another — so the two edge values land on exactly the same spot and collide
- * whatever the text measures. `c` is a third node touching neither of them, so "the
- * node the label belongs to" is a claim with a counter-example.
- *
- * A reciprocal pair (`a->b` with `b->a`) is deliberately *not* used: those two labels
- * sit on opposite sides of the shared line, 10px apart, because the second is rotated
- * by a further 180 degrees. They do collide at real font sizes, and not at this one.
- */
+/** Two links between the same pair of nodes. */
 export const overlappingNodesFrame = toDataFrame({
   name: 'nodes',
   fields: [
@@ -257,11 +188,7 @@ export const overlappingEdgesFrame = toDataFrame({
 /** The two edge weights that collide in `overlappingEdgesFrame`. */
 export const overlappingValues = ['11', '22'];
 
-/**
- * Twelve chord nodes, four carrying real flow and eight reduced to slivers — the exact
- * shape "Hide overlapping labels" exists for on a ring, since the slivers collapse into
- * a narrow wedge and their labels stack on one another.
- */
+/** Twelve chord nodes, four carrying real flow and eight reduced to slivers. */
 export const ringIds = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'];
 
 export const ringNodesFrame = toDataFrame({

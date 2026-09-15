@@ -7,11 +7,6 @@ import {
 import { type PanelOptions } from 'types';
 import { relationsSuggestionsSupplier } from './suggestions';
 
-// This family used to be permanently silent, on the grounds that
-// `PanelDataSummary` could see neither the `id`/`source`/`target` field shape nor
-// `meta.preferredVisualisationType`. It exposes both (`rawFrames` and
-// `hasPreferredVisualisationType`), so these tests pin the real signal — including
-// that an ordinary table is still *not* claimed, which was the original worry.
 const edgesFrame = (rows: number) =>
   createDataFrame({
     name: 'edges',
@@ -56,8 +51,6 @@ describe('relationsSuggestionsSupplier', () => {
     expect(result!.every((suggestion) => suggestion.score === VisualizationSuggestionScore.Best)).toBe(true);
   });
 
-  // The reason the old comment gave for staying silent: any reachable proxy would
-  // claim ordinary tables. Requiring *both* `source` and `target` is what avoids it.
   it('returns void for an ordinary two-string-column table', () => {
     const result = relationsSuggestionsSupplier(
       getPanelDataSummary([
@@ -105,8 +98,6 @@ describe('relationsSuggestionsSupplier', () => {
   });
 
   it(`returns void past ${RELATIONS_MAX_EDGES} edges`, () => {
-    // Graph and Sankey only at the ceiling: an edges-only response of this size also
-    // exceeds the chord node budget, which is the tighter of the two caps.
     expect(relationsSuggestionsSupplier(getPanelDataSummary([edgesFrame(RELATIONS_MAX_EDGES)]))).toHaveLength(2);
     expect(relationsSuggestionsSupplier(getPanelDataSummary([edgesFrame(RELATIONS_MAX_EDGES + 1)]))).toBeUndefined();
   });

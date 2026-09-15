@@ -47,7 +47,7 @@ describe('isGraphWideFrames', () => {
     expect(isGraphWideFrames([nodes])).toBe(false);
   });
 
-  // No datasource emits `source`/`target`; the conventional pairs are what actually arrives.
+  // Data sources can use conventional endpoint pairs instead of `source` and `target`.
   it('detects an edges frame from a conventional endpoint pair', () => {
     const clientServer = toDataFrame({
       fields: [{ name: 'e1', type: FieldType.number, labels: { client: 'a', server: 'b' }, values: [10] }],
@@ -59,11 +59,6 @@ describe('isGraphWideFrames', () => {
 });
 
 describe('frame role resolution', () => {
-  /**
-   * `meta.type` first, in both directions. Without the negative half a node
-   * legitimately named `a-->b` would be read as an edge, and the nodes frame would
-   * become its own edges frame.
-   */
   it('never claims a declared nodes frame as edges, however its fields are named', () => {
     const nodes = toDataFrame({
       meta: { type: GRAPH_NODES_WIDE },
@@ -88,12 +83,6 @@ describe('frame role resolution', () => {
     expect(frameToGraphWide([lookalike, declared], theme)!.links.map((link) => link.id)).toEqual(['e1']);
   });
 
-  /**
-   * The nodes frame is not "any other frame with a numeric field": a second query
-   * returning an ordinary series would otherwise add a disconnected node named after
-   * it. Requiring a field name that an edge refers to is the wide equivalent of the row
-   * form's "a nodes frame must have an `id` column".
-   */
   it('does not read an unrelated frame in a mixed response as nodes', () => {
     const unrelated = toDataFrame({
       name: 'B-series',
@@ -121,17 +110,12 @@ describe('frame role resolution', () => {
     expect(data.nodes.map((node) => [node.id, node.value])).toEqual([
       ['a', 5],
       ['b', 6],
-      // Declared nodes keep their stat; `c`, which only the edges name, has none.
+      // Declared nodes keep their stat. Derived node `c` has none.
       ['c', null],
     ]);
   });
 });
 
-/**
- * The predicate behind "Show node values"'s visibility: on an edges-only response every
- * node is derived from an endpoint and carries no stat, so the switch would be a control
- * that visibly does nothing. See `hasNoNodeStats`.
- */
 describe('hasNoNodeStats', () => {
   it('is true when no nodes frame reached the panel at all', () => {
     expect(hasNoNodeStats([labelledEdges()])).toBe(true);
@@ -161,8 +145,6 @@ describe('hasNoNodeStats', () => {
     expect(hasNoNodeStats([labelledEdges(), mixed])).toBe(false);
   });
 
-  // The important half: it answers false whenever it cannot tell, because hiding a
-  // working control is worse than showing an inert one.
   it('is false for frames that are not the wide contract, and for no frames', () => {
     expect(hasNoNodeStats([])).toBe(false);
     expect(hasNoNodeStats(undefined)).toBe(false);
@@ -171,15 +153,6 @@ describe('hasNoNodeStats', () => {
 });
 
 describe('collecting every edges frame', () => {
-  /**
-   * The contract's *Multi* row variant, and the shape any labelled datasource returns with
-   * no transformation at all. Each of these frames passes `isEdgesWideFrame` on its own, so
-   * the old singular `.find()` drew a **one-edge graph** from a ten-series response with no
-   * error, no notice and no log. The pivot that fixes the identity side cannot be relied on
-   * to fix this one: `setDataTransformations` is feature-detected *and* gated behind
-   * `grafana.panelPluginTransformations`, off by default, so on a stock host the reader is
-   * the entire data path.
-   */
   it('collects every frame that looks like edges', () => {
     const data = frameToGraphWide(valueEdges(), theme)!;
 
@@ -193,15 +166,6 @@ describe('collecting every edges frame', () => {
     expect(data.nodes.map((node) => node.id)).toEqual(['a', 'b', 'c']);
   });
 
-  /**
-   * Declared-wins is a **filter**, not a find — the generalisation of "picks the declared
-   * edges frame over one that merely looks like edges".
-   *
-   * It keeps `meta.type` authoritative in the negative direction: a frame that says what it
-   * is never gets mixed with frames that were only guessed at. It also keeps the reader and
-   * the pivot agreeing about one response, since `longEdgeSeries` declines a whole response
-   * for the same reason — so a declared frame beside raw series renders what it does today.
-   */
   it('collects only the declared frames when any frame declares itself', () => {
     const declared = toDataFrame({
       meta: { type: GRAPH_EDGES_WIDE },
@@ -215,12 +179,6 @@ describe('collecting every edges frame', () => {
     expect(frameToGraphWide([lookalike, declared, raw], theme)!.links.map((link) => link.id)).toEqual(['e1']);
   });
 
-  /**
-   * The nodes search runs over the union of every collected frame's endpoints. Here `c` is
-   * named by the **second** edges frame alone, so a search over the first frame's endpoints
-   * would miss this nodes frame entirely and `c` would be derived — statless — instead of
-   * keeping the stat the frame declares for it.
-   */
   it('unions the endpoint set across every edges frame when looking for nodes', () => {
     const nodes = toDataFrame({
       fields: [{ name: 'c', type: FieldType.number, values: [6] }],
@@ -238,12 +196,6 @@ describe('collecting every edges frame', () => {
     ]);
   });
 
-  /**
-   * The nodes search excludes **every** edges candidate, collected or not. The second frame
-   * here is edges by its labels *and* named after an endpoint, so under the old
-   * "any frame that is not the edges frame" exclusion it would have become the nodes frame —
-   * turning one of the two edges into a node's stat.
-   */
   it('does not read a second edges frame as the nodes frame', () => {
     const first = toDataFrame({
       fields: [{ name: 'a-->b', type: FieldType.number, values: [1] }],
@@ -262,12 +214,6 @@ describe('collecting every edges frame', () => {
     expect(data.nodes.every((node) => node.field == null)).toBe(true);
   });
 
-  /**
-   * A mark reduces over its **own** rows, and every reducer skips nulls — so a raw series
-   * gives the same number as the same series null-padded onto a pivot's shared row grid.
-   * "Key on the timestamp, never the row index" binds whatever *builds* a frame; the reader
-   * joins nothing.
-   */
   it('reduces each mark over its own rows, however ragged', () => {
     const frames = [
       rawSeries({ source: 'a', target: 'b' }, [5]),
@@ -279,11 +225,6 @@ describe('collecting every edges frame', () => {
     expect(frameToGraphWide(frames, theme, withCalc('mean'))!.links.map((link) => link.value)).toEqual([5, 8 / 3]);
   });
 
-  /**
-   * A series with no samples still claimed to describe this edge, so it draws — weightless.
-   * Pre-existing behaviour of the `value ?? 1` fallback, asserted because a raw multi-frame
-   * response is where an empty series actually turns up.
-   */
   it('draws a weightless edge for a series with no samples', () => {
     const data = frameToGraphWide([rawSeries({ source: 'a', target: 'b' }, [])], theme)!;
 
@@ -293,12 +234,6 @@ describe('collecting every edges frame', () => {
 });
 
 describe('collecting every nodes frame', () => {
-  /**
-   * The same silent drop on the nodes side: `legacyToWide` converts *every* legacy nodes
-   * frame it finds, so a two-query legacy response produces two `graph-nodes-wide` frames
-   * and the reader has to read both. A node id is the ECharts graph key, so a repeated
-   * declaration is a real collision rather than a display problem — response order decides.
-   */
   it('reads every nodes frame, first field per id winning', () => {
     const first = toDataFrame({
       meta: { type: GRAPH_NODES_WIDE },
