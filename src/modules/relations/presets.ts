@@ -1,4 +1,5 @@
 import { FieldType, type VisualizationPresetsSupplier, type VisualizationSuggestion } from '@grafana/data';
+import { defaultVizLegendOptions, type VizLegendOptions } from '@grafana/schema';
 import { ANIMATION_ENABLED_DEFAULT, seriesTypePath } from 'editor/constants';
 import {
   RELATIONS_EDGE_ARROWS_DEFAULT,
@@ -53,7 +54,19 @@ type RelationsResetOptions = Required<Omit<RelationsPanelOptions, ClearableRelat
   relationsRepulsion: number | undefined;
   relationsViewCenter: [number, number] | undefined;
   relationsViewZoom: number | undefined;
-} & Required<Pick<PanelOptions, typeof seriesTypePath | 'animation'>>;
+} & Required<Pick<PanelOptions, typeof seriesTypePath | 'animation' | 'legend'>>;
+
+/** Preset legends stay visible while the graph remains easy to scan. */
+export const RELATIONS_PRESET_LEGEND_MAX_NODES = 12;
+
+function presetLegend(nodeCount: number | undefined, placement: VizLegendOptions['placement']): VizLegendOptions {
+  return {
+    ...defaultVizLegendOptions,
+    calcs: [],
+    placement,
+    showLegend: nodeCount == null || nodeCount <= RELATIONS_PRESET_LEGEND_MAX_NODES,
+  };
+}
 
 /** Reset every visual option that can affect a Relations render. */
 export const RELATIONS_PRESET_BASE = {
@@ -94,6 +107,7 @@ export const RELATIONS_PRESET_BASE = {
   relationsChordMinAngle: CHORD_MIN_ANGLE_DEFAULT,
   relationsChordLinkOpacity: CHORD_LINK_OPACITY_DEFAULT,
   animation: { enabled: ANIMATION_ENABLED_DEFAULT },
+  legend: presetLegend(undefined, 'bottom'),
 } satisfies RelationsResetOptions;
 
 const cardOptions = previewCardOptions({ options: { relationsShowNodeLabels: false } });
@@ -132,6 +146,7 @@ const serviceTopology = (nodeCount?: number) =>
     relationsShowNodeLabels: true,
     relationsShowEdgeValues: false,
     relationsTimeSlider: false,
+    legend: presetLegend(nodeCount, 'bottom'),
     ...graphDensityOptions(nodeCount),
   });
 
@@ -144,10 +159,11 @@ const circularNetwork = (nodeCount?: number) =>
     relationsZoom: true,
     relationsShowEdgeValues: false,
     relationsTimeSlider: false,
+    legend: presetLegend(nodeCount, 'bottom'),
     ...graphDensityOptions(nodeCount),
   });
 
-const weightedFlow = () =>
+const weightedFlow = (nodeCount?: number) =>
   preset('Weighted flow', 'Show how weighted flow moves through a process.', {
     [seriesTypePath]: 'sankey',
     relationsSankeyOrient: 'horizontal',
@@ -156,9 +172,10 @@ const weightedFlow = () =>
     relationsShowNodeLabels: true,
     relationsShowEdgeValues: false,
     relationsTimeSlider: false,
+    legend: presetLegend(nodeCount, 'bottom'),
   });
 
-const mutualRelations = () =>
+const mutualRelations = (nodeCount?: number) =>
   preset('Mutual relations', 'Show dense or cyclic traffic between pairs.', {
     [seriesTypePath]: 'chord',
     relationsLinkColor: 'gradient',
@@ -166,6 +183,7 @@ const mutualRelations = () =>
     relationsHideOverlappingLabels: true,
     relationsShowNodeLabels: true,
     relationsTimeSlider: false,
+    legend: presetLegend(nodeCount, 'bottom'),
   });
 
 const timeNetwork = (nodeCount?: number) =>
@@ -177,6 +195,7 @@ const timeNetwork = (nodeCount?: number) =>
     relationsFocusAdjacency: true,
     relationsPan: true,
     relationsZoom: true,
+    legend: presetLegend(nodeCount, 'right'),
     ...graphDensityOptions(nodeCount),
   });
 
@@ -189,10 +208,10 @@ export const relationsPresetsSupplier: VisualizationPresetsSupplier<PanelOptions
     presets.push(circularNetwork(nodeCount));
   }
   if (dataSummary == null || fitsSankeyTopology(dataSummary)) {
-    presets.push(weightedFlow());
+    presets.push(weightedFlow(nodeCount));
   }
   if (dataSummary == null || !exceedsChordNodeBudget(dataSummary)) {
-    presets.push(mutualRelations());
+    presets.push(mutualRelations(nodeCount));
   }
   if (
     dataSummary?.hasFieldType(FieldType.time) &&

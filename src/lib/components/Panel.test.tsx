@@ -105,6 +105,13 @@ describe('Panel empty view', () => {
     );
   });
 
+  it('shows the newest timeline stop in a preset preview', () => {
+    render(getComponent([graphFrame()], 'graph', { isPreview: true }, undefined, undefined, 'relations'));
+
+    expect(screen.getByRole('slider', { name: 'Selected time' })).toBeInTheDocument();
+    expect(mockGetDataIssue).toHaveBeenCalledWith(expect.objectContaining({ selectedTime: 200 }));
+  });
+
   it('keeps the chart path while unsupported data is loading', () => {
     mockGetDataIssue.mockReturnValue({ reason: 'unsupported-shape', message: 'Frame issue' });
 

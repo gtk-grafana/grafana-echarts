@@ -1,6 +1,6 @@
 {
   "annotations": { "list": [] },
-  "description": "Edit a Relations panel. Open Presets. Apply each card. Compare the result with the reference panel for that chart type. Make sure that query, field, legend, and tooltip settings do not change.",
+  "description": "Edit a Relations panel. Open Presets. Apply each card. Compare the result with the reference panel for that chart type. Presets reset legend visibility and placement. Make sure that query, field, and tooltip settings do not change.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -204,7 +204,7 @@
       "id": 4,
       "options": {
         "animation": { "enabled": false },
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "right", "showLegend": true },
         "relationsChordClockwise": true,
         "relationsChordLinkOpacity": 0.2,
         "relationsChordMinAngle": 0,
@@ -314,7 +314,7 @@
       "gridPos": { "h": 5, "w": 24, "x": 0, "y": 33 },
       "id": 5,
       "options": {
-        "content": "## Preset eligibility checks\n\nEdit each Relations panel. Open **Presets**. Make sure that the chart types agree with the panel title. These fixtures isolate the limits for cycles, nodes, and levels. They use instant data, so the Graph preset with a time slider is not expected. The first five panels show the saved result for each preset.",
+        "content": "## Preset eligibility checks\n\nEdit each Relations panel. Open **Presets**. Make sure that the chart types agree with the panel title. The Time network card must show its time slider. Presets reset legend visibility and placement. These fixtures isolate the limits for cycles, nodes, and levels. They use instant data, so Time network is not expected. The first five panels show the saved result for each preset.",
         "mode": "markdown"
       },
       "title": "Review preset eligibility",
@@ -361,7 +361,7 @@
       "id": 7,
       "options": {
         "animation": { "enabled": false },
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "relationsEdgeArrows": true,
         "relationsFocusAdjacency": true,
         "relationsLayout": "circular",
@@ -393,7 +393,7 @@
       "id": 8,
       "options": {
         "animation": { "enabled": false },
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "relationsEdgeArrows": true,
         "relationsFocusAdjacency": true,
         "relationsLayout": "circular",
@@ -425,7 +425,7 @@
       "id": 9,
       "options": {
         "animation": { "enabled": false },
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "relationsEdgeArrows": true,
         "relationsFocusAdjacency": true,
         "relationsLayout": "circular",
@@ -457,7 +457,7 @@
       "id": 11,
       "options": {
         "animation": { "enabled": false },
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
         "relationsEdgeArrows": true,
         "relationsFocusAdjacency": true,
         "relationsLayout": "circular",
