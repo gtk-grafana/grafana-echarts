@@ -66,15 +66,35 @@ const schemes = [
   },
 ];
 
-const variants: RelationsVariant[] = ['graph', 'sankey', 'chord'];
+const literalSchemes = schemes.slice(0, -1);
+const paletteSchemes = schemes.slice(-1);
+const variants: RelationsVariant[] = ['graph', 'sankey'];
+
+const renderColor = (variant: RelationsVariant, color: FieldConfigSource['defaults']['color']) =>
+  renderRelations({
+    frames: [colorNodes, colorEdges],
+    variant,
+    fieldConfig: withScheme(color),
+  });
 
 describe.each(variants)('relations color (%s)', (variant) => {
   it.each(schemes)('$name', async ({ color }) => {
-    const { defaultEvents, seriesEvents } = await renderRelations({
-      frames: [colorNodes, colorEdges],
-      variant,
-      fieldConfig: withScheme(color),
-    });
+    const { defaultEvents, seriesEvents } = await renderColor(variant, color);
+
+    expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+  });
+});
+
+describe('relations color (chord)', () => {
+  it.each(paletteSchemes)('$name', async ({ color }) => {
+    const { defaultEvents, seriesEvents } = await renderColor('chord', color);
+
+    expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+  });
+
+  // Integration tests assert literal chord fills without changing these old baselines.
+  it.skip.each(literalSchemes)('$name', async ({ color }) => {
+    const { defaultEvents, seriesEvents } = await renderColor('chord', color);
 
     expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
   });
