@@ -24,7 +24,7 @@ Force layout calculates unset force values from graph density and the plot width
 
 If a plot dimension is invalid, the calculation uses 400 by 300. An explicit value, including `0`, replaces only that automatic value.
 
-Containment keeps each node symbol inside the plot. It does not keep node labels inside the plot.
+The tested small, crowded, and disconnected fixtures keep each node symbol inside the plot. ECharts does not constrain force nodes to the plot boundary. Node labels can extend outside the plot.
 
 The automatic row conversion needs Grafana 13.2 or later and `grafana.panelPluginTransformations`. If the host cannot run it, add a Rows to fields transformation.
 

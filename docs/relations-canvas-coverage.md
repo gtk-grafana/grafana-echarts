@@ -114,7 +114,7 @@ A test cannot set a scheme through `fieldConfig.defaults` in this harness. `src/
 
 Force layout coordinates depend on simulation timing. Unit tests pin the automatic limits, fallback dimensions, and explicit values.
 
-`layout.integration.test.tsx` pins repeatable output. It also keeps each node symbol inside 400 by 300 and 640 by 360 plots. Labels can extend outside the plot.
+`layout.integration.test.tsx` pins repeatable output. Its small, crowded, and disconnected fixtures keep each node symbol inside 400 by 300 and 640 by 360 plots. ECharts does not constrain force nodes to the plot boundary. Labels can extend outside the plot.
 
 The graph canvas suite uses the ECharts highlight action to pin node emphasis. Pointer-driven adjacency emphasis still needs a browser hover.
 

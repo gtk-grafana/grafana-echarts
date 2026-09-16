@@ -89,7 +89,7 @@ describe('relations layout', () => {
       ['small', [nodesFrame, edgesFrame]],
       ['crowded', [crowdedNodesFrame, crowdedEdgesFrame]],
       ['disconnected', [disconnectedNodesFrame, disconnectedEdgesFrame]],
-    ] as const)('keeps every %s graph node inside two panel rectangles', async (_name, frames) => {
+    ] as const)('draws every %s fixture node inside each tested panel rectangle', async (_name, frames) => {
       for (const [width, height] of [
         [400, 300],
         [640, 360],
