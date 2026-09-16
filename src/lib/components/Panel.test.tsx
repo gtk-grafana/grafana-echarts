@@ -117,6 +117,26 @@ describe('Panel empty view', () => {
     expect(mockGetDataIssue).not.toHaveBeenCalled();
   });
 
+  it('renders no panel content while non-empty data is streaming', () => {
+    render(getComponent([graphFrame()], 'graph', undefined, { state: LoadingState.Streaming }, undefined, 'relations'));
+
+    expect(screen.queryByText('Chart')).not.toBeInTheDocument();
+    expect(mockPanelDataErrorView).not.toHaveBeenCalled();
+    expect(mockGetDataIssue).not.toHaveBeenCalled();
+  });
+
+  it('mounts chart content when streaming data finishes', () => {
+    const { rerender } = render(
+      getComponent([graphFrame()], 'graph', undefined, { state: LoadingState.Streaming }, undefined, 'relations')
+    );
+
+    expect(screen.queryByText('Chart')).not.toBeInTheDocument();
+
+    rerender(getComponent([graphFrame()], 'graph', undefined, { state: LoadingState.Done }, undefined, 'relations'));
+
+    expect(screen.getByText('Chart')).toBeInTheDocument();
+  });
+
   it('does not hide a query error with a chart data issue', () => {
     mockGetDataIssue.mockReturnValue({ reason: 'unsupported-shape', message: 'Frame issue' });
 
