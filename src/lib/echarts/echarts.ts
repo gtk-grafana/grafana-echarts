@@ -66,6 +66,7 @@ import { use as registerEChartsModules } from 'echarts/core';
 import { LabelLayout, LegacyGridContainLabel } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
 
+import { registerChordLiteralFill } from 'lib/echarts/relations/chordFill/register';
 import { registerEdgeLabelFadeIn, registerEdgeLabelLayout } from 'lib/echarts/relations/edgeLabels/register';
 // Before `use`, unlike `registerEdgeLabelLayout` below: this one has to set its flag before
 // `LabelLayout`'s stage reads it, and hooks run in registration order.
@@ -126,6 +127,7 @@ registerEChartsModules([
 // After `use`, because it repairs what `LabelLayout` does and lifecycle hooks run in
 // registration order. See `registerEdgeLabelLayout`.
 registerEdgeLabelLayout();
+registerChordLiteralFill();
 
 // `init` creates a chart instance bound to a DOM node. This module is imported
 // statically by Panel.tsx, which is itself React.lazy-loaded (see
