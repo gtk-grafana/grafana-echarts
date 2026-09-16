@@ -1,7 +1,7 @@
 import { type VisualizationSuggestion, type VisualizationSuggestionsSupplier } from '@grafana/data';
 import { seriesTypePath } from 'editor/constants';
 import { type EChartsFieldConfig } from 'editor/types';
-import { exceedsChordNodeBudget, fitsSankeyTopology, scoreRelations } from 'lib/echarts/charts/fitness';
+import { exceedsChordNodeBudget, fitsSankeyTopology, scoreRelations } from 'lib/echarts/relations/charts/fitness';
 import { previewCardOptions } from 'lib/echarts/charts/suggestionCards';
 import { type PanelOptions } from 'types';
 

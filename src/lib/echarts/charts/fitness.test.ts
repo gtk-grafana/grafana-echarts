@@ -7,9 +7,6 @@ import {
   VisualizationSuggestionScore,
 } from '@grafana/data';
 import {
-  exceedsChordNodeBudget,
-  fitsSankeyTopology,
-  relationsNodeCount,
   resolveHeatmapOverlayRefIds,
   resolveMultiValueSuggestion,
   resolvePartToWholeSlices,
@@ -20,7 +17,6 @@ import {
   scoreMatrixHeatmap,
   scoreMultivariate,
   scorePartToWhole,
-  scoreRelations,
   scoreScatter,
   scoreStream,
 } from 'lib/echarts/charts/fitness';
@@ -28,8 +24,6 @@ import {
   ALL_VALUES_MAX_ROWS,
   CATEGORY_MAX_ROWS,
   MULTIVARIATE_MAX_AXES,
-  RELATIONS_CHORD_MAX_NODES,
-  RELATIONS_MAX_EDGES,
   SLICE_MAX,
   STREAM_MAX_LAYERS,
 } from 'lib/echarts/charts/suggestionLimits';
@@ -88,27 +82,6 @@ const bucketFrame = (names: string[]) =>
  */
 const multiSeriesTimeFrames = (series: number, rows: number) =>
   Array.from({ length: series }, () => timeFrame(1, rows, DataFrameType.TimeSeriesMulti));
-
-/** A node-graph edges frame with `rows` edges. */
-const edgesFrame = (rows: number) =>
-  createDataFrame({
-    name: 'edges',
-    fields: [
-      { name: 'id', type: FieldType.string, values: Array.from({ length: rows }, (_, row) => `e${row}`) },
-      { name: 'source', type: FieldType.string, values: Array.from({ length: rows }, (_, row) => `n${row}`) },
-      { name: 'target', type: FieldType.string, values: Array.from({ length: rows }, (_, row) => `n${row + 1}`) },
-    ],
-  });
-
-/** A node-graph nodes frame with `rows` nodes. */
-const nodesFrame = (rows: number) =>
-  createDataFrame({
-    name: 'nodes',
-    fields: [
-      { name: 'id', type: FieldType.string, values: Array.from({ length: rows }, (_, row) => `n${row}`) },
-      { name: 'title', type: FieldType.string, values: Array.from({ length: rows }, (_, row) => `node ${row}`) },
-    ],
-  });
 
 describe('scoreHeatmap', () => {
   it('scores Best for HeatmapRows frames', () => {
@@ -729,83 +702,6 @@ describe('scoreMultivariate', () => {
     expect(scoreMultivariate(summaryOf(categoryFrame(2, 30), categoryFrame(2, 30)))).toBe(
       VisualizationSuggestionScore.Good
     );
-  });
-});
-
-describe('scoreRelations', () => {
-  it('scores Good for a node-graph frame pair', () => {
-    expect(scoreRelations(summaryOf(nodesFrame(3), edgesFrame(2)))).toBe(VisualizationSuggestionScore.Good);
-  });
-
-  it('scores Good for an edges-only frame', () => {
-    expect(scoreRelations(summaryOf(edgesFrame(2)))).toBe(VisualizationSuggestionScore.Good);
-  });
-
-  it('scores Best for the nodeGraph preferred visualisation hint', () => {
-    const frame = edgesFrame(2);
-    expect(scoreRelations(summaryOf({ ...frame, meta: { preferredVisualisationType: 'nodeGraph' } }))).toBe(
-      VisualizationSuggestionScore.Best
-    );
-  });
-
-  it('does not fit an ordinary two-string-column table', () => {
-    expect(
-      scoreRelations(
-        summaryOf(
-          createDataFrame({
-            fields: [
-              { name: 'host', type: FieldType.string, values: ['a', 'b'] },
-              { name: 'region', type: FieldType.string, values: ['eu', 'us'] },
-            ],
-          })
-        )
-      )
-    ).toBeUndefined();
-  });
-
-  it('does not fit a lone nodes frame, which is a table and not a graph', () => {
-    expect(scoreRelations(summaryOf(nodesFrame(3)))).toBeUndefined();
-  });
-
-  it(`fits at ${RELATIONS_MAX_EDGES} edges and withholds at ${RELATIONS_MAX_EDGES + 1}`, () => {
-    expect(scoreRelations(summaryOf(edgesFrame(RELATIONS_MAX_EDGES)))).toBe(VisualizationSuggestionScore.Good);
-    expect(scoreRelations(summaryOf(edgesFrame(RELATIONS_MAX_EDGES + 1)))).toBeUndefined();
-  });
-
-  it('does not fit an empty response', () => {
-    expect(scoreRelations(summaryOf())).toBeUndefined();
-  });
-});
-
-describe('exceedsChordNodeBudget', () => {
-  it('counts the nodes frame when there is one', () => {
-    expect(exceedsChordNodeBudget(summaryOf(nodesFrame(RELATIONS_CHORD_MAX_NODES), edgesFrame(2)))).toBe(false);
-    expect(exceedsChordNodeBudget(summaryOf(nodesFrame(RELATIONS_CHORD_MAX_NODES + 1), edgesFrame(2)))).toBe(true);
-  });
-
-  it('falls back to the edges frame when Grafana sent no nodes frame', () => {
-    expect(exceedsChordNodeBudget(summaryOf(edgesFrame(RELATIONS_CHORD_MAX_NODES - 1)))).toBe(false);
-    expect(exceedsChordNodeBudget(summaryOf(edgesFrame(RELATIONS_CHORD_MAX_NODES)))).toBe(true);
-  });
-
-  it('is false when there are no frames to count', () => {
-    expect(exceedsChordNodeBudget(summaryOf())).toBe(false);
-  });
-});
-
-describe('Relations topology', () => {
-  it('reads node counts and cycles from graph-wide fields', () => {
-    const frame = createDataFrame({
-      fields: [
-        { name: 'time', type: FieldType.time, values: [0, 1000] },
-        { name: 'a-to-b', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1, 2] },
-        { name: 'b-to-a', type: FieldType.number, labels: { source: 'b', target: 'a' }, values: [2, 1] },
-      ],
-    });
-    const summary = summaryOf(frame);
-
-    expect(relationsNodeCount(summary)).toBe(2);
-    expect(fitsSankeyTopology(summary)).toBe(false);
   });
 });
 

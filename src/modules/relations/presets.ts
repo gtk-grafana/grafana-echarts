@@ -35,7 +35,7 @@ import {
   SANKEY_ORIENT_DEFAULT,
 } from 'editor/relations/sankey';
 import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
-import { exceedsChordNodeBudget, fitsSankeyTopology, relationsNodeCount } from 'lib/echarts/charts/fitness';
+import { exceedsChordNodeBudget, fitsSankeyTopology, relationsNodeCount } from 'lib/echarts/relations/charts/fitness';
 import { previewCardOptions } from 'lib/echarts/charts/suggestionCards';
 import { type PanelOptions } from 'types';
 
