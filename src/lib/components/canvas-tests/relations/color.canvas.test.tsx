@@ -1,14 +1,14 @@
 import {
-  type FieldConfigSource,
   FieldColorModeId,
+  type FieldConfigSource,
   FieldType,
+  type ThresholdsConfig,
   ThresholdsMode,
   toDataFrame,
-  type ThresholdsConfig,
 } from '@grafana/data';
 import { normalizeCanvasEvents } from 'test/canvas';
 import { height, width } from 'test/panel';
-import { renderRelations, type RelationsVariant } from 'test/relationsCanvas';
+import { type RelationsVariant, renderRelations } from 'test/relationsCanvas';
 
 /** Use one threshold band for each fixture mark. */
 const thresholds: ThresholdsConfig = {
@@ -77,6 +77,14 @@ const renderColor = (variant: RelationsVariant, color: FieldConfigSource['defaul
     fieldConfig: withScheme(color),
   });
 
+const renderChordColor = (color: FieldConfigSource['defaults']['color']) =>
+  renderRelations({
+    frames: [colorNodes, colorEdges],
+    variant: 'chord',
+    fieldConfig: withScheme(color),
+    options: { relationsLinkColor: 'source' },
+  });
+
 describe.each(variants)('relations color (%s)', (variant) => {
   it.each(schemes)('$name', async ({ color }) => {
     const { defaultEvents, seriesEvents } = await renderColor(variant, color);
@@ -86,15 +94,15 @@ describe.each(variants)('relations color (%s)', (variant) => {
 });
 
 describe('relations color (chord)', () => {
-  it.each(paletteSchemes)('$name', async ({ color }) => {
-    const { defaultEvents, seriesEvents } = await renderColor('chord', color);
+  it('color blind safe palette (a slot per mark, source-colored edges)', async () => {
+    const { defaultEvents, seriesEvents } = await renderChordColor(paletteSchemes[0].color);
 
     expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
   });
 
-  // Integration tests assert literal chord fills without changing these old baselines.
-  it.skip.each(literalSchemes)('$name', async ({ color }) => {
-    const { defaultEvents, seriesEvents } = await renderColor('chord', color);
+  // Integration tests cover literal fills and gradients. This suite keeps source-color baselines.
+  it.each(literalSchemes)('$name', async ({ color }) => {
+    const { defaultEvents, seriesEvents } = await renderChordColor(color);
 
     expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
   });

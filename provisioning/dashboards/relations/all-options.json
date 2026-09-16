@@ -6,7 +6,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "links": [],
-  "description": "This dashboard groups relations chart options into Sankey, Graph, and Chord rows. Each panel changes one option and tells you what to look for. Expand a family row to compare the options for that chart type.\n\nPanels 32, 33, and 42 show actions. Follow their instructions to pan the chart, move a node, or hover a node.\n\nPanels 34 to 36 show standard field configuration. These panels show how color schemes, thresholds, and value mappings change nodes and links. Panels 37 to 41, 43, and 44 show more chart types and option values.",
+  "description": "This dashboard groups relations chart options into Sankey, Graph, and Chord rows. Each panel changes one option and tells you what to look for. Expand a family row to compare the options for that chart type.\n\nPanels 32, 33, and 42 show actions. Follow their instructions to pan the chart, move a node, or hover a node.\n\nPanels 34 to 36 show standard field configuration. These panels show how color schemes, thresholds, and value mappings change nodes and links. Panels 37 through 41 and 43 through 47 show more chart types and option values.",
   "refresh": "",
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "panel-options", "reference"],
@@ -25,7 +25,7 @@
   "weekStart": "",
   "panels": [
     {
-      "id": 45,
+      "id": 48,
       "type": "row",
       "title": "Sankey",
       "collapsed": false,
@@ -758,7 +758,7 @@
       ]
     },
     {
-      "id": 46,
+      "id": 49,
       "type": "row",
       "title": "Graph",
       "collapsed": false,
@@ -2741,7 +2741,7 @@
       ]
     },
     {
-      "id": 47,
+      "id": 50,
       "type": "row",
       "title": "Chord",
       "collapsed": false,
@@ -3077,6 +3077,177 @@
           "mode": "single"
         },
         "seriesType": "chord"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n20,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Link color — Gradient on Chord",
+      "description": "Controls how each ribbon gets its color. This Chord panel uses Gradient, so each ribbon blends from its source arc color to its target arc color.\n\nDefault: `gradient`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 163
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord",
+        "relationsLinkColor": "gradient"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n20,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Link color — Source on Chord",
+      "description": "Controls how each ribbon gets its color. This Chord panel uses Source, so each ribbon uses the color of its source arc. Compare it with the Gradient and Target panels in this row.\n\nDefault: `gradient`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 163
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord",
+        "relationsLinkColor": "source"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,db,cache,auth\n20,55,85,35,65"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Link color — Target on Chord",
+      "description": "Controls how each ribbon gets its color. This Chord panel uses Target, so each ribbon uses the color of its target arc. Compare it with the Gradient and Source panels in this row.\n\nDefault: `gradient`.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 163
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "chord",
+        "relationsLinkColor": "target"
       },
       "targets": [
         {

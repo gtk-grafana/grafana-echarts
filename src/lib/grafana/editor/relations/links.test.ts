@@ -77,7 +77,7 @@ describe('addRelationsLinkOptions — sections', () => {
 });
 
 describe('linkColorChoices', () => {
-  /** Three values, always. only the Gradient *label* is contextual. */
+  /** The Gradient label changes with the chart type and layout. */
   it.each([
     ['sankey', options({ seriesType: 'sankey' })],
     ['chord', options({ seriesType: 'chord' })],
@@ -88,14 +88,10 @@ describe('linkColorChoices', () => {
     expect(linkColorChoices(panelOptions).map(({ value }) => value)).toEqual(['source', 'target', 'gradient']);
   });
 
-  it('offers a plain Gradient on a sankey', () => {
-    expect(labelsFor(options({ seriesType: 'sankey' }))[2]).toBe('Gradient');
-    expect(blendsGradient(options({ seriesType: 'sankey' }))).toBe(true);
-  });
-
-  it('says what a chord really draws, whatever the layout says', () => {
-    expect(labelsFor(options({ seriesType: 'chord' }))[2]).toBe(DEGRADED);
-    expect(labelsFor(options({ seriesType: 'chord', relationsLayout: 'none' }))[2]).toBe(DEGRADED);
+  it.each(['sankey', 'chord'] as const)('offers a plain Gradient on a %s chart', (seriesType) => {
+    const panelOptions = options({ seriesType });
+    expect(labelsFor(panelOptions)[2]).toBe('Gradient');
+    expect(blendsGradient(panelOptions)).toBe(true);
   });
 
   it.each([

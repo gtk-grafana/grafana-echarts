@@ -43,7 +43,7 @@ Each Test cell points to automated evidence. Canvas and integration links use ex
 | Pan                     | Graph, sankey | `roam: 'move'`                  | ECharts only               | [view unit][graph-view], [graph option unit][graph-opts], [sankey option unit][sankey-opts]                                                                                                                                                                                                                                                                                                                                    | [readability.json][db-read], [all-options.json][db-opts]                      |
 | Remember view           | Graph, sankey | Saves center and zoom           | ECharts only               | [view-state unit][graph-view]                                                                                                                                                                                                                                                                                                                                                                                                  | None. The option changes later interactions.                                  |
 | Highlight adjacency     | All           | `emphasis.focus`                | ECharts only               | [graph option unit][graph-opts], [sankey option unit][sankey-opts], [chord option unit][chord-opts]                                                                                                                                                                                                                                                                                                                            | [chord.json][db-chord]                                                        |
-| Link color              | All           | Source, target, or gradient     | ECharts only               | [canvas: link color by endpoint (each line takes one end's colour)][canvas-graph], [canvas: gradient link color on a fixed layout (each line blends its source colour into its target)][canvas-graph], [integration: a gradient link colour is emitted only where the layout knows the positions][int-layout], [graph option unit][graph-opts]                                                                                 | [readability.json][db-read], [all-options.json][db-opts]                      |
+| Link color              | All           | Source, target, or gradient     | ECharts only               | [canvas: link color by endpoint (each line takes one end's colour)][canvas-graph], [canvas: gradient link color on a fixed layout (each line blends its source colour into its target)][canvas-graph], [integration: a gradient link colour is emitted only where the layout knows the positions][int-layout], [integration: draws a gradient between the ribbon endpoints][int-chord-color], [graph option unit][graph-opts]  | [readability.json][db-read], [all-options.json][db-opts]                      |
 | Edge arrows             | Graph         | Target arrowhead                | ECharts only               | [canvas: arrows off (plain lines, no heads)][canvas-graph], [graph option unit][graph-opts]                                                                                                                                                                                                                                                                                                                                    | [readability.json][db-read], [all-options.json][db-opts]                      |
 | Show edge values        | Graph, sankey | Edge label                      | ECharts only               | [canvas: edge values on (a weight drawn at each link's midpoint)][canvas-graph], [canvas: edge values on (a weight drawn on each ribbon)][canvas-sankey], [edge-label unit][graph-labels]                                                                                                                                                                                                                                      | [readability.json][db-read], [all-options.json][db-opts]                      |
 | Flow direction          | Sankey        | `series.sankey.orient`          | No core sankey             | [canvas: vertical flow (bars in rows, each label below its bar)][canvas-sankey], [canvas: long names on a vertical flow (each truncated, none over the next bar)][canvas-sankey], [sankey option unit][sankey-opts]                                                                                                                                                                                                            | [sankey.json][db-sankey], [all-options.json][db-opts]                         |
@@ -119,30 +119,33 @@ Legend hiding removes a node and each link that touches it. It removes one edge 
 
 These links need Grafana on `http://localhost:3001`. Each link opens one panel in the provisioned all-options dashboard.
 
-| Panel                   | Example                      | Panel                   | Example                        |
-| ----------------------- | ---------------------------- | ----------------------- | ------------------------------ |
-| [#1 opts][live-opt-1]   | Chart type: Sankey           | [#19 opts][live-opt-19] | Node alignment: Justify        |
-| [#2 opts][live-opt-2]   | Calculation: Max and Min     | [#20 opts][live-opt-20] | Flow direction: Vertical       |
-| [#3 opts][live-opt-3]   | Time slider: On              | [#21 opts][live-opt-21] | Node width: 40px               |
-| [#4 opts][live-opt-4]   | Show node labels: Off        | [#22 opts][live-opt-22] | Node gap: 30px                 |
-| [#5 opts][live-opt-5]   | Show node values: On         | [#23 opts][live-opt-23] | Ribbon curveness: 0            |
-| [#6 opts][live-opt-6]   | Hide overlapping labels: Off | [#24 opts][live-opt-24] | Sankey ribbon opacity: 0.8     |
-| [#7 opts][live-opt-7]   | Label overflow: None         | [#25 opts][live-opt-25] | Layout iterations: 0           |
-| [#8 opts][live-opt-8]   | Label width: 40px            | [#26 opts][live-opt-26] | Start angle: 0 degrees         |
-| [#9 opts][live-opt-9]   | Show edge values: On         | [#27 opts][live-opt-27] | Clockwise: Off                 |
-| [#10 opts][live-opt-10] | Layout: Fixed                | [#28 opts][live-opt-28] | Arc gap: 12 degrees            |
-| [#11 opts][live-opt-11] | Node size: 45px              | [#29 opts][live-opt-29] | Minimum arc angle: 20 degrees  |
-| [#12 opts][live-opt-12] | Repulsion: 1200              | [#30 opts][live-opt-30] | Chord ribbon opacity: 0.7      |
-| [#13 opts][live-opt-13] | Edge length: 40              | [#31 opts][live-opt-31] | Legend: Table, right side      |
-| [#14 opts][live-opt-14] | Gravity: 0.5                 | [#32 opts][live-opt-32] | Pan: On                        |
-| [#15 opts][live-opt-15] | Zoom: On                     | [#33 opts][live-opt-33] | Draggable nodes: On            |
-| [#16 opts][live-opt-16] | Link color: Target           | [#34 opts][live-opt-34] | Color scheme: By value         |
-| [#17 opts][live-opt-17] | Edge arrows: Off             | [#35 opts][live-opt-35] | Thresholds: 50 and 80          |
-| [#18 opts][live-opt-18] | Link curveness: 0.4          | [#36 opts][live-opt-36] | Value mappings: Color and text |
-| [#37 opts][live-opt-37] | Chart type: Chord            | [#40 opts][live-opt-40] | Link color: Gradient on Sankey |
-| [#38 opts][live-opt-38] | Label overflow: Wrap         | [#41 opts][live-opt-41] | Show edge values: Sankey       |
-| [#39 opts][live-opt-39] | Link color: Source           | [#42 opts][live-opt-42] | Highlight adjacency: Off       |
-| [#43 opts][live-opt-43] | Node alignment: Left         | [#44 opts][live-opt-44] | Node alignment: Right          |
+| Panel                   | Example                       | Panel                   | Example                        |
+| ----------------------- | ----------------------------- | ----------------------- | ------------------------------ |
+| [#1 opts][live-opt-1]   | Chart type: Sankey            | [#19 opts][live-opt-19] | Node alignment: Justify        |
+| [#2 opts][live-opt-2]   | Calculation: Max and Min      | [#20 opts][live-opt-20] | Flow direction: Vertical       |
+| [#3 opts][live-opt-3]   | Time slider: On               | [#21 opts][live-opt-21] | Node width: 40px               |
+| [#4 opts][live-opt-4]   | Show node labels: Off         | [#22 opts][live-opt-22] | Node gap: 30px                 |
+| [#5 opts][live-opt-5]   | Show node values: On          | [#23 opts][live-opt-23] | Ribbon curveness: 0            |
+| [#6 opts][live-opt-6]   | Hide overlapping labels: Off  | [#24 opts][live-opt-24] | Sankey ribbon opacity: 0.8     |
+| [#7 opts][live-opt-7]   | Label overflow: None          | [#25 opts][live-opt-25] | Layout iterations: 0           |
+| [#8 opts][live-opt-8]   | Label width: 40px             | [#26 opts][live-opt-26] | Start angle: 0 degrees         |
+| [#9 opts][live-opt-9]   | Show edge values: On          | [#27 opts][live-opt-27] | Clockwise: Off                 |
+| [#10 opts][live-opt-10] | Layout: Fixed                 | [#28 opts][live-opt-28] | Arc gap: 12 degrees            |
+| [#11 opts][live-opt-11] | Node size: 45px               | [#29 opts][live-opt-29] | Minimum arc angle: 20 degrees  |
+| [#12 opts][live-opt-12] | Repulsion: 1200               | [#30 opts][live-opt-30] | Chord ribbon opacity: 0.7      |
+| [#13 opts][live-opt-13] | Edge length: 40               | [#31 opts][live-opt-31] | Legend: Table, right side      |
+| [#14 opts][live-opt-14] | Gravity: 0.5                  | [#32 opts][live-opt-32] | Pan: On                        |
+| [#15 opts][live-opt-15] | Zoom: On                      | [#33 opts][live-opt-33] | Draggable nodes: On            |
+| [#16 opts][live-opt-16] | Link color: Target            | [#34 opts][live-opt-34] | Color scheme: By value         |
+| [#17 opts][live-opt-17] | Edge arrows: Off              | [#35 opts][live-opt-35] | Thresholds: 50 and 80          |
+| [#18 opts][live-opt-18] | Link curveness: 0.4           | [#36 opts][live-opt-36] | Value mappings: Color and text |
+| [#37 opts][live-opt-37] | Chart type: Chord             | [#40 opts][live-opt-40] | Link color: Gradient on Sankey |
+| [#38 opts][live-opt-38] | Label overflow: Wrap          | [#41 opts][live-opt-41] | Show edge values: Sankey       |
+| [#39 opts][live-opt-39] | Link color: Source            | [#42 opts][live-opt-42] | Highlight adjacency: Off       |
+| [#43 opts][live-opt-43] | Node alignment: Left          | [#44 opts][live-opt-44] | Node alignment: Right          |
+| [#45 opts][live-opt-45] | Link color: Gradient on Chord |                         |                                |
+| [#46 opts][live-opt-46] | Link color: Source on Chord   |                         |                                |
+| [#47 opts][live-opt-47] | Link color: Target on Chord   |                         |                                |
 
 ## Cycle policy
 
@@ -203,6 +206,7 @@ Sankey node width and gap are series options. They cannot vary by node. Graph no
 [canvas-overrides]: ../../lib/components/canvas-tests/relations/overrides.canvas.test.tsx
 [int-labels]: ../../lib/components/integration-tests/relations/labels.integration.test.tsx
 [int-layout]: ../../lib/components/integration-tests/relations/layout.integration.test.tsx
+[int-chord-color]: ../../lib/components/integration-tests/relations/chord-color.integration.test.tsx
 [int-interaction]: ../../lib/components/integration-tests/relations/interaction.integration.test.tsx
 [int-derived]: ../../lib/components/integration-tests/relations/derived-nodes.integration.test.tsx
 [int-timeline]: ../../lib/components/integration-tests/relations/timeline.integration.test.tsx
@@ -287,3 +291,6 @@ Sankey node width and gap are series options. They cannot vary by node. Graph no
 [live-opt-42]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=42
 [live-opt-43]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=43
 [live-opt-44]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=44
+[live-opt-45]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=45
+[live-opt-46]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=46
+[live-opt-47]: http://localhost:3001/d/echarts-relations-all-options?viewPanel=47

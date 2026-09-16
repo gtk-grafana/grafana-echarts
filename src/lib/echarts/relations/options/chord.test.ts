@@ -59,18 +59,20 @@ describe('getChordLabel', () => {
 });
 
 describe('getChordLinkStyle', () => {
-  it('omits the whole key whenever nothing differs from the ECharts defaults', () => {
-    // The family default, `gradient`, degraded to `source`…
-    expect(getChordLinkStyle(baseOptions())).toBeUndefined();
-    expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'gradient' }))).toBeUndefined();
-    // …the same mode chosen explicitly…
-    expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'source' }))).toBeUndefined();
-    // …and an opacity that is already ECharts' own.
-    expect(getChordLinkStyle(baseOptions({ relationsChordLinkOpacity: 0.2 }))).toBeUndefined();
+  it('emits the family gradient default', () => {
+    expect(getChordLinkStyle(baseOptions())).toEqual({ color: 'gradient' });
+    expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'gradient' }))).toEqual({ color: 'gradient' });
   });
 
-  it('emits an explicitly chosen mode', () => {
-    expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'target' }))).toEqual({ color: 'target' });
+  it('omits values that match the ECharts defaults', () => {
+    expect(getChordLinkStyle(baseOptions({ relationsLinkColor: 'source' }))).toBeUndefined();
+    expect(
+      getChordLinkStyle(baseOptions({ relationsLinkColor: 'source', relationsChordLinkOpacity: 0.2 }))
+    ).toBeUndefined();
+  });
+
+  it.each(['target', 'gradient'] as const)('emits an explicitly chosen %s mode', (relationsLinkColor) => {
+    expect(getChordLinkStyle(baseOptions({ relationsLinkColor }))).toEqual({ color: relationsLinkColor });
   });
 
   it('omits opacity at the ECharts default', () => {
