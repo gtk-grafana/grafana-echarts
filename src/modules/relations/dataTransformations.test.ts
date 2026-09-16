@@ -1,4 +1,4 @@
-import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { type DataFrame, DataFrameType, FieldType, toDataFrame } from '@grafana/data';
 
 import { deriveNodesOperator } from 'lib/echarts/relations/converters/deriveNodes';
 
@@ -33,9 +33,27 @@ const wideEdges = (): DataFrame =>
     fields: [{ name: 'e1', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [10] }],
   });
 
+const instantRows = (): DataFrame =>
+  toDataFrame({
+    meta: { type: DataFrameType.NumericLong },
+    fields: [
+      { name: 'Time', type: FieldType.time, values: [1700000000000] },
+      { name: 'source', type: FieldType.string, values: ['a'] },
+      { name: 'target', type: FieldType.string, values: ['b'] },
+      { name: 'Value #A', type: FieldType.number, values: [10] },
+    ],
+  });
+
 describe('relationsDataTransformations', () => {
   it('registers the conversion for legacy node-graph frames', () => {
     expect(relationsDataTransformations({ series: [rowEdges()] })).toEqual([legacyToWideOperator, deriveNodesOperator]);
+  });
+
+  it('registers the row conversion for a numeric-long instant response', () => {
+    expect(relationsDataTransformations({ series: [instantRows()] })).toEqual([
+      legacyToWideOperator,
+      deriveNodesOperator,
+    ]);
   });
 
   it('registers the pivot for a long response, not nothing', () => {

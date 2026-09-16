@@ -3,6 +3,7 @@
 import {
   type CustomTransformOperator,
   type DataFrame,
+  DataFrameType,
   type Field,
   FieldColorModeId,
   type FieldConfig,
@@ -57,6 +58,14 @@ function findField<V, C>(frame: DataFrame, name: string): ConfigTypedField<V, C>
   return frame.fields.find((field) => field.name.toLowerCase() === name);
 }
 
+/** Return Grafana's numeric value column from an instant datasource response. */
+function genericValueField(frame: DataFrame): Field | undefined {
+  return frame.fields.find((field) => {
+    const name = field.name.toLowerCase();
+    return field.type === FieldType.number && (name === 'value' || name.startsWith('value #'));
+  });
+}
+
 const hasField = (frame: DataFrame, name: string): boolean => findField(frame, name) != null;
 
 /** True when a frame declares itself part of a node-graph response. */
@@ -81,7 +90,7 @@ export function isLegacyEdgesFrame(frame: DataFrame): boolean {
   if (!hasField(frame, SOURCE_FIELD) || !hasField(frame, TARGET_FIELD)) {
     return false;
   }
-  return declaresLegacyNodeGraph(frame) || !hasTimeField(frame);
+  return declaresLegacyNodeGraph(frame) || frame.meta?.type === DataFrameType.NumericLong || !hasTimeField(frame);
 }
 
 /** True when a frame is a legacy nodes frame: an `id` and no `source`/`target`. */
@@ -161,7 +170,8 @@ function edgesToWide(frame: DataFrame): RelationsFamilyFrame {
   const idField = findField<number | string, EChartsRelationsFieldConfig>(frame, ID_FIELD);
   const sourceField = findField<number | string, EChartsRelationsFieldConfig>(frame, SOURCE_FIELD);
   const targetField = findField<number | string, EChartsRelationsFieldConfig>(frame, TARGET_FIELD);
-  const mainstatField = findField<number | string, EChartsRelationsFieldConfig>(frame, MAINSTAT_FIELD);
+  const mainstatField =
+    findField<number | string, EChartsRelationsFieldConfig>(frame, MAINSTAT_FIELD) ?? genericValueField(frame);
   const thicknessField = findField<number | string, EChartsRelationsFieldConfig>(frame, THICKNESS_FIELD);
   const colorField = findField<number | string, EChartsRelationsFieldConfig>(frame, COLOR_FIELD);
   const dashField = findField<number | string, EChartsRelationsFieldConfig>(frame, STROKEDASHARRAY_FIELD);
