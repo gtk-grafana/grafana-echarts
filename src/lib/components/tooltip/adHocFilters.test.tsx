@@ -132,22 +132,17 @@ describe('pinned tooltip ad-hoc filters', () => {
     expect(onAddAdHocFilter).toHaveBeenCalledTimes(1);
     expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'target', value: 'c', operator: '=' });
 
-    // The negation still covers the role it does not play, filled from the far end of the
-    // pair it sits on: a `topk` re-ranks the moment the filter applies, and `c` would
-    // otherwise reappear as a source. See `NodeFilterLabels.negate`.
     onAddAdHocFilter.mockClear();
     fireEvent.click(filterOut());
-    expect(onAddAdHocFilter).toHaveBeenCalledTimes(2);
-    expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'source', value: 'c', operator: '!=' });
+    expect(onAddAdHocFilter).toHaveBeenCalledTimes(1);
     expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'target', value: 'c', operator: '!=' });
   });
 
   /**
-   * A node in the middle keeps the asymmetry: it asserts its outgoing edges, because
-   * `source=b AND target=b` is self-loops, and negates both — "everything that does not
-   * touch this node".
+   * A node in the middle uses one endpoint key for both actions. Two filters would treat
+   * the node as an edge and would add an unrelated target filter.
    */
-  it('negates both directions of a node in the middle of the chain', async () => {
+  it('filters out one endpoint key for a node in the middle of the chain', async () => {
     const { chart: pending, onAddAdHocFilter } = renderGraph(chainEdges(), filterablePanel);
     const chart = await pending;
 
@@ -159,8 +154,8 @@ describe('pinned tooltip ad-hoc filters', () => {
 
     onAddAdHocFilter.mockClear();
     fireEvent.click(filterOut());
-    expect(onAddAdHocFilter).toHaveBeenNthCalledWith(1, { key: 'source', value: 'b', operator: '!=' });
-    expect(onAddAdHocFilter).toHaveBeenNthCalledWith(2, { key: 'target', value: 'b', operator: '!=' });
+    expect(onAddAdHocFilter).toHaveBeenCalledTimes(1);
+    expect(onAddAdHocFilter).toHaveBeenCalledWith({ key: 'source', value: 'b', operator: '!=' });
   });
 
   /** An edge **is** the conjunction of its endpoints, so both go in, both ways. */

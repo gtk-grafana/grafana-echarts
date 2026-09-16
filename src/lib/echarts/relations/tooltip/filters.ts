@@ -62,13 +62,16 @@ export function nodeFilters(
   // Node overrides take precedence over edge-derived labels.
   const configured =
     customFilterLabel(field, 'sourceFilterLabel') != null || customFilterLabel(field, 'targetFilterLabel') != null;
-  const fromEdges = !configured && incidence != null && incidence.negate.length > 0 ? incidence : undefined;
-  const assert = fromEdges ? (fromEdges.sources[0] ?? fromEdges.targets[0] ?? keys.source) : keys.source;
-  const negate = fromEdges ? fromEdges.negate : [keys.source, keys.target];
+  const fromEdges =
+    !configured && incidence != null && (incidence.sources.length > 0 || incidence.targets.length > 0)
+      ? incidence
+      : undefined;
+  const key = fromEdges ? (fromEdges.sources[0] ?? fromEdges.targets[0] ?? keys.source) : keys.source;
+  const whole = dedupeFilters([{ key, value: item.id }, ...extra]);
 
   return {
     each: extra,
-    filterFor: dedupeFilters([{ key: assert, value: item.id }, ...extra]),
-    filterOut: dedupeFilters(negate.map((key) => ({ key, value: item.id })).concat(extra)),
+    filterFor: whole,
+    filterOut: whole,
   };
 }
