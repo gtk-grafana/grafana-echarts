@@ -8,10 +8,16 @@ import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { type PanelOptions } from 'types';
 
 /**
- * The force simulation's seed layout, pinned so a render is reproducible.
+ * Start the force simulation without a circular seed.
  * https://echarts.apache.org/en/option.html#series-graph.force.initLayout
  */
-const RELATIONS_FORCE_INIT_LAYOUT = 'circular';
+const RELATIONS_FORCE_INIT_LAYOUT = 'none';
+
+/**
+ * The force simulation's friction.
+ * https://echarts.apache.org/en/option.html#series-graph.force.friction
+ */
+const RELATIONS_FORCE_FRICTION = 0.2;
 
 /** Plot size used when Grafana does not supply valid dimensions. */
 const DEFAULT_PLOT_SIZE = { width: 400, height: 300 };
@@ -124,6 +130,7 @@ export function getGraphForce(
     edgeLength: options.relationsEdgeLength ?? automatic.edgeLength,
     // https://echarts.apache.org/en/option.html#series-graph.force.layoutAnimation
     layoutAnimation: options.relationsLayoutAnimation ?? RELATIONS_LAYOUT_ANIMATION_DEFAULT,
+    friction: RELATIONS_FORCE_FRICTION,
   };
   // https://echarts.apache.org/en/option.html#series-graph.force.gravity
   force.gravity = options.relationsGravity ?? automatic.gravity;

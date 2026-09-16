@@ -59,7 +59,15 @@ Force layout calculates only unset values. Repulsion stays from 60 through 960. 
 
 An explicit value, including `0`, replaces only that automatic value. Invalid plot dimensions use 400 by 300. [The force unit tests pin these rules][graph-layout].
 
-Containment keeps each node symbol inside the plot. It does not keep node labels inside the plot. [The integration test pins node-symbol containment][int-layout].
+The tested small, crowded, and disconnected fixtures draw every node with finite geometry. ECharts does not constrain force nodes or labels to the plot boundary. [The integration test pins these fixtures][int-layout].
+
+During an active resize, a visible force graph uses the measured animated-force path. Fixed and circular graphs, sankey, chord, and other charts use immediate resize. [The chart module tests pin this selection][chart-module]. [The benchmark measures the three resize paths][force-resize-bench].
+
+Each changed force size goes to ECharts immediately. A partial option temporarily sets `force.layoutAnimation` to `true`, `force.friction` to `0.05`, and `force.initLayout` to `none`. After 150 ms without a new size, one full option uses the last dimensions.
+
+The full option restores the saved `relationsLayoutAnimation` configuration. It preserves the default state and explicit `false` or `true` values. [The resize tests pin the partial option][chart-resize]. [The size and option tests pin the final publication][settled-size]. [The mounted integration test pins the final option and geometry][int-layout].
+
+A force-layout preset preview keeps its initial layout when Grafana resizes the preview card. It does not run the user-panel resize path. [The strategy and size tests pin the fixed preview path][settled-size].
 
 Presets appear in this order: Service topology, Circular network, Weighted flow, Mutual relations, and Time network. Circular network permits an unknown node count or 2 through 40 nodes. Time network needs ranged time data and a known node count from 2 through 40. [The preset unit tests pin these rules][preset-tests].
 
@@ -69,9 +77,9 @@ Presets appear in this order: Service topology, Circular network, Weighted flow,
 | ----------------- | ------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | Label width       | All                 | `label.width`                        | [integration: a long name is cut at the label width and ends in an ellipsis][int-labels], [integration: break mode wraps a long name over several lines instead of cutting it][int-labels], [label-style unit][graph-labels] | [readability.json][db-read], [all-options.json][db-opts] |
 | Draggable nodes   | Fixed graph, sankey | Saves node position                  | [graph option unit][graph-opts], [sankey option unit][sankey-opts]                                                                                                                                                           | [all-options.json][db-opts]                              |
-| Repulsion         | Force graph         | Automatic from density and plot size | [integration: keeps every %s graph node inside two panel rectangles][int-layout], [force unit][graph-layout], [graph option unit][graph-opts], [panel resize unit][chart-option]                                             | [readability.json][db-read], [all-options.json][db-opts] |
-| Edge length       | Force graph         | Automatic from density and plot size | [integration: keeps every %s graph node inside two panel rectangles][int-layout], [force unit][graph-layout], [graph option unit][graph-opts], [panel resize unit][chart-option]                                             | [readability.json][db-read], [all-options.json][db-opts] |
-| Gravity           | Force graph         | Automatic from density and plot size | [integration: keeps every %s graph node inside two panel rectangles][int-layout], [force unit][graph-layout], [graph option unit][graph-opts], [panel resize unit][chart-option]                                             | [readability.json][db-read], [all-options.json][db-opts] |
+| Repulsion         | Force graph         | Automatic from density and plot size | [integration: draws every %s fixture node with finite geometry][int-layout], [force unit][graph-layout], [graph option unit][graph-opts], [panel resize unit][chart-option]                                                  | [readability.json][db-read], [all-options.json][db-opts] |
+| Edge length       | Force graph         | Automatic from density and plot size | [integration: draws every %s fixture node with finite geometry][int-layout], [force unit][graph-layout], [graph option unit][graph-opts], [panel resize unit][chart-option]                                                  | [readability.json][db-read], [all-options.json][db-opts] |
+| Gravity           | Force graph         | Automatic from density and plot size | [integration: draws every %s fixture node with finite geometry][int-layout], [force unit][graph-layout], [graph option unit][graph-opts], [panel resize unit][chart-option]                                                  | [readability.json][db-read], [all-options.json][db-opts] |
 | Animate layout    | Force graph         | `force.layoutAnimation`              | [force unit][graph-layout]                                                                                                                                                                                                   | [readability.json][db-read]                              |
 | Animation         | Sankey, chord       | Root ECharts animation               | [option-surface unit][rel-surface]                                                                                                                                                                                           | [readability.json][db-read]                              |
 | Link curveness    | Graph               | `lineStyle.curveness`                | [canvas: curveness 0.3 (links bowed away from the straight line)][canvas-graph], [graph option unit][graph-opts]                                                                                                             | [all-options.json][db-opts]                              |
@@ -244,6 +252,10 @@ Sankey node width and gap are series options. They cannot vary by node. Graph no
 [rel-surface]: ../../lib/grafana/editor/relations/optionSurface.test.ts
 [rel-tier]: ../../lib/grafana/editor/relations/advancedTier.test.ts
 [chart-option]: ../../lib/components/hooks/useChartOption.test.ts
+[chart-resize]: ../../lib/components/hooks/useChartResize.test.ts
+[chart-module]: ../../lib/echarts/relations/chartModule.test.ts
+[settled-size]: ../../lib/components/hooks/useSettledChartSize.test.ts
+[force-resize-bench]: ../../../scripts/bench/force-resize.mjs
 [preset-tests]: ./presets.test.ts
 [derived]: ../../../docs/relations-derived-nodes.md
 [db-wide]: ../../../provisioning/dashboards/relations/graph-wide.json

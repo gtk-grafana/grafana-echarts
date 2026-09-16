@@ -177,7 +177,7 @@ describe('getGraphSeries', () => {
 
   it('emits the force, arrow, adjacency and label-layout defaults', () => {
     const series = getGraphSeries(data(), ctx());
-    expect(series.force).toMatchObject({ initLayout: 'circular', layoutAnimation: false });
+    expect(series.force).toMatchObject({ initLayout: 'none', friction: 0.2, layoutAnimation: false });
     expect(series.edgeSymbol).toEqual(['none', 'arrow']);
     expect(series.emphasis).toEqual({ focus: 'adjacency' });
     expect(typeof series.labelLayout).toBe('function');

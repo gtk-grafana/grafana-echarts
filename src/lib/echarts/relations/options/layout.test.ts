@@ -149,7 +149,8 @@ describe('getGraphForce', () => {
   it('emits finite bounded automatic values with the stable seed and animation setting', () => {
     const force = getGraphForce(data(), baseOptions(), 400, 300);
 
-    expect(force.initLayout).toBe('circular');
+    expect(force.initLayout).toBe('none');
+    expect(force.friction).toBe(0.2);
     expect(force.layoutAnimation).toBe(false);
     expect(force.edgeLength).toBeGreaterThanOrEqual(30);
     expect(force.edgeLength).toBeLessThanOrEqual(240);
@@ -213,7 +214,8 @@ describe('getGraphForce', () => {
     );
 
     expect(force).toMatchObject({
-      initLayout: 'circular',
+      initLayout: 'none',
+      friction: 0.2,
       repulsion: 0,
       gravity: 0,
       layoutAnimation: true,

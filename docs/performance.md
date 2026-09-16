@@ -216,6 +216,73 @@ threshold left markers on and that row measured 375 ms instead of 44 ms — an 8
 regression hiding behind a threshold that looked like it was doing its job. Total
 points is the measure that matters; see the note in `performance/constants.ts`.
 
+## Force graph resize
+
+A force graph uses the panel dimensions to calculate repulsion, edge length, and
+gravity. A full option replacement recalculates the force layout. This work can
+block the main thread during each step of an active panel resize.
+
+The force resize benchmark used Chromium 143.0.7499.4 and ECharts 6.1.0. It used
+60 size steps from 400 by 300 to 800 by 500. These synchronous step times are
+machine-specific:
+
+| Graph                | Path                           | p50      | p95      | Maximum  | Total settle |
+| -------------------- | ------------------------------ | -------- | -------- | -------- | ------------ |
+| 12 nodes, 11 edges   | Full option and resize         | 3.7 ms   | 4.7 ms   | 8.8 ms   | 509.5 ms     |
+|                      | Resize only, final option      | 2.0 ms   | 2.5 ms   | 2.9 ms   | 516.6 ms     |
+|                      | Animated partial, final option | 1.5 ms   | 2.0 ms   | 2.2 ms   | 516.9 ms     |
+| 100 nodes, 200 edges | Full option and resize         | 56.0 ms  | 59.0 ms  | 59.8 ms  | 3456.6 ms    |
+|                      | Resize only, final option      | 28.9 ms  | 30.1 ms  | 30.6 ms  | 1830.0 ms    |
+|                      | Animated partial, final option | 6.0 ms   | 6.7 ms   | 7.4 ms   | 537.5 ms     |
+| 500 nodes, 499 edges | Full option and resize         | 625.1 ms | 639.3 ms | 654.1 ms | 37650.4 ms   |
+|                      | Resize only, final option      | 312.7 ms | 320.7 ms | 334.2 ms | 19231.2 ms   |
+|                      | Animated partial, final option | 26.1 ms  | 27.8 ms  | 28.0 ms  | 1962.7 ms    |
+
+The selected path uses force animation during an active resize. The initial
+configured option is a full replacement. Each changed size goes directly to
+ECharts, and a merging partial option sets `force.layoutAnimation: true`,
+`force.friction: 0.05`, and `force.initLayout: 'none'`. After 150 ms without a
+new size, one full replacement uses the last dimensions. That option restores
+the saved `relationsLayoutAnimation` configuration. It preserves the default
+state and explicit `false` or `true` values.
+
+The configured full option uses `force.friction: 0.2` and
+`force.initLayout: 'none'`. The benchmark makes sure that every final full
+option restores these values and `force.layoutAnimation: false`.
+
+Only a visible Relations force graph uses this path. Fixed and circular graphs,
+sankey, chord, and other chart families use immediate resize. Initial size,
+chart replacement, and strategy replacement also publish immediately. A chart
+context change rebuilds the option immediately with the current settled size.
+ECharts does not receive a resize call when the dimensions are equal. Cleanup
+cancels a pending size publication.
+
+A force-layout preset preview uses a fixed strategy. It keeps its initial chart
+size and option dimensions when Grafana resizes the preview card. User panels
+continue to use the animated force strategy.
+
+The animated path kept p95 below 16 ms for the 100-node graph. It kept p95 below
+50 ms and the maximum below 100 ms for the 500-node graph. Its final canvas hash
+matched the resize-only path in each scenario. The full-option hashes differed
+because repeated replacements changed the simulation state. The benchmark resets
+a fixed pseudo-random seed before the candidate paths' comparable full options.
+
+The benchmark found all expected node and edge marks in each image. Both candidate
+paths kept all 12 small-graph nodes inside the plot. They had 45 nodes outside
+the plot for the 100-node graph and 312 for the 500-node graph. Thus, these
+synthetic results do not make a containment claim. The mounted plugin integration
+test verifies that all final node symbols have finite geometry.
+
+The per-step full rebuild path was rejected because it blocks each resize step.
+The resize-only path was rejected because ECharts still does synchronous force
+work. The animated path reduces that synchronous work during the resize burst.
+It does one size-aware rebuild after the burst.
+
+The focused tests cover the 60-update quiet period, the final full option,
+strategy selection, the fixed preset preview, and one mounted resize burst. The
+benchmark command and its interpretation are in
+[scripts/bench/README.md](../scripts/bench/README.md).
+
 ## Rejected: animation density thresholds
 
 Animation was originally auto-disabled above 50 series or 5000 points/series,

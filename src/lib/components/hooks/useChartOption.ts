@@ -23,12 +23,12 @@ interface Options {
 
 /**
  * Rebuild the panel's ECharts option and push it to the instance whenever the
- * chart context changes.
+ * chart context or settled plot size changes.
  *
  * `chartContext` is memoized upstream (Panel.tsx), so this effect — and the
- * option build inside it — already skips incidental re-renders (resize, hover,
- * legend). Building in an effect rather than a `useMemo` keeps the work off the
- * render path.
+ * option build inside it — skips incidental hover and legend re-renders. Force
+ * layout resize updates arrive only after the allocated size settles. Building
+ * in an effect rather than a `useMemo` keeps the work off the render path.
  */
 export function useChartOption(
   chart: EChartsType | null,
