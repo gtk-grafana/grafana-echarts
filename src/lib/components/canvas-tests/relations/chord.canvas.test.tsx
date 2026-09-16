@@ -5,7 +5,12 @@ import { cyclicEdgesFrame, edgesFrame, nodesFrame } from 'test/relations';
 import { renderRelations } from 'test/relationsCanvas';
 
 const renderChord = (input: Omit<Parameters<typeof renderRelations>[0], 'variant'>) =>
-  renderRelations({ ...input, variant: 'chord' });
+  renderRelations({
+    ...input,
+    variant: 'chord',
+    // Keep canvas baselines focused on geometry. The integration suite tests gradients.
+    options: { relationsLinkColor: 'source', ...input.options },
+  });
 
 describe('relations chord', () => {
   describe('base', () => {
@@ -71,23 +76,28 @@ describe('relations chord', () => {
   });
 
   describe('link color', () => {
-    /**
-     * @todo gradient is supported in echarts, but not here?
-     * https://echarts.apache.org/en/option.html#series-chord.lineStyle.color
-     */
-    it('BUGGY BEHAVIOR: chord draws source instead of gradient', async () => {
+    it('target', async () => {
       const { defaultEvents, seriesEvents } = await renderChord({
         frames: [nodesFrame, edgesFrame],
-        options: { relationsLinkColor: 'gradient' },
+        options: { relationsLinkColor: 'target' },
       });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
     });
 
-    it('target (each ribbon takes the color of its other arc)', async () => {
+    it('source', async () => {
       const { defaultEvents, seriesEvents } = await renderChord({
         frames: [nodesFrame, edgesFrame],
-        options: { relationsLinkColor: 'target' },
+        options: { relationsLinkColor: 'source' },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('gradient', async () => {
+      const { defaultEvents, seriesEvents } = await renderChord({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsLinkColor: 'source' },
       });
 
       expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });

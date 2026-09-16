@@ -9,7 +9,7 @@ exports[`relations color (chord) by value, banded (each mark in its threshold ba
 {"type":"shadowOffsetX","props":{"value":0}},
 {"type":"shadowOffsetY","props":{"value":0}},
 {"type":"shadowColor","props":{"value":"#000000"}},
-{"type":"fillStyle","props":{"value":"#000000"}},
+{"type":"fillStyle","props":{"value":"#73bf69"}},
 {"type":"strokeStyle","props":{"value":"#73bf69"}},
 {"type":"globalAlpha","props":{"value":0.2}},
 {"type":"lineCap","props":{"value":"butt"}},
@@ -23,6 +23,7 @@ exports[`relations color (chord) by value, banded (each mark in its threshold ba
 {"type":"bezierCurveTo","props":{"cpx1":226.134822,"cpy1":122.109432,"cpx2":200,"cpy2":102.7,"x":200,"y":39}},
 {"type":"closePath","props":{}},
 {"type":"fill","props":{"path":[{"type":"beginPath","props":{}},{"type":"moveTo","props":{"x":200,"y":39}},{"type":"arc","props":{"x":200,"y":130,"radius":91,"startAngle":4.712389,"endAngle":5.325,"anticlockwise":false}},{"type":"bezierCurveTo","props":{"cpx1":215.697643,"cpy1":107.664513,"cpx2":216.845079,"cpy2":108.516674,"x":256.150265,"y":58.388913}},{"type":"arc","props":{"x":200,"y":130,"radius":91,"startAngle":5.377359,"endAngle":5.98997,"anticlockwise":false}},{"type":"bezierCurveTo","props":{"cpx1":226.134822,"cpy1":122.109432,"cpx2":200,"cpy2":102.7,"x":200,"y":39}},{"type":"closePath","props":{}}],"fillRule":"nonzero"}},
+{"type":"fillStyle","props":{"value":"#f2495c"}},
 {"type":"strokeStyle","props":{"value":"#f2495c"}},
 {"type":"beginPath","props":{}},
 {"type":"moveTo","props":{"x":287.116074,"y":103.698106}},
@@ -102,7 +103,7 @@ exports[`relations color (chord) by value, graded (a continuous ramp over the sa
 {"type":"shadowOffsetX","props":{"value":0}},
 {"type":"shadowOffsetY","props":{"value":0}},
 {"type":"shadowColor","props":{"value":"#000000"}},
-{"type":"fillStyle","props":{"value":"#000000"}},
+{"type":"fillStyle","props":{"value":"#94c65a"}},
 {"type":"strokeStyle","props":{"value":"#94c65a"}},
 {"type":"globalAlpha","props":{"value":0.2}},
 {"type":"lineCap","props":{"value":"butt"}},
@@ -116,6 +117,7 @@ exports[`relations color (chord) by value, graded (a continuous ramp over the sa
 {"type":"bezierCurveTo","props":{"cpx1":226.134822,"cpy1":122.109432,"cpx2":200,"cpy2":102.7,"x":200,"y":39}},
 {"type":"closePath","props":{}},
 {"type":"fill","props":{"path":[{"type":"beginPath","props":{}},{"type":"moveTo","props":{"x":200,"y":39}},{"type":"arc","props":{"x":200,"y":130,"radius":91,"startAngle":4.712389,"endAngle":5.325,"anticlockwise":false}},{"type":"bezierCurveTo","props":{"cpx1":215.697643,"cpy1":107.664513,"cpx2":216.845079,"cpy2":108.516674,"x":256.150265,"y":58.388913}},{"type":"arc","props":{"x":200,"y":130,"radius":91,"startAngle":5.377359,"endAngle":5.98997,"anticlockwise":false}},{"type":"bezierCurveTo","props":{"cpx1":226.134822,"cpy1":122.109432,"cpx2":200,"cpy2":102.7,"x":200,"y":39}},{"type":"closePath","props":{}}],"fillRule":"nonzero"}},
+{"type":"fillStyle","props":{"value":"#f46e50"}},
 {"type":"strokeStyle","props":{"value":"#f46e50"}},
 {"type":"beginPath","props":{}},
 {"type":"moveTo","props":{"x":287.116074,"y":103.698106}},
@@ -186,7 +188,7 @@ exports[`relations color (chord) by value, graded (a continuous ramp over the sa
 ]
 `;
 
-exports[`relations color (chord) color blind safe palette (a slot per mark, gradient edges) 1`] = `
+exports[`relations color (chord) color blind safe palette (a slot per mark, source-colored edges) 1`] = `
 [
 {"type":"save","props":{}},
 {"type":"setTransform","props":{"a":1,"b":0,"c":0,"d":1,"e":0,"f":0}},
@@ -287,7 +289,7 @@ exports[`relations color (chord) shades of a color (one hue, a step per mark) 1`
 {"type":"shadowOffsetX","props":{"value":0}},
 {"type":"shadowOffsetY","props":{"value":0}},
 {"type":"shadowColor","props":{"value":"#000000"}},
-{"type":"fillStyle","props":{"value":"#000000"}},
+{"type":"fillStyle","props":{"value":"#75a9ff"}},
 {"type":"strokeStyle","props":{"value":"#75a9ff"}},
 {"type":"globalAlpha","props":{"value":0.2}},
 {"type":"lineCap","props":{"value":"butt"}},
@@ -301,6 +303,7 @@ exports[`relations color (chord) shades of a color (one hue, a step per mark) 1`
 {"type":"bezierCurveTo","props":{"cpx1":226.134822,"cpy1":122.109432,"cpx2":200,"cpy2":102.7,"x":200,"y":39}},
 {"type":"closePath","props":{}},
 {"type":"fill","props":{"path":[{"type":"beginPath","props":{}},{"type":"moveTo","props":{"x":200,"y":39}},{"type":"arc","props":{"x":200,"y":130,"radius":91,"startAngle":4.712389,"endAngle":5.325,"anticlockwise":false}},{"type":"bezierCurveTo","props":{"cpx1":215.697643,"cpy1":107.664513,"cpx2":216.845079,"cpy2":108.516674,"x":256.150265,"y":58.388913}},{"type":"arc","props":{"x":200,"y":130,"radius":91,"startAngle":5.377359,"endAngle":5.98997,"anticlockwise":false}},{"type":"bezierCurveTo","props":{"cpx1":226.134822,"cpy1":122.109432,"cpx2":200,"cpy2":102.7,"x":200,"y":39}},{"type":"closePath","props":{}}],"fillRule":"nonzero"}},
+{"type":"fillStyle","props":{"value":"#207cee"}},
 {"type":"strokeStyle","props":{"value":"#207cee"}},
 {"type":"beginPath","props":{}},
 {"type":"moveTo","props":{"x":287.116074,"y":103.698106}},
@@ -380,7 +383,7 @@ exports[`relations color (chord) single color (every mark the same red) 1`] = `
 {"type":"shadowOffsetX","props":{"value":0}},
 {"type":"shadowOffsetY","props":{"value":0}},
 {"type":"shadowColor","props":{"value":"#000000"}},
-{"type":"fillStyle","props":{"value":"#000000"}},
+{"type":"fillStyle","props":{"value":"#f2495c"}},
 {"type":"strokeStyle","props":{"value":"#f2495c"}},
 {"type":"globalAlpha","props":{"value":0.2}},
 {"type":"lineCap","props":{"value":"butt"}},
@@ -403,7 +406,6 @@ exports[`relations color (chord) single color (every mark the same red) 1`] = `
 {"type":"closePath","props":{}},
 {"type":"fill","props":{"path":[{"type":"beginPath","props":{}},{"type":"moveTo","props":{"x":287.116074,"y":103.698106}},{"type":"arc","props":{"x":200,"y":130,"radius":91,"startAngle":5.98997,"endAngle":8.440412,"anticlockwise":false}},{"type":"bezierCurveTo","props":{"cpx1":184.892411,"cpy1":152.73875,"cpx2":183.723061,"cpy2":151.916917,"x":145.743536,"y":203.05639}},{"type":"arc","props":{"x":200,"y":130,"radius":91,"startAngle":2.209587,"endAngle":4.660029,"anticlockwise":false}},{"type":"bezierCurveTo","props":{"cpx1":198.571228,"cpy1":102.737414,"cpx2":226.134822,"cpy2":122.109432,"x":287.116074,"y":103.698106}},{"type":"closePath","props":{}}],"fillRule":"nonzero"}},
 {"type":"globalAlpha","props":{"value":1}},
-{"type":"fillStyle","props":{"value":"#f2495c"}},
 {"type":"globalAlpha","props":{"value":1}},
 {"type":"beginPath","props":{}},
 {"type":"moveTo","props":{"x":200,"y":31.126343}},

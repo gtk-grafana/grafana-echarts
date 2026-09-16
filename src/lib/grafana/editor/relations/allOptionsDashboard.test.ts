@@ -77,12 +77,12 @@ const FIELD_CONFIG_PANEL: Record<string, number> = {
 };
 
 /** Extra values that explain a supported choice or chart variant. */
-const SUPPLEMENTAL_PANEL_IDS = [37, 38, 39, 40, 41, 43, 44];
+const SUPPLEMENTAL_PANEL_IDS = [37, 38, 39, 40, 41, 43, 44, 45, 46, 47];
 
 const FAMILY_ROWS = [
-  { id: 45, title: 'Sankey', seriesType: 'sankey' },
-  { id: 46, title: 'Graph', seriesType: 'graph' },
-  { id: 47, title: 'Chord', seriesType: 'chord' },
+  { id: 48, title: 'Sankey', seriesType: 'sankey' },
+  { id: 49, title: 'Graph', seriesType: 'graph' },
+  { id: 50, title: 'Chord', seriesType: 'chord' },
 ] as const;
 
 /** Return every expected panel id in dashboard order. */
@@ -171,6 +171,16 @@ describe('the all-options reference dashboard', () => {
       .map((panel) => panel.title);
 
     expect(thin).toEqual([]);
+  });
+
+  it('demonstrates every link color in the Chord row', () => {
+    const panelsById = new Map(dashboard().panels.map((panel) => [panel.id, panel]));
+
+    expect([45, 46, 47].map((id) => panelsById.get(id))).toMatchObject([
+      { title: 'Link color — Gradient on Chord', options: { seriesType: 'chord', relationsLinkColor: 'gradient' } },
+      { title: 'Link color — Source on Chord', options: { seriesType: 'chord', relationsLinkColor: 'source' } },
+      { title: 'Link color — Target on Chord', options: { seriesType: 'chord', relationsLinkColor: 'target' } },
+    ]);
   });
 });
 

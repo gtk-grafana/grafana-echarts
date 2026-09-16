@@ -82,6 +82,20 @@ const renderFixedEdge = (beforeCapture?: Parameters<typeof renderRelations>[0]['
   });
 
 describe('relations chord edge color', () => {
+  it('draws a gradient between the ribbon endpoints', async () => {
+    const gradientCalls = async (relationsLinkColor: 'source' | 'gradient') => {
+      const { seriesEvents } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        variant: 'chord',
+        options: { relationsLinkColor },
+      });
+      return seriesEvents.filter((event) => event.type === 'createLinearGradient').length;
+    };
+
+    expect(await gradientCalls('gradient')).toBeGreaterThan(0);
+    expect(await gradientCalls('source')).toBe(0);
+  });
+
   it.each(literalSchemes)('fills every edge color from the $name scheme', async ({ color }) => {
     const { seriesEvents } = await renderRelations({
       frames: [colorNodes, colorEdges],
