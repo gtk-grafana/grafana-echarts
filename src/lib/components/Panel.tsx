@@ -1,3 +1,4 @@
+import { LoadingState } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { debug, LOG_LEVELS } from 'development';
 import React from 'react';
@@ -6,6 +7,11 @@ import { type PanelComponentProps } from './types';
 
 export const Panel: React.FC<PanelComponentProps> = (props) => {
   const { data, fieldConfig, id } = props;
+
+  if (data.state === LoadingState.Streaming) {
+    return null;
+  }
+
   debug('panelData series', LOG_LEVELS.debug, data.series);
 
   // Grafana queries can return frame schemas with no rows. These frames have no
