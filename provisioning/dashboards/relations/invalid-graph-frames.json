@@ -1,0 +1,614 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "description": "This dashboard verifies the Relations no-data view. Panel titles state the expected message. Graph, Sankey, and Chord use the same invalid frame so shared behavior stays visible.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "A normal time series is not graph data. The panel must explain that the graph needs edge endpoints.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "refId": "A",
+          "scenarioId": "random_walk",
+          "seriesCount": 1
+        }
+      ],
+      "title": "Random walk — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "A flame graph frame is not Relations graph data. The panel must show the same unsupported-frame message as the random walk.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "flamegraphDiff": true,
+          "refId": "A",
+          "scenarioId": "flame_graph"
+        }
+      ],
+      "title": "Flame graph in Relations — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The core Time series panel is a control for the same flame graph response. Grafana explains that the response has no time field.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "flamegraphDiff": true,
+          "refId": "A",
+          "scenarioId": "flame_graph"
+        }
+      ],
+      "title": "Flame graph in core Time series — control: Data is missing a time field",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The shared invalid raw frame contains one numeric field without source and target labels.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"unsupported\",\"fields\":[{\"name\":\"value\",\"type\":\"number\"}]},\"data\":{\"values\":[[5]]}}]",
+          "refId": "A",
+          "scenarioId": "raw_frame"
+        }
+      ],
+      "title": "Shared invalid frame — Graph — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The Sankey variant must show the same message for the shared invalid frame.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "seriesType": "sankey",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"unsupported\",\"fields\":[{\"name\":\"value\",\"type\":\"number\"}]},\"data\":{\"values\":[[5]]}}]",
+          "refId": "A",
+          "scenarioId": "raw_frame"
+        }
+      ],
+      "title": "Shared invalid frame — Sankey — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The Chord variant must show the same message for the shared invalid frame.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "seriesType": "chord",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"unsupported\",\"fields\":[{\"name\":\"value\",\"type\":\"number\"}]},\"data\":{\"values\":[[5]]}}]",
+          "refId": "A",
+          "scenarioId": "raw_frame"
+        }
+      ],
+      "title": "Shared invalid frame — Chord — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "This response declares one graph-nodes-wide frame and no edges frame.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"nodes\",\"meta\":{\"type\":\"graph-nodes-wide\"},\"fields\":[{\"name\":\"alpha\",\"type\":\"number\"},{\"name\":\"beta\",\"type\":\"number\"}]},\"data\":{\"values\":[[1],[2]]}}]",
+          "refId": "A",
+          "scenarioId": "raw_frame"
+        }
+      ],
+      "title": "Declared nodes only — expect: Graph data contains nodes but no edges. Add an edges frame.",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "This response declares an edges frame, but its numeric field has no usable endpoint labels.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"edges\",\"meta\":{\"type\":\"graph-edges-wide\"},\"fields\":[{\"name\":\"broken-edge\",\"type\":\"number\"}]},\"data\":{\"values\":[[5]]}}]",
+          "refId": "A",
+          "scenarioId": "raw_frame"
+        }
+      ],
+      "title": "Declared edges without endpoints — expect: Graph edge fields are missing endpoints. Add source and target labels to each numeric edge field.",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "The graph is valid, but the default field configuration hides every node and edge from the visualization.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": true
+            }
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"edges\",\"meta\":{\"type\":\"graph-edges-wide\"},\"fields\":[{\"name\":\"alpha-->beta\",\"type\":\"number\",\"labels\":{\"source\":\"alpha\",\"target\":\"beta\"}}]},\"data\":{\"values\":[[5]]}}]",
+          "refId": "A",
+          "scenarioId": "raw_frame"
+        }
+      ],
+      "title": "Valid graph, all marks hidden — expect: All graph marks are hidden. Show at least one node or edge in the field configuration.",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "An empty successful response must keep Grafana's default No data view.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "rawFrameContent": "[]",
+          "refId": "A",
+          "scenarioId": "raw_frame"
+        }
+      ],
+      "title": "Successful empty response — expect: No data",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "A query error must keep Grafana's existing query error view. A frame message must not replace it.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "errorMessage": "Relations query-error control",
+          "errorProbability": 100,
+          "errorSource": "downstream",
+          "errorStatusCode": 400,
+          "refId": "A",
+          "scenarioId": "flaky_query",
+          "stringInput": "5s"
+        }
+      ],
+      "title": "Query-error control — expect Grafana query error: Relations query-error control",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "description": "A valid declared edges frame must render a graph. This panel makes sure that the no-data view does not replace a successful chart.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "relationsLayout": "circular",
+        "seriesType": "graph",
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "rawFrameContent": "[{\"schema\":{\"refId\":\"A\",\"name\":\"edges\",\"meta\":{\"type\":\"graph-edges-wide\"},\"fields\":[{\"name\":\"alpha-->beta\",\"type\":\"number\",\"labels\":{\"source\":\"alpha\",\"target\":\"beta\"}},{\"name\":\"beta-->gamma\",\"type\":\"number\",\"labels\":{\"source\":\"beta\",\"target\":\"gamma\"}}]},\"data\":{\"values\":[[5],[3]]}}]",
+          "refId": "A",
+          "scenarioId": "raw_frame"
+        }
+      ],
+      "title": "Valid graph control — expect a rendered alpha → beta → gamma graph",
+      "type": "grafana-echartsrelations-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": ["echarts", "relations", "no-data", "regression"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — invalid graph frames",
+  "uid": "echarts-relations-invalid-graph-frames",
+  "version": 1,
+  "weekStart": ""
+}

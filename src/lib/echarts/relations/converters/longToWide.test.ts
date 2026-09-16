@@ -17,7 +17,7 @@ import {
   longToWide,
   longToWideOperator,
 } from 'lib/echarts/relations/converters/longToWide';
-import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
+import { frameToRelationsGraph, type RelationsGraphReadResult } from 'lib/echarts/relations/converters/nodeGraph';
 
 import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 jest.mock('development', () => ({
@@ -30,6 +30,13 @@ const logged = (level: number): string[] =>
     .mocked(debug)
     .mock.calls.filter((call) => call[1] === level)
     .map(([message]) => message);
+
+const graphData = (result: RelationsGraphReadResult) => {
+  if (result.kind !== 'data') {
+    throw new Error(`fixture produced ${result.reason}`);
+  }
+  return result.data;
+};
 
 beforeEach(() => {
   jest.mocked(debug).mockClear();
@@ -74,10 +81,10 @@ describe('longToWide — the pivot', () => {
   });
 
   it('gives every edge its own id in the model the panel reads', () => {
-    const data = frameToRelationsGraph(longToWide(edges()), createTheme());
+    const data = graphData(frameToRelationsGraph(longToWide(edges()), createTheme()));
 
-    expect(data?.links.map((link) => link.id)).toEqual(['a-->b', 'b-->c', 'a-->c']);
-    expect(data?.links.map((link) => [link.source, link.target])).toEqual([
+    expect(data.links.map((link) => link.id)).toEqual(['a-->b', 'b-->c', 'a-->c']);
+    expect(data.links.map((link) => [link.source, link.target])).toEqual([
       ['a', 'b'],
       ['b', 'c'],
       ['a', 'c'],
@@ -169,9 +176,9 @@ describe('longToWide — conventional endpoint labels', () => {
 
   // End to end: the keys reach the model the tooltip footer reads.
   it('reaches the model as the response’s endpoint labels', () => {
-    const data = frameToRelationsGraph(longToWide(clientServer()), createTheme());
+    const data = graphData(frameToRelationsGraph(longToWide(clientServer()), createTheme()));
 
-    expect(data?.endpointLabels).toEqual({ source: 'client', target: 'server' });
+    expect(data.endpointLabels).toEqual({ source: 'client', target: 'server' });
   });
 });
 
@@ -239,15 +246,17 @@ describe('longToWide — recovered endpoint labels', () => {
   });
 
   it('carries the originals through so the reader can answer per edge', () => {
-    const data = frameToRelationsGraph(
-      longToWide([
-        series({ source: 'prod', target: 'ns-a', cluster: 'prod', namespace: 'ns-a' }, [1]),
-        series({ source: 'ns-a', target: 'checkout', namespace: 'ns-a', workload: 'checkout' }, [2]),
-      ]),
-      createTheme()
+    const data = graphData(
+      frameToRelationsGraph(
+        longToWide([
+          series({ source: 'prod', target: 'ns-a', cluster: 'prod', namespace: 'ns-a' }, [1]),
+          series({ source: 'ns-a', target: 'checkout', namespace: 'ns-a', workload: 'checkout' }, [2]),
+        ]),
+        createTheme()
+      )
     );
 
-    expect(data?.links.map((link) => link.filterLabels)).toEqual([
+    expect(data.links.map((link) => link.filterLabels)).toEqual([
       { source: 'cluster', target: 'namespace' },
       { source: 'namespace', target: 'workload' },
     ]);

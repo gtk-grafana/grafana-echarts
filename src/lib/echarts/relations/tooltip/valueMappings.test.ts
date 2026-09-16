@@ -60,10 +60,10 @@ const asPipelineWould = (frames: DataFrame[]): DataFrame[] =>
 
 const graphOf = (frames: DataFrame[]) => {
   const data = frameToRelationsGraph(asPipelineWould(frames), theme);
-  if (!data) {
-    throw new Error('fixture produced no graph');
+  if (data.kind !== 'data') {
+    throw new Error(`fixture produced ${data.reason}`);
   }
-  return data;
+  return data.data;
 };
 
 const marksOf = (frames: DataFrame[]) => getRelationsTooltipMarks(graphOf(frames), theme, 'utc');

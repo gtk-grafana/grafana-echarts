@@ -1,16 +1,5 @@
-import { type FieldConfigSource } from '@grafana/data';
 import { type VizLegendItem } from '@grafana/ui';
-import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
 
-import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
-import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
-import { getChordSeries } from 'lib/echarts/relations/options/chord';
-import { getGraphSeries, relationsDefaultOptions } from 'lib/echarts/relations/options/graph';
-import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
-import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
-import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/relations/options/sankey';
-
-import { getHiddenSeriesNames, getMarkPositionOverride } from 'lib/grafana/fields/seriesConfig';
 import {
   type ChartModule,
   type ChartNotice,
@@ -21,73 +10,30 @@ import {
   type LegendHighlightTarget,
   type RelationsChartContext,
 } from 'lib/echarts/charts/types';
+import { DEFAULT_CHART_LEGEND } from 'lib/echarts/options/legend';
+import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
+import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
+
+import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 
 import { graphWideTimeline } from 'lib/echarts/relations/converters/timeStops';
-import { type RelationsSeriesContext } from 'lib/echarts/relations/context';
+import { getChordSeries } from 'lib/echarts/relations/options/chord';
+import { getGraphSeries, relationsDefaultOptions } from 'lib/echarts/relations/options/graph';
+import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/relations/options/sankey';
+import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
 import { resolveRelationsZoom } from 'lib/echarts/relations/options/view';
 import { getRelationsTooltipMarks } from 'lib/echarts/relations/tooltip/marks';
+import { getHiddenNodeIds, getVisibleRelationsGraph } from 'lib/echarts/relations/visibleGraph';
 
-/** Ids of every node hidden from the visualization. */
-function hiddenNodeIds(data: NodeGraphData, fieldConfig: FieldConfigSource): Set<string> {
-  const derived = data.nodes.filter((node) => node.field == null);
-  // Derived nodes have no field, so resolve their overrides by name.
-  const hiddenDerived =
-    derived.length > 0
-      ? getHiddenSeriesNames(
-          fieldConfig,
-          derived.map((node) => node.name)
-        )
-      : new Set<string>();
-
-  const hidden = new Set<string>();
-  for (const node of data.nodes) {
-    if (node.field != null ? node.hidden === true : hiddenDerived.has(node.name)) {
-      hidden.add(node.id);
-    }
-  }
-  return hidden;
-}
-
-/** The graph as rendered: hidden marks removed. */
-function withoutHiddenMarks(data: NodeGraphData, fieldConfig: FieldConfigSource): NodeGraphData {
-  const hidden = hiddenNodeIds(data, fieldConfig);
-  const links = data.links.filter(
-    (link) => link.hidden !== true && !hidden.has(link.source) && !hidden.has(link.target)
-  );
-  if (hidden.size === 0 && links.length === data.links.length) {
-    return data;
-  }
-
-  const connected = new Set(links.flatMap((link) => [link.source, link.target]));
-  return {
-    ...data,
-    nodes: data.nodes.filter((node) => !hidden.has(node.id) && (node.field != null || connected.has(node.id))),
-    links,
-  };
-}
-
-/** Pinned positions for derived nodes. */
-function withOverriddenPositions(data: NodeGraphData, fieldConfig: FieldConfigSource): NodeGraphData {
-  if (fieldConfig.overrides.length === 0 || data.nodes.every((node) => node.field != null)) {
-    return data;
-  }
-  return {
-    ...data,
-    nodes: data.nodes.map((node) => {
-      if (node.field != null) {
-        return node;
-      }
-      const pinned = getMarkPositionOverride(fieldConfig, node.id) ?? getMarkPositionOverride(fieldConfig, node.name);
-      return pinned ? { ...node, fixedX: pinned.x, fixedY: pinned.y } : node;
-    }),
-  };
-}
-
-/** The node/link model as rendered: hidden marks and their orphaned links removed. */
-function getVisibleNodeGraph(ctx: RelationsChartContext): NodeGraphData | null {
-  const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions, ctx.selectedTime);
-  return data == null ? null : withOverriddenPositions(withoutHiddenMarks(data, ctx.fieldConfig), ctx.fieldConfig);
-}
+const ISSUE_MESSAGES = {
+  'unsupported-frame-shape': 'Graph data is missing edges. Add source and target labels to each numeric edge field.',
+  'nodes-without-edges': 'Graph data contains nodes but no edges. Add an edges frame.',
+  'edges-without-endpoints':
+    'Graph edge fields are missing endpoints. Add source and target labels to each numeric edge field.',
+  'legacy-row-data':
+    'Row-based Node Graph data was not converted. Add a Rows to fields transformation, or enable panel system transformations in Grafana.',
+  'hidden-marks': 'All graph marks are hidden. Show at least one node or edge in the field configuration.',
+};
 
 /** Build a relations chart from Grafana's field-based graph contract. */
 export const relationsChartModule: ChartModule = {
@@ -97,10 +43,11 @@ export const relationsChartModule: ChartModule = {
     ctx: RelationsChartContext,
     { plotHeight }
   ): EChartGraphSeriesOption | EChartSankeySeriesOption | EChartChordSeriesOption | null {
-    const data = getVisibleNodeGraph(ctx);
-    if (!data) {
+    const result = getVisibleRelationsGraph(ctx);
+    if (result.kind === 'issue') {
       return null;
     }
+    const { data } = result;
 
     // Build tooltip metadata only for visible marks.
     const seriesCtx: RelationsSeriesContext = {
@@ -122,6 +69,12 @@ export const relationsChartModule: ChartModule = {
     return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx, plotHeight)] };
   },
 
+  /** Explain why the selected variant cannot draw the response. */
+  getDataIssue(ctx: RelationsChartContext) {
+    const result = getVisibleRelationsGraph(ctx);
+    return result.kind === 'issue' ? { reason: result.reason, message: ISSUE_MESSAGES[result.reason] } : undefined;
+  },
+
   /** Report data that the panel cannot draw as requested. */
   getNotices(ctx: RelationsChartContext): ChartNotice[] {
     const notices: ChartNotice[] = [];
@@ -135,8 +88,9 @@ export const relationsChartModule: ChartModule = {
 
     if (ctx.seriesType === 'sankey') {
       // Count removed links after hidden marks are filtered.
-      const data = getVisibleNodeGraph(ctx);
-      const text = data ? getSankeyDroppedNoticeText(toSankeyLinks(data.links).droppedCount) : null;
+      const result = getVisibleRelationsGraph(ctx);
+      const text =
+        result.kind === 'data' ? getSankeyDroppedNoticeText(toSankeyLinks(result.data.links).droppedCount) : null;
       if (text != null) {
         notices.push({ severity: 'warning', text });
       }
@@ -165,9 +119,13 @@ export const relationsChartModule: ChartModule = {
 
   /** Emphasize a legend node and its links. */
   getLegendHighlightTargets(ctx: RelationsChartContext, label: string): LegendHighlightTarget[] {
-    const data = getVisibleNodeGraph(ctx);
-    const nodeIndex = data?.nodes.findIndex((node) => node.name === label) ?? -1;
-    if (data == null || nodeIndex < 0) {
+    const result = getVisibleRelationsGraph(ctx);
+    if (result.kind === 'issue') {
+      return [];
+    }
+    const { data } = result;
+    const nodeIndex = data.nodes.findIndex((node) => node.name === label);
+    if (nodeIndex < 0) {
       return [];
     }
 
@@ -188,22 +146,24 @@ export const relationsChartModule: ChartModule = {
 
   /** Nodes and edges, because both are fields and the legend lists only nodes. */
   getOverrideTargetNames(ctx: RelationsChartContext): string[] {
-    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions, ctx.selectedTime);
-    if (!data) {
+    const result = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions, ctx.selectedTime);
+    if (result.kind === 'issue') {
       return [];
     }
+    const { data } = result;
     // Overrides match node display names and edge field names.
     return [...data.nodes.map((node) => node.name), ...data.links.map((link) => link.field?.name ?? link.id)];
   },
 
   buildLegendItems(ctx): VizLegendItem[] {
     // Keep hidden nodes in the legend so users can show them again.
-    const data = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions, ctx.selectedTime);
-    if (!data) {
+    const result = frameToRelationsGraph(ctx.frames, ctx.theme, ctx.options.reduceOptions, ctx.selectedTime);
+    if (result.kind === 'issue') {
       return [];
     }
+    const { data } = result;
 
-    const hidden = hiddenNodeIds(data, ctx.fieldConfig);
+    const hidden = getHiddenNodeIds(data, ctx.fieldConfig);
     return data.nodes.map((node) => ({
       label: node.name,
       fieldName: node.name,

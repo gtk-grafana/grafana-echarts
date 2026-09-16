@@ -135,10 +135,10 @@ const modelFor = (
   panelOptions: PanelOptions = options()
 ): ((params: TopLevelFormatterParams) => TooltipModel) => {
   const data = frameToRelationsGraph(frames, theme, panelOptions.reduceOptions);
-  if (!data) {
-    throw new Error('fixture produced no graph');
+  if (data.kind !== 'data') {
+    throw new Error(`fixture produced ${data.reason}`);
   }
-  return buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'), panelOptions);
+  return buildRelationsTooltipModel(getRelationsTooltipMarks(data.data, theme, 'utc'), panelOptions);
 };
 
 /** A hovered node, as the graph variant emits it. */
@@ -239,7 +239,11 @@ describe('buildRelationsTooltipModel', () => {
     ];
 
     it('formats each mark with its own field, not the last one to be read', () => {
-      const data = frameToRelationsGraph(rawEdges(), theme)!;
+      const result = frameToRelationsGraph(rawEdges(), theme);
+      if (result.kind !== 'data') {
+        throw new Error(`fixture produced ${result.reason}`);
+      }
+      const data = result.data;
       const model = buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'));
       const [first, second] = data.links;
 
@@ -256,7 +260,11 @@ describe('buildRelationsTooltipModel', () => {
     });
 
     it('surfaces only the mark that carries data links', () => {
-      const data = frameToRelationsGraph(rawEdges(), theme)!;
+      const result = frameToRelationsGraph(rawEdges(), theme);
+      if (result.kind !== 'data') {
+        throw new Error(`fixture produced ${result.reason}`);
+      }
+      const data = result.data;
       const model = buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'));
 
       const sources = data.links.map(

@@ -14,6 +14,14 @@ jest.mock('development', () => ({
 
 const theme = createTheme();
 
+const graphOf = (frames: DataFrame[]) => {
+  const result = frameToRelationsGraph(frames, theme);
+  if (result.kind !== 'data') {
+    throw new Error(`fixture produced ${result.reason}`);
+  }
+  return result.data;
+};
+
 const wideNodes = (): DataFrame =>
   toDataFrame({
     name: 'nodes',
@@ -79,16 +87,15 @@ describe('getRelationsTooltipMarks', () => {
       ],
     });
 
-    const data = frameToRelationsGraph([nodes, edges], theme);
-    const marks = getRelationsTooltipMarks(data!, theme, 'utc');
+    const marks = getRelationsTooltipMarks(graphOf([nodes, edges]), theme, 'utc');
 
     expect(marks.nodes.get('e1')?.source.field.config.unit).toBe('ms');
     expect(marks.links.get('e1')?.source.field.config.unit).toBe('percent');
   });
 
   it('collects an adjacency list for every node', () => {
-    const withStats = frameToRelationsGraph([wideNodes(), wideEdges()], theme)!;
-    const derived = frameToRelationsGraph([wideEdges()], theme)!;
+    const withStats = graphOf([wideNodes(), wideEdges()]);
+    const derived = graphOf([wideEdges()]);
 
     expect([...getRelationsTooltipMarks(withStats, theme, 'utc').adjacency!.keys()]).toEqual(['gateway', 'db']);
     // Derive both parallel edges from each endpoint.
@@ -96,9 +103,7 @@ describe('getRelationsTooltipMarks', () => {
   });
 
   it('holds no entry for a mark with no field, so the lookup misses cleanly', () => {
-    const data = frameToRelationsGraph([wideEdges()], theme);
-
-    expect(getRelationsTooltipMarks(data!, theme, 'utc').nodes.size).toBe(0);
+    expect(getRelationsTooltipMarks(graphOf([wideEdges()]), theme, 'utc').nodes.size).toBe(0);
   });
 
   describe('the filter footer’s inputs', () => {
@@ -121,7 +126,7 @@ describe('getRelationsTooltipMarks', () => {
       });
 
     it('reads each node’s endpoint keys off the edges touching it', () => {
-      const marks = getRelationsTooltipMarks(frameToRelationsGraph([chain()], theme)!, theme, 'utc');
+      const marks = getRelationsTooltipMarks(graphOf([chain()]), theme, 'utc');
 
       expect([...marks.nodeFilterLabels!]).toEqual([
         ['a', { sources: ['source'], targets: [] }],
@@ -132,20 +137,18 @@ describe('getRelationsTooltipMarks', () => {
     });
 
     it('takes one filterable edge as the response’s opt-in', () => {
-      const marks = getRelationsTooltipMarks(frameToRelationsGraph([chain()], theme)!, theme, 'utc');
+      const marks = getRelationsTooltipMarks(graphOf([chain()]), theme, 'utc');
 
       expect(marks.endpointsFilterable).toBe(true);
     });
 
     it('reports no opt-in when no edge carries one', () => {
-      const marks = getRelationsTooltipMarks(frameToRelationsGraph([wideEdges()], theme)!, theme, 'utc');
+      const marks = getRelationsTooltipMarks(graphOf([wideEdges()]), theme, 'utc');
       const plain = { ...wideEdges(), fields: wideEdges().fields.map((field) => ({ ...field, config: {} })) };
 
       // Only `wideEdges` metadata enables this behavior.
       expect(marks.endpointsFilterable).toBe(true);
-      expect(getRelationsTooltipMarks(frameToRelationsGraph([plain], theme)!, theme, 'utc').endpointsFilterable).toBe(
-        false
-      );
+      expect(getRelationsTooltipMarks(graphOf([plain]), theme, 'utc').endpointsFilterable).toBe(false);
     });
   });
 });
