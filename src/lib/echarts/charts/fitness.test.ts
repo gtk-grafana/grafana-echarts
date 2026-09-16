@@ -8,6 +8,8 @@ import {
 } from '@grafana/data';
 import {
   exceedsChordNodeBudget,
+  fitsSankeyTopology,
+  relationsNodeCount,
   resolveHeatmapOverlayRefIds,
   resolveMultiValueSuggestion,
   resolvePartToWholeSlices,
@@ -782,12 +784,28 @@ describe('exceedsChordNodeBudget', () => {
   });
 
   it('falls back to the edges frame when Grafana sent no nodes frame', () => {
-    expect(exceedsChordNodeBudget(summaryOf(edgesFrame(RELATIONS_CHORD_MAX_NODES)))).toBe(false);
-    expect(exceedsChordNodeBudget(summaryOf(edgesFrame(RELATIONS_CHORD_MAX_NODES + 1)))).toBe(true);
+    expect(exceedsChordNodeBudget(summaryOf(edgesFrame(RELATIONS_CHORD_MAX_NODES - 1)))).toBe(false);
+    expect(exceedsChordNodeBudget(summaryOf(edgesFrame(RELATIONS_CHORD_MAX_NODES)))).toBe(true);
   });
 
   it('is false when there are no frames to count', () => {
     expect(exceedsChordNodeBudget(summaryOf())).toBe(false);
+  });
+});
+
+describe('Relations topology', () => {
+  it('reads node counts and cycles from graph-wide fields', () => {
+    const frame = createDataFrame({
+      fields: [
+        { name: 'time', type: FieldType.time, values: [0, 1000] },
+        { name: 'a-to-b', type: FieldType.number, labels: { source: 'a', target: 'b' }, values: [1, 2] },
+        { name: 'b-to-a', type: FieldType.number, labels: { source: 'b', target: 'a' }, values: [2, 1] },
+      ],
+    });
+    const summary = summaryOf(frame);
+
+    expect(relationsNodeCount(summary)).toBe(2);
+    expect(fitsSankeyTopology(summary)).toBe(false);
   });
 });
 

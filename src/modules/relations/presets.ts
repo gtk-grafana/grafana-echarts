@@ -1,0 +1,189 @@
+import { FieldType, type VisualizationPresetsSupplier, type VisualizationSuggestion } from '@grafana/data';
+import { ANIMATION_ENABLED_DEFAULT, seriesTypePath } from 'editor/constants';
+import {
+  RELATIONS_EDGE_ARROWS_DEFAULT,
+  RELATIONS_EDGE_LENGTH_DEFAULT,
+  RELATIONS_FOCUS_ADJACENCY_DEFAULT,
+  RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT,
+  RELATIONS_LABEL_OVERFLOW_DEFAULT,
+  RELATIONS_LABEL_WIDTH_DEFAULT,
+  RELATIONS_LAYOUT_ANIMATION_DEFAULT,
+  RELATIONS_LAYOUT_DEFAULT,
+  RELATIONS_LINK_COLOR_DEFAULT,
+  RELATIONS_NODE_SIZE_DEFAULT,
+  RELATIONS_REPULSION_DEFAULT,
+  RELATIONS_SHOW_EDGE_VALUES_DEFAULT,
+  RELATIONS_SHOW_NODE_LABELS_DEFAULT,
+  RELATIONS_SHOW_NODE_VALUES_DEFAULT,
+  RELATIONS_TIME_SLIDER_DEFAULT,
+} from 'editor/relations/constants';
+import { type RelationsPanelOptions } from 'editor/relations/options';
+import {
+  CHORD_CLOCKWISE_DEFAULT,
+  CHORD_LINK_OPACITY_DEFAULT,
+  CHORD_MIN_ANGLE_DEFAULT,
+  CHORD_PAD_ANGLE_DEFAULT,
+  CHORD_START_ANGLE_DEFAULT,
+} from 'editor/relations/chord';
+import {
+  SANKEY_CURVENESS_DEFAULT,
+  SANKEY_LAYOUT_ITERATIONS_DEFAULT,
+  SANKEY_LINK_OPACITY_DEFAULT,
+  SANKEY_NODE_ALIGN_DEFAULT,
+  SANKEY_NODE_GAP_DEFAULT,
+  SANKEY_NODE_WIDTH_DEFAULT,
+  SANKEY_ORIENT_DEFAULT,
+} from 'editor/relations/sankey';
+import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
+import { exceedsChordNodeBudget, fitsSankeyTopology, relationsNodeCount } from 'lib/echarts/charts/fitness';
+import { previewCardOptions } from 'lib/echarts/charts/suggestionCards';
+import { type PanelOptions } from 'types';
+
+type ClearableRelationsOption = 'relationsCurveness' | 'relationsGravity' | 'relationsViewCenter' | 'relationsViewZoom';
+
+type RelationsResetOptions = Required<Omit<RelationsPanelOptions, ClearableRelationsOption>> & {
+  relationsCurveness: number | undefined;
+  relationsGravity: number | undefined;
+  relationsViewCenter: [number, number] | undefined;
+  relationsViewZoom: number | undefined;
+} & Required<Pick<PanelOptions, typeof seriesTypePath | 'animation'>>;
+
+/** Reset every visual option that can affect a Relations render. */
+export const RELATIONS_PRESET_BASE = {
+  [seriesTypePath]: 'graph',
+  relationsLayout: RELATIONS_LAYOUT_DEFAULT,
+  relationsShowNodeLabels: RELATIONS_SHOW_NODE_LABELS_DEFAULT,
+  relationsShowNodeValues: RELATIONS_SHOW_NODE_VALUES_DEFAULT,
+  relationsNodeSize: RELATIONS_NODE_SIZE_DEFAULT,
+  relationsZoom: false,
+  relationsPan: false,
+  relationsDraggable: false,
+  relationsRepulsion: RELATIONS_REPULSION_DEFAULT,
+  relationsEdgeLength: RELATIONS_EDGE_LENGTH_DEFAULT,
+  relationsLayoutAnimation: RELATIONS_LAYOUT_ANIMATION_DEFAULT,
+  relationsGravity: undefined,
+  relationsEdgeArrows: RELATIONS_EDGE_ARROWS_DEFAULT,
+  relationsShowEdgeValues: RELATIONS_SHOW_EDGE_VALUES_DEFAULT,
+  relationsCurveness: undefined,
+  relationsFocusAdjacency: RELATIONS_FOCUS_ADJACENCY_DEFAULT,
+  relationsHideOverlappingLabels: RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT,
+  relationsLabelOverflow: RELATIONS_LABEL_OVERFLOW_DEFAULT,
+  relationsLabelWidth: RELATIONS_LABEL_WIDTH_DEFAULT,
+  relationsTimeSlider: RELATIONS_TIME_SLIDER_DEFAULT,
+  relationsLinkColor: RELATIONS_LINK_COLOR_DEFAULT,
+  relationsRememberView: false,
+  relationsViewZoom: undefined,
+  relationsViewCenter: undefined,
+  relationsSankeyOrient: SANKEY_ORIENT_DEFAULT,
+  relationsSankeyNodeAlign: SANKEY_NODE_ALIGN_DEFAULT,
+  relationsSankeyNodeWidth: SANKEY_NODE_WIDTH_DEFAULT,
+  relationsSankeyNodeGap: SANKEY_NODE_GAP_DEFAULT,
+  relationsSankeyCurveness: SANKEY_CURVENESS_DEFAULT,
+  relationsSankeyLinkOpacity: SANKEY_LINK_OPACITY_DEFAULT,
+  relationsSankeyLayoutIterations: SANKEY_LAYOUT_ITERATIONS_DEFAULT,
+  relationsChordStartAngle: CHORD_START_ANGLE_DEFAULT,
+  relationsChordClockwise: CHORD_CLOCKWISE_DEFAULT,
+  relationsChordPadAngle: CHORD_PAD_ANGLE_DEFAULT,
+  relationsChordMinAngle: CHORD_MIN_ANGLE_DEFAULT,
+  relationsChordLinkOpacity: CHORD_LINK_OPACITY_DEFAULT,
+  animation: { enabled: ANIMATION_ENABLED_DEFAULT },
+} satisfies RelationsResetOptions;
+
+const cardOptions = previewCardOptions({ options: { relationsShowNodeLabels: false } });
+
+function preset(
+  name: string,
+  description: string,
+  options: Partial<RelationsResetOptions>
+): VisualizationSuggestion<PanelOptions, EChartsRelationsFieldConfig> {
+  return {
+    name,
+    description,
+    options: { ...RELATIONS_PRESET_BASE, ...options },
+    cardOptions,
+  };
+}
+
+function graphDensityOptions(nodeCount: number | undefined): Partial<RelationsResetOptions> {
+  if (nodeCount != null && nodeCount > 50) {
+    return { relationsNodeSize: 10, relationsShowNodeLabels: false };
+  }
+  if (nodeCount != null && nodeCount > 20) {
+    return { relationsNodeSize: 16 };
+  }
+  return {};
+}
+
+function forceGraphDensityOptions(nodeCount: number | undefined): Partial<RelationsResetOptions> {
+  if (nodeCount != null && nodeCount > 50) {
+    return { relationsRepulsion: 200, relationsEdgeLength: 100, ...graphDensityOptions(nodeCount) };
+  }
+  if (nodeCount != null && nodeCount > 20) {
+    return { relationsRepulsion: 300, relationsEdgeLength: 150, ...graphDensityOptions(nodeCount) };
+  }
+  return {};
+}
+
+const serviceTopology = (nodeCount?: number) =>
+  preset('Service topology', 'Show service dependencies and their direction.', {
+    [seriesTypePath]: 'graph',
+    relationsLayout: 'force',
+    relationsEdgeArrows: true,
+    relationsFocusAdjacency: true,
+    relationsPan: true,
+    relationsZoom: true,
+    relationsShowNodeLabels: true,
+    relationsShowEdgeValues: false,
+    relationsTimeSlider: false,
+    ...forceGraphDensityOptions(nodeCount),
+  });
+
+const weightedFlow = () =>
+  preset('Weighted flow', 'Show how weighted flow moves through a process.', {
+    [seriesTypePath]: 'sankey',
+    relationsSankeyOrient: 'horizontal',
+    relationsLinkColor: 'gradient',
+    relationsFocusAdjacency: true,
+    relationsShowNodeLabels: true,
+    relationsShowEdgeValues: false,
+    relationsTimeSlider: false,
+  });
+
+const mutualRelations = () =>
+  preset('Mutual relations', 'Show dense or cyclic traffic between pairs.', {
+    [seriesTypePath]: 'chord',
+    relationsLinkColor: 'gradient',
+    relationsFocusAdjacency: true,
+    relationsHideOverlappingLabels: true,
+    relationsShowNodeLabels: true,
+    relationsTimeSlider: false,
+  });
+
+const timeNetwork = (nodeCount?: number) =>
+  preset('Time network', 'Show how a network changes over a time range.', {
+    [seriesTypePath]: 'graph',
+    relationsLayout: 'circular',
+    relationsTimeSlider: true,
+    relationsShowEdgeValues: true,
+    relationsFocusAdjacency: true,
+    relationsPan: true,
+    relationsZoom: true,
+    ...graphDensityOptions(nodeCount),
+  });
+
+export const relationsPresetsSupplier: VisualizationPresetsSupplier<PanelOptions, EChartsRelationsFieldConfig> = ({
+  dataSummary,
+}) => {
+  const nodeCount = dataSummary == null ? undefined : relationsNodeCount(dataSummary);
+  const presets = [serviceTopology(nodeCount)];
+  if (dataSummary == null || fitsSankeyTopology(dataSummary)) {
+    presets.push(weightedFlow());
+  }
+  if (dataSummary == null || !exceedsChordNodeBudget(dataSummary)) {
+    presets.push(mutualRelations());
+  }
+  if (dataSummary?.hasFieldType(FieldType.time) && dataSummary.isInstant === false) {
+    presets.push(timeNetwork(nodeCount));
+  }
+  return presets;
+};

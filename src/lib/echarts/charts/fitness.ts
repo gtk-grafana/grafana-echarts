@@ -18,6 +18,8 @@ import {
   MULTIVARIATE_MIN_AXES,
   RELATIONS_CHORD_MAX_NODES,
   RELATIONS_MAX_EDGES,
+  RELATIONS_SANKEY_MAX_LEVELS,
+  RELATIONS_SANKEY_MAX_NODES,
   SLICE_MAX,
   SLICE_MIN,
   STREAM_MAX_LAYERS,
@@ -29,6 +31,8 @@ import {
   isLegacyGraphFrames,
   isLegacyNodesFrame,
 } from 'lib/echarts/relations/converters/legacyToWide';
+import { declaredEndpointKeys, endpointsOf, numericFields } from 'lib/echarts/relations/converters/contract';
+import { resolveGraphWideRoles } from 'lib/echarts/relations/converters/frameRoles';
 import { resolveMultiValueSeriesType } from 'lib/echarts/converters/multiValueCartesian';
 import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
 
@@ -58,11 +62,10 @@ import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
  * Several predicates inspect the frames directly, because `PanelDataSummary`
  * reports field *types* and dataplane frame types but not field *names* — and the
  * signals that identify node-graph, flame-graph and candlestick/boxplot data are
- * all name-based. Every such read is `summary.rawFrames ?? []` (the field is
- * optional) and touches only field metadata (`name`, `type`, `labels`) plus
- * `frame.length`, which is a property. Cost is O(fields), never O(rows), so
- * scoring stays effectively free; the *preview render* is the expensive part of a
- * suggestion, and `./suggestionCards.ts` is what bounds that.
+ * all name-based. Most reads touch only field metadata and `frame.length`. Relations
+ * topology also reads the endpoint rows to find cycles and depth. The relations edge
+ * budget bounds that work to 500 rows. The preview render remains the expensive part,
+ * and `./suggestionCards.ts` bounds that work.
  */
 
 const isTimeSeriesFrame = (summary: PanelDataSummary): boolean =>
@@ -501,28 +504,134 @@ export const scoreRelations = (summary: PanelDataSummary): VisualizationSuggesti
   return isPreferred ? VisualizationSuggestionScore.Best : VisualizationSuggestionScore.Good;
 };
 
-/**
- * Whether a chord ring would be too crowded to read, so the supplier can drop the
- * Chord card while keeping Graph and Sankey.
- *
- * A chord gives every node an arc on one circle, so it runs out of circumference
- * long before a force graph runs out of canvas. The count is approximated from
- * **frame lengths only**: the nodes frame's rows when Grafana sent one, else the
- * edges frame's, since each edge names at most two nodes and 40 ribbons is already
- * past the point where a ring separates. Counting distinct node ids would mean
- * iterating the `source`/`target` *values*, and every `rawFrames` read in this file
- * is deliberately O(fields).
- *
- * Row lengths only mean node and edge counts in the legacy row form, which is why the
- * predicates here are the `isLegacy*` ones. In the wide contract a frame's rows are
- * timestamps and the marks are its numeric *fields*, so counting `length` there would
- * compare a time range against a node budget.
- */
-export const exceedsChordNodeBudget = (summary: PanelDataSummary): boolean => {
-  const frames = framesOf(summary);
-  const nodesFrame = frames.find(isLegacyNodesFrame);
-  const countingFrame = nodesFrame ?? frames.find(isLegacyEdgesFrame);
-  return countingFrame != null && countingFrame.length > RELATIONS_CHORD_MAX_NODES;
+interface RelationsTopology {
+  hasCycle: boolean;
+  levels: number;
+  nodeCount: number;
+}
+
+interface RelationsTopologyInput {
+  edges: Array<{ source: string; target: string }>;
+  nodeCount?: number;
+}
+
+/** Read a legacy endpoint as a non-empty string. */
+function endpointAt(field: Field | undefined, row: number): string | undefined {
+  const value: unknown = field?.values[row];
+  if (value == null || value === '') {
+    return undefined;
+  }
+  return typeof value === 'string' ? value : String(value);
+}
+
+/** Return a case-insensitive field match. */
+function fieldNamed(frame: DataFrame, name: string): Field | undefined {
+  return frame.fields.find((field) => field.name.toLowerCase() === name);
+}
+
+/** Read the endpoints and declared node count from either graph contract. */
+function relationsTopologyInput(frames: DataFrame[]): RelationsTopologyInput | undefined {
+  const legacyEdges = frames.find(isLegacyEdgesFrame);
+  if (legacyEdges != null) {
+    const sourceField = fieldNamed(legacyEdges, 'source');
+    const targetField = fieldNamed(legacyEdges, 'target');
+    const edges: RelationsTopologyInput['edges'] = [];
+    for (let row = 0; row < legacyEdges.length; row++) {
+      const source = endpointAt(sourceField, row);
+      const target = endpointAt(targetField, row);
+      if (source != null && target != null) {
+        edges.push({ source, target });
+      }
+    }
+    return { edges, nodeCount: frames.find(isLegacyNodesFrame)?.length };
+  }
+
+  const wide = resolveGraphWideRoles(frames);
+  if (wide == null) {
+    const nodesFrame = frames.find(isLegacyNodesFrame);
+    return nodesFrame == null ? undefined : { edges: [], nodeCount: nodesFrame.length };
+  }
+  const edges = wide.edgesFrames.flatMap((frame) => {
+    const declared = declaredEndpointKeys(frame);
+    return numericFields(frame).flatMap((field) => {
+      const endpoints = endpointsOf(field, declared);
+      return endpoints == null ? [] : [endpoints];
+    });
+  });
+  const nodeCount = wide.nodesFrames.reduce((count, frame) => count + numericFields(frame).length, 0);
+  return { edges, ...(nodeCount > 0 ? { nodeCount } : {}) };
+}
+
+/** Measure the node count, cycle state, and longest path of a graph. */
+function relationsTopology(summary: PanelDataSummary): RelationsTopology | undefined {
+  const input = relationsTopologyInput(framesOf(summary));
+  if (input == null) {
+    return undefined;
+  }
+
+  const adjacency = new Map<string, Set<string>>();
+  const indegree = new Map<string, number>();
+  for (const { source, target } of input.edges) {
+    adjacency.set(source, adjacency.get(source) ?? new Set());
+    adjacency.set(target, adjacency.get(target) ?? new Set());
+    indegree.set(source, indegree.get(source) ?? 0);
+    indegree.set(target, indegree.get(target) ?? 0);
+    const targets = adjacency.get(source)!;
+    if (!targets.has(target)) {
+      targets.add(target);
+      indegree.set(target, indegree.get(target)! + 1);
+    }
+  }
+
+  const queue: string[] = [];
+  const levels = new Map<string, number>();
+  for (const [node, count] of indegree) {
+    if (count === 0) {
+      queue.push(node);
+      levels.set(node, 1);
+    }
+  }
+  let visited = 0;
+  let maxLevel = adjacency.size === 0 ? 0 : 1;
+  for (let index = 0; index < queue.length; index++) {
+    const source = queue[index];
+    visited++;
+    const nextLevel = (levels.get(source) ?? 1) + 1;
+    for (const target of adjacency.get(source) ?? []) {
+      levels.set(target, Math.max(levels.get(target) ?? 1, nextLevel));
+      maxLevel = Math.max(maxLevel, levels.get(target)!);
+      const nextIndegree = indegree.get(target)! - 1;
+      indegree.set(target, nextIndegree);
+      if (nextIndegree === 0) {
+        queue.push(target);
+      }
+    }
+  }
+
+  return {
+    hasCycle: visited < adjacency.size,
+    levels: maxLevel,
+    nodeCount: Math.max(input.nodeCount ?? 0, adjacency.size),
+  };
+}
+
+/** Return the best available node count for Relations preset sizing. */
+export const relationsNodeCount = (summary: PanelDataSummary): number | undefined =>
+  relationsTopology(summary)?.nodeCount;
+
+/** Check whether a Chord ring has enough room for the graph nodes. */
+export const exceedsChordNodeBudget = (summary: PanelDataSummary): boolean =>
+  (relationsNodeCount(summary) ?? 0) > RELATIONS_CHORD_MAX_NODES;
+
+/** Check whether Sankey can show the graph as a readable directed flow. */
+export const fitsSankeyTopology = (summary: PanelDataSummary): boolean => {
+  const topology = relationsTopology(summary);
+  return (
+    topology == null ||
+    (!topology.hasCycle &&
+      topology.nodeCount <= RELATIONS_SANKEY_MAX_NODES &&
+      topology.levels <= RELATIONS_SANKEY_MAX_LEVELS)
+  );
 };
 
 /**
