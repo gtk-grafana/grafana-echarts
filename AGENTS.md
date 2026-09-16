@@ -15,6 +15,7 @@ This repository contains a **Grafana plugin**. You must Read @./.config/AGENTS/i
 - Push back on the prompter when scope of work conflicts with project goals.
 - Ask for permission and clarity whenever ambiguities arise.
 - Keep plans small and focused to the task at hand, do not make changes that were not explicitly requested
+- Keep one React component in each file.
 - Add comments to code, but keep them as concise as possible
 - Adhere to data plane frame specifications: https://grafana.com/developers/dataplane/
 - Create provisioned dashboards for all new panel functionality, prompt the user to check existing dashboards that can

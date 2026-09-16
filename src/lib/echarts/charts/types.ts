@@ -292,14 +292,25 @@ export interface ChartZoomAction {
   seriesIndex: number;
 }
 
+/** A known data problem that prevents a chart module from drawing a chart. */
+export interface ChartDataIssue {
+  /** Stable code for tests and future handling of specific issues. */
+  reason: string;
+  /** Message that tells the user how to fix the problem in the panel no-data view. */
+  message: string;
+}
+
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
 
-  // @todo replace null with reason why chart cannot render?
+  // Null remains the generic fallback for chart families without a data-issue resolver.
   buildOption(ctx: ChartContext, base: BaseOptionParts): EChartBuildOption | null;
 
   buildLegendItems(ctx: ChartContext, calcs: string[]): VizLegendItem[];
+
+  /** Return a known data problem before the chart mounts, or nothing when the chart can render. */
+  getDataIssue?(ctx: ChartContext): ChartDataIssue | undefined;
 
   /**
    * Advisories to show in the panel's corner for this render — see

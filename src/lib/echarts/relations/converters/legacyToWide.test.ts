@@ -1,4 +1,4 @@
-import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { type DataFrame, DataFrameType, FieldType, toDataFrame } from '@grafana/data';
 import { lastValueFrom, of } from 'rxjs';
 
 import { debug, LOG_LEVELS } from 'development';
@@ -283,6 +283,14 @@ describe('legacyToWide — detection', () => {
     expect(isLegacyEdgesFrame(frames[0])).toBe(false);
     expect(isLegacyNodesFrame(frames[0])).toBe(false);
     expect(legacyToWide(frames)).toBe(frames);
+  });
+
+  it("claims Grafana's numeric-long instant response and uses its Value column as the edge weight", () => {
+    const frame = prometheusTable();
+    frame.meta = { type: DataFrameType.NumericLong };
+
+    expect(isLegacyEdgesFrame(frame)).toBe(true);
+    expect(legacyToWide([frame])[0].fields[0].values[0]).toBe(42);
   });
 
   it('still claims a row-format frame that carries no time field', () => {

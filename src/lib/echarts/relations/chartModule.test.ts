@@ -6,6 +6,7 @@ import { legacyToWide } from 'lib/echarts/relations/converters/legacyToWide';
 import { changeSeriesColorConfig, toggleSeriesVisibilityConfig } from 'lib/grafana/fields/seriesConfig';
 import { applyTestFieldConfig } from 'test/fieldConfig';
 import { type PanelOptions } from 'types';
+import { GRAPH_EDGES_WIDE, GRAPH_NODES_WIDE } from 'lib/echarts/relations/converters/contract';
 
 const theme = createTheme();
 const emptyFieldConfig: FieldConfigSource = { defaults: {}, overrides: [] };
@@ -67,6 +68,17 @@ const chordCtx = (frames: DataFrame[]): RelationsChartContext => ctx(frames, emp
 
 const base = { isGrafanaLegend: true };
 
+/** A hand-written "Hide in area" override. */
+const hiding = (name: string): FieldConfigSource => ({
+  defaults: {},
+  overrides: [
+    {
+      matcher: { id: 'byName', options: name },
+      properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
+    },
+  ],
+});
+
 describe('relationsChartModule', () => {
   describe('buildOption', () => {
     it('builds a single graph series from a nodes + edges pair', () => {
@@ -85,7 +97,7 @@ describe('relationsChartModule', () => {
       expect(series[0].data).toHaveLength(2);
     });
 
-    it('returns null when there is no edges frame, so the panel shows no-data', () => {
+    it('returns null when there is no edges frame', () => {
       expect(relationsChartModule.buildOption(ctx([nodesFrame]), base)).toBeNull();
       expect(relationsChartModule.buildOption(ctx([]), base)).toBeNull();
     });
@@ -156,6 +168,97 @@ describe('relationsChartModule', () => {
 
       expect(series[0].links).toHaveLength(2);
       expect(option).not.toHaveProperty('title');
+    });
+
+    it('draws an isolated declared node for graph and sankey, but not chord', () => {
+      const hiddenEndpoint = hiding('a');
+
+      expect(relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame], hiddenEndpoint), base)).not.toBeNull();
+      expect(
+        relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame], hiddenEndpoint, 'sankey'), base)
+      ).not.toBeNull();
+      expect(relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame], hiddenEndpoint, 'chord'), base)).toBeNull();
+    });
+  });
+
+  describe('getDataIssue', () => {
+    it.each([
+      {
+        name: 'unsupported frame shape',
+        context: ctx([
+          toDataFrame({
+            fields: [
+              { name: 'time', type: FieldType.time, values: [1] },
+              { name: 'value', type: FieldType.number, values: [2] },
+            ],
+          }),
+        ]),
+        issue: {
+          reason: 'unsupported-frame-shape',
+          message: 'Graph data is missing edges. Add source and target labels to each numeric edge field.',
+        },
+      },
+      {
+        name: 'declared nodes without edges',
+        context: ctx([
+          toDataFrame({
+            meta: { type: GRAPH_NODES_WIDE },
+            fields: [{ name: 'a', type: FieldType.number, values: [1] }],
+          }),
+        ]),
+        issue: {
+          reason: 'nodes-without-edges',
+          message: 'Graph data contains nodes but no edges. Add an edges frame.',
+        },
+      },
+      {
+        name: 'declared edges without endpoints',
+        context: ctx([
+          toDataFrame({
+            meta: { type: GRAPH_EDGES_WIDE },
+            fields: [{ name: 'requests', type: FieldType.number, values: [1] }],
+          }),
+        ]),
+        issue: {
+          reason: 'edges-without-endpoints',
+          message: 'Graph edge fields are missing endpoints. Add source and target labels to each numeric edge field.',
+        },
+      },
+      {
+        name: 'legacy row data',
+        context: { ...ctx([]), frames: [edgesFrame] },
+        issue: {
+          reason: 'legacy-row-data',
+          message:
+            'Row-based Node Graph data was not converted. Add a Rows to fields transformation, or enable panel system transformations in Grafana.',
+        },
+      },
+    ])('maps $name to its actionable message', ({ context, issue }) => {
+      expect(relationsChartModule.getDataIssue?.(context)).toEqual(issue);
+    });
+
+    it.each(['graph', 'sankey', 'chord'] as const)('reports hidden derived marks for %s', (seriesType) => {
+      expect(relationsChartModule.getDataIssue?.(ctx([edgesFrame], hiding('e1'), seriesType))).toEqual({
+        reason: 'hidden-marks',
+        message: 'All graph marks are hidden. Show at least one node or edge in the field configuration.',
+      });
+    });
+
+    it('accepts isolated declared nodes for graph and sankey, but not chord', () => {
+      const hiddenEndpoint = hiding('a');
+
+      expect(relationsChartModule.getDataIssue?.(ctx([nodesFrame, edgesFrame], hiddenEndpoint))).toBeUndefined();
+      expect(
+        relationsChartModule.getDataIssue?.(ctx([nodesFrame, edgesFrame], hiddenEndpoint, 'sankey'))
+      ).toBeUndefined();
+      expect(relationsChartModule.getDataIssue?.(ctx([nodesFrame, edgesFrame], hiddenEndpoint, 'chord'))).toEqual({
+        reason: 'hidden-marks',
+        message: 'All graph marks are hidden. Show at least one node or edge in the field configuration.',
+      });
+    });
+
+    it('returns no issue for a complete graph', () => {
+      expect(relationsChartModule.getDataIssue?.(ctx([nodesFrame, edgesFrame]))).toBeUndefined();
     });
   });
 
@@ -284,17 +387,6 @@ describe('relationsChartModule', () => {
         { name: 'source', type: FieldType.string, values: ['a', 'b'] },
         { name: 'target', type: FieldType.string, values: ['b', 'c'] },
         { name: 'mainstat', type: FieldType.number, values: [5, 6] },
-      ],
-    });
-
-    /** A hand-written "Hide in area" override, the per-mark writer. */
-    const hiding = (name: string): FieldConfigSource => ({
-      defaults: {},
-      overrides: [
-        {
-          matcher: { id: 'byName', options: name },
-          properties: [{ id: 'custom.hideFrom', value: { viz: true, legend: false, tooltip: false } }],
-        },
       ],
     });
 

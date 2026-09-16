@@ -121,10 +121,10 @@ const modelFor = (
   panelOptions: PanelOptions = options()
 ): ((params: TopLevelFormatterParams) => TooltipModel) => {
   const data = frameToRelationsGraph(frames, theme, panelOptions.reduceOptions);
-  if (!data) {
-    throw new Error('fixture produced no graph');
+  if (data.kind !== 'data') {
+    throw new Error(`fixture produced ${data.reason}`);
   }
-  return buildRelationsTooltipModel(getRelationsTooltipMarks(data, theme, 'utc'), panelOptions);
+  return buildRelationsTooltipModel(getRelationsTooltipMarks(data.data, theme, 'utc'), panelOptions);
 };
 
 /** A hovered node, as the graph variant emits it. */
