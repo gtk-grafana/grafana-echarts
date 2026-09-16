@@ -27,6 +27,7 @@ export const ChartContent: React.FC<ChartContentProps> = ({
   onFieldConfigChange,
   onOptionsChange,
 }) => {
+  const isPreview = chartContext.options.isPreview === true;
   // Advisories for renders where the chart had to change the data to draw it
   // (e.g. the sankey cycle policy). Most families supply none.
   const notices = useMemo(() => chartModule.getNotices?.(chartContext) ?? [], [chartModule, chartContext]);
@@ -34,13 +35,16 @@ export const ChartContent: React.FC<ChartContentProps> = ({
   // The roam action the corner zoom buttons dispatch, or `undefined` for a family or a
   // render with no zoomable view. Only relations supplies one — see `ChartZoomControls`
   // for why zoom is buttons rather than the scroll wheel.
-  const zoomAction = useMemo(() => chartModule.getZoomAction?.(chartContext), [chartModule, chartContext]);
+  const zoomAction = useMemo(
+    () => (isPreview ? undefined : chartModule.getZoomAction?.(chartContext)),
+    [chartModule, chartContext, isPreview]
+  );
 
   // The legend is `VizLayout`'s sibling, not `EChart`'s child, so its hover
   // emphasis reaches the chart through this ref rather than through the chart
   // instance state `EChart` keeps for its own hooks.
   const chartInstanceRef = useRef<EChartsType | null>(null);
-  useLegendHighlight(chartInstanceRef, chartModule, chartContext, eventBus);
+  useLegendHighlight(chartInstanceRef, chartModule, chartContext, eventBus, !isPreview);
 
   const { items: legendItems, renderLegend } = useLegend({
     chartModule,

@@ -6,11 +6,11 @@ import { useEffect } from 'react';
  * container's size, so every layout change has to be pushed in.
  * https://echarts.apache.org/en/api.html#echartsInstance.resize
  */
-export function useChartResize(chart: EChartsType | null, width: number, height: number): void {
+export function useChartResize(chart: EChartsType | null, width: number, height: number, enabled = true): void {
   useEffect(() => {
-    if (!chart) {
+    if (!chart || !enabled) {
       return;
     }
     chart.resize({ width, height });
-  }, [chart, width, height]);
+  }, [chart, width, height, enabled]);
 }

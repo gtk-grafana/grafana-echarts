@@ -2,7 +2,6 @@ import { FieldType, type VisualizationPresetsSupplier, type VisualizationSuggest
 import { ANIMATION_ENABLED_DEFAULT, seriesTypePath } from 'editor/constants';
 import {
   RELATIONS_EDGE_ARROWS_DEFAULT,
-  RELATIONS_EDGE_LENGTH_DEFAULT,
   RELATIONS_FOCUS_ADJACENCY_DEFAULT,
   RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT,
   RELATIONS_LABEL_OVERFLOW_DEFAULT,
@@ -11,7 +10,6 @@ import {
   RELATIONS_LAYOUT_DEFAULT,
   RELATIONS_LINK_COLOR_DEFAULT,
   RELATIONS_NODE_SIZE_DEFAULT,
-  RELATIONS_REPULSION_DEFAULT,
   RELATIONS_SHOW_EDGE_VALUES_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   RELATIONS_SHOW_NODE_VALUES_DEFAULT,
@@ -37,13 +35,22 @@ import {
 import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 import { exceedsChordNodeBudget, fitsSankeyTopology, relationsNodeCount } from 'lib/echarts/relations/charts/fitness';
 import { previewCardOptions } from 'lib/echarts/charts/suggestionCards';
+import { RELATIONS_CIRCULAR_MAX_NODES } from 'lib/echarts/charts/suggestionLimits';
 import { type PanelOptions } from 'types';
 
-type ClearableRelationsOption = 'relationsCurveness' | 'relationsGravity' | 'relationsViewCenter' | 'relationsViewZoom';
+type ClearableRelationsOption =
+  | 'relationsCurveness'
+  | 'relationsEdgeLength'
+  | 'relationsGravity'
+  | 'relationsRepulsion'
+  | 'relationsViewCenter'
+  | 'relationsViewZoom';
 
 type RelationsResetOptions = Required<Omit<RelationsPanelOptions, ClearableRelationsOption>> & {
   relationsCurveness: number | undefined;
+  relationsEdgeLength: number | undefined;
   relationsGravity: number | undefined;
+  relationsRepulsion: number | undefined;
   relationsViewCenter: [number, number] | undefined;
   relationsViewZoom: number | undefined;
 } & Required<Pick<PanelOptions, typeof seriesTypePath | 'animation'>>;
@@ -58,8 +65,8 @@ export const RELATIONS_PRESET_BASE = {
   relationsZoom: false,
   relationsPan: false,
   relationsDraggable: false,
-  relationsRepulsion: RELATIONS_REPULSION_DEFAULT,
-  relationsEdgeLength: RELATIONS_EDGE_LENGTH_DEFAULT,
+  relationsRepulsion: undefined,
+  relationsEdgeLength: undefined,
   relationsLayoutAnimation: RELATIONS_LAYOUT_ANIMATION_DEFAULT,
   relationsGravity: undefined,
   relationsEdgeArrows: RELATIONS_EDGE_ARROWS_DEFAULT,
@@ -114,16 +121,6 @@ function graphDensityOptions(nodeCount: number | undefined): Partial<RelationsRe
   return {};
 }
 
-function forceGraphDensityOptions(nodeCount: number | undefined): Partial<RelationsResetOptions> {
-  if (nodeCount != null && nodeCount > 50) {
-    return { relationsRepulsion: 200, relationsEdgeLength: 100, ...graphDensityOptions(nodeCount) };
-  }
-  if (nodeCount != null && nodeCount > 20) {
-    return { relationsRepulsion: 300, relationsEdgeLength: 150, ...graphDensityOptions(nodeCount) };
-  }
-  return {};
-}
-
 const serviceTopology = (nodeCount?: number) =>
   preset('Service topology', 'Show service dependencies and their direction.', {
     [seriesTypePath]: 'graph',
@@ -135,7 +132,19 @@ const serviceTopology = (nodeCount?: number) =>
     relationsShowNodeLabels: true,
     relationsShowEdgeValues: false,
     relationsTimeSlider: false,
-    ...forceGraphDensityOptions(nodeCount),
+    ...graphDensityOptions(nodeCount),
+  });
+
+const circularNetwork = (nodeCount?: number) =>
+  preset('Circular network', 'Arrange network relationships in a stable circle.', {
+    [seriesTypePath]: 'graph',
+    relationsLayout: 'circular',
+    relationsFocusAdjacency: true,
+    relationsPan: true,
+    relationsZoom: true,
+    relationsShowEdgeValues: false,
+    relationsTimeSlider: false,
+    ...graphDensityOptions(nodeCount),
   });
 
 const weightedFlow = () =>
@@ -176,13 +185,22 @@ export const relationsPresetsSupplier: VisualizationPresetsSupplier<PanelOptions
 }) => {
   const nodeCount = dataSummary == null ? undefined : relationsNodeCount(dataSummary);
   const presets = [serviceTopology(nodeCount)];
+  if (nodeCount == null || (nodeCount >= 2 && nodeCount <= RELATIONS_CIRCULAR_MAX_NODES)) {
+    presets.push(circularNetwork(nodeCount));
+  }
   if (dataSummary == null || fitsSankeyTopology(dataSummary)) {
     presets.push(weightedFlow());
   }
   if (dataSummary == null || !exceedsChordNodeBudget(dataSummary)) {
     presets.push(mutualRelations());
   }
-  if (dataSummary?.hasFieldType(FieldType.time) && dataSummary.isInstant === false) {
+  if (
+    dataSummary?.hasFieldType(FieldType.time) &&
+    dataSummary.isInstant === false &&
+    nodeCount != null &&
+    nodeCount >= 2 &&
+    nodeCount <= RELATIONS_CIRCULAR_MAX_NODES
+  ) {
     presets.push(timeNetwork(nodeCount));
   }
   return presets;

@@ -110,6 +110,9 @@ export const RELATIONS_MAX_EDGES = 500;
  */
 export const RELATIONS_CHORD_MAX_NODES = 40;
 
+/** Most nodes a circular graph can place around one readable ring. */
+export const RELATIONS_CIRCULAR_MAX_NODES = RELATIONS_CHORD_MAX_NODES;
+
 /** Most nodes a Sankey can place in readable columns. */
 export const RELATIONS_SANKEY_MAX_NODES = 100;
 

@@ -1826,7 +1826,7 @@
       "id": 12,
       "type": "grafana-echartsrelations-panel",
       "title": "Repulsion — 1200",
-      "description": "Sets how strongly nodes push away from each other in a Force layout. This panel uses 1200, so the nodes spread farther apart. This option is available only for Force layouts.\n\nDefault: `400`.",
+      "description": "Sets how strongly nodes push away from each other in a Force layout. This panel uses 1200. An explicit value replaces only the automatic repulsion value.\n\nDefault: Automatic.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1885,7 +1885,7 @@
       "id": 13,
       "type": "grafana-echartsrelations-panel",
       "title": "Edge length — 40",
-      "description": "Sets the target length of each link in pixels for a Force layout. This panel uses 40, so the simulation pulls connected nodes close together.\n\nDefault: `200`.",
+      "description": "Sets the target length of each link in pixels for a Force layout. This panel uses 40. An explicit value replaces only the automatic edge length.\n\nDefault: Automatic.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
@@ -1944,7 +1944,7 @@
       "id": 14,
       "type": "grafana-echartsrelations-panel",
       "title": "Gravity — 0.5",
-      "description": "Sets how strongly a Force layout pulls nodes toward the center of the panel. A higher value keeps the graph compact when node repulsion pushes outward.\n\nDefault: unset, so ECharts uses its default value.",
+      "description": "Sets how strongly a Force layout pulls nodes toward the center of the panel. This panel uses 0.5. An explicit value replaces only the automatic gravity value.\n\nDefault: Automatic.",
       "datasource": {
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"

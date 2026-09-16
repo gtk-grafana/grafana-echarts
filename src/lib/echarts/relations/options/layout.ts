@@ -1,9 +1,8 @@
 import { type GraphSeriesOption } from 'echarts';
 import {
-  RELATIONS_EDGE_LENGTH_DEFAULT,
   RELATIONS_LAYOUT_ANIMATION_DEFAULT,
   RELATIONS_LAYOUT_DEFAULT,
-  RELATIONS_REPULSION_DEFAULT,
+  RELATIONS_NODE_SIZE_DEFAULT,
 } from 'editor/relations/constants';
 import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { type PanelOptions } from 'types';
@@ -13,6 +12,17 @@ import { type PanelOptions } from 'types';
  * https://echarts.apache.org/en/option.html#series-graph.force.initLayout
  */
 const RELATIONS_FORCE_INIT_LAYOUT = 'circular';
+
+/** Plot size used when Grafana does not supply valid dimensions. */
+const DEFAULT_PLOT_SIZE = { width: 400, height: 300 };
+
+/** Empty space between the largest node and each plot edge. */
+const FORCE_EDGE_PADDING = 16;
+
+/** Automatic force bounds accepted by ECharts. */
+const EDGE_LENGTH_BOUNDS = { min: 30, max: 240 };
+const REPULSION_BOUNDS = { min: 60, max: 960 };
+const GRAVITY_BOUNDS = { min: 0.2, max: 0.5 };
 
 /**
  * Resolve the graph layout.
@@ -96,18 +106,98 @@ function seedRing(pinned: readonly GraphPoint[]): GraphPoint & { radius: number 
 }
 
 /**
- * Force-layout tuning.
+ * Force-layout tuning from graph density and available plot space.
  * https://echarts.apache.org/en/option.html#series-graph.force
  */
-export function getGraphForce(options: PanelOptions): NonNullable<GraphSeriesOption['force']> {
+export function getGraphForce(
+  data: NodeGraphData,
+  options: PanelOptions,
+  plotWidth?: number,
+  plotHeight?: number
+): NonNullable<GraphSeriesOption['force']> {
+  const automatic = getAutomaticForce(data, options, plotWidth, plotHeight);
   const force: NonNullable<GraphSeriesOption['force']> = {
     initLayout: RELATIONS_FORCE_INIT_LAYOUT,
-    repulsion: options.relationsRepulsion ?? RELATIONS_REPULSION_DEFAULT,
-    edgeLength: options.relationsEdgeLength ?? RELATIONS_EDGE_LENGTH_DEFAULT,
+    // https://echarts.apache.org/en/option.html#series-graph.force.repulsion
+    repulsion: options.relationsRepulsion ?? automatic.repulsion,
+    // https://echarts.apache.org/en/option.html#series-graph.force.edgeLength
+    edgeLength: options.relationsEdgeLength ?? automatic.edgeLength,
+    // https://echarts.apache.org/en/option.html#series-graph.force.layoutAnimation
     layoutAnimation: options.relationsLayoutAnimation ?? RELATIONS_LAYOUT_ANIMATION_DEFAULT,
   };
-  if (options.relationsGravity != null) {
-    force.gravity = options.relationsGravity;
-  }
+  // https://echarts.apache.org/en/option.html#series-graph.force.gravity
+  force.gravity = options.relationsGravity ?? automatic.gravity;
   return force;
+}
+
+/** Calculate finite automatic values before panel overrides are applied. */
+function getAutomaticForce(
+  data: NodeGraphData,
+  options: PanelOptions,
+  plotWidth: number | undefined,
+  plotHeight: number | undefined
+): Required<Pick<NonNullable<GraphSeriesOption['force']>, 'edgeLength' | 'repulsion' | 'gravity'>> {
+  const dimensions = getPlotDimensions(plotWidth, plotHeight);
+  const largestDiameter = getLargestNodeDiameter(data, options);
+  const reservedSpace = largestDiameter + 2 * FORCE_EDGE_PADDING;
+  const usableWidth = Math.max(1, dimensions.width - reservedSpace);
+  const usableHeight = Math.max(1, dimensions.height - reservedSpace);
+  const nodeCount = Math.max(1, data.nodes.length);
+  const gridSpacing = getGridSpacing(nodeCount, usableWidth, usableHeight);
+  const averageDegree = (2 * data.links.length) / nodeCount;
+  const connectedness = clamp(data.links.length / Math.max(1, nodeCount - 1), 0, 1);
+
+  const degreeScale = 0.75 + 0.1 * Math.min(averageDegree, 5);
+  const edgeLength = clamp(gridSpacing * degreeScale, EDGE_LENGTH_BOUNDS.min, EDGE_LENGTH_BOUNDS.max);
+  const springPressure = clamp(2 + averageDegree * 0.5, 2, 4);
+  const repulsion = clamp(edgeLength * springPressure, REPULSION_BOUNDS.min, REPULSION_BOUNDS.max);
+  const crowding = 1 - clamp(gridSpacing / Math.max(1, largestDiameter + 2 * FORCE_EDGE_PADDING), 0, 1);
+  const gravity = clamp(
+    GRAVITY_BOUNDS.min + (1 - connectedness) * 0.2 + crowding * 0.1,
+    GRAVITY_BOUNDS.min,
+    GRAVITY_BOUNDS.max
+  );
+
+  return { edgeLength, repulsion, gravity };
+}
+
+/** Use the whole fallback plot when either supplied dimension is invalid. */
+function getPlotDimensions(width: number | undefined, height: number | undefined): typeof DEFAULT_PLOT_SIZE {
+  if (
+    width == null ||
+    height == null ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return DEFAULT_PLOT_SIZE;
+  }
+  return { width, height };
+}
+
+/** Return the largest node diameter used by the graph series. */
+function getLargestNodeDiameter(data: NodeGraphData, options: PanelOptions): number {
+  const defaultDiameter = finiteNonNegative(options.relationsNodeSize) ?? RELATIONS_NODE_SIZE_DEFAULT;
+  return data.nodes.reduce(
+    (largest, node) => Math.max(largest, finiteNonNegative(node.radius) ?? defaultDiameter),
+    defaultDiameter
+  );
+}
+
+/** Select the adjacent integer grid with the largest minimum cell size. */
+function getGridSpacing(nodeCount: number, width: number, height: number): number {
+  const idealColumns = Math.sqrt((nodeCount * width) / height);
+  const candidates = [Math.floor(idealColumns), Math.ceil(idealColumns)].map((columns) => clamp(columns, 1, nodeCount));
+  return Math.max(...candidates.map((columns) => Math.min(width / columns, height / Math.ceil(nodeCount / columns))));
+}
+
+/** Keep invalid model values out of automatic force calculations. */
+function finiteNonNegative(value: number | undefined): number | undefined {
+  return value != null && Number.isFinite(value) && value >= 0 ? value : undefined;
+}
+
+/** Restrict a calculated value to an inclusive range. */
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }

@@ -33,7 +33,8 @@ export function useLegendHighlight(
   chartRef: RefObject<EChartsType | null>,
   chartModule: ChartModule,
   chartContext: ChartContext,
-  eventBus: EventBus
+  eventBus: EventBus,
+  enabled = true
 ): void {
   // What is currently emphasised, so the same payload can be reverted rather than
   // recomputed — the data may have changed underneath since it was applied.
@@ -73,7 +74,7 @@ export function useLegendHighlight(
     resolveRef.current = resolve;
   }, [resolve]);
 
-  const supported = chartModule.getLegendHighlightTargets != null;
+  const supported = enabled && chartModule.getLegendHighlightTargets != null;
 
   useEffect(() => {
     if (!supported) {

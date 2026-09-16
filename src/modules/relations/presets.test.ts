@@ -1,6 +1,7 @@
 import { createDataFrame, FieldType, getPanelDataSummary } from '@grafana/data';
 import {
   RELATIONS_CHORD_MAX_NODES,
+  RELATIONS_CIRCULAR_MAX_NODES,
   RELATIONS_SANKEY_MAX_LEVELS,
   RELATIONS_SANKEY_MAX_NODES,
 } from 'lib/echarts/charts/suggestionLimits';
@@ -41,12 +42,22 @@ const edgePairsFrame = (pairs: Array<[string, string]>) =>
 
 const rangedSummary = () => getPanelDataSummary([nodesFrame(3), edgesFrame(2, [0, 1000])]);
 
+const rangedNodeSummary = (rows: number) =>
+  getPanelDataSummary([
+    nodesFrame(rows),
+    createDataFrame({
+      name: 'values',
+      fields: [{ name: 'time', type: FieldType.time, values: [0, 1000] }],
+    }),
+  ]);
+
 describe('relationsPresetsSupplier', () => {
-  it('returns all four presets in order for a small ranged graph', () => {
+  it('returns all five presets in order for a small ranged graph', () => {
     const presets = relationsPresetsSupplier({ dataSummary: rangedSummary() });
 
     expect(presets?.map(({ name, description }) => ({ name, description }))).toEqual([
       { name: 'Service topology', description: 'Show service dependencies and their direction.' },
+      { name: 'Circular network', description: 'Arrange network relationships in a stable circle.' },
       { name: 'Weighted flow', description: 'Show how weighted flow moves through a process.' },
       { name: 'Mutual relations', description: 'Show dense or cyclic traffic between pairs.' },
       { name: 'Time network', description: 'Show how a network changes over a time range.' },
@@ -59,9 +70,28 @@ describe('relationsPresetsSupplier', () => {
   ])('omits Time network for %s', (_name, dataSummary) => {
     expect(relationsPresetsSupplier({ dataSummary })?.map(({ name }) => name)).toEqual([
       'Service topology',
+      'Circular network',
       'Weighted flow',
       'Mutual relations',
     ]);
+  });
+
+  it.each([
+    [1, false, false],
+    [2, true, true],
+    [RELATIONS_CIRCULAR_MAX_NODES, true, true],
+    [RELATIONS_CIRCULAR_MAX_NODES + 1, false, false],
+  ])('applies circular preset limits at %i known nodes', (nodeCount, circularEligible, timeEligible) => {
+    const names = relationsPresetsSupplier({ dataSummary: rangedNodeSummary(nodeCount) })!.map(({ name }) => name);
+
+    expect(names.includes('Circular network')).toBe(circularEligible);
+    expect(names.includes('Time network')).toBe(timeEligible);
+  });
+
+  it('allows Circular network when the node count is unknown', () => {
+    const names = relationsPresetsSupplier({ dataSummary: undefined })!.map(({ name }) => name);
+
+    expect(names).toEqual(['Service topology', 'Circular network', 'Weighted flow', 'Mutual relations']);
   });
 
   it('omits Mutual relations above the Chord node budget', () => {
@@ -70,7 +100,6 @@ describe('relationsPresetsSupplier', () => {
     expect(relationsPresetsSupplier({ dataSummary })?.map(({ name }) => name)).toEqual([
       'Service topology',
       'Weighted flow',
-      'Time network',
     ]);
   });
 
@@ -85,6 +114,7 @@ describe('relationsPresetsSupplier', () => {
 
     expect(relationsPresetsSupplier({ dataSummary })?.map(({ name }) => name)).toEqual([
       'Service topology',
+      'Circular network',
       'Mutual relations',
     ]);
   });
@@ -102,6 +132,7 @@ describe('relationsPresetsSupplier', () => {
     ]);
     expect(relationsPresetsSupplier({ dataSummary: tooManyLevels })?.map(({ name }) => name)).toEqual([
       'Service topology',
+      'Circular network',
       'Mutual relations',
     ]);
   });
@@ -117,27 +148,21 @@ describe('relationsPresetsSupplier', () => {
     expect(medium.find(({ name }) => name === 'Service topology')?.options).toMatchObject({
       relationsNodeSize: 16,
       relationsShowNodeLabels: true,
-      relationsRepulsion: 300,
-      relationsEdgeLength: 150,
+    });
+    expect(medium.find(({ name }) => name === 'Circular network')?.options).toMatchObject({
+      relationsNodeSize: 16,
+      relationsShowNodeLabels: true,
     });
     expect(medium.find(({ name }) => name === 'Time network')?.options).toMatchObject({
       relationsNodeSize: 16,
       relationsShowNodeLabels: true,
-      relationsRepulsion: 400,
-      relationsEdgeLength: 200,
     });
     expect(large.find(({ name }) => name === 'Service topology')?.options).toMatchObject({
       relationsNodeSize: 10,
       relationsShowNodeLabels: false,
-      relationsRepulsion: 200,
-      relationsEdgeLength: 100,
     });
-    expect(large.find(({ name }) => name === 'Time network')?.options).toMatchObject({
-      relationsNodeSize: 10,
-      relationsShowNodeLabels: false,
-      relationsRepulsion: 400,
-      relationsEdgeLength: 200,
-    });
+    expect(large.find(({ name }) => name === 'Circular network')).toBeUndefined();
+    expect(large.find(({ name }) => name === 'Time network')).toBeUndefined();
   });
 
   it('resets every Relations visual option and applies each distinctive bundle', () => {
@@ -160,6 +185,15 @@ describe('relationsPresetsSupplier', () => {
       relationsTimeSlider: false,
     });
     expect(presets[1].options).toMatchObject({
+      seriesType: 'graph',
+      relationsLayout: 'circular',
+      relationsPan: true,
+      relationsZoom: true,
+      relationsFocusAdjacency: true,
+      relationsShowEdgeValues: false,
+      relationsTimeSlider: false,
+    });
+    expect(presets[2].options).toMatchObject({
       seriesType: 'sankey',
       relationsSankeyOrient: 'horizontal',
       relationsLinkColor: 'gradient',
@@ -168,7 +202,7 @@ describe('relationsPresetsSupplier', () => {
       relationsShowEdgeValues: false,
       relationsTimeSlider: false,
     });
-    expect(presets[2].options).toMatchObject({
+    expect(presets[3].options).toMatchObject({
       seriesType: 'chord',
       relationsLinkColor: 'gradient',
       relationsFocusAdjacency: true,
@@ -176,7 +210,7 @@ describe('relationsPresetsSupplier', () => {
       relationsShowNodeLabels: true,
       relationsTimeSlider: false,
     });
-    expect(presets[3].options).toMatchObject({
+    expect(presets[4].options).toMatchObject({
       seriesType: 'graph',
       relationsLayout: 'circular',
       relationsTimeSlider: true,
@@ -185,6 +219,9 @@ describe('relationsPresetsSupplier', () => {
       relationsPan: true,
       relationsZoom: true,
     });
+    expect(presets.every(({ options }) => options?.relationsRepulsion === undefined)).toBe(true);
+    expect(presets.every(({ options }) => options?.relationsEdgeLength === undefined)).toBe(true);
+    expect(presets.every(({ options }) => options?.relationsGravity === undefined)).toBe(true);
   });
 
   it('does not replace query or field configuration options', () => {
@@ -209,6 +246,7 @@ describe('relationsPresetsSupplier', () => {
       preset.cardOptions!.previewModifier!(preview);
 
       expect(preview.options).toMatchObject({
+        isPreview: true,
         relationsShowNodeLabels: false,
         legend: { showLegend: false },
       });

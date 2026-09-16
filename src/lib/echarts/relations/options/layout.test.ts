@@ -131,27 +131,94 @@ describe('resolveGraphDraggable', () => {
 });
 
 describe('getGraphForce', () => {
-  it('always emits the seeded, non-animated, spread-out defaults', () => {
-    expect(getGraphForce(baseOptions())).toEqual({
-      initLayout: 'circular',
-      repulsion: 400,
-      edgeLength: 200,
-      layoutAnimation: false,
-    });
+  const graph = (nodeCount: number, edgeCount: number, radius?: number): NodeGraphData => ({
+    nodes: Array.from({ length: nodeCount }, (_, index) => ({
+      id: `n${index}`,
+      name: `Node ${index}`,
+      value: index,
+      ...(radius == null ? {} : { radius }),
+    })),
+    links: Array.from({ length: edgeCount }, (_, index) => ({
+      id: `e${index}`,
+      source: `n${index % nodeCount}`,
+      target: `n${(index + 1) % nodeCount}`,
+      value: index,
+    })),
   });
 
-  it('lets each knob be overridden, and adds gravity only when set', () => {
-    expect(getGraphForce(baseOptions({ relationsRepulsion: 200 }))).toMatchObject({ repulsion: 200 });
-    expect(getGraphForce(baseOptions())).not.toHaveProperty('gravity');
-    expect(
-      getGraphForce(
-        baseOptions({
-          relationsRepulsion: 200,
-          relationsGravity: 0.2,
-          relationsEdgeLength: 40,
-          relationsLayoutAnimation: true,
-        })
-      )
-    ).toEqual({ initLayout: 'circular', repulsion: 200, gravity: 0.2, edgeLength: 40, layoutAnimation: true });
+  it('emits finite bounded automatic values with the stable seed and animation setting', () => {
+    const force = getGraphForce(data(), baseOptions(), 400, 300);
+
+    expect(force.initLayout).toBe('circular');
+    expect(force.layoutAnimation).toBe(false);
+    expect(force.edgeLength).toBeGreaterThanOrEqual(30);
+    expect(force.edgeLength).toBeLessThanOrEqual(240);
+    expect(force.repulsion).toBeGreaterThanOrEqual(60);
+    expect(force.repulsion).toBeLessThanOrEqual(960);
+    expect(force.gravity).toBeGreaterThanOrEqual(0.2);
+    expect(force.gravity).toBeLessThanOrEqual(0.5);
+    expect([force.edgeLength, force.repulsion, force.gravity].every((value) => Number.isFinite(value))).toBe(true);
+  });
+
+  it('gives a larger panel more room and more nodes less room', () => {
+    const smallPanel = getGraphForce(graph(12, 11), baseOptions(), 300, 200);
+    const largePanel = getGraphForce(graph(12, 11), baseOptions(), 900, 600);
+    const manyNodes = getGraphForce(graph(48, 47), baseOptions(), 900, 600);
+
+    expect(largePanel.edgeLength).toBeGreaterThan(smallPanel.edgeLength as number);
+    expect(largePanel.repulsion).toBeGreaterThan(smallPanel.repulsion as number);
+    expect(manyNodes.edgeLength).toBeLessThan(largePanel.edgeLength as number);
+  });
+
+  it('reserves more plot space for larger nodes', () => {
+    const smallNodes = getGraphForce(graph(12, 11, 10), baseOptions(), 600, 400);
+    const largeNodes = getGraphForce(graph(12, 11, 100), baseOptions(), 600, 400);
+
+    expect(largeNodes.edgeLength).toBeLessThan(smallNodes.edgeLength as number);
+  });
+
+  it('uses stronger gravity for a disconnected graph', () => {
+    const connected = getGraphForce(graph(10, 9), baseOptions(), 600, 400);
+    const disconnected = getGraphForce(graph(10, 0), baseOptions(), 600, 400);
+
+    expect(disconnected.gravity).toBeGreaterThan(connected.gravity as number);
+  });
+
+  it('uses stronger gravity when nodes crowd the plot', () => {
+    const roomy = getGraphForce(graph(10, 9), baseOptions(), 300, 200);
+    const crowded = getGraphForce(graph(50, 49), baseOptions(), 300, 200);
+
+    expect(crowded.gravity).toBeGreaterThan(roomy.gravity as number);
+  });
+
+  it('uses the 400 by 300 fallback when either dimension is invalid', () => {
+    const fallback = getGraphForce(graph(10, 9), baseOptions(), 400, 300);
+
+    expect(getGraphForce(graph(10, 9), baseOptions())).toEqual(fallback);
+    expect(getGraphForce(graph(10, 9), baseOptions(), Number.NaN, 300)).toEqual(fallback);
+    expect(getGraphForce(graph(10, 9), baseOptions(), 400, 0)).toEqual(fallback);
+    expect(getGraphForce(graph(10, 9), baseOptions(), Number.POSITIVE_INFINITY, 300)).toEqual(fallback);
+  });
+
+  it('keeps mixed explicit values, including zero', () => {
+    const force = getGraphForce(
+      data(),
+      baseOptions({
+        relationsRepulsion: 0,
+        relationsGravity: 0,
+        relationsLayoutAnimation: true,
+      }),
+      400,
+      300
+    );
+
+    expect(force).toMatchObject({
+      initLayout: 'circular',
+      repulsion: 0,
+      gravity: 0,
+      layoutAnimation: true,
+    });
+    expect(force.edgeLength).toBeGreaterThan(0);
+    expect(getGraphForce(data(), baseOptions({ relationsEdgeLength: 0 }), 400, 300).edgeLength).toBe(0);
   });
 });

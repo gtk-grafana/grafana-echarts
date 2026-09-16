@@ -192,6 +192,22 @@ describe('buildPanelChartOption tooltip mode', () => {
   });
 });
 
+describe('buildPanelChartOption preview mode', () => {
+  it('disables interaction, tooltips, brushes, and animation', () => {
+    const option = buildPanelChartOption(
+      makeContext([timeFrame()], 'line', { defaults: {}, overrides: [] }, { isPreview: true }),
+      { isGrafanaLegend: true }
+    );
+
+    expect(seriesArray(option)).not.toHaveLength(0);
+    expect(seriesArray(option).every((series) => series.silent === true)).toBe(true);
+    expect(seriesArray(option).every((series) => series.emphasis?.disabled === true)).toBe(true);
+    expect(option).toMatchObject({ animation: false, tooltip: { show: false } });
+    expect(option).not.toHaveProperty('axisPointer');
+    expect(option).not.toHaveProperty('brush');
+  });
+});
+
 describe('buildPanelChartOption with all series hidden', () => {
   it('renders a time x-axis with no series for the time cartesian (line) path', () => {
     const option = buildPanelChartOption(makeContext([timeFrame()], 'line', allHiddenFieldConfig), {
