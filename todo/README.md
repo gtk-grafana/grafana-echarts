@@ -15,6 +15,7 @@ This directory contains current work and design references. Completed implementa
 - [ECharts lines series](./lines.md)
 - [Multiple frames in categorical converters](./multiple-frames.md)
 - [Relations label wrapping](./relations-label-wrap-broken.md)
+- [Relations no-data view for invalid frames](./relations-no-data-view.md)
 - [Relations node size by value](./relations-node-size-by-value.md)
 - [Relations null edge weight](./relations-null-edge-weight.md)
 
