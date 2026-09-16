@@ -70,6 +70,30 @@ describe('relations chord', () => {
     });
   });
 
+  describe('link color', () => {
+    /**
+     * @todo gradient is supported in echarts, but not here?
+     * https://echarts.apache.org/en/option.html#series-chord.lineStyle.color
+     */
+    it('BUGGY BEHAVIOR: chord draws source instead of gradient', async () => {
+      const { defaultEvents, seriesEvents } = await renderChord({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsLinkColor: 'gradient' },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+
+    it('target (each ribbon takes the color of its other arc)', async () => {
+      const { defaultEvents, seriesEvents } = await renderChord({
+        frames: [nodesFrame, edgesFrame],
+        options: { relationsLinkColor: 'target' },
+      });
+
+      expect(normalizeCanvasEvents(seriesEvents)).toMatchCanvasSnapshot(defaultEvents, { width, height });
+    });
+  });
+
   describe('labels', () => {
     it('node labels off (arcs and chords, no text)', async () => {
       const { defaultEvents, seriesEvents } = await renderChord({
