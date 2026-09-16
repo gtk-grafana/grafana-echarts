@@ -15,7 +15,14 @@ import {
   ringEdgesFrame,
   ringNodesFrame,
 } from 'test/relations';
-import { asPipelineWould, canvasOptions, labelTexts, renderRelations, uniqueLabelTexts } from 'test/relationsCanvas';
+import {
+  asPipelineWould,
+  canvasOptions,
+  labelPositions,
+  labelTexts,
+  renderRelations,
+  uniqueLabelTexts,
+} from 'test/relationsCanvas';
 
 import { revealEdgeLabelsFor } from 'lib/echarts/relations/edgeLabels/reveal';
 
@@ -27,6 +34,23 @@ const drawnOverlappingValues = (events: CanvasRenderingContext2DEvent[]) =>
   labelTexts(events).filter((text) => overlappingValues.includes(text));
 
 describe('relations labels', () => {
+  describe('circular bounds', () => {
+    it.each([
+      ['two-line value labels', { relationsShowNodeValues: true }],
+      ['45px nodes', { relationsNodeSize: 45 }],
+    ])('keeps %s above the bottom of the plot', async (_name, options) => {
+      const { container, seriesEvents } = await renderRelations({
+        frames: [nodesFrame, edgesFrame],
+        options: { ...options, relationsHideOverlappingLabels: false },
+      });
+      const labels = labelPositions(seriesEvents);
+      const plotHeight = getChart(container).chart?.getHeight() ?? 0;
+
+      expect(labels.length).toBeGreaterThan(0);
+      expect(Math.max(...labels.map((label) => label.y))).toBeLessThan(plotHeight);
+    });
+  });
+
   describe('overflow', () => {
     it('a long name is cut at the label width and ends in an ellipsis', async () => {
       const { seriesEvents } = await renderCrowdedGraph({ relationsHideOverlappingLabels: false });

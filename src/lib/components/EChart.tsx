@@ -108,7 +108,7 @@ export const EChart: React.FC<Props> = ({
     };
   }, [instanceRef]);
 
-  useChartOption(chart, chartContext, { isGrafanaLegend, tooltipSink, reportTooltipTrigger });
+  useChartOption(chart, chartContext, { isGrafanaLegend, plotHeight: height, tooltipSink, reportTooltipTrigger });
 
   useChartResize(chart, width, height);
   useBrushTimeZoom(chart, onChangeTimeRange);

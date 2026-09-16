@@ -95,7 +95,7 @@ export const relationsChartModule: ChartModule = {
 
   buildOption(
     ctx: RelationsChartContext,
-    _base
+    { plotHeight }
   ): EChartGraphSeriesOption | EChartSankeySeriesOption | EChartChordSeriesOption | null {
     const data = getVisibleNodeGraph(ctx);
     if (!data) {
@@ -119,7 +119,7 @@ export const relationsChartModule: ChartModule = {
       return { ...relationsDefaultOptions, series: [getChordSeries(data, seriesCtx)] };
     }
 
-    return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx)] };
+    return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx, plotHeight)] };
   },
 
   /** Report data that the panel cannot draw as requested. */

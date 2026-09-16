@@ -2,6 +2,7 @@ import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { getGraphSeries } from 'lib/echarts/relations/options/graph';
 import {
+  getAutomaticGraphCenter,
   getRelationsViewState,
   resolveRelationsPan,
   resolveRelationsRoam,
@@ -63,5 +64,50 @@ describe('getRelationsViewState', () => {
 
   it('emits only what has been stored so far', () => {
     expect(getRelationsViewState(baseOptions({ relationsRememberView: true }))).toEqual({});
+  });
+});
+
+describe('getAutomaticGraphCenter', () => {
+  it('does not move the default one-line labels when they fit', () => {
+    const options = baseOptions({ relationsLayout: 'circular' });
+
+    expect(getAutomaticGraphCenter(data(), options, 'circular', 300)).toBeUndefined();
+  });
+
+  it('moves two-line value labels only by their overflow', () => {
+    const options = baseOptions({ relationsLayout: 'circular', relationsShowNodeValues: true });
+
+    expect(getAutomaticGraphCenter(data(), options, 'circular', 300)).toEqual(['50%', '53.75%']);
+    expect(getAutomaticGraphCenter(data(), options, 'circular', 400)).toBeUndefined();
+  });
+
+  it('moves a 45px node only when its label footprint exceeds the margin', () => {
+    const withRadius = data({ nodes: [{ id: 'a', name: 'A', value: 1, radius: 45 }] });
+    const options = baseOptions({ relationsLayout: 'circular', relationsNodeSize: 8 });
+
+    expect(getAutomaticGraphCenter(withRadius, options, 'circular', 300)).toEqual(['50%', '53.96%']);
+    expect(getAutomaticGraphCenter(withRadius, options, 'circular', 400)).toBeUndefined();
+  });
+
+  it('does not move non-circular graphs or graphs with hidden labels', () => {
+    expect(getAutomaticGraphCenter(data(), baseOptions(), 'force', 300)).toBeUndefined();
+    expect(
+      getAutomaticGraphCenter(
+        data(),
+        baseOptions({ relationsLayout: 'circular', relationsShowNodeLabels: false }),
+        'circular',
+        300
+      )
+    ).toBeUndefined();
+  });
+
+  it('lets a remembered center override the automatic default', () => {
+    const options = baseOptions({
+      relationsLayout: 'circular',
+      relationsRememberView: true,
+      relationsViewCenter: [10, 20],
+    });
+
+    expect(getGraphSeries(data(), ctx(options), 300).center).toEqual([10, 20]);
   });
 });

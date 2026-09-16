@@ -35,7 +35,12 @@ function createFakeChart() {
 }
 
 const ctx = { seriesType: 'line' } as unknown as ChartContext;
-const options = { isGrafanaLegend: false, tooltipSink: NOOP_TOOLTIP_SINK, reportTooltipTrigger: () => undefined };
+const options = {
+  isGrafanaLegend: false,
+  plotHeight: 300,
+  tooltipSink: NOOP_TOOLTIP_SINK,
+  reportTooltipTrigger: () => undefined,
+};
 
 describe('useChartOption', () => {
   beforeEach(() => {
@@ -124,5 +129,17 @@ describe('useChartOption', () => {
     // `chartContext` is memoized upstream, so a new identity means real change.
     rerender({ context: { ...ctx } as ChartContext });
     expect(buildOption).toHaveBeenCalledTimes(2);
+  });
+
+  it('rebuilds with the new plot height after a panel resize', () => {
+    buildOption.mockReturnValue({ series: [] });
+    const { chart } = createFakeChart();
+    const { rerender } = renderHook(({ plotHeight }) => useChartOption(chart, ctx, { ...options, plotHeight }), {
+      initialProps: { plotHeight: 300 },
+    });
+
+    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotHeight: 300 }));
+    rerender({ plotHeight: 240 });
+    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotHeight: 240 }));
   });
 });

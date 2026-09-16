@@ -5,7 +5,7 @@ import { partToWholeSeriesTypes } from 'editor/pie';
 import { panelTypeToAxis } from 'lib/echarts/axes/converters';
 import { isRelationsSeriesType } from 'lib/echarts/charts/narrowing';
 import { resolveChartModule } from 'lib/echarts/charts/registry';
-import { type ChartContext } from 'lib/echarts/charts/types';
+import { type BaseOptionParts, type ChartContext } from 'lib/echarts/charts/types';
 import { framesHaveTimeField } from 'lib/echarts/converters/frames';
 import { applyEditorModeDefaults } from 'lib/echarts/options/editorMode';
 import { resolveAnimation } from 'lib/echarts/performance/resolvers';
@@ -33,7 +33,7 @@ import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
  */
 export function buildPanelChartOption(
   rawCtx: ChartContext,
-  { isGrafanaLegend, tooltipSink }: { isGrafanaLegend: boolean; tooltipSink?: TooltipSink }
+  { isGrafanaLegend, plotHeight, tooltipSink }: BaseOptionParts & { tooltipSink?: TooltipSink }
 ): ECBasicOption | null {
   const chartModule = resolveChartModule(rawCtx.seriesType);
   if (!chartModule) {
@@ -88,7 +88,7 @@ export function buildPanelChartOption(
   // No option means "nothing to draw from this data" — an empty response, or one
   // whose shape carries no chart. Every other family already falls back to the
   // no-data view for that, so this does too rather than throwing.
-  const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend });
+  const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend, plotHeight });
   if (!echartOption) {
     debug('No chart option resolved', LOG_LEVELS.debug, ctx);
     return null;

@@ -13,7 +13,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Bidirectional traffic between every pair of regions, plus two self-loops (`us-east -> us-east`, `eu-west -> eu-west`). A force graph turns this into a hairball and a sankey **cannot draw it at all** — every pair is a cycle and every self-loop would be dropped. A chord reads it directly.",
+      "description": "This Chord chart shows traffic in both directions between each region. It also shows the `us-east -> us-east` and `eu-west -> eu-west` self-links. Chord charts keep cycles and self-links. Sankey charts remove links that form cycles.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -60,7 +60,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Identical queries, `graph` variant, Circular layout. Same `{ nodes, links }` model; switching Chart type is a layout change, not a data change.",
+      "description": "This panel uses the same queries as the Chord chart. It uses the Graph chart type with a Circular layout. Change Chart type to draw the same nodes and links in a different form.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -108,7 +108,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "The same fixture as the sankey dashboard, which contains a cycle (`api -> db` and `db -> api`).\n\n**Chord has no DAG restriction**, so all seven links are drawn and there is no cycle-breaking and no dropped-link note. Compare the sankey panel on the \"ECharts Relations — sankey\" dashboard, which drops one link to survive.",
+      "description": "The `api -> db` and `db -> api` links form a cycle. Chord charts support cycles, so this panel draws all seven links. Compare this panel with the Sankey chart, which removes one link and shows a notice.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -155,7 +155,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "The same seven edges as a sankey, for side-by-side comparison: the `db -> api` back-edge is removed before ECharts sees it (otherwise the panel would throw and render blank) and the bottom-left note reports the cost.",
+      "description": "This Sankey chart uses the same seven links as the Chord chart. It removes the `db -> api` link to break the cycle. A notice at the bottom left reports the removed link.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -202,7 +202,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "An edges frame plus a nodes frame (two `csv_content` queries, detected by field shape). The nodes frame's `title` supplies each arc label, so the ring reads \"Database\" rather than the raw `db` id.\n\nWorth noting: ECharts labels a chord node with its raw **data index** by default, so this needs an explicit label formatter — see `getChordLabel`.",
+      "description": "The data contains an edges frame and a nodes frame. The `title` field in the nodes frame supplies each label. The chart shows \"Database\" instead of the node ID `db`.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -258,7 +258,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "TestData's `node_graph` random scenario deliberately generates cycles. A chord takes them as-is, so this needs none of the sankey path's rewriting.",
+      "description": "The TestData `node_graph` random scenario can generate cycles. Chord charts draw these cycles without removing links.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -309,7 +309,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "Advanced-tier options: the ring starts at 0° and runs counter-clockwise, with a wider angular gap between arcs and less translucent ribbons.\n\n`padAngle` is the chord analogue of a node gap and it is **angular** — `series.chord` has no `nodeWidth`/`nodeGap` at all (those are sankey keys). Switch the editor back to Default mode and every option here resets.",
+      "description": "This panel uses Advanced mode. The ring starts at 0 degrees and runs counterclockwise. Arc gap adds space between arcs in degrees. Ribbon opacity makes the ribbons less transparent. If you change the editor to Default mode, these configuration values reset.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -362,7 +362,7 @@
         "type": "grafana-testdata-datasource",
         "uid": "trlxrdZVk"
       },
-      "description": "**Show node values** on. Each node label gains a second line carrying that node's `mainstat`, formatted with the field's unit and decimals — the same value, and the same `stat ?? value` precedence, the tooltip shows.\n\nThe option is shared by all three render variants and rides on the node label, so it is hidden in the editor when **Show node labels** is off.",
+      "description": "Show node values adds the calculated node value below each node label. The node field supplies the unit and decimals. The tooltip shows the same value. If Show node labels is off, the editor hides Show node values.",
       "fieldConfig": {
         "defaults": {
           "color": {

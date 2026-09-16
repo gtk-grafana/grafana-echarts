@@ -14,6 +14,8 @@ const repoFile = (...parts: string[]) => join(__dirname, '../../../../..', ...pa
 interface DemoPanel {
   id: number;
   title: string;
+  type: string;
+  collapsed?: boolean;
   description?: string;
   options: Record<string, unknown>;
 }
@@ -57,6 +59,7 @@ const OPTION_PANEL: Record<string, number> = {
   legend: 31,
   relationsPan: 32,
   relationsDraggable: 33,
+  relationsFocusAdjacency: 42,
 };
 
 const NO_VISUAL: Record<string, string> = {
@@ -64,7 +67,6 @@ const NO_VISUAL: Record<string, string> = {
   relationsLayoutAnimation: 'motion only — the settled layout is identical',
   'animation.enabled': 'motion only — the settled render is identical',
   relationsRememberView: 'behaviour only — persists a view, draws nothing',
-  relationsFocusAdjacency: 'hover only — the idle render is identical',
   tooltip: 'hover only — the idle render is identical',
 };
 
@@ -74,8 +76,21 @@ const FIELD_CONFIG_PANEL: Record<string, number> = {
   'Value mappings': 36,
 };
 
-/** Return option panels before field-configuration panels. */
-const ALL_PANEL_IDS = [...Object.values(OPTION_PANEL), ...Object.values(FIELD_CONFIG_PANEL)];
+/** Extra values that explain a supported choice or chart variant. */
+const SUPPLEMENTAL_PANEL_IDS = [37, 38, 39, 40, 41, 43, 44];
+
+const FAMILY_ROWS = [
+  { id: 45, title: 'Sankey', seriesType: 'sankey' },
+  { id: 46, title: 'Graph', seriesType: 'graph' },
+  { id: 47, title: 'Chord', seriesType: 'chord' },
+] as const;
+
+/** Return every expected panel id in dashboard order. */
+const ALL_PANEL_IDS = [
+  ...Object.values(OPTION_PANEL),
+  ...Object.values(FIELD_CONFIG_PANEL),
+  ...SUPPLEMENTAL_PANEL_IDS,
+].sort((left, right) => left - right);
 
 const ADVANCED_PATHS = new Set(
   Object.keys({
@@ -101,19 +116,38 @@ describe('the all-options reference dashboard', () => {
     }
   });
 
-  it('has exactly one panel per demoed option and field-config option, numbered 1..n', () => {
-    const panels = dashboard().panels;
+  it('has every primary and supplemental demo, numbered 1..n', () => {
+    const panels = dashboard().panels.filter((panel) => panel.type !== 'row');
 
-    expect(panels.map((panel) => panel.id)).toEqual(ALL_PANEL_IDS);
+    expect(panels.map((panel) => panel.id).sort((left, right) => left - right)).toEqual(ALL_PANEL_IDS);
     expect(panels).toHaveLength(ALL_PANEL_IDS.length);
     expect(ALL_PANEL_IDS).toEqual(ALL_PANEL_IDS.map((_, index) => index + 1));
   });
 
-  // The id is the doc's link target, so it has to be legible on the panel itself.
-  it('prefixes every panel title with its id', () => {
-    for (const panel of dashboard().panels) {
-      expect(panel.title.startsWith(`${panel.id}. `)).toBe(true);
+  it('groups every chart under an expanded family row', () => {
+    const panels = dashboard().panels;
+    const rowIndexes = panels.flatMap((panel, index) => (panel.type === 'row' ? [index] : []));
+
+    expect(rowIndexes.map((index) => panels[index])).toMatchObject(
+      FAMILY_ROWS.map(({ id, title }) => ({ id, title, type: 'row', collapsed: false }))
+    );
+
+    for (const [rowIndex, family] of FAMILY_ROWS.entries()) {
+      const start = rowIndexes[rowIndex] + 1;
+      const end = rowIndexes[rowIndex + 1] ?? panels.length;
+      const seriesTypes = panels.slice(start, end).map((panel) => panel.options.seriesType ?? 'graph');
+
+      expect(seriesTypes.length).toBeGreaterThan(0);
+      expect(new Set(seriesTypes)).toEqual(new Set([family.seriesType]));
     }
+  });
+
+  it('uses unnumbered chart titles', () => {
+    const numbered = dashboard()
+      .panels.filter((panel) => panel.type !== 'row' && /^\d+\.\s/.test(panel.title))
+      .map((panel) => panel.title);
+
+    expect(numbered).toEqual([]);
   });
 
   it('puts every panel demoing an Advanced option into Advanced editor mode', () => {
@@ -133,6 +167,7 @@ describe('the all-options reference dashboard', () => {
   it('describes every panel', () => {
     const thin = dashboard()
       .panels.filter((panel) => (panel.description ?? '').length < 100)
+      .filter((panel) => panel.type !== 'row')
       .map((panel) => panel.title);
 
     expect(thin).toEqual([]);

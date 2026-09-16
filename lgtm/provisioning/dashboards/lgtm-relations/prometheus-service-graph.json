@@ -13,7 +13,7 @@
       "id": 1,
       "type": "text",
       "gridPos": {
-        "h": 25,
+        "h": 12,
         "w": 24,
         "x": 0,
         "y": 0
@@ -21,14 +21,14 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "# Prometheus → relations charts\n\nTempo's metrics-generator publishes `traces_service_graph_request_total{client, server}` and remote-writes it into **`lgtm-prometheus`** (`lgtm/config/tempo.yaml`). Those two labels are a real source/target pair, which is what makes this stack useful to this panel family — the same metric a Grafana Cloud or Mimir user already has.\n\nThe panel reads endpoints from two carriers, in this order: an endpoint **label pair** on a field, then a `-->` in the field **name**. The accepted pairs are `source`/`target`, **`client`/`server`**, `src`/`dst` and `from`/`to` (`ENDPOINT_LABEL_PAIRS`) — so Tempo's own `client`/`server` is read directly and **none of the queries below rename anything**. They used to: every one wrapped its aggregation in `sum by (source, target) (label_replace(label_replace(…)))` purely to reach a name the reader would accept. Two routes still follow, but the difference between them is now only the field *name*:\n\n### Route A — a ranged query and an empty Transform tab\n\n```promql\nsum by (client, server) (\n  rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__rate_interval])\n)\n```\n\n`Format: Time series` returns **one frame per series**, each `[Time, Value]` with the grouping labels on `Value`. Every one of those frames passes the reader's edge test on its own, and the reader collects *all* of them — so nine series draw nine edges with no transformation anywhere. The row dimension survives too, which is why **Calculation** is a real choice here: `Last` is the current rate, `Mean` is the average over the window.\n\nWhat it does **not** give you is identity: every value field is called `Value`, so all nine marks share one id. `byName: 'Value'` matches all of them at once, and a per-edge unit, colour or data link is unreachable. (On Grafana 13.2+ the plugin pivots this shape into named fields itself, above the panel — this host is 13.1.0, so it does not.)\n\n### Route B — an instant table, `label_join`, `organize`, `rowsToFields`\n\n```promql\nlabel_join(\n  sum by (client, server) (rate(traces_service_graph_request_total{client!=\"\", server!=\"\"}[$__range])),\n  \"edge\", \"-->\", \"client\", \"server\")\n```\n\n`Format: Table` + `Type: Instant` is one row per series; `rowsToFields` turns each row into a field named by its first **string** column. Two details are load-bearing, and both are visible in the bottom-right panel:\n\n- **`organize` must put `edge` first.** Prometheus sorts label columns alphabetically, so the first string column is `client` — a bare `rowsToFields` would name every mark after its *client* and produce duplicate fields with no endpoints at all.\n- **the query names the pair `src` / `dst`, and `organize` renames it** to `source` / `target`. Not the other way round: a query that emits `source` and `target` *columns* is claimed as the legacy row format by the conversion the plugin registers above the panel on 13.2+, which then widens it before this chain runs — and the panel shows **No data** with nothing logged. Renaming inside the Transform tab happens strictly after that pre-pass, so it is safe on every host.\n\nThe payoff is a field per edge, named `grafana-->prometheus`, which the `/-->/ ` overrides in the panels below actually address."
+        "content": "# Relations charts from Prometheus\n\nTempo writes the metric `traces_service_graph_request_total{client, server}` to Prometheus. The `client` and `server` labels identify the endpoints of each service call.\n\nThe relations panel recognizes these endpoint label pairs:\n\n- `source` and `target`\n- `client` and `server`\n- `src` and `dst`\n- `from` and `to`\n\n## Route A: ranged series\n\nA time series query returns one `Value` field for each edge. The field keeps its `client` and `server` labels.\n\nThe panel reads those labels directly, so the Transform tab can stay empty. Calculation controls how the panel reduces each ranged field to one edge value.\n\n## Route B: instant rows\n\nAn instant table query returns one row for each edge. `label_join` creates an `edge` label such as `grafana-->prometheus`.\n\nUse Organize fields to put `edge` before the endpoint columns. Then use Rows to fields to create one named field for each edge.\n\nKeep the original endpoint labels when a query copies them to `source` and `target`. The panel uses their matching values to detect filter names.\n\nEach relations panel enables ad hoc filters. Pin a tooltip to add a filter to the Ad hoc filters variable."
       }
     },
     {
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "Route A — service dependency map, no transformations",
-      "description": "Nine ranged series, an empty Transform tab, and the whole service graph. Every frame carries `source` / `target` labels on its `Value` field, so each one passes the edge test alone and the reader collects them all.\n\nThe legend format is set to `{{client}}-->{{server}}` even though nothing here reads it: on Grafana 13.2+ the plugin's pivot promotes exactly that rendered legend to `field.name`, so writing it now means this panel gains per-edge ids on upgrade with no dashboard change. Today it only labels the tooltip series.\n\n`prometheus → prometheus` is Prometheus scraping itself — a genuine self-loop, which a graph draws and a sankey cannot. `user` is Tempo's virtual node: requests with no client span.\n\n**The time slider is on here**, over a live ranged response — the shape the deterministic `provisioning/dashboards/relations/timeline.json` stands in for. Nine series, each with its own timestamps, so the stops are the union of all nine and the selected instant is resolved against each frame's own row dimension. Scrub or step through it; the default position is the newest stop, which is what `Last *` was already showing, so the picture only changes once you move it.\n\n**Edges move, nodes do not.** `longToWide` is edges-only, so every node here is derived from an endpoint and carries no stat of its own — there is nothing on a node for a timestamp to change.",
+      "description": "This graph uses Route A. Each ranged `Value` field keeps its `client` and `server` labels, so the panel reads every edge without transformations.\n\nThe panel also uses these labels as the ad hoc filter names. The time slider selects one timestamp from the ranged data.\n\nThe query supplies no node fields, so the panel derives the nodes from endpoints. Derived nodes have no values to change with the slider.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -37,7 +37,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 25
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -45,7 +45,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": []
       },
@@ -93,7 +94,7 @@
       "id": 3,
       "type": "grafana-echartsrelations-panel",
       "title": "Route B — the same graph, with per-edge ids",
-      "description": "The same edges through the instant + `organize` + `rowsToFields` chain, which produces one field per edge named `client-->server`. Three overrides prove the ids are real, and none of them is expressible on Route A:\n\n- `grafana-->prometheus` is pinned to purple and drawn dashed;\n- `prometheus-->prometheus` — the self-scrape — is given a wider line and its own curveness so it reads as a loop;\n- `user-->grafana` carries a data link into Explore, scoped to that pair's traces.\n\nAn instant query means one row per mark, so every reducer returns the same number and **Calculation** stops mattering — the cost of the route. Note also that the panel's edge weight is `rate(...[$__range])`, the average over the whole window, rather than the last scrape.",
+      "description": "This graph uses an instant table query. `label_join` creates a unique `edge` label, and Organize fields puts it first.\n\nRows to fields creates one field named `client-->server` for each edge. It keeps the `client` and `server` columns as labels for ad hoc filters.\n\nThe overrides can style or link one edge without changing the others. The query calculates one value over the selected range.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -102,7 +103,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 25
+        "y": 12
       },
       "fieldConfig": {
         "defaults": {
@@ -110,7 +111,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": [
           {
@@ -231,7 +233,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "Edges and node stats — two queries, two filtered chains",
-      "description": "Route B for the edges (refId A) plus a second query (refId B) giving each service its **error ratio**, which becomes the node colour. Both chains are scoped with `filter: byRefId` so neither touches the other's frames, and `rowsToFields` stamps its output `rowsToFields-A` / `rowsToFields-B`, so a later `byRefId` cannot recapture an earlier chain's result.\n\nThe node query is bounded with `and on (server) …` to the servers the edges actually reach: a node field for a service no edge touches renders as a disconnected dot.\n\nNodes are percentages against green/orange/red thresholds. The single `byRegexp: /-->/ ` override puts every edge back on `reqps` **and** back on a palette colour — that colour property is required, not cosmetic: an edge left on `thresholds` resolves a threshold colour instead of deferring to the link-colour mode, so a healthy graph would draw all-green edges. The override is addressable at all only because Route B named the edges.\n\nThe layout is `force` with **Repulsion**, **Edge length** and **Gravity** set. All three are Advanced-tier options, and an Advanced option that is set while `editorMode` is left at `default` is discarded before it reaches the chart — so this panel's JSON also carries `\"editorMode\": \"advanced\"`, as every panel here that sets one does. Left unset, ECharts' own repulsion default of 50 collapses seven nodes into a single blob.\n\n**Why the error ratio is wrapped in `or … * 0`.** `traces_service_graph_request_failed_total` does not exist for a service that has never failed, and a division whose left side has no series returns **nothing** — so `prometheus` and `alloy` got no node field at all, and the reader fell back to deriving them from the edges. A derived node has no field, so it takes a classic-palette colour by position: the panel looked as if the threshold colours were broken, when in fact two thirds of the nodes had no stat. `or <total> * 0` supplies the zero those services deserve, and all six nodes then resolve green/orange/red. `user` stays palette-coloured on purpose — it is Tempo's virtual node, never a `server`, so no query can give it a ratio.",
+      "description": "Query A creates named edge fields with the Route B transformations. Query B creates one node field for each server and sets its value to the failed-request ratio.\n\nEach transformation chain uses a query filter, so it changes only its own frames. The node query includes zero values for services with no failed-request series.\n\nNode thresholds show the error ratio. An edge override keeps edge units as requests per second and uses palette colors.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -240,7 +242,7 @@
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 37
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -249,6 +251,7 @@
           },
           "unit": "percentunit",
           "decimals": 3,
+          "filterable": true,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -409,7 +412,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Span metrics: service → operation — sankey",
-      "description": "A different metric from the same generator: `traces_spanmetrics_calls_total{service, span_name}` — one series per operation per service. Restricted to `span_kind=\"SPAN_KIND_SERVER\"` so each call is counted once, at the server, and bounded with `topk(10, …)` because Grafana alone has hundreds of routes.\n\nBipartite and therefore a genuine DAG, so nothing is dropped here — compare the Tempo dashboard's sankey, which has to break a cycle. Still Route A in the sense that matters: the endpoints are `source` / `target` labels and the Transform tab is empty.\n\n**Two query settings, both load-bearing.** `Type: Instant`, because `topk(N, …)` in a *ranged* query is evaluated at every step and the result is the **union** of each bucket's top N — about thirty operations over an hour, not ten, with labels overlapping into illegibility. And `Format: Time series`, not Table: an instant *table* is one flat frame whose label columns are columns, so the value field carries no labels and the reader finds no edges at all — the panel goes blank. Instant + Time series is one frame per series with the labels still on `Value`, which is the shape the reader wants. The cost of instant is the row dimension: one row per mark, so every reducer agrees and **Calculation** stops mattering.\n\n**One trap specific to this stack:** `traces_spanmetrics_*` and `traces_service_graph_*` both carry an external label `source=\"tempo\"` (`metrics_generator.registry.external_labels` in `lgtm/config/tempo.yaml`). The inner `sum by (service, span_name)` drops it — but a query that skips that aggregation and only adds `target` would leave `source=\"tempo\"` in place, and every edge would then claim to start at a node called `tempo`.",
+      "description": "This Sankey chart uses `traces_spanmetrics_calls_total{service, span_name}`. Each edge connects a service to one server operation.\n\nThe query adds `source` and `target` labels. Its outer aggregation keeps `service` and `span_name` so the panel detects the ad hoc filter names.\n\nThe query keeps only server spans and limits the result to ten edges. The service and operation sets are separate, which makes the graph acyclic.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -418,7 +421,7 @@
         "h": 13,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 36
       },
       "fieldConfig": {
         "defaults": {
@@ -426,7 +429,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": []
       },
@@ -462,7 +466,7 @@
             "uid": "lgtm-prometheus"
           },
           "editorMode": "code",
-          "expr": "topk(10,\n  sum by (source, target) (\n    label_replace(\n      label_replace(\n        sum by (service, span_name) (\n          rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[$__range])\n        ),\n        \"source\", \"$1\", \"service\", \"(.*)\"\n      ),\n      \"target\", \"$1\", \"span_name\", \"(.*)\"\n    )\n  )\n)",
+          "expr": "topk(10,\n  sum by (source, target, service, span_name) (\n    label_replace(\n      label_replace(\n        sum by (service, span_name) (\n          rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[$__range])\n        ),\n        \"source\", \"$1\", \"service\", \"(.*)\"\n      ),\n      \"target\", \"$1\", \"span_name\", \"(.*)\"\n    )\n  )\n)",
           "format": "time_series",
           "instant": true,
           "range": false,
@@ -475,7 +479,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "Call matrix — chord",
-      "description": "Route A once more, as a chord. Every pair keeps both directions as separate ribbons, which is what makes the `grafana ↔ prometheus` relationship legible: Grafana queries Prometheus for dashboards, Prometheus scrapes Grafana's `/metrics`, and those are two different flows with two different rates.\n\n`Mean` over the window rather than `Last`, so a single quiet scrape interval does not empty an arc. The self-loop (`prometheus → prometheus`) draws as a ribbon that returns to its own arc.",
+      "description": "This chord chart uses the Route A ranged query. It shows both directions between a pair as separate ribbons.\n\nMean calculates the average request rate over the selected time range. The `prometheus → prometheus` ribbon is a self-loop.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -484,7 +488,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 37
+        "y": 24
       },
       "fieldConfig": {
         "defaults": {
@@ -492,7 +496,8 @@
             "mode": "palette-classic"
           },
           "unit": "reqps",
-          "decimals": 3
+          "decimals": 3,
+          "filterable": true
         },
         "overrides": []
       },
@@ -537,7 +542,7 @@
       "id": 7,
       "type": "table",
       "title": "Route B before Rows to fields — why organize is not optional",
-      "description": "The raw instant response the two Route B panels start from, with an empty Transform tab so the columns are visible.\n\nRead them left to right: `client`, `dst`, `edge`, `server`, `src`, `Value` — **alphabetical**, because Prometheus sorts label columns by name and `Time` leads. `rowsToFields` takes the *first string column* as the mark name, so with no `organize` every mark would be named after its client: five fields called `grafana`, `prometheus` or `user`, several of them duplicates, none of them carrying `source` / `target` labels, and no graph at all.\n\n`organize` fixes three things in one step — it drops `Time` and the leftover `client` / `server` columns that would otherwise become stray labels, moves `edge` to position 0, and renames `src` / `dst` to the contract's `source` / `target`. `filterFieldsByName` cannot reorder and `renameByRegex` only sets `config.displayName`, leaving `field.name` untouched, so neither is a substitute.",
+      "description": "This table shows the instant response before Route B transformations. Prometheus sorts label columns by name, and `Time` appears first.\n\nRows to fields uses the first string column as the field name. Use Organize fields to move `edge` first, remove unused columns, and rename endpoint columns when necessary.\n\nWithout that step, repeated client names can create duplicate fields that do not identify complete edges.",
       "datasource": {
         "type": "prometheus",
         "uid": "lgtm-prometheus"
@@ -546,7 +551,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 62
+        "y": 49
       },
       "fieldConfig": {
         "defaults": {
@@ -593,7 +598,19 @@
   "schemaVersion": 39,
   "tags": ["echarts", "relations", "lgtm", "prometheus", "live-data"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "filters",
+        "label": "Ad hoc filters",
+        "type": "adhoc",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "lgtm-prometheus"
+        },
+        "filters": [],
+        "hide": 0
+      }
+    ]
   },
   "time": {
     "from": "now-1h",

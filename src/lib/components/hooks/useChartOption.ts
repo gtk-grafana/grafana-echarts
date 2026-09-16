@@ -11,6 +11,8 @@ import { type EChartsTooltipController } from '../tooltip/types';
 interface Options {
   /** True when the panel renders a Grafana DOM legend instead of ECharts' native legend. */
   isGrafanaLegend: boolean;
+  /** Height in pixels that Grafana allocated to the ECharts plot. */
+  plotHeight: number;
   /** Receives hovered tooltip content; threaded into the option's formatters. */
   tooltipSink: TooltipSink;
   /** Told the resolved `trigger` after each rebuild, which drives hide behavior. */
@@ -29,14 +31,14 @@ interface Options {
 export function useChartOption(
   chart: EChartsType | null,
   chartContext: ChartContext,
-  { isGrafanaLegend, tooltipSink, reportTooltipTrigger }: Options
+  { isGrafanaLegend, plotHeight, tooltipSink, reportTooltipTrigger }: Options
 ): void {
   useEffect(() => {
     if (!chart) {
       return;
     }
 
-    const option = buildPanelChartOption(chartContext, { isGrafanaLegend, tooltipSink });
+    const option = buildPanelChartOption(chartContext, { isGrafanaLegend, plotHeight, tooltipSink });
 
     // Nothing to draw from this data: clear the canvas and leave the panel empty
     // rather than throwing, which would replace the panel with an error boundary.
@@ -66,6 +68,6 @@ export function useChartOption(
     // A `brush` option is only present for time-axis charts (see panelOption).
     chart.dispatchAction('brush' in option ? ENABLE_TIME_BRUSH_ACTION : DISABLE_TIME_BRUSH_ACTION);
     // `tooltipSink`/`reportTooltipTrigger` are stable (see useEChartsTooltip), so
-    // this effect still only re-runs on chart/context/legend changes.
-  }, [chart, chartContext, isGrafanaLegend, tooltipSink, reportTooltipTrigger]);
+    // this effect still only re-runs on chart, context, size, or legend changes.
+  }, [chart, chartContext, isGrafanaLegend, plotHeight, tooltipSink, reportTooltipTrigger]);
 }

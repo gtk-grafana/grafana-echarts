@@ -21,7 +21,7 @@
       "id": 1,
       "type": "grafana-echartsrelations-panel",
       "title": "Control — edges only, nothing configured",
-      "description": "**The baseline, and the shape this whole dashboard is about.**\n\nOne query, four edge fields, no nodes frame. The five nodes — `gateway`, `api`, `db`, `cache`, `auth` — exist only because an edge named them as its `source` or `target`. The wide contract allows exactly this: \"when no nodes frame is present, the node set is the union of the edges' endpoints\" ([data-plane/graph-wide.md](../../../data-plane/graph-wide.md)).\n\nThis panel renders the same on every host, with the pre-pass or without it. That is deliberate — `deriveNodes.ts` adds configurability, not marks.",
+      "description": "The query returns four edge fields and no nodes frame. The panel creates the `gateway`, `api`, `db`, `cache`, and `auth` nodes from the link endpoints. The panel uses node IDs as labels because the response does not provide node titles.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 9, "w": 8, "x": 0, "y": 0 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
@@ -44,7 +44,7 @@
       "id": 2,
       "type": "grafana-echartsrelations-panel",
       "title": "The same edges — three overrides on nodes the response never declared",
-      "description": "**The claim.** Identical fixture to the control on the left, plus `fieldConfig.overrides` naming three nodes that appear in no frame the datasource returned:\n\n- **`db`** → dark red, radius 34, renamed **Database** (`displayName`)\n- **`cache`** → a `Subtitle` row and a data link in its tooltip footer — hover it, then click to pin\n- **`auth`** → `custom.hideFrom.viz`, so the node **and** the edge that named it are gone\n\nNo plugin-local mechanism is involved: these are ordinary `byName` overrides, written the same way you would write one against a time series. They work because `converters/deriveNodes.ts` declares each inferred endpoint as a real field in a `graph-nodes-wide` frame **before** `applyFieldOverrides` runs.\n\n**Without `grafana.panelPluginTransformations` only the `auth` one survives.** The nodes are then invented inside the panel, downstream of the override engine, so colour, radius, `displayName`, subtitle and links have nothing to land on — but hiding is re-read by name (`hiddenNodeIds`, `charts/relations.ts`), the one by-name fallback the family still keeps and keeps *for this case*. So on a stock host this panel is the control with `auth` missing. See [docs/relations-derived-nodes.md](../../../docs/relations-derived-nodes.md).",
+      "description": "This panel uses the same edge-only data as the control panel. Field overrides change three inferred nodes:\n\n- `db` is dark red, has a radius of 34, and uses the display name Database.\n- `cache` has a subtitle and a data link. Hover the node, then click the tooltip to keep it open.\n- `auth` and its connected link are hidden from the visualization.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 9, "w": 8, "x": 8, "y": 0 },
       "fieldConfig": {
@@ -99,7 +99,7 @@
       "id": 3,
       "type": "barchart",
       "title": "What the query actually returns — four fields, none of them a node",
-      "description": "**The evidence that the nodes are not in the response.** A core panel over the identical query: four numeric fields, one per edge, and nothing named `gateway`, `api`, `db`, `cache` or `auth`.\n\nOpen this panel's override editor and the field picker offers those four edge names and no others. Open the relations panel's next to it and the five node names are there too — added by the pre-pass the relations panel registers on itself, which no other panel type runs.",
+      "description": "This Grafana Bar chart shows the response from the edge-only query. It contains four numeric fields, one for each edge. It does not contain fields named `gateway`, `api`, `db`, `cache`, or `auth`.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 9, "w": 8, "x": 16, "y": 0 },
       "fieldConfig": {
@@ -124,7 +124,7 @@
       "id": 4,
       "type": "grafana-echartsrelations-panel",
       "title": "Show node values, edges only — one line per node",
-      "description": "**A derived node has no stat, and says so by drawing nothing.**\n\n\"Show node values\" is on, and every label is a single line. There is nothing to reduce: the node has no field of its own on a stock host, and the field the pre-pass creates for it holds `null`.\n\nIt used to print the node's **degree** here — a count of the links naming it, sitting in the slot a measurement goes in, with no way to relabel, reformat or switch it off. Compare with the panel on the right, whose nodes carry a real stat from a real nodes frame.",
+      "description": "Show node values is on, but each label has only one line. The edge-only response does not contain measured values for nodes. The panel does not use the number of connected links as a node value. Compare this panel with the panel that has a nodes frame.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
@@ -148,7 +148,7 @@
       "id": 5,
       "type": "grafana-echartsrelations-panel",
       "title": "Show node values, nodes declared — the stat is real, and has a unit",
-      "description": "**The contrast.** The same edges, plus a nodes frame (query B) that gives each node a request rate.\n\nEvery node now labels with its own reduced value, formatted through its own field — `req/s` here, set once on the frame's defaults. `deriveNodes.ts` finds nothing missing and returns the response untouched, so this panel is identical with the pre-pass and without it.\n\nThis is what the degree was impersonating on the left before it was removed.",
+      "description": "The data contains the same edges and a nodes frame with a request rate for each node. Show node values adds the calculated request rate below each label. The nodes frame sets the unit to `req/s`.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
       "fieldConfig": {
@@ -181,7 +181,7 @@
       "id": 6,
       "type": "grafana-echartsrelations-panel",
       "title": "The same overrides, drawn as a sankey",
-      "description": "**The pre-pass is not a graph-variant feature.** It runs above the panel, on the frames, so all three render variants get the same declared nodes and the same overrides reach them.\n\nIdentical `fieldConfig` to the graph in the top row: `db` is dark red and renamed, `cache` carries a subtitle and a link, `auth` and its ribbon are hidden.",
+      "description": "This Sankey chart uses the same edge-only data as the Graph chart. Field overrides make `db` dark red and change its name to Database. The `cache` node has a subtitle. The `auth` node and its connected ribbon are hidden.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
       "fieldConfig": {
@@ -222,7 +222,7 @@
       "id": 7,
       "type": "grafana-echartsrelations-panel",
       "title": "The same overrides, drawn as a chord",
-      "description": "As the sankey, on the ring layout. Same fixture, same overrides, same declared nodes — `db` dark red and renamed, `auth` and its ribbon hidden.\n\nChord is the variant to reach for on cyclic service-graph data, which is the shape most likely to arrive edges-only in the first place.",
+      "description": "This Chord chart uses the same edge-only data and field overrides as the Graph and Sankey charts. The `db` node is dark red and uses the name Database. The `auth` node and its connected ribbon are hidden. Use Chord when the links contain cycles that you must keep.",
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
       "fieldConfig": {
