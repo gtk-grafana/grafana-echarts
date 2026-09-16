@@ -63,7 +63,7 @@ The tested small, crowded, and disconnected fixtures draw every node with finite
 
 During an active resize, a visible force graph uses the measured animated-force path. Fixed and circular graphs, sankey, chord, and other charts use immediate resize. [The chart module tests pin this selection][chart-module]. [The benchmark measures the three resize paths][force-resize-bench].
 
-Each changed force size goes to ECharts immediately. A partial option temporarily sets `force.layoutAnimation` to `true`, `force.friction` to `0.05`, and `force.initLayout` to `none`. After 150 ms without a new size, one full option uses the last dimensions.
+After chart initialization, each changed force size goes to ECharts immediately. A partial option temporarily sets `force.layoutAnimation` to `true`, `force.friction` to `0.05`, and `force.initLayout` to `none`. A replacement chart keeps the configured force state during its first resize. After 150 ms without a new size, one full option uses the last dimensions.
 
 The full option restores the saved `relationsLayoutAnimation` configuration. It preserves the default state and explicit `false` or `true` values. [The resize tests pin the partial option][chart-resize]. [The size and option tests pin the final publication][settled-size]. [The mounted integration test pins the final option and geometry][int-layout].
 

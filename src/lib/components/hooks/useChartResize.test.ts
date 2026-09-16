@@ -61,7 +61,7 @@ describe('useChartResize', () => {
     expect(resized).toEqual([]);
   });
 
-  it('enables force motion before every changed animated-force resize', () => {
+  it('enables force motion before each later animated-force resize', () => {
     const { chart, resized, setOption, operations } = createFakeChart(400, 300);
     const { rerender } = renderHook(
       ({ width, height }) => useChartResize(chart, width, height, { strategy: 'animated-force' }),
@@ -87,6 +87,20 @@ describe('useChartResize', () => {
       { width: 640, height: 360 },
     ]);
     expect(operations).toEqual(['setOption', 'resize', 'setOption', 'resize']);
+  });
+
+  it('keeps the configured force state when a replacement chart needs its first resize', () => {
+    const initial = createFakeChart(400, 300);
+    const replacement = createFakeChart();
+    const { rerender } = renderHook(
+      ({ chart, width, height }) => useChartResize(chart, width, height, { strategy: 'animated-force' }),
+      { initialProps: { chart: initial.chart, width: 400, height: 300 } }
+    );
+
+    rerender({ chart: replacement.chart, width: 800, height: 500 });
+
+    expect(replacement.setOption).not.toHaveBeenCalled();
+    expect(replacement.resized).toEqual([{ width: 800, height: 500 }]);
   });
 
   it.each(['fixed', 'circular', 'sankey', 'chord', 'non-relations'])('%s uses immediate resize behavior', () => {

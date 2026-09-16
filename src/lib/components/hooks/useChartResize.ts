@@ -1,6 +1,6 @@
 import { type ChartResizeStrategy } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface Options {
   enabled?: boolean;
@@ -18,7 +18,12 @@ export function useChartResize(
   height: number,
   { enabled = true, strategy = 'immediate' }: Options = {}
 ): void {
+  const priorIdentity = useRef<{ chart: EChartsType | null; strategy: ChartResizeStrategy }>();
+
   useEffect(() => {
+    const identityChanged = priorIdentity.current?.chart !== chart || priorIdentity.current.strategy !== strategy;
+    priorIdentity.current = { chart, strategy };
+
     if (!chart || !enabled) {
       return;
     }
@@ -31,7 +36,7 @@ export function useChartResize(
       return;
     }
 
-    if (strategy === 'animated-force') {
+    if (strategy === 'animated-force' && !identityChanged) {
       // Enable force motion for the transient resize. The settled full option
       // restores the configured value after the allocated size is stable.
       // https://echarts.apache.org/en/option.html#series-graph.force.layoutAnimation

@@ -252,10 +252,11 @@ option restores these values and `force.layoutAnimation: false`.
 
 Only a visible Relations force graph uses this path. Fixed and circular graphs,
 sankey, chord, and other chart families use immediate resize. Initial size,
-chart replacement, and strategy replacement also publish immediately. A chart
-context change rebuilds the option immediately with the current settled size.
-ECharts does not receive a resize call when the dimensions are equal. Cleanup
-cancels a pending size publication.
+chart replacement, and strategy replacement also publish immediately. Their
+first resize keeps the configured force state. Later force resizes use the
+transient option. A chart context change rebuilds the option immediately with
+the current settled size. ECharts does not receive a resize call when the
+dimensions are equal. Cleanup cancels a pending size publication.
 
 A force-layout preset preview uses a fixed strategy. It keeps its initial chart
 size and option dimensions when Grafana resizes the preview card. User panels
