@@ -50,8 +50,7 @@ const CHORD_LINK_COLOR_ECHARTS_DEFAULT = 'source';
  */
 export function getChordLinkStyle(options: PanelOptions): ChordSeriesOption['lineStyle'] | undefined {
   const lineStyle: NonNullable<ChordSeriesOption['lineStyle']> = {};
-  const mode = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
-  const color = mode === 'gradient' ? CHORD_LINK_COLOR_ECHARTS_DEFAULT : mode;
+  const color = options.relationsLinkColor ?? RELATIONS_LINK_COLOR_DEFAULT;
   if (color !== CHORD_LINK_COLOR_ECHARTS_DEFAULT) {
     lineStyle.color = color;
   }

@@ -2,7 +2,7 @@
 
 This guide shows which relations options have render tests. It covers graph, sankey, and chord.
 
-The last audit was 2026-09-12. It used `src/lib/grafana/editor/relations/*` and `src/editor/relations/types.ts`.
+The last audit was 2026-09-15. It used `src/lib/grafana/editor/relations/*` and `src/editor/relations/types.ts`.
 
 ## Marks
 
@@ -20,27 +20,28 @@ Canvas tests set these values for stable output:
 - `relationsLayout: 'circular'`
 - `animation.enabled: false`
 - `editorMode: 'advanced'`
+- `relationsLinkColor: 'source'` in the chord suite
 
 ## Panel options
 
-| Option                           | Default value | Base render             | Changed render                           |
-| -------------------------------- | ------------- | ----------------------- | ---------------------------------------- |
-| `relationsShowNodeLabels`        | `true`        | ■ all base renders      | ■ graph hover, sankey, and chord off     |
-| `relationsShowNodeValues`        | `false`       | ■ all base renders      | ■ graph and timeline                     |
-| `relationsHideOverlappingLabels` | `true`        | ■ all base renders      | ■ graph and sankey, ▫ labels integration |
-| `relationsNodeSize`              | `20`          | ■ all base renders      | ■ graph node size 40                     |
-| `relationsLayout`                | `force`       | · harness uses circular | ■ circular and fixed, ▫ force            |
-| `relationsFocusAdjacency`        | `true`        | ■ base and graph hover  | · needs a browser hover                  |
-| `relationsSankeyOrient`          | `horizontal`  | ■ sankey base           | ■ vertical flow                          |
-| `relationsSankeyNodeAlign`       | `left`        | ■ sankey base           | ▫ left and justify differ                |
-| `relationsTimeSlider`            | `false`       | ■ all base renders      | ■ timeline                               |
-| `reduceOptions.calcs`            | `median`      | ▫ values integration    | ▫ max and extra calculations             |
-| `relationsLabelOverflow`         | `truncate`    | ■ all base renders      | ■ break, ▫ truncate                      |
-| `relationsEdgeArrows`            | `true`        | ■ graph base            | ■ arrows off                             |
-| `relationsLinkColor`             | `gradient`    | ■ graph base            | ■ source, target, and gradient           |
-| `relationsShowEdgeValues`        | `false`       | ■ all base renders      | ■ graph, sankey, and timeline            |
-| `relationsZoom` / `relationsPan` | `false`       | ■ all base renders      | ▫ roam action and labels                 |
-| `relationsRememberView`          | `false`       | ■ all base renders      | n/a                                      |
+| Option                           | Default value | Base render                    | Changed render                           |
+| -------------------------------- | ------------- | ------------------------------ | ---------------------------------------- |
+| `relationsShowNodeLabels`        | `true`        | ■ all base renders             | ■ graph hover, sankey, and chord off     |
+| `relationsShowNodeValues`        | `false`       | ■ all base renders             | ■ graph and timeline                     |
+| `relationsHideOverlappingLabels` | `true`        | ■ all base renders             | ■ graph and sankey, ▫ labels integration |
+| `relationsNodeSize`              | `20`          | ■ all base renders             | ■ graph node size 40                     |
+| `relationsLayout`                | `force`       | · harness uses circular        | ■ circular and fixed, ▫ force            |
+| `relationsFocusAdjacency`        | `true`        | ■ base and graph hover         | · needs a browser hover                  |
+| `relationsSankeyOrient`          | `horizontal`  | ■ sankey base                  | ■ vertical flow                          |
+| `relationsSankeyNodeAlign`       | `left`        | ■ sankey base                  | ▫ left and justify differ                |
+| `relationsTimeSlider`            | `false`       | ■ all base renders             | ■ timeline                               |
+| `reduceOptions.calcs`            | `median`      | ▫ values integration           | ▫ max and extra calculations             |
+| `relationsLabelOverflow`         | `truncate`    | ■ all base renders             | ■ break, ▫ truncate                      |
+| `relationsEdgeArrows`            | `true`        | ■ graph base                   | ■ arrows off                             |
+| `relationsLinkColor`             | `gradient`    | ■ graph base, ▫ chord gradient | ■ source and target                      |
+| `relationsShowEdgeValues`        | `false`       | ■ all base renders             | ■ graph, sankey, and timeline            |
+| `relationsZoom` / `relationsPan` | `false`       | ■ all base renders             | ▫ roam action and labels                 |
+| `relationsRememberView`          | `false`       | ■ all base renders             | n/a                                      |
 
 ## Advanced options
 

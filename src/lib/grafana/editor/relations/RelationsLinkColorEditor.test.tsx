@@ -50,6 +50,9 @@ describe('RelationsLinkColorEditor', () => {
 
     renderEditor('gradient', { seriesType: 'graph', relationsLayout: 'circular' });
     expect(screen.getAllByRole('combobox')[1]).toHaveValue('Gradient (draws as "Source")');
+
+    renderEditor('gradient', { seriesType: 'chord' });
+    expect(screen.getAllByRole('combobox')[2]).toHaveValue('Gradient');
   });
 
   it('reports the picked mode at the option path', () => {

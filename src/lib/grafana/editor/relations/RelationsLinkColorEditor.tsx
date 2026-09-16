@@ -10,7 +10,7 @@ import { isChordVariant, isSankeyVariant } from 'editor/relations/variants';
 import { type RelationsLinkColor } from 'editor/relations/types';
 /** Help text for per-field color precedence. */
 export const LINK_COLOR_PRECEDENCE_HELP =
-  'Ignored where the link’s own field colors it: a single/fixed color, or a by-value scheme such as thresholds. Gradient is only supported with Sankey';
+  'The link ignores this setting when its field sets a single color or a value-based color, such as thresholds.';
 
 /** The two endpoint keywords, offered by every variant. */
 const endpointColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
@@ -18,30 +18,27 @@ const endpointColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
   { value: 'target', label: 'Target' },
 ];
 
-/** Check whether the variant draws a source-to-target blend. */
+/** Color modes for variants that draw a source-to-target blend. */
 const linkColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
   ...endpointColorOptions,
   { value: 'gradient', label: 'Gradient' },
 ];
 
-/** Check whether the variant uses a gradient fallback. */
+/** Color modes for variants that use a gradient fallback. */
 const degradedLinkColorOptions: Array<ComboboxOption<RelationsLinkColor>> = [
   ...endpointColorOptions,
   { value: 'gradient', label: 'Gradient (draws as "Source")' },
 ];
 
-/** Does the panel, as currently configured, actually blend a gradient. */
+/** Return true when the chart draws a source-to-target gradient. */
 export function blendsGradient(options: Partial<PanelOptions> = {}): boolean {
-  if (isChordVariant(options)) {
-    return false;
-  }
-  if (isSankeyVariant(options)) {
+  if (isChordVariant(options) || isSankeyVariant(options)) {
     return true;
   }
   return options.relationsLayout == null || options.relationsLayout === 'none';
 }
 
-/** The choices to offer for the panel as currently configured. */
+/** Return the color choices for the current chart. */
 export function linkColorChoices(options: Partial<PanelOptions> = {}): Array<ComboboxOption<RelationsLinkColor>> {
   return blendsGradient(options) ? linkColorOptions : degradedLinkColorOptions;
 }
