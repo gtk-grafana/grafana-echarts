@@ -40,17 +40,18 @@ no Advanced tier, so the dispatch is the identity for them.
 The mode decides **whether** a control is shown. It does not have to decide
 **where**. `addAdvanced*` (`lib/grafana/editor/common/advanced-options.ts`)
 defaults an Advanced option's category to a single shared `"Advanced"` section,
-which is what most families want: one clearly-labelled extra group.
+which is what most families want: one clearly-labelled extra group. The helpers
+also prefix each description with `Advanced.`, so the tier stays visible when a
+control uses a purpose-based section.
 
 **Relations deliberately does not.** It groups by purpose — Relations, Value,
 Labels, Layout, Interaction, Edges, Sankey, Chord — and passes its own `category`
 to the same helpers, so an Advanced control sits beside the Default-tier controls
 it relates to (label width under Labels, force repulsion under Layout) and a
 section that happens to be entirely Advanced, like Chord, simply does not render
-in Default mode. The tier is then carried by the `showIf` gate and nothing else,
-which is why `advancedTier.test.ts` probes each gate rather than reading a
-category. Consider this shape for any family whose Advanced bucket grows past a
-handful of unrelated controls.
+in Default mode. The `showIf` gate controls visibility, and the description prefix
+identifies the tier. Consider this shape for any family whose Advanced bucket
+grows past a handful of unrelated controls.
 
 > **Known gap:** cartesian's `performance.*` options are not in
 > `ADVANCED_CARTESIAN_DEFAULTS`, so a stored `performance.showPoints: 'never'`
@@ -80,6 +81,10 @@ Treat "Advanced" as a warning, not just a promise of more — this is what the
 option's own description says: _"Advanced adds experimental features, which may
 not work as expected."_
 
+Register each Advanced control with an `addAdvanced*` helper. Give the helper only
+the option-specific description. The helper adds the `Advanced.` prefix, the mode
+gate, and the default category.
+
 One thing the additive rule does **not** cover: an Advanced-only _choice_ within
 a Default-tier control. `showIf` can hide an option but not one of its values, so
 this needs a custom editor that filters its own list — see `RelationsLayoutEditor`,
@@ -102,16 +107,19 @@ button for it, which is harmless. This tier is currently **stubbed** —
 
 ## How to use it
 
-Gate an advanced-only option by passing the shared predicate as its `showIf`:
+Register an Advanced-only option through the matching shared helper:
 
 ```ts
-import { isAdvancedEditorMode } from 'lib/grafana/editor/common/editor-mode';
+import { addAdvancedRadio } from 'lib/grafana/editor/common/advanced-options';
 
-builder.addRadio({
+addAdvancedRadio(builder, {
   path: 'someAdvancedOption',
   name: 'Some advanced option',
-  // ...
-  showIf: isAdvancedEditorMode,
+  description: 'Select how the advanced option works',
+  defaultValue: 'one',
+  settings: {
+    options: [{ label: 'One', value: 'one' }],
+  },
 });
 ```
 
