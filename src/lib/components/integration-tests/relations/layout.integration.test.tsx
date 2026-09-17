@@ -1,7 +1,68 @@
 import { FieldType, toDataFrame } from '@grafana/data';
-import { normalizeCanvasEvents } from 'test/canvas';
-import { edgesFrame, nodesFrame, slackEdgesFrame } from 'test/relations';
-import { labelTexts, renderRelations } from 'test/relationsCanvas';
+import { render } from '@testing-library/react';
+import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
+import { getChart, normalizeCanvasEvents } from 'test/canvas';
+import { getComponent, getSeriesCanvasEvents } from 'test/panel';
+import { crowdedEdgesFrame, crowdedNodesFrame, edgesFrame, nodesFrame, slackEdgesFrame } from 'test/relations';
+import { asPipelineWould, canvasOptions, labelTexts, renderRelations } from 'test/relationsCanvas';
+
+interface RenderedNodeBounds {
+  centerX: number;
+  centerY: number;
+  radiusX: number;
+  radiusY: number;
+}
+
+const disconnectedNodesFrame = toDataFrame({
+  name: 'nodes',
+  fields: [
+    { name: 'id', type: FieldType.string, values: ['a', 'b', 'c', 'd', 'e', 'f'] },
+    { name: 'title', type: FieldType.string, values: ['A', 'B', 'C', 'D', 'E', 'F'] },
+    { name: 'mainstat', type: FieldType.number, values: [1, 2, 3, 4, 5, 6] },
+  ],
+});
+
+const disconnectedEdgesFrame = toDataFrame({
+  name: 'edges',
+  fields: [
+    { name: 'id', type: FieldType.string, values: ['one'] },
+    { name: 'source', type: FieldType.string, values: ['a'] },
+    { name: 'target', type: FieldType.string, values: ['b'] },
+    { name: 'mainstat', type: FieldType.number, values: [1] },
+  ],
+});
+
+/** Read each graph node's center and radius in plot pixels. */
+const nodeBounds = (events: CanvasRenderingContext2DEvent[]): RenderedNodeBounds[] =>
+  events.flatMap((event) => {
+    if (event.type !== 'arc') {
+      return [];
+    }
+    const { x, y, radius } = event.props as unknown as { x: number; y: number; radius: number };
+    const [a, b, c, d, e, f] = (event as unknown as { transform: number[] }).transform;
+    return [
+      {
+        centerX: a * x + c * y + e,
+        centerY: b * x + d * y + f,
+        radiusX: radius * Math.hypot(a, c),
+        radiusY: radius * Math.hypot(b, d),
+      },
+    ];
+  });
+
+const renderForceGraph = async (frames: Parameters<typeof asPipelineWould>[0], width: number, height: number) => {
+  const options = canvasOptions({
+    relationsLayout: 'force',
+    relationsNodeSize: 24,
+    relationsShowNodeLabels: false,
+  });
+  const { container } = render(
+    getComponent(asPipelineWould(frames), 'graph', options, undefined, { width, height }, 'relations')
+  );
+  const { seriesEvents } = await getSeriesCanvasEvents(container);
+  const chart = getChart(container).chart!;
+  return { chart, nodes: nodeBounds(seriesEvents) };
+};
 
 describe('relations layout', () => {
   describe('force', () => {
@@ -22,6 +83,29 @@ describe('relations layout', () => {
 
       expect(normalizeCanvasEvents(second.seriesEvents)).toEqual(normalizeCanvasEvents(first.seriesEvents));
       expect(first.seriesEvents.length).toBeGreaterThan(0);
+    });
+
+    it.each([
+      ['small', [nodesFrame, edgesFrame]],
+      ['crowded', [crowdedNodesFrame, crowdedEdgesFrame]],
+      ['disconnected', [disconnectedNodesFrame, disconnectedEdgesFrame]],
+    ] as const)('draws every %s fixture node inside each tested panel rectangle', async (_name, frames) => {
+      for (const [width, height] of [
+        [400, 300],
+        [640, 360],
+      ] as const) {
+        const { chart, nodes } = await renderForceGraph([...frames], width, height);
+        const plotWidth = chart.getWidth();
+        const plotHeight = chart.getHeight();
+
+        expect(nodes.length).toBeGreaterThan(0);
+        for (const node of nodes) {
+          expect(node.centerX - node.radiusX).toBeGreaterThanOrEqual(0);
+          expect(node.centerX + node.radiusX).toBeLessThanOrEqual(plotWidth);
+          expect(node.centerY - node.radiusY).toBeGreaterThanOrEqual(0);
+          expect(node.centerY + node.radiusY).toBeLessThanOrEqual(plotHeight);
+        }
+      }
     });
   });
 

@@ -48,13 +48,6 @@ export const RELATIONS_LABEL_OVERFLOW_DEFAULT: RelationsLabelOverflow = 'truncat
 /** Default label width in pixels. */
 export const RELATIONS_LABEL_WIDTH_DEFAULT = 120;
 /**
- * Default force repulsion. This value leaves room for labels.
- * https://echarts.apache.org/en/option.html#series-graph.force.repulsion
- */
-export const RELATIONS_REPULSION_DEFAULT = 400;
-/** Default force link length in pixels. */
-export const RELATIONS_EDGE_LENGTH_DEFAULT = 200;
-/**
  * Force layout steps are hidden by default.
  * https://echarts.apache.org/en/option.html#series-graph.force.layoutAnimation
  */

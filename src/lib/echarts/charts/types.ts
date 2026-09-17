@@ -122,6 +122,8 @@ export type CartesianContextWithOverlay = ChartContext<
 export interface BaseOptionParts {
   /** True when the panel renders a Grafana DOM legend instead of ECharts' native legend. */
   isGrafanaLegend: boolean;
+  /** Width in pixels that Grafana allocated to the ECharts plot. */
+  plotWidth?: number;
   /** Height in pixels that Grafana allocated to the ECharts plot. */
   plotHeight?: number;
 }

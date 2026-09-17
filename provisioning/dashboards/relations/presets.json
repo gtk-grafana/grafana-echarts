@@ -26,7 +26,6 @@
         "relationsChordStartAngle": 90,
         "relationsDraggable": false,
         "relationsEdgeArrows": true,
-        "relationsEdgeLength": 200,
         "relationsFocusAdjacency": true,
         "relationsHideOverlappingLabels": true,
         "relationsLabelOverflow": "truncate",
@@ -37,7 +36,6 @@
         "relationsNodeSize": 20,
         "relationsPan": true,
         "relationsRememberView": false,
-        "relationsRepulsion": 400,
         "relationsSankeyCurveness": 0.5,
         "relationsSankeyLayoutIterations": 32,
         "relationsSankeyLinkOpacity": 0.2,
@@ -78,7 +76,7 @@
         "defaults": { "color": { "mode": "palette-classic" } },
         "overrides": []
       },
-      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 0 },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 11 },
       "id": 2,
       "options": {
         "animation": { "enabled": false },
@@ -90,7 +88,6 @@
         "relationsChordStartAngle": 90,
         "relationsDraggable": false,
         "relationsEdgeArrows": true,
-        "relationsEdgeLength": 200,
         "relationsFocusAdjacency": true,
         "relationsHideOverlappingLabels": true,
         "relationsLabelOverflow": "truncate",
@@ -101,7 +98,6 @@
         "relationsNodeSize": 20,
         "relationsPan": false,
         "relationsRememberView": false,
-        "relationsRepulsion": 400,
         "relationsSankeyCurveness": 0.5,
         "relationsSankeyLayoutIterations": 32,
         "relationsSankeyLinkOpacity": 0.2,
@@ -142,7 +138,7 @@
         "defaults": { "color": { "mode": "palette-classic" } },
         "overrides": []
       },
-      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 11 },
+      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 11 },
       "id": 3,
       "options": {
         "animation": { "enabled": false },
@@ -154,7 +150,6 @@
         "relationsChordStartAngle": 90,
         "relationsDraggable": false,
         "relationsEdgeArrows": true,
-        "relationsEdgeLength": 200,
         "relationsFocusAdjacency": true,
         "relationsHideOverlappingLabels": true,
         "relationsLabelOverflow": "truncate",
@@ -165,7 +160,6 @@
         "relationsNodeSize": 20,
         "relationsPan": false,
         "relationsRememberView": false,
-        "relationsRepulsion": 400,
         "relationsSankeyCurveness": 0.5,
         "relationsSankeyLayoutIterations": 32,
         "relationsSankeyLinkOpacity": 0.2,
@@ -206,7 +200,7 @@
         "defaults": { "color": { "mode": "palette-classic" } },
         "overrides": []
       },
-      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 11 },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 22 },
       "id": 4,
       "options": {
         "animation": { "enabled": false },
@@ -218,7 +212,6 @@
         "relationsChordStartAngle": 90,
         "relationsDraggable": false,
         "relationsEdgeArrows": true,
-        "relationsEdgeLength": 200,
         "relationsFocusAdjacency": true,
         "relationsHideOverlappingLabels": true,
         "relationsLabelOverflow": "truncate",
@@ -229,7 +222,6 @@
         "relationsNodeSize": 20,
         "relationsPan": true,
         "relationsRememberView": false,
-        "relationsRepulsion": 400,
         "relationsSankeyCurveness": 0.5,
         "relationsSankeyLayoutIterations": 32,
         "relationsSankeyLinkOpacity": 0.2,
@@ -257,10 +249,72 @@
       "type": "grafana-echartsrelations-panel"
     },
     {
-      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 22 },
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "Reference for the Graph panel with a stable circular layout.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 0 },
+      "id": 10,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "relationsChordClockwise": true,
+        "relationsChordLinkOpacity": 0.2,
+        "relationsChordMinAngle": 0,
+        "relationsChordPadAngle": 3,
+        "relationsChordStartAngle": 90,
+        "relationsDraggable": false,
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsHideOverlappingLabels": true,
+        "relationsLabelOverflow": "truncate",
+        "relationsLabelWidth": 120,
+        "relationsLayout": "circular",
+        "relationsLayoutAnimation": false,
+        "relationsLinkColor": "gradient",
+        "relationsNodeSize": 20,
+        "relationsPan": true,
+        "relationsRememberView": false,
+        "relationsSankeyCurveness": 0.5,
+        "relationsSankeyLayoutIterations": 32,
+        "relationsSankeyLinkOpacity": 0.2,
+        "relationsSankeyNodeAlign": "left",
+        "relationsSankeyNodeGap": 8,
+        "relationsSankeyNodeWidth": 20,
+        "relationsSankeyOrient": "horizontal",
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": false,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,120\ne2,api,auth,75\ne3,api,database,95\ne4,gateway,web,60",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": { "conversions": [{ "destinationType": "number", "targetField": "mainstat" }] }
+        },
+        { "id": "rowsToFields", "options": {} }
+      ],
+      "title": "Circular network",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 33 },
       "id": 5,
       "options": {
-        "content": "## Preset eligibility checks\n\nEdit each Relations panel. Open **Presets**. Make sure that the chart types agree with the panel title. These fixtures isolate the limits for cycles, nodes, and levels. They use instant data, so the Graph preset with a time slider is not expected. The first four panels show the saved result for each chart type.",
+        "content": "## Preset eligibility checks\n\nEdit each Relations panel. Open **Presets**. Make sure that the chart types agree with the panel title. These fixtures isolate the limits for cycles, nodes, and levels. They use instant data, so the Graph preset with a time slider is not expected. The first five panels show the saved result for each preset.",
         "mode": "markdown"
       },
       "title": "Review preset eligibility",
@@ -269,9 +323,9 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "This three-node cycle excludes Sankey. Expect Graph and Chord.",
+      "description": "This three-node cycle excludes Weighted flow. Expect Service topology, Circular network, and Mutual relations.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 27 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 38 },
       "id": 6,
       "options": {
         "animation": { "enabled": false },
@@ -301,20 +355,18 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "This two-level star has 101 nodes. Expect only Graph. The panel excludes Sankey and Chord.",
+      "description": "This two-level star has 101 nodes. Expect only Service topology.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 27 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 38 },
       "id": 7,
       "options": {
         "animation": { "enabled": false },
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
         "relationsEdgeArrows": true,
-        "relationsEdgeLength": 100,
         "relationsFocusAdjacency": true,
         "relationsLayout": "circular",
         "relationsNodeSize": 10,
         "relationsPan": true,
-        "relationsRepulsion": 200,
         "relationsShowEdgeValues": false,
         "relationsShowNodeLabels": false,
         "relationsTimeSlider": false,
@@ -335,9 +387,9 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "This chain has 13 levels. Expect Graph and Chord. The panel excludes Sankey.",
+      "description": "This chain has 13 levels. Expect Service topology, Circular network, and Mutual relations. The panel excludes Weighted flow.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 37 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 48 },
       "id": 8,
       "options": {
         "animation": { "enabled": false },
@@ -367,20 +419,18 @@
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
-      "description": "This two-level star has 42 nodes. Expect Graph and Sankey. The panel excludes Chord.",
+      "description": "This two-level star has 41 nodes. Expect Service topology and Weighted flow. The panel excludes both circular presets and Mutual relations.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 37 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 48 },
       "id": 9,
       "options": {
         "animation": { "enabled": false },
         "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
         "relationsEdgeArrows": true,
-        "relationsEdgeLength": 150,
         "relationsFocusAdjacency": true,
         "relationsLayout": "circular",
         "relationsNodeSize": 16,
         "relationsPan": true,
-        "relationsRepulsion": 300,
         "relationsShowEdgeValues": false,
         "relationsShowNodeLabels": true,
         "relationsTimeSlider": false,
@@ -390,13 +440,45 @@
       },
       "targets": [
         {
-          "csvContent": "hub-->n01,hub-->n02,hub-->n03,hub-->n04,hub-->n05,hub-->n06,hub-->n07,hub-->n08,hub-->n09,hub-->n10,hub-->n11,hub-->n12,hub-->n13,hub-->n14,hub-->n15,hub-->n16,hub-->n17,hub-->n18,hub-->n19,hub-->n20,hub-->n21,hub-->n22,hub-->n23,hub-->n24,hub-->n25,hub-->n26,hub-->n27,hub-->n28,hub-->n29,hub-->n30,hub-->n31,hub-->n32,hub-->n33,hub-->n34,hub-->n35,hub-->n36,hub-->n37,hub-->n38,hub-->n39,hub-->n40,hub-->n41\n1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1",
+          "csvContent": "hub-->n01,hub-->n02,hub-->n03,hub-->n04,hub-->n05,hub-->n06,hub-->n07,hub-->n08,hub-->n09,hub-->n10,hub-->n11,hub-->n12,hub-->n13,hub-->n14,hub-->n15,hub-->n16,hub-->n17,hub-->n18,hub-->n19,hub-->n20,hub-->n21,hub-->n22,hub-->n23,hub-->n24,hub-->n25,hub-->n26,hub-->n27,hub-->n28,hub-->n29,hub-->n30,hub-->n31,hub-->n32,hub-->n33,hub-->n34,hub-->n35,hub-->n36,hub-->n37,hub-->n38,hub-->n39,hub-->n40\n1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1",
           "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
           "refId": "A",
           "scenarioId": "csv_content"
         }
       ],
-      "title": "42 nodes: no Mutual relations",
+      "title": "41 nodes: no circular presets",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "This two-level star has 40 nodes. Expect Service topology, Circular network, Weighted flow, and Mutual relations.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 58 },
+      "id": 11,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsNodeSize": 16,
+        "relationsPan": true,
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "hub-->n01,hub-->n02,hub-->n03,hub-->n04,hub-->n05,hub-->n06,hub-->n07,hub-->n08,hub-->n09,hub-->n10,hub-->n11,hub-->n12,hub-->n13,hub-->n14,hub-->n15,hub-->n16,hub-->n17,hub-->n18,hub-->n19,hub-->n20,hub-->n21,hub-->n22,hub-->n23,hub-->n24,hub-->n25,hub-->n26,hub-->n27,hub-->n28,hub-->n29,hub-->n30,hub-->n31,hub-->n32,hub-->n33,hub-->n34,hub-->n35,hub-->n36,hub-->n37,hub-->n38,hub-->n39\n1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "40 nodes: circular presets available",
       "type": "grafana-echartsrelations-panel"
     }
   ],

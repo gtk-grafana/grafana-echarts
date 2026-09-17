@@ -50,4 +50,12 @@ describe('useChartResize', () => {
     // The instance is created in a layout effect, so the first render sees null.
     expect(() => renderHook(() => useChartResize(null, 400, 300))).not.toThrow();
   });
+
+  it('does not resize a preview card', () => {
+    const { chart, resized } = createFakeChart();
+
+    renderHook(() => useChartResize(chart, 400, 300, false));
+
+    expect(resized).toEqual([]);
+  });
 });

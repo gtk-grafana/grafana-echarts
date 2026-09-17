@@ -183,6 +183,31 @@ describe('getGraphSeries', () => {
     expect(typeof series.labelLayout).toBe('function');
   });
 
+  it('emits finite automatic force settings inside their supported bounds', () => {
+    const force = getGraphSeries(data(), ctx(), 180, 120).force!;
+
+    expect(force.edgeLength).toEqual(expect.any(Number));
+    expect(force.repulsion).toEqual(expect.any(Number));
+    expect(force.gravity).toEqual(expect.any(Number));
+    expect(force.edgeLength).toBeGreaterThanOrEqual(30);
+    expect(force.edgeLength).toBeLessThanOrEqual(240);
+    expect(force.repulsion).toBeGreaterThanOrEqual(60);
+    expect(force.repulsion).toBeLessThanOrEqual(960);
+    expect(force.gravity).toBeGreaterThanOrEqual(0.2);
+    expect(force.gravity).toBeLessThanOrEqual(0.5);
+  });
+
+  it('keeps every explicit force value, including zero', () => {
+    const series = getGraphSeries(
+      data(),
+      ctx(baseOptions({ relationsEdgeLength: 0, relationsRepulsion: 0, relationsGravity: 0 })),
+      180,
+      120
+    );
+
+    expect(series.force).toMatchObject({ edgeLength: 0, repulsion: 0, gravity: 0 });
+  });
+
   it('omits edgeLabel unless edge values are switched on', () => {
     expect(getGraphSeries(data(), ctx())).not.toHaveProperty('edgeLabel');
     expect(getGraphSeries(data(), ctx(baseOptions({ relationsShowEdgeValues: true }))).edgeLabel).toMatchObject({

@@ -54,6 +54,7 @@ export const EChart: React.FC<Props> = ({
   instanceRef,
 }) => {
   const panelDOMRef = useRef<HTMLDivElement>(null);
+  const isPreview = chartContext.options.isPreview === true;
   // The chart instance is created on mount (see the layout effect below) and
   // held in state so the option/resize/brush hooks re-run once it exists.
   const [chart, setChart] = useState<EChartsType | null>(null);
@@ -63,8 +64,8 @@ export const EChart: React.FC<Props> = ({
   // Per-series values enabling Grafana-parity proximity hover; `undefined` for
   // the families and modes that keep ECharts' native hit-testing.
   const proximitySeries = useMemo(
-    () => collectProximitySeries(chartContext.frames, chartContext.seriesType, tooltipMode),
-    [chartContext.frames, chartContext.seriesType, tooltipMode]
+    () => (isPreview ? undefined : collectProximitySeries(chartContext.frames, chartContext.seriesType, tooltipMode)),
+    [chartContext.frames, chartContext.seriesType, isPreview, tooltipMode]
   );
 
   // React tooltip overlay: ECharts' (invisible) tooltip formatter feeds hovered
@@ -77,7 +78,7 @@ export const EChart: React.FC<Props> = ({
     reportTrigger: reportTooltipTrigger,
     state: tooltipState,
     dismiss: dismissTooltip,
-  } = useEChartsTooltip(chart, panelDOMRef, { series: proximitySeries });
+  } = useEChartsTooltip(isPreview ? null : chart, panelDOMRef, { series: proximitySeries });
 
   useLayoutEffect(() => {
     const dom = panelDOMRef.current;
@@ -108,22 +109,30 @@ export const EChart: React.FC<Props> = ({
     };
   }, [instanceRef]);
 
-  useChartOption(chart, chartContext, { isGrafanaLegend, plotHeight: height, tooltipSink, reportTooltipTrigger });
+  useChartOption(chart, chartContext, {
+    isGrafanaLegend,
+    plotWidth: width,
+    plotHeight: height,
+    tooltipSink,
+    reportTooltipTrigger,
+  });
 
-  useChartResize(chart, width, height);
-  useBrushTimeZoom(chart, onChangeTimeRange);
-  useRelationsPersistence(chart, { chartContext, onFieldConfigChange, onOptionsChange });
+  useChartResize(chart, width, height, !isPreview);
+  useBrushTimeZoom(isPreview ? null : chart, onChangeTimeRange);
+  useRelationsPersistence(isPreview ? null : chart, { chartContext, onFieldConfigChange, onOptionsChange });
 
   return (
     <>
       <div ref={panelDOMRef} style={{ width, height }} />
-      <EChartsTooltip
-        state={tooltipState}
-        dismiss={dismissTooltip}
-        mode={tooltipMode}
-        maxWidth={chartContext.options.tooltip?.maxWidth}
-        maxHeight={chartContext.options.tooltip?.maxHeight}
-      />
+      {!isPreview && (
+        <EChartsTooltip
+          state={tooltipState}
+          dismiss={dismissTooltip}
+          mode={tooltipMode}
+          maxWidth={chartContext.options.tooltip?.maxWidth}
+          maxHeight={chartContext.options.tooltip?.maxHeight}
+        />
+      )}
     </>
   );
 };

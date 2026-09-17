@@ -41,7 +41,7 @@ export const relationsChartModule: ChartModule = {
 
   buildOption(
     ctx: RelationsChartContext,
-    { plotHeight }
+    { plotWidth, plotHeight }
   ): EChartGraphSeriesOption | EChartSankeySeriesOption | EChartChordSeriesOption | null {
     const result = getVisibleRelationsGraph(ctx);
     if (result.kind === 'issue') {
@@ -66,7 +66,7 @@ export const relationsChartModule: ChartModule = {
       return { ...relationsDefaultOptions, series: [getChordSeries(data, seriesCtx)] };
     }
 
-    return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx, plotHeight)] };
+    return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx, plotWidth, plotHeight)] };
   },
 
   /** Explain why the selected variant cannot draw the response. */

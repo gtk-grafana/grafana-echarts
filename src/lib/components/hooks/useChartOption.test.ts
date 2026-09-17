@@ -37,6 +37,7 @@ function createFakeChart() {
 const ctx = { seriesType: 'line' } as unknown as ChartContext;
 const options = {
   isGrafanaLegend: false,
+  plotWidth: 400,
   plotHeight: 300,
   tooltipSink: NOOP_TOOLTIP_SINK,
   reportTooltipTrigger: () => undefined,
@@ -131,15 +132,29 @@ describe('useChartOption', () => {
     expect(buildOption).toHaveBeenCalledTimes(2);
   });
 
-  it('rebuilds with the new plot height after a panel resize', () => {
+  it('rebuilds with the new plot width after a width-only panel resize', () => {
+    buildOption.mockReturnValue({ series: [] });
+    const { chart } = createFakeChart();
+    const { rerender } = renderHook(({ plotWidth }) => useChartOption(chart, ctx, { ...options, plotWidth }), {
+      initialProps: { plotWidth: 400 },
+    });
+
+    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 400, plotHeight: 300 }));
+    rerender({ plotWidth: 240 });
+    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 240, plotHeight: 300 }));
+    expect(buildOption).toHaveBeenCalledTimes(2);
+  });
+
+  it('rebuilds with the new plot height after a height-only panel resize', () => {
     buildOption.mockReturnValue({ series: [] });
     const { chart } = createFakeChart();
     const { rerender } = renderHook(({ plotHeight }) => useChartOption(chart, ctx, { ...options, plotHeight }), {
       initialProps: { plotHeight: 300 },
     });
 
-    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotHeight: 300 }));
+    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 400, plotHeight: 300 }));
     rerender({ plotHeight: 240 });
-    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotHeight: 240 }));
+    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 400, plotHeight: 240 }));
+    expect(buildOption).toHaveBeenCalledTimes(2);
   });
 });

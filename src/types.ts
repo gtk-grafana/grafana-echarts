@@ -81,6 +81,9 @@ export interface PieChartLegendOptions extends VizLegendOptions {
  */
 export interface PanelOptions
   extends OptionsWithLegend, StandardOptionConfig, OptionsWithTooltip, RelationsPanelOptions {
+  /** True only on Grafana's throwaway suggestion-card clone. */
+  isPreview?: boolean;
+
   // Widen the inherited `legend` (`VizLegendOptions`) with the pie's `values`.
   legend: PieChartLegendOptions;
 
