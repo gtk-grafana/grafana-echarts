@@ -1,12 +1,14 @@
 import { LoadingState } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { debug, LOG_LEVELS } from 'development';
-import React from 'react';
+import { type InteractedRelationsView } from 'lib/echarts/relations/options/view';
+import React, { useRef } from 'react';
 import { PanelContent } from './PanelContent';
 import { type PanelComponentProps } from './types';
 
 const PanelComponent: React.FC<PanelComponentProps> = (props) => {
   const { data, fieldConfig, id } = props;
+  const relationsViewRef = useRef<InteractedRelationsView>();
 
   if (data.state === LoadingState.Streaming) {
     return null;
@@ -21,7 +23,7 @@ const PanelComponent: React.FC<PanelComponentProps> = (props) => {
     return <PanelDataErrorView fieldConfig={fieldConfig} panelId={id} data={data} needsStringField />;
   }
 
-  return <PanelContent {...props} />;
+  return <PanelContent {...props} relationsViewRef={relationsViewRef} />;
 };
 
 function panelPropsEqual(previous: PanelComponentProps, next: PanelComponentProps): boolean {

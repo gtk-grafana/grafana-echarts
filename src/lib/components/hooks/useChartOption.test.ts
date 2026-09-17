@@ -1,10 +1,12 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
+import { type InteractedRelationsView } from 'lib/echarts/relations/options/view';
 import { ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { NOOP_TOOLTIP_SINK } from 'lib/echarts/tooltip/model';
+import { type MutableRefObject } from 'react';
 import { useChartOption } from './useChartOption';
 
 // The option build is covered end-to-end by `panelOption.test.ts`; mocking it
@@ -22,30 +24,48 @@ function createFakeChart() {
   const setOptionCalls: SetOptionCall[] = [];
   const dispatched: unknown[] = [];
   const clear = jest.fn();
+  const handlers: Record<string, Array<() => void>> = {};
+  let liveOption: ECBasicOption = {};
   return {
     chart: {
-      setOption: (option: ECBasicOption, opts?: { notMerge?: boolean }) => void setOptionCalls.push({ option, opts }),
+      setOption: (option: ECBasicOption, opts?: { notMerge?: boolean }) => {
+        setOptionCalls.push({ option, opts });
+        liveOption = option;
+      },
       dispatchAction: (payload: unknown) => void dispatched.push(payload),
       clear,
+      getOption: () => liveOption,
+      isDisposed: () => false,
+      on: (event: string, handler: () => void) => void (handlers[event] ??= []).push(handler),
+      off: (event: string, handler: () => void) => {
+        handlers[event] = (handlers[event] ?? []).filter((candidate) => candidate !== handler);
+      },
     } as unknown as EChartsType,
     setOptionCalls,
     dispatched,
     clear,
+    emit: (event: string) => (handlers[event] ?? []).forEach((handler) => handler()),
+    setLiveSeries: (series: Record<string, unknown>) => {
+      liveOption = { series: [series] };
+    },
   };
 }
 
 const ctx = { seriesType: 'line' } as unknown as ChartContext;
+const relationsViewRef: MutableRefObject<InteractedRelationsView | undefined> = { current: undefined };
 const options = {
   isGrafanaLegend: false,
   plotWidth: 400,
   plotHeight: 300,
   tooltipSink: NOOP_TOOLTIP_SINK,
   reportTooltipTrigger: () => undefined,
+  relationsViewRef,
 };
 
 describe('useChartOption', () => {
   beforeEach(() => {
     buildOption.mockReset();
+    relationsViewRef.current = undefined;
   });
 
   it('replaces the option outright rather than merging into the previous one', () => {
@@ -188,5 +208,94 @@ describe('useChartOption', () => {
       changedContext,
       expect.objectContaining({ plotWidth: 600, plotHeight: 400 })
     );
+  });
+
+  it.each(['graph', 'sankey'] as const)('carries an interacted %s view into a data rebuild', (seriesType) => {
+    buildOption
+      .mockReturnValueOnce({ series: [{ type: seriesType }] })
+      .mockReturnValueOnce({ series: [{ type: seriesType, center: ['50%', '60%'] }] });
+    const fake = createFakeChart();
+    const initialContext = { ...ctx, seriesType } as ChartContext;
+    const { rerender } = renderHook(({ context }) => useChartOption(fake.chart, context, options), {
+      initialProps: { context: initialContext },
+    });
+
+    fake.setLiveSeries({ type: seriesType, zoom: 2.5, center: [12, 34] });
+    act(() => fake.emit(`${seriesType}roam`));
+    rerender({ context: { ...initialContext } as ChartContext });
+
+    expect(fake.setOptionCalls[1].option.series).toEqual([
+      expect.objectContaining({ type: seriesType, zoom: 2.5, center: [12, 34] }),
+    ]);
+  });
+
+  it('uses a newly computed center when the graph was not interacted with', () => {
+    buildOption
+      .mockReturnValueOnce({ series: [{ type: 'graph', center: ['50%', '55%'] }] })
+      .mockReturnValueOnce({ series: [{ type: 'graph', center: ['50%', '70%'] }] });
+    const fake = createFakeChart();
+    const graphContext = { ...ctx, seriesType: 'graph' } as ChartContext;
+    const { rerender } = renderHook(({ context }) => useChartOption(fake.chart, context, options), {
+      initialProps: { context: graphContext },
+    });
+
+    rerender({ context: { ...graphContext } as ChartContext });
+
+    expect(fake.setOptionCalls[1].option.series).toEqual([{ type: 'graph', center: ['50%', '70%'] }]);
+  });
+
+  it('rereads the live identity view so Reset remains authoritative', () => {
+    buildOption.mockReturnValue({ series: [{ type: 'graph', center: ['50%', '60%'] }] });
+    const fake = createFakeChart();
+    const graphContext = { ...ctx, seriesType: 'graph' } as ChartContext;
+    const { rerender } = renderHook(({ context }) => useChartOption(fake.chart, context, options), {
+      initialProps: { context: graphContext },
+    });
+
+    fake.setLiveSeries({ type: 'graph', zoom: 2, center: [10, 20] });
+    act(() => fake.emit('graphroam'));
+    fake.setLiveSeries({ type: 'graph', zoom: 1, center: null });
+    rerender({ context: { ...graphContext } as ChartContext });
+
+    expect(fake.setOptionCalls[1].option.series).toEqual([{ type: 'graph', zoom: 1, center: ['50%', '60%'] }]);
+  });
+
+  it.each(['sankey', 'chord', 'line'] as const)('discards a graph view when switching to %s', (seriesType) => {
+    buildOption
+      .mockReturnValueOnce({ series: [{ type: 'graph' }] })
+      .mockReturnValueOnce({ series: [{ type: seriesType }] });
+    const fake = createFakeChart();
+    const graphContext = { ...ctx, seriesType: 'graph' } as ChartContext;
+    const { rerender } = renderHook(({ context }) => useChartOption(fake.chart, context, options), {
+      initialProps: { context: graphContext },
+    });
+
+    fake.setLiveSeries({ type: 'graph', zoom: 2, center: [10, 20] });
+    act(() => fake.emit('graphroam'));
+    rerender({ context: { ...graphContext, seriesType } as ChartContext });
+
+    expect(fake.setOptionCalls[1].option.series).toEqual([{ type: seriesType }]);
+  });
+
+  it('keeps the last interacted view through a temporary no-data clear', () => {
+    buildOption
+      .mockReturnValueOnce({ series: [{ type: 'graph' }] })
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce({ series: [{ type: 'graph' }] });
+    const fake = createFakeChart();
+    const graphContext = { ...ctx, seriesType: 'graph' } as ChartContext;
+    const { rerender } = renderHook(({ context }) => useChartOption(fake.chart, context, options), {
+      initialProps: { context: graphContext },
+    });
+
+    fake.setLiveSeries({ type: 'graph', zoom: 2, center: [10, 20] });
+    act(() => fake.emit('graphroam'));
+    rerender({ context: { ...graphContext } as ChartContext });
+    fake.setLiveSeries({});
+    rerender({ context: { ...graphContext } as ChartContext });
+
+    expect(fake.setOptionCalls[1].option.series).toEqual([
+      expect.objectContaining({ type: 'graph', zoom: 2, center: [10, 20] }),
+    ]);
   });
 });

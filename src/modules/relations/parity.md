@@ -53,6 +53,8 @@ The graph layout choices differ from core. Both support force. Core adds layered
 
 Zoom uses panel buttons, not the mouse wheel. This keeps dashboard scrolling available.
 
+Graph and sankey keep an interacted center and zoom during resize and data rebuilds. This behavior does not change the panel options. Remember view also saves the center and zoom, so the view survives a chart remount. [The interaction integration test verifies transient retention.][int-interaction]
+
 Show node values is hidden when no node has a measured value. The time slider is hidden on instant data unless it is already enabled.
 
 Force layout calculates only unset values. Repulsion stays from 60 through 960. Edge length stays from 30 through 240. Gravity stays from 0.20 through 0.50.

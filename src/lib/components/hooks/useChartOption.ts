@@ -1,11 +1,16 @@
 import { debug, LOG_LEVELS } from 'development';
-import { type ChartContext } from 'lib/echarts/charts/types';
+import { type ChartContext, type EChartBuildOption } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
+import {
+  type InteractedRelationsView,
+  readLiveRelationsView,
+  type RelationsViewState,
+} from 'lib/echarts/relations/options/view';
 import { ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { getTooltipTrigger } from 'lib/echarts/tooltip/option';
 import { type TooltipSink } from 'lib/echarts/tooltip/types';
-import { useEffect, useRef } from 'react';
+import { type MutableRefObject, useEffect, useRef } from 'react';
 import { type EChartsTooltipController } from '../tooltip/types';
 
 interface Options {
@@ -19,6 +24,31 @@ interface Options {
   tooltipSink: TooltipSink;
   /** Told the resolved `trigger` after each rebuild, which drives hide behavior. */
   reportTooltipTrigger: EChartsTooltipController['reportTrigger'];
+  /** Keeps an interacted Relations view while empty states replace the chart. */
+  relationsViewRef: MutableRefObject<InteractedRelationsView | undefined>;
+}
+
+type ViewVariant = InteractedRelationsView['variant'];
+
+/** Return the Relations variants that own a roamable view. */
+function getViewVariant(chartContext: ChartContext): ViewVariant | undefined {
+  return chartContext.seriesType === 'graph' || chartContext.seriesType === 'sankey'
+    ? chartContext.seriesType
+    : undefined;
+}
+
+/** Apply only the transient view to the newly built first series. */
+function applyRelationsView(option: EChartBuildOption, view: RelationsViewState): void {
+  const first = Array.isArray(option.series) ? option.series[0] : option.series;
+  if (first == null || (first.type !== 'graph' && first.type !== 'sankey')) {
+    return;
+  }
+  if (view.zoom != null) {
+    first.zoom = view.zoom;
+  }
+  if (view.center != null) {
+    first.center = view.center;
+  }
 }
 
 /**
@@ -32,12 +62,36 @@ interface Options {
 export function useChartOption(
   chart: EChartsType | null,
   chartContext: ChartContext,
-  { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger }: Options
+  { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger, relationsViewRef }: Options
 ): void {
   const optionsRef = useRef({ isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger });
+  const variant = getViewVariant(chartContext);
   useEffect(() => {
     optionsRef.current = { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger };
   }, [isGrafanaLegend, plotHeight, plotWidth, reportTooltipTrigger, tooltipSink]);
+
+  useEffect(() => {
+    if (relationsViewRef.current?.variant !== variant) {
+      relationsViewRef.current = undefined;
+    }
+    if (!chart || variant == null) {
+      return;
+    }
+
+    const event = `${variant}roam`;
+    const markInteracted = () => {
+      if (!chart.isDisposed()) {
+        relationsViewRef.current = { variant, view: readLiveRelationsView(chart) };
+      }
+    };
+    chart.on(event, markInteracted);
+
+    return () => {
+      if (!chart.isDisposed()) {
+        chart.off(event, markInteracted);
+      }
+    };
+  }, [chart, relationsViewRef, variant]);
 
   useEffect(() => {
     if (!chart) {
@@ -45,6 +99,15 @@ export function useChartOption(
     }
 
     const current = optionsRef.current;
+    const interacted = relationsViewRef.current;
+    if (interacted != null && interacted.variant !== variant) {
+      relationsViewRef.current = undefined;
+    } else if (interacted != null) {
+      const liveView = readLiveRelationsView(chart);
+      if (liveView != null) {
+        interacted.view = liveView;
+      }
+    }
     const option = buildPanelChartOption(chartContext, current);
 
     // Nothing to draw from this data: clear the canvas and leave the panel empty
@@ -55,6 +118,11 @@ export function useChartOption(
       debug('No echart option', LOG_LEVELS.debug, chartContext);
       chart.clear();
       return;
+    }
+
+    const retained = relationsViewRef.current;
+    if (retained != null && retained.variant === variant && retained.view != null) {
+      applyRelationsView(option, retained.view);
     }
 
     // Tell the tooltip controller the resolved trigger so it hides item tooltips
@@ -77,5 +145,5 @@ export function useChartOption(
     }
     // `tooltipSink`/`reportTooltipTrigger` are stable (see useEChartsTooltip), so
     // this effect still only re-runs on chart, context, size, or legend changes.
-  }, [chart, chartContext, isGrafanaLegend, tooltipSink, reportTooltipTrigger]);
+  }, [chart, chartContext, isGrafanaLegend, relationsViewRef, tooltipSink, reportTooltipTrigger, variant]);
 }

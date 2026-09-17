@@ -5,6 +5,7 @@ import { type EChartsType, init } from 'lib/echarts/echarts';
 import { collectProximitySeries } from 'lib/echarts/tooltip/proximity';
 import React, { type MutableRefObject, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
+import { type InteractedRelationsView } from 'lib/echarts/relations/options/view';
 import { useBrushTimeZoom } from './hooks/useBrushTimeZoom';
 import { useChartOption } from './hooks/useChartOption';
 import { useChartResize } from './hooks/useChartResize';
@@ -35,6 +36,8 @@ interface Props {
    * emphasis has to dispatch onto this chart (see `useLegendHighlight`).
    */
   instanceRef?: MutableRefObject<EChartsType | null>;
+  /** Keeps an interacted Relations view while empty states replace this chart. */
+  relationsViewRef: MutableRefObject<InteractedRelationsView | undefined>;
 }
 
 /**
@@ -52,6 +55,7 @@ export const EChart: React.FC<Props> = ({
   width,
   height,
   instanceRef,
+  relationsViewRef,
 }) => {
   const panelDOMRef = useRef<HTMLDivElement>(null);
   const isPreview = chartContext.options.isPreview === true;
@@ -126,6 +130,7 @@ export const EChart: React.FC<Props> = ({
     plotHeight: height,
     tooltipSink,
     reportTooltipTrigger,
+    relationsViewRef,
   });
 
   useChartResize(chart, width, height, {
