@@ -2,6 +2,8 @@ import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { render, waitFor } from '@testing-library/react';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
 import { relationsChartModule } from 'lib/echarts/relations/chartModule';
+import { init } from 'lib/echarts/echarts';
+import { ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { Children, cloneElement, type ReactElement } from 'react';
 import { clearMockedCanvasEvents, getChart, normalizeCanvasEvents, SERIES_LAYER_SELECTOR } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents } from 'test/panel';
@@ -96,6 +98,54 @@ const renderForceGraph = async (frames: Parameters<typeof asPipelineWould>[0], w
 
 describe('relations layout', () => {
   describe('force', () => {
+    it('releases brush state when a full replacement switches to a roaming graph', () => {
+      const element = document.createElement('div');
+      Object.assign(element.style, { width: '400px', height: '300px' });
+      document.body.appendChild(element);
+      const chart = init(element);
+
+      try {
+        chart.setOption(
+          {
+            brush: { xAxisIndex: 0, brushMode: 'single' },
+            grid: {},
+            xAxis: { type: 'time' },
+            yAxis: {},
+            series: [{ type: 'line', data: [[0, 1]] }],
+          },
+          { notMerge: true }
+        );
+        chart.dispatchAction(ENABLE_TIME_BRUSH_ACTION);
+        chart.setOption(
+          {
+            series: [
+              {
+                type: 'graph',
+                roam: true,
+                data: [{ id: 'a' }, { id: 'b' }],
+                links: [{ source: 'a', target: 'b' }],
+              },
+            ],
+          },
+          { notMerge: true }
+        );
+
+        chart.dispatchAction({ type: 'graphRoam', seriesIndex: 0, zoom: 1.5, originX: 200, originY: 150 });
+
+        expect(chart.getOption()).toHaveProperty('brush', []);
+        const zoom = (
+          chart as unknown as { getModel(): { getSeriesByIndex(index: number): { get(key: string): unknown } } }
+        )
+          .getModel()
+          .getSeriesByIndex(0)
+          .get('zoom');
+        expect(zoom).toBe(1.5);
+      } finally {
+        chart.dispose();
+        element.remove();
+      }
+    });
+
     it.each([
       ['small', [nodesFrame, edgesFrame], 4],
       ['crowded', [crowdedNodesFrame, crowdedEdgesFrame], 12],
@@ -147,12 +197,18 @@ describe('relations layout', () => {
       const seriesContext = seriesCanvas!.getContext('2d')!;
       clearMockedCanvasEvents(seriesContext);
 
-      await waitFor(() => expect(setOption.mock.calls.filter(([, opts]) => opts?.notMerge === true)).toHaveLength(1));
+      await waitFor(() => expect(setOption).toHaveBeenCalledTimes(4));
       const fullOptionCalls = setOption.mock.calls.filter(([, opts]) => opts?.notMerge === true);
+      const settledCalls = setOption.mock.calls.filter(
+        ([option, opts]) =>
+          opts == null &&
+          (option as { series?: Array<{ force?: { friction?: number } }> }).series?.[0].force?.friction === 0.2
+      );
 
-      expect(fullOptionCalls).toHaveLength(1);
-      expect(fullOptionCalls[0][0]).toMatchObject({
-        series: [{ type: 'graph', force: { initLayout: 'none', friction: 0.2, layoutAnimation: false } }],
+      expect(fullOptionCalls).toHaveLength(0);
+      expect(settledCalls).toHaveLength(1);
+      expect(settledCalls[0][0]).toMatchObject({
+        series: [{ type: 'graph', force: { initLayout: 'none', friction: 0.2, layoutAnimation: true } }],
       });
       expect(chart.getWidth()).toBe(800);
       expect(chart.getHeight()).toBeLessThanOrEqual(500);

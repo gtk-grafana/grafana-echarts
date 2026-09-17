@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { useChartResize } from './useChartResize';
 
@@ -31,6 +31,9 @@ function createFakeChart(initialWidth = 0, initialHeight = 0) {
 }
 
 describe('useChartResize', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
   it('pushes the allocated size to the instance', () => {
     const { chart, resized } = createFakeChart();
 
@@ -87,6 +90,69 @@ describe('useChartResize', () => {
       { width: 640, height: 360 },
     ]);
     expect(operations).toEqual(['setOption', 'resize', 'setOption', 'resize']);
+  });
+
+  it('merges one final option 150 ms after the latest force resize', () => {
+    const { chart, setOption } = createFakeChart(400, 300);
+    const finalOption = { series: [{ type: 'graph' as const, force: { repulsion: 123 } }] };
+    const getSettledOption = jest.fn(() => finalOption);
+    const { rerender } = renderHook(
+      ({ width, height }) => useChartResize(chart, width, height, { strategy: 'animated-force', getSettledOption }),
+      { initialProps: { width: 400, height: 300 } }
+    );
+
+    for (let update = 1; update <= 60; update++) {
+      rerender({ width: 400 + update, height: 300 + update });
+      if (update < 60) {
+        act(() => jest.advanceTimersByTime(2));
+      }
+    }
+    act(() => jest.advanceTimersByTime(149));
+    expect(getSettledOption).not.toHaveBeenCalled();
+
+    act(() => jest.advanceTimersByTime(1));
+    expect(getSettledOption).toHaveBeenCalledWith(460, 360);
+    expect(setOption).toHaveBeenLastCalledWith(finalOption, undefined);
+    expect(setOption).toHaveBeenCalledTimes(61);
+  });
+
+  it('cancels a final force update on unmount', () => {
+    const { chart } = createFakeChart(400, 300);
+    const getSettledOption = jest.fn(() => ({ series: [] }));
+    const { rerender, unmount } = renderHook(
+      ({ width }) => useChartResize(chart, width, 300, { strategy: 'animated-force', getSettledOption }),
+      { initialProps: { width: 400 } }
+    );
+
+    rerender({ width: 500 });
+    expect(jest.getTimerCount()).toBe(1);
+    unmount();
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
+  it('cancels final work when the chart or strategy changes', () => {
+    const initial = createFakeChart(400, 300);
+    const replacement = createFakeChart();
+    const getSettledOption = jest.fn(() => ({ series: [] }));
+    const { rerender } = renderHook(
+      ({ chart, width, strategy }) => useChartResize(chart, width, 300, { strategy, getSettledOption }),
+      {
+        initialProps: {
+          chart: initial.chart,
+          width: 400,
+          strategy: 'animated-force' as 'animated-force' | 'immediate',
+        },
+      }
+    );
+
+    rerender({ chart: initial.chart, width: 500, strategy: 'animated-force' });
+    rerender({ chart: replacement.chart, width: 600, strategy: 'animated-force' });
+    expect(jest.getTimerCount()).toBe(0);
+
+    rerender({ chart: replacement.chart, width: 700, strategy: 'animated-force' });
+    rerender({ chart: replacement.chart, width: 800, strategy: 'immediate' });
+    act(() => jest.advanceTimersByTime(150));
+    expect(getSettledOption).not.toHaveBeenCalled();
   });
 
   it('keeps the configured force state when a replacement chart needs its first resize', () => {

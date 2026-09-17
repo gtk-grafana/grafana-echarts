@@ -2,10 +2,10 @@ import { debug, LOG_LEVELS } from 'development';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
-import { DISABLE_TIME_BRUSH_ACTION, ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
+import { ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { getTooltipTrigger } from 'lib/echarts/tooltip/option';
 import { type TooltipSink } from 'lib/echarts/tooltip/types';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { type EChartsTooltipController } from '../tooltip/types';
 
 interface Options {
@@ -23,24 +23,29 @@ interface Options {
 
 /**
  * Rebuild the panel's ECharts option and push it to the instance whenever the
- * chart context or settled plot size changes.
+ * chart context changes.
  *
  * `chartContext` is memoized upstream (Panel.tsx), so this effect — and the
- * option build inside it — skips incidental hover and legend re-renders. Force
- * layout resize updates arrive only after the allocated size settles. Building
- * in an effect rather than a `useMemo` keeps the work off the render path.
+ * option build inside it — skips incidental hover, legend, and size re-renders.
+ * Building in an effect rather than a `useMemo` keeps the work off the render path.
  */
 export function useChartOption(
   chart: EChartsType | null,
   chartContext: ChartContext,
   { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger }: Options
 ): void {
+  const optionsRef = useRef({ isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger });
+  useEffect(() => {
+    optionsRef.current = { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger };
+  }, [isGrafanaLegend, plotHeight, plotWidth, reportTooltipTrigger, tooltipSink]);
+
   useEffect(() => {
     if (!chart) {
       return;
     }
 
-    const option = buildPanelChartOption(chartContext, { isGrafanaLegend, plotWidth, plotHeight, tooltipSink });
+    const current = optionsRef.current;
+    const option = buildPanelChartOption(chartContext, current);
 
     // Nothing to draw from this data: clear the canvas and leave the panel empty
     // rather than throwing, which would replace the panel with an error boundary.
@@ -54,7 +59,7 @@ export function useChartOption(
 
     // Tell the tooltip controller the resolved trigger so it hides item tooltips
     // on `mouseout` but keeps axis ("All") tooltips open across the grid.
-    reportTooltipTrigger(getTooltipTrigger(option));
+    current.reportTooltipTrigger(getTooltipTrigger(option));
 
     // `notMerge` replaces the previous option outright (removing any components
     // the new option omits) instead of merging into it. This effect rebuilds the
@@ -65,11 +70,12 @@ export function useChartOption(
     // https://echarts.apache.org/en/api.html#echartsInstance.setOption
     chart.setOption(option, { notMerge: true });
 
-    // Arm (or clear) the permanent time-span brush cursor after each rebuild;
-    // `notMerge` recreates the brush component, so the cursor must be re-armed.
-    // A `brush` option is only present for time-axis charts (see panelOption).
-    chart.dispatchAction('brush' in option ? ENABLE_TIME_BRUSH_ACTION : DISABLE_TIME_BRUSH_ACTION);
+    // `notMerge` recreates the brush component, so arm it after each brush rebuild.
+    // Removing the component disposes its controller and releases the pan mutex.
+    if ('brush' in option) {
+      chart.dispatchAction(ENABLE_TIME_BRUSH_ACTION);
+    }
     // `tooltipSink`/`reportTooltipTrigger` are stable (see useEChartsTooltip), so
     // this effect still only re-runs on chart, context, size, or legend changes.
-  }, [chart, chartContext, isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger]);
+  }, [chart, chartContext, isGrafanaLegend, tooltipSink, reportTooltipTrigger]);
 }

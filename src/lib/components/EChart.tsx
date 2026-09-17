@@ -3,13 +3,12 @@ import { TooltipDisplayMode } from '@grafana/schema';
 import { type ChartContext, type ChartModule } from 'lib/echarts/charts/types';
 import { type EChartsType, init } from 'lib/echarts/echarts';
 import { collectProximitySeries } from 'lib/echarts/tooltip/proximity';
-import React, { type MutableRefObject, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { type MutableRefObject, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type PanelOptions } from 'types';
 import { useBrushTimeZoom } from './hooks/useBrushTimeZoom';
 import { useChartOption } from './hooks/useChartOption';
 import { useChartResize } from './hooks/useChartResize';
 import { useRelationsPersistence } from './hooks/useRelationsPersistence';
-import { useSettledChartSize } from './hooks/useSettledChartSize';
 import { EChartsTooltip } from './tooltip/EChartsTooltip';
 import { useEChartsTooltip } from './tooltip/useEChartsTooltip';
 
@@ -65,7 +64,11 @@ export const EChart: React.FC<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [chart, chartContext, chartModule]
   );
-  const settledSize = useSettledChartSize(chart, width, height, resizeStrategy);
+  const getSettledResizeOption = useCallback(
+    (plotWidth: number, plotHeight: number) =>
+      chartModule.getSettledResizeOption?.(chartContext, { plotWidth, plotHeight }),
+    [chartContext, chartModule]
+  );
 
   const tooltipMode = chartContext.options.tooltip?.mode ?? TooltipDisplayMode.Single;
 
@@ -119,13 +122,17 @@ export const EChart: React.FC<Props> = ({
 
   useChartOption(chart, chartContext, {
     isGrafanaLegend,
-    plotWidth: settledSize.width,
-    plotHeight: settledSize.height,
+    plotWidth: width,
+    plotHeight: height,
     tooltipSink,
     reportTooltipTrigger,
   });
 
-  useChartResize(chart, width, height, { enabled: !isPreview, strategy: resizeStrategy });
+  useChartResize(chart, width, height, {
+    enabled: !isPreview,
+    strategy: resizeStrategy,
+    getSettledOption: getSettledResizeOption,
+  });
   useBrushTimeZoom(isPreview ? null : chart, onChangeTimeRange);
   useRelationsPersistence(isPreview ? null : chart, { chartContext, onFieldConfigChange, onOptionsChange });
 

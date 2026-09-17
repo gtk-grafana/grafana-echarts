@@ -35,13 +35,12 @@ const paths = [
     description: 'A configured full option replacement and resize on every step.',
   },
   {
-    name: 'resize-only-final-option',
-    description: 'Resize every step, then apply one final configured option.',
+    name: 'current-plugin-lifecycle',
+    description: 'Resize every step, then apply a full option and the no-brush cursor action.',
   },
   {
-    name: 'animated-option-final-option',
-    description:
-      'Merge the transient force settings during the burst, then apply one final configured full option.',
+    name: 'animated-option-final-partial',
+    description: 'Merge transient force settings during the burst, then merge final size-aware force settings.',
   },
 ];
 
@@ -208,7 +207,7 @@ try {
 
       const canvasHashInput = (chart) => chart.renderToCanvas({ pixelRatio: 1 }).toDataURL('image/png');
 
-      const inspectOutput = (chart, expected, width, height) => {
+      const inspectOutput = (chart, expected, width, height, expectedLayoutAnimation) => {
         const { series, view } = getSeriesState(chart);
         if (!series || !view || view._layouting) {
           throw new Error('The final graph view is missing or its force layout is incomplete.');
@@ -255,7 +254,7 @@ try {
         if (
           configuredForce?.initLayout !== 'none' ||
           configuredForce?.friction !== 0.2 ||
-          configuredForce?.layoutAnimation !== CONFIGURED_LAYOUT_ANIMATION
+          configuredForce?.layoutAnimation !== expectedLayoutAnimation
         ) {
           throw new Error('The final force settings do not match the configured option.');
         }
@@ -328,6 +327,17 @@ try {
               series: [{ type: 'graph', force: { layoutAnimation: true, friction: 0.05, initLayout: 'none' } }],
             });
           };
+          const setFinalForce = (size) => {
+            setOptionCount++;
+            chart.setOption({
+              series: [
+                {
+                  type: 'graph',
+                  force: { ...getForce(graph, size.width, size.height), layoutAnimation: true, initLayout: 'none' },
+                },
+              ],
+            });
+          };
           const resize = (size) => {
             resizeCount++;
             chart.resize(size);
@@ -353,9 +363,10 @@ try {
             if (pathName === 'full-option-and-resize') {
               setFullOption(buildOption(graph, size.width, size.height));
               resize(size);
-            } else if (pathName === 'resize-only-final-option') {
+            } else if (pathName === 'current-plugin-lifecycle') {
+              setAnimatedForce();
               resize(size);
-            } else if (pathName === 'animated-option-final-option') {
+            } else if (pathName === 'animated-option-final-partial') {
               setAnimatedForce();
               resize(size);
             } else {
@@ -364,13 +375,24 @@ try {
             stepTimes.push(performance.now() - stepStart);
           }
 
-          if (pathName !== 'full-option-and-resize') {
+          const finalUpdateStart = performance.now();
+          if (pathName === 'current-plugin-lifecycle') {
             resetRandom();
             setFullOption(buildOption(graph, END_SIZE.width, END_SIZE.height));
+            chart.dispatchAction({ type: 'takeGlobalCursor', key: 'brush', brushOption: { brushType: false } });
+          } else if (pathName === 'animated-option-final-partial') {
+            setFinalForce(END_SIZE);
           }
+          const finalUpdateMs = performance.now() - finalUpdateStart;
           const finalSettleMs = await waitForCompletedWork(chart);
           const totalSettleMs = performance.now() - totalStart;
-          const validation = inspectOutput(chart, scenario, END_SIZE.width, END_SIZE.height);
+          const validation = inspectOutput(
+            chart,
+            scenario,
+            END_SIZE.width,
+            END_SIZE.height,
+            pathName === 'animated-option-final-partial' ? true : CONFIGURED_LAYOUT_ANIMATION
+          );
           const canvasDataUrl = canvasHashInput(chart);
 
           return {
@@ -381,6 +403,8 @@ try {
               p95: percentile(stepTimes, 0.95),
               maximum: Math.max(...stepTimes),
             },
+            finalUpdateMs,
+            longestSynchronousTaskMs: Math.max(finalUpdateMs, ...stepTimes),
             totalSettleMs,
             finalSettleMs,
             setOptionCount,
@@ -420,23 +444,14 @@ try {
     }
   }
 
-  const animatedResults = results.filter((result) => result.path === 'animated-option-final-option');
-  const resizeOnlyResults = results.filter((result) => result.path === 'resize-only-final-option');
+  const animatedResults = results.filter((result) => result.path === 'animated-option-final-partial');
   const animatedMeetsTarget = animatedResults.every(
     (result) => result.validation.complete && result.syncStepMs.maximum <= ACTIVE_STEP_TARGET_MS
   );
-  const animatedMatchesResizeOnly = animatedResults.every((animatedResult) => {
-    const resizeOnlyResult = resizeOnlyResults.find((result) => result.scenario === animatedResult.scenario);
-    return resizeOnlyResult?.finalCanvasHash === animatedResult.finalCanvasHash;
-  });
   const recommendation = {
-    path:
-      animatedMeetsTarget && animatedMatchesResizeOnly
-        ? 'animated-option-final-option'
-        : 'resize-only-final-option',
+    path: animatedMeetsTarget ? 'animated-option-final-partial' : 'current-plugin-lifecycle',
     activeStepTargetMs: ACTIVE_STEP_TARGET_MS,
     animatedMeetsTarget,
-    animatedMatchesResizeOnly,
   };
 
   const rawResult = {
@@ -460,6 +475,7 @@ try {
       console.log(
         `  ${result.path.padEnd(28)} p50 ${fixed(result.syncStepMs.p50)}  ` +
           `p95 ${fixed(result.syncStepMs.p95)}  max ${fixed(result.syncStepMs.maximum)}  ` +
+          `longest ${fixed(result.longestSynchronousTaskMs)}  ` +
           `total ${fixed(result.totalSettleMs)}  calls ${result.setOptionCount}/${result.resizeCount}  ` +
           `bounds ${bounds.allInside ? 'inside' : `${bounds.outsideCount} outside`}  ` +
           `hash ${result.finalCanvasHash.slice(0, 12)}`
@@ -470,8 +486,7 @@ try {
 
   console.log(
     `Measured recommendation: ${recommendation.path} ` +
-      `(animated max <= ${ACTIVE_STEP_TARGET_MS} ms: ${animatedMeetsTarget}; ` +
-      `final hashes match resize-only: ${animatedMatchesResizeOnly})`
+      `(animated max <= ${ACTIVE_STEP_TARGET_MS} ms: ${animatedMeetsTarget})`
   );
   console.log('Final canvases:');
   for (const result of results) {

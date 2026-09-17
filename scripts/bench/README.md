@@ -76,12 +76,15 @@ Run this before proposing the flag again. Rationale:
 This benchmark compares three resize paths for ECharts force graphs:
 
 - A configured full option replacement and a resize at each step.
-- A resize at each step and one final full option.
-- A merging partial force option and a resize at each active step.
+- The former plugin lifecycle: transient force merges during the burst, then one
+  final full option and the no-brush `takeGlobalCursor` action.
+- The corrected lifecycle: transient force merges during the burst, then one
+  final size-aware force merge.
 
-The animated path uses configured full option replacements for the initial and
-final options. Its active steps merge `layoutAnimation: true`, `friction: 0.05`,
-and `initLayout: 'none'` before each resize.
+Both plugin lifecycle paths merge `layoutAnimation: true`, `friction: 0.05`, and
+`initLayout: 'none'` before each active resize. The corrected final merge uses
+the final automatic repulsion, edge length, and gravity. It keeps asynchronous
+layout steps and the existing node positions.
 
 The benchmark uses graphs with 12 nodes and 11 edges, 100 nodes and 200 edges,
 and 500 nodes and 499 edges. Each path uses 60 size steps from 400 by 300 to
@@ -93,24 +96,23 @@ Start the benchmark with this command:
 pnpm run bench:force-resize
 ```
 
-The command shows the p50, p95, and maximum synchronous time for a resize step.
-It also shows the total settle time, option and resize call counts, mark counts,
-node bounds, and final canvas hashes. The command writes `results.json` and nine
-PNG files to a new `echarts-force-resize-*` directory in the system temporary
-directory.
+The command shows the p50, p95, and maximum synchronous time for an active resize
+step. It also shows the longest synchronous update, total settle time, option and
+resize call counts, mark counts, node bounds, and final canvas hashes. The command
+writes `results.json` and nine PNG files to a new `echarts-force-resize-*`
+directory in the system temporary directory.
 
-Compare the animated path with the resize-only path. Equal final canvas hashes
-show that both paths produce the same final image. The full-option path can have
-a different hash because each option replacement restarts the force simulation.
-Use the mark counts and PNG files to make sure that each final image contains the
-full graph.
+Compare the former and corrected plugin lifecycle paths. Their final hashes can
+differ because a full replacement starts a new simulation state. Use the mark
+counts, finite bounds, and PNG files to make sure each image contains the full
+graph.
 
 The benchmark resets a fixed pseudo-random seed before the comparable initial
 and final options. Production force layouts remain free to select a new seed.
 
-The `recommendation.path` field selects `animated-option-final-option` when each
-graph is complete, each maximum is 50 ms or less, and the final hashes match the
-resize-only path. Otherwise, it selects `resize-only-final-option`.
+The `recommendation.path` field selects `animated-option-final-partial` when each
+graph is complete and each maximum active step is 50 ms or less. Otherwise, it
+selects `current-plugin-lifecycle`.
 
 Node bounds in this synthetic benchmark do not prove plugin containment. The
 mounted plugin integration test makes that claim for its 800 by 500 fixture.

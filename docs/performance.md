@@ -226,60 +226,58 @@ The force resize benchmark used Chromium 143.0.7499.4 and ECharts 6.1.0. It used
 60 size steps from 400 by 300 to 800 by 500. These synchronous step times are
 machine-specific:
 
-| Graph                | Path                           | p50      | p95      | Maximum  | Total settle |
-| -------------------- | ------------------------------ | -------- | -------- | -------- | ------------ |
-| 12 nodes, 11 edges   | Full option and resize         | 3.7 ms   | 4.7 ms   | 8.8 ms   | 509.5 ms     |
-|                      | Resize only, final option      | 2.0 ms   | 2.5 ms   | 2.9 ms   | 516.6 ms     |
-|                      | Animated partial, final option | 1.5 ms   | 2.0 ms   | 2.2 ms   | 516.9 ms     |
-| 100 nodes, 200 edges | Full option and resize         | 56.0 ms  | 59.0 ms  | 59.8 ms  | 3456.6 ms    |
-|                      | Resize only, final option      | 28.9 ms  | 30.1 ms  | 30.6 ms  | 1830.0 ms    |
-|                      | Animated partial, final option | 6.0 ms   | 6.7 ms   | 7.4 ms   | 537.5 ms     |
-| 500 nodes, 499 edges | Full option and resize         | 625.1 ms | 639.3 ms | 654.1 ms | 37650.4 ms   |
-|                      | Resize only, final option      | 312.7 ms | 320.7 ms | 334.2 ms | 19231.2 ms   |
-|                      | Animated partial, final option | 26.1 ms  | 27.8 ms  | 28.0 ms  | 1962.7 ms    |
+| Graph                | Path                    | p50      | p95      | Active max | Longest sync | Total settle |
+| -------------------- | ----------------------- | -------- | -------- | ---------- | ------------ | ------------ |
+| 12 nodes, 11 edges   | Full option and resize  | 3.5 ms   | 4.7 ms   | 7.6 ms     | 7.6 ms       | 510.9 ms     |
+|                      | Former plugin lifecycle | 1.5 ms   | 1.8 ms   | 2.1 ms     | 5.1 ms       | 516.5 ms     |
+|                      | Corrected final partial | 1.4 ms   | 1.8 ms   | 2.0 ms     | 2.0 ms       | 6745.0 ms    |
+| 100 nodes, 200 edges | Full option and resize  | 52.6 ms  | 54.3 ms  | 63.5 ms    | 63.5 ms      | 3236.5 ms    |
+|                      | Former plugin lifecycle | 6.3 ms   | 7.1 ms   | 7.5 ms     | 54.9 ms      | 562.1 ms     |
+|                      | Corrected final partial | 6.1 ms   | 6.5 ms   | 6.9 ms     | 6.9 ms       | 6861.2 ms    |
+| 500 nodes, 499 edges | Full option and resize  | 613.7 ms | 626.5 ms | 653.7 ms   | 653.7 ms     | 36916.4 ms   |
+|                      | Former plugin lifecycle | 24.1 ms  | 24.8 ms  | 25.9 ms    | 607.0 ms     | 2134.7 ms    |
+|                      | Corrected final partial | 24.4 ms  | 27.2 ms  | 27.6 ms    | 27.6 ms      | 8650.8 ms    |
 
 The selected path uses force animation during an active resize. The initial
-configured option is a full replacement. Each changed size goes directly to
-ECharts, and a merging partial option sets `force.layoutAnimation: true`,
-`force.friction: 0.05`, and `force.initLayout: 'none'`. After 150 ms without a
-new size, one full replacement uses the last dimensions. That option restores
-the saved `relationsLayoutAnimation` configuration. It preserves the default
-state and explicit `false` or `true` values.
+configured option is a full replacement. Each changed size receives a merging
+partial option with `force.layoutAnimation: true`, `force.friction: 0.05`, and
+`force.initLayout: 'none'`. After 150 ms without a new size, one graph-only merge
+uses the final automatic force values. It keeps `initLayout: 'none'` and
+asynchronous layout steps. The next data or editor option rebuild restores the
+saved `relationsLayoutAnimation` value.
 
-The configured full option uses `force.friction: 0.2` and
-`force.initLayout: 'none'`. The benchmark makes sure that every final full
-option restores these values and `force.layoutAnimation: false`.
+The final merge uses `force.friction: 0.2`, `force.initLayout: 'none'`, and
+`force.layoutAnimation: true`. The benchmark confirms these runtime values.
 
 Only a visible Relations force graph uses this path. Fixed and circular graphs,
-sankey, chord, and other chart families use immediate resize. Initial size,
-chart replacement, and strategy replacement also publish immediately. Their
-first resize keeps the configured force state. Later force resizes use the
-transient option. A chart context change rebuilds the option immediately with
-the current settled size. ECharts does not receive a resize call when the
-dimensions are equal. Cleanup cancels a pending size publication.
+sankey, chord, and other chart families use immediate resize. Initial size and
+chart replacement keep the configured force state. Later force resizes use the
+transient option. A chart context change rebuilds the full option with the latest
+dimensions. ECharts does not receive a resize call when the dimensions are
+equal. Cleanup cancels a pending final merge.
 
 A force-layout preset preview uses a fixed strategy. It keeps its initial chart
 size and option dimensions when Grafana resizes the preview card. User panels
 continue to use the animated force strategy.
 
-The animated path kept p95 below 16 ms for the 100-node graph. It kept p95 below
-50 ms and the maximum below 100 ms for the 500-node graph. Its final canvas hash
-matched the resize-only path in each scenario. The full-option hashes differed
-because repeated replacements changed the simulation state. The benchmark resets
-a fixed pseudo-random seed before the candidate paths' comparable full options.
+The corrected path kept p95 below 16 ms for the 100-node graph. For the 500-node
+graph, p95 was 27.2 ms and the longest synchronous update was 27.6 ms. The former
+plugin lifecycle spent 607.0 ms in its final full replacement and cursor action.
+Final hashes differ because the corrected merge keeps the current simulation
+state while a full replacement starts a new state.
 
-The benchmark found all expected node and edge marks in each image. Both candidate
-paths kept all 12 small-graph nodes inside the plot. They had 45 nodes outside
-the plot for the 100-node graph and 312 for the 500-node graph. Thus, these
+The benchmark found all expected node and edge marks in each image. Both plugin
+paths kept all 12 small-graph nodes inside the plot. The corrected path had 49
+nodes outside the plot for the 100-node graph and 322 for the 500-node graph. These
 synthetic results do not make a containment claim. The mounted plugin integration
 test verifies that all final node symbols have finite geometry.
 
 The per-step full rebuild path was rejected because it blocks each resize step.
-The resize-only path was rejected because ECharts still does synchronous force
-work. The animated path reduces that synchronous work during the resize burst.
-It does one size-aware rebuild after the burst.
+The former plugin path keeps active steps short but stalls on its final full
+replacement and duplicate cursor update. The corrected path keeps both active
+steps and the final size-aware update below the accepted limits.
 
-The focused tests cover the 60-update quiet period, the final full option,
+The focused tests cover the 60-update quiet period, the final partial option,
 strategy selection, the fixed preset preview, and one mounted resize burst. The
 benchmark command and its interpretation are in
 [scripts/bench/README.md](../scripts/bench/README.md).
