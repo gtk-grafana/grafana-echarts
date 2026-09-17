@@ -18,6 +18,7 @@ export const relationsLabelsCategoryName = 'Labels';
 export const relationsLayoutCategoryName = 'Layout';
 export const relationsInteractionCategoryName = 'Interaction';
 export const relationsEdgesCategoryName = 'Edges';
+export const relationsPerformanceCategoryName = 'Performance';
 
 /** Default reducer for a mark timeline. */
 export const RELATIONS_CALC_DEFAULT = ReducerID.median;

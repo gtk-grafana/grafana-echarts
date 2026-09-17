@@ -17,6 +17,7 @@ import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/int
 import { addRelationsLabelOptions } from 'lib/grafana/editor/relations/labels';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
+import { addRelationsPerformanceOptions } from 'lib/grafana/editor/relations/performance';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
 import { type PanelOptions } from 'types';
@@ -59,6 +60,7 @@ export const buildRelationsPane = () => {
   removeOption(builder, 'tooltip.sort');
   removeOption(builder, 'tooltip.hideZeros');
   addEditorModeOption(builder, [relationsCategoryName]);
+  addRelationsPerformanceOptions(builder);
 
   return builder.getItems();
 };

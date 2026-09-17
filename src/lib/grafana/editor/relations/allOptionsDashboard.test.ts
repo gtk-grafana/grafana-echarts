@@ -64,6 +64,7 @@ const OPTION_PANEL: Record<string, number> = {
 
 const NO_VISUAL: Record<string, string> = {
   editorMode: 'changes the options pane, not the panel',
+  relationsMaxMarks: 'behavior is demonstrated by the performance limits dashboard',
   relationsLayoutAnimation: 'motion only — the settled layout is identical',
   'animation.enabled': 'motion only — the settled render is identical',
   relationsRememberView: 'behaviour only — persists a view, draws nothing',

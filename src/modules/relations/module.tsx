@@ -15,6 +15,7 @@ import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/int
 import { addRelationsLabelOptions } from 'lib/grafana/editor/relations/labels';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
+import { addRelationsPerformanceOptions } from 'lib/grafana/editor/relations/performance';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
 import { addRelationsStatOptions } from 'lib/grafana/editor/relations/stats';
 import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeline';
@@ -86,6 +87,9 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
 
     // Keep editor mode last in the Relations section.
     addEditorModeOption(builder, [relationsCategoryName]);
+
+    // Keep performance controls at the bottom of the options pane.
+    addRelationsPerformanceOptions(builder);
     return builder;
   })
   .setSuggestionsSupplier(relationsSuggestionsSupplier)

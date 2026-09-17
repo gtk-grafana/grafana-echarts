@@ -5,6 +5,7 @@ import { type RelationsPanelOptions } from 'editor/relations/options';
 
 /** The graph variant's Advanced-gated options at their defaults. */
 export const ADVANCED_RELATIONS_DEFAULTS: Partial<RelationsPanelOptions> = {
+  relationsMaxMarks: undefined,
   relationsDraggable: undefined,
   relationsRepulsion: undefined,
   relationsEdgeLength: undefined,

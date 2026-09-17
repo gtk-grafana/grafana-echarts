@@ -40,6 +40,12 @@ const edgePairsFrame = (pairs: Array<[string, string]>) =>
     ],
   });
 
+const parallelEdgesFrame = (rows: number) =>
+  edgePairsFrame(Array.from({ length: rows }, () => ['n0', 'n1'] as [string, string]));
+
+const bipartiteEdgesFrame = (rows: number) =>
+  edgePairsFrame(Array.from({ length: rows }, (_, index) => [`n${Math.floor(index / 50)}`, `n${50 + (index % 50)}`]));
+
 const rangedSummary = () => getPanelDataSummary([nodesFrame(3), edgesFrame(2, [0, 1000])]);
 
 const rangedNodeSummary = (rows: number) =>
@@ -62,6 +68,33 @@ describe('relationsPresetsSupplier', () => {
       { name: 'Mutual relations', description: 'Show dense or cyclic traffic between pairs.' },
       { name: 'Time network', description: 'Show how a network changes over a time range.' },
     ]);
+  });
+
+  it('returns only presets whose automatic node and edge budgets fit', () => {
+    const dataSummary = getPanelDataSummary([nodesFrame(3), parallelEdgesFrame(498)]);
+
+    expect(relationsPresetsSupplier({ dataSummary })?.map(({ name }) => name)).toEqual([
+      'Circular network',
+      'Weighted flow',
+    ]);
+  });
+
+  it('returns no presets when every automatic budget is exceeded', () => {
+    const dataSummary = getPanelDataSummary([nodesFrame(501)]);
+
+    expect(relationsPresetsSupplier({ dataSummary })).toEqual([]);
+  });
+
+  it('omits the circular preset above its edge budget', () => {
+    const dataSummary = getPanelDataSummary([nodesFrame(3), parallelEdgesFrame(998)]);
+
+    expect(relationsPresetsSupplier({ dataSummary })?.map(({ name }) => name)).toEqual(['Weighted flow']);
+  });
+
+  it('omits the Sankey preset above its converted edge budget', () => {
+    const dataSummary = getPanelDataSummary([nodesFrame(100), bipartiteEdgesFrame(301)]);
+
+    expect(relationsPresetsSupplier({ dataSummary })?.map(({ name }) => name)).toEqual(['Service topology']);
   });
 
   it.each([

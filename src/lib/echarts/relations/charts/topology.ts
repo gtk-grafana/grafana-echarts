@@ -1,5 +1,6 @@
 import { type DataFrame, type Field, type PanelDataSummary } from '@grafana/data';
 import { declaredEndpointKeys, endpointsOf, numericFields } from 'lib/echarts/relations/converters/contract';
+import { toSankeyLinks } from 'lib/echarts/relations/converters/dag';
 import { resolveGraphWideRoles } from 'lib/echarts/relations/converters/frameRoles';
 import { isLegacyEdgesFrame, isLegacyNodesFrame } from 'lib/echarts/relations/converters/legacyToWide';
 import { type RelationsTopology, type RelationsTopologyInput } from 'lib/echarts/relations/charts/types';
@@ -49,6 +50,28 @@ function relationsTopologyInput(frames: DataFrame[]): RelationsTopologyInput | u
   });
   const nodeCount = wide.nodesFrames.reduce((count, frame) => count + numericFields(frame).length, 0);
   return { edges, ...(nodeCount > 0 ? { nodeCount } : {}) };
+}
+
+/** Count nodes and the links drawn by graph and Sankey presets. */
+export function relationsMarkCounts(
+  summary: PanelDataSummary
+): { nodeCount: number; linkCount: number; sankeyLinkCount: number } | undefined {
+  const input = relationsTopologyInput(summary.rawFrames ?? []);
+  if (input == null) {
+    return undefined;
+  }
+  const endpoints = new Set(input.edges.flatMap(({ source, target }) => [source, target]));
+  const links = input.edges.map(({ source, target }, index) => ({
+    id: `preset-edge-${index}`,
+    source,
+    target,
+    value: null,
+  }));
+  return {
+    nodeCount: Math.max(input.nodeCount ?? 0, endpoints.size),
+    linkCount: links.length,
+    sankeyLinkCount: toSankeyLinks(links).links.length,
+  };
 }
 
 /** Measure the node count, cycle state, and longest path of a graph. */

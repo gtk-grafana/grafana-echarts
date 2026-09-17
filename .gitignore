@@ -64,3 +64,6 @@ handover.md
 # Scripts cache
 scripts/__pycache__
 scripts/*
+!scripts/bench/
+scripts/bench/*
+!scripts/bench/relations-refresh.mjs

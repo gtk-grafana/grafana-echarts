@@ -36,7 +36,12 @@ import {
 import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 import { previewCardOptions } from 'lib/echarts/charts/suggestionCards';
 import { RELATIONS_CIRCULAR_MAX_NODES } from 'lib/echarts/charts/suggestionLimits';
-import { exceedsChordNodeBudget, fitsSankeyTopology, relationsNodeCount } from 'lib/echarts/relations/charts/fitness';
+import {
+  exceedsChordNodeBudget,
+  fitsRelationsMarkBudget,
+  fitsSankeyTopology,
+  relationsNodeCount,
+} from 'lib/echarts/relations/charts/fitness';
 import { type PanelOptions } from 'types';
 
 type ClearableRelationsOption =
@@ -44,6 +49,7 @@ type ClearableRelationsOption =
   | 'relationsEdgeLength'
   | 'relationsGravity'
   | 'relationsRepulsion'
+  | 'relationsMaxMarks'
   | 'relationsViewCenter'
   | 'relationsViewZoom';
 
@@ -52,6 +58,7 @@ type RelationsResetOptions = Required<Omit<RelationsPanelOptions, ClearableRelat
   relationsEdgeLength: number | undefined;
   relationsGravity: number | undefined;
   relationsRepulsion: number | undefined;
+  relationsMaxMarks: number | undefined;
   relationsViewCenter: [number, number] | undefined;
   relationsViewZoom: number | undefined;
 } & Required<Pick<PanelOptions, typeof seriesTypePath | 'animation' | 'legend'>>;
@@ -71,6 +78,7 @@ function presetLegend(nodeCount: number | undefined, placement: VizLegendOptions
 /** Reset every visual option that can affect a Relations render. */
 export const RELATIONS_PRESET_BASE = {
   [seriesTypePath]: 'graph',
+  relationsMaxMarks: undefined,
   relationsLayout: RELATIONS_LAYOUT_DEFAULT,
   relationsShowNodeLabels: RELATIONS_SHOW_NODE_LABELS_DEFAULT,
   relationsShowNodeValues: RELATIONS_SHOW_NODE_VALUES_DEFAULT,
@@ -203,14 +211,20 @@ export const relationsPresetsSupplier: VisualizationPresetsSupplier<PanelOptions
   dataSummary,
 }) => {
   const nodeCount = dataSummary == null ? undefined : relationsNodeCount(dataSummary);
-  const presets = [serviceTopology(nodeCount)];
-  if (nodeCount == null || (nodeCount >= 2 && nodeCount <= RELATIONS_CIRCULAR_MAX_NODES)) {
+  const presets = [];
+  if (dataSummary == null || fitsRelationsMarkBudget(dataSummary, 'force')) {
+    presets.push(serviceTopology(nodeCount));
+  }
+  if (
+    (nodeCount == null || (nodeCount >= 2 && nodeCount <= RELATIONS_CIRCULAR_MAX_NODES)) &&
+    (dataSummary == null || fitsRelationsMarkBudget(dataSummary, 'circular'))
+  ) {
     presets.push(circularNetwork(nodeCount));
   }
-  if (dataSummary == null || fitsSankeyTopology(dataSummary)) {
+  if (dataSummary == null || (fitsSankeyTopology(dataSummary) && fitsRelationsMarkBudget(dataSummary, 'sankey'))) {
     presets.push(weightedFlow(nodeCount));
   }
-  if (dataSummary == null || !exceedsChordNodeBudget(dataSummary)) {
+  if (dataSummary == null || (!exceedsChordNodeBudget(dataSummary) && fitsRelationsMarkBudget(dataSummary, 'chord'))) {
     presets.push(mutualRelations(nodeCount));
   }
   if (
@@ -218,7 +232,8 @@ export const relationsPresetsSupplier: VisualizationPresetsSupplier<PanelOptions
     dataSummary.isInstant === false &&
     nodeCount != null &&
     nodeCount >= 2 &&
-    nodeCount <= RELATIONS_CIRCULAR_MAX_NODES
+    nodeCount <= RELATIONS_CIRCULAR_MAX_NODES &&
+    fitsRelationsMarkBudget(dataSummary, 'circular')
   ) {
     presets.push(timeNetwork(nodeCount));
   }

@@ -5,8 +5,10 @@ import {
   RELATIONS_SANKEY_MAX_LEVELS,
   RELATIONS_SANKEY_MAX_NODES,
 } from 'lib/echarts/charts/suggestionLimits';
+import { RELATIONS_MARK_LIMITS } from 'lib/echarts/relations/constants';
 import { isLegacyEdgesFrame, isLegacyGraphFrames } from 'lib/echarts/relations/converters/legacyToWide';
-import { relationsTopology } from 'lib/echarts/relations/charts/topology';
+import { relationsMarkCounts, relationsTopology } from 'lib/echarts/relations/charts/topology';
+import { type RelationsBudgetVariant } from 'lib/echarts/relations/types';
 
 /**
  * Score node-graph data for the Relations family.
@@ -31,6 +33,17 @@ export const scoreRelations = (summary: PanelDataSummary): VisualizationSuggesti
 /** Return the best available node count for Relations preset sizing. */
 export const relationsNodeCount = (summary: PanelDataSummary): number | undefined =>
   relationsTopology(summary)?.nodeCount;
+
+/** Check whether a preset variant can draw the complete response within its automatic budget. */
+export const fitsRelationsMarkBudget = (summary: PanelDataSummary, variant: RelationsBudgetVariant): boolean => {
+  const counts = relationsMarkCounts(summary);
+  if (counts == null) {
+    return true;
+  }
+  const limits = RELATIONS_MARK_LIMITS[variant];
+  const linkCount = variant === 'sankey' ? counts.sankeyLinkCount : counts.linkCount;
+  return counts.nodeCount <= limits.maxNodes && counts.nodeCount + linkCount <= limits.maxMarks;
+};
 
 /** Check whether a Chord ring has enough room for the graph nodes. */
 export const exceedsChordNodeBudget = (summary: PanelDataSummary): boolean =>

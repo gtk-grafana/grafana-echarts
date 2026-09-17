@@ -1,3 +1,58 @@
+# Relations refresh limits
+
+A Relations refresh rejects data that exceeds the safety limit before it builds tooltips or an ECharts option. This prevents a large layout from blocking the main thread.
+
+## Trace evidence
+
+The supplied 500-node force trace contained one main-thread task of 1,364.489 ms. Sampled CPU time was 89.9% force settling, 6.2% other ECharts and zrender work, 1.2% Grafana and React work, 0.5% plugin data work, 0.2% garbage collection, and 2.0% other work.
+
+The force solver completed 373 synchronous steps because layout animation was off. Its all-pairs repulsion loop did approximately 46.5 million pair evaluations for 500 nodes.
+
+The system transformations took less than 8 ms in total. Legacy row conversion took approximately 2.2 ms, derived-node work took 0.6 ms, supplier selection took 0.1 ms, and field overrides took 4.6 ms. The safety change does not modify these transformations.
+
+Grafana core shows no more than 200 ordinary Node Graph nodes, then it can add frontier markers. Core calculates the complete layout in a worker before it applies that visible-node limit. Relations rejects data before main-thread ECharts layout work.
+
+## Automatic limits
+
+The panel counts visible marks after field visibility rules remove nodes, links, and links that touch hidden nodes. Sankey counts links after it removes self-loops, merges parallel links, and removes cycle-closing links.
+
+| Variant        | Maximum nodes | Maximum marks |
+| -------------- | ------------: | ------------: |
+| Force graph    |           200 |           500 |
+| Circular graph |           500 |         1,000 |
+| Fixed graph    |           500 |         1,000 |
+| Sankey         |           100 |           400 |
+| Chord          |            40 |           200 |
+
+The Advanced `Max nodes + edges` option in the Performance section replaces the automatic node and edge limits. An empty or invalid value uses the automatic limits.
+
+A value above the automatic mark limit can render more links than the benchmarked boundary. The 300 ms refresh target is not guaranteed above that boundary.
+
+Default editor mode ignores a stored `Max nodes + edges` value. Advanced and API editor modes apply a valid stored value.
+
+## Refresh benchmark
+
+`pnpm run bench:relations-refresh` measures full `notMerge` option replacements in Chromium. Each case uses two warmups and seven measured refreshes.
+
+The reference operation used ECharts 6.1.0 on 2026-09-16. The result file was `echarts-relations-refresh-kvekZZ/results.json` in the system temporary directory.
+
+| Variant boundary                    | Bundle      |     p50 |     p95 | Maximum | Long Task maximum | Drawn nodes | Drawn links |
+| ----------------------------------- | ----------- | ------: | ------: | ------: | ----------------: | ----------: | ----------: |
+| Force, 200 nodes and 500 marks      | Development | 66.8 ms | 68.1 ms | 68.1 ms |           68.0 ms |         200 |         300 |
+| Circular, 500 nodes and 1,000 marks | Development | 12.0 ms | 14.2 ms | 15.1 ms |              0 ms |         500 |         500 |
+| Fixed, 500 nodes and 1,000 marks    | Development | 12.5 ms | 13.2 ms | 13.2 ms |              0 ms |         500 |         500 |
+| Sankey, 100 nodes and 400 marks     | Development |  6.7 ms |  7.1 ms |  7.1 ms |              0 ms |         100 |         300 |
+| Chord, 40 nodes and 200 marks       | Development |  3.0 ms |  3.3 ms |  3.3 ms |              0 ms |          40 |         160 |
+| Force, 200 nodes and 500 marks      | Production  | 67.8 ms | 69.4 ms | 69.7 ms |           69.0 ms |         200 |         300 |
+| Circular, 500 nodes and 1,000 marks | Production  | 12.3 ms | 12.6 ms | 12.6 ms |              0 ms |         500 |         500 |
+| Fixed, 500 nodes and 1,000 marks    | Production  | 12.4 ms | 13.2 ms | 13.3 ms |              0 ms |         500 |         500 |
+| Sankey, 100 nodes and 400 marks     | Production  |  6.7 ms |  6.9 ms |  6.9 ms |              0 ms |         100 |         300 |
+| Chord, 40 nodes and 200 marks       | Production  |  3.3 ms |  3.4 ms |  3.4 ms |              0 ms |          40 |         160 |
+
+Every development maximum is less than the 200 ms benchmark target. The force result leaves more than 100 ms of headroom below the 300 ms product limit.
+
+The refresh benchmark measures ECharts work. The force resize benchmark measures resize merges and settle behavior. Do not use resize results as evidence for data-refresh limits.
+
 # Cartesian render performance
 
 ## Goal

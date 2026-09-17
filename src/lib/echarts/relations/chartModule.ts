@@ -36,6 +36,14 @@ const ISSUE_MESSAGES = {
   'hidden-marks': 'All graph marks are hidden. Show at least one node or edge in the field configuration.',
 };
 
+/** Format a Relations limit problem for the panel data-error view. */
+function getMarkLimitMessage(result: Extract<ReturnType<typeof getVisibleRelationsGraph>, { reason: 'mark-limit' }>) {
+  const { variant, nodeCount, linkCount, maxNodes, maxMarks } = result.details;
+  const name = variant === 'sankey' || variant === 'chord' ? variant : `${variant} graph`;
+  const linkLabel = linkCount === 1 ? 'edge' : 'edges';
+  return `This ${name} has ${nodeCount} nodes and ${linkCount} ${linkLabel}. The active max is ${maxNodes} nodes and ${maxMarks - maxNodes} edges. Reduce the query size.`;
+}
+
 /** Build a relations chart from Grafana's field-based graph contract. */
 export const relationsChartModule: ChartModule = {
   legend: DEFAULT_CHART_LEGEND,
@@ -73,7 +81,16 @@ export const relationsChartModule: ChartModule = {
   /** Explain why the selected variant cannot draw the response. */
   getDataIssue(ctx: RelationsChartContext) {
     const result = getVisibleRelationsGraph(ctx);
-    return result.kind === 'issue' ? { reason: result.reason, message: ISSUE_MESSAGES[result.reason] } : undefined;
+    if (result.kind !== 'issue') {
+      return undefined;
+    }
+
+    const message = result.reason === 'mark-limit' ? getMarkLimitMessage(result) : ISSUE_MESSAGES[result.reason];
+
+    return {
+      reason: result.reason,
+      message,
+    };
   },
 
   /** Animate raw resizes only while ECharts owns a force layout. */
@@ -118,6 +135,9 @@ export const relationsChartModule: ChartModule = {
 
   /** Report data that the panel cannot draw as requested. */
   getNotices(ctx: RelationsChartContext): ChartNotice[] {
+    if (getVisibleRelationsGraph(ctx).kind === 'issue') {
+      return [];
+    }
     const notices: ChartNotice[] = [];
 
     if (resolveRelationsTimeSlider(ctx.options) && this.getTimeline?.(ctx) == null) {
@@ -151,7 +171,11 @@ export const relationsChartModule: ChartModule = {
 
   /** The roam action the panel's zoom buttons dispatch, when zoom is switched on. */
   getZoomAction(ctx: RelationsChartContext): ChartZoomAction | undefined {
-    if (!resolveRelationsZoom(ctx.options) || ctx.seriesType === 'chord') {
+    if (
+      !resolveRelationsZoom(ctx.options) ||
+      ctx.seriesType === 'chord' ||
+      getVisibleRelationsGraph(ctx).kind === 'issue'
+    ) {
       return undefined;
     }
     // The family emits exactly one series per render, whichever variant is selected.
