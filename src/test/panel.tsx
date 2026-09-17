@@ -138,7 +138,10 @@ export const waitForFinished = async (chart: EChartsType | undefined) => {
     finished = true;
   });
 
-  await waitFor(() => expect(finished).toBeTruthy());
+  await waitFor(() => {
+    const schedulerFinished = !(chart as unknown as { _scheduler?: { unfinished?: boolean } })._scheduler?.unfinished;
+    expect(finished || (schedulerFinished && chart!.getZr().animation.isFinished())).toBeTruthy();
+  });
 };
 
 /**

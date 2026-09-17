@@ -1,11 +1,14 @@
-import { type ChartResizeStrategy } from 'lib/echarts/charts/types';
+import { type ChartResizeStrategy, type EChartBuildOption } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { useEffect, useRef } from 'react';
 
 interface Options {
   enabled?: boolean;
   strategy?: ChartResizeStrategy;
+  getSettledOption?: (width: number, height: number) => EChartBuildOption | undefined;
 }
+
+const SETTLE_DELAY_MS = 150;
 
 /**
  * Resize the chart to the box VizLayout allocated. ECharts does not track its
@@ -16,7 +19,7 @@ export function useChartResize(
   chart: EChartsType | null,
   width: number,
   height: number,
-  { enabled = true, strategy = 'immediate' }: Options = {}
+  { enabled = true, strategy = 'immediate', getSettledOption }: Options = {}
 ): void {
   const priorIdentity = useRef<{ chart: EChartsType | null; strategy: ChartResizeStrategy }>();
 
@@ -37,8 +40,7 @@ export function useChartResize(
     }
 
     if (strategy === 'animated-force' && !identityChanged) {
-      // Enable force motion for the transient resize. The settled full option
-      // restores the configured value after the allocated size is stable.
+      // Enable force motion for the transient resize.
       // https://echarts.apache.org/en/option.html#series-graph.force.layoutAnimation
       chart.setOption({
         series: [{ type: 'graph', force: { layoutAnimation: true, friction: 0.05, initLayout: 'none' } }],
@@ -46,5 +48,16 @@ export function useChartResize(
     }
 
     chart.resize({ width, height });
-  }, [chart, width, height, enabled, strategy]);
+
+    if (strategy === 'animated-force' && !identityChanged && getSettledOption) {
+      const timer = setTimeout(() => {
+        const option = getSettledOption(width, height);
+        if (option) {
+          chart.setOption(option);
+        }
+      }, SETTLE_DELAY_MS);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [chart, width, height, enabled, strategy, getSettledOption]);
 }

@@ -305,6 +305,12 @@ export interface ChartDataIssue {
 /** How the panel coordinates ECharts resize and option rebuild work. */
 export type ChartResizeStrategy = 'immediate' | 'animated-force' | 'fixed';
 
+/** Plot dimensions available after a panel resize becomes quiet. */
+export interface SettledResizeDimensions {
+  plotWidth: number;
+  plotHeight: number;
+}
+
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
@@ -319,6 +325,9 @@ export interface ChartModule {
 
   /** Return the resize behavior for the current chart context. */
   getResizeStrategy?(ctx: ChartContext): ChartResizeStrategy;
+
+  /** Return a merging runtime option after the final resize, or nothing when no update is needed. */
+  getSettledResizeOption?(ctx: ChartContext, dimensions: SettledResizeDimensions): EChartBuildOption | undefined;
 
   /**
    * Advisories to show in the panel's corner for this render — see

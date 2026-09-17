@@ -118,6 +118,52 @@ describe('relationsChartModule', () => {
     });
   });
 
+  describe('getSettledResizeOption', () => {
+    const settledOption = (
+      seriesType: RelationsChartContext['seriesType'],
+      options: Partial<PanelOptions>,
+      dimensions = { plotWidth: 400, plotHeight: 300 },
+      frames: DataFrame[] = [nodesFrame, edgesFrame]
+    ) => {
+      const context = ctx(frames, emptyFieldConfig, seriesType);
+      return relationsChartModule.getSettledResizeOption?.(
+        { ...context, options: { ...context.options, ...options } },
+        dimensions
+      );
+    };
+
+    it('returns an asynchronous one-series merge for a visible force graph', () => {
+      expect(settledOption('graph', { relationsLayout: 'force' })).toMatchObject({
+        series: [{ type: 'graph', force: { initLayout: 'none', layoutAnimation: true } }],
+      });
+    });
+
+    it('derives automatic force values from the final dimensions', () => {
+      const small = settledOption('graph', { relationsLayout: 'force' }, { plotWidth: 200, plotHeight: 120 });
+      const large = settledOption('graph', { relationsLayout: 'force' }, { plotWidth: 1200, plotHeight: 800 });
+
+      expect(small?.series).not.toEqual(large?.series);
+    });
+
+    it('returns no merge for other relations strategies', () => {
+      expect({
+        preview: settledOption('graph', { relationsLayout: 'force', isPreview: true }),
+        issue: settledOption('graph', { relationsLayout: 'force' }, undefined, []),
+        fixed: settledOption('graph', { relationsLayout: 'none' }),
+        circular: settledOption('graph', { relationsLayout: 'circular' }),
+        sankey: settledOption('sankey', {}),
+        chord: settledOption('chord', {}),
+      }).toEqual({
+        preview: undefined,
+        issue: undefined,
+        fixed: undefined,
+        circular: undefined,
+        sankey: undefined,
+        chord: undefined,
+      });
+    });
+  });
+
   describe('buildOption', () => {
     it('builds a single graph series from a nodes + edges pair', () => {
       const option = relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame]), base);

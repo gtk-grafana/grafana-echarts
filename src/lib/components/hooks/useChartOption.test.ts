@@ -1,12 +1,11 @@
-import { act, renderHook } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
-import { DISABLE_TIME_BRUSH_ACTION, ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
+import { ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { NOOP_TOOLTIP_SINK } from 'lib/echarts/tooltip/model';
 import { useChartOption } from './useChartOption';
-import { useSettledChartSize } from './useSettledChartSize';
 
 // The option build is covered end-to-end by `panelOption.test.ts`; mocking it
 // here lets these tests drive the branches this hook owns — the brush arm/clear
@@ -49,10 +48,6 @@ describe('useChartOption', () => {
     buildOption.mockReset();
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   it('replaces the option outright rather than merging into the previous one', () => {
     buildOption.mockReturnValue({ series: [] });
     const { chart, setOptionCalls } = createFakeChart();
@@ -83,13 +78,26 @@ describe('useChartOption', () => {
     expect(dispatched).toEqual([ENABLE_TIME_BRUSH_ACTION]);
   });
 
-  it('clears the brush cursor for a family with no time axis', () => {
+  it('does not dispatch a cursor action for a graph-like option', () => {
     buildOption.mockReturnValue({ series: [] });
     const { chart, dispatched } = createFakeChart();
 
     renderHook(() => useChartOption(chart, ctx, options));
 
-    expect(dispatched).toEqual([DISABLE_TIME_BRUSH_ACTION]);
+    expect(dispatched).toEqual([]);
+  });
+
+  it('lets a full replacement dispose brush state during a brush-to-graph transition', () => {
+    buildOption.mockReturnValueOnce({ brush: {} }).mockReturnValueOnce({ series: [{ type: 'graph' }] });
+    const { chart, dispatched, setOptionCalls } = createFakeChart();
+    const { rerender } = renderHook(({ context }) => useChartOption(chart, context, options), {
+      initialProps: { context: ctx },
+    });
+
+    rerender({ context: { ...ctx, seriesType: 'graph' } as ChartContext });
+
+    expect(setOptionCalls).toHaveLength(2);
+    expect(dispatched).toEqual([ENABLE_TIME_BRUSH_ACTION]);
   });
 
   /**
@@ -137,7 +145,7 @@ describe('useChartOption', () => {
     expect(buildOption).toHaveBeenCalledTimes(2);
   });
 
-  it('rebuilds with the new plot width after a width-only panel resize', () => {
+  it('does not rebuild for a width-only panel resize', () => {
     buildOption.mockReturnValue({ series: [] });
     const { chart } = createFakeChart();
     const { rerender } = renderHook(({ plotWidth }) => useChartOption(chart, ctx, { ...options, plotWidth }), {
@@ -146,11 +154,10 @@ describe('useChartOption', () => {
 
     expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 400, plotHeight: 300 }));
     rerender({ plotWidth: 240 });
-    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 240, plotHeight: 300 }));
-    expect(buildOption).toHaveBeenCalledTimes(2);
+    expect(buildOption).toHaveBeenCalledTimes(1);
   });
 
-  it('rebuilds with the new plot height after a height-only panel resize', () => {
+  it('does not rebuild for a height-only panel resize', () => {
     buildOption.mockReturnValue({ series: [] });
     const { chart } = createFakeChart();
     const { rerender } = renderHook(({ plotHeight }) => useChartOption(chart, ctx, { ...options, plotHeight }), {
@@ -159,42 +166,16 @@ describe('useChartOption', () => {
 
     expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 400, plotHeight: 300 }));
     rerender({ plotHeight: 240 });
-    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 400, plotHeight: 240 }));
-    expect(buildOption).toHaveBeenCalledTimes(2);
-  });
-
-  it('rebuilds the full option once with the final settled force size', () => {
-    jest.useFakeTimers();
-    buildOption.mockReturnValue({ series: [] });
-    const { chart } = createFakeChart();
-    const { rerender } = renderHook(
-      ({ width, height }) => {
-        const settled = useSettledChartSize(chart, width, height, 'animated-force');
-        useChartOption(chart, ctx, { ...options, plotWidth: settled.width, plotHeight: settled.height });
-      },
-      { initialProps: { width: 400, height: 300 } }
-    );
-
-    for (let update = 1; update <= 60; update++) {
-      rerender({ width: 400 + update, height: 300 + update });
-    }
-
     expect(buildOption).toHaveBeenCalledTimes(1);
-    act(() => jest.advanceTimersByTime(150));
-
-    expect(buildOption).toHaveBeenCalledTimes(2);
-    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 460, plotHeight: 360 }));
   });
 
-  it('rebuilds a changed context immediately with the current settled force size', () => {
-    jest.useFakeTimers();
+  it('rebuilds a changed context with the latest plot size', () => {
     buildOption.mockReturnValue({ series: [] });
     const { chart } = createFakeChart();
     const changedContext = { ...ctx } as ChartContext;
     const { rerender } = renderHook(
       ({ context, width, height }) => {
-        const settled = useSettledChartSize(chart, width, height, 'animated-force');
-        useChartOption(chart, context, { ...options, plotWidth: settled.width, plotHeight: settled.height });
+        useChartOption(chart, context, { ...options, plotWidth: width, plotHeight: height });
       },
       { initialProps: { context: ctx, width: 400, height: 300 } }
     );
@@ -203,12 +184,6 @@ describe('useChartOption', () => {
     rerender({ context: changedContext, width: 600, height: 400 });
 
     expect(buildOption).toHaveBeenCalledTimes(2);
-    expect(buildOption).toHaveBeenLastCalledWith(
-      changedContext,
-      expect.objectContaining({ plotWidth: 400, plotHeight: 300 })
-    );
-
-    act(() => jest.advanceTimersByTime(150));
     expect(buildOption).toHaveBeenLastCalledWith(
       changedContext,
       expect.objectContaining({ plotWidth: 600, plotHeight: 400 })
