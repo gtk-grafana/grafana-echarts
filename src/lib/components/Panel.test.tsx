@@ -63,6 +63,16 @@ const graphFrame = () =>
     ],
   });
 
+const overBudgetGraphFrame = () =>
+  toDataFrame({
+    fields: Array.from({ length: 200 }, (_, index) => ({
+      name: `edge-${index}`,
+      type: FieldType.number,
+      labels: { source: `node-${index}`, target: `node-${index + 1}` },
+      values: [1],
+    })),
+  });
+
 const hiddenGraphConfig = {
   defaults: {},
   overrides: [
@@ -361,5 +371,19 @@ describe('Panel empty view', () => {
       screen.getByText('All graph marks are hidden. Show at least one node or edge in the field configuration.')
     ).toBeInTheDocument();
     expect(screen.queryByText('Chart')).not.toBeInTheDocument();
+  });
+
+  it('shows the mark-limit message without mounting chart content', () => {
+    activeChartModule = relationsChartModule;
+
+    render(getComponent([overBudgetGraphFrame()], 'graph', undefined, undefined, undefined, 'relations'));
+
+    expect(
+      screen.getByText(
+        'This force graph has 201 nodes and 200 edges. The active max is 200 nodes and 300 edges. Reduce the query size.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('chart')).not.toBeInTheDocument();
+    expect(mockEChart).not.toHaveBeenCalled();
   });
 });

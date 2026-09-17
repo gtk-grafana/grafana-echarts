@@ -5,6 +5,7 @@ import { addRelationsChordOptions } from 'lib/grafana/editor/relations/chord';
 import { addRelationsForceOptions } from 'lib/grafana/editor/relations/force';
 import { addRelationsInteractionOptions } from 'lib/grafana/editor/relations/interaction';
 import { addRelationsLabelOptions } from 'lib/grafana/editor/relations/labels';
+import { addRelationsPerformanceOptions } from 'lib/grafana/editor/relations/performance';
 import { addRelationsLayoutOptions } from 'lib/grafana/editor/relations/layout';
 import { addRelationsLinkOptions } from 'lib/grafana/editor/relations/links';
 import { addRelationsSankeyOptions } from 'lib/grafana/editor/relations/sankey';
@@ -30,6 +31,7 @@ standardEditorsRegistry.setInit(() =>
 const registeredOptions = () => {
   const builder = new PanelOptionsEditorBuilder<PanelOptions>();
   addRelationsTimelineOptions(builder);
+  addRelationsPerformanceOptions(builder);
   addRelationsLabelOptions(builder);
   addRelationsLayoutOptions(builder);
   addRelationsForceOptions(builder);

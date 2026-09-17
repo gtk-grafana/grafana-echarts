@@ -31,6 +31,25 @@ const edgesFrame = toDataFrame({
   ],
 });
 
+const overForceNodesFrame = toDataFrame({
+  name: 'nodes',
+  fields: [
+    { name: 'id', type: FieldType.string, values: Array.from({ length: 201 }, (_, index) => `n${index}`) },
+    { name: 'title', type: FieldType.string, values: Array.from({ length: 201 }, (_, index) => `Node ${index}`) },
+    { name: 'mainstat', type: FieldType.number, values: Array.from({ length: 201 }, () => 1) },
+  ],
+});
+
+const overForceEdgesFrame = toDataFrame({
+  name: 'edges',
+  fields: [
+    { name: 'id', type: FieldType.string, values: ['large-e1'] },
+    { name: 'source', type: FieldType.string, values: ['n0'] },
+    { name: 'target', type: FieldType.string, values: ['n1'] },
+    { name: 'mainstat', type: FieldType.number, values: [1] },
+  ],
+});
+
 /** Build a cyclic edge set that ECharts sankey rejects. */
 const cyclicEdgesFrame = toDataFrame({
   name: 'edges',
@@ -165,6 +184,15 @@ describe('relationsChartModule', () => {
   });
 
   describe('buildOption', () => {
+    it('returns null before ECharts work for over-budget data', () => {
+      expect(relationsChartModule.buildOption(ctx([overForceNodesFrame, overForceEdgesFrame]), base)).toBeNull();
+    });
+    it('builds over the automatic node limit when Advanced Max marks raises the budget', () => {
+      const context = ctx([overForceNodesFrame, overForceEdgesFrame]);
+      context.options = { ...context.options, editorMode: 'advanced', relationsMaxMarks: 202 };
+
+      expect(relationsChartModule.buildOption(context, base)).not.toBeNull();
+    });
     it('builds a single graph series from a nodes + edges pair', () => {
       const option = relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame]), base);
       expect(option).not.toBeNull();
@@ -262,6 +290,39 @@ describe('relationsChartModule', () => {
         relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame], hiddenEndpoint, 'sankey'), base)
       ).not.toBeNull();
       expect(relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame], hiddenEndpoint, 'chord'), base)).toBeNull();
+    });
+  });
+
+  describe('mark limit', () => {
+    const overBudget = () => ctx([overForceNodesFrame, overForceEdgesFrame]);
+
+    it('reports exact counts and safe ceilings', () => {
+      expect(relationsChartModule.getDataIssue?.(overBudget())).toEqual({
+        reason: 'mark-limit',
+        message:
+          'This force graph has 201 nodes and 1 edge. The active max is 200 nodes and 300 edges. Reduce the query size.',
+      });
+    });
+
+    it('disables runtime series capabilities', () => {
+      const context = overBudget();
+      context.options = { ...context.options, relationsZoom: true };
+
+      expect(relationsChartModule.getResizeStrategy?.(context)).toBe('immediate');
+      expect(
+        relationsChartModule.getSettledResizeOption?.(context, { plotWidth: 400, plotHeight: 300 })
+      ).toBeUndefined();
+      expect(relationsChartModule.getNotices?.(context)).toEqual([]);
+      expect(relationsChartModule.getZoomAction?.(context)).toBeUndefined();
+      expect(relationsChartModule.getLegendHighlightTargets?.(context, 'Node 0')).toEqual([]);
+    });
+
+    it('counts after hidden nodes and incident links are removed', () => {
+      const fieldConfig = hiding('Node 200');
+      const context = ctx([overForceNodesFrame, overForceEdgesFrame], fieldConfig);
+
+      expect(relationsChartModule.getDataIssue?.(context)).toBeUndefined();
+      expect(relationsChartModule.buildOption(context, base)).not.toBeNull();
     });
   });
 

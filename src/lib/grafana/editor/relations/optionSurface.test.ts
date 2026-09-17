@@ -33,6 +33,7 @@ describe('the relations options pane', () => {
       'Chord',
       'Legend',
       'Tooltip',
+      'Performance',
     ]);
   });
 
@@ -94,6 +95,7 @@ describe('the relations options pane', () => {
         'relationsChordLinkOpacity',
       ],
     ],
+    ['Performance', ['relationsMaxMarks']],
   ])('fills the %s section with exactly its own controls', (section, paths) => {
     expect(pathsIn(buildPane(), section)).toEqual(paths);
   });

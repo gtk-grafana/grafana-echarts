@@ -11,6 +11,8 @@ import {
  * ECharts graph, sankey, and chord options: https://echarts.apache.org/en/option.html#series
  */
 export interface RelationsPanelOptions {
+  /** Maximum mark count. Empty uses the automatic limit. */
+  relationsMaxMarks?: number;
   /** Graph layout. Fixed layout uses `none`. */
   relationsLayout?: RelationsGraphLayout;
   /** Shows node names. */

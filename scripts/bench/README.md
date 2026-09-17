@@ -15,7 +15,16 @@ pnpm run bench:dataset          # tuples vs dataset, and what the perf levers ar
 pnpm run bench:dataset-tooltip  # what params.value contains under a dataset
 pnpm run bench:dirty-rect       # why useDirtyRect is off: the artifact + the non-benefit
 pnpm run bench:force-resize     # compare force-graph resize paths
+pnpm run bench:relations-refresh # measure full Relations data refreshes
 ```
+
+## `bench:relations-refresh`
+
+This benchmark measures full Relations refreshes with `notMerge: true`. It covers force, circular, fixed, Sankey, and Chord near their safety limits.
+
+The command measures two warmups and seven refreshes for each case. It records the synchronous p50, p95, and maximum time, the longest browser task, total time, graphic count, and canvas hash.
+
+The command uses the development and minified ECharts bundles. It writes the JSON results and one PNG for each case to a new temporary directory.
 
 ## `bench:dataset`
 

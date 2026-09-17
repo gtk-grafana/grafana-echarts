@@ -1,12 +1,11 @@
 import { type FieldConfigSource } from '@grafana/data';
 
-import { frameToRelationsGraph, type RelationsGraphReadResult } from 'lib/echarts/relations/converters/nodeGraph';
+import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGraph';
 import { type NodeGraphData } from 'lib/echarts/relations/converters/model';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
 import { getHiddenSeriesNames, getMarkPositionOverride } from 'lib/grafana/fields/seriesConfig';
-
-/** A graph or a data problem that prevents the selected series from drawing the graph. */
-export type VisibleRelationsGraphResult = RelationsGraphReadResult | { kind: 'issue'; reason: 'hidden-marks' };
+import { getRelationsMarkLimitIssue } from 'lib/echarts/relations/markLimits';
+import { type VisibleRelationsGraphResult } from 'lib/echarts/relations/types';
 
 /** IDs of all nodes that the visualization hides. */
 export function getHiddenNodeIds(data: NodeGraphData, fieldConfig: FieldConfigSource): Set<string> {
@@ -78,5 +77,9 @@ export function getVisibleRelationsGraph(ctx: RelationsChartContext): VisibleRel
   }
 
   const data = withOverriddenPositions(withoutHiddenMarks(result.data, ctx.fieldConfig), ctx.fieldConfig);
-  return isRenderable(data, ctx.seriesType) ? { kind: 'data', data } : { kind: 'issue', reason: 'hidden-marks' };
+  if (!isRenderable(data, ctx.seriesType)) {
+    return { kind: 'issue', reason: 'hidden-marks' };
+  }
+  const details = getRelationsMarkLimitIssue(data, ctx);
+  return details == null ? { kind: 'data', data } : { kind: 'issue', reason: 'mark-limit', details };
 }

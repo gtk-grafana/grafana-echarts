@@ -18,6 +18,7 @@
     "bench:dataset-tooltip": "node scripts/bench/dataset-tooltip-probe.mjs",
     "bench:dirty-rect": "node scripts/bench/dirty-rect.mjs",
     "bench:force-resize": "node scripts/bench/force-resize.mjs",
+    "bench:relations-refresh": "node scripts/bench/relations-refresh.mjs",
     "prepare": "lefthook install",
     "server": "COMPOSE_PROJECT_NAME=${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-${GRAFANA_PORT:-3001}} docker compose up --build",
     "server:lgtm": "COMPOSE_PROJECT_NAME=${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-lgtm-${GRAFANA_PORT:-3010}} docker compose -f docker-compose-lgtm.yaml up --build",
