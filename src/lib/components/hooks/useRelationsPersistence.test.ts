@@ -219,7 +219,7 @@ describe('useRelationsPersistence', () => {
   });
 
   describe('view state', () => {
-    const roamed = { zoom: 2.5, center: [10, 20] };
+    const roamed = { type: 'graph', zoom: 2.5, center: [10, 20] };
 
     it('writes the roamed zoom and centre into the panel options', () => {
       const fake = createFakeChart(roamed);
@@ -251,7 +251,7 @@ describe('useRelationsPersistence', () => {
     });
 
     it('listens on the sankey action too', () => {
-      const fake = createFakeChart(roamed);
+      const fake = createFakeChart({ ...roamed, type: 'sankey' });
       const { onOptionsChange } = render(
         fake,
         context({ seriesType: 'sankey', options: options({ relationsRememberView: true }) })

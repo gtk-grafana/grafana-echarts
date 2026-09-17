@@ -124,6 +124,8 @@ The graph canvas suite uses the ECharts highlight action to pin node emphasis. P
 
 Drag and remembered view describe gestures. A static render cannot prove them.
 
+`interaction.integration` verifies that graph and Sankey keep an interacted zoom and center across panel resize and changed-data rebuilds. This coverage uses the live ECharts option and does not add a canvas snapshot.
+
 Graph pins the shared node value formatter. Sankey and chord use the same formatter.
 
 The `not.toEqual` cross-render guard is not a valid geometry test for sankey. Each ribbon gets a new gradient object, so two renders differ when their geometry is equal. The same guard is still present in `chord.canvas.test.tsx`, `graph.canvas.test.tsx`, and `overrides.canvas.test.tsx`. Move these comparisons to integration tests when you change them.

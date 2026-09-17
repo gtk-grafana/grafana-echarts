@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { type PanelOptions } from 'types';
 
 import { type RelationsNodeItem } from 'lib/echarts/relations/tooltip/types';
+import { readLiveRelationsView } from 'lib/echarts/relations/options/view';
 
 /** Wait time before an interaction is saved, in milliseconds. */
 const PERSIST_DEBOUNCE_MS = 400;
@@ -27,26 +28,6 @@ function asNodeItem(value: unknown): RelationsNodeItem | undefined {
     ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- narrowed above
       (value as RelationsNodeItem)
     : undefined;
-}
-
-/** The view state ECharts synced back onto the series after a roam. */
-function readViewState(chart: EChartsType): { zoom?: number; center?: [number, number] } | undefined {
-  // `getOption()` is the public read of the merged option, and the roam action writes
-  // `zoom`/`center` straight onto the series model (`viewCoordSysSyncBack`), so this
-  // is where the roamed view legitimately lives rather than an internal transform.
-  const series: unknown = chart.getOption()?.series;
-  const first: unknown = Array.isArray(series) ? series[SERIES_INDEX] : undefined;
-  if (typeof first !== 'object' || first === null) {
-    return undefined;
-  }
-  const zoom: unknown = 'zoom' in first ? first.zoom : undefined;
-  const center: unknown = 'center' in first ? first.center : undefined;
-  const isPoint = Array.isArray(center) && center.length === 2 && center.every((n) => typeof n === 'number');
-  return {
-    ...(typeof zoom === 'number' ? { zoom } : {}),
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- checked above
-    ...(isPoint ? { center: center as [number, number] } : {}),
-  };
 }
 
 export function useRelationsPersistence(
@@ -148,7 +129,7 @@ export function useRelationsPersistence(
       if (ctx.options.relationsRememberView !== true || chart.isDisposed()) {
         return;
       }
-      const view = readViewState(chart);
+      const view = readLiveRelationsView(chart);
       if (view == null) {
         return;
       }

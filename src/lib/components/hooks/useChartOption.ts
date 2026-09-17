@@ -1,7 +1,8 @@
 import { debug, LOG_LEVELS } from 'development';
-import { type ChartContext } from 'lib/echarts/charts/types';
+import { type ChartContext, type EChartBuildOption } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
+import { readLiveRelationsView, type RelationsViewState } from 'lib/echarts/relations/options/view';
 import { ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { getTooltipTrigger } from 'lib/echarts/tooltip/option';
 import { type TooltipSink } from 'lib/echarts/tooltip/types';
@@ -21,6 +22,29 @@ interface Options {
   reportTooltipTrigger: EChartsTooltipController['reportTrigger'];
 }
 
+type ViewVariant = 'graph' | 'sankey';
+
+/** Return the Relations variants that own a roamable view. */
+function getViewVariant(chartContext: ChartContext): ViewVariant | undefined {
+  return chartContext.seriesType === 'graph' || chartContext.seriesType === 'sankey'
+    ? chartContext.seriesType
+    : undefined;
+}
+
+/** Apply only the transient view to the newly built first series. */
+function applyRelationsView(option: EChartBuildOption, view: RelationsViewState): void {
+  const first = Array.isArray(option.series) ? option.series[0] : option.series;
+  if (first == null || (first.type !== 'graph' && first.type !== 'sankey')) {
+    return;
+  }
+  if (view.zoom != null) {
+    first.zoom = view.zoom;
+  }
+  if (view.center != null) {
+    first.center = view.center;
+  }
+}
+
 /**
  * Rebuild the panel's ECharts option and push it to the instance whenever the
  * chart context changes.
@@ -35,9 +59,38 @@ export function useChartOption(
   { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger }: Options
 ): void {
   const optionsRef = useRef({ isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger });
+  const variantRef = useRef<ViewVariant | undefined>(getViewVariant(chartContext));
+  const interactedViewRef = useRef<{ variant: ViewVariant; view?: RelationsViewState }>();
   useEffect(() => {
     optionsRef.current = { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger };
   }, [isGrafanaLegend, plotHeight, plotWidth, reportTooltipTrigger, tooltipSink]);
+  useEffect(() => {
+    variantRef.current = getViewVariant(chartContext);
+  }, [chartContext]);
+
+  useEffect(() => {
+    interactedViewRef.current = undefined;
+    if (!chart) {
+      return;
+    }
+
+    const markInteracted = (variant: ViewVariant) => {
+      if (variantRef.current === variant && !chart.isDisposed()) {
+        interactedViewRef.current = { variant, view: readLiveRelationsView(chart) };
+      }
+    };
+    const onGraphRoam = () => markInteracted('graph');
+    const onSankeyRoam = () => markInteracted('sankey');
+    chart.on('graphroam', onGraphRoam);
+    chart.on('sankeyroam', onSankeyRoam);
+
+    return () => {
+      if (!chart.isDisposed()) {
+        chart.off('graphroam', onGraphRoam);
+        chart.off('sankeyroam', onSankeyRoam);
+      }
+    };
+  }, [chart]);
 
   useEffect(() => {
     if (!chart) {
@@ -45,6 +98,16 @@ export function useChartOption(
     }
 
     const current = optionsRef.current;
+    const variant = getViewVariant(chartContext);
+    const interacted = interactedViewRef.current;
+    if (interacted != null && interacted.variant !== variant) {
+      interactedViewRef.current = undefined;
+    } else if (interacted != null) {
+      const liveView = readLiveRelationsView(chart);
+      if (liveView != null) {
+        interacted.view = liveView;
+      }
+    }
     const option = buildPanelChartOption(chartContext, current);
 
     // Nothing to draw from this data: clear the canvas and leave the panel empty
@@ -55,6 +118,11 @@ export function useChartOption(
       debug('No echart option', LOG_LEVELS.debug, chartContext);
       chart.clear();
       return;
+    }
+
+    const retained = interactedViewRef.current;
+    if (retained != null && retained.variant === variant && retained.view != null) {
+      applyRelationsView(option, retained.view);
     }
 
     // Tell the tooltip controller the resolved trigger so it hides item tooltips
