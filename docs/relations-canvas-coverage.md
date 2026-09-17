@@ -114,7 +114,11 @@ A test cannot set a scheme through `fieldConfig.defaults` in this harness. `src/
 
 Force layout coordinates depend on the random seed and simulation timing. Unit tests pin the automatic limits, fallback dimensions, and explicit values.
 
-`layout.integration.test.tsx` pins repeatable output. Its small, crowded, and disconnected fixtures keep each node symbol inside 400 by 300 and 640 by 360 plots. ECharts does not constrain force nodes to the plot boundary. Labels can extend outside the plot.
+`layout.integration.test.tsx` verifies that each static fixture draws every node with finite geometry at 400 by 300 and 640 by 360. ECharts does not constrain force nodes or labels to the plot boundary.
+
+The same integration suite mounts one force graph at 400 by 300. It resizes the graph through 520 by 340, 640 by 420, and 800 by 500. The test observes three transient partial options and one final full option. The full option restores `relationsLayoutAnimation: false`. Each final node symbol has finite geometry.
+
+This mounted-resize coverage uses drawn primitives. It does not add or change a canvas snapshot.
 
 The graph canvas suite uses the ECharts highlight action to pin node emphasis. Pointer-driven adjacency emphasis still needs a browser hover.
 

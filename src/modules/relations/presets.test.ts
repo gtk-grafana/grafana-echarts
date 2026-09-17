@@ -94,6 +94,27 @@ describe('relationsPresetsSupplier', () => {
     expect(names).toEqual(['Service topology', 'Circular network', 'Weighted flow', 'Mutual relations']);
   });
 
+  it.each([
+    ['unknown', undefined, true],
+    ['12', rangedNodeSummary(12), true],
+    ['13', rangedNodeSummary(13), false],
+  ])('sets preset legend visibility for %s nodes', (_name, dataSummary, showLegend) => {
+    const presets = relationsPresetsSupplier({ dataSummary })!;
+
+    expect(presets.every(({ options }) => options?.legend?.showLegend === showLegend)).toBe(true);
+  });
+
+  it('keeps the hidden Time network legend on the right and the other preset legends at the bottom', () => {
+    const presets = relationsPresetsSupplier({ dataSummary: rangedNodeSummary(13) })!;
+
+    expect(presets.find(({ name }) => name === 'Time network')?.options?.legend?.placement).toBe('right');
+    expect(
+      presets
+        .filter(({ name }) => name !== 'Time network')
+        .every(({ options }) => options?.legend?.placement === 'bottom')
+    ).toBe(true);
+  });
+
   it('omits Mutual relations above the Chord node budget', () => {
     const dataSummary = getPanelDataSummary([nodesFrame(RELATIONS_CHORD_MAX_NODES + 1), edgesFrame(2, [0, 1000])]);
 
@@ -226,7 +247,7 @@ describe('relationsPresetsSupplier', () => {
 
   it('does not replace query or field configuration options', () => {
     const presets = relationsPresetsSupplier({ dataSummary: rangedSummary() })!;
-    const excluded = ['reduceOptions', 'legend', 'tooltip', 'thresholds', 'mappings', 'links', 'overrides'];
+    const excluded = ['reduceOptions', 'tooltip', 'thresholds', 'mappings', 'links', 'overrides'];
 
     for (const preset of presets) {
       expect(excluded.every((key) => !Object.hasOwn(preset.options!, key))).toBe(true);
@@ -248,7 +269,10 @@ describe('relationsPresetsSupplier', () => {
       expect(preview.options).toMatchObject({
         isPreview: true,
         relationsShowNodeLabels: false,
-        legend: { showLegend: false },
+        legend: {
+          placement: preset.name === 'Time network' ? 'right' : 'bottom',
+          showLegend: false,
+        },
       });
       expect(preset.options).toEqual(persistedOptions);
     }

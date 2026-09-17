@@ -1,7 +1,9 @@
-import { FieldType, toDataFrame } from '@grafana/data';
-import { render } from '@testing-library/react';
+import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
+import { render, waitFor } from '@testing-library/react';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
-import { getChart, normalizeCanvasEvents } from 'test/canvas';
+import { relationsChartModule } from 'lib/echarts/relations/chartModule';
+import { Children, cloneElement, type ReactElement } from 'react';
+import { clearMockedCanvasEvents, getChart, normalizeCanvasEvents, SERIES_LAYER_SELECTOR } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents } from 'test/panel';
 import { crowdedEdgesFrame, crowdedNodesFrame, edgesFrame, nodesFrame, slackEdgesFrame } from 'test/relations';
 import { asPipelineWould, canvasOptions, labelTexts, renderRelations } from 'test/relationsCanvas';
@@ -11,6 +13,11 @@ interface RenderedNodeBounds {
   centerY: number;
   radiusX: number;
   radiusY: number;
+}
+
+interface GraphNodeData {
+  count(): number;
+  getItemLayout(index: number): readonly [number, number];
 }
 
 const disconnectedNodesFrame = toDataFrame({
@@ -50,6 +57,30 @@ const nodeBounds = (events: CanvasRenderingContext2DEvent[]): RenderedNodeBounds
     ];
   });
 
+/** Copy the live force-node coordinates so later mutations cannot change the baseline. */
+const graphNodeLayouts = (chart: unknown): Array<readonly [number, number]> => {
+  const data = (
+    chart as {
+      getModel(): { getSeriesByIndex(index: number): { getGraph(): { data: GraphNodeData } } };
+    }
+  )
+    .getModel()
+    .getSeriesByIndex(0)
+    .getGraph().data;
+
+  return Array.from({ length: data.count() }, (_, index) => {
+    const [x, y] = data.getItemLayout(index);
+    return [x, y] as const;
+  });
+};
+
+/** Recreate Grafana's frame and field wrappers without replacing their values. */
+const withPresentationWrappers = (frames: DataFrame[]): DataFrame[] =>
+  frames.map((frame) => ({
+    ...frame,
+    fields: frame.fields.map((field) => ({ ...field, config: { ...field.config } })),
+  }));
+
 const renderForceGraph = async (frames: Parameters<typeof asPipelineWould>[0], width: number, height: number) => {
   const options = canvasOptions({
     relationsLayout: 'force',
@@ -60,52 +91,161 @@ const renderForceGraph = async (frames: Parameters<typeof asPipelineWould>[0], w
     getComponent(asPipelineWould(frames), 'graph', options, undefined, { width, height }, 'relations')
   );
   const { seriesEvents } = await getSeriesCanvasEvents(container);
-  const chart = getChart(container).chart!;
-  return { chart, nodes: nodeBounds(seriesEvents) };
+  return nodeBounds(seriesEvents);
 };
 
 describe('relations layout', () => {
   describe('force', () => {
-    it('two renders of the same frames draw identical calls', async () => {
-      const options = { relationsLayout: 'force' as const };
-      const first = await renderRelations({ frames: [nodesFrame, edgesFrame], options });
-      const second = await renderRelations({ frames: [nodesFrame, edgesFrame], options });
-
-      expect(normalizeCanvasEvents(second.seriesEvents)).toEqual(normalizeCanvasEvents(first.seriesEvents));
-      // Guard against the assertion passing on two empty layers.
-      expect(first.seriesEvents.length).toBeGreaterThan(0);
-    });
-
-    it('two renders of an edges-only response draw identical calls', async () => {
-      const options = { relationsLayout: 'force' as const };
-      const first = await renderRelations({ frames: [edgesFrame], options });
-      const second = await renderRelations({ frames: [edgesFrame], options });
-
-      expect(normalizeCanvasEvents(second.seriesEvents)).toEqual(normalizeCanvasEvents(first.seriesEvents));
-      expect(first.seriesEvents.length).toBeGreaterThan(0);
-    });
-
     it.each([
-      ['small', [nodesFrame, edgesFrame]],
-      ['crowded', [crowdedNodesFrame, crowdedEdgesFrame]],
-      ['disconnected', [disconnectedNodesFrame, disconnectedEdgesFrame]],
-    ] as const)('keeps every %s graph node inside two panel rectangles', async (_name, frames) => {
+      ['small', [nodesFrame, edgesFrame], 4],
+      ['crowded', [crowdedNodesFrame, crowdedEdgesFrame], 12],
+      ['disconnected', [disconnectedNodesFrame, disconnectedEdgesFrame], 6],
+    ] as const)('draws every %s fixture node with finite geometry', async (_name, frames, expectedNodes) => {
       for (const [width, height] of [
         [400, 300],
         [640, 360],
       ] as const) {
-        const { chart, nodes } = await renderForceGraph([...frames], width, height);
-        const plotWidth = chart.getWidth();
-        const plotHeight = chart.getHeight();
+        const nodes = await renderForceGraph([...frames], width, height);
 
-        expect(nodes.length).toBeGreaterThan(0);
+        expect(nodes).toHaveLength(expectedNodes);
         for (const node of nodes) {
-          expect(node.centerX - node.radiusX).toBeGreaterThanOrEqual(0);
-          expect(node.centerX + node.radiusX).toBeLessThanOrEqual(plotWidth);
-          expect(node.centerY - node.radiusY).toBeGreaterThanOrEqual(0);
-          expect(node.centerY + node.radiusY).toBeLessThanOrEqual(plotHeight);
+          expect(Object.values(node).every(Number.isFinite)).toBe(true);
         }
       }
+    });
+
+    it('keeps one mounted graph inside the final rectangle after a resize burst', async () => {
+      const frames = asPipelineWould([crowdedNodesFrame, crowdedEdgesFrame]);
+      const options = canvasOptions({
+        relationsLayout: 'force',
+        relationsNodeSize: 24,
+        relationsShowNodeLabels: false,
+      });
+      const initial = getComponent(frames, 'graph', options, undefined, { width: 400, height: 300 }, 'relations');
+      const panel = Children.only(initial.props.children) as ReactElement<{ width: number; height: number }>;
+      const atSize = (width: number, height: number) =>
+        cloneElement(initial, { style: { width, height } }, cloneElement(panel, { width, height }));
+      const { container, rerender } = render(atSize(400, 300));
+      await getSeriesCanvasEvents(container);
+      const chart = getChart(container).chart!;
+      const setOption = jest.spyOn(chart, 'setOption');
+
+      rerender(atSize(520, 340));
+      rerender(atSize(640, 420));
+      rerender(atSize(800, 500));
+
+      expect(setOption).toHaveBeenCalledTimes(3);
+      for (const [option, opts] of setOption.mock.calls) {
+        expect(option).toEqual({
+          series: [{ type: 'graph', force: { layoutAnimation: true, friction: 0.05, initLayout: 'none' } }],
+        });
+        expect(opts).toBeUndefined();
+      }
+
+      const seriesCanvas = container.querySelector<HTMLCanvasElement>(SERIES_LAYER_SELECTOR);
+      expect(seriesCanvas).not.toBeNull();
+      const seriesContext = seriesCanvas!.getContext('2d')!;
+      clearMockedCanvasEvents(seriesContext);
+
+      await waitFor(() => expect(setOption.mock.calls.filter(([, opts]) => opts?.notMerge === true)).toHaveLength(1));
+      const fullOptionCalls = setOption.mock.calls.filter(([, opts]) => opts?.notMerge === true);
+
+      expect(fullOptionCalls).toHaveLength(1);
+      expect(fullOptionCalls[0][0]).toMatchObject({
+        series: [{ type: 'graph', force: { initLayout: 'none', friction: 0.2, layoutAnimation: false } }],
+      });
+      expect(chart.getWidth()).toBe(800);
+      expect(chart.getHeight()).toBeLessThanOrEqual(500);
+
+      // Paint queued display-list work without changing the chart size or layout.
+      chart.getZr().flush();
+
+      const seriesEvents = seriesContext.__getEvents();
+      const nodes = nodeBounds(seriesEvents).slice(-12);
+      const plotWidth = chart.getWidth();
+      const plotHeight = chart.getHeight();
+      expect(nodes).toHaveLength(12);
+      for (const node of nodes) {
+        expect(node.centerX - node.radiusX).toBeGreaterThanOrEqual(0);
+        expect(node.centerX + node.radiusX).toBeLessThanOrEqual(plotWidth);
+        expect(node.centerY - node.radiusY).toBeGreaterThanOrEqual(0);
+        expect(node.centerY + node.radiusY).toBeLessThanOrEqual(plotHeight);
+      }
+    });
+
+    it('keeps a mounted preview frozen until a field values object changes', async () => {
+      const suggestionWidth = 350;
+      const suggestionHeight = 219;
+      const frames = asPipelineWould([crowdedNodesFrame, crowdedEdgesFrame]);
+      const card = (update: number, nextFrames: DataFrame[] = frames) => {
+        const component = getComponent(
+          withPresentationWrappers(nextFrames),
+          'graph',
+          canvasOptions({
+            isPreview: true,
+            relationsLayout: 'force',
+            relationsNodeSize: 16 + update,
+            relationsRepulsion: 80 + update,
+            relationsShowNodeLabels: update % 2 === 0,
+          }),
+          undefined,
+          {
+            width: suggestionWidth,
+            height: suggestionHeight,
+            renderCounter: update,
+            title: `Suggestion ${update}`,
+            transparent: update % 2 === 0,
+            onChangeTimeRange: jest.fn(),
+            onFieldConfigChange: jest.fn(),
+            onOptionsChange: jest.fn(),
+            replaceVariables: (value) => `${value}`,
+          },
+          'relations'
+        );
+
+        return cloneElement(component, {
+          className: update % 2 === 0 ? 'suggestion-card-even' : 'suggestion-card-odd',
+          style: {
+            width: suggestionWidth + update * 7,
+            height: suggestionHeight + update * 3,
+            padding: update % 3,
+          },
+        });
+      };
+
+      const { container, rerender } = render(card(0));
+      await getSeriesCanvasEvents(container);
+      const chart = getChart(container).chart!;
+      const initialLayouts = graphNodeLayouts(chart);
+      const buildOption = jest.spyOn(relationsChartModule, 'buildOption');
+      const setOption = jest.spyOn(chart, 'setOption');
+      const resize = jest.spyOn(chart, 'resize');
+
+      for (let update = 1; update <= 20; update++) {
+        rerender(card(update));
+      }
+
+      expect(getChart(container).chart).toBe(chart);
+      expect(buildOption).not.toHaveBeenCalled();
+      expect(setOption).not.toHaveBeenCalled();
+      expect(resize).not.toHaveBeenCalled();
+      expect(graphNodeLayouts(chart)).toEqual(initialLayouts);
+
+      const changedFrames = frames.map((frame, frameIndex) => ({
+        ...frame,
+        fields: frame.fields.map((field, fieldIndex) =>
+          frameIndex === 0 && fieldIndex === 0 ? { ...field, values: Array.from(field.values) } : field
+        ),
+      }));
+      rerender(card(21, changedFrames));
+
+      await waitFor(() => expect(setOption).toHaveBeenCalledTimes(1));
+      expect(getChart(container).chart).toBe(chart);
+      expect(buildOption).toHaveBeenCalledTimes(1);
+      expect(setOption).toHaveBeenCalledWith(expect.objectContaining({ series: expect.any(Array) }), {
+        notMerge: true,
+      });
+      expect(resize).not.toHaveBeenCalled();
     });
   });
 

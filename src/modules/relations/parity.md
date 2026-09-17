@@ -69,7 +69,7 @@ The full option restores the saved `relationsLayoutAnimation` configuration. It 
 
 A force-layout preset preview keeps its initial layout when Grafana resizes the preview card. It does not run the user-panel resize path. [The strategy and size tests pin the fixed preview path][settled-size].
 
-Presets appear in this order: Service topology, Circular network, Weighted flow, Mutual relations, and Time network. Circular network permits an unknown node count or 2 through 40 nodes. Time network needs ranged time data and a known node count from 2 through 40. [The preset unit tests pin these rules][preset-tests].
+Presets appear in this order: Service topology, Circular network, Weighted flow, Mutual relations, and Time network. Circular network permits an unknown node count or 2 through 40 nodes. Time network needs ranged time data and a known node count from 2 through 40. Presets show the legend for an unknown node count or up to 12 nodes. They hide it from 13 nodes. Time network puts the legend on the right. The other presets put it at the bottom. [The preset unit tests pin these rules][preset-tests].
 
 ## Advanced options
 

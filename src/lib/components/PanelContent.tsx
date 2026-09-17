@@ -40,7 +40,6 @@ export const PanelContent: React.FC<PanelComponentProps> = ({
   );
 
   const chartModule = useMemo(() => resolveChartModule(seriesType), [seriesType]);
-  const isPreview = options.isPreview === true;
 
   const resolvedLegend = useMemo(() => resolveLegendOptions(chartModule, options), [chartModule, options]);
 
@@ -69,12 +68,9 @@ export const PanelContent: React.FC<PanelComponentProps> = ({
     [data.series, theme, timeZone, timeRange, options, seriesType, formatValue, fieldConfig, replaceVariables]
   );
 
-  // The stops this render can be stepped through, or `null` for no slider. Only relations
-  // supplies any — see `ChartModule.getTimeline` and `ChartTimeSlider`.
-  const timeline = useMemo(
-    () => (isPreview ? null : (chartModule.getTimeline?.(baseContext) ?? null)),
-    [chartModule, baseContext, isPreview]
-  );
+  // The stops this render can be stepped through, or `null` for no slider. Relations can
+  // supply them for both panels and preset previews. See `ChartModule.getTimeline`.
+  const timeline = useMemo(() => chartModule.getTimeline?.(baseContext) ?? null, [chartModule, baseContext]);
 
   /**
    * The selected timestamp: **transient panel state**, never a saved option — scrubbing a
