@@ -139,7 +139,7 @@ describe('relations time slider', () => {
   it('repaints the chart when the slider is moved', async () => {
     const { container } = await renderRelations({
       frames: [rangedEdges()],
-      options: { relationsTimeSlider: true, relationsShowEdgeValues: true },
+      options: { isPreview: true, relationsTimeSlider: true, relationsShowEdgeValues: true },
     });
     const { chart } = getChart(container);
 

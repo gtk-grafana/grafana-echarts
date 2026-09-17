@@ -1,6 +1,7 @@
-import { FieldType, toDataFrame } from '@grafana/data';
+import { type DataFrame, FieldType, toDataFrame } from '@grafana/data';
 import { render, waitFor } from '@testing-library/react';
 import { type CanvasRenderingContext2DEvent } from 'jest-canvas-mock';
+import { relationsChartModule } from 'lib/echarts/relations/chartModule';
 import { Children, cloneElement, type ReactElement } from 'react';
 import { clearMockedCanvasEvents, getChart, normalizeCanvasEvents, SERIES_LAYER_SELECTOR } from 'test/canvas';
 import { getComponent, getSeriesCanvasEvents } from 'test/panel';
@@ -12,6 +13,11 @@ interface RenderedNodeBounds {
   centerY: number;
   radiusX: number;
   radiusY: number;
+}
+
+interface GraphNodeData {
+  count(): number;
+  getItemLayout(index: number): readonly [number, number];
 }
 
 const disconnectedNodesFrame = toDataFrame({
@@ -50,6 +56,30 @@ const nodeBounds = (events: CanvasRenderingContext2DEvent[]): RenderedNodeBounds
       },
     ];
   });
+
+/** Copy the live force-node coordinates so later mutations cannot change the baseline. */
+const graphNodeLayouts = (chart: unknown): Array<readonly [number, number]> => {
+  const data = (
+    chart as {
+      getModel(): { getSeriesByIndex(index: number): { getGraph(): { data: GraphNodeData } } };
+    }
+  )
+    .getModel()
+    .getSeriesByIndex(0)
+    .getGraph().data;
+
+  return Array.from({ length: data.count() }, (_, index) => {
+    const [x, y] = data.getItemLayout(index);
+    return [x, y] as const;
+  });
+};
+
+/** Recreate Grafana's frame and field wrappers without replacing their values. */
+const withPresentationWrappers = (frames: DataFrame[]): DataFrame[] =>
+  frames.map((frame) => ({
+    ...frame,
+    fields: frame.fields.map((field) => ({ ...field, config: { ...field.config } })),
+  }));
 
 const renderForceGraph = async (frames: Parameters<typeof asPipelineWould>[0], width: number, height: number) => {
   const options = canvasOptions({
@@ -141,6 +171,81 @@ describe('relations layout', () => {
         expect(node.centerY - node.radiusY).toBeGreaterThanOrEqual(0);
         expect(node.centerY + node.radiusY).toBeLessThanOrEqual(plotHeight);
       }
+    });
+
+    it('keeps a mounted preview frozen until a field values object changes', async () => {
+      const suggestionWidth = 350;
+      const suggestionHeight = 219;
+      const frames = asPipelineWould([crowdedNodesFrame, crowdedEdgesFrame]);
+      const card = (update: number, nextFrames: DataFrame[] = frames) => {
+        const component = getComponent(
+          withPresentationWrappers(nextFrames),
+          'graph',
+          canvasOptions({
+            isPreview: true,
+            relationsLayout: 'force',
+            relationsNodeSize: 16 + update,
+            relationsRepulsion: 80 + update,
+            relationsShowNodeLabels: update % 2 === 0,
+          }),
+          undefined,
+          {
+            width: suggestionWidth,
+            height: suggestionHeight,
+            renderCounter: update,
+            title: `Suggestion ${update}`,
+            transparent: update % 2 === 0,
+            onChangeTimeRange: jest.fn(),
+            onFieldConfigChange: jest.fn(),
+            onOptionsChange: jest.fn(),
+            replaceVariables: (value) => `${value}`,
+          },
+          'relations'
+        );
+
+        return cloneElement(component, {
+          className: update % 2 === 0 ? 'suggestion-card-even' : 'suggestion-card-odd',
+          style: {
+            width: suggestionWidth + update * 7,
+            height: suggestionHeight + update * 3,
+            padding: update % 3,
+          },
+        });
+      };
+
+      const { container, rerender } = render(card(0));
+      await getSeriesCanvasEvents(container);
+      const chart = getChart(container).chart!;
+      const initialLayouts = graphNodeLayouts(chart);
+      const buildOption = jest.spyOn(relationsChartModule, 'buildOption');
+      const setOption = jest.spyOn(chart, 'setOption');
+      const resize = jest.spyOn(chart, 'resize');
+
+      for (let update = 1; update <= 20; update++) {
+        rerender(card(update));
+      }
+
+      expect(getChart(container).chart).toBe(chart);
+      expect(buildOption).not.toHaveBeenCalled();
+      expect(setOption).not.toHaveBeenCalled();
+      expect(resize).not.toHaveBeenCalled();
+      expect(graphNodeLayouts(chart)).toEqual(initialLayouts);
+
+      const changedFrames = frames.map((frame, frameIndex) => ({
+        ...frame,
+        fields: frame.fields.map((field, fieldIndex) =>
+          frameIndex === 0 && fieldIndex === 0 ? { ...field, values: Array.from(field.values) } : field
+        ),
+      }));
+      rerender(card(21, changedFrames));
+
+      await waitFor(() => expect(setOption).toHaveBeenCalledTimes(1));
+      expect(getChart(container).chart).toBe(chart);
+      expect(buildOption).toHaveBeenCalledTimes(1);
+      expect(setOption).toHaveBeenCalledWith(expect.objectContaining({ series: expect.any(Array) }), {
+        notMerge: true,
+      });
+      expect(resize).not.toHaveBeenCalled();
     });
   });
 

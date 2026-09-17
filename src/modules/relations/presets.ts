@@ -2,6 +2,13 @@ import { FieldType, type VisualizationPresetsSupplier, type VisualizationSuggest
 import { defaultVizLegendOptions, type VizLegendOptions } from '@grafana/schema';
 import { ANIMATION_ENABLED_DEFAULT, seriesTypePath } from 'editor/constants';
 import {
+  CHORD_CLOCKWISE_DEFAULT,
+  CHORD_LINK_OPACITY_DEFAULT,
+  CHORD_MIN_ANGLE_DEFAULT,
+  CHORD_PAD_ANGLE_DEFAULT,
+  CHORD_START_ANGLE_DEFAULT,
+} from 'editor/relations/chord';
+import {
   RELATIONS_EDGE_ARROWS_DEFAULT,
   RELATIONS_FOCUS_ADJACENCY_DEFAULT,
   RELATIONS_HIDE_OVERLAPPING_LABELS_DEFAULT,
@@ -18,13 +25,6 @@ import {
 } from 'editor/relations/constants';
 import { type RelationsPanelOptions } from 'editor/relations/options';
 import {
-  CHORD_CLOCKWISE_DEFAULT,
-  CHORD_LINK_OPACITY_DEFAULT,
-  CHORD_MIN_ANGLE_DEFAULT,
-  CHORD_PAD_ANGLE_DEFAULT,
-  CHORD_START_ANGLE_DEFAULT,
-} from 'editor/relations/chord';
-import {
   SANKEY_CURVENESS_DEFAULT,
   SANKEY_LAYOUT_ITERATIONS_DEFAULT,
   SANKEY_LINK_OPACITY_DEFAULT,
@@ -34,9 +34,9 @@ import {
   SANKEY_ORIENT_DEFAULT,
 } from 'editor/relations/sankey';
 import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
-import { exceedsChordNodeBudget, fitsSankeyTopology, relationsNodeCount } from 'lib/echarts/relations/charts/fitness';
 import { previewCardOptions } from 'lib/echarts/charts/suggestionCards';
 import { RELATIONS_CIRCULAR_MAX_NODES } from 'lib/echarts/charts/suggestionLimits';
+import { exceedsChordNodeBudget, fitsSankeyTopology, relationsNodeCount } from 'lib/echarts/relations/charts/fitness';
 import { type PanelOptions } from 'types';
 
 type ClearableRelationsOption =
