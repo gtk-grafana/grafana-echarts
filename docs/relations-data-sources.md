@@ -6,6 +6,19 @@ The panel reads the [ECharts graph-wide implementation](../data-plane/graph-wide
 
 Use wide input for Prometheus, Loki, SQL, CSV, and JSON. Use row input for Tempo, AWS X-Ray, TestData DB, and compatibility with Grafana Node graph.
 
+## Presets
+
+Open Presets in the panel editor to select a starting use-case.
+
+| Preset           | Use it for                                 | Constraint                                                       |
+| ---------------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| Service topology | Service dependency maps                    | Always available                                                 |
+| Weighted flow    | Weighted acyclic funnels or allocation     | Up to 100 nodes and 12 levels. The graph must not contain cycles |
+| Mutual relations | Dense or cyclic pairwise traffic           | The node count must not exceed the Chord node budget             |
+| Time network     | Topology changes across a query time range | Ranged data must have more than one time value                   |
+
+Graph presets use smaller nodes for more than 20 nodes. They hide node labels for more than 50 nodes.
+
 The automatic row conversion needs Grafana 13.2 or later and `grafana.panelPluginTransformations`. If the host cannot run it, add a Rows to fields transformation.
 
 Grafana runs the automatic row conversion before the user transformations in the Transform tab. Thus, Rows to fields and Grouping to matrix receive wide frames and return them unchanged. If automatic conversion is active, do not add these row transformations. Transformations that consume wide frames still operate normally.

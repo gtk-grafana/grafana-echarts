@@ -3,6 +3,8 @@ import {
   PREVIEW_MAX_SERIES,
   RELATIONS_CHORD_MAX_NODES,
   RELATIONS_MAX_EDGES,
+  RELATIONS_SANKEY_MAX_LEVELS,
+  RELATIONS_SANKEY_MAX_NODES,
 } from 'lib/echarts/charts/suggestionLimits';
 import { type PanelOptions } from 'types';
 import { relationsSuggestionsSupplier } from './suggestions';
@@ -23,6 +25,16 @@ const nodesFrame = (rows: number) =>
     fields: [
       { name: 'id', type: FieldType.string, values: Array.from({ length: rows }, (_, row) => `n${row}`) },
       { name: 'title', type: FieldType.string, values: Array.from({ length: rows }, (_, row) => `node ${row}`) },
+    ],
+  });
+
+const edgePairsFrame = (pairs: Array<[string, string]>) =>
+  createDataFrame({
+    name: 'edges',
+    fields: [
+      { name: 'id', type: FieldType.string, values: pairs.map((_, row) => `e${row}`) },
+      { name: 'source', type: FieldType.string, values: pairs.map(([source]) => source) },
+      { name: 'target', type: FieldType.string, values: pairs.map(([, target]) => target) },
     ],
   });
 
@@ -98,16 +110,50 @@ describe('relationsSuggestionsSupplier', () => {
   });
 
   it(`returns void past ${RELATIONS_MAX_EDGES} edges`, () => {
-    expect(relationsSuggestionsSupplier(getPanelDataSummary([edgesFrame(RELATIONS_MAX_EDGES)]))).toHaveLength(2);
+    expect(relationsSuggestionsSupplier(getPanelDataSummary([edgesFrame(RELATIONS_MAX_EDGES)]))).toHaveLength(1);
     expect(relationsSuggestionsSupplier(getPanelDataSummary([edgesFrame(RELATIONS_MAX_EDGES + 1)]))).toBeUndefined();
   });
 
   it(`drops the chord card past ${RELATIONS_CHORD_MAX_NODES} nodes, keeping graph and sankey`, () => {
     const result = relationsSuggestionsSupplier(
-      getPanelDataSummary([nodesFrame(RELATIONS_CHORD_MAX_NODES + 1), edgesFrame(50)])
+      getPanelDataSummary([nodesFrame(RELATIONS_CHORD_MAX_NODES + 1), edgesFrame(2)])
     );
 
     expect(result!.map((suggestion) => suggestion.name)).toEqual(['Graph', 'Sankey']);
+  });
+
+  it('drops the sankey card for cycles and deep graphs', () => {
+    const cyclic = edgePairsFrame([
+      ['a', 'b'],
+      ['b', 'c'],
+      ['c', 'a'],
+    ]);
+    const deep = edgePairsFrame(
+      Array.from({ length: RELATIONS_SANKEY_MAX_LEVELS }, (_, index) => [`n${index}`, `n${index + 1}`]) as Array<
+        [string, string]
+      >
+    );
+
+    expect(relationsSuggestionsSupplier(getPanelDataSummary([cyclic]))?.map(({ name }) => name)).toEqual([
+      'Graph',
+      'Chord',
+    ]);
+    expect(relationsSuggestionsSupplier(getPanelDataSummary([deep]))?.map(({ name }) => name)).toEqual([
+      'Graph',
+      'Chord',
+    ]);
+  });
+
+  it(`drops sankey past ${RELATIONS_SANKEY_MAX_NODES} nodes`, () => {
+    const atLimit = relationsSuggestionsSupplier(
+      getPanelDataSummary([nodesFrame(RELATIONS_SANKEY_MAX_NODES), edgesFrame(2)])
+    );
+    const aboveLimit = relationsSuggestionsSupplier(
+      getPanelDataSummary([nodesFrame(RELATIONS_SANKEY_MAX_NODES + 1), edgesFrame(2)])
+    );
+
+    expect(atLimit?.map(({ name }) => name)).toEqual(['Graph', 'Sankey']);
+    expect(aboveLimit?.map(({ name }) => name)).toEqual(['Graph']);
   });
 
   it('bounds every preview card and suppresses node labels', () => {
