@@ -4,6 +4,7 @@
   "scripts": {
     "build": "webpack -c ./webpack.config.ts --env production",
     "build:analyze": "webpack -c ./webpack.config.ts --env production --env analyze",
+    "build:relations": "webpack -c ./webpack.config.ts --env production --env standalone=relations",
     "checks": "pnpm run typecheck && pnpm run lint && pnpm run prettier:check && pnpm run test:ci",
     "dev": "webpack -w -c ./webpack.config.ts --env development",
     "test": "jest --watch --onlyChanged",
@@ -21,6 +22,7 @@
     "bench:relations-refresh": "node scripts/bench/relations-refresh.mjs",
     "prepare": "lefthook install",
     "server": "COMPOSE_PROJECT_NAME=${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-${GRAFANA_PORT:-3001}} docker compose up --build",
+    "server:relations": "pnpm run build:relations && COMPOSE_PROJECT_NAME=${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-relations-${GRAFANA_PORT:-4001}} docker compose -f docker-compose-relations.yaml up --build",
     "server:lgtm": "COMPOSE_PROJECT_NAME=${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-lgtm-${GRAFANA_PORT:-3010}} docker compose -f docker-compose-lgtm.yaml up --build",
     "sign": "sign-plugin"
   },

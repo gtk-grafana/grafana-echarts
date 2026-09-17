@@ -2,18 +2,141 @@
 // (which must not be edited). See:
 // https://grafana.com/developers/plugin-tools/how-to-guides/extend-configurations#extend-the-webpack-config
 //
-// The only extension is copying each nested panel's `img/` assets to dist. The
-// scaffolded copyFiles step copies the root logo and every JSON file, but not
-// the nested `.svg` logos referenced by each nested `plugin.json`.
 import CopyWebpackPlugin from 'copy-webpack-plugin';
-import type { Configuration } from 'webpack';
+import fs from 'fs';
+import path from 'path';
+import ReplaceInFileWebpackPlugin from 'replace-in-file-webpack-plugin';
+import webpack, { type Configuration } from 'webpack';
 // https://github.com/webpack-contrib/webpack-bundle-analyzer
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+import VirtualModulesPlugin from 'webpack-virtual-modules';
 
 import baseConfig, { type Env } from './/.config/webpack/webpack.config.ts';
 
+type PluginManifest = {
+  id: string;
+  info?: {
+    logos?: {
+      large?: string;
+      small?: string;
+    };
+    screenshots?: Array<{ path: string }>;
+  };
+};
+
+type PackageMetadata = {
+  version: string;
+};
+
+const readJson = <T>(filePath: string): T => JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
+
+const standalonePluginKinds = [
+  { name: 'BannerPlugin', matches: (plugin: unknown) => plugin instanceof webpack.BannerPlugin },
+  { name: 'CopyWebpackPlugin', matches: (plugin: unknown) => plugin instanceof CopyWebpackPlugin },
+  {
+    name: 'ReplaceInFileWebpackPlugin',
+    matches: (plugin: unknown) => plugin instanceof ReplaceInFileWebpackPlugin,
+  },
+  { name: 'VirtualModulesPlugin', matches: (plugin: unknown) => plugin instanceof VirtualModulesPlugin },
+];
+
+const standaloneCopyPatterns = (manifest: PluginManifest) => {
+  const moduleDirectory = 'modules/relations';
+  const assetPaths = Array.from(
+    new Set([
+      manifest.info?.logos?.small,
+      manifest.info?.logos?.large,
+      ...(manifest.info?.screenshots?.map(({ path: screenshotPath }) => screenshotPath) ?? []),
+    ])
+  ).filter((assetPath): assetPath is string => Boolean(assetPath));
+
+  for (const assetPath of assetPaths) {
+    const sourcePath = path.resolve(process.cwd(), 'src', moduleDirectory, assetPath);
+    if (!fs.existsSync(sourcePath)) {
+      throw new Error(`Relations manifest asset does not exist: ${assetPath}`);
+    }
+  }
+
+  return [
+    { from: `${moduleDirectory}/plugin.json`, to: 'plugin.json' },
+    ...assetPaths.map((assetPath) => ({ from: `${moduleDirectory}/${assetPath}`, to: assetPath })),
+    { from: 'README.md', to: '.', force: true },
+    { from: '../CHANGELOG.md', to: '.', force: true },
+    { from: '../LICENSE', to: '.' },
+  ];
+};
+
+const replaceStandalonePlugins = (
+  plugins: NonNullable<Configuration['plugins']>,
+  manifest: PluginManifest,
+  packageVersion: string
+): NonNullable<Configuration['plugins']> => {
+  for (const pluginKind of standalonePluginKinds) {
+    const count = plugins.filter(pluginKind.matches).length;
+    if (count !== 1) {
+      throw new Error(`Expected one scaffold ${pluginKind.name}, found ${count}.`);
+    }
+  }
+
+  const retainedPlugins = plugins.filter(
+    (plugin) => !standalonePluginKinds.some((pluginKind) => pluginKind.matches(plugin))
+  );
+  const virtualPublicPath = new VirtualModulesPlugin({
+    'node_modules/grafana-public-path.js': `
+import amdMetaModule from 'amd-module';
+
+__webpack_public_path__ =
+  amdMetaModule && amdMetaModule.uri
+    ? amdMetaModule.uri.slice(0, amdMetaModule.uri.lastIndexOf('/') + 1)
+    : 'public/plugins/${manifest.id}/';
+`,
+  });
+
+  return [
+    ...retainedPlugins,
+    virtualPublicPath,
+    new webpack.BannerPlugin({
+      banner: `/* [create-plugin] plugin: ${manifest.id}@${packageVersion} */`,
+      raw: true,
+      entryOnly: true,
+    }),
+    new CopyWebpackPlugin({ patterns: standaloneCopyPatterns(manifest) }),
+    new ReplaceInFileWebpackPlugin([
+      {
+        dir: 'dist',
+        test: [/(^|\/)plugin\.json$/, /(^|\/)README\.md$/],
+        rules: [
+          { search: /\%VERSION\%/g, replace: packageVersion },
+          { search: /\%TODAY\%/g, replace: new Date().toISOString().substring(0, 10) },
+          { search: /\%PLUGIN_ID\%/g, replace: manifest.id },
+        ],
+      },
+    ]),
+  ];
+};
+
 const config = async (env: Env): Promise<Configuration> => {
+  if (env.standalone !== undefined && env.standalone !== 'relations') {
+    throw new Error(`Unsupported standalone target "${String(env.standalone)}". Supported targets: relations.`);
+  }
+
   const base = await baseConfig(env);
+  const isRelationsStandalone = env.production && env.standalone === 'relations';
+  const rootManifest = readJson<PluginManifest>(path.resolve(process.cwd(), 'src/plugin.json'));
+  const relationsManifest = readJson<PluginManifest>(path.resolve(process.cwd(), 'src/modules/relations/plugin.json'));
+  const packageMetadata = readJson<PackageMetadata>(path.resolve(process.cwd(), 'package.json'));
+  const activePluginId = isRelationsStandalone ? relationsManifest.id : rootManifest.id;
+
+  if (isRelationsStandalone) {
+    base.entry = {
+      module: path.resolve(process.cwd(), 'src/modules/relations/module.tsx'),
+    };
+    base.output = {
+      ...base.output,
+      publicPath: `public/plugins/${relationsManifest.id}/`,
+      uniqueName: relationsManifest.id,
+    };
+  }
 
   // De-duplicate the ECharts runtime across the nested panel entries. Each
   // panel registers a React.lazy wrapper (see lib/components/LazyPanel), so the
@@ -41,20 +164,22 @@ const config = async (env: Env): Promise<Configuration> => {
     },
   };
 
+  const configuredPlugins = isRelationsStandalone
+    ? replaceStandalonePlugins(base.plugins ?? [], relationsManifest, packageMetadata.version)
+    : [
+        ...(base.plugins ?? []),
+        new CopyWebpackPlugin({
+          patterns: [
+            // Nested manifests reference logos that the scaffold copy step omits.
+            { from: 'modules/*/img/**', to: '[path][name][ext]', noErrorOnMissing: true },
+          ],
+        }),
+      ];
+
   base.plugins = [
-    ...(base.plugins ?? []),
-    new CopyWebpackPlugin({
-      patterns: [
-        // Context defaults to the compiler context (`src`), so this matches
-        // `src/modules/<family>/img/...` and excludes the root `src/img` (already
-        // copied via the base config's logo patterns).
-        //
-        // Note the two path segments: nested panels live at
-        // `src/modules/<family>/img/`, so a single-segment `*/img/**` glob resolves
-        // to `src/*/img/**` and silently matches nothing — every nested
-        // `plugin.json` then points at a logo that was never emitted.
-        { from: 'modules/*/img/**', to: '[path][name][ext]', noErrorOnMissing: true },
-      ],
+    ...configuredPlugins,
+    new webpack.DefinePlugin({
+      __PLUGIN_ID__: JSON.stringify(activePluginId),
     }),
     // Enabled via `pnpm run build:analyze` (passes `--env analyze`). Writes a
     // static report so the build stays non-interactive and CI-friendly.
