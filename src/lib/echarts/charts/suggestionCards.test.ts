@@ -24,11 +24,12 @@ describe('previewCardOptions', () => {
     expect(suggestion.options?.legend?.showLegend).toBe(false);
   });
 
-  it('hides the legend and disarms per-point rendering', () => {
+  it('marks the clone as a preview, hides the legend, and disarms per-point rendering', () => {
     const suggestion: { options?: Partial<PanelOptions> } = { options: { seriesType: 'line' } };
 
     previewCardOptions().previewModifier(suggestion);
 
+    expect(suggestion.options?.isPreview).toBe(true);
     expect(suggestion.options?.legend?.showLegend).toBe(false);
     expect(suggestion.options?.performance).toEqual({ showPoints: 'never', downsampling: true });
     // The card's own options survive the modifier.

@@ -926,6 +926,194 @@
           "calcs": ["max", "min"]
         }
       }
+    },
+    {
+      "id": 20,
+      "type": "row",
+      "title": "Graph: automatic and explicit force values",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 110
+      },
+      "panels": []
+    },
+    {
+      "id": 21,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Sparse graph: automatic force values",
+      "description": "This sparse graph uses automatic force values. The panel calculates repulsion, edge length, and gravity from graph density and plot size. Node symbols stay inside the plot.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 8,
+        "x": 0,
+        "y": 111
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,worker,db,cache,queue\n120,90,70,200,50,40"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->worker,worker-->db,api-->cache,worker-->queue\n100,80,60,40,30"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "force"
+      }
+    },
+    {
+      "id": 22,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Dense graph: automatic force values",
+      "description": "This dense graph uses automatic force values. The panel calculates different values because the graph has more nodes and links. Node symbols stay inside the plot.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 8,
+        "x": 8,
+        "y": 111
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,worker,db,cache,queue,auth,billing,catalog,search,events,notify\n120,90,70,200,50,40,80,60,75,55,45,35"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,gateway-->auth,gateway-->catalog,api-->worker,api-->db,api-->cache,api-->billing,api-->search,worker-->db,worker-->queue,worker-->events,auth-->db,auth-->cache,billing-->db,billing-->events,catalog-->db,catalog-->cache,catalog-->search,search-->events,events-->queue,events-->notify,queue-->notify,notify-->gateway,cache-->worker\n100,70,60,90,80,50,40,45,75,55,35,65,30,50,25,70,45,60,40,35,30,25,20,15"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "relationsLayout": "force"
+      }
+    },
+    {
+      "id": 23,
+      "type": "grafana-echartsrelations-panel",
+      "title": "Explicit force values",
+      "description": "This graph sets repulsion to 700, edge length to 80, and gravity to 0.35. Each explicit value replaces only its automatic value.",
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 8,
+        "x": 16,
+        "y": 111
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway,api,worker,db,cache,queue\n120,90,70,200,50,40"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "trlxrdZVk"
+          },
+          "scenarioId": "csv_content",
+          "csvContent": "gateway-->api,api-->worker,worker-->db,api-->cache,worker-->queue\n100,80,60,40,30"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "seriesType": "graph",
+        "editorMode": "advanced",
+        "relationsLayout": "force",
+        "relationsRepulsion": 700,
+        "relationsEdgeLength": 80,
+        "relationsGravity": 0.35
+      }
     }
   ],
   "refresh": "",

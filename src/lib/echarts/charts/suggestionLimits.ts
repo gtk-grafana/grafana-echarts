@@ -110,6 +110,15 @@ export const RELATIONS_MAX_EDGES = 500;
  */
 export const RELATIONS_CHORD_MAX_NODES = 40;
 
+/** Most nodes a circular graph can place around one readable ring. */
+export const RELATIONS_CIRCULAR_MAX_NODES = RELATIONS_CHORD_MAX_NODES;
+
+/** Most nodes a Sankey can place in readable columns. */
+export const RELATIONS_SANKEY_MAX_NODES = 100;
+
+/** Most node columns a Sankey can show before the flow becomes hard to follow. */
+export const RELATIONS_SANKEY_MAX_LEVELS = 12;
+
 /**
  * Most numeric fields (X columns) a matrix heatmap accepts. Each becomes one tile
  * column with its field name as the axis label.

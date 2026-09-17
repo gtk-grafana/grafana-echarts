@@ -3,12 +3,7 @@ import { type PanelOptionsEditorBuilder } from '@grafana/data';
 import { addAdvancedBooleanSwitch, addAdvancedNumberInput } from 'lib/grafana/editor/common/advanced-options';
 import { type PanelOptions } from 'types';
 
-import {
-  RELATIONS_EDGE_LENGTH_DEFAULT,
-  RELATIONS_LAYOUT_ANIMATION_DEFAULT,
-  RELATIONS_REPULSION_DEFAULT,
-  relationsLayoutCategoryName,
-} from 'editor/relations/constants';
+import { RELATIONS_LAYOUT_ANIMATION_DEFAULT, relationsLayoutCategoryName } from 'editor/relations/constants';
 import { isGraphVariant } from 'editor/relations/variants';
 /**
  * Add force-layout settings to the Layout section.
@@ -25,7 +20,6 @@ export function addRelationsForceOptions(builder: PanelOptionsEditorBuilder<Pane
     path: 'relationsRepulsion',
     name: 'Repulsion',
     description: 'How strongly nodes push each other apart. Higher spreads the graph out',
-    defaultValue: RELATIONS_REPULSION_DEFAULT,
     category: forceCategory,
     showIf: isForceLayout,
     settings: { min: 0, step: 10 },
@@ -35,7 +29,6 @@ export function addRelationsForceOptions(builder: PanelOptionsEditorBuilder<Pane
     path: 'relationsEdgeLength',
     name: 'Edge length',
     description: 'Target link length in px',
-    defaultValue: RELATIONS_EDGE_LENGTH_DEFAULT,
     category: forceCategory,
     showIf: isForceLayout,
     settings: { min: 0, step: 5 },

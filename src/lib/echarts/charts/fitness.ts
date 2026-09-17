@@ -16,19 +16,12 @@ import {
   MULTIVARIATE_MAX_AXES,
   MULTIVARIATE_MAX_SERIES,
   MULTIVARIATE_MIN_AXES,
-  RELATIONS_CHORD_MAX_NODES,
-  RELATIONS_MAX_EDGES,
   SLICE_MAX,
   SLICE_MIN,
   STREAM_MAX_LAYERS,
   STREAM_MIN_LAYERS,
 } from 'lib/echarts/charts/suggestionLimits';
 import { isFlameGraphFrame } from 'lib/echarts/converters/hierarchy';
-import {
-  isLegacyEdgesFrame,
-  isLegacyGraphFrames,
-  isLegacyNodesFrame,
-} from 'lib/echarts/relations/converters/legacyToWide';
 import { resolveMultiValueSeriesType } from 'lib/echarts/converters/multiValueCartesian';
 import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
 
@@ -57,12 +50,10 @@ import { isNumberField, isTimeField } from 'lib/grafana/narrowing';
  *
  * Several predicates inspect the frames directly, because `PanelDataSummary`
  * reports field *types* and dataplane frame types but not field *names* — and the
- * signals that identify node-graph, flame-graph and candlestick/boxplot data are
- * all name-based. Every such read is `summary.rawFrames ?? []` (the field is
- * optional) and touches only field metadata (`name`, `type`, `labels`) plus
- * `frame.length`, which is a property. Cost is O(fields), never O(rows), so
- * scoring stays effectively free; the *preview render* is the expensive part of a
- * suggestion, and `./suggestionCards.ts` is what bounds that.
+ * signals that identify flame-graph and candlestick/boxplot data are name-based.
+ * These reads touch only field metadata and `frame.length`, so scoring stays
+ * effectively free. The preview render remains the expensive part, and
+ * `./suggestionCards.ts` bounds that work.
  */
 
 const isTimeSeriesFrame = (summary: PanelDataSummary): boolean =>
@@ -464,65 +455,6 @@ export const scoreMultivariate = (summary: PanelDataSummary): VisualizationSugge
     return undefined;
   }
   return VisualizationSuggestionScore.Good;
-};
-
-/**
- * Relations (graph / sankey / chord): node-graph data.
- *
- * This used to be a hard-coded `undefined`, on the documented grounds that
- * `PanelDataSummary` could not see either signal that identifies such data. That
- * is no longer true — the summary carries `hasPreferredVisualisationType` and
- * `rawFrames` — so the family is scored from the real signal instead of staying
- * permanently silent.
- *
- * `Best` for Grafana's own `nodeGraph` hint; `Good` for the `source`+`target` edge
- * shape (`isLegacyGraphFrames`), which is what provisioned TestData CSV and SQL
- * Expression outputs look like, since neither can set frame metadata. Withheld
- * above `RELATIONS_MAX_EDGES`, where a force layout stops converging in a frame
- * budget.
- *
- * The shape read here is the **legacy row** form, deliberately: a suggestion is scored
- * from `rawFrames`, which is the response *before* the panel's registered
- * transformations run, so `legacyToWide` has not converted anything yet. The row form
- * is also what makes the row counts below meaningful — one row per edge. A response
- * that already arrives in the wide or long form is not scored; see the note on
- * `exceedsChordNodeBudget`.
- */
-export const scoreRelations = (summary: PanelDataSummary): VisualizationSuggestionScore | undefined => {
-  const frames = framesOf(summary);
-  const isPreferred = summary.hasPreferredVisualisationType('nodeGraph');
-  if (!isPreferred && !isLegacyGraphFrames(frames)) {
-    return undefined;
-  }
-  const edgesFrame = frames.find(isLegacyEdgesFrame);
-  if (edgesFrame != null && edgesFrame.length > RELATIONS_MAX_EDGES) {
-    return undefined;
-  }
-  return isPreferred ? VisualizationSuggestionScore.Best : VisualizationSuggestionScore.Good;
-};
-
-/**
- * Whether a chord ring would be too crowded to read, so the supplier can drop the
- * Chord card while keeping Graph and Sankey.
- *
- * A chord gives every node an arc on one circle, so it runs out of circumference
- * long before a force graph runs out of canvas. The count is approximated from
- * **frame lengths only**: the nodes frame's rows when Grafana sent one, else the
- * edges frame's, since each edge names at most two nodes and 40 ribbons is already
- * past the point where a ring separates. Counting distinct node ids would mean
- * iterating the `source`/`target` *values*, and every `rawFrames` read in this file
- * is deliberately O(fields).
- *
- * Row lengths only mean node and edge counts in the legacy row form, which is why the
- * predicates here are the `isLegacy*` ones. In the wide contract a frame's rows are
- * timestamps and the marks are its numeric *fields*, so counting `length` there would
- * compare a time range against a node budget.
- */
-export const exceedsChordNodeBudget = (summary: PanelDataSummary): boolean => {
-  const frames = framesOf(summary);
-  const nodesFrame = frames.find(isLegacyNodesFrame);
-  const countingFrame = nodesFrame ?? frames.find(isLegacyEdgesFrame);
-  return countingFrame != null && countingFrame.length > RELATIONS_CHORD_MAX_NODES;
 };
 
 /**

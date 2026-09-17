@@ -59,6 +59,7 @@ provisioning/dashboards/gdev/*
 .cursor/plans/local
 .air
 /.claude/worktrees
+handover.md
 
 # Scripts cache
 scripts/__pycache__

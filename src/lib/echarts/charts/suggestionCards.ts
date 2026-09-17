@@ -62,8 +62,9 @@ export interface PreviewCardOptions {
 /**
  * Preview-only option degradations applied to every card, in order of payoff.
  *
- * `legend`: the Grafana `VizLegend` is React DOM, one row per series, and is
- * illegible at 350x219 regardless — the same trade core Grafana makes via its
+ * `isPreview`: disables interaction work in the panel and ECharts. `legend`: the
+ * Grafana `VizLegend` is React DOM, one row per series, and is illegible at
+ * 350x219 regardless — the same trade core Grafana makes via its
  * `SUGGESTIONS_LEGEND_OPTIONS`. `performance`: kills per-point symbols and arms
  * LTTB, the two levers that scale with point count.
  *
@@ -79,6 +80,7 @@ export interface PreviewCardOptions {
  * setting it here would be a no-op twice over.
  */
 const PREVIEW_OPTIONS: Partial<PanelOptions> = {
+  isPreview: true,
   performance: { showPoints: 'never', downsampling: true },
 };
 

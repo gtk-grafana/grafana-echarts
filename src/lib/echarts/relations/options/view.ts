@@ -1,4 +1,5 @@
 import { type GraphSeriesOption } from 'echarts';
+import { type EChartsType } from 'lib/echarts/echarts';
 import {
   RELATIONS_NODE_SIZE_DEFAULT,
   RELATIONS_SHOW_NODE_LABELS_DEFAULT,
@@ -95,6 +96,43 @@ export function resolveRelationsZoom(options: PanelOptions): boolean {
 export interface RelationsViewState {
   zoom?: number;
   center?: [number, number];
+}
+
+/** An interacted view that belongs to one Relations variant. */
+export interface InteractedRelationsView {
+  variant: 'graph' | 'sankey';
+  view?: RelationsViewState;
+}
+
+/** Read the graph or Sankey view that ECharts synced onto its live first series. */
+export function readLiveRelationsView(chart: Pick<EChartsType, 'getOption'>): RelationsViewState | undefined {
+  // https://echarts.apache.org/en/api.html#echartsInstance.getOption
+  const series: unknown = chart.getOption()?.series;
+  const first: unknown = Array.isArray(series) ? series[0] : undefined;
+  if (typeof first !== 'object' || first === null || !('type' in first)) {
+    return undefined;
+  }
+  if (first.type !== 'graph' && first.type !== 'sankey') {
+    return undefined;
+  }
+
+  const zoom: unknown = 'zoom' in first ? first.zoom : undefined;
+  const center: unknown = 'center' in first ? first.center : undefined;
+  const finiteZoom = typeof zoom === 'number' && Number.isFinite(zoom) ? zoom : undefined;
+  const finiteCenter =
+    Array.isArray(center) &&
+    center.length === 2 &&
+    center.every((value) => typeof value === 'number' && Number.isFinite(value))
+      ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- validated above
+        (center as [number, number])
+      : undefined;
+
+  return finiteZoom == null && finiteCenter == null
+    ? undefined
+    : {
+        ...(finiteZoom != null ? { zoom: finiteZoom } : {}),
+        ...(finiteCenter != null ? { center: finiteCenter } : {}),
+      };
 }
 
 /**

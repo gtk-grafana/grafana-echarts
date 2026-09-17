@@ -1,6 +1,7 @@
 import { createTheme, type DataFrame, type FieldConfigSource, FieldType, toDataFrame } from '@grafana/data';
 import { relationsChartModule } from 'lib/echarts/relations/chartModule';
 import { type RelationsChartContext } from 'lib/echarts/charts/types';
+import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import { legacyToWide } from 'lib/echarts/relations/converters/legacyToWide';
 import { changeSeriesColorConfig, toggleSeriesVisibilityConfig } from 'lib/grafana/fields/seriesConfig';
@@ -80,6 +81,89 @@ const hiding = (name: string): FieldConfigSource => ({
 });
 
 describe('relationsChartModule', () => {
+  describe('getResizeStrategy', () => {
+    const resizeStrategy = (
+      seriesType: RelationsChartContext['seriesType'],
+      options: Partial<PanelOptions>,
+      frames: DataFrame[] = [nodesFrame, edgesFrame]
+    ) => {
+      const context = ctx(frames, emptyFieldConfig, seriesType);
+      return (
+        relationsChartModule.getResizeStrategy?.({
+          ...context,
+          options: { ...context.options, ...options },
+        }) ?? 'immediate'
+      );
+    };
+
+    it('selects animated resize only for a visible force graph', () => {
+      expect(resizeStrategy('graph', { relationsLayout: 'force' })).toBe('animated-force');
+      expect({
+        preview: resizeStrategy('graph', { relationsLayout: 'force', isPreview: true }),
+        issue: resizeStrategy('graph', { relationsLayout: 'force' }, []),
+        fixed: resizeStrategy('graph', { relationsLayout: 'none' }),
+        circular: resizeStrategy('graph', { relationsLayout: 'circular' }),
+        sankey: resizeStrategy('sankey', {}),
+        chord: resizeStrategy('chord', {}),
+        'non-relations': resolveChartModule('line').getResizeStrategy?.(ctx([nodesFrame, edgesFrame])) ?? 'immediate',
+      }).toEqual({
+        preview: 'fixed',
+        issue: 'immediate',
+        fixed: 'immediate',
+        circular: 'immediate',
+        sankey: 'immediate',
+        chord: 'immediate',
+        'non-relations': 'immediate',
+      });
+    });
+  });
+
+  describe('getSettledResizeOption', () => {
+    const settledOption = (
+      seriesType: RelationsChartContext['seriesType'],
+      options: Partial<PanelOptions>,
+      dimensions = { plotWidth: 400, plotHeight: 300 },
+      frames: DataFrame[] = [nodesFrame, edgesFrame]
+    ) => {
+      const context = ctx(frames, emptyFieldConfig, seriesType);
+      return relationsChartModule.getSettledResizeOption?.(
+        { ...context, options: { ...context.options, ...options } },
+        dimensions
+      );
+    };
+
+    it('returns an asynchronous one-series merge for a visible force graph', () => {
+      expect(settledOption('graph', { relationsLayout: 'force' })).toMatchObject({
+        series: [{ type: 'graph', force: { initLayout: 'none', layoutAnimation: true } }],
+      });
+    });
+
+    it('derives automatic force values from the final dimensions', () => {
+      const small = settledOption('graph', { relationsLayout: 'force' }, { plotWidth: 200, plotHeight: 120 });
+      const large = settledOption('graph', { relationsLayout: 'force' }, { plotWidth: 1200, plotHeight: 800 });
+
+      expect(small?.series).not.toEqual(large?.series);
+    });
+
+    it('returns no merge for other relations strategies', () => {
+      expect({
+        preview: settledOption('graph', { relationsLayout: 'force', isPreview: true }),
+        issue: settledOption('graph', { relationsLayout: 'force' }, undefined, []),
+        fixed: settledOption('graph', { relationsLayout: 'none' }),
+        circular: settledOption('graph', { relationsLayout: 'circular' }),
+        sankey: settledOption('sankey', {}),
+        chord: settledOption('chord', {}),
+      }).toEqual({
+        preview: undefined,
+        issue: undefined,
+        fixed: undefined,
+        circular: undefined,
+        sankey: undefined,
+        chord: undefined,
+      });
+    });
+  });
+
   describe('buildOption', () => {
     it('builds a single graph series from a nodes + edges pair', () => {
       const option = relationsChartModule.buildOption(ctx([nodesFrame, edgesFrame]), base);

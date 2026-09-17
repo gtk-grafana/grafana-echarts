@@ -2,7 +2,7 @@
 
 This guide shows which relations options have render tests. It covers graph, sankey, and chord.
 
-The last audit was 2026-09-15. It used `src/lib/grafana/editor/relations/*` and `src/editor/relations/types.ts`.
+The last audit was 2026-09-16. It used `src/lib/grafana/editor/relations/*` and `src/editor/relations/types.ts`.
 
 ## Marks
 
@@ -60,9 +60,9 @@ Canvas tests set these values for stable output:
 | `relationsChordMinAngle`          | `0`           | ■ chord base       | ■ 30             |
 | `relationsChordLinkOpacity`       | `0.2`         | ■ chord base       | · unit test only |
 | `relationsDraggable`              | `false`       | ■ all base renders | n/a              |
-| `relationsRepulsion`              | `400`         | ·                  | ·                |
-| `relationsEdgeLength`             | `200`         | ·                  | ·                |
-| `relationsGravity`                | unset         | ·                  | ·                |
+| `relationsRepulsion`              | Automatic     | ·                  | · unit test only |
+| `relationsEdgeLength`             | Automatic     | ·                  | · unit test only |
+| `relationsGravity`                | Automatic     | ·                  | · unit test only |
 | `relationsLayoutAnimation`        | `false`       | ·                  | ·                |
 | `animation.enabled`               | `false`       | n/a                | n/a              |
 
@@ -112,11 +112,19 @@ A test cannot set a scheme through `fieldConfig.defaults` in this harness. `src/
 
 ## Gaps
 
-Force layout coordinates depend on simulation timing. Unit tests pin its options, and `layout.integration.test.tsx` pins repeatable output.
+Force layout coordinates depend on the random seed and simulation timing. Unit tests pin the automatic limits, fallback dimensions, and explicit values.
+
+`layout.integration.test.tsx` verifies that each static fixture draws every node with finite geometry at 400 by 300 and 640 by 360. ECharts does not constrain force nodes or labels to the plot boundary.
+
+The same integration suite mounts one force graph at 400 by 300. It resizes the graph through 520 by 340, 640 by 420, and 800 by 500. The test observes three transient partial options and one final full option. The full option restores `relationsLayoutAnimation: false`. Each final node symbol has finite geometry.
+
+This mounted-resize coverage uses drawn primitives. It does not add or change a canvas snapshot.
 
 The graph canvas suite uses the ECharts highlight action to pin node emphasis. Pointer-driven adjacency emphasis still needs a browser hover.
 
 Drag and remembered view describe gestures. A static render cannot prove them.
+
+`interaction.integration` verifies that graph and Sankey keep an interacted zoom and center across panel resize and changed-data rebuilds. This coverage uses the live ECharts option and does not add a canvas snapshot.
 
 Graph pins the shared node value formatter. Sankey and chord use the same formatter.
 

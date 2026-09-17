@@ -106,6 +106,16 @@ describe('useLegendHighlight', () => {
     expect(dispatched).toEqual([]);
   });
 
+  it('does not subscribe for a preview card', () => {
+    const bus = new EventBusSrv();
+    const { ref, dispatched } = createFakeChart();
+    renderHook(() => useLegendHighlight(ref, chartModule, ctx, bus, false));
+
+    hover(bus, 'gateway');
+
+    expect(dispatched).toEqual([]);
+  });
+
   it('clears the emphasis on unmount', () => {
     const bus = new EventBusSrv();
     const { ref, dispatched } = createFakeChart();

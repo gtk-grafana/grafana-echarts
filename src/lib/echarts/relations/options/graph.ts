@@ -36,6 +36,7 @@ export const relationsDefaultOptions: ECBasicOption = {
 export function getGraphSeries(
   data: NodeGraphData,
   ctx: RelationsSeriesContext,
+  plotWidth?: number,
   plotHeight?: number
 ): GraphSeriesOption {
   const layout = getGraphLayout(data, ctx.options);
@@ -61,7 +62,7 @@ export function getGraphSeries(
     ...getRelationsViewState(ctx.options),
     draggable: resolveGraphDraggable(ctx.options, layout),
     // Plugin defaults differ from ECharts defaults.
-    force: getGraphForce(ctx.options),
+    force: getGraphForce(data, ctx.options, plotWidth, plotHeight),
     ...(edgeSymbol ? { edgeSymbol } : {}),
     ...(emphasis ? { emphasis } : {}),
     ...(edgeLabel ? { edgeLabel } : {}),

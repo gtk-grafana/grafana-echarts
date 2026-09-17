@@ -21,6 +21,7 @@ import { addRelationsTimelineOptions } from 'lib/grafana/editor/relations/timeli
 import { setSystemTransformations } from 'lib/grafana/panelDataTransformations';
 import { type PanelOptions } from 'types';
 import { relationsDataTransformations } from './dataTransformations';
+import { relationsPresetsSupplier } from './presets';
 import { relationsSuggestionsSupplier } from './suggestions';
 
 import {
@@ -87,7 +88,11 @@ const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfi
     addEditorModeOption(builder, [relationsCategoryName]);
     return builder;
   })
-  .setSuggestionsSupplier(relationsSuggestionsSupplier);
+  .setSuggestionsSupplier(relationsSuggestionsSupplier)
+  // Grafana shows panel presets in the panel editor.
+  // https://github.com/grafana/grafana/blob/main/public/app/plugins/panel/stat/presets.ts
+  // https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/feature-toggles/#feature-toggles-that-are-enabled-by-default
+  .setPresetsSupplier(relationsPresetsSupplier);
 
 /**
  * Convert row frames before Grafana applies field overrides.

@@ -122,6 +122,8 @@ export type CartesianContextWithOverlay = ChartContext<
 export interface BaseOptionParts {
   /** True when the panel renders a Grafana DOM legend instead of ECharts' native legend. */
   isGrafanaLegend: boolean;
+  /** Width in pixels that Grafana allocated to the ECharts plot. */
+  plotWidth?: number;
   /** Height in pixels that Grafana allocated to the ECharts plot. */
   plotHeight?: number;
 }
@@ -300,6 +302,15 @@ export interface ChartDataIssue {
   message: string;
 }
 
+/** How the panel coordinates ECharts resize and option rebuild work. */
+export type ChartResizeStrategy = 'immediate' | 'animated-force' | 'fixed';
+
+/** Plot dimensions available after a panel resize becomes quiet. */
+export interface SettledResizeDimensions {
+  plotWidth: number;
+  plotHeight: number;
+}
+
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
@@ -311,6 +322,12 @@ export interface ChartModule {
 
   /** Return a known data problem before the chart mounts, or nothing when the chart can render. */
   getDataIssue?(ctx: ChartContext): ChartDataIssue | undefined;
+
+  /** Return the resize behavior for the current chart context. */
+  getResizeStrategy?(ctx: ChartContext): ChartResizeStrategy;
+
+  /** Return a merging runtime option after the final resize, or nothing when no update is needed. */
+  getSettledResizeOption?(ctx: ChartContext, dimensions: SettledResizeDimensions): EChartBuildOption | undefined;
 
   /**
    * Advisories to show in the panel's corner for this render — see

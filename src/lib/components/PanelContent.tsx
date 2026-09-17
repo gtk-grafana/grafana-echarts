@@ -7,12 +7,17 @@ import { resolveChartModule } from 'lib/echarts/charts/registry';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { isLegendVisible, resolveLegendOptions } from 'lib/echarts/options/legend';
 import { getRepresentativeFormatter } from 'lib/grafana/formatter';
-import React, { useMemo, useState } from 'react';
+import React, { type MutableRefObject, useMemo, useState } from 'react';
+import { type InteractedRelationsView } from 'lib/echarts/relations/options/view';
 import { ChartContent } from './ChartContent';
 import { resolveTimelineIndex } from './ChartTimeSlider';
 import { type PanelComponentProps } from './types';
 
-export const PanelContent: React.FC<PanelComponentProps> = ({
+interface Props extends PanelComponentProps {
+  relationsViewRef: MutableRefObject<InteractedRelationsView | undefined>;
+}
+
+export const PanelContent: React.FC<Props> = ({
   family,
   options,
   data,
@@ -27,6 +32,7 @@ export const PanelContent: React.FC<PanelComponentProps> = ({
   onOptionsChange,
   replaceVariables,
   id,
+  relationsViewRef,
 }) => {
   const theme = useTheme2();
   // Panel-level series type may be `'Auto'`/unset (e.g. a freshly added panel).
@@ -68,8 +74,8 @@ export const PanelContent: React.FC<PanelComponentProps> = ({
     [data.series, theme, timeZone, timeRange, options, seriesType, formatValue, fieldConfig, replaceVariables]
   );
 
-  // The stops this render can be stepped through, or `null` for no slider. Only relations
-  // supplies any — see `ChartModule.getTimeline` and `ChartTimeSlider`.
+  // The stops this render can be stepped through, or `null` for no slider. Relations can
+  // supply them for both panels and preset previews. See `ChartModule.getTimeline`.
   const timeline = useMemo(() => chartModule.getTimeline?.(baseContext) ?? null, [chartModule, baseContext]);
 
   /**
@@ -117,6 +123,7 @@ export const PanelContent: React.FC<PanelComponentProps> = ({
       onChangeTimeRange={onChangeTimeRange}
       onFieldConfigChange={onFieldConfigChange}
       onOptionsChange={onOptionsChange}
+      relationsViewRef={relationsViewRef}
     />
   );
 };

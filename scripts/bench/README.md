@@ -14,6 +14,7 @@ bundle is injected from `node_modules`, not vendored, so it cannot drift.
 pnpm run bench:dataset          # tuples vs dataset, and what the perf levers are worth
 pnpm run bench:dataset-tooltip  # what params.value contains under a dataset
 pnpm run bench:dirty-rect       # why useDirtyRect is off: the artifact + the non-benefit
+pnpm run bench:force-resize     # compare force-graph resize paths
 ```
 
 ## `bench:dataset`
@@ -70,6 +71,54 @@ repaint for dirty rect to skip.
 Run this before proposing the flag again. Rationale:
 [docs/performance.md](../../docs/performance.md).
 
+## `bench:force-resize`
+
+This benchmark compares three resize paths for ECharts force graphs:
+
+- A configured full option replacement and a resize at each step.
+- The former plugin lifecycle: transient force merges during the burst, then one
+  final full option and the no-brush `takeGlobalCursor` action.
+- The corrected lifecycle: transient force merges during the burst, then one
+  final size-aware force merge.
+
+Both plugin lifecycle paths merge `layoutAnimation: true`, `friction: 0.05`, and
+`initLayout: 'none'` before each active resize. The corrected final merge uses
+the final automatic repulsion, edge length, and gravity. It keeps asynchronous
+layout steps and the existing node positions.
+
+The benchmark uses graphs with 12 nodes and 11 edges, 100 nodes and 200 edges,
+and 500 nodes and 499 edges. Each path uses 60 size steps from 400 by 300 to
+800 by 500.
+
+Start the benchmark with this command:
+
+```sh
+pnpm run bench:force-resize
+```
+
+The command shows the p50, p95, and maximum synchronous time for an active resize
+step. It also shows the longest synchronous update, total settle time, option and
+resize call counts, mark counts, node bounds, and final canvas hashes. The command
+writes `results.json` and nine PNG files to a new `echarts-force-resize-*`
+directory in the system temporary directory.
+
+Compare the former and corrected plugin lifecycle paths. Their final hashes can
+differ because a full replacement starts a new simulation state. Use the mark
+counts, finite bounds, and PNG files to make sure each image contains the full
+graph.
+
+The benchmark resets a fixed pseudo-random seed before the comparable initial
+and final options. Production force layouts remain free to select a new seed.
+
+The `recommendation.path` field selects `animated-option-final-partial` when each
+graph is complete and each maximum active step is 50 ms or less. Otherwise, it
+selects `current-plugin-lifecycle`.
+
+Node bounds in this synthetic benchmark do not prove plugin containment. The
+mounted plugin integration test makes that claim for its 800 by 500 fixture.
+Absolute times depend on the machine, browser, and system load. Compare paths
+from the same benchmark operation.
+
 ## Files
 
 | File                        | Purpose                                                              |
@@ -78,6 +127,7 @@ Run this before proposing the flag again. Rationale:
 | `dataset-vs-tuples.mjs`     | Driver for the timing comparison                                     |
 | `dataset-tooltip-probe.mjs` | Driver for the `params.value` probe                                  |
 | `dirty-rect.mjs`            | Self-contained: `useDirtyRect` artifact repro + timing               |
+| `force-resize.mjs`          | Force-graph resize paths, timing, bounds, hashes, and PNG files       |
 
 `bench.html` builds the option shapes by hand rather than importing the plugin's
 converter, so it has no build step. That is a deliberate trade: it measures the

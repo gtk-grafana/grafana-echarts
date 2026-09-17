@@ -6,6 +6,28 @@ The panel reads the [ECharts graph-wide implementation](../data-plane/graph-wide
 
 Use wide input for Prometheus, Loki, SQL, CSV, and JSON. Use row input for Tempo, AWS X-Ray, TestData DB, and compatibility with Grafana Node graph.
 
+## Presets
+
+Open Presets in the panel editor to select a starting use-case.
+
+| Preset           | Use it for                                 | Constraint                                                       |
+| ---------------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| Service topology | Service dependency maps                    | Always available                                                 |
+| Circular network | Stable network relationships               | The node count is unknown or from 2 through 40                   |
+| Weighted flow    | Weighted acyclic funnels or allocation     | Up to 100 nodes and 12 levels. The graph must not contain cycles |
+| Mutual relations | Dense or cyclic pairwise traffic           | The node count must not exceed the Chord node budget             |
+| Time network     | Topology changes across a query time range | Ranged time data and a known node count from 2 through 40        |
+
+Graph presets use smaller nodes for more than 20 nodes. They hide node labels for more than 50 nodes.
+
+Presets show the legend for an unknown node count or up to 12 nodes. They hide the legend from 13 nodes. Time network puts the legend on the right. The other presets put the legend at the bottom.
+
+Force layout calculates unset force values from graph density and the plot width and height. Repulsion stays from 60 through 960. Edge length stays from 30 through 240. Gravity stays from 0.20 through 0.50.
+
+If a plot dimension is invalid, the calculation uses 400 by 300. An explicit value, including `0`, replaces only that automatic value.
+
+Containment keeps each node symbol inside the plot. It does not keep node labels inside the plot.
+
 The automatic row conversion needs Grafana 13.2 or later and `grafana.panelPluginTransformations`. If the host cannot run it, add a Rows to fields transformation.
 
 Grafana runs the automatic row conversion before the user transformations in the Transform tab. Thus, Rows to fields and Grouping to matrix receive wide frames and return them unchanged. If automatic conversion is active, do not add these row transformations. Transformations that consume wide frames still operate normally.

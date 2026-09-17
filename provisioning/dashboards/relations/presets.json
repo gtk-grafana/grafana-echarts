@@ -1,0 +1,495 @@
+{
+  "annotations": { "list": [] },
+  "description": "Edit a Relations panel. Open Presets. Apply each card. Compare the result with the reference panel for that chart type. Presets reset legend visibility and placement. Make sure that query, field, and tooltip settings do not change.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "Reference for the Graph panel. Edit this panel. Open Presets. Apply the Graph preset.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "relationsChordClockwise": true,
+        "relationsChordLinkOpacity": 0.2,
+        "relationsChordMinAngle": 0,
+        "relationsChordPadAngle": 3,
+        "relationsChordStartAngle": 90,
+        "relationsDraggable": false,
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsHideOverlappingLabels": true,
+        "relationsLabelOverflow": "truncate",
+        "relationsLabelWidth": 120,
+        "relationsLayout": "force",
+        "relationsLayoutAnimation": false,
+        "relationsLinkColor": "gradient",
+        "relationsNodeSize": 20,
+        "relationsPan": true,
+        "relationsRememberView": false,
+        "relationsSankeyCurveness": 0.5,
+        "relationsSankeyLayoutIterations": 32,
+        "relationsSankeyLinkOpacity": 0.2,
+        "relationsSankeyNodeAlign": "left",
+        "relationsSankeyNodeGap": 8,
+        "relationsSankeyNodeWidth": 20,
+        "relationsSankeyOrient": "horizontal",
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": false,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,120\ne2,api,auth,75\ne3,api,database,95\ne4,gateway,web,60",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": { "conversions": [{ "destinationType": "number", "targetField": "mainstat" }] }
+        },
+        { "id": "rowsToFields", "options": {} }
+      ],
+      "title": "Service topology",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "Reference for the Sankey panel. The input is acyclic, so the panel shows every weighted ribbon.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 11 },
+      "id": 2,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "relationsChordClockwise": true,
+        "relationsChordLinkOpacity": 0.2,
+        "relationsChordMinAngle": 0,
+        "relationsChordPadAngle": 3,
+        "relationsChordStartAngle": 90,
+        "relationsDraggable": false,
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsHideOverlappingLabels": true,
+        "relationsLabelOverflow": "truncate",
+        "relationsLabelWidth": 120,
+        "relationsLayout": "force",
+        "relationsLayoutAnimation": false,
+        "relationsLinkColor": "gradient",
+        "relationsNodeSize": 20,
+        "relationsPan": false,
+        "relationsRememberView": false,
+        "relationsSankeyCurveness": 0.5,
+        "relationsSankeyLayoutIterations": 32,
+        "relationsSankeyLinkOpacity": 0.2,
+        "relationsSankeyNodeAlign": "left",
+        "relationsSankeyNodeGap": 8,
+        "relationsSankeyNodeWidth": 20,
+        "relationsSankeyOrient": "horizontal",
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": false,
+        "relationsTimeSlider": false,
+        "relationsZoom": false,
+        "seriesType": "sankey",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,requests,accepted,780\ne2,requests,rejected,220\ne3,accepted,processed,640\ne4,accepted,retried,140\ne5,processed,stored,590",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": { "conversions": [{ "destinationType": "number", "targetField": "mainstat" }] }
+        },
+        { "id": "rowsToFields", "options": {} }
+      ],
+      "title": "Weighted flow",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "Reference for the Chord panel. The input includes traffic in both directions and one cycle.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 11 },
+      "id": 3,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "relationsChordClockwise": true,
+        "relationsChordLinkOpacity": 0.2,
+        "relationsChordMinAngle": 0,
+        "relationsChordPadAngle": 3,
+        "relationsChordStartAngle": 90,
+        "relationsDraggable": false,
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsHideOverlappingLabels": true,
+        "relationsLabelOverflow": "truncate",
+        "relationsLabelWidth": 120,
+        "relationsLayout": "force",
+        "relationsLayoutAnimation": false,
+        "relationsLinkColor": "gradient",
+        "relationsNodeSize": 20,
+        "relationsPan": false,
+        "relationsRememberView": false,
+        "relationsSankeyCurveness": 0.5,
+        "relationsSankeyLayoutIterations": 32,
+        "relationsSankeyLinkOpacity": 0.2,
+        "relationsSankeyNodeAlign": "left",
+        "relationsSankeyNodeGap": 8,
+        "relationsSankeyNodeWidth": 20,
+        "relationsSankeyOrient": "horizontal",
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": false,
+        "relationsTimeSlider": false,
+        "relationsZoom": false,
+        "seriesType": "chord",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,us-east,us-west,420\ne2,us-west,us-east,380\ne3,us-east,eu-west,310\ne4,eu-west,us-east,290\ne5,us-west,eu-west,180\ne6,eu-west,us-west,160",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": { "conversions": [{ "destinationType": "number", "targetField": "mainstat" }] }
+        },
+        { "id": "rowsToFields", "options": {} }
+      ],
+      "title": "Mutual relations",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "Reference for the Graph panel with a time slider. Move the slider to compare stable circular node positions.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 0, "y": 22 },
+      "id": 4,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "right", "showLegend": true },
+        "relationsChordClockwise": true,
+        "relationsChordLinkOpacity": 0.2,
+        "relationsChordMinAngle": 0,
+        "relationsChordPadAngle": 3,
+        "relationsChordStartAngle": 90,
+        "relationsDraggable": false,
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsHideOverlappingLabels": true,
+        "relationsLabelOverflow": "truncate",
+        "relationsLabelWidth": 120,
+        "relationsLayout": "circular",
+        "relationsLayoutAnimation": false,
+        "relationsLinkColor": "gradient",
+        "relationsNodeSize": 20,
+        "relationsPan": true,
+        "relationsRememberView": false,
+        "relationsSankeyCurveness": 0.5,
+        "relationsSankeyLayoutIterations": 32,
+        "relationsSankeyLinkOpacity": 0.2,
+        "relationsSankeyNodeAlign": "left",
+        "relationsSankeyNodeGap": 8,
+        "relationsSankeyNodeWidth": 20,
+        "relationsSankeyOrient": "horizontal",
+        "relationsShowEdgeValues": true,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": false,
+        "relationsTimeSlider": true,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "time,gateway-->api,api-->database,api-->cache\n1704067200000,10,5,30\n1704067500000,25,20,15\n1704067800000,40,35,5\n1704068100000,20,45,25",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Time network",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "Reference for the Graph panel with a stable circular layout.",
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 12, "x": 12, "y": 0 },
+      "id": 10,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "relationsChordClockwise": true,
+        "relationsChordLinkOpacity": 0.2,
+        "relationsChordMinAngle": 0,
+        "relationsChordPadAngle": 3,
+        "relationsChordStartAngle": 90,
+        "relationsDraggable": false,
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsHideOverlappingLabels": true,
+        "relationsLabelOverflow": "truncate",
+        "relationsLabelWidth": 120,
+        "relationsLayout": "circular",
+        "relationsLayoutAnimation": false,
+        "relationsLinkColor": "gradient",
+        "relationsNodeSize": 20,
+        "relationsPan": true,
+        "relationsRememberView": false,
+        "relationsSankeyCurveness": 0.5,
+        "relationsSankeyLayoutIterations": 32,
+        "relationsSankeyLinkOpacity": 0.2,
+        "relationsSankeyNodeAlign": "left",
+        "relationsSankeyNodeGap": 8,
+        "relationsSankeyNodeWidth": 20,
+        "relationsSankeyOrient": "horizontal",
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsShowNodeValues": false,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "id,source,target,mainstat\ne1,gateway,api,120\ne2,api,auth,75\ne3,api,database,95\ne4,gateway,web,60",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": { "conversions": [{ "destinationType": "number", "targetField": "mainstat" }] }
+        },
+        { "id": "rowsToFields", "options": {} }
+      ],
+      "title": "Circular network",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 33 },
+      "id": 5,
+      "options": {
+        "content": "## Preset eligibility checks\n\nEdit each Relations panel. Open **Presets**. Make sure that the chart types agree with the panel title. The Time network card must show its time slider. Presets reset legend visibility and placement. These fixtures isolate the limits for cycles, nodes, and levels. They use instant data, so Time network is not expected. The first five panels show the saved result for each preset.",
+        "mode": "markdown"
+      },
+      "title": "Review preset eligibility",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "This three-node cycle excludes Weighted flow. Expect Service topology, Circular network, and Mutual relations.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 38 },
+      "id": 6,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsNodeSize": 20,
+        "relationsPan": true,
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "a-->b,b-->c,c-->a\n1,1,1",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "Cycle: no Weighted flow",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "This two-level star has 101 nodes. Expect only Service topology.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 38 },
+      "id": 7,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsNodeSize": 10,
+        "relationsPan": true,
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": false,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "hub-->n001,hub-->n002,hub-->n003,hub-->n004,hub-->n005,hub-->n006,hub-->n007,hub-->n008,hub-->n009,hub-->n010,hub-->n011,hub-->n012,hub-->n013,hub-->n014,hub-->n015,hub-->n016,hub-->n017,hub-->n018,hub-->n019,hub-->n020,hub-->n021,hub-->n022,hub-->n023,hub-->n024,hub-->n025,hub-->n026,hub-->n027,hub-->n028,hub-->n029,hub-->n030,hub-->n031,hub-->n032,hub-->n033,hub-->n034,hub-->n035,hub-->n036,hub-->n037,hub-->n038,hub-->n039,hub-->n040,hub-->n041,hub-->n042,hub-->n043,hub-->n044,hub-->n045,hub-->n046,hub-->n047,hub-->n048,hub-->n049,hub-->n050,hub-->n051,hub-->n052,hub-->n053,hub-->n054,hub-->n055,hub-->n056,hub-->n057,hub-->n058,hub-->n059,hub-->n060,hub-->n061,hub-->n062,hub-->n063,hub-->n064,hub-->n065,hub-->n066,hub-->n067,hub-->n068,hub-->n069,hub-->n070,hub-->n071,hub-->n072,hub-->n073,hub-->n074,hub-->n075,hub-->n076,hub-->n077,hub-->n078,hub-->n079,hub-->n080,hub-->n081,hub-->n082,hub-->n083,hub-->n084,hub-->n085,hub-->n086,hub-->n087,hub-->n088,hub-->n089,hub-->n090,hub-->n091,hub-->n092,hub-->n093,hub-->n094,hub-->n095,hub-->n096,hub-->n097,hub-->n098,hub-->n099,hub-->n100\n1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "101 nodes: Service topology only",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "This chain has 13 levels. Expect Service topology, Circular network, and Mutual relations. The panel excludes Weighted flow.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 48 },
+      "id": 8,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsNodeSize": 20,
+        "relationsPan": true,
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "n00-->n01,n01-->n02,n02-->n03,n03-->n04,n04-->n05,n05-->n06,n06-->n07,n07-->n08,n08-->n09,n09-->n10,n10-->n11,n11-->n12\n1,1,1,1,1,1,1,1,1,1,1,1",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "13 levels: no Weighted flow",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "This two-level star has 41 nodes. Expect Service topology and Weighted flow. The panel excludes both circular presets and Mutual relations.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 48 },
+      "id": 9,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsNodeSize": 16,
+        "relationsPan": true,
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "hub-->n01,hub-->n02,hub-->n03,hub-->n04,hub-->n05,hub-->n06,hub-->n07,hub-->n08,hub-->n09,hub-->n10,hub-->n11,hub-->n12,hub-->n13,hub-->n14,hub-->n15,hub-->n16,hub-->n17,hub-->n18,hub-->n19,hub-->n20,hub-->n21,hub-->n22,hub-->n23,hub-->n24,hub-->n25,hub-->n26,hub-->n27,hub-->n28,hub-->n29,hub-->n30,hub-->n31,hub-->n32,hub-->n33,hub-->n34,hub-->n35,hub-->n36,hub-->n37,hub-->n38,hub-->n39,hub-->n40\n1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "41 nodes: no circular presets",
+      "type": "grafana-echartsrelations-panel"
+    },
+    {
+      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "description": "This two-level star has 40 nodes. Expect Service topology, Circular network, Weighted flow, and Mutual relations.",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 58 },
+      "id": 11,
+      "options": {
+        "animation": { "enabled": false },
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "relationsEdgeArrows": true,
+        "relationsFocusAdjacency": true,
+        "relationsLayout": "circular",
+        "relationsNodeSize": 16,
+        "relationsPan": true,
+        "relationsShowEdgeValues": false,
+        "relationsShowNodeLabels": true,
+        "relationsTimeSlider": false,
+        "relationsZoom": true,
+        "seriesType": "graph",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "csvContent": "hub-->n01,hub-->n02,hub-->n03,hub-->n04,hub-->n05,hub-->n06,hub-->n07,hub-->n08,hub-->n09,hub-->n10,hub-->n11,hub-->n12,hub-->n13,hub-->n14,hub-->n15,hub-->n16,hub-->n17,hub-->n18,hub-->n19,hub-->n20,hub-->n21,hub-->n22,hub-->n23,hub-->n24,hub-->n25,hub-->n26,hub-->n27,hub-->n28,hub-->n29,hub-->n30,hub-->n31,hub-->n32,hub-->n33,hub-->n34,hub-->n35,hub-->n36,hub-->n37,hub-->n38,hub-->n39\n1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1",
+          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "refId": "A",
+          "scenarioId": "csv_content"
+        }
+      ],
+      "title": "40 nodes: circular presets available",
+      "type": "grafana-echartsrelations-panel"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["echarts", "relations", "presets"],
+  "templating": { "list": [] },
+  "time": { "from": "2024-01-01T00:00:00.000Z", "to": "2024-01-01T00:20:00.000Z" },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "ECharts Relations — presets",
+  "uid": "echarts-relations-presets",
+  "version": 1,
+  "weekStart": ""
+}

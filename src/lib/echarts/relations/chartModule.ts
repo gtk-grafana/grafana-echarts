@@ -19,6 +19,7 @@ import { frameToRelationsGraph } from 'lib/echarts/relations/converters/nodeGrap
 import { graphWideTimeline } from 'lib/echarts/relations/converters/timeStops';
 import { getChordSeries } from 'lib/echarts/relations/options/chord';
 import { getGraphSeries, relationsDefaultOptions } from 'lib/echarts/relations/options/graph';
+import { getGraphForce, getGraphLayout } from 'lib/echarts/relations/options/layout';
 import { getSankeyDroppedNoticeText, getSankeySeries } from 'lib/echarts/relations/options/sankey';
 import { resolveRelationsTimeSlider } from 'lib/echarts/relations/options/timeSlider';
 import { resolveRelationsZoom } from 'lib/echarts/relations/options/view';
@@ -41,7 +42,7 @@ export const relationsChartModule: ChartModule = {
 
   buildOption(
     ctx: RelationsChartContext,
-    { plotHeight }
+    { plotWidth, plotHeight }
   ): EChartGraphSeriesOption | EChartSankeySeriesOption | EChartChordSeriesOption | null {
     const result = getVisibleRelationsGraph(ctx);
     if (result.kind === 'issue') {
@@ -66,13 +67,53 @@ export const relationsChartModule: ChartModule = {
       return { ...relationsDefaultOptions, series: [getChordSeries(data, seriesCtx)] };
     }
 
-    return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx, plotHeight)] };
+    return { ...relationsDefaultOptions, series: [getGraphSeries(data, seriesCtx, plotWidth, plotHeight)] };
   },
 
   /** Explain why the selected variant cannot draw the response. */
   getDataIssue(ctx: RelationsChartContext) {
     const result = getVisibleRelationsGraph(ctx);
     return result.kind === 'issue' ? { reason: result.reason, message: ISSUE_MESSAGES[result.reason] } : undefined;
+  },
+
+  /** Animate raw resizes only while ECharts owns a force layout. */
+  getResizeStrategy(ctx: RelationsChartContext) {
+    const result = getVisibleRelationsGraph(ctx);
+    if (result.kind === 'issue' || ctx.seriesType !== 'graph') {
+      return 'immediate';
+    }
+    if (getGraphLayout(result.data, ctx.options) !== 'force') {
+      return 'immediate';
+    }
+    // Keep the preset card's first force layout. Grafana can resize the card
+    // while it arranges the picker, but the preview must stay still.
+    return ctx.options.isPreview === true ? 'fixed' : 'animated-force';
+  },
+
+  /** Apply final size-aware force values without replacing the complete chart option. */
+  getSettledResizeOption(ctx: RelationsChartContext, { plotWidth, plotHeight }) {
+    const result = getVisibleRelationsGraph(ctx);
+    if (
+      result.kind === 'issue' ||
+      ctx.seriesType !== 'graph' ||
+      ctx.options.isPreview === true ||
+      getGraphLayout(result.data, ctx.options) !== 'force'
+    ) {
+      return undefined;
+    }
+
+    return {
+      series: [
+        {
+          type: 'graph',
+          force: {
+            ...getGraphForce(result.data, ctx.options, plotWidth, plotHeight),
+            initLayout: 'none',
+            layoutAnimation: true,
+          },
+        },
+      ],
+    };
   },
 
   /** Report data that the panel cannot draw as requested. */

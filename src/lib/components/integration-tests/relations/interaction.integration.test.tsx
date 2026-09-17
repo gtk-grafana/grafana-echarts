@@ -1,11 +1,81 @@
+import { FieldType, toDataFrame } from '@grafana/data';
 import { render } from '@testing-library/react';
 import { type EChartsType } from 'echarts';
+import { readLiveRelationsView } from 'lib/echarts/relations/options/view';
 import { getChart, readCanvasLayer, SERIES_LAYER_SELECTOR } from 'test/canvas';
 import { getComponent, height, waitForFinished, width } from 'test/panel';
 import { edgesFrame, nodesFrame } from 'test/relations';
 import { asPipelineWould, canvasOptions, labelPositions } from 'test/relationsCanvas';
 
 describe('relations interaction', () => {
+  describe.each([
+    ['graph', 'graphRoam'],
+    ['sankey', 'sankeyRoam'],
+  ] as const)('%s viewport retention', (seriesType, roamAction) => {
+    it('keeps the live view across resize and changed data', async () => {
+      const panelOptions = canvasOptions({ relationsPan: true, relationsZoom: true, relationsRememberView: false });
+      const panel = (frames = [nodesFrame, edgesFrame], panelWidth = width, panelHeight = height) =>
+        getComponent(
+          asPipelineWould(frames),
+          seriesType,
+          panelOptions,
+          undefined,
+          { width: panelWidth, height: panelHeight },
+          'relations'
+        );
+      const { container, rerender } = render(panel());
+      const { chart } = getChart(container);
+      await waitForFinished(chart);
+
+      chart!.dispatchAction({ type: roamAction, seriesIndex: 0, zoom: 1.6, originX: width / 2, originY: height / 2 });
+      chart!.dispatchAction({ type: roamAction, seriesIndex: 0, dx: 35, dy: 20 });
+      const roamed = readLiveRelationsView(chart!);
+      expect(roamed?.zoom).toBeCloseTo(1.6);
+      expect(roamed?.center).toEqual([expect.any(Number), expect.any(Number)]);
+
+      rerender(panel(undefined, width + 120, height + 60));
+      await waitForFinished(chart);
+      expect(readLiveRelationsView(chart!)).toEqual(roamed);
+
+      const changedNodes = toDataFrame({
+        name: 'nodes',
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['gateway', 'api', 'web', 'db'] },
+          { name: 'title', type: FieldType.string, values: ['Gateway', 'API', 'Web', 'DB'] },
+          { name: 'mainstat', type: FieldType.number, values: [121, 81, 61, 201] },
+        ],
+      });
+      rerender(panel([changedNodes, edgesFrame], width + 120, height + 60));
+      await waitForFinished(chart);
+      expect(readLiveRelationsView(chart!)).toEqual(roamed);
+    });
+
+    it('keeps the live view through a temporary no-data state', async () => {
+      const panelOptions = canvasOptions({ relationsPan: true, relationsZoom: true, relationsRememberView: false });
+      const panel = (frames = [nodesFrame, edgesFrame]) =>
+        getComponent(asPipelineWould(frames), seriesType, panelOptions, undefined, undefined, 'relations');
+      const { container, rerender } = render(panel());
+      const initial = getChart(container).chart!;
+      await waitForFinished(initial);
+
+      initial.dispatchAction({ type: roamAction, seriesIndex: 0, zoom: 1.6, originX: width / 2, originY: height / 2 });
+      initial.dispatchAction({ type: roamAction, seriesIndex: 0, dx: 35, dy: 20 });
+      const roamed = readLiveRelationsView(initial);
+      expect(roamed?.zoom).toBeCloseTo(1.6);
+      expect(roamed?.center).toEqual([expect.any(Number), expect.any(Number)]);
+
+      rerender(panel([]));
+      expect(initial.isDisposed()).toBe(true);
+
+      rerender(panel());
+      const replacement = getChart(container).chart!;
+      await waitForFinished(replacement);
+
+      expect(replacement).not.toBe(initial);
+      expect(readLiveRelationsView(replacement)).toEqual(roamed);
+    });
+  });
+
   describe('zoom', () => {
     it('the roam action scales the view while scroll-to-zoom stays off', async () => {
       const { container } = render(

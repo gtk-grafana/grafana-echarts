@@ -1,16 +1,63 @@
+import { type ChartResizeStrategy, type EChartBuildOption } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+
+interface Options {
+  enabled?: boolean;
+  strategy?: ChartResizeStrategy;
+  getSettledOption?: (width: number, height: number) => EChartBuildOption | undefined;
+}
+
+const SETTLE_DELAY_MS = 150;
 
 /**
  * Resize the chart to the box VizLayout allocated. ECharts does not track its
  * container's size, so every layout change has to be pushed in.
  * https://echarts.apache.org/en/api.html#echartsInstance.resize
  */
-export function useChartResize(chart: EChartsType | null, width: number, height: number): void {
+export function useChartResize(
+  chart: EChartsType | null,
+  width: number,
+  height: number,
+  { enabled = true, strategy = 'immediate', getSettledOption }: Options = {}
+): void {
+  const priorIdentity = useRef<{ chart: EChartsType | null; strategy: ChartResizeStrategy }>();
+
   useEffect(() => {
-    if (!chart) {
+    const identityChanged = priorIdentity.current?.chart !== chart || priorIdentity.current.strategy !== strategy;
+    priorIdentity.current = { chart, strategy };
+
+    if (!chart || !enabled) {
       return;
     }
+
+    if (strategy === 'fixed') {
+      return;
+    }
+
+    if (chart.getWidth() === width && chart.getHeight() === height) {
+      return;
+    }
+
+    if (strategy === 'animated-force' && !identityChanged) {
+      // Enable force motion for the transient resize.
+      // https://echarts.apache.org/en/option.html#series-graph.force.layoutAnimation
+      chart.setOption({
+        series: [{ type: 'graph', force: { layoutAnimation: true, friction: 0.05, initLayout: 'none' } }],
+      });
+    }
+
     chart.resize({ width, height });
-  }, [chart, width, height]);
+
+    if (strategy === 'animated-force' && !identityChanged && getSettledOption) {
+      const timer = setTimeout(() => {
+        const option = getSettledOption(width, height);
+        if (option) {
+          chart.setOption(option);
+        }
+      }, SETTLE_DELAY_MS);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [chart, width, height, enabled, strategy, getSettledOption]);
 }

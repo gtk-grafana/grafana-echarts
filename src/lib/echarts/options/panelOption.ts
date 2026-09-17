@@ -33,7 +33,7 @@ import { stripHiddenValueFields } from 'lib/grafana/fields/fieldConfig';
  */
 export function buildPanelChartOption(
   rawCtx: ChartContext,
-  { isGrafanaLegend, plotHeight, tooltipSink }: BaseOptionParts & { tooltipSink?: TooltipSink }
+  { isGrafanaLegend, plotWidth, plotHeight, tooltipSink }: BaseOptionParts & { tooltipSink?: TooltipSink }
 ): ECBasicOption | null {
   const chartModule = resolveChartModule(rawCtx.seriesType);
   if (!chartModule) {
@@ -88,11 +88,24 @@ export function buildPanelChartOption(
   // No option means "nothing to draw from this data" — an empty response, or one
   // whose shape carries no chart. Every other family already falls back to the
   // no-data view for that, so this does too rather than throwing.
-  const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend, plotHeight });
+  const echartOption = chartModule.buildOption(ctx, { isGrafanaLegend, plotWidth, plotHeight });
   if (!echartOption) {
     debug('No chart option resolved', LOG_LEVELS.debug, ctx);
     return null;
   }
+
+  const isPreview = options.isPreview === true;
+  const previewSeries =
+    isPreview && Array.isArray(echartOption.series)
+      ? echartOption.series.map((series) => ({
+          ...series,
+          // Preview cards must not react to pointer events.
+          // https://echarts.apache.org/en/option.html#series-silent
+          silent: true,
+          // https://echarts.apache.org/en/option.html#series-emphasis.disabled
+          emphasis: { disabled: true },
+        }))
+      : undefined;
 
   // Only cartesian-grid charts (non-category axes) have an axis to draw the crosshair on.
   // @todo clean up nested ternary
@@ -111,11 +124,12 @@ export function buildPanelChartOption(
 
   return {
     ...echartOption,
-    tooltip: tooltipOption,
+    ...(previewSeries ? { series: previewSeries } : {}),
+    tooltip: isPreview ? { show: false } : tooltipOption,
     // Animation is opt-in and off by default for every family — density thresholds
     // were tried and could not fire early enough to help. See `resolveAnimation`.
-    animation: resolveAnimation(ctx.options),
-    ...(axisPointer ? { axisPointer } : {}),
-    ...(isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
+    animation: isPreview ? false : resolveAnimation(ctx.options),
+    ...(!isPreview && axisPointer ? { axisPointer } : {}),
+    ...(!isPreview && isTimeAxis ? { brush: getTimeBrushOption(ctx.theme) } : {}),
   };
 }
