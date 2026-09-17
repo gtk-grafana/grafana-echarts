@@ -302,6 +302,9 @@ export interface ChartDataIssue {
   message: string;
 }
 
+/** How the panel coordinates ECharts resize and option rebuild work. */
+export type ChartResizeStrategy = 'immediate' | 'animated-force' | 'fixed';
+
 export interface ChartModule {
   /** Per-chart default legend options; merged under the user's `options.legend`. */
   legend: VizLegendOptions;
@@ -313,6 +316,9 @@ export interface ChartModule {
 
   /** Return a known data problem before the chart mounts, or nothing when the chart can render. */
   getDataIssue?(ctx: ChartContext): ChartDataIssue | undefined;
+
+  /** Return the resize behavior for the current chart context. */
+  getResizeStrategy?(ctx: ChartContext): ChartResizeStrategy;
 
   /**
    * Advisories to show in the panel's corner for this render — see

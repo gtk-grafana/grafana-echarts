@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
@@ -6,6 +6,7 @@ import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
 import { DISABLE_TIME_BRUSH_ACTION, ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { NOOP_TOOLTIP_SINK } from 'lib/echarts/tooltip/model';
 import { useChartOption } from './useChartOption';
+import { useSettledChartSize } from './useSettledChartSize';
 
 // The option build is covered end-to-end by `panelOption.test.ts`; mocking it
 // here lets these tests drive the branches this hook owns — the brush arm/clear
@@ -46,6 +47,10 @@ const options = {
 describe('useChartOption', () => {
   beforeEach(() => {
     buildOption.mockReset();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('replaces the option outright rather than merging into the previous one', () => {
@@ -156,5 +161,57 @@ describe('useChartOption', () => {
     rerender({ plotHeight: 240 });
     expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 400, plotHeight: 240 }));
     expect(buildOption).toHaveBeenCalledTimes(2);
+  });
+
+  it('rebuilds the full option once with the final settled force size', () => {
+    jest.useFakeTimers();
+    buildOption.mockReturnValue({ series: [] });
+    const { chart } = createFakeChart();
+    const { rerender } = renderHook(
+      ({ width, height }) => {
+        const settled = useSettledChartSize(chart, width, height, 'animated-force');
+        useChartOption(chart, ctx, { ...options, plotWidth: settled.width, plotHeight: settled.height });
+      },
+      { initialProps: { width: 400, height: 300 } }
+    );
+
+    for (let update = 1; update <= 60; update++) {
+      rerender({ width: 400 + update, height: 300 + update });
+    }
+
+    expect(buildOption).toHaveBeenCalledTimes(1);
+    act(() => jest.advanceTimersByTime(150));
+
+    expect(buildOption).toHaveBeenCalledTimes(2);
+    expect(buildOption).toHaveBeenLastCalledWith(ctx, expect.objectContaining({ plotWidth: 460, plotHeight: 360 }));
+  });
+
+  it('rebuilds a changed context immediately with the current settled force size', () => {
+    jest.useFakeTimers();
+    buildOption.mockReturnValue({ series: [] });
+    const { chart } = createFakeChart();
+    const changedContext = { ...ctx } as ChartContext;
+    const { rerender } = renderHook(
+      ({ context, width, height }) => {
+        const settled = useSettledChartSize(chart, width, height, 'animated-force');
+        useChartOption(chart, context, { ...options, plotWidth: settled.width, plotHeight: settled.height });
+      },
+      { initialProps: { context: ctx, width: 400, height: 300 } }
+    );
+
+    rerender({ context: ctx, width: 600, height: 400 });
+    rerender({ context: changedContext, width: 600, height: 400 });
+
+    expect(buildOption).toHaveBeenCalledTimes(2);
+    expect(buildOption).toHaveBeenLastCalledWith(
+      changedContext,
+      expect.objectContaining({ plotWidth: 400, plotHeight: 300 })
+    );
+
+    act(() => jest.advanceTimersByTime(150));
+    expect(buildOption).toHaveBeenLastCalledWith(
+      changedContext,
+      expect.objectContaining({ plotWidth: 600, plotHeight: 400 })
+    );
   });
 });

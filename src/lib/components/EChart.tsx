@@ -9,6 +9,7 @@ import { useBrushTimeZoom } from './hooks/useBrushTimeZoom';
 import { useChartOption } from './hooks/useChartOption';
 import { useChartResize } from './hooks/useChartResize';
 import { useRelationsPersistence } from './hooks/useRelationsPersistence';
+import { useSettledChartSize } from './hooks/useSettledChartSize';
 import { EChartsTooltip } from './tooltip/EChartsTooltip';
 import { useEChartsTooltip } from './tooltip/useEChartsTooltip';
 
@@ -58,6 +59,13 @@ export const EChart: React.FC<Props> = ({
   // The chart instance is created on mount (see the layout effect below) and
   // held in state so the option/resize/brush hooks re-run once it exists.
   const [chart, setChart] = useState<EChartsType | null>(null);
+  const resizeStrategy = useMemo(
+    () => chartModule.getResizeStrategy?.(chartContext) ?? 'immediate',
+    // The chart dependency recalculates the strategy when the ECharts instance changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [chart, chartContext, chartModule]
+  );
+  const settledSize = useSettledChartSize(chart, width, height, resizeStrategy);
 
   const tooltipMode = chartContext.options.tooltip?.mode ?? TooltipDisplayMode.Single;
 
@@ -111,13 +119,13 @@ export const EChart: React.FC<Props> = ({
 
   useChartOption(chart, chartContext, {
     isGrafanaLegend,
-    plotWidth: width,
-    plotHeight: height,
+    plotWidth: settledSize.width,
+    plotHeight: settledSize.height,
     tooltipSink,
     reportTooltipTrigger,
   });
 
-  useChartResize(chart, width, height, !isPreview);
+  useChartResize(chart, width, height, { enabled: !isPreview, strategy: resizeStrategy });
   useBrushTimeZoom(isPreview ? null : chart, onChangeTimeRange);
   useRelationsPersistence(isPreview ? null : chart, { chartContext, onFieldConfigChange, onOptionsChange });
 

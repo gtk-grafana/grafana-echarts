@@ -112,7 +112,7 @@ A test cannot set a scheme through `fieldConfig.defaults` in this harness. `src/
 
 ## Gaps
 
-Force layout coordinates depend on simulation timing. Unit tests pin the automatic limits, fallback dimensions, and explicit values.
+Force layout coordinates depend on the random seed and simulation timing. Unit tests pin the automatic limits, fallback dimensions, and explicit values.
 
 `layout.integration.test.tsx` pins repeatable output. Its small, crowded, and disconnected fixtures keep each node symbol inside 400 by 300 and 640 by 360 plots. ECharts does not constrain force nodes to the plot boundary. Labels can extend outside the plot.
 
