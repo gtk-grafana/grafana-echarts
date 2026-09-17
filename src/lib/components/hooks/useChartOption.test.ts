@@ -3,8 +3,10 @@ import { type ECBasicOption } from 'echarts/types/dist/shared';
 import { type ChartContext } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
+import { type InteractedRelationsView } from 'lib/echarts/relations/options/view';
 import { ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { NOOP_TOOLTIP_SINK } from 'lib/echarts/tooltip/model';
+import { type MutableRefObject } from 'react';
 import { useChartOption } from './useChartOption';
 
 // The option build is covered end-to-end by `panelOption.test.ts`; mocking it
@@ -50,17 +52,20 @@ function createFakeChart() {
 }
 
 const ctx = { seriesType: 'line' } as unknown as ChartContext;
+const relationsViewRef: MutableRefObject<InteractedRelationsView | undefined> = { current: undefined };
 const options = {
   isGrafanaLegend: false,
   plotWidth: 400,
   plotHeight: 300,
   tooltipSink: NOOP_TOOLTIP_SINK,
   reportTooltipTrigger: () => undefined,
+  relationsViewRef,
 };
 
 describe('useChartOption', () => {
   beforeEach(() => {
     buildOption.mockReset();
+    relationsViewRef.current = undefined;
   });
 
   it('replaces the option outright rather than merging into the previous one', () => {

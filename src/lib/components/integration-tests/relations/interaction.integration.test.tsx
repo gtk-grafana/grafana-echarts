@@ -49,6 +49,31 @@ describe('relations interaction', () => {
       await waitForFinished(chart);
       expect(readLiveRelationsView(chart!)).toEqual(roamed);
     });
+
+    it('keeps the live view through a temporary no-data state', async () => {
+      const panelOptions = canvasOptions({ relationsPan: true, relationsZoom: true, relationsRememberView: false });
+      const panel = (frames = [nodesFrame, edgesFrame]) =>
+        getComponent(asPipelineWould(frames), seriesType, panelOptions, undefined, undefined, 'relations');
+      const { container, rerender } = render(panel());
+      const initial = getChart(container).chart!;
+      await waitForFinished(initial);
+
+      initial.dispatchAction({ type: roamAction, seriesIndex: 0, zoom: 1.6, originX: width / 2, originY: height / 2 });
+      initial.dispatchAction({ type: roamAction, seriesIndex: 0, dx: 35, dy: 20 });
+      const roamed = readLiveRelationsView(initial);
+      expect(roamed?.zoom).toBeCloseTo(1.6);
+      expect(roamed?.center).toEqual([expect.any(Number), expect.any(Number)]);
+
+      rerender(panel([]));
+      expect(initial.isDisposed()).toBe(true);
+
+      rerender(panel());
+      const replacement = getChart(container).chart!;
+      await waitForFinished(replacement);
+
+      expect(replacement).not.toBe(initial);
+      expect(readLiveRelationsView(replacement)).toEqual(roamed);
+    });
   });
 
   describe('zoom', () => {

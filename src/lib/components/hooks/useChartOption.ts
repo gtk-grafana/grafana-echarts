@@ -2,11 +2,15 @@ import { debug, LOG_LEVELS } from 'development';
 import { type ChartContext, type EChartBuildOption } from 'lib/echarts/charts/types';
 import { type EChartsType } from 'lib/echarts/echarts';
 import { buildPanelChartOption } from 'lib/echarts/options/panelOption';
-import { readLiveRelationsView, type RelationsViewState } from 'lib/echarts/relations/options/view';
+import {
+  type InteractedRelationsView,
+  readLiveRelationsView,
+  type RelationsViewState,
+} from 'lib/echarts/relations/options/view';
 import { ENABLE_TIME_BRUSH_ACTION } from 'lib/echarts/timeBrush';
 import { getTooltipTrigger } from 'lib/echarts/tooltip/option';
 import { type TooltipSink } from 'lib/echarts/tooltip/types';
-import { useEffect, useRef } from 'react';
+import { type MutableRefObject, useEffect, useRef } from 'react';
 import { type EChartsTooltipController } from '../tooltip/types';
 
 interface Options {
@@ -20,9 +24,11 @@ interface Options {
   tooltipSink: TooltipSink;
   /** Told the resolved `trigger` after each rebuild, which drives hide behavior. */
   reportTooltipTrigger: EChartsTooltipController['reportTrigger'];
+  /** Keeps an interacted Relations view while empty states replace the chart. */
+  relationsViewRef: MutableRefObject<InteractedRelationsView | undefined>;
 }
 
-type ViewVariant = 'graph' | 'sankey';
+type ViewVariant = InteractedRelationsView['variant'];
 
 /** Return the Relations variants that own a roamable view. */
 function getViewVariant(chartContext: ChartContext): ViewVariant | undefined {
@@ -56,41 +62,36 @@ function applyRelationsView(option: EChartBuildOption, view: RelationsViewState)
 export function useChartOption(
   chart: EChartsType | null,
   chartContext: ChartContext,
-  { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger }: Options
+  { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger, relationsViewRef }: Options
 ): void {
   const optionsRef = useRef({ isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger });
-  const variantRef = useRef<ViewVariant | undefined>(getViewVariant(chartContext));
-  const interactedViewRef = useRef<{ variant: ViewVariant; view?: RelationsViewState }>();
+  const variant = getViewVariant(chartContext);
   useEffect(() => {
     optionsRef.current = { isGrafanaLegend, plotWidth, plotHeight, tooltipSink, reportTooltipTrigger };
   }, [isGrafanaLegend, plotHeight, plotWidth, reportTooltipTrigger, tooltipSink]);
-  useEffect(() => {
-    variantRef.current = getViewVariant(chartContext);
-  }, [chartContext]);
 
   useEffect(() => {
-    interactedViewRef.current = undefined;
-    if (!chart) {
+    if (relationsViewRef.current?.variant !== variant) {
+      relationsViewRef.current = undefined;
+    }
+    if (!chart || variant == null) {
       return;
     }
 
-    const markInteracted = (variant: ViewVariant) => {
-      if (variantRef.current === variant && !chart.isDisposed()) {
-        interactedViewRef.current = { variant, view: readLiveRelationsView(chart) };
+    const event = `${variant}roam`;
+    const markInteracted = () => {
+      if (!chart.isDisposed()) {
+        relationsViewRef.current = { variant, view: readLiveRelationsView(chart) };
       }
     };
-    const onGraphRoam = () => markInteracted('graph');
-    const onSankeyRoam = () => markInteracted('sankey');
-    chart.on('graphroam', onGraphRoam);
-    chart.on('sankeyroam', onSankeyRoam);
+    chart.on(event, markInteracted);
 
     return () => {
       if (!chart.isDisposed()) {
-        chart.off('graphroam', onGraphRoam);
-        chart.off('sankeyroam', onSankeyRoam);
+        chart.off(event, markInteracted);
       }
     };
-  }, [chart]);
+  }, [chart, relationsViewRef, variant]);
 
   useEffect(() => {
     if (!chart) {
@@ -98,10 +99,9 @@ export function useChartOption(
     }
 
     const current = optionsRef.current;
-    const variant = getViewVariant(chartContext);
-    const interacted = interactedViewRef.current;
+    const interacted = relationsViewRef.current;
     if (interacted != null && interacted.variant !== variant) {
-      interactedViewRef.current = undefined;
+      relationsViewRef.current = undefined;
     } else if (interacted != null) {
       const liveView = readLiveRelationsView(chart);
       if (liveView != null) {
@@ -120,7 +120,7 @@ export function useChartOption(
       return;
     }
 
-    const retained = interactedViewRef.current;
+    const retained = relationsViewRef.current;
     if (retained != null && retained.variant === variant && retained.view != null) {
       applyRelationsView(option, retained.view);
     }
@@ -145,5 +145,5 @@ export function useChartOption(
     }
     // `tooltipSink`/`reportTooltipTrigger` are stable (see useEChartsTooltip), so
     // this effect still only re-runs on chart, context, size, or legend changes.
-  }, [chart, chartContext, isGrafanaLegend, tooltipSink, reportTooltipTrigger]);
+  }, [chart, chartContext, isGrafanaLegend, relationsViewRef, tooltipSink, reportTooltipTrigger, variant]);
 }

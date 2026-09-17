@@ -26,6 +26,7 @@ export const ChartContent: React.FC<ChartContentProps> = ({
   onChangeTimeRange,
   onFieldConfigChange,
   onOptionsChange,
+  relationsViewRef,
 }) => {
   const isPreview = chartContext.options.isPreview === true;
   // Advisories for renders where the chart had to change the data to draw it
@@ -81,6 +82,7 @@ export const ChartContent: React.FC<ChartContentProps> = ({
                 width={vizWidth}
                 height={chartHeight}
                 instanceRef={chartInstanceRef}
+                relationsViewRef={relationsViewRef}
               />
               <ChartNotices notices={notices} />
               <ChartZoomControls

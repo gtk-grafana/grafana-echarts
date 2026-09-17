@@ -98,6 +98,12 @@ export interface RelationsViewState {
   center?: [number, number];
 }
 
+/** An interacted view that belongs to one Relations variant. */
+export interface InteractedRelationsView {
+  variant: 'graph' | 'sankey';
+  view?: RelationsViewState;
+}
+
 /** Read the graph or Sankey view that ECharts synced onto its live first series. */
 export function readLiveRelationsView(chart: Pick<EChartsType, 'getOption'>): RelationsViewState | undefined {
   // https://echarts.apache.org/en/api.html#echartsInstance.getOption
