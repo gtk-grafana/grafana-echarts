@@ -39,7 +39,7 @@
     },
     {
       "id": 2,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "The gate is on — and every node here is derived",
       "description": "The query groups the metric by `client` and `server`. The panel recognizes this endpoint pair and uses the same keys for filters.\n\nThe query returns edge fields only. The panel derives each node from the edge endpoints, and the node uses the filterable state of those edges.\n\nSelect an edge to filter by `client`, `server`, or `connection_type`.",
       "datasource": {
@@ -104,7 +104,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "The same panel with Filterable off — no buttons at all",
       "description": "This panel uses the same query as panel 2, but Filterable is off. Node and edge tooltips do not offer ad hoc filter actions.\n\nData links use separate field configuration. Turning Filterable off does not turn data links off.",
       "datasource": {
@@ -168,7 +168,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Direction — a destination-only node asserts its target key",
       "description": "A node filter uses the endpoint labels for the edges that touch the node. Select `elasticsearch` to create a `server` filter because it appears only as a target.\n\nSelect `grafana` to create a `client` filter because it appears as a source. The panel does not create an either-endpoint filter.\n\nFilter out this value excludes the node from both endpoint keys. This prevents the node from returning through the other direction.",
       "datasource": {
@@ -233,7 +233,7 @@
     },
     {
       "id": 5,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Why the fallback exists — a node override with nothing to bind to",
       "description": "The query returns edges but no node fields. The panel derives the `elasticsearch` node from the edge endpoints.\n\nA field override can match only a field that exists before the panel renders it. If no node field exists, the derived node uses the filterable state of its edges.\n\nTurn Filterable off for the edge fields if no mark in the panel must offer filter actions.",
       "datasource": {
@@ -311,7 +311,7 @@
     },
     {
       "id": 6,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Two levels in one frame, each filtering under its own keys",
       "description": "This graph combines two endpoint pairs. Level 1 uses `stack` and `client`, while level 2 uses `client` and `server`.\n\nThe query keeps the original labels after it adds `source` and `target`. The panel can therefore recover the correct filter keys for each edge.\n\nThe `grafana` node appears in both levels. Its connected edges resolve to one `client` filter key.",
       "datasource": {
@@ -376,7 +376,7 @@
     },
     {
       "id": 7,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Copied endpoints: original labels provide the filter names",
       "description": "This query copies `client` and `server` to `source` and `target`. The outer aggregation also keeps the original labels.\n\nThe panel matches the endpoint values to the original labels. It then uses `client` and `server` as the ad hoc filter names without manual configuration.",
       "datasource": {

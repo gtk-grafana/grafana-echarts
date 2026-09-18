@@ -41,7 +41,7 @@
         }
       ],
       "title": "Dense adjacency — what a chord is for",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -88,7 +88,7 @@
         }
       ],
       "title": "The same data as a graph — for contrast",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -136,7 +136,7 @@
         }
       ],
       "title": "Cyclic service graph — CHORD keeps every link",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -183,7 +183,7 @@
         }
       ],
       "title": "Cyclic service graph — SANKEY drops one link",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -239,7 +239,7 @@
         }
       ],
       "title": "Named nodes — titles as labels",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -290,7 +290,7 @@
         }
       ],
       "title": "TestData random — generated cycles",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -337,7 +337,7 @@
         }
       ],
       "title": "Advanced — ring geometry",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -399,7 +399,7 @@
         }
       ],
       "title": "Node values — mainstat under each label",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,

@@ -26,7 +26,7 @@
     },
     {
       "id": 2,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Absolute thresholds \u2014 0.1 / 0.5 reqps, nodes and edges",
       "description": "Both queries return ranged request rates. Query A supplies edge fields, and Query B supplies node fields after Labels to fields.\n\nThe thresholds are green below `0.1 reqps`, orange from `0.1 reqps`, and red from `0.5 reqps`. Move the time slider to recalculate colors from the selected values.\n\nA client-only endpoint has no server series. The panel derives that node, so it keeps a palette color and has no displayed value.",
       "datasource": {
@@ -136,7 +136,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Percentage thresholds \u2014 each mark against its own range",
       "description": "This panel uses the same request-rate data with percentage thresholds. Field min/max is on, so each field uses its own minimum and maximum.\n\nThe thresholds are green below 50 percent, orange from 50 percent, and red from 80 percent. Move the slider to compare each mark with its own range.\n\nA red mark means that its current value is high for that field. It does not mean that the value exceeds a shared request-rate limit.",
       "datasource": {
@@ -247,7 +247,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "A node value that is not the sum of anything \u2014 memory vs request rate",
       "description": "Edges show request rate, while node fields show `process_resident_memory_bytes`. The node value is not calculated from the connected edges.\n\nNode fields use byte units and memory thresholds. The `Value` override gives edge fields request-per-second units and request-rate thresholds.\n\nServices without a memory series remain derived nodes. They have no node value, so value thresholds do not set their color.",
       "datasource": {

@@ -135,7 +135,7 @@
         "type": "prometheus",
         "uid": "lgtm-prometheus"
       },
-      "description": "Traces, twice removed: the services export OTLP to Tempo, Tempo's metrics-generator derives service-graph edges from those traces, and remote-writes them to Prometheus as traces_service_graph_request_total{client,server}. The relations panel accepts client/server as an endpoint pair directly, so the query is the plain aggregation — no label_replace and no transformations. This is the same query shape as provisioning/dashboards/relations/devcortex-wide.json, against a stack you can run locally.",
+      "description": "Traces, twice removed: the services export OTLP to Tempo, Tempo's metrics-generator derives service-graph edges from those traces, and remote-writes them to Prometheus as traces_service_graph_request_total{client,server}. The relations panel accepts client/server as an endpoint pair directly, so the query is the plain aggregation — no label_replace and no transformations.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -188,7 +188,7 @@
       ],
       "title": "Service graph — Tempo metrics-generator via Prometheus",
       "transformations": [],
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": {

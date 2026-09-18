@@ -14,8 +14,8 @@ describe('webpack configuration', () => {
     expect(standalone.output).toEqual(
       expect.objectContaining({
         filename: '[name].js',
-        publicPath: 'public/plugins/grafana-echartsrelations-panel/',
-        uniqueName: 'grafana-echartsrelations-panel',
+        publicPath: 'public/plugins/grafana-echarts-relations-panel/',
+        uniqueName: 'grafana-echarts-relations-panel',
       })
     );
   });

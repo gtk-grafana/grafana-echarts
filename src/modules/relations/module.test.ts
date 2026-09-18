@@ -7,10 +7,10 @@ jest.mock('@grafana/i18n', () => ({
 
 describe('Relations plugin module', () => {
   it('initializes translations with the webpack-selected plugin ID', async () => {
-    (globalThis as typeof globalThis & { __PLUGIN_ID__?: string }).__PLUGIN_ID__ = 'grafana-echartsrelations-panel';
+    (globalThis as typeof globalThis & { __PLUGIN_ID__?: string }).__PLUGIN_ID__ = 'grafana-echarts-relations-panel';
 
     await import('./module');
 
-    expect(initPluginTranslations).toHaveBeenCalledWith('grafana-echartsrelations-panel');
+    expect(initPluginTranslations).toHaveBeenCalledWith('grafana-echarts-relations-panel');
   });
 });

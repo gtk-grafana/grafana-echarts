@@ -67,7 +67,7 @@
         { "id": "rowsToFields", "options": {} }
       ],
       "title": "Service topology",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -129,7 +129,7 @@
         { "id": "rowsToFields", "options": {} }
       ],
       "title": "Weighted flow",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -191,7 +191,7 @@
         { "id": "rowsToFields", "options": {} }
       ],
       "title": "Mutual relations",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -246,7 +246,7 @@
         }
       ],
       "title": "Time network",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -308,7 +308,7 @@
         { "id": "rowsToFields", "options": {} }
       ],
       "title": "Circular network",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "gridPos": { "h": 5, "w": 24, "x": 0, "y": 33 },
@@ -351,7 +351,7 @@
         }
       ],
       "title": "Cycle: no Weighted flow",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -383,7 +383,7 @@
         }
       ],
       "title": "101 nodes: Service topology only",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -415,7 +415,7 @@
         }
       ],
       "title": "13 levels: no Weighted flow",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -447,7 +447,7 @@
         }
       ],
       "title": "41 nodes: no circular presets",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -479,7 +479,7 @@
         }
       ],
       "title": "40 nodes: circular presets available",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     }
   ],
   "schemaVersion": 39,
