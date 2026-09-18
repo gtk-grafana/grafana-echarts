@@ -37,8 +37,9 @@ import {
 import { type EChartsRelationsFieldConfig } from 'editor/relations/types';
 import { isGraphVariant } from 'editor/relations/variants';
 // Initialize i18n before `addRelationsStatOptions` calls `t()`.
+declare const __PLUGIN_ID__: string;
 
-initPluginTranslations('grafana-echarts-app');
+initPluginTranslations(__PLUGIN_ID__);
 
 // Graph, sankey, and chord share one field-based node and link model.
 const relationsPlugin = new PanelPlugin<PanelOptions, EChartsRelationsFieldConfig>(makeLazyPanel('relations'))

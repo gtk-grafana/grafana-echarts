@@ -1,0 +1,14 @@
+services:
+  grafana:
+    extends:
+      file: .config/docker-compose-base.yaml
+      service: grafana
+    # Keep this production artifact separate from the default development stack.
+    container_name: ${GRAFANA_CONTAINER_NAME:-grafana-echarts-panel-relations-${GRAFANA_PORT:-4001}}
+    ports: !override
+      - ${GRAFANA_PORT:-4001}:3000/tcp
+    volumes: !override
+      - ./dist:/var/lib/grafana/plugins/grafana-echarts-panel
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./provisioning/dashboards/default.yaml:/etc/grafana/provisioning/dashboards/default.yaml
+      - ./provisioning/dashboards/relations:/etc/grafana/provisioning/dashboards/relations

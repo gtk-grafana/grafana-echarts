@@ -3,6 +3,24 @@ Don't forget to use dashboards v1 format as this repo hasn't set up v2 provision
 
 Use the local directory (`provisioning/dashboards/local`) to add dashboards that you don't want to commit to the repo.
 
+## Relations-only server
+
+Run `pnpm run server:relations` to build one standalone Relations panel and start
+Grafana on port 4001. Set `GRAFANA_PORT` and `GRAFANA_CONTAINER_NAME` to run it
+beside another local stack.
+
+This stack provisions only the TestData datasource and dashboards from the
+`relations/` directory. It does not enable the app plugin or provision dashboards
+for the other panel families.
+
+This command tests the production build. It does not watch source files. Stop the
+stack and run `pnpm run server:relations` again after each source change.
+
+The standalone build replaces `dist` with the Relations panel artifact. Do not
+restart `server` or `server:lgtm` with this artifact. Those stacks provision the
+`grafana-echarts-app` app plugin. Run `pnpm run build` before you return to either
+full stack.
+
 The provider recurses (`foldersFromFilesStructure: true`), so each subdirectory of
 `dashboards/` becomes a Grafana folder. Committed dashboards are backed by the
 **TestData DB** datasource (uid `trlxrdZVk`), so they work without any external
