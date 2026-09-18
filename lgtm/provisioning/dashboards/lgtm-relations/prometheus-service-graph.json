@@ -26,7 +26,7 @@
     },
     {
       "id": 2,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Route A — service dependency map, no transformations",
       "description": "This graph uses Route A. Each ranged `Value` field keeps its `client` and `server` labels, so the panel reads every edge without transformations.\n\nThe panel also uses these labels as the ad hoc filter names. The time slider selects one timestamp from the ranged data.\n\nThe query supplies no node fields, so the panel derives the nodes from endpoints. Derived nodes have no values to change with the slider.",
       "datasource": {
@@ -92,7 +92,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Route B — the same graph, with per-edge ids",
       "description": "This graph uses an instant table query. `label_join` creates a unique `edge` label, and Organize fields puts it first.\n\nRows to fields creates one field named `client-->server` for each edge. It keeps the `client` and `server` columns as labels for ad hoc filters.\n\nThe overrides can style or link one edge without changing the others. The query calculates one value over the selected range.",
       "datasource": {
@@ -231,7 +231,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Edges and node stats — two queries, two filtered chains",
       "description": "Query A creates named edge fields with the Route B transformations. Query B creates one node field for each server and sets its value to the failed-request ratio.\n\nEach transformation chain uses a query filter, so it changes only its own frames. The node query includes zero values for services with no failed-request series.\n\nNode thresholds show the error ratio. An edge override keeps edge units as requests per second and uses palette colors.",
       "datasource": {
@@ -410,7 +410,7 @@
     },
     {
       "id": 5,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Span metrics: service → operation — sankey",
       "description": "This Sankey chart uses `traces_spanmetrics_calls_total{service, span_name}`. Each edge connects a service to one server operation.\n\nThe query adds `source` and `target` labels. Its outer aggregation keeps `service` and `span_name` so the panel detects the ad hoc filter names.\n\nThe query keeps only server spans and limits the result to ten edges. The service and operation sets are separate, which makes the graph acyclic.",
       "datasource": {
@@ -477,7 +477,7 @@
     },
     {
       "id": 6,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Call matrix — chord",
       "description": "This chord chart uses the Route A ranged query. It shows both directions between a pair as separate ribbons.\n\nMean calculates the average request rate over the selected time range. The `prometheus → prometheus` ribbon is a self-loop.",
       "datasource": {

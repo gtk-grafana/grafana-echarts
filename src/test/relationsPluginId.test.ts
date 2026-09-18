@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 const repoFile = (path: string) => resolve(process.cwd(), path);
 const manifest = JSON.parse(readFileSync(repoFile('src/modules/relations/plugin.json'), 'utf8')) as { id: string };
-const approvedPluginId = 'grafana-echarts-relations-panel';
+const approvedPluginId = 'grafana-relations-panel';
 
 const dashboardFiles = [
   ...globSync('provisioning/dashboards/**/*.json').filter(

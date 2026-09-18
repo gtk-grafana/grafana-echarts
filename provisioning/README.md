@@ -16,10 +16,9 @@ for the other panel families.
 This command tests the production build. It does not watch source files. Stop the
 stack and run `pnpm run server:relations` again after each source change.
 
-The standalone build replaces `dist` with the Relations panel artifact. Do not
-restart `server` or `server:lgtm` with this artifact. Those stacks provision the
-`grafana-echarts-app` app plugin. Run `pnpm run build` before you return to either
-full stack.
+The standalone build replaces `dist` with the Relations panel artifact. The
+`server:lgtm` command rebuilds the `grafana-echarts-app` app before it starts.
+Run `pnpm run build` before you restart `server`, which uses the existing build.
 
 The provider recurses (`foldersFromFilesStructure: true`), so each subdirectory of
 `dashboards/` becomes a Grafana folder. Committed dashboards are backed by the
@@ -47,7 +46,7 @@ each gets its own panel with a data link attached.
 
 ## `relations/` — graph / sankey / chord
 
-Demonstrates the ECharts **Relations** panel (`grafana-echarts-relations-panel`) across
+Demonstrates the ECharts **Relations** panel (`grafana-relations-panel`) across
 its three render variants, all on one node/link converter. Every dashboard here is
 TestData-backed so it needs no external data source; the live-data equivalents are under
 [../lgtm/provisioning/dashboards/lgtm-relations/](../lgtm/provisioning/dashboards/lgtm-relations/).

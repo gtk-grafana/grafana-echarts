@@ -26,7 +26,7 @@
   "panels": [
     {
       "id": 1,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Control \u2014 no mappings",
       "description": "This panel has no value mappings. The node labels show the raw values `1`, `2`, and `3`.",
       "datasource": {
@@ -81,7 +81,7 @@
     },
     {
       "id": 2,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Value \u2192 text on a node stat",
       "description": "Value mappings change `1`, `2`, and `3` to `Healthy`, `Degraded`, and `Down`. The mapped text appears in node labels and tooltips.",
       "datasource": {
@@ -155,7 +155,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Mapping a colour, not just text",
       "description": "Each value mapping also sets a color. The node symbols use green, orange, and red for the three mapped states.",
       "datasource": {
@@ -232,7 +232,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Range \u2192 text on an edge weight",
       "description": "Range mappings change the edge values `120`, `80`, and `45` to `saturated`, `busy`, and `light`. Show edge values displays the mapped text on each link. The node values stay numeric.",
       "datasource": {
@@ -334,7 +334,7 @@
     },
     {
       "id": 5,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Special \u2192 text on a null node stat (what does NOT happen)",
       "description": "The `api` node has no value. The panel omits the value from its label and tooltip, so the `null` mapping text does not appear.",
       "datasource": {
@@ -418,7 +418,7 @@
     },
     {
       "id": 6,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Same mappings, sankey",
       "description": "Sankey uses the same node mappings. The labels show `Healthy`, `Degraded`, and `Down`.",
       "datasource": {
@@ -491,7 +491,7 @@
     },
     {
       "id": 7,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Same mappings, chord",
       "description": "Chord uses the same node mappings. The labels show `Healthy`, `Degraded`, and `Down`.",
       "datasource": {

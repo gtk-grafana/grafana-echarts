@@ -29,7 +29,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Force: 200 nodes, 500 marks",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -53,7 +53,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Force: 201 nodes, 501 marks",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -77,7 +77,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Circular: 1,000 marks",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -101,7 +101,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Circular: 1,001 marks",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -125,7 +125,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Fixed: 1,000 marks",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -149,7 +149,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Fixed: 1,001 marks",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -168,7 +168,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Sankey: 100 nodes",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -187,7 +187,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Sankey: 101 nodes",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -206,7 +206,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Chord: 40 nodes",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -225,7 +225,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Chord: 41 nodes",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -251,7 +251,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Lower limit: graph",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource" },
@@ -277,7 +277,7 @@
       ],
       "transformations": [{ "id": "rowsToFields", "options": {} }],
       "title": "Raised limit: 501 nodes",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     }
   ],
   "refresh": "",

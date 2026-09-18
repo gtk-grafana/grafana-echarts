@@ -3,8 +3,8 @@
 ## Status
 
 The repository can build the standalone Relations panel with `pnpm run build:relations`.
-The approved plugin ID is `grafana-echarts-relations-panel`.
-The release workflow does not yet build, sign, validate, and retain one immutable Relations archive.
+The approved plugin ID is `grafana-relations-panel`.
+The release workflow is ready to build, sign, validate, and retain one immutable Relations archive.
 
 The next milestone is a standalone Relations archive that CI signs and validates.
 Cloud dev and ops must use the same archive bytes.
@@ -12,7 +12,7 @@ The dataViz move, shared build work, and automatic deployment are later work.
 
 ## Decisions before implementation
 
-1. Use the approved plugin ID, `grafana-echarts-relations-panel`.
+1. Use the approved plugin ID, `grafana-relations-panel`.
 2. Choose the package license.
    `package.json` and `LICENSE` currently use Apache-2.0.
    A change to AGPL needs legal or team approval.
@@ -46,9 +46,9 @@ The production build must:
 
 The Cloud artifact baseline is:
 
-- Plugin ID: `grafana-echarts-relations-panel`.
+- Plugin ID: `grafana-relations-panel`.
 - Plugin version: `0.0.1`.
-- Archive name: `grafana-echarts-relations-panel-0.0.1.zip`.
+- Archive name: `grafana-relations-panel-0.0.1.zip`.
 - Grafana SDK packages: `13.1.1`.
 - Local Grafana runtime: `13.1.0`.
 - Minimum Grafana version: `>=13.2.0`.
@@ -103,12 +103,10 @@ Its uploaded build exists only for end-to-end tests.
 After the repository moves to `grafana/dataViz`, the Grafana organization owns and provides the `GRAFANA_ACCESS_POLICY_TOKEN` organization secret.
 Grafana repository maintainers own the release tag and draft release action.
 
-The workflow implementation is complete, but its first successful run is blocked:
+The official validator accepted the `grafana-relations-panel` ID with no errors on 2026-09-18.
+The local archive was unsigned, so the signed workflow run remains required.
 
-- The Grafana organization does not provide the signing token until the repository move.
-- The official validator rejects the approved `grafana-echarts-relations-panel` ID because it does not match the published plugin ID pattern.
-
-Resolve the approved ID conflict with the Grafana plugin platform team before creating the release tag.
+The first successful workflow run is blocked until the Grafana organization provides the signing token after the repository move.
 Then build, sign, and validate the archive from the approved source revision.
 Record the workflow run, archive checksum, signature result, and validator result.
 Do not remove the ad hoc `sign` script until that run succeeds.

@@ -43,7 +43,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Service dependency map \u2014 graph",
       "description": "Prometheus query A provides service-call edges. Query B provides the error ratio for each server node. Separate Join by field transformations keep edges and nodes in different frames. Graph keeps the cycle in the service calls.",
       "datasource": {
@@ -313,7 +313,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Kubernetes CPU requests \u2014 sankey",
       "description": "Two Prometheus queries provide node-to-namespace and namespace-to-workload edges. Join by field gives each edge a field name. The input has no node frame, so the panel derives nodes from the endpoints.",
       "datasource": {
@@ -467,7 +467,7 @@
     },
     {
       "id": 5,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Cross-AZ request matrix \u2014 chord",
       "description": "A Prometheus query groups Istio requests by source and destination zone. Chord keeps both directions and self-links. Ribbon width shows the request rate.",
       "datasource": {
@@ -586,7 +586,7 @@
     },
     {
       "id": 6,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "The table route \u2014 graph, instant + label_join",
       "description": "This Prometheus instant-table query creates an edge `id` with `label_join`. Organize fields and Rows to fields convert each row into an edge field. The `source` and `target` labels provide the endpoints.",
       "datasource": {
@@ -684,7 +684,7 @@
     },
     {
       "id": 8,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Service call graph from structured logs \u2014 graph",
       "description": "A LogQL metric query counts calls between services. Join by field converts the series into edge fields. Sum shows the total count over the selected time range.",
       "datasource": {
@@ -799,7 +799,7 @@
     },
     {
       "id": 9,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Log volume by cluster \u2192 namespace \u2192 level \u2014 sankey",
       "description": "Two LogQL queries provide cluster-to-namespace and namespace-to-level edges. Ribbon width shows the log count. The input has no node frame, so the panel derives nodes from the endpoints.",
       "datasource": {
@@ -965,7 +965,7 @@
     },
     {
       "id": 10,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Page-transition matrix from ingress access logs \u2014 chord",
       "description": "A LogQL metric query groups ingress logs by referrer path and destination path. Chord keeps forward links, back links, and the `/home` self-link.",
       "datasource": {
@@ -1084,7 +1084,7 @@
     },
     {
       "id": 11,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Parallel edges via label_format \u2014 graph",
       "description": "The LogQL query creates `source` and `target` labels from JSON fields and groups by `protocol`. HTTP and gRPC therefore appear as separate edges between the same nodes.",
       "datasource": {
@@ -1225,7 +1225,7 @@
     },
     {
       "id": 13,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "PR rollout by wave \u2014 graph",
       "description": "Each deployment wave is a node. Fixed positions show the rollout from left to right. A threshold on `is_in_build` colors each wave. Select a node to see its version and estimated completion time.",
       "datasource": {
@@ -1524,7 +1524,7 @@
     },
     {
       "id": 14,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Fleet version spread \u2014 sankey",
       "description": "Each ribbon connects a deployment wave to its current version. Ribbon width shows how many waves use a version. Wave color shows whether its build contains the selected change.",
       "datasource": {
