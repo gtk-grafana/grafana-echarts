@@ -4,9 +4,11 @@
 
 Unit tests cover persistence, and browser checks cover data refreshes. No end-to-end test covers save and reload through a dashboard.
 
+This automated test does not block the first Cloud artifact. Cloud dev must pass a manual drag, save, and reload check before ops promotion. Keep this task open until the automated test covers the saved-dashboard round trip.
+
 ## Release impact
 
-The team must decide whether save-and-reload coverage is a release gate. This missing test leaves a persistence risk in the release.
+The missing automated test leaves a persistence risk in the release. The manual Cloud dev check controls this risk for the first Cloud rollout. A failed manual check blocks ops promotion.
 
 Node-position and view persistence (`lib/components/hooks/useRelationsPersistence.ts`)
 is covered by unit tests at both ends and was verified by hand in a browser, but the one
