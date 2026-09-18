@@ -29,7 +29,7 @@ The dataViz move, shared build work, and automatic deployment are later work.
 Update the Relations manifest, dashboard panel types, generators, translation initialization, tests, and provisioning.
 Restart Grafana after the manifest changes.
 
-### 2. Build one standalone panel
+### 2. Build one standalone panel (complete)
 
 Add an explicit Relations production mode in `webpack.config.ts`.
 Keep the current multi-panel development build.
