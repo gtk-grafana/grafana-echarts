@@ -75,14 +75,7 @@ jobs:
         run: test -s dist/MANIFEST.txt
 
       - name: Package the signed plugin
-        env:
-          ARCHIVE: ${{ steps.metadata.outputs.archive }}
-          PLUGIN_ID: ${{ steps.metadata.outputs.plugin-id }}
-        shell: bash
-        run: |
-          mv dist "$PLUGIN_ID"
-          zip -qr "$ARCHIVE" "$PLUGIN_ID"
-          sha256sum "$ARCHIVE" > "${ARCHIVE}.sha256"
+        run: pnpm run archive:relations
 
       - name: Validate the signed archive
         env:

@@ -34,6 +34,16 @@ Build only the standalone Relations panel:
 pnpm run build:relations
 ```
 
+Build and package the standalone Relations panel:
+
+```sh
+pnpm run package:relations
+```
+
+This command creates `grafana-relations-panel-0.0.1.zip` and its SHA-256 file.
+The local archive is unsigned. The release workflow signs `dist` before it runs
+the shared `archive:relations` command.
+
 Run the test suite:
 
 ```sh
