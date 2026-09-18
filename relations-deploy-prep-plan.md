@@ -16,9 +16,8 @@ The dataViz move, shared build work, and automatic deployment are later work.
 2. Choose the package license.
    `package.json` and `LICENSE` currently use Apache-2.0.
    A change to AGPL needs legal or team approval.
-3. Decide whether system transformations block the first release.
-   If they block release, the upstream stack is a release gate.
-   If they do not, document the wide-frame requirement for the first release.
+3. Use system transformations for the first Cloud release.
+   Grafana 13.3 and the `grafana.panelPluginTransformations` feature toggle are release gates.
 4. Record the Cloud dev target, Cloud ops target, release owner, and promotion approver.
 5. Record the previous ops artifact and its rollback procedure before ops promotion.
 
@@ -110,8 +109,8 @@ The Cloud artifact does not establish the OSS compatibility baseline.
 
 ## Upstream status
 
-The repository still detects the system-transformations API at runtime.
-Do not state that system transformations shipped.
+System transformations are experimental in Grafana 13.3.
+Enable `grafana.panelPluginTransformations` on each Cloud target before deployment.
 
 The checked status on 2026-09-15 is:
 
@@ -142,5 +141,5 @@ CI signs and validates the same archive.
 Cloud dev at Grafana `13.3.0-35049663052` loads the archive without the app wrapper.
 Cloud dev and ops use the same recorded checksum.
 The provisioned Relations dashboards render in Cloud dev and ops.
-The release evidence records the chosen license, transformation gate, targets, owner, and approval.
+The release evidence records the chosen license, enabled feature toggle, targets, owner, and approval.
 Stable Grafana `13.3.0` alignment remains a required gate before the OSS release.

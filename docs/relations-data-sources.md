@@ -2,9 +2,9 @@
 
 ECharts Relations includes graph, Sankey, and chord charts. Each chart needs edge data, and it can also use node data.
 
-The panel reads the [Relations data format](../data-plane/graph-wide.md). One numeric field defines one node or edge. Convert [row-based data](../data-plane/graph-long.md) to wide data before the panel reads it.
+The panel reads the [Relations data format](../data-plane/graph-wide.md). One numeric field defines one node or edge. The panel can convert [row-based data](../data-plane/graph-long.md) before field overrides.
 
-Use wide input for Prometheus, Loki, SQL, CSV, and JSON. Tempo, AWS X-Ray, TestData DB, and Grafana Node graph return row-based data.
+Use wide input for Prometheus, Loki, SQL, CSV, and JSON. Use row input for Tempo, AWS X-Ray, TestData DB, and Grafana Node graph.
 
 ## Presets
 
@@ -28,7 +28,13 @@ If a plot dimension is invalid, the calculation uses 400 by 300. An explicit val
 
 Containment keeps each node symbol inside the plot. It does not keep node labels inside the plot.
 
-The public release does not run automatic row conversion. If a query returns row-based data, add a Rows to fields transformation.
+System transformations change query data before user transformations and field overrides. The panel uses them for automatic row conversion and derived nodes.
+
+This feature is experimental in Grafana 13.3. Enable `grafana.panelPluginTransformations` to use it.
+
+Grafana runs automatic row conversion before the transformations in the Transform tab.
+
+If automatic conversion is active, do not add Rows to fields or Grouping to matrix. These transformations receive wide frames and return them unchanged.
 
 ## Wide input
 
@@ -118,7 +124,7 @@ Keep `cluster`, `namespace`, and `workload` in the outer groups. The tooltip can
 
 ### SQL and CSV
 
-Use the Grafana Rows to fields transformation for table data. With `id,source,target,mainstat`, the automatic mapping is:
+For other table data, use the Grafana Rows to fields transformation. With `id,source,target,mainstat`, the automatic mapping is:
 
 | Input column                              | Output                                         |
 | ----------------------------------------- | ---------------------------------------------- |
@@ -148,7 +154,7 @@ Leave `sourceName` and `targetName` unmapped so they become labels.
 
 <a id="what-the-pivot-cannot-carry-however-it-is-configured"></a>
 
-Rows to fields cannot write `config.custom.*`, `config.links`, or frame metadata. It also drops the input frame name and some field configuration. If you need these values, produce wide data at the data source.
+Rows to fields cannot write `config.custom.*`, `config.links`, or frame metadata. It also drops the input frame name and some field configuration. Use the plugin conversion when full row compatibility is required.
 
 ### JSON objects and parallel edges
 
@@ -180,8 +186,6 @@ Config from query results applies one reduced row to every matched field. It doe
 ## Row input
 
 A row response contains one row per edge. Each row needs a source, a target, and usually a weight.
-
-Prepare the columns for your data source, and then apply the Rows to fields transformation.
 
 | Source      | Method                               | Native row frames |
 | ----------- | ------------------------------------ | ----------------- |
@@ -270,7 +274,7 @@ SQL Expressions run before frontend transformations. Cast text values inside the
 CAST(calls AS DECIMAL(20, 4)) AS mainstat
 ```
 
-SQL Expression output has no graph metadata. After the expression runs, apply Rows to fields to create one edge field for each row.
+SQL Expression output has no graph metadata. The converter identifies edges by the `source` and `target` fields.
 
 ## Aggregation
 

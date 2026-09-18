@@ -20,7 +20,7 @@ The panel requires Grafana 13.2.0 or later.
 
 The panel reads wide data frames. Each numeric edge field defines one edge and needs labels that identify its source and target.
 
-If a data source returns row-based data, use the data source guide to convert it to wide data.
+Grafana can convert supported row-based data before the panel reads it. This feature is experimental in Grafana 13.3. Enable `grafana.panelPluginTransformations` to use it.
 
 ## Get started
 

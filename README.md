@@ -10,7 +10,7 @@ ECharts Relations displays connected data as a graph, Sankey diagram, or chord d
 
 The panel reads wide data frames. Each numeric edge field defines one edge and needs labels that identify its source and target.
 
-If a data source returns row-based data, use the data source guide to convert it to wide data.
+Grafana can convert supported row-based data before the panel reads it. This feature is experimental in Grafana 13.3. Enable `grafana.panelPluginTransformations` to use it.
 
 For query examples, read the [data source guide](https://github.com/gtk-grafana/grafana-echarts/blob/main/docs/relations-data-sources.md).
 

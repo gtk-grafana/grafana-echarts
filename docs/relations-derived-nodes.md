@@ -38,7 +38,7 @@ It follows these rules:
 
 A placeholder does not replace a real nodes frame created by a later user transformation. The reader combines the placeholder with that frame. A real field supplies the value and configuration.
 
-The plugin registers the pre-pass with `PanelPlugin.setDataTransformations`. This needs Grafana 13.2 or later and the `grafana.panelPluginTransformations` feature toggle.
+The plugin registers the pre-pass with `PanelPlugin.setDataTransformations`. This feature is experimental in Grafana 13.3. Enable `grafana.panelPluginTransformations` to use it.
 
 ## Tooltip
 
