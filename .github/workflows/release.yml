@@ -1,29 +1,126 @@
-# This GitHub Action automates the process of building Grafana plugins.
-# (For more information, see https://github.com/grafana/plugin-actions/blob/main/build-plugin/README.md)
-name: Release
+name: Release Relations
 
 on:
   push:
     tags:
-      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
+      - 'v*'
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   release:
+    name: Build, sign, validate, and retain
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out the release revision
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - uses: grafana/plugin-actions/build-plugin@build-plugin/v1.2.0
-        # Uncomment to enable plugin signing
-        # (For more info on how to generate the access policy token see https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin#generate-an-access-policy-token)
-        #with:
-        # Make sure to save the token in your repository secrets
-        #policy_token: $
-        # Usage of GRAFANA_API_KEY is deprecated, prefer `policy_token` option above
-        #grafana_token: $
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Run repository checks
+        run: pnpm run checks
+
+      - name: Build standalone Relations plugin
+        run: pnpm run build:relations
+
+      - name: Read and verify release metadata
+        id: metadata
+        shell: bash
+        run: |
+          plugin_id=$(node -p "require('./dist/plugin.json').id")
+          plugin_type=$(node -p "require('./dist/plugin.json').type")
+          plugin_version=$(node -p "require('./dist/plugin.json').info.version")
+          archive="${plugin_id}-${plugin_version}.zip"
+
+          test "$plugin_id" = "grafana-echarts-relations-panel"
+          test "$plugin_type" = "panel"
+          test "$GITHUB_REF_NAME" = "v${plugin_version}"
+          test -f dist/module.js
+          test -f dist/README.md
+          test -f dist/CHANGELOG.md
+          test -f dist/LICENSE
+
+          {
+            echo "plugin-id=${plugin_id}"
+            echo "plugin-version=${plugin_version}"
+            echo "archive=${archive}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Require the Grafana signing token
+        env:
+          GRAFANA_ACCESS_POLICY_TOKEN: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
+        run: test -n "$GRAFANA_ACCESS_POLICY_TOKEN"
+
+      - name: Sign plugin
+        env:
+          GRAFANA_ACCESS_POLICY_TOKEN: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
+        run: pnpm run sign
+
+      - name: Verify signature output
+        run: test -s dist/MANIFEST.txt
+
+      - name: Package the signed plugin
+        env:
+          ARCHIVE: ${{ steps.metadata.outputs.archive }}
+          PLUGIN_ID: ${{ steps.metadata.outputs.plugin-id }}
+        shell: bash
+        run: |
+          mv dist "$PLUGIN_ID"
+          zip -qr "$ARCHIVE" "$PLUGIN_ID"
+          sha256sum "$ARCHIVE" > "${ARCHIVE}.sha256"
+
+      - name: Validate the signed archive
+        env:
+          ARCHIVE: ${{ steps.metadata.outputs.archive }}
+        run: npx --cache .cache/npm -y @grafana/plugin-validator@latest -sourceCodeUri file://./ -jsonOutput "$ARCHIVE" | tee validator-results.json
+
+      - name: Require a valid archive
+        run: node -e "const report = require('./validator-results.json'); const findings = Object.values(report['plugin-validator']).flat(); const errors = findings.filter(({ Severity }) => Severity === 'error'); if (errors.length > 0) { console.error(JSON.stringify(errors, null, 2)); process.exit(1); }"
+
+      - name: Record release evidence
+        env:
+          ARCHIVE: ${{ steps.metadata.outputs.archive }}
+          SOURCE_REVISION: ${{ github.sha }}
+        shell: bash
+        run: |
+          export ARCHIVE_SHA256
+          ARCHIVE_SHA256=$(cut -d ' ' -f 1 "${ARCHIVE}.sha256")
+          node -e "require('node:fs').writeFileSync('release-evidence.json', JSON.stringify({ sourceRevision: process.env.SOURCE_REVISION, archive: process.env.ARCHIVE, sha256: process.env.ARCHIVE_SHA256, signature: 'MANIFEST.txt present', validator: 'passed' }, null, 2) + '\n')"
+
+      - name: Upload immutable release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.metadata.outputs.plugin-id }}-${{ steps.metadata.outputs.plugin-version }}
+          path: |
+            ${{ steps.metadata.outputs.archive }}
+            ${{ steps.metadata.outputs.archive }}.sha256
+            release-evidence.json
+            validator-results.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Create draft GitHub release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            ${{ steps.metadata.outputs.archive }}
+            ${{ steps.metadata.outputs.archive }}.sha256
+            release-evidence.json
+            validator-results.json

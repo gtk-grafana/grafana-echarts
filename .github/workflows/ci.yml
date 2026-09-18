@@ -22,8 +22,6 @@ jobs:
       plugin-version: ${{ steps.metadata.outputs.plugin-version }}
       has-e2e: ${{ steps.check-for-e2e.outputs.has-e2e }}
       has-backend: ${{ steps.check-for-backend.outputs.has-backend }}
-    env:
-      GRAFANA_ACCESS_POLICY_TOKEN: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -54,7 +52,7 @@ jobs:
         run: |
           if [ -f "Magefile.go" ]
           then
-            echo "has-backend=true" >> $GITHUB_OUTPUT
+            echo "has-backend=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup Go environment
@@ -89,48 +87,24 @@ jobs:
         run: |
           if [ -f "playwright.config.ts" ]
           then
-            echo "has-e2e=true" >> $GITHUB_OUTPUT
+            echo "has-e2e=true" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Sign plugin
-        run: pnpm run sign
-        if: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN != '' }}
 
       - name: Get plugin metadata
         id: metadata
         run: |
-          sudo apt-get install jq
+          plugin_id=$(node -p "require('./dist/plugin.json').id")
+          plugin_version=$(node -p "require('./dist/plugin.json').info.version")
+          {
+            echo "plugin-id=${plugin_id}"
+            echo "plugin-version=${plugin_version}"
+          } >> "$GITHUB_OUTPUT"
 
-          export GRAFANA_PLUGIN_ID=$(cat dist/plugin.json | jq -r .id)
-          export GRAFANA_PLUGIN_VERSION=$(cat dist/plugin.json | jq -r .info.version)
-          export GRAFANA_PLUGIN_ARTIFACT=${GRAFANA_PLUGIN_ID}-${GRAFANA_PLUGIN_VERSION}.zip
-
-          echo "plugin-id=${GRAFANA_PLUGIN_ID}" >> $GITHUB_OUTPUT
-          echo "plugin-version=${GRAFANA_PLUGIN_VERSION}" >> $GITHUB_OUTPUT
-          echo "archive=${GRAFANA_PLUGIN_ARTIFACT}" >> $GITHUB_OUTPUT
-
-      - name: Package plugin
-        id: package-plugin
-        run: |
-          mv dist ${PLUGIN_ID}
-          zip ${ARCHIVE} ${PLUGIN_ID} -r
-        env:
-          ARCHIVE: ${{ steps.metadata.outputs.archive }}
-          PLUGIN_ID: ${{ steps.metadata.outputs.plugin-id }}
-
-      - name: Check plugin.json
-        run: |
-          docker run --pull=always \
-            -v $PWD/${ARCHIVE}:/archive.zip \
-            grafana/plugin-validator-cli -analyzer=metadatavalid /archive.zip
-        env:
-          ARCHIVE: ${{ steps.metadata.outputs.archive }}
-
-      - name: Archive Build
+      - name: Upload test build
         uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.metadata.outputs.plugin-id }}-${{ steps.metadata.outputs.plugin-version }}
-          path: ${{ steps.metadata.outputs.plugin-id }}
+          path: dist
           retention-days: 5
 
   resolve-versions:
