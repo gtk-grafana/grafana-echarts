@@ -58,7 +58,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Same query, two transformations — graph",
       "description": "The transformations keep `mainstat`, which is the average response time. Each edge and node uses that value after Rows to fields converts the response.\n\nEdge width therefore represents latency, not request volume. The panel sets milliseconds as the unit because the transformation creates new fields.",
       "datasource": {
@@ -130,7 +130,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Requests per second instead — one word changed",
       "description": "The transformations keep `secondarystat`, which is the request rate. The topology stays the same, but edge width now represents traffic volume.\n\nShow node values is on. Tempo supplies a `Nodes` frame, so each displayed node value is the request rate for that service.\n\nThe panel sets requests per second as the unit because the transformation creates new fields.",
       "datasource": {
@@ -203,7 +203,7 @@
     },
     {
       "id": 5,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Where the requests go — sankey (cycles dropped)",
       "description": "This Sankey chart uses the converted service map frames. A Sankey chart needs an acyclic graph, but a service map can contain self-loops and two-way calls.\n\nThe panel removes links that create cycles before it renders the chart. The panel notice reports how many links it removed.\n\nUse a graph or chord chart when you need to see every cyclic link.",
       "datasource": {
@@ -277,7 +277,7 @@
     },
     {
       "id": 6,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Who calls whom — chord",
       "description": "This chord chart uses the same converted service map frames. It can show self-loops and both directions between two services.\n\nEach ribbon keeps its own request rate. Link color comes from the source node.",
       "datasource": {
@@ -347,7 +347,7 @@
     },
     {
       "id": 7,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "The same query with an empty Transform tab",
       "description": "This panel sends the row-based Tempo response to the relations panel without manual transformations. The relations panel needs field-based node and edge data.\n\nIf automatic row conversion is available, the panel can convert the frames before rendering. Otherwise, add Filter fields by name and Rows to fields as shown in the other panels.\n\nThe error details identify the missing conversion when the panel cannot read the response.",
       "datasource": {

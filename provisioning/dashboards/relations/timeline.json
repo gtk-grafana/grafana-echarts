@@ -74,7 +74,7 @@
         }
       ],
       "title": "Ragged ranged edges — one frame per edge, scrubbable",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -115,7 +115,7 @@
         }
       ],
       "title": "The same edges, reduced by calcs[0] — no slider",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -143,7 +143,7 @@
         }
       ],
       "title": "One wide ranged frame (the pivoted shape) — sankey",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -172,7 +172,7 @@
         }
       ],
       "title": "Instant data with the slider on — no strip, one advisory",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
@@ -199,7 +199,7 @@
         }
       ],
       "title": "The same wide frame as a chord — the variant that morphs",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     }
   ],
   "refresh": "",

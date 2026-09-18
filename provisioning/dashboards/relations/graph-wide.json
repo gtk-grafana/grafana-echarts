@@ -177,7 +177,7 @@
     },
     {
       "id": 13,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "The same wide edges, drawn as a graph",
       "description": "This Relations graph uses the same edge fields and overrides as the bar chart. Each edge can have its own color, visibility, unit, and decimals.",
       "datasource": {
@@ -419,7 +419,7 @@
     },
     {
       "id": 14,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "The same wide nodes, drawn as a graph",
       "description": "This Relations graph uses the same node fields and overrides as the bar chart. Show node values displays each formatted value below its node name.",
       "datasource": {
@@ -628,7 +628,7 @@
     },
     {
       "id": 15,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "A data link on exactly one node, drawn as a graph",
       "description": "Select node `a` to pin its tooltip and open the runbook link. Nodes `b` and `c` do not show a footer link.",
       "datasource": {
@@ -831,7 +831,7 @@
         }
       ],
       "title": "Legacy input \u2014 converted above the panel",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     },
     {
       "datasource": {
@@ -902,7 +902,7 @@
     },
     {
       "id": 16,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Dense \u2014 the same six edges, drawn as a chord",
       "description": "Chord shows the same six directed edges and keeps the color override for `b-->a`. Chord supports cycles and self-links.",
       "datasource": {
@@ -1042,7 +1042,7 @@
     },
     {
       "id": 17,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "The matrix transformation never runs \u2014 the conversion got there first",
       "description": "The panel converts row-format data before dashboard transformations run. Grouping to matrix cannot find the original `source`, `target`, and `mainstat` columns, so this panel keeps the edge-per-field data.",
       "datasource": {
@@ -1226,7 +1226,7 @@
     },
     {
       "id": 18,
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "title": "Ranged edges, joined into one wide frame",
       "description": "Join by field combines the edge series on `Time`. The legend names become field names, so each edge can use its own override.",
       "datasource": {
@@ -1389,7 +1389,7 @@
         }
       ],
       "title": "WIDE input \u2014 the relations panel reads it directly (regression target)",
-      "type": "grafana-echartsrelations-panel"
+      "type": "grafana-echarts-relations-panel"
     }
   ],
   "refresh": "",

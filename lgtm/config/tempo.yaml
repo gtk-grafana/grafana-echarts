@@ -4,8 +4,7 @@
 # the metrics-generator so those traces become Prometheus metrics. The
 # generator is what makes the stack interesting to this repo — it publishes
 # `traces_service_graph_request_total{client,server}`, the source/target pair
-# that `provisioning/dashboards/relations/devcortex-*.json` are written
-# against, so the relations panels have real data to draw locally.
+# that the LGTM Relations dashboards use for live local data.
 
 stream_over_http_enabled: true
 

@@ -193,7 +193,7 @@ Grouping is by **shared intermediate data model** and **shared option/axis patte
 **Types:** graph, sankey, chord (shipped); lines (deferred)
 
 > **Shipped** as the **relations** family, `src/modules/relations/` (panel id
-> `grafana-echartsrelations-panel`): one panel, three render variants over one
+> `grafana-echarts-relations-panel`): one panel, three render variants over one
 > converter, selected by a "Chart type" picker — matching the hierarchy and
 > part-to-whole families. Options are tracked in
 > [src/modules/relations/parity.md](../../src/modules/relations/parity.md).

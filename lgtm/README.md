@@ -38,11 +38,10 @@ is the input instead.
 
 Tempo's metrics-generator publishes `traces_service_graph_request_total` with
 `client` and `server` labels — a real source/target pair. That is exactly the
-metric `provisioning/dashboards/relations/devcortex-*.json` are written against,
-so the **relations** panels (graph / sankey / chord) have live data locally
-instead of needing a cluster. The reader accepts `client`/`server` as an endpoint pair
-directly, so none of these dashboards renames it — `dashboards/lgtm-stack.json` is
-the plain aggregation with an empty Transform tab.
+metric that the LGTM **relations** dashboards use, so the graph, sankey, and chord
+panels have live data locally instead of needing a cluster. The reader accepts
+`client` and `server` as an endpoint pair directly, so these dashboards do not rename
+it. `dashboards/lgtm-stack.json` uses the plain aggregation with an empty Transform tab.
 
 ## What runs where
 

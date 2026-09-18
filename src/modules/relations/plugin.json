@@ -3,7 +3,7 @@
   "type": "panel",
   "suggestions": true,
   "name": "ECharts Relations",
-  "id": "grafana-echartsrelations-panel",
+  "id": "grafana-echarts-relations-panel",
   "info": {
     "keywords": ["panel", "echarts", "graph", "node graph", "relations", "service map", "sankey", "chord"],
     "description": "Relations ECharts panel (graph, sankey, chord) built from Grafana node-graph nodes and edges frames.",

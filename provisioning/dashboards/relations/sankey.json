@@ -41,7 +41,7 @@
         }
       ],
       "title": "Conversion funnel — a natural sankey",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -88,7 +88,7 @@
         }
       ],
       "title": "Same funnel, vertical flow",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -136,7 +136,7 @@
         }
       ],
       "title": "Cyclic service graph — SANKEY (cycle broken)",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -218,7 +218,7 @@
         }
       ],
       "title": "Same frames as GRAPH — the variant switch",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -275,7 +275,7 @@
         }
       ],
       "title": "Named nodes — titles as labels",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -326,7 +326,7 @@
         }
       ],
       "title": "TestData random — generated cycles",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -377,7 +377,7 @@
         }
       ],
       "title": "Edges only — derived node set",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -424,7 +424,7 @@
         }
       ],
       "title": "Advanced — node geometry and ribbon opacity",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,
@@ -485,7 +485,7 @@
         }
       ],
       "title": "Node values — mainstat under each label",
-      "type": "grafana-echartsrelations-panel",
+      "type": "grafana-echarts-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,

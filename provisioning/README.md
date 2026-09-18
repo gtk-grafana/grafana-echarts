@@ -47,18 +47,20 @@ each gets its own panel with a data link attached.
 
 ## `relations/` — graph / sankey / chord
 
-Demonstrates the ECharts **Relations** panel (`grafana-echartsrelations-panel`) across
+Demonstrates the ECharts **Relations** panel (`grafana-echarts-relations-panel`) across
 its three render variants, all on one node/link converter. Every dashboard here is
 TestData-backed so it needs no external data source; the live-data equivalents are under
 [../lgtm/provisioning/dashboards/lgtm-relations/](../lgtm/provisioning/dashboards/lgtm-relations/).
+
+Grafana updates these provisioned dashboards in place by UID. A non-provisioned dashboard
+that uses the old panel type cannot load after this ID change. Replace the old `type` in
+the exported dashboard JSON and import it again, or recreate the panel.
 
 Grouped roughly: the **contract** fixtures (`node-graph-testdata`, `graph-wide`,
 `node-graph-sql-expressions`, `derived-nodes`), the **variant** showcases (`sankey`,
 `chord`, `timeline`, `fixed-layout`), the **option** showcases (`all-options`,
 `readability`, `per-mark-tooltip-links`) and the **standard-options** showcases
-(`value-mappings`, `colour-domain`). Three files are **generated** — `observability-sources.json`,
-`devcortex-sources.json` and `devcortex-wide.json` — so edit their `scripts/build-*.py`
-generator and re-run rather than the JSON.
+(`value-mappings`, `colour-domain`). The dashboards are maintained as JSON fixtures.
 
 - **`node-graph-testdata.json`** — all five TestData `node_graph` sub-types, one panel
   each. Three are deliberate regression fixtures: `random` (which **generates cycles**,
