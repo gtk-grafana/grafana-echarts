@@ -1,6 +1,6 @@
 {
   "name": "echarts",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "scripts": {
     "build": "webpack -c ./webpack.config.ts --env production",
     "build:analyze": "webpack -c ./webpack.config.ts --env production --env analyze",

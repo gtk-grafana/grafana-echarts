@@ -43,19 +43,21 @@ The production build must:
 - Use the approved plugin ID for public paths and translations.
 - Keep the current asynchronous ECharts chunk behavior.
 
-### 3. Freeze the Cloud artifact metadata
+### 3. Freeze the Cloud artifact metadata (baseline complete)
 
-The current versions do not describe one tested release baseline:
+The Cloud artifact baseline is:
 
-- `package.json` sets the plugin version to `1.0.0`.
-- `package.json` pins `@grafana/*` packages to `13.1.1`.
-- `.env` runs Grafana `13.1.0`.
-- The Relations manifest requires Grafana `>=13.2.0`.
-- npm reports `@grafana/data` `13.2.2` as latest on 2026-09-15.
+- Plugin ID: `grafana-echarts-relations-panel`.
+- Plugin version: `0.0.1`.
+- Archive name: `grafana-echarts-relations-panel-0.0.1.zip`.
+- Grafana SDK packages: `13.1.1`.
+- Local Grafana runtime: `13.1.0`.
+- Minimum Grafana version: `>=13.2.0`.
 
 Do not update the Grafana SDK packages or local runtime to Grafana 13.2 for the Cloud rollout.
 Keep the plugin version independent from the Grafana version.
-Record the source revision, plugin ID, plugin version, archive name, and checksum for the Cloud artifact.
+Version `0.0.1` identifies the Cloud artifact. The later OSS release can use version `1.0.0`.
+When the release workflow creates the signed archive in step 6, record its source revision and SHA-256 checksum with this frozen metadata.
 Do not change this metadata between Cloud dev and ops.
 
 ### 4. Replace catalog placeholders
