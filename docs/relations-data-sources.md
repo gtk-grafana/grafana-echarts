@@ -1,14 +1,14 @@
-# Data sources for relations charts
+# Use data sources with ECharts Relations
 
-The relations family includes ECharts graph, sankey, and chord charts. Each chart needs edges and can also use declared nodes.
+ECharts Relations includes graph, Sankey, and chord charts. Each chart needs edge data, and it can also use node data.
 
-The panel reads the [ECharts graph-wide implementation](../data-plane/graph-wide.md). One node or edge is one numeric field. The generic shape is in the [proposed graph-wide specification](../data-plane/graph-wide-proposed.md). The panel can convert the [row contract](../data-plane/graph-long.md) before field overrides.
+The panel reads the [Relations data format](../data-plane/graph-wide.md). One numeric field defines one node or edge. Convert [row-based data](../data-plane/graph-long.md) to wide data before the panel reads it.
 
-Use wide input for Prometheus, Loki, SQL, CSV, and JSON. Use row input for Tempo, AWS X-Ray, TestData DB, and compatibility with Grafana Node graph.
+Use wide input for Prometheus, Loki, SQL, CSV, and JSON. Tempo, AWS X-Ray, TestData DB, and Grafana Node graph return row-based data.
 
 ## Presets
 
-Open Presets in the panel editor to select a starting use-case.
+Open Presets in the panel editor to select a starting point.
 
 | Preset           | Use it for                                 | Constraint                                                       |
 | ---------------- | ------------------------------------------ | ---------------------------------------------------------------- |
@@ -28,9 +28,7 @@ If a plot dimension is invalid, the calculation uses 400 by 300. An explicit val
 
 Containment keeps each node symbol inside the plot. It does not keep node labels inside the plot.
 
-The automatic row conversion needs Grafana 13.2 or later and `grafana.panelPluginTransformations`. If the host cannot run it, add a Rows to fields transformation.
-
-Grafana runs the automatic row conversion before the user transformations in the Transform tab. Thus, Rows to fields and Grouping to matrix receive wide frames and return them unchanged. If automatic conversion is active, do not add these row transformations. Transformations that consume wide frames still operate normally.
+The public release does not run automatic row conversion. If a query returns row-based data, add a Rows to fields transformation.
 
 ## Wide input
 
@@ -79,6 +77,8 @@ If one panel has separate edge and node queries, filter one join by each `refId`
 
 For other endpoint labels, copy them to `source` and `target`. Keep the original labels so tooltip filters use labels that the data source accepts.
 
+Replace `…` with the PromQL expression that returns the edge values.
+
 ```promql
 sum by (source, target, client_k8s_cluster_name, server_k8s_cluster_name) (
   label_replace(
@@ -93,6 +93,8 @@ Use the Source filter label and Target filter label overrides only when the quer
 ### Multi-level flows
 
 Combine each level into one query. Copy the labels for each level to the canonical pair.
+
+In each query, replace `…` with the PromQL expression that returns the values for that level.
 
 ```promql
 sum by (source, target, cluster, namespace) (
@@ -146,7 +148,7 @@ Leave `sourceName` and `targetName` unmapped so they become labels.
 
 <a id="what-the-pivot-cannot-carry-however-it-is-configured"></a>
 
-Rows to fields cannot write `config.custom.*`, `config.links`, or frame metadata. It also drops the input frame name and some field configuration. Use the plugin conversion when full row compatibility is required.
+Rows to fields cannot write `config.custom.*`, `config.links`, or frame metadata. It also drops the input frame name and some field configuration. If you need these values, produce wide data at the data source.
 
 ### JSON objects and parallel edges
 
@@ -173,11 +175,13 @@ Grouping to matrix stores one field per target instead of one field per edge. Th
 
 The matrix cannot support per-edge overrides because one edge is one cell. See the [matrix decision](../data-plane/graph-matrix.md).
 
-Config from query results applies one reduced row to every matched field. It does not supply different configuration for each node. Use Rows to fields for per-node metadata.
+Config from query results applies one reduced row to every matched field. It does not supply different configuration for each node. Use Rows to fields for metadata that differs by node.
 
 ## Row input
 
 A row response contains one row per edge. Each row needs a source, a target, and usually a weight.
+
+Prepare the columns for your data source, and then apply the Rows to fields transformation.
 
 | Source      | Method                               | Native row frames |
 | ----------- | ------------------------------------ | ----------------- |
@@ -266,7 +270,7 @@ SQL Expressions run before frontend transformations. Cast text values inside the
 CAST(calls AS DECIMAL(20, 4)) AS mainstat
 ```
 
-SQL Expression output has no graph metadata. The converter identifies edges by the `source` and `target` fields.
+SQL Expression output has no graph metadata. After the expression runs, apply Rows to fields to create one edge field for each row.
 
 ## Aggregation
 

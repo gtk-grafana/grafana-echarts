@@ -6,7 +6,7 @@
   "id": "grafana-echarts-relations-panel",
   "info": {
     "keywords": ["panel", "echarts", "graph", "node graph", "relations", "service map", "sankey", "chord"],
-    "description": "Relations ECharts panel (graph, sankey, chord) built from Grafana node-graph nodes and edges frames.",
+    "description": "Display service maps, flows, and other connected data as interactive graphs, Sankey diagrams, or chord diagrams.",
     "author": {
       "name": "Grafana"
     },
@@ -14,8 +14,34 @@
       "small": "img/logo.svg",
       "large": "img/logo.svg"
     },
-    "links": [],
-    "screenshots": [],
+    "links": [
+      {
+        "name": "Documentation",
+        "url": "https://github.com/gtk-grafana/grafana-echarts/blob/main/src/README.md"
+      },
+      {
+        "name": "Repository",
+        "url": "https://github.com/gtk-grafana/grafana-echarts"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/gtk-grafana/grafana-echarts/blob/main/LICENSE"
+      },
+      {
+        "name": "Report an issue",
+        "url": "https://github.com/gtk-grafana/grafana-echarts/issues/new/choose"
+      }
+    ],
+    "screenshots": [
+      {
+        "name": "Graph, Sankey, chord, and time network presets",
+        "path": "img/relations-presets.png"
+      },
+      {
+        "name": "Time slider across graph, Sankey, and chord panels",
+        "path": "img/relations-timeline.png"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },

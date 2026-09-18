@@ -60,17 +60,14 @@ Version `0.0.1` identifies the Cloud artifact. The later OSS release can use ver
 When the release workflow creates the signed archive in step 6, record its source revision and SHA-256 checksum with this frozen metadata.
 Do not change this metadata between Cloud dev and ops.
 
-### 4. Replace catalog placeholders
+### 4. Replace catalog placeholders (complete)
 
-`src/modules/relations/plugin.json` has no catalog links or screenshots.
-Its description also needs final catalog text.
-Root `README.md` is still the panel template.
-`src/README.md` is still an HTML-commented template.
-`CHANGELOG.md` contains only the unreleased `1.0.0` placeholder.
-
-Write catalog text for the standalone Relations panel.
-Use absolute links where the Grafana catalog requires them.
-Capture screenshots from the provisioned Relations dashboards.
+`src/modules/relations/plugin.json` contains the final catalog description, links, and screenshots.
+Root `README.md` describes the repository and the standalone Relations panel.
+`src/README.md` contains the catalog documentation for the panel.
+`CHANGELOG.md` records the unreleased `0.0.1` changes.
+The catalog uses absolute links where Grafana requires them.
+The screenshots use the provisioned Relations dashboards.
 
 ### 5. Resolve release-risk tests
 

@@ -1,8 +1,8 @@
-# ECharts implementation of graph-wide
+# Relations data format reference
 
-The relations family contains the ECharts graph, Sankey, and chord charts. Each chart reads one numeric field as one node or edge.
+ECharts Relations contains graph, Sankey, and chord charts. Each chart reads one numeric field as one node or edge.
 
-The [proposed graph-wide data plane specification](./graph-wide-proposed.md) defines the portable data shape. This document describes how the ECharts relations panel reads that shape.
+The [proposed graph-wide data plane specification](./graph-wide-proposed.md) defines the portable data shape. This reference describes how ECharts Relations reads that shape.
 
 ## Support status
 
@@ -26,7 +26,7 @@ The panel and its converters use these metadata values:
 | `meta.custom.graph.targetKey`    | Endpoint label name                      | Declares a non-standard target label     |
 | `meta.custom.graph.derivedNodes` | `true`                                   | Identifies a placeholder nodes frame     |
 
-The wide reader does not use `meta.preferredVisualisationType`. The row converter uses `nodeGraph` to identify declared Grafana Node Graph data.
+The wide reader does not use `meta.preferredVisualisationType`.
 
 These metadata values describe current compatibility behavior. They are not part of the proposed `graph-wide` type.
 
@@ -95,13 +95,11 @@ If node IDs are duplicated, the first real node field supplies the value and fie
 
 ### Derived nodes
 
-A derived node comes from an edge endpoint when no nodes frame declares it. The panel can add placeholder node fields before Grafana applies field overrides.
+A derived node comes from an edge endpoint when no nodes frame declares it. The public release creates derived nodes inside the panel.
 
-The panel marks a placeholder frame with `meta.custom.graph.derivedNodes: true`. A later real nodes frame can supply the value and field configuration for the same ID.
+These nodes have no fields, so they cannot use field configuration. If a node needs field configuration, include it in a nodes frame.
 
-If the host does not operate this pre-pass, the panel creates nodes during conversion. These fallback nodes have no field configuration.
-
-For more information, refer to [Derived nodes](../docs/relations-derived-nodes.md).
+The reader also accepts placeholder frames with `meta.custom.graph.derivedNodes: true`. A real nodes frame can supply the value and field configuration for the same ID.
 
 ## Values and time
 
@@ -156,7 +154,7 @@ For a fixed graph layout, every node must supply both coordinates. The `relation
 
 Sankey reads both coordinates only when each value is from `0` through `1`. Chord ignores the coordinates.
 
-The panel stores `custom.icon` during legacy conversion. It does not register an icon field option or send an icon to ECharts.
+The panel does not expose or render `custom.icon`.
 
 ## Ad hoc filters
 
@@ -186,38 +184,9 @@ The reader can make a private key for repeated names. This key is not a field ov
 
 <a id="converting-between-graph-formats"></a>
 
-## Legacy row data to wide data
+## Legacy row data
 
-The panel can convert the [Grafana Node Graph row format](./graph-long.md) to wide fields. The `legacyToWide` converter does not preserve all input data.
-
-The converter preserves these items:
-
-- Edge and node IDs.
-- Edge `source` and `target` values.
-- Numeric `mainstat` values.
-- Node `secondarystat` as `labels.secondarystat`.
-- Node title, subtitle, fixed color, size value, icon value, and fixed coordinates.
-- Edge fixed color and thickness.
-- `detail__*` values as labels.
-- Unit, decimals, minimum, maximum, mappings, and thresholds from `mainstat`.
-
-The converter approximates an SVG `strokedasharray` as `dashed` or `dotted`. It sends `noderadius` to ECharts as a symbol diameter.
-
-If an edge has no numeric `mainstat`, the converter uses numeric `thickness` as the weight. If both values are absent, it uses `1`.
-
-The converter drops these items:
-
-- String statistics.
-- Edge secondary statistics.
-- `arc__*` values.
-- Highlighting and instrumentation.
-- Field data links and field configuration that the preserved list does not name.
-
-## Conversion to row data
-
-A converter to the row format can preserve style only when the row format has a matching column. Examples include `color`, `thickness`, `strokedasharray`, `noderadius`, and `icon`.
-
-The row format has one shared field configuration for each column. It cannot preserve different field configuration for each mark.
+The public release does not convert the [Grafana Node Graph row format](./graph-long.md) inside the panel. Use the [data source guide](../docs/relations-data-sources.md) to convert row data to wide data.
 
 ## Conversion between wide and multi
 
@@ -235,4 +204,3 @@ The join adds null values for missing rows. If row dimensions do not align, keep
 - [ECharts Sankey series](https://echarts.apache.org/en/option.html#series-sankey)
 - [ECharts chord series](https://echarts.apache.org/en/option.html#series-chord)
 - [Relations render coverage](./echarts-coverage.md)
-- [Relations design history](../todo/graph-wide-history.md)

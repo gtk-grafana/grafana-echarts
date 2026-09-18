@@ -1,50 +1,43 @@
-<!-- This README file is going to be the one displayed on the Grafana.com website for your plugin. Uncomment and replace the content here before publishing.
+# ECharts Relations panel for Grafana
 
-Remove any remaining comments before publishing as these may be displayed on Grafana.com -->
+ECharts Relations displays connected data as an interactive graph, Sankey diagram, or chord diagram. You can use it for service maps, dependency graphs, network traffic, and weighted flows.
 
-# Echarts
+![Graph, Sankey, chord, and time network presets](https://raw.githubusercontent.com/gtk-grafana/grafana-echarts/main/src/modules/relations/img/relations-presets.png)
 
-<!-- To help maximize the impact of your README and improve usability for users, we propose the following loose structure:
+## Features
 
-**BEFORE YOU BEGIN**
-- Ensure all links are absolute URLs so that they will work when the README is displayed within Grafana and Grafana.com
-- Be inspired ✨
-  - [grafana-polystat-panel](https://github.com/grafana/grafana-polystat-panel)
-  - [volkovlabs-variable-panel](https://github.com/volkovlabs/volkovlabs-variable-panel)
+- You can select graph, Sankey, or chord in one panel.
+- Presets provide starting points for service maps, circular networks, weighted flows, mutual relations, and time networks.
+- Grafana field configuration controls value mappings, thresholds, data links, tooltips, legends, and colors.
+- Panel configuration controls graph layouts, labels, edge styles, zoom, pan, and adjacency highlighting.
+- The time slider displays ranged data at one timestamp.
 
-**ADD SOME BADGES**
-
-Badges convey useful information at a glance for users whether in the Catalog or viewing the source code. You can use the generator on [Shields.io](https://shields.io/badges/dynamic-json-badge) together with the Grafana.com API
-to create dynamic badges that update automatically when you publish a new version to the marketplace.
-
-- For the URL parameter use `https://grafana.com/api/plugins/your-plugin-id`.
-- Example queries:
-  - Downloads: `$.downloads`
-  - Catalog Version: `$.version`
-  - Grafana Dependency: `$.grafanaDependency`
-  - Signature Type: `$.versionSignatureType`
-- Optionally, for the logo parameter use `grafana`.
-
-Full example: ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?logo=grafana&query=$.version&url=https://grafana.com/api/plugins/grafana-polystat-panel&label=Marketplace&prefix=v&color=F47A20)
-
-Consider other [badges](https://shields.io/badges) as you feel appropriate for your project.
-
-## Overview / Introduction
-Provide one or more paragraphs as an introduction to your plugin to help users understand why they should use it.
-
-Consider including screenshots:
-- in [plugin.json](https://grafana.com/developers/plugin-tools/reference/plugin-json#info) include them as relative links.
-- in the README ensure they are absolute URLs.
+![Time slider with graph, Sankey, and chord panels](https://raw.githubusercontent.com/gtk-grafana/grafana-echarts/main/src/modules/relations/img/relations-timeline.png)
 
 ## Requirements
-List any requirements or dependencies they may need to run the plugin.
 
-## Getting Started
-Provide a quick start on how to configure and use the plugin.
+The panel requires Grafana 13.2.0 or later.
+
+The panel reads wide data frames. Each numeric edge field defines one edge and needs labels that identify its source and target.
+
+If a data source returns row-based data, use the data source guide to convert it to wide data.
+
+## Get started
+
+1. Add an ECharts Relations panel to a dashboard.
+2. Open Presets and select a preset.
+3. Query one numeric field for each edge.
+4. Add source and target labels to each edge field.
+5. Use field configuration to set units, colors, links, and value mappings.
+
+The panel recognizes `source` and `target`, `client` and `server`, `src` and `dst`, or `from` and `to` as endpoint labels.
 
 ## Documentation
-If your project has dedicated documentation available for users, provide links here. For help in following Grafana's style recommendations for technical documentation, refer to our [Writer's Toolkit](https://grafana.com/docs/writers-toolkit/).
 
-## Contributing
-Do you want folks to contribute to the plugin or provide feedback through specific means? If so, tell them how!
--->
+- [Data source guide](https://github.com/gtk-grafana/grafana-echarts/blob/main/docs/relations-data-sources.md)
+- [Data format reference](https://github.com/gtk-grafana/grafana-echarts/blob/main/data-plane/graph-wide.md)
+- [Report an issue](https://github.com/gtk-grafana/grafana-echarts/issues/new/choose)
+
+## License
+
+This plugin uses the [Apache License 2.0](https://github.com/gtk-grafana/grafana-echarts/blob/main/LICENSE).
