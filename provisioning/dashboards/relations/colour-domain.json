@@ -30,8 +30,7 @@
       "title": "1 \u2014 Percentage thresholds, no domain set",
       "description": "This panel uses percentage thresholds at 50% and 80%. Min and Max are not set, so Grafana uses the shared node range `[10, 90]`. The node medians use that range: `gateway` is 12%, `api` is 56%, `db` is 94%, and `cache` is 31%. A value change in any node field can change the shared range and the resulting colors.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -83,8 +82,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
@@ -92,8 +90,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
@@ -106,8 +103,7 @@
       "title": "2 \u2014 Explicit min / max pins the domain",
       "description": "This panel sets Min to 0 and Max to 100. The node medians are `gateway` 20%, `api` 55%, `db` 85%, and `cache` 35%. These percentages do not change when another field contains a new minimum or maximum. Set Min and Max when percentage thresholds must use a fixed range.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -161,8 +157,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
@@ -170,8 +165,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
@@ -184,8 +178,7 @@
       "title": "3 \u2014 Field min/max grades each mark against itself",
       "description": "Field min/max gives each field its own color range. Each node median is at 50% of its field range, so all four nodes are yellow. For example, `gateway` has the range `[10, 30]` and the median 20. Use this configuration to compare each node with its own values instead of the values from other nodes.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -238,8 +231,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
@@ -247,8 +239,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
@@ -261,8 +252,7 @@
       "title": "4 \u2014 A byName min/max override on one node",
       "description": "The panel range is `[0, 100]`. A field override gives the `db` node the range `[0, 200]`. Its median of 85 changes from 85% and red to 42% and green. The other nodes keep the panel range. Use a field override when one node needs a different scale.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -333,8 +323,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
@@ -342,8 +331,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"
@@ -356,8 +344,7 @@
       "title": "5 \u2014 The same pinned domain on a sankey",
       "description": "This Sankey chart uses the fixed range `[0, 100]` from panel 2. Each ribbon uses its edge value to select a threshold color. This field color takes priority over Link color, so the Link color configuration does not change these ribbons.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -410,8 +397,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway,api,db,cache\n10,50,90,30\n20,60,80,40\n30,55,85,35"
@@ -419,8 +405,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache\n120,80,45\n130,85,50\n125,82,47"

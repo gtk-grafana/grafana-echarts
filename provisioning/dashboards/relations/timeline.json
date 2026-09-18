@@ -20,7 +20,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This panel has three edge series with different timestamps. Use the time slider, arrow keys, or step buttons to select a time. A missing sample keeps the edge but removes its weight. The data link on `gateway-->api` uses the value at the selected time.",
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -56,19 +56,19 @@
       "targets": [
         {
           "csvContent": "time,gateway-->api\n1704067200000,10\n1704067500000,40\n1704067800000,20\n1704068100000,60\n1704068400000,30",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "A",
           "scenarioId": "csv_content"
         },
         {
           "csvContent": "time,api-->db\n1704067500000,5\n1704067800000,50\n1704068100000,15\n1704068400000,45",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "B",
           "scenarioId": "csv_content"
         },
         {
           "csvContent": "time,api-->cache\n1704067200000,80\n1704067800000,20\n1704068400000,70",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "C",
           "scenarioId": "csv_content"
         }
@@ -77,7 +77,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This panel uses the same edge series without the time slider. Calculation reduces each full series to one value. The default Last value matches the newest slider position. Select Max or Mean to summarize the full time range.",
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -97,19 +97,19 @@
       "targets": [
         {
           "csvContent": "time,gateway-->api\n1704067200000,10\n1704067500000,40\n1704067800000,20\n1704068100000,60\n1704068400000,30",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "A",
           "scenarioId": "csv_content"
         },
         {
           "csvContent": "time,api-->db\n1704067500000,5\n1704067800000,50\n1704068100000,15\n1704068400000,45",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "B",
           "scenarioId": "csv_content"
         },
         {
           "csvContent": "time,api-->cache\n1704067200000,80\n1704067800000,20\n1704068400000,70",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "C",
           "scenarioId": "csv_content"
         }
@@ -118,7 +118,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This Sankey chart uses one time field and one numeric field for each edge. The time slider selects one row. Ribbon width shows the edge value at that time.",
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -137,7 +137,7 @@
       "targets": [
         {
           "csvContent": "time,gateway-->api,gateway-->web,api-->db,web-->db\n1704067200000,10,70,80,25\n1704067500000,40,30,55,60\n1704067800000,20,60,20,35\n1704068100000,60,20,65,50\n1704068400000,30,50,70,20",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "A",
           "scenarioId": "csv_content"
         }
@@ -146,7 +146,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This panel has one row and no time field, so it cannot show a time slider. An information notice explains why. The editor hides Time slider for instant data unless the saved panel already enables it.",
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -166,7 +166,7 @@
       "targets": [
         {
           "csvContent": "gateway-->api,api-->db,api-->cache\n30,45,70",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "A",
           "scenarioId": "csv_content"
         }
@@ -175,7 +175,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This Chord chart uses the same wide time series as the Sankey chart. Select another time to animate the arcs and ribbons to their new values.",
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -193,7 +193,7 @@
       "targets": [
         {
           "csvContent": "time,gateway-->api,gateway-->web,api-->db,web-->db\n1704067200000,10,70,80,25\n1704067500000,40,30,55,60\n1704067800000,20,60,20,35\n1704068100000,60,20,65,50\n1704068400000,30,50,70,20",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "A",
           "scenarioId": "csv_content"
         }

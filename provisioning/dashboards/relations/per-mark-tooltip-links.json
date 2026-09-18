@@ -31,8 +31,7 @@
       "title": "Per-mark units \u2014 hover any node or edge",
       "description": "`gateway` and `api` use milliseconds. `db` uses percent. Each edge also uses its own unit. Node labels and tooltips use the same formatted value.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 10,
@@ -164,8 +163,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
@@ -173,8 +171,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
@@ -187,8 +184,7 @@
       "title": "Control \u2014 same query, no overrides",
       "description": "This panel uses the same query without field overrides. Each mark shows its raw numeric value.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 10,
@@ -223,8 +219,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
@@ -232,8 +227,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
@@ -246,8 +240,7 @@
       "title": "Per-mark data links \u2014 click a mark to pin its tooltip",
       "description": "The `db` node links to Database runbook. The `api-db` edge links to Trace api-db. Select a mark to pin its tooltip and open its link.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 10,
@@ -334,8 +327,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
@@ -343,8 +335,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
@@ -357,8 +348,7 @@
       "title": "Control \u2014 same query, no links",
       "description": "This panel uses the same query without data links. Pinned tooltips do not contain a footer link.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 10,
@@ -392,8 +382,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
@@ -401,8 +390,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
@@ -415,8 +403,7 @@
       "title": "Legend \u2014 the colour picker writes an ordinary byName override",
       "description": "Select a legend color swatch to change one node color. Select a legend label to hide that node and its connected edges.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 10,
@@ -506,8 +493,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
@@ -515,8 +501,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
@@ -529,8 +514,7 @@
       "title": "Sankey \u2014 the same answers in another variant",
       "description": "Sankey uses the same units and data links for each mark. Hover a ribbon to see its unit. Select the `api → db` ribbon to open its link.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 9,
@@ -644,8 +628,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
@@ -653,8 +636,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"
@@ -667,8 +649,7 @@
       "title": "Chord \u2014 and again",
       "description": "Chord uses the same units and data links for each mark. Chord can show cyclic relationships without removing links.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 9,
@@ -782,8 +763,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,mainstat\ngw-api,gateway,api,1500\napi-db,api,db,3.5\ngw-db,gateway,db,0.02"
@@ -791,8 +771,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,title,subtitle,mainstat\ngateway,Gateway,eu-west-1,12\napi,API,eu-west-1,250\ndb,Database,rds/primary,0.42"

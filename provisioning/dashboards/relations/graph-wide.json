@@ -11,8 +11,7 @@
   "panels": [
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This wide frame has one numeric field for each edge. Field overrides make `a-->c` dark red, hide `b-->d`, format `a-->b` as milliseconds, and format `c-->d` as seconds.",
       "fieldConfig": {
@@ -114,8 +113,7 @@
         {
           "csvContent": "row,a-->b,a-->c,b-->d,c-->d\ntotal,60,40,60,40",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -126,8 +124,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This panel uses the same wide edge frame without overrides. It shows all four fields with palette colors and raw values.",
       "fieldConfig": {
@@ -165,8 +162,7 @@
         {
           "csvContent": "row,a-->b,a-->c,b-->d,c-->d\ntotal,60,40,60,40",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -181,8 +177,7 @@
       "title": "The same wide edges, drawn as a graph",
       "description": "This Relations graph uses the same edge fields and overrides as the bar chart. Each edge can have its own color, visibility, unit, and decimals.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 9,
@@ -279,8 +274,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "row,a-->b,a-->c,b-->d,c-->d\ntotal,60,40,60,40"
@@ -289,8 +283,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This wide frame has one numeric field for each node. Field overrides make `a` dark red with milliseconds and format `b` as percent.",
       "fieldConfig": {
@@ -362,8 +355,7 @@
         {
           "csvContent": "a,b,c\n12,8,3",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -374,8 +366,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This panel uses the same wide node frame without overrides. It shows all three fields with palette colors and raw values.",
       "fieldConfig": {
@@ -407,8 +398,7 @@
         {
           "csvContent": "a,b,c\n12,8,3",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -423,8 +413,7 @@
       "title": "The same wide nodes, drawn as a graph",
       "description": "This Relations graph uses the same node fields and overrides as the bar chart. Show node values displays each formatted value below its node name.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 9,
@@ -498,8 +487,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "a-->b,b-->c\n5,7"
@@ -507,8 +495,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "a,b,c\n12,8,3"
@@ -517,8 +504,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "A field override adds a data link to node `a`. Nodes `b` and `c` do not have links.",
       "fieldConfig": {
@@ -574,8 +560,7 @@
         {
           "csvContent": "a,b,c\n12,8,3",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -586,8 +571,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This panel uses the same wide node frame without data links.",
       "fieldConfig": {
@@ -616,8 +600,7 @@
         {
           "csvContent": "a,b,c\n12,8,3",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -632,8 +615,7 @@
       "title": "A data link on exactly one node, drawn as a graph",
       "description": "Select node `a` to pin its tooltip and open the runbook link. Nodes `b` and `c` do not show a footer link.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 8,
@@ -693,8 +675,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "a-->b,b-->c\n5,7"
@@ -702,8 +683,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "a,b,c\n12,8,3"
@@ -712,8 +692,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "Convert field type changes `mainstat` to a number. Rows to fields then uses `id` as the field name, `mainstat` as the value, and the other columns as labels.",
       "fieldConfig": {
@@ -758,8 +737,7 @@
         {
           "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -787,8 +765,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "The plugin converts this row-format input before Grafana applies field overrides. The override picker therefore lists one field for each edge.",
       "fieldConfig": {
@@ -823,8 +800,7 @@
         {
           "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -835,8 +811,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "Three fully connected nodes create six directed edge fields. Each ribbon remains available for its own field override.",
       "fieldConfig": {
@@ -890,8 +865,7 @@
         {
           "csvContent": "row,a-->b,a-->c,b-->a,b-->c,c-->a,c-->b\ntotal,10,20,30,40,50,60",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -906,8 +880,7 @@
       "title": "Dense \u2014 the same six edges, drawn as a chord",
       "description": "Chord shows the same six directed edges and keeps the color override for `b-->a`. Chord supports cycles and self-links.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 9,
@@ -955,8 +928,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "row,a-->b,a-->c,b-->a,b-->c,c-->a,c-->b\ntotal,10,20,30,40,50,60"
@@ -965,8 +937,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "Grouping to matrix converts the row-format edges into an adjacency matrix. A matrix column represents a node, so it cannot use a separate field configuration for each edge.",
       "fieldConfig": {
@@ -1008,8 +979,7 @@
         {
           "csvContent": "id,source,target,mainstat\na-->b,a,b,10\na-->c,a,c,20\nb-->a,b,a,30\nb-->c,b,c,40\nc-->a,c,a,50\nc-->b,c,b,60",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -1046,8 +1016,7 @@
       "title": "The matrix transformation never runs \u2014 the conversion got there first",
       "description": "The panel converts row-format data before dashboard transformations run. Grouping to matrix cannot find the original `source`, `target`, and `mainstat` columns, so this panel keeps the edge-per-field data.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 9,
@@ -1079,8 +1048,7 @@
         {
           "csvContent": "id,source,target,mainstat\na-->b,a,b,10\na-->c,a,c,20\nb-->a,b,a,30\nb-->c,b,c,40\nc-->a,c,a,50\nc-->b,c,b,60",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -1111,8 +1079,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "Each time series frame represents one edge. Calculation reduces each series to one value. The `a-->c` field has its own color override.",
       "fieldConfig": {
@@ -1183,8 +1150,7 @@
         {
           "alias": "a-->b",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_metric_values",
@@ -1193,8 +1159,7 @@
         {
           "alias": "a-->c",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "B",
           "scenarioId": "csv_metric_values",
@@ -1203,8 +1168,7 @@
         {
           "alias": "b-->d",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "C",
           "scenarioId": "csv_metric_values",
@@ -1213,8 +1177,7 @@
         {
           "alias": "c-->d",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "D",
           "scenarioId": "csv_metric_values",
@@ -1230,8 +1193,7 @@
       "title": "Ranged edges, joined into one wide frame",
       "description": "Join by field combines the edge series on `Time`. The legend names become field names, so each edge can use its own override.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 9,
@@ -1296,8 +1258,7 @@
         {
           "alias": "a-->b",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_metric_values",
@@ -1306,8 +1267,7 @@
         {
           "alias": "a-->c",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "B",
           "scenarioId": "csv_metric_values",
@@ -1316,8 +1276,7 @@
         {
           "alias": "b-->d",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "C",
           "scenarioId": "csv_metric_values",
@@ -1326,8 +1285,7 @@
         {
           "alias": "c-->d",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "D",
           "scenarioId": "csv_metric_values",
@@ -1346,8 +1304,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "The panel reads the wide edge frame without transformations. It derives the four nodes from the edge endpoints. Add a nodes frame when nodes need values, links, or overrides.",
       "fieldConfig": {
@@ -1381,8 +1338,7 @@
         {
           "csvContent": "a-->b,a-->c,b-->d,c-->d\n60,40,60,40",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
