@@ -68,3 +68,5 @@ scripts/*
 !scripts/bench/
 scripts/bench/*
 !scripts/bench/relations-refresh.mjs
+# Generated Relations release bundles
+/grafana-relations-panel-*.zip*
