@@ -68,12 +68,25 @@ Root `README.md` describes the repository and the standalone Relations panel.
 The catalog uses absolute links where Grafana requires them.
 The screenshots use the provisioned Relations dashboards.
 
-### 5. Resolve release-risk tests
+### 5. Resolve release-risk tests (complete)
 
-Decide whether the save-and-reload test in `todo/relations-persistence-e2e.md` blocks release.
-Run the focused dashboard and tooltip tests.
-Run the repository checks before the release workflow creates the Cloud artifact.
-Do not update canvas snapshots for this work.
+The automated save-and-reload test in `todo/relations-persistence-e2e.md` does not block the first Cloud artifact.
+Unit tests cover the plugin write and read paths, and the browser verification covers option rebuilds.
+Cloud dev must pass a manual drag, save, and reload check before ops promotion.
+The automated end-to-end gap remains open for a later release.
+
+The focused dashboard and tooltip run passed on 2026-09-18:
+
+- 19 test suites passed.
+- 209 tests passed.
+- No snapshots ran.
+
+The repository checks passed on 2026-09-18:
+
+- TypeScript, ESLint, and Prettier checks passed.
+- 153 test suites passed.
+- 2,375 tests passed and 2 tests were skipped.
+- All 175 existing snapshots passed without updates.
 
 ### 6. Replace the scaffold release workflow
 
