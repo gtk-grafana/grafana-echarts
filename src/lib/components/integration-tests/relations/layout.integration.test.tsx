@@ -213,20 +213,21 @@ describe('relations layout', () => {
       expect(chart.getWidth()).toBe(800);
       expect(chart.getHeight()).toBeLessThanOrEqual(500);
 
-      // Paint queued display-list work without changing the chart size or layout.
-      chart.getZr().flush();
-
-      const seriesEvents = seriesContext.__getEvents();
-      const nodes = nodeBounds(seriesEvents).slice(-12);
       const plotWidth = chart.getWidth();
       const plotHeight = chart.getHeight();
-      expect(nodes).toHaveLength(12);
-      for (const node of nodes) {
-        expect(node.centerX - node.radiusX).toBeGreaterThanOrEqual(0);
-        expect(node.centerX + node.radiusX).toBeLessThanOrEqual(plotWidth);
-        expect(node.centerY - node.radiusY).toBeGreaterThanOrEqual(0);
-        expect(node.centerY + node.radiusY).toBeLessThanOrEqual(plotHeight);
-      }
+      await waitFor(() => {
+        // Paint the latest force-layout frame without changing the chart size.
+        chart.getZr().flush();
+        const nodes = nodeBounds(seriesContext.__getEvents()).slice(-12);
+
+        expect(nodes).toHaveLength(12);
+        for (const node of nodes) {
+          expect(node.centerX - node.radiusX).toBeGreaterThanOrEqual(0);
+          expect(node.centerX + node.radiusX).toBeLessThanOrEqual(plotWidth);
+          expect(node.centerY - node.radiusY).toBeGreaterThanOrEqual(0);
+          expect(node.centerY + node.radiusY).toBeLessThanOrEqual(plotHeight);
+        }
+      });
     });
 
     it('keeps a mounted preview frozen until a field values object changes', async () => {
