@@ -4,8 +4,7 @@ Loki, Grafana, Tempo and Prometheus in Docker, for developing the panels
 against **real data sources** instead of TestData.
 
 ```sh
-pnpm run build          # docker serves ./dist; rebuild before you look
-pnpm run server:lgtm    # http://localhost:3010
+pnpm run server:lgtm # builds the app, then starts it on http://localhost:3010
 ```
 
 Separate from `pnpm run server`, which stays a single Grafana container with

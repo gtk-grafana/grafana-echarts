@@ -99,7 +99,7 @@
         }
       ],
       "title": "Saved response (small) — ECharts",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -179,7 +179,7 @@
         }
       ],
       "title": "Saved response (medium) — ECharts",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -263,7 +263,7 @@
         }
       ],
       "title": "Random (cyclic) — ECharts",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -347,7 +347,7 @@
         }
       ],
       "title": "Edges only — ECharts",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -427,7 +427,7 @@
         }
       ],
       "title": "Feature showcase — ECharts",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -468,7 +468,7 @@
         }
       ],
       "title": "Node values — mainstat under each label (ECharts)",
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "options": {
         "legend": {
           "showLegend": true,

@@ -26,7 +26,7 @@
     },
     {
       "id": 2,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Route A — service → level, no transformations",
       "description": "This Sankey chart groups log lines by service and detected level. The ranged query adds `source` and `target` labels with `label_format`.\n\nThe outer aggregation keeps `service_name` and `detected_level`. The panel uses these original labels for ad hoc filters.\n\nThe Transform tab is empty because the panel reads the labels directly. The Sum calculation adds the counts from all time buckets.\n\nNode values are off because the query supplies edge values only. A derived node has no service total.",
       "datasource": {
@@ -122,7 +122,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Route B — service → logger, with per-edge ids",
       "description": "This graph uses an instant query and creates an `edge` label in LogQL. Organize fields puts `edge` first and renames `src` and `dst` to `source` and `target`.\n\nThe query and transformation keep `service_name` and `logger`. The panel uses these original endpoint labels for ad hoc filters.\n\nRows to fields creates one named field for each edge. The `grafana-->migrator` override changes only that edge.",
       "datasource": {
@@ -231,7 +231,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Three tiers from two queries — grafana → logger → level",
       "description": "This Sankey chart combines two ranged queries. Query A supplies `service → logger` edges, and query B supplies `logger → level` edges.\n\nBoth queries keep their original endpoint labels after they add `source` and `target`. The panel detects the correct ad hoc filter names for each edge.\n\nThe logger allow-list keeps the middle column stable across the selected time range. Some logger lines have no detected level, so the totals can differ.",
       "datasource": {
@@ -307,7 +307,7 @@
     },
     {
       "id": 5,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Service × level as a matrix — chord",
       "description": "This chord chart uses the same service-to-level query as the Sankey chart. The query keeps the original endpoint labels for ad hoc filters.\n\nArc length shows the total for each service or level. The `error` and `warn` overrides use edge display names from `legendFormat`. Link color comes from the target node.",
       "datasource": {

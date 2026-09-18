@@ -39,7 +39,7 @@
     },
     {
       "id": 1,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Chart type — Sankey",
       "description": "Selects how the panel draws the same nodes and links. This panel uses Sankey, which shows each link as a flow ribbon.\n\nDefault: `graph`.",
       "datasource": {
@@ -92,7 +92,7 @@
     },
     {
       "id": 19,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Node alignment — Justify",
       "description": "Sets the column for a Sankey node that can fit in more than one column. This panel uses Justify, so Cache moves to the last column while Logs stays in the first column. Compare it with panels 43 and 44.\n\nDefault: `left`.",
       "datasource": {
@@ -138,7 +138,7 @@
     },
     {
       "id": 20,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Flow direction — Vertical",
       "description": "Sets the direction of a Sankey chart. This panel uses Vertical, so flow moves from top to bottom instead of left to right. Node labels move with the new direction.\n\nDefault: `horizontal`.",
       "datasource": {
@@ -192,7 +192,7 @@
     },
     {
       "id": 21,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Node width — 40px",
       "description": "Sets the thickness of each Sankey node bar in pixels. In a horizontal chart, this value sets the bar width. In a vertical chart, it sets the bar height. This panel uses 40 px.\n\nDefault: `20`.",
       "datasource": {
@@ -247,7 +247,7 @@
     },
     {
       "id": 22,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Node gap — 30px",
       "description": "Sets the space in pixels between Sankey nodes in the same column. This panel uses 30 px, so the middle nodes move apart and the ribbons spread out. Increase the gap when node labels overlap.\n\nDefault: `8`.",
       "datasource": {
@@ -302,7 +302,7 @@
     },
     {
       "id": 23,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Ribbon curveness — 0",
       "description": "Sets how much Sankey ribbons curve between nodes. This panel uses 0, so straight-sided bands connect the columns. Higher values produce stronger curves. Graph charts use Link curveness instead.\n\nDefault: `0.5`.",
       "datasource": {
@@ -357,7 +357,7 @@
     },
     {
       "id": 24,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Ribbon opacity — 0.8",
       "description": "Sets the opacity of Sankey ribbons from 0 to 1. This panel uses 0.8, so the ribbons are nearly solid. Lower values make overlapping ribbons easier to distinguish.\n\nDefault: `0.2`.",
       "datasource": {
@@ -412,7 +412,7 @@
     },
     {
       "id": 25,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Layout iterations — 0",
       "description": "Sets how many passes ECharts uses to reduce ribbon crossings in a Sankey chart. This panel uses 0, so it shows the first layout.\n\nDefault: `32`.",
       "datasource": {
@@ -467,7 +467,7 @@
     },
     {
       "id": 33,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Draggable nodes — on",
       "description": "Lets you move one node and saves its new position as a field override. Drag a Sankey bar up or down and watch its ribbons move. You can also drag nodes in a Graph chart with Fixed layout. Force and Circular layouts calculate positions again, so they do not support this option.\n\nDefault: off.",
       "datasource": {
@@ -522,7 +522,7 @@
     },
     {
       "id": 40,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Link color — Gradient on Sankey",
       "description": "Controls how each ribbon gets its color. This Sankey panel uses Gradient, so each ribbon blends from its source node color to its target node color.\n\nDefault: `gradient`.",
       "datasource": {
@@ -576,7 +576,7 @@
     },
     {
       "id": 41,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Show edge values — Sankey",
       "description": "Controls whether link weights appear on the chart. This Sankey panel shows each value on its flow ribbon, so you can compare the flow without opening a tooltip.\n\nDefault: off.",
       "datasource": {
@@ -631,7 +631,7 @@
     },
     {
       "id": 43,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Node alignment — Left",
       "description": "Sets the column for a Sankey node that can fit in more than one column. This panel uses Left, so Cache stays in the middle column and Logs stays in the first column. Compare it with panel 19.\n\nDefault: `left`.",
       "datasource": {
@@ -677,7 +677,7 @@
     },
     {
       "id": 44,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Node alignment — Right",
       "description": "Sets the column for a Sankey node that can fit in more than one column. This panel uses Right, so Cache stays in the last column and Logs moves to the middle column. Compare it with panel 19.\n\nDefault: `left`.",
       "datasource": {
@@ -736,7 +736,7 @@
     },
     {
       "id": 2,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Calculation — Max, plus Min as a tooltip row",
       "description": "Selects the value that represents each node and link. This panel uses Max and shows Min as an extra tooltip row. Hover a node to compare the values. Show node values is on so you can see the Max value.\n\nDefault: `median`.",
       "datasource": {
@@ -794,7 +794,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Time slider — on",
       "description": "Shows node and link values at one time. Drag the time slider and watch the link values change. This option needs data with more than one time value.\n\nDefault: off.",
       "datasource": {
@@ -851,7 +851,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Show node labels — off",
       "description": "Controls whether the panel draws each node name. This panel turns node labels off, so you see symbols without names. Other node label options are hidden when this option is off.\n\nDefault: on.",
       "datasource": {
@@ -906,7 +906,7 @@
     },
     {
       "id": 5,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Show node values — on",
       "description": "Adds the calculated value below each node name. The node field controls the unit, decimals, and value mapping. The option is not available when the response contains links without node values.\n\nDefault: off.",
       "datasource": {
@@ -961,7 +961,7 @@
     },
     {
       "id": 6,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Hide overlapping labels — off",
       "description": "Controls whether the panel hides labels that overlap. This panel turns the option off, so all 16 long service names appear and some labels overlap. Node symbols, colors, and tooltips do not change.\n\nDefault: on.",
       "datasource": {
@@ -1017,7 +1017,7 @@
     },
     {
       "id": 7,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Label overflow — None",
       "description": "Controls what happens when a node name is wider than the label width. This panel uses None, so the full names extend past the 70 px width. Truncate cuts long names and adds an ellipsis.\n\nDefault: `truncate`.",
       "datasource": {
@@ -1074,7 +1074,7 @@
     },
     {
       "id": 8,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Label width — 40px",
       "description": "Sets the maximum node label width in pixels. This panel uses 40 px, so each long service name is truncated earlier. This option is hidden when Label overflow is None.\n\nDefault: `120`.",
       "datasource": {
@@ -1130,7 +1130,7 @@
     },
     {
       "id": 9,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Show edge values — on",
       "description": "Draws each link value on the link. The link field controls the displayed unit and decimals. This option is available for Graph and Sankey charts, but not for Chord charts.\n\nDefault: off.",
       "datasource": {
@@ -1185,7 +1185,7 @@
     },
     {
       "id": 10,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Layout — Fixed (a smiley face)",
       "description": "Places each node at its fixed X and Y coordinates. The coordinates in this panel form a face. The classic palette gives nodes different colors, and the default link gradient blends the source and target colors. Fixed layout is available in Advanced mode.\n\nDefault: `force`. The panel selects Fixed when every node has coordinates.",
       "datasource": {
@@ -1703,7 +1703,7 @@
     },
     {
       "id": 11,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Node size — 45px",
       "description": "Sets the diameter of graph nodes in pixels. This panel uses 45 px, so its nodes are larger than the default. A node-specific size overrides this value. Sankey charts use Node width instead.\n\nDefault: `20`.",
       "datasource": {
@@ -1758,7 +1758,7 @@
     },
     {
       "id": 12,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Repulsion — 1200",
       "description": "Sets how strongly nodes push away from each other in a Force layout. This panel uses 1200. An explicit value replaces only the automatic repulsion value.\n\nDefault: Automatic.",
       "datasource": {
@@ -1814,7 +1814,7 @@
     },
     {
       "id": 13,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Edge length — 40",
       "description": "Sets the target length of each link in pixels for a Force layout. This panel uses 40. An explicit value replaces only the automatic edge length.\n\nDefault: Automatic.",
       "datasource": {
@@ -1870,7 +1870,7 @@
     },
     {
       "id": 14,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Gravity — 0.5",
       "description": "Sets how strongly a Force layout pulls nodes toward the center of the panel. This panel uses 0.5. An explicit value replaces only the automatic gravity value.\n\nDefault: Automatic.",
       "datasource": {
@@ -1926,7 +1926,7 @@
     },
     {
       "id": 15,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Zoom — on",
       "description": "Shows zoom in, zoom out, and reset buttons in the panel corner. Use these buttons when the full chart does not fit in the panel. The mouse wheel continues to scroll the dashboard. Chord charts do not support zoom.\n\nDefault: off.",
       "datasource": {
@@ -1981,7 +1981,7 @@
     },
     {
       "id": 16,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Link color — Target",
       "description": "Selects the node color that each link uses. This panel uses the target node color. Source uses the source node color. Gradient blends both colors in Sankey charts and Graph charts with Fixed layout. A link-specific color overrides this option.\n\nDefault: `gradient`.",
       "datasource": {
@@ -2036,7 +2036,7 @@
     },
     {
       "id": 17,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Edge arrows — off",
       "description": "Controls whether each graph link has an arrowhead at its target. This panel turns arrows off, so the links do not show direction. Sankey ribbons show direction through their shape and do not use this option.\n\nDefault: on.",
       "datasource": {
@@ -2091,7 +2091,7 @@
     },
     {
       "id": 18,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Link curveness — 0.4",
       "description": "Sets the curve of graph links from 0 to 1. This panel uses 0.4, so links bend and both directions of a two-way connection stay visible. Sankey charts use Ribbon curveness instead.\n\nDefault: unset, which draws straight links.",
       "datasource": {
@@ -2147,7 +2147,7 @@
     },
     {
       "id": 31,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Legend — Table, placed right",
       "description": "Shows one legend entry for each node. This panel uses a table on the right. Use the color control in an entry to change that node. Use the visibility control to hide that node. Legend calculations are not available because Calculation already gives each node one value.\n\nDefault: a visible list at the bottom.",
       "datasource": {
@@ -2201,7 +2201,7 @@
     },
     {
       "id": 32,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Pan — on",
       "description": "Lets you move the full chart inside the panel. Drag an empty part of the plot area and watch the chart follow the pointer. This option does not change the chart until you drag. Chord charts do not support pan. Turn on Remember view to keep the new position after a reload.\n\nDefault: off.",
       "datasource": {
@@ -2256,7 +2256,7 @@
     },
     {
       "id": 34,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Color scheme — by value (Green-Yellow-Red)",
       "description": "Colors each node and link from its calculated value. This panel uses the Green-Yellow-Red gradient with a fixed range from 0 to 85. Gateway is green at 20, API is yellow at 55, and DB reaches red at 85. Higher values also use red.\n\nDefault: Classic palette.",
       "datasource": {
@@ -2314,7 +2314,7 @@
     },
     {
       "id": 35,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Thresholds — absolute steps at 50 and 80",
       "description": "Colors each node and link by threshold bands. This panel uses green below 50, yellow from 50 to 80, and red above 80. Min and Max are 0 and 100, so each color represents a fixed value range. Show node values is on so you can compare each value with its color. Percentage thresholds use the data range instead.",
       "datasource": {
@@ -2389,7 +2389,7 @@
     },
     {
       "id": 36,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Value mappings — colour and text",
       "description": "Replaces field values with text and colors. This panel maps 1 to Healthy and green, 2 to Degraded and orange, and 3 to Down and red. Node labels and tooltips show the mapped text. The mapping color overrides the Classic palette for that node.\n\nDefault: no value mappings.",
       "datasource": {
@@ -2466,7 +2466,7 @@
     },
     {
       "id": 38,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Label overflow — Wrap",
       "description": "Controls how a node name uses the label width. This panel wraps long service names at word boundaries, so the full names use more than one line.\n\nDefault: `truncate`.",
       "datasource": {
@@ -2521,7 +2521,7 @@
     },
     {
       "id": 39,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Link color — Source",
       "description": "Controls which endpoint supplies each link color. This panel uses Source, so every link uses the color of the node where the link starts. Compare it with panel 16.\n\nDefault: `gradient`.",
       "datasource": {
@@ -2576,7 +2576,7 @@
     },
     {
       "id": 42,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Highlight adjacency — off",
       "description": "Controls the hover focus. Hover a node in this dense graph. Unrelated nodes and links stay fully visible because Highlight adjacency is off. Turn it on to fade unrelated marks.\n\nDefault: on.",
       "datasource": {
@@ -2644,7 +2644,7 @@
     },
     {
       "id": 26,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Start angle — 0°",
       "description": "Sets where the first Chord arc starts in degrees. This panel uses 0 degrees, so the first arc starts at the right side of the ring. A value of 90 starts at the top.\n\nDefault: `90`.",
       "datasource": {
@@ -2699,7 +2699,7 @@
     },
     {
       "id": 27,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Clockwise — off",
       "description": "Sets the direction of Chord arcs from the start angle. This panel turns Clockwise off, so the arcs run counterclockwise and the node order reverses. Compare the order with another Chord panel.\n\nDefault: on.",
       "datasource": {
@@ -2754,7 +2754,7 @@
     },
     {
       "id": 28,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Arc gap — 12°",
       "description": "Sets the gap in degrees between adjacent Chord arcs. This panel uses 12 degrees, so the spaces between arcs are easy to see. The value is an angle, not a pixel distance.\n\nDefault: `3`.",
       "datasource": {
@@ -2809,7 +2809,7 @@
     },
     {
       "id": 29,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Minimum arc angle — 20°",
       "description": "Sets the smallest angle that a Chord node arc can use. This panel uses 20 degrees, so nodes with low flow remain visible instead of shrinking to nothing.\n\nDefault: `0`.",
       "datasource": {
@@ -2864,7 +2864,7 @@
     },
     {
       "id": 30,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Ribbon opacity — 0.7",
       "description": "Sets the opacity of Chord ribbons from 0 to 1. This panel uses 0.7, so the ribbons are easy to see but can hide ribbons below them. Lower values help when many ribbons cross.\n\nDefault: `0.2`.",
       "datasource": {
@@ -2919,7 +2919,7 @@
     },
     {
       "id": 37,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Chart type — Chord baseline",
       "description": "Selects how the panel draws the same nodes and links. This panel uses Chord, which shows each node as a ring arc and each link as a ribbon across the ring.\n\nDefault: `graph`.",
       "datasource": {
@@ -2972,7 +2972,7 @@
     },
     {
       "id": 45,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Link color — Gradient on Chord",
       "description": "Controls how each ribbon gets its color. This Chord panel uses Gradient, so each ribbon blends from its source arc color to its target arc color.\n\nDefault: `gradient`.",
       "datasource": {
@@ -3026,7 +3026,7 @@
     },
     {
       "id": 46,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Link color — Source on Chord",
       "description": "Controls how each ribbon gets its color. This Chord panel uses Source, so each ribbon uses the color of its source arc. Compare it with the Gradient and Target panels in this row.\n\nDefault: `gradient`.",
       "datasource": {
@@ -3080,7 +3080,7 @@
     },
     {
       "id": 47,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Link color — Target on Chord",
       "description": "Controls how each ribbon gets its color. This Chord panel uses Target, so each ribbon uses the color of its target arc. Compare it with the Gradient and Source panels in this row.\n\nDefault: `gradient`.",
       "datasource": {

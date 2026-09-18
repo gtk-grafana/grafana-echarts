@@ -188,7 +188,7 @@
       ],
       "title": "Service graph — Tempo metrics-generator via Prometheus",
       "transformations": [],
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {

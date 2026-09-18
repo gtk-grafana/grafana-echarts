@@ -3,7 +3,7 @@
   "type": "panel",
   "suggestions": true,
   "name": "ECharts Relations",
-  "id": "grafana-echarts-relations-panel",
+  "id": "grafana-relations-panel",
   "info": {
     "keywords": ["panel", "echarts", "graph", "node graph", "relations", "service map", "sankey", "chord"],
     "description": "Display service maps, flows, and other connected data as interactive graphs, Sankey diagrams, or chord diagrams.",

@@ -47,7 +47,7 @@ jobs:
           plugin_version=$(node -p "require('./dist/plugin.json').info.version")
           archive="${plugin_id}-${plugin_version}.zip"
 
-          test "$plugin_id" = "grafana-echarts-relations-panel"
+          test "$plugin_id" = "grafana-relations-panel"
           test "$plugin_type" = "panel"
           test "$GITHUB_REF_NAME" = "v${plugin_version}"
           test -f dist/module.js

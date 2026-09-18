@@ -53,7 +53,7 @@
         }
       ],
       "title": "Random walk — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -99,7 +99,7 @@
         }
       ],
       "title": "Flame graph in Relations — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -190,7 +190,7 @@
         }
       ],
       "title": "Shared invalid frame — Graph — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -235,7 +235,7 @@
         }
       ],
       "title": "Shared invalid frame — Sankey — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -280,7 +280,7 @@
         }
       ],
       "title": "Shared invalid frame — Chord — expect: Graph data is missing edges. Add source and target labels to each numeric edge field.",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -326,7 +326,7 @@
         }
       ],
       "title": "Declared nodes only — expect: Graph data contains nodes but no edges. Add an edges frame.",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -372,7 +372,7 @@
         }
       ],
       "title": "Declared edges without endpoints — expect: Graph edge fields are missing endpoints. Add source and target labels to each numeric edge field.",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -425,7 +425,7 @@
         }
       ],
       "title": "Valid graph, all marks hidden — expect: All graph marks are hidden. Show at least one node or edge in the field configuration.",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -471,7 +471,7 @@
         }
       ],
       "title": "Successful empty response — expect: No data",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -521,7 +521,7 @@
         }
       ],
       "title": "Query-error control — expect Grafana query error: Relations query-error control",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     },
     {
       "datasource": {
@@ -567,7 +567,7 @@
         }
       ],
       "title": "Valid graph control — expect a rendered alpha → beta → gamma graph",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     }
   ],
   "preload": false,

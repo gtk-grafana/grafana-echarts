@@ -12,7 +12,7 @@ const dashboard = (): { panels: PerformancePanel[] } => JSON.parse(readFileSync(
 
 describe('the Relations performance-limits dashboard', () => {
   it('converts every TestData Node Graph response to wide fields', () => {
-    const panels = dashboard().panels.filter(({ type }) => type === 'grafana-echarts-relations-panel');
+    const panels = dashboard().panels.filter(({ type }) => type === 'grafana-relations-panel');
 
     expect(panels).toHaveLength(12);
     expect(panels.every(({ transformations }) => transformations?.some(({ id }) => id === 'rowsToFields'))).toBe(true);

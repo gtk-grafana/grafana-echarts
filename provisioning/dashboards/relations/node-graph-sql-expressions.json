@@ -151,7 +151,7 @@
         }
       ],
       "title": "Same frames — ECharts relations panel",
-      "type": "grafana-echarts-relations-panel"
+      "type": "grafana-relations-panel"
     }
   ],
   "refresh": "",

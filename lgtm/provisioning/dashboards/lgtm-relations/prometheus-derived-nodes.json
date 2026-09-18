@@ -54,7 +54,7 @@
     },
     {
       "id": 2,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Control — the live service graph, nothing configured",
       "description": "The query returns one ranged series for each edge. The `client` and `server` labels identify the endpoints and the ad hoc filter names.\n\nEvery node is derived because the query returns no node fields. The `prometheus → prometheus` edge is a self-loop.\n\nTempo uses `user` as a virtual node for requests that have no client span. A virtual node is part of the data, while a derived node describes how the panel creates a mark.",
       "datasource": {
@@ -118,7 +118,7 @@
     },
     {
       "id": 3,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "The same graph, with three overrides on nodes nothing declared",
       "description": "This panel uses the same query and panel configuration as the control. It adds three overrides for node names that the query does not return as fields:\n\n- `grafana` changes color, size, and display name.\n- `user` adds a subtitle and data link.\n- `grafana-assistant-app` hides the node and its connected edge.\n\nIn this dashboard, only the hide override takes effect. The other overrides need derived node fields before Grafana applies field overrides.",
       "datasource": {
@@ -244,7 +244,7 @@
     },
     {
       "id": 4,
-      "type": "grafana-echarts-relations-panel",
+      "type": "grafana-relations-panel",
       "title": "Show node values — a derived node has no stat to show",
       "description": "Show node values is on, but the query supplies values for edges only. A derived node has no numeric value to display.\n\nThe panel does not use node degree as a value. Node degree is the number of connected edges, not a service measurement.\n\nEdge tooltips still show the request rate from each edge field.",
       "datasource": {
