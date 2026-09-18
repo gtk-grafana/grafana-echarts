@@ -6,7 +6,9 @@ const manifest = JSON.parse(readFileSync(repoFile('src/modules/relations/plugin.
 const approvedPluginId = 'grafana-echarts-relations-panel';
 
 const dashboardFiles = [
-  ...globSync('provisioning/dashboards/relations/*.json'),
+  ...globSync('provisioning/dashboards/**/*.json').filter(
+    (path) => !path.startsWith('provisioning/dashboards/local/') && !path.startsWith('provisioning/dashboards/gdev/')
+  ),
   ...globSync('lgtm/provisioning/dashboards/**/*.json'),
 ];
 
