@@ -5,6 +5,8 @@
     "build": "webpack -c ./webpack.config.ts --env production",
     "build:analyze": "webpack -c ./webpack.config.ts --env production --env analyze",
     "build:relations": "webpack -c ./webpack.config.ts --env production --env standalone=relations",
+    "archive:relations": "node scripts/package-relations.mjs",
+    "package:relations": "pnpm run build:relations && pnpm run archive:relations",
     "checks": "pnpm run typecheck && pnpm run lint && pnpm run prettier:check && pnpm run test:ci",
     "dev": "webpack -w -c ./webpack.config.ts --env development",
     "test": "jest --watch --onlyChanged",
