@@ -23,8 +23,7 @@
   "panels": [
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This core Node graph uses the small saved response from the TestData data source. Compare it with the ECharts Relations panel on the right.",
       "fieldConfig": {
@@ -42,8 +41,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "type": "response_small"
@@ -57,8 +55,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This panel uses the same small saved response as the core Node graph. The Circular layout keeps node positions stable for comparison.",
       "fieldConfig": {
@@ -92,8 +89,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "type": "response_small"
@@ -107,8 +103,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This core Node graph uses the medium saved response from the TestData data source. It contains enough nodes to show label collisions.",
       "fieldConfig": {
@@ -126,8 +121,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "type": "response_medium"
@@ -141,8 +135,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This panel uses the same medium saved response as the core Node graph. The Circular layout keeps node positions stable.",
       "fieldConfig": {
@@ -176,8 +169,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "type": "response_medium"
@@ -191,8 +183,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This core Node graph uses random TestData that can contain cycles. Graph and Chord can show cycles. Sankey removes links that cause cycles.",
       "fieldConfig": {
@@ -210,8 +201,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "count": 10,
@@ -227,8 +217,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This ECharts graph can show the cycles in the random TestData response. Select Sankey to see which links the panel removes.",
       "fieldConfig": {
@@ -262,8 +251,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "count": 10,
@@ -279,8 +267,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This TestData response contains an edges frame but no nodes frame. Grafana derives the nodes from the `source` and `target` fields.",
       "fieldConfig": {
@@ -298,8 +285,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "count": 8,
@@ -315,8 +301,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This panel derives each node from the `source` and `target` fields. The input does not contain a nodes frame.",
       "fieldConfig": {
@@ -350,8 +335,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "count": 8,
@@ -367,8 +351,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "This core Node graph shows optional node fields such as `arc__*`, `icon`, `color`, and `noderadius`.",
       "fieldConfig": {
@@ -386,8 +369,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "type": "feature_showcase"
@@ -401,8 +383,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "The ECharts panel supports the `color` and `noderadius` fields. It does not render `arc__*` rings or Grafana `icon` values.",
       "fieldConfig": {
@@ -436,8 +417,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "nodes": {
             "type": "feature_showcase"
@@ -451,8 +431,7 @@
     },
     {
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "description": "Show node values adds the formatted `mainstat` below each node name. The setting is available when Show node labels is on.",
       "fieldConfig": {
@@ -474,8 +453,7 @@
         {
           "csvContent": "id,source,target,mainstat\ne1,gateway,api,1200\ne2,gateway,web,800\ne3,api,auth,650\ne4,api,db,900\ne5,auth,db,300\ne6,db,api,120\ne7,web,api,450",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "A",
           "scenarioId": "csv_content"
@@ -483,8 +461,7 @@
         {
           "csvContent": "id,title,mainstat\ngateway,Gateway,1200\napi,API,2450\nweb,Web,800\nauth,Auth,650\ndb,Database,1200",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "refId": "B",
           "scenarioId": "csv_content"

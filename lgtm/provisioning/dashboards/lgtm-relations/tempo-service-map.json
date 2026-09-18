@@ -30,8 +30,7 @@
       "title": "Grafana's Node graph — the reference",
       "description": "This Node graph panel shows the Tempo response without transformations. Tempo supplies row-based `Nodes` and `Edges` frames in the format that Node graph reads directly.\n\nUse this panel to compare the topology with the relations graph. Node graph can show two node statistics and status arcs at the same time.",
       "datasource": {
-        "type": "tempo",
-        "uid": "lgtm-tempo"
+        "type": "tempo"
       },
       "gridPos": {
         "h": 12,

@@ -47,8 +47,7 @@
       "title": "Service dependency map \u2014 graph",
       "description": "Prometheus query A provides service-call edges. Query B provides the error ratio for each server node. Separate Join by field transformations keep edges and nodes in different frames. Graph keeps the cycle in the service calls.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -151,8 +150,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -227,8 +225,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -320,8 +317,7 @@
       "title": "Kubernetes CPU requests \u2014 sankey",
       "description": "Two Prometheus queries provide node-to-namespace and namespace-to-workload edges. Join by field gives each edge a field name. The input has no node frame, so the panel derives nodes from the endpoints.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -365,8 +361,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -411,8 +406,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -477,8 +471,7 @@
       "title": "Cross-AZ request matrix \u2014 chord",
       "description": "A Prometheus query groups Istio requests by source and destination zone. Chord keeps both directions and self-links. Ribbon width shows the request rate.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -520,8 +513,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -598,8 +590,7 @@
       "title": "The table route \u2014 graph, instant + label_join",
       "description": "This Prometheus instant-table query creates an edge `id` with `label_join`. Organize fields and Rows to fields convert each row into an edge field. The `source` and `target` labels provide the endpoints.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -644,8 +635,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "Time,client,id,server,Value\n1754400000000,frontend,frontend:gateway,gateway,1560\n1754400000000,gateway,gateway:auth,auth,655\n1754400000000,gateway,gateway:catalogue,catalogue,890\n1754400000000,gateway,gateway:cart,cart,445\n1754400000000,gateway,gateway:checkout,checkout,205\n1754400000000,auth,auth:postgres,postgres,325\n1754400000000,catalogue,catalogue:postgres,postgres,815\n1754400000000,cart,cart:redis,redis,1310\n1754400000000,checkout,checkout:payments,payments,188\n1754400000000,checkout,checkout:postgres,postgres,140\n1754400000000,payments,payments:gateway,gateway,58"
@@ -698,8 +688,7 @@
       "title": "Service call graph from structured logs \u2014 graph",
       "description": "A LogQL metric query counts calls between services. Join by field converts the series into edge fields. Sum shows the total count over the selected time range.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -743,8 +732,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -815,8 +803,7 @@
       "title": "Log volume by cluster \u2192 namespace \u2192 level \u2014 sankey",
       "description": "Two LogQL queries provide cluster-to-namespace and namespace-to-level edges. Ribbon width shows the log count. The input has no node frame, so the panel derives nodes from the endpoints.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -860,8 +847,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -906,8 +892,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -984,8 +969,7 @@
       "title": "Page-transition matrix from ingress access logs \u2014 chord",
       "description": "A LogQL metric query groups ingress logs by referrer path and destination path. Chord keeps forward links, back links, and the `/home` self-link.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -1027,8 +1011,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -1105,8 +1088,7 @@
       "title": "Parallel edges via label_format \u2014 graph",
       "description": "The LogQL query creates `source` and `target` labels from JSON fields and groups by `protocol`. HTTP and gRPC therefore appear as separate edges between the same nodes.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -1184,8 +1166,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "predictable_csv_wave",
           "csvWave": [
@@ -1248,8 +1229,7 @@
       "title": "PR rollout by wave \u2014 graph",
       "description": "Each deployment wave is a node. Fixed positions show the rollout from left to right. A threshold on `is_in_build` colors each wave. Select a node to see its version and estimated completion time.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -1471,8 +1451,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "stackwave,wavev2,is_in_build,version,pr_build_number,build_number,wave_idx,eta_epoch_ms\n,dev0,true,13.2.0-30986922018,30866803359,30986922018,0,\n,dev1,true,13.2.0-30986922018,30866803359,30986922018,1,\n,ops,true,13.2.0-30890958429,30866803359,30890958429,2,\n,prod0,false,13.2.0-30631161035,30866803359,30631161035,3,1786005900000\n,prod1,false,13.2.0-30616302309,30866803359,30616302309,4,1786093200000\n<< Wave for a02,prod2,false,13.2.0-30616302309,30866803359,30616302309,5,1786180500000\n,prod3,false,13.2.0-30616302309,30866803359,30616302309,6,1786267800000\n,prod4,false,13.2.0-30537469096,30866803359,30537469096,7,1786355100000"
@@ -1480,8 +1459,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,step\ndev0-->dev1,dev0,dev1,1\ndev1-->ops,dev1,ops,1\nops-->prod0,ops,prod0,1\nprod0-->prod1,prod0,prod1,1\nprod1-->prod2,prod1,prod2,1\nprod2-->prod3,prod2,prod3,1\nprod3-->prod4,prod3,prod4,1"
@@ -1550,8 +1528,7 @@
       "title": "Fleet version spread \u2014 sankey",
       "description": "Each ribbon connects a deployment wave to its current version. Ribbon width shows how many waves use a version. Wave color shows whether its build contains the selected change.",
       "datasource": {
-        "type": "grafana-testdata-datasource",
-        "uid": "trlxrdZVk"
+        "type": "grafana-testdata-datasource"
       },
       "gridPos": {
         "h": 12,
@@ -1646,8 +1623,7 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "stackwave,wavev2,is_in_build,version,pr_build_number,build_number,wave_idx,eta_epoch_ms\n,dev0,true,13.2.0-30986922018,30866803359,30986922018,0,\n,dev1,true,13.2.0-30986922018,30866803359,30986922018,1,\n,ops,true,13.2.0-30890958429,30866803359,30890958429,2,\n,prod0,false,13.2.0-30631161035,30866803359,30631161035,3,1786005900000\n,prod1,false,13.2.0-30616302309,30866803359,30616302309,4,1786093200000\n<< Wave for a02,prod2,false,13.2.0-30616302309,30866803359,30616302309,5,1786180500000\n,prod3,false,13.2.0-30616302309,30866803359,30616302309,6,1786267800000\n,prod4,false,13.2.0-30537469096,30866803359,30537469096,7,1786355100000"
@@ -1655,8 +1631,7 @@
         {
           "refId": "B",
           "datasource": {
-            "type": "grafana-testdata-datasource",
-            "uid": "trlxrdZVk"
+            "type": "grafana-testdata-datasource"
           },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,waves\ndev0-->13.2.0-30986922018,dev0,13.2.0-30986922018,1\ndev1-->13.2.0-30986922018,dev1,13.2.0-30986922018,1\nops-->13.2.0-30890958429,ops,13.2.0-30890958429,1\nprod0-->13.2.0-30631161035,prod0,13.2.0-30631161035,1\nprod1-->13.2.0-30616302309,prod1,13.2.0-30616302309,1\nprod2-->13.2.0-30616302309,prod2,13.2.0-30616302309,1\nprod3-->13.2.0-30616302309,prod3,13.2.0-30616302309,1\nprod4-->13.2.0-30537469096,prod4,13.2.0-30537469096,1"

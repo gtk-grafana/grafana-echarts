@@ -1,8 +1,8 @@
-# ECharts implementation of graph-wide
+# Relations data format reference
 
-The relations family contains the ECharts graph, Sankey, and chord charts. Each chart reads one numeric field as one node or edge.
+ECharts Relations contains graph, Sankey, and chord charts. Each chart reads one numeric field as one node or edge.
 
-The [proposed graph-wide data plane specification](./graph-wide-proposed.md) defines the portable data shape. This document describes how the ECharts relations panel reads that shape.
+The [proposed graph-wide data plane specification](./graph-wide-proposed.md) defines the portable data shape. This reference describes how ECharts Relations reads that shape.
 
 ## Support status
 
@@ -99,7 +99,7 @@ A derived node comes from an edge endpoint when no nodes frame declares it. The 
 
 The panel marks a placeholder frame with `meta.custom.graph.derivedNodes: true`. A later real nodes frame can supply the value and field configuration for the same ID.
 
-If the host does not operate this pre-pass, the panel creates nodes during conversion. These fallback nodes have no field configuration.
+If the host does not run this pre-pass, the panel creates nodes during conversion. These fallback nodes have no field configuration.
 
 For more information, refer to [Derived nodes](../docs/relations-derived-nodes.md).
 
@@ -156,7 +156,7 @@ For a fixed graph layout, every node must supply both coordinates. The `relation
 
 Sankey reads both coordinates only when each value is from `0` through `1`. Chord ignores the coordinates.
 
-The panel stores `custom.icon` during legacy conversion. It does not register an icon field option or send an icon to ECharts.
+The legacy converter stores `custom.icon`. The panel does not expose or render it.
 
 ## Ad hoc filters
 
@@ -215,7 +215,7 @@ The converter drops these items:
 
 ## Conversion to row data
 
-A converter to the row format can preserve style only when the row format has a matching column. Examples include `color`, `thickness`, `strokedasharray`, `noderadius`, and `icon`.
+A converter to the row format can preserve style only when the row format has a matching column. Matching columns include `color`, `thickness`, `strokedasharray`, `noderadius`, and `icon`.
 
 The row format has one shared field configuration for each column. It cannot preserve different field configuration for each mark.
 
@@ -235,4 +235,3 @@ The join adds null values for missing rows. If row dimensions do not align, keep
 - [ECharts Sankey series](https://echarts.apache.org/en/option.html#series-sankey)
 - [ECharts chord series](https://echarts.apache.org/en/option.html#series-chord)
 - [Relations render coverage](./echarts-coverage.md)
-- [Relations design history](../todo/graph-wide-history.md)

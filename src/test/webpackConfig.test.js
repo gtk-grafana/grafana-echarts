@@ -57,6 +57,8 @@ describe('webpack configuration', () => {
         patterns: [
           { from: 'modules/relations/plugin.json', to: 'plugin.json' },
           { from: 'modules/relations/img/logo.svg', to: 'img/logo.svg' },
+          { from: 'modules/relations/img/relations-presets.png', to: 'img/relations-presets.png' },
+          { from: 'modules/relations/img/relations-timeline.png', to: 'img/relations-timeline.png' },
           { from: 'README.md', to: '.', force: true },
           { from: '../CHANGELOG.md', to: '.', force: true },
           { from: '../LICENSE', to: '.' },

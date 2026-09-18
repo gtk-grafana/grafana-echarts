@@ -19,7 +19,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This table contains one row for each caller and callee pair. The columns do not yet use the Node graph field names.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 9, "w": 8, "x": 0, "y": 0 },
@@ -28,7 +28,7 @@
       "targets": [
         {
           "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "refId": "A",
           "scenarioId": "csv_content"
         }
@@ -37,7 +37,7 @@
       "type": "table"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "SQL Expression B renames `caller` and `callee` to `source` and `target`. It also creates `id` and converts `count` to numeric `mainstat`.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 9, "w": 8, "x": 8, "y": 0 },
@@ -46,7 +46,7 @@
       "targets": [
         {
           "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "hide": true,
           "refId": "A",
           "scenarioId": "csv_content"
@@ -62,7 +62,7 @@
       "type": "table"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "SQL Expression C combines both endpoint columns into one list of unique nodes. This frame is optional, but it can provide node titles, subtitles, and values.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 9, "w": 8, "x": 16, "y": 0 },
@@ -71,7 +71,7 @@
       "targets": [
         {
           "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "hide": true,
           "refId": "A",
           "scenarioId": "csv_content"
@@ -87,7 +87,7 @@
       "type": "table"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "The core Node graph reads the edges from expression B and the nodes from expression C. Query A stays hidden but still runs because both expressions use it. SQL Expressions must be available on the Grafana server.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 10, "w": 12, "x": 0, "y": 9 },
@@ -96,7 +96,7 @@
       "targets": [
         {
           "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "hide": true,
           "refId": "A",
           "scenarioId": "csv_content"
@@ -118,7 +118,7 @@
       "type": "nodeGraph"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "The ECharts Relations panel reads the same edges and nodes from expressions B and C. Select `sankey` or `chord` under Chart type to compare layouts. Sankey removes a link when the input contains a cycle.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 10, "w": 12, "x": 12, "y": 9 },
@@ -132,7 +132,7 @@
       "targets": [
         {
           "csvContent": "caller,callee,calls\ngateway,api,1200\ngateway,web,800\napi,auth,650\napi,db,900\nauth,db,300\ndb,api,120\nweb,api,450",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "hide": true,
           "refId": "A",
           "scenarioId": "csv_content"

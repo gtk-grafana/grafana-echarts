@@ -8,7 +8,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This force graph has 200 nodes and 300 links. It is at both automatic safety limits with 500 marks.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
@@ -21,7 +21,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 200, "seed": 0.0002, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -32,7 +32,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This force graph has 201 nodes and 300 links. It is one node and one mark over both automatic safety limits.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
@@ -45,7 +45,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 201, "seed": 1, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -56,7 +56,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This circular graph has 400 nodes and 600 links. It is at the automatic 1,000-mark limit.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
@@ -69,7 +69,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 400, "seed": 1, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -80,7 +80,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This circular graph has 401 nodes and 600 links. It is one mark over the automatic limit.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
@@ -93,7 +93,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 401, "seed": 1, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -104,7 +104,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This fixed graph has 400 nodes and 600 links. It is at the automatic 1,000-mark limit.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
@@ -117,7 +117,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 400, "seed": 1, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -128,7 +128,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This fixed graph has 401 nodes and 600 links. It is one mark over the automatic limit.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
@@ -141,7 +141,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 401, "seed": 1, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -152,7 +152,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This Sankey chart has 100 nodes. Cycle and parallel-link removal occurs before the panel counts the drawn links.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
@@ -160,7 +160,7 @@
       "options": { "seriesType": "sankey", "legend": { "showLegend": false }, "tooltip": { "mode": "single" } },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 100, "seed": 4, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -171,7 +171,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This Sankey chart has 101 nodes. The panel rejects it before Sankey layout work.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
@@ -179,7 +179,7 @@
       "options": { "seriesType": "sankey", "legend": { "showLegend": false }, "tooltip": { "mode": "single" } },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 101, "seed": 4, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -190,7 +190,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This Chord chart has 40 nodes. It is at the automatic node limit and can show no more than 200 marks.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
@@ -198,7 +198,7 @@
       "options": { "seriesType": "chord", "legend": { "showLegend": false }, "tooltip": { "mode": "single" } },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 40, "seed": 5, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -209,7 +209,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This Chord chart has 41 nodes. The panel rejects it before it builds the ribbon scene.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
@@ -217,7 +217,7 @@
       "options": { "seriesType": "chord", "legend": { "showLegend": false }, "tooltip": { "mode": "single" } },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 41, "seed": 5, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -228,7 +228,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This small graph uses Advanced Max marks set to 1. The configured value replaces the automatic mark limit, so the panel shows the limit error.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
@@ -243,7 +243,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 10, "seed": 6, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"
@@ -254,7 +254,7 @@
       "type": "grafana-echarts-relations-panel"
     },
     {
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "description": "This circular graph has 501 nodes, which is above the automatic 500-node limit. Advanced Max marks is 2,000, so the configured limit replaces both automatic limits.",
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
@@ -269,7 +269,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "nodes": { "count": 501, "seed": 7, "type": "random" },
           "refId": "A",
           "scenarioId": "node_graph"

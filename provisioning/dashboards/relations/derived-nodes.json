@@ -22,7 +22,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "Control — edges only, nothing configured",
       "description": "The query returns four edge fields and no nodes frame. The panel creates the `gateway`, `api`, `db`, `cache`, and `auth` nodes from the link endpoints. The panel uses node IDs as labels because the response does not provide node titles.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 9, "w": 8, "x": 0, "y": 0 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "options": {
@@ -34,7 +34,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
         }
@@ -45,7 +45,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "The same edges — three overrides on nodes the response never declared",
       "description": "This panel uses the same edge-only data as the control panel. Field overrides change three inferred nodes:\n\n- `db` is dark red, has a radius of 34, and uses the display name Database.\n- `cache` has a subtitle and a data link. Hover the node, then click the tooltip to keep it open.\n- `auth` and its connected link are hidden from the visualization.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 9, "w": 8, "x": 8, "y": 0 },
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -89,7 +89,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
         }
@@ -100,7 +100,7 @@
       "type": "barchart",
       "title": "What the query actually returns — four fields, none of them a node",
       "description": "This Grafana Bar chart shows the response from the edge-only query. It contains four numeric fields, one for each edge. It does not contain fields named `gateway`, `api`, `db`, `cache`, or `auth`.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 9, "w": 8, "x": 16, "y": 0 },
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisPlacement": "auto" } },
@@ -114,7 +114,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
         }
@@ -125,7 +125,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "Show node values, edges only — one line per node",
       "description": "Show node values is on, but each label has only one line. The edge-only response does not contain measured values for nodes. The panel does not use the number of connected links as a node value. Compare this panel with the panel that has a nodes frame.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "options": {
@@ -138,7 +138,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
         }
@@ -149,7 +149,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "Show node values, nodes declared — the stat is real, and has a unit",
       "description": "The data contains the same edges and a nodes frame with a request rate for each node. Show node values adds the calculated request rate below each label. The nodes frame sets the unit to `req/s`.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps", "decimals": 0 },
@@ -165,13 +165,13 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
         },
         {
           "refId": "B",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway,api,db,cache,auth\n980,760,240,120,90"
         }
@@ -182,7 +182,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "The same overrides, drawn as a sankey",
       "description": "This Sankey chart uses the same edge-only data as the Graph chart. Field overrides make `db` dark red and change its name to Database. The `cache` node has a subtitle. The `auth` node and its connected ribbon are hidden.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 18 },
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -212,7 +212,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
         }
@@ -223,7 +223,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "The same overrides, drawn as a chord",
       "description": "This Chord chart uses the same edge-only data and field overrides as the Graph and Sankey charts. The `db` node is dark red and uses the name Database. The `auth` node and its connected ribbon are hidden. Use Chord when the links contain cycles that you must keep.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 18 },
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -249,7 +249,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,api-->db,api-->cache,gateway-->auth\n120,80,45,30"
         }

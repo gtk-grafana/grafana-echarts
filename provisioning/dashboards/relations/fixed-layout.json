@@ -33,7 +33,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "1 · Fixed, nothing pinned — every node seeded",
       "description": "The edge-only query does not provide node coordinates. The panel places all four nodes on a ring in data order. Reload the dashboard to see that the fallback positions stay the same. Draggable nodes is on, so you can move a node.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 12, "w": 12, "x": 0, "y": 7 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "options": {
@@ -47,7 +47,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
         }
@@ -58,7 +58,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "2 · Fixed, pinned by the data",
       "description": "The nodes frame contains `fixedx` and `fixedy` fields for every node. These fields set the node positions. If Layout is not set, the panel selects Fixed when every node has both coordinates. ECharts scales the coordinate shape to fit the panel.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 12, "w": 12, "x": 12, "y": 7 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "options": {
@@ -71,13 +71,13 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "id,title,mainstat,fixedx,fixedy\ngateway,Gateway,120,60,150\napi,API,80,200,60\nweb,Web,60,200,240\ndb,DB,200,340,150"
         },
         {
           "refId": "B",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "id,source,target,mainstat\ne1,gateway,api,100\ne2,gateway,web,52\ne3,api,db,88\ne4,web,db,41"
         }
@@ -88,7 +88,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "3 · Fixed, pinned by per-node overrides",
       "description": "This panel uses the same positions as panel 2. `Fixed x` and `Fixed y` field overrides set each node position instead of query fields. Select a node by name in the Overrides tab to edit or remove its coordinates.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 12, "w": 12, "x": 0, "y": 19 },
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -133,7 +133,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
         }
@@ -144,7 +144,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "4 · Fixed, half pinned — the two halves coexist",
       "description": "`Fixed x` and `Fixed y` field overrides position `gateway` and `db`. The `api` and `web` nodes do not have coordinates, so the panel places them around the positioned nodes. Draggable nodes is on. Drag an unpositioned node to save the displayed positions.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 12, "w": 12, "x": 12, "y": 19 },
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" } },
@@ -176,7 +176,7 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
         }
@@ -187,7 +187,7 @@
       "type": "grafana-echarts-relations-panel",
       "title": "5 · Drag a node — the position is written back as an override",
       "description": "Drag a node to move it. The panel saves the displayed position of every node as `Fixed x` and `Fixed y` field overrides. Open the Overrides tab to edit or remove the saved positions. The dashboard has unsaved changes until you save it.\n\nRemember view is also on. Drag the background to pan, or use the zoom controls. Save the dashboard to keep the view after a reload.",
-      "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+      "datasource": { "type": "grafana-testdata-datasource" },
       "gridPos": { "h": 12, "w": 24, "x": 0, "y": 31 },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } }, "overrides": [] },
       "options": {
@@ -204,13 +204,13 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway,api,web,db\n120,80,60,200"
         },
         {
           "refId": "B",
-          "datasource": { "type": "grafana-testdata-datasource", "uid": "trlxrdZVk" },
+          "datasource": { "type": "grafana-testdata-datasource" },
           "scenarioId": "csv_content",
           "csvContent": "gateway-->api,gateway-->web,api-->db,web-->db\n100,52,88,41"
         }
