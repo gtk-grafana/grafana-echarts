@@ -26,7 +26,7 @@ const archiveTimestamp = new Date('1980-01-01T00:00:00.000Z');
 
 const normalizeFiles = (directory, relativeDirectory) =>
   readdirSync(directory, { withFileTypes: true })
-    .sort((left, right) => left.name.localeCompare(right.name))
+    .sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0))
     .flatMap((entry) => {
       const entryPath = join(directory, entry.name);
       const relativePath = join(relativeDirectory, entry.name);
