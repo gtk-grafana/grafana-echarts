@@ -90,17 +90,28 @@ The repository checks passed on 2026-09-18:
 
 ### 6. Replace the scaffold release workflow
 
-`.github/workflows/ci.yml` builds, signs, and packages the root app artifact.
-It signs only when `GRAFANA_ACCESS_POLICY_TOKEN` exists.
-`.github/workflows/release.yml` is the tag scaffold, and its signing input is commented out.
+The tag-triggered `.github/workflows/release.yml` is the Relations release workflow.
+It runs the repository checks and builds the standalone Relations plugin.
+It requires the signing token, signs the build, and verifies `MANIFEST.txt`.
+It packages one archive and records its source revision and SHA-256 checksum.
+It runs the full Grafana plugin validator and stops on validator errors.
+It retains the archive, checksum, and validation evidence as a workflow artifact and draft GitHub release.
 
-Select the supported release workflow for the target repository.
-Make it package the standalone Relations artifact.
-Define who owns the signing token and release action.
-Build, sign, and validate one archive from the approved source revision.
-Record the archive checksum, signature result, and validator result.
-Retain the archive so that Cloud dev and ops use the same bytes.
-Remove the ad hoc `sign` script only after the replacement works.
+Pull-request CI no longer signs, validates, or packages a release archive.
+Its uploaded build exists only for end-to-end tests.
+
+After the repository moves to `grafana/dataViz`, the Grafana organization owns and provides the `GRAFANA_ACCESS_POLICY_TOKEN` organization secret.
+Grafana repository maintainers own the release tag and draft release action.
+
+The workflow implementation is complete, but its first successful run is blocked:
+
+- The Grafana organization does not provide the signing token until the repository move.
+- The official validator rejects the approved `grafana-echarts-relations-panel` ID because it does not match the published plugin ID pattern.
+
+Resolve the approved ID conflict with the Grafana plugin platform team before creating the release tag.
+Then build, sign, and validate the archive from the approved source revision.
+Record the workflow run, archive checksum, signature result, and validator result.
+Do not remove the ad hoc `sign` script until that run succeeds.
 
 ### 7. Roll out the immutable artifact to Cloud
 
